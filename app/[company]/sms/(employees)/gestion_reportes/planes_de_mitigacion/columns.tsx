@@ -75,7 +75,7 @@ export const columns: AppColumnDef<MitigationTable>[] = [
       <DataTableColumnHeader column={column} title="Descripción" />
     ),
     cell: ({ row }) => (
-      <p className="max-w-[200px] line-clamp-3 text-center text-xs sm:text-sm break-all overflow-hidden">
+      <p className="max-w-50 line-clamp-3 text-center text-xs sm:text-sm break-all overflow-hidden">
         {row.original.mitigation_plan?.description || "N/A"}
       </p>
     ),

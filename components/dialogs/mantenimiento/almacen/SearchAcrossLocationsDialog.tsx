@@ -1,7 +1,7 @@
-'use client'
+"use client";
 
-import { useDeferredValue, useState } from 'react'
-import { Loader2, MapPin, PackageSearch, Search } from 'lucide-react'
+import { useDeferredValue, useState } from "react";
+import { Loader2, MapPin, PackageSearch, Search } from "lucide-react";
 
 import {
   Dialog,
@@ -9,9 +9,9 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
-import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -19,14 +19,14 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
+} from "@/components/ui/table";
 
-import { formatCondition } from '@/lib/warehouse/conditions'
-import { formatStatusLabel } from '@/lib/warehouse/statuses'
+import { formatCondition } from "@/lib/warehouse/conditions";
+import { formatStatusLabel } from "@/lib/warehouse/statuses";
 import {
   useSearchAcrossLocations,
   type CrossLocationAeronautical,
-} from '@/hooks/mantenimiento/almacen/articulos/useSearchAcrossLocations'
+} from "@/hooks/mantenimiento/almacen/articulos/useSearchAcrossLocations";
 
 /**
  * Qué inventario está consultando: cada uno enseña sus propias columnas.
@@ -35,7 +35,7 @@ import {
  * su cantidad. `general` es la vista de consulta de los demás departamentos,
  * donde importa la parte alterna y basta con saber si hay disponibilidad.
  */
-export type CrossLocationVariant = 'warehouse' | 'general'
+export type CrossLocationVariant = "warehouse" | "general";
 
 /**
  * Consulta de existencia en las sedes de la compañía.
@@ -50,21 +50,21 @@ export type CrossLocationVariant = 'warehouse' | 'general'
 export function SearchAcrossLocationsDialog({
   open,
   onOpenChange,
-  variant = 'warehouse',
+  variant = "warehouse",
 }: {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  variant?: CrossLocationVariant
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  variant?: CrossLocationVariant;
 }) {
-  const [search, setSearch] = useState('')
-  const deferred = useDeferredValue(search)
+  const [search, setSearch] = useState("");
+  const deferred = useDeferredValue(search);
 
-  const { data, isFetching } = useSearchAcrossLocations(deferred)
+  const { data, isFetching } = useSearchAcrossLocations(deferred);
 
-  const term = deferred.trim()
-  const hasQuery = term.length >= 2
+  const term = deferred.trim();
+  const hasQuery = term.length >= 2;
 
-  const aeronautical = data?.aeronautical ?? []
+  const aeronautical = data?.aeronautical ?? [];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -121,7 +121,7 @@ export function SearchAcrossLocationsDialog({
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
 
 const EmptyState = ({ message }: { message: string }) => (
@@ -129,7 +129,7 @@ const EmptyState = ({ message }: { message: string }) => (
     <PackageSearch className="size-10 text-muted-foreground/40" />
     <p className="text-sm text-muted-foreground">{message}</p>
   </div>
-)
+);
 
 const LocationBadge = ({ location }: { location: string }) => (
   <div className="flex justify-center">
@@ -138,7 +138,7 @@ const LocationBadge = ({ location }: { location: string }) => (
       {location}
     </Badge>
   </div>
-)
+);
 
 /**
  * En la vista de consulta no se enseña la cantidad: a quien no opera el almacén
@@ -151,33 +151,34 @@ const AvailabilityBadge = ({
   quantity,
   status,
 }: {
-  quantity: number
-  status?: string | null
+  quantity: number;
+  status?: string | null;
 }) => {
   const isAvailable =
-    quantity > 0 && (status === undefined || status?.toLowerCase() === 'stored')
+    quantity > 0 &&
+    (status === undefined || status?.toLowerCase() === "stored");
 
   return (
     <div className="flex justify-center">
       <Badge
-        variant={isAvailable ? 'default' : 'destructive'}
+        variant={isAvailable ? "default" : "destructive"}
         className="whitespace-nowrap px-3 py-1 text-xs font-bold"
       >
-        {isAvailable ? 'Disponible' : 'No Disponible'}
+        {isAvailable ? "Disponible" : "No Disponible"}
       </Badge>
     </div>
-  )
-}
+  );
+};
 
 const AeronauticalTable = ({
   rows,
   variant,
 }: {
-  rows: CrossLocationAeronautical[]
-  variant: CrossLocationVariant
+  rows: CrossLocationAeronautical[];
+  variant: CrossLocationVariant;
 }) => {
-  const showStatus = variant === 'warehouse'
-  const showAlternate = variant === 'general'
+  const showStatus = variant === "warehouse";
+  const showAlternate = variant === "general";
 
   return (
     <Table>
@@ -189,8 +190,8 @@ const AeronauticalTable = ({
           <TableHead>Serial / Lote</TableHead>
           <TableHead className="text-center">Condición</TableHead>
           {showStatus && <TableHead className="text-center">Estado</TableHead>}
-          <TableHead className={showStatus ? 'text-right' : 'text-center'}>
-            {showStatus ? 'Cantidad' : 'Disponiblidad'}
+          <TableHead className={showStatus ? "text-right" : "text-center"}>
+            {showStatus ? "Cantidad" : "Disponiblidad"}
           </TableHead>
           <TableHead className="text-center">Sede</TableHead>
         </TableRow>
@@ -198,46 +199,46 @@ const AeronauticalTable = ({
 
       <TableBody>
         {rows.map((row) => {
-          const condition = formatCondition(row.condition)
+          const condition = formatCondition(row.condition);
           const alternates = Array.isArray(row.alternative_part_number)
             ? row.alternative_part_number
             : row.alternative_part_number
               ? [row.alternative_part_number]
-              : []
+              : [];
 
           return (
             <TableRow key={row.id}>
-              <TableCell className="max-w-[220px]">
+              <TableCell className="max-w-55">
                 <p className="truncate text-sm font-medium">
-                  {row.description ?? 'Sin descripción'}
+                  {row.description ?? "Sin descripción"}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {row.category ?? '—'}
+                  {row.category ?? "—"}
                 </p>
               </TableCell>
 
               <TableCell>
                 <span className="font-mono text-sm">
-                  {row.part_number ?? '—'}
+                  {row.part_number ?? "—"}
                 </span>
               </TableCell>
 
               {showAlternate && (
                 <TableCell>
                   <span className="font-mono text-xs text-muted-foreground">
-                    {alternates.length > 0 ? alternates.join(', ') : '—'}
+                    {alternates.length > 0 ? alternates.join(", ") : "—"}
                   </span>
                 </TableCell>
               )}
 
               <TableCell>
-                <span className="font-mono text-xs">{row.serial ?? '—'}</span>
+                <span className="font-mono text-xs">{row.serial ?? "—"}</span>
               </TableCell>
 
               <TableCell className="text-center">
                 {condition ? (
                   <span className="text-xs">
-                    <span className="font-medium">{condition.es}</span>{' '}
+                    <span className="font-medium">{condition.es}</span>{" "}
                     <span className="italic text-muted-foreground">
                       ({condition.en})
                     </span>
@@ -250,7 +251,7 @@ const AeronauticalTable = ({
               {showStatus && (
                 <TableCell className="text-center">
                   <Badge variant="outline" className="text-[11px]">
-                    {formatStatusLabel(row.status ?? '')}
+                    {formatStatusLabel(row.status ?? "")}
                   </Badge>
                 </TableCell>
               )}
@@ -263,7 +264,10 @@ const AeronauticalTable = ({
                 </TableCell>
               ) : (
                 <TableCell>
-                  <AvailabilityBadge quantity={row.quantity} status={row.status} />
+                  <AvailabilityBadge
+                    quantity={row.quantity}
+                    status={row.status}
+                  />
                 </TableCell>
               )}
 
@@ -271,9 +275,9 @@ const AeronauticalTable = ({
                 <LocationBadge location={row.location} />
               </TableCell>
             </TableRow>
-          )
+          );
         })}
       </TableBody>
     </Table>
-  )
-}
+  );
+};

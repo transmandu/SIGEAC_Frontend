@@ -75,108 +75,110 @@ export function FuelMovementsTable({
           {movements.length ? (
             <AnimatePresence initial={false} mode="popLayout">
               {movements.map((movement, index) => {
-              const isAnnulled = movement.status === "annulled";
-              const vehicle = movement.vehicle
-                ? vehiclesById.get(movement.vehicle.id) ?? movement.vehicle
-                : null;
-              return (
-                <motion.tr
-                  key={movement.id}
-                  layout
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{
-                    duration: 0.22,
-                    ease: "easeOut",
-                    delay: Math.min(index, 10) * 0.025,
-                  }}
-                  className={cn(
-                    "group border-b transition-colors hover:bg-muted/50",
-                    isAnnulled && "text-muted-foreground",
-                  )}
-                >
-                  <TableCell className="font-medium">
-                    {format(movement.operational_date, "dd/MM/yyyy")}
-                  </TableCell>
-                  <TableCell>
-                    <span className="inline-flex items-center gap-2">
-                      <span
-                        className={cn(
-                          "h-1.5 w-1.5 shrink-0 rounded-full",
-                          MOVEMENT_DOT_CLASS[movement.type],
-                          isAnnulled && "opacity-40",
-                        )}
-                      />
-                      {getFuelMovementLabel(movement.type)}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    {vehicle ? (
-                      <div className="flex flex-col">
-                        <span>{vehicle.plate || "Sin placa"}</span>
-                        {(vehicle.brand || vehicle.model || vehicle.color) && (
-                          <span className="text-xs text-muted-foreground">
-                            {[vehicle.brand, vehicle.model, vehicle.color]
-                              .filter(Boolean)
-                              .join(" ")}
-                          </span>
-                        )}
-                      </div>
-                    ) : (
-                      movement.third_party?.name || "Almacen"
-                    )}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {getFuelTypeLabel(movement.fuel_type)}
-                  </TableCell>
-                  <TableCell
+                const isAnnulled = movement.status === "annulled";
+                const vehicle = movement.vehicle
+                  ? (vehiclesById.get(movement.vehicle.id) ?? movement.vehicle)
+                  : null;
+                return (
+                  <motion.tr
+                    key={movement.id}
+                    layout
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{
+                      duration: 0.22,
+                      ease: "easeOut",
+                      delay: Math.min(index, 10) * 0.025,
+                    }}
                     className={cn(
-                      "max-w-[260px] truncate",
-                      !movement.dispatch_purpose && "text-muted-foreground",
+                      "group border-b transition-colors hover:bg-muted/50",
+                      isAnnulled && "text-muted-foreground",
                     )}
                   >
-                    {movement.dispatch_purpose || "—"}
-                  </TableCell>
-                  <TableCell
-                    className={cn(
-                      "text-right font-mono tabular-nums",
-                      isAnnulled && "line-through",
-                    )}
-                  >
-                    {formatLiters(movement.liters)}
-                  </TableCell>
-                  <TableCell>
-                    <span className="inline-flex items-center gap-1.5">
-                      <span
-                        className={cn(
-                          "h-1.5 w-1.5 rounded-full",
-                          isAnnulled ? "bg-destructive" : "bg-emerald-500",
-                        )}
-                      />
-                      {getFuelStatusLabel(movement.status)}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex justify-end gap-1">
-                      <FuelMovementDetailDialog
-                        company={company}
-                        movement={movement}
-                      />
-                      <AnnulFuelMovementDialog
-                        company={company}
-                        movement={movement}
-                      />
-                      {isSuperUser && isAnnulled && (
-                        <DeleteFuelMovementDialog
+                    <TableCell className="font-medium">
+                      {format(movement.operational_date, "dd/MM/yyyy")}
+                    </TableCell>
+                    <TableCell>
+                      <span className="inline-flex items-center gap-2">
+                        <span
+                          className={cn(
+                            "h-1.5 w-1.5 shrink-0 rounded-full",
+                            MOVEMENT_DOT_CLASS[movement.type],
+                            isAnnulled && "opacity-40",
+                          )}
+                        />
+                        {getFuelMovementLabel(movement.type)}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      {vehicle ? (
+                        <div className="flex flex-col">
+                          <span>{vehicle.plate || "Sin placa"}</span>
+                          {(vehicle.brand ||
+                            vehicle.model ||
+                            vehicle.color) && (
+                            <span className="text-xs text-muted-foreground">
+                              {[vehicle.brand, vehicle.model, vehicle.color]
+                                .filter(Boolean)
+                                .join(" ")}
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        movement.third_party?.name || "Almacen"
+                      )}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {getFuelTypeLabel(movement.fuel_type)}
+                    </TableCell>
+                    <TableCell
+                      className={cn(
+                        "max-w-65 truncate",
+                        !movement.dispatch_purpose && "text-muted-foreground",
+                      )}
+                    >
+                      {movement.dispatch_purpose || "—"}
+                    </TableCell>
+                    <TableCell
+                      className={cn(
+                        "text-right font-mono tabular-nums",
+                        isAnnulled && "line-through",
+                      )}
+                    >
+                      {formatLiters(movement.liters)}
+                    </TableCell>
+                    <TableCell>
+                      <span className="inline-flex items-center gap-1.5">
+                        <span
+                          className={cn(
+                            "h-1.5 w-1.5 rounded-full",
+                            isAnnulled ? "bg-destructive" : "bg-emerald-500",
+                          )}
+                        />
+                        {getFuelStatusLabel(movement.status)}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex justify-end gap-1">
+                        <FuelMovementDetailDialog
                           company={company}
                           movement={movement}
                         />
-                      )}
-                    </div>
-                  </TableCell>
-                </motion.tr>
-              );
+                        <AnnulFuelMovementDialog
+                          company={company}
+                          movement={movement}
+                        />
+                        {isSuperUser && isAnnulled && (
+                          <DeleteFuelMovementDialog
+                            company={company}
+                            movement={movement}
+                          />
+                        )}
+                      </div>
+                    </TableCell>
+                  </motion.tr>
+                );
               })}
             </AnimatePresence>
           ) : (

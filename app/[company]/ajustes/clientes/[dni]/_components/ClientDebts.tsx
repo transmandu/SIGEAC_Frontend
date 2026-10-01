@@ -1,54 +1,74 @@
-"use client"
+"use client";
 
-import { useParams, useRouter } from "next/navigation"
-import { useMemo, } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Loader2, ArrowLeft, DollarSign, Plane, AlertCircle } from "lucide-react"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { formatCurrency, formatDate } from "@/lib/utils"
-import { useGetFlightsByClient } from "@/hooks/general/clientes/useGetFlightByClients"
-import { SummaryCard } from "@/components/cards/SummaryCard"
-import { useGetClientByDni } from "@/hooks/general/clientes/useGetClientByDni"
-import { useCompanyStore } from "@/stores/CompanyStore"
+import { useParams, useRouter } from "next/navigation";
+import { useMemo } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  Loader2,
+  ArrowLeft,
+  DollarSign,
+  Plane,
+  AlertCircle,
+} from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { formatCurrency, formatDate } from "@/lib/utils";
+import { useGetFlightsByClient } from "@/hooks/general/clientes/useGetFlightByClients";
+import { SummaryCard } from "@/components/cards/SummaryCard";
+import { useGetClientByDni } from "@/hooks/general/clientes/useGetClientByDni";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 const ClientDebts = () => {
-  const { selectedCompany } = useCompanyStore()
-  const params = useParams()
-  const dni = params.dni as string
-  const router = useRouter()
-  const { data: clientDetails, isLoading, error } = useGetClientByDni({company: selectedCompany?.slug, dni})
-  const { data: clientStats, isLoading: isLoadingFlights } = useGetFlightsByClient({company: selectedCompany?.slug, dni})
+  const { selectedCompany } = useCompanyStore();
+  const params = useParams();
+  const dni = params.dni as string;
+  const router = useRouter();
+  const {
+    data: clientDetails,
+    isLoading,
+    error,
+  } = useGetClientByDni({ company: selectedCompany?.slug, dni });
+  const { data: clientStats, isLoading: isLoadingFlights } =
+    useGetFlightsByClient({ company: selectedCompany?.slug, dni });
   const allDebtFlights = useMemo(() => {
-    if (!clientStats?.total_debt_flights) return []
+    if (!clientStats?.total_debt_flights) return [];
     // Ordenar los vuelos por fecha (más recientes primero)
     return [...clientStats.total_debt_flights].sort(
-      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-    )
-  }, [clientStats])
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+    );
+  }, [clientStats]);
 
-  const totalDebt = clientStats?.statistics?.total_debt || 0
-  const totalFlights = allDebtFlights.length || 0
-  const averageDebtPerFlight = totalFlights > 0 ? totalDebt / totalFlights : 0
+  const totalDebt = clientStats?.statistics?.total_debt || 0;
+  const totalFlights = allDebtFlights.length || 0;
+  const averageDebtPerFlight = totalFlights > 0 ? totalDebt / totalFlights : 0;
 
   if (isLoading || isLoadingFlights) {
     return (
       <div className="flex items-center justify-center h-screen">
         <Loader2 className="h-8 w-8 animate-spin" />
       </div>
-    )
+    );
   }
 
   if (error || !clientDetails) {
     return (
       <div className="flex flex-col items-center justify-center h-screen">
-        <p className="text-red-500 mb-4">Error al cargar los datos del cliente</p>
+        <p className="text-red-500 mb-4">
+          Error al cargar los datos del cliente
+        </p>
         <Button variant="outline" onClick={() => router.back()}>
           Volver
         </Button>
       </div>
-    )
+    );
   }
 
   return (
@@ -61,11 +81,16 @@ const ClientDebts = () => {
       </div>
       <div className="space-y-3 mb-6">
         <h1 className="text-3xl font-bold text-center">Reporte de Deudas</h1>
-        <p className="text-2xl text-muted-foreground text-center font-medium">{clientDetails?.name}</p>
+        <p className="text-2xl text-muted-foreground text-center font-medium">
+          {clientDetails?.name}
+        </p>
       </div>
 
       {/* Tarjetas de resumen */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6" data-tour="clientes-detalle-debts-stats">
+      <div
+        className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6"
+        data-tour="clientes-detalle-debts-stats"
+      >
         <SummaryCard
           title="Deuda Total Acumulada"
           value={formatCurrency(totalDebt)}
@@ -115,9 +140,15 @@ const ClientDebts = () => {
                 <TableBody>
                   {allDebtFlights.map((flight) => (
                     <TableRow key={flight.id} className="hover:bg-muted/30">
-                      <TableCell className="font-medium">{flight.flight_number}</TableCell>
+                      <TableCell className="font-medium">
+                        {flight.flight_number}
+                      </TableCell>
                       <TableCell>{formatDate(flight.date)}</TableCell>
-                      <TableCell>{flight.route ? `${flight.route.from} → ${flight.route.to}` : "-"}</TableCell>
+                      <TableCell>
+                        {flight.route
+                          ? `${flight.route.from} → ${flight.route.to}`
+                          : "-"}
+                      </TableCell>
                       <TableCell>{flight.aircraft?.acronym || "-"}</TableCell>
                       <TableCell>
                         <Badge
@@ -133,9 +164,16 @@ const ClientDebts = () => {
                           {flight.type}
                         </Badge>
                       </TableCell>
-                      <TableCell>{formatCurrency(Number(flight.total_amount))}</TableCell>
-                      <TableCell>{formatCurrency(Number(flight.debt))}</TableCell>
-                      <TableCell className="max-w-[200px] truncate" title={flight.details}>
+                      <TableCell>
+                        {formatCurrency(Number(flight.total_amount))}
+                      </TableCell>
+                      <TableCell>
+                        {formatCurrency(Number(flight.debt))}
+                      </TableCell>
+                      <TableCell
+                        className="max-w-50 truncate"
+                        title={flight.details}
+                      >
                         {flight.details}
                       </TableCell>
                     </TableRow>
@@ -151,7 +189,7 @@ const ClientDebts = () => {
         </CardContent>
       </Card>
     </>
-  )
-}
+  );
+};
 
-export default ClientDebts
+export default ClientDebts;

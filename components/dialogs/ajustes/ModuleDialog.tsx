@@ -1,7 +1,14 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { CreateModuleForm } from "@/components/forms/ajustes/CreateModuleForm";
@@ -20,9 +27,7 @@ export function ModuleDialog() {
             Registrar Modulo
           </Button>
         </DialogTrigger>
-        <DialogContent
-          className="sm:max-w-[480px]"
-        >
+        <DialogContent className="sm:max-w-120">
           <DialogHeader>
             <DialogTitle>Crear un modulo</DialogTitle>
             <DialogDescription>Cree un nuevo modulo.</DialogDescription>

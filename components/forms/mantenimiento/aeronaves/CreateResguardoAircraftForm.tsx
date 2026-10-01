@@ -1,10 +1,10 @@
-'use client'
+"use client";
 
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@/lib/zod-resolver"
-import { z } from "zod"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { useForm, useWatch } from "react-hook-form";
+import { zodResolver } from "@/lib/zod-resolver";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Form,
   FormControl,
@@ -13,12 +13,12 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
+} from "@/components/ui/form";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover"
+} from "@/components/ui/popover";
 import {
   Command,
   CommandEmpty,
@@ -26,36 +26,38 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@/components/ui/command"
-import { Check, ChevronsUpDown, Loader2 } from "lucide-react"
-import { useGetClients } from "@/hooks/general/clientes/useGetClients"
-import { useCreateMaintenanceAircraft } from "@/actions/mantenimiento/planificacion/aeronaves/actions"
-import { useCompanyStore } from "@/stores/CompanyStore"
-import { useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
-import { cn } from "@/lib/utils"
-import axiosInstance from "@/lib/axios"
+} from "@/components/ui/command";
+import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
+import { useGetClients } from "@/hooks/general/clientes/useGetClients";
+import { useCreateMaintenanceAircraft } from "@/actions/mantenimiento/planificacion/aeronaves/actions";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import axiosInstance from "@/lib/axios";
 
 const formSchema = z.object({
   acronym: z.string().min(2, "La matrícula debe tener al menos 2 caracteres"),
   client_id: z.string().min(1, "Debe seleccionar una empresa"),
-})
+});
 
-type FormValues = z.infer<typeof formSchema>
+type FormValues = z.infer<typeof formSchema>;
 
 interface CreateResguardoAircraftFormProps {
-  onClose: () => void
-  onSuccess?: (aircraftId: string) => void
+  onClose: () => void;
+  onSuccess?: (aircraftId: string) => void;
 }
 
-export function CreateResguardoAircraftForm({ 
-  onClose, 
-  onSuccess 
+export function CreateResguardoAircraftForm({
+  onClose,
+  onSuccess,
 }: CreateResguardoAircraftFormProps) {
-  const { selectedCompany, selectedStation } = useCompanyStore()
-  const queryClient = useQueryClient()
-  const { data: clients, isLoading: isClientsLoading } = useGetClients(selectedCompany?.slug)
-  const { createMaintenanceAircraft } = useCreateMaintenanceAircraft()
+  const { selectedCompany, selectedStation } = useCompanyStore();
+  const queryClient = useQueryClient();
+  const { data: clients, isLoading: isClientsLoading } = useGetClients(
+    selectedCompany?.slug,
+  );
+  const { createMaintenanceAircraft } = useCreateMaintenanceAircraft();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -65,12 +67,12 @@ export function CreateResguardoAircraftForm({
     },
     mode: "onSubmit", // Solo validar cuando se intenta enviar
     reValidateMode: "onChange", // Después del primer submit, validar en cada cambio
-  })
+  });
 
-  const clientId = form.watch("client_id")
+  const clientId = useWatch({ control: form.control, name: "client_id" });
 
   const onSubmit = async (values: FormValues) => {
-    if (!selectedCompany?.slug) return
+    if (!selectedCompany?.slug) return;
 
     try {
       await createMaintenanceAircraft.mutateAsync({
@@ -91,37 +93,39 @@ export function CreateResguardoAircraftForm({
           parts: [],
         },
         company: selectedCompany.slug,
-      })
+      });
 
       // Refresh aircrafts and get the new one
-      await queryClient.invalidateQueries({ queryKey: ["aircrafts"] })
-      
+      await queryClient.invalidateQueries({ queryKey: ["aircrafts"] });
+
       const { data: updatedAircrafts } = await queryClient.fetchQuery({
         queryKey: ["aircrafts", selectedCompany.slug],
         queryFn: async () => {
-          const { data } = await axiosInstance.get(`/${selectedCompany.slug}/aircrafts`)
-          return data
+          const { data } = await axiosInstance.get(
+            `/${selectedCompany.slug}/aircrafts`,
+          );
+          return data;
         },
-      })
+      });
 
       const newAircraft = updatedAircrafts?.find(
-        (a: any) => a.acronym?.toUpperCase() === values.acronym.toUpperCase()
-      )
+        (a: any) => a.acronym?.toUpperCase() === values.acronym.toUpperCase(),
+      );
 
       if (newAircraft && onSuccess) {
-        onSuccess(newAircraft.id.toString())
+        onSuccess(newAircraft.id.toString());
       }
 
       toast.success("Aeronave creada", {
         description: "La aeronave ha sido registrada correctamente.",
-      })
+      });
     } catch (error) {
-      console.error("Error creating aircraft:", error)
+      console.error("Error creating aircraft:", error);
       toast.error("Error", {
         description: "No se pudo crear la aeronave.",
-      })
+      });
     }
-  }
+  };
 
   return (
     <Form {...form}>
@@ -159,7 +163,7 @@ export function CreateResguardoAircraftForm({
                       disabled={isClientsLoading}
                       className={cn(
                         "w-full justify-between",
-                        !field.value && "text-muted-foreground"
+                        !field.value && "text-muted-foreground",
                       )}
                     >
                       {isClientsLoading ? (
@@ -173,7 +177,7 @@ export function CreateResguardoAircraftForm({
                     </Button>
                   </FormControl>
                 </PopoverTrigger>
-                <PopoverContent className="w-[300px] p-0">
+                <PopoverContent className="w-75 p-0">
                   <Command>
                     <CommandInput placeholder="Buscar empresa..." />
                     <CommandList>
@@ -184,7 +188,7 @@ export function CreateResguardoAircraftForm({
                             value={client.name}
                             key={client.id}
                             onSelect={() => {
-                              form.setValue("client_id", client.id.toString())
+                              form.setValue("client_id", client.id.toString());
                             }}
                           >
                             <Check
@@ -192,7 +196,7 @@ export function CreateResguardoAircraftForm({
                                 "mr-2 h-4 w-4",
                                 `${client.id}` === field.value
                                   ? "opacity-100"
-                                  : "opacity-0"
+                                  : "opacity-0",
                               )}
                             />
                             {client.name}
@@ -215,10 +219,7 @@ export function CreateResguardoAircraftForm({
           <Button type="button" variant="outline" onClick={onClose}>
             Cancelar
           </Button>
-          <Button 
-            type="submit" 
-            disabled={createMaintenanceAircraft.isPending}
-          >
+          <Button type="submit" disabled={createMaintenanceAircraft.isPending}>
             {createMaintenanceAircraft.isPending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -231,6 +232,5 @@ export function CreateResguardoAircraftForm({
         </div>
       </form>
     </Form>
-  )
+  );
 }
-

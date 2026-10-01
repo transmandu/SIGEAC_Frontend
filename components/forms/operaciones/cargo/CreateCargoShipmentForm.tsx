@@ -5,6 +5,7 @@ import { es } from "date-fns/locale";
 import { CalendarIcon, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSearchParams } from "next/navigation";
+import { useWatch } from "react-hook-form";
 import {
   useGetExternalAircraftSuggestions,
   type ExternalAircraftSuggestion,
@@ -130,17 +131,19 @@ export default function CreateCargoShipmentForm({
     label: c.name,
   }));
 
+  const watchedCopilotId = useWatch({
+    control: form.control,
+    name: "copilot_id",
+  });
+  const watchedPilotId = useWatch({ control: form.control, name: "pilot_id" });
+
   // IDs raw seleccionados para evitar duplicados entre piloto/copiloto
-  const selectedCopilotRawId = (() => {
-    const v = form.watch("copilot_id");
-    if (!v) return null;
-    return parseInt(v.split(":")[1]);
-  })();
-  const selectedPilotRawId = (() => {
-    const v = form.watch("pilot_id");
-    if (!v) return null;
-    return parseInt(v.split(":")[1]);
-  })();
+  const selectedCopilotRawId = watchedCopilotId
+    ? parseInt(watchedCopilotId.split(":")[1])
+    : null;
+  const selectedPilotRawId = watchedPilotId
+    ? parseInt(watchedPilotId.split(":")[1])
+    : null;
   const pilotOptions: ComboboxOption[] = [
     ...(pilots ?? [])
       .filter((p: any) => p.rank === "CAPITAN" && p.id !== selectedCopilotRawId)
@@ -251,10 +254,7 @@ export default function CreateCargoShipmentForm({
                   <FormLabel className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                     Fecha
                   </FormLabel>
-                  <Popover
-                    open={openCalendar}
-                    onOpenChange={setOpenCalendar}
-                  >
+                  <Popover open={openCalendar} onOpenChange={setOpenCalendar}>
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
@@ -357,7 +357,10 @@ export default function CreateCargoShipmentForm({
               control={form.control}
               name="issuer"
               render={() => (
-                <FormItem className="flex flex-col" data-tour="cargo-crear-emisor">
+                <FormItem
+                  className="flex flex-col"
+                  data-tour="cargo-crear-emisor"
+                >
                   <FormLabel className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                     Emisor
                   </FormLabel>
@@ -409,7 +412,11 @@ export default function CreateCargoShipmentForm({
       </Form>
 
       {/* ═══ MODALES ══════════════════════════════════════════════════════════ */}
-      <Dialog open={openNewCarrier} onOpenChange={setOpenNewCarrier}  data-tour="cargo-crear-modal-transportista">
+      <Dialog
+        open={openNewCarrier}
+        onOpenChange={setOpenNewCarrier}
+        data-tour="cargo-crear-modal-transportista"
+      >
         <DialogContent onInteractOutside={(e) => e.preventDefault()}>
           <DialogHeader>
             <DialogTitle>Registrar Transportista</DialogTitle>
@@ -426,7 +433,11 @@ export default function CreateCargoShipmentForm({
         </DialogContent>
       </Dialog>
 
-      <Dialog open={openNewClient} onOpenChange={setOpenNewClient} data-tour="cargo-crear-modal-cliente">
+      <Dialog
+        open={openNewClient}
+        onOpenChange={setOpenNewClient}
+        data-tour="cargo-crear-modal-cliente"
+      >
         <DialogContent onInteractOutside={(e) => e.preventDefault()}>
           <DialogHeader>
             <DialogTitle>Registrar Cliente</DialogTitle>

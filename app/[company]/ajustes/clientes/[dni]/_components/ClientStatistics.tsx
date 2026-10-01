@@ -82,16 +82,20 @@ const ClientStatistics = () => {
   const params = useParams();
   const dni = params.dni as string;
   const router = useRouter();
-  const {selectedCompany} = useCompanyStore();
-  const { data: clientDetails, isLoading, error } = useGetClientByDni({dni, company: selectedCompany?.slug });
+  const { selectedCompany } = useCompanyStore();
+  const {
+    data: clientDetails,
+    isLoading,
+    error,
+  } = useGetClientByDni({ dni, company: selectedCompany?.slug });
   const { data: clientStats, isLoading: isLoadingFlights } =
-    useGetFlightsByClient({dni, company: selectedCompany?.slug });
+    useGetFlightsByClient({ dni, company: selectedCompany?.slug });
   const availableYears = useMemo(() => {
     if (!clientStats?.statistics?.total_payed_annual) {
       return [new Date().getFullYear().toString()];
     }
     return Object.keys(clientStats.statistics.total_payed_annual).sort(
-      (a, b) => Number.parseInt(b) - Number.parseInt(a)
+      (a, b) => Number.parseInt(b) - Number.parseInt(a),
     );
   }, [clientStats]);
   const [selectedYear, setSelectedYear] = useState<string>(() => {
@@ -232,14 +236,22 @@ const ClientStatistics = () => {
       </div>
       {/* Encabezado */}
       <div className="space-y-3 mb-6">
-        <h1 className="text-5xl font-bold text-center" data-tour="clientes-detalle-title">Reporte de Vuelos</h1>
+        <h1
+          className="text-5xl font-bold text-center"
+          data-tour="clientes-detalle-title"
+        >
+          Reporte de Vuelos
+        </h1>
         <p className="text-4xl text-muted-foreground text-center font-medium">
           {clientDetails?.name}
         </p>
       </div>
 
       {/* Tarjetas de resumen */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6" data-tour="clientes-detalle-stats">
+      <div
+        className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6"
+        data-tour="clientes-detalle-stats"
+      >
         <SummaryCard
           title="Monto Pagado Anual"
           value={formatCurrency(totalPayed)}
@@ -443,12 +455,12 @@ const ClientStatistics = () => {
                         >
                           {flight.debt_status === "PENDIENTE"
                             ? formatCurrency(
-                                flight.total_amount - flight.payed_amount
+                                flight.total_amount - flight.payed_amount,
                               )
                             : formatCurrency(0)}
                         </TableCell>
                         <TableCell
-                          className="max-w-[200px] truncate"
+                          className="max-w-50 truncate"
                           title={flight.details}
                         >
                           {flight.details}

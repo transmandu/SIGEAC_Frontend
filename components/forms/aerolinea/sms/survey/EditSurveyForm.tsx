@@ -11,7 +11,12 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@/lib/zod-resolver";
-import { useForm, useFieldArray, FieldArrayWithId } from "react-hook-form";
+import {
+  useForm,
+  useFieldArray,
+  useWatch,
+  FieldArrayWithId,
+} from "react-hook-form";
 import { z } from "zod";
 
 import { Textarea } from "@/components/ui/textarea";
@@ -78,7 +83,7 @@ const QuestionSchema = z
       message:
         "Las preguntas de selección deben tener al menos una opción con texto",
       path: ["options"],
-    }
+    },
   );
 
 const FormSchema = z.object({
@@ -118,12 +123,16 @@ function OptionInput({
   isCorrect,
 }: OptionInputProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const options = useWatch({
+    control: form.control,
+    name: `questions.${questionIndex}.options`,
+  });
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       e.preventDefault();
       const currentValue = form.getValues(
-        `questions.${questionIndex}.options.${optionIndex}.text`
+        `questions.${questionIndex}.options.${optionIndex}.text`,
       );
       if (currentValue.trim() !== "") {
         onAddOption();
@@ -171,7 +180,7 @@ function OptionInput({
         )}
       />
 
-      {form.watch(`questions.${questionIndex}.options`)?.length > 1 && (
+      {options?.length > 1 && (
         <Button type="button" variant="ghost" size="sm" onClick={onRemove}>
           <Trash2 className="h-4 w-4 text-red-500" />
         </Button>
@@ -214,20 +223,20 @@ function QuestionItem({
       form.getValues(`questions.${questionIndex}.options`) || [];
     if (currentOptions.length > 1) {
       const newOptions = currentOptions.filter(
-        (_: any, index: number) => index !== optionIndex
+        (_: any, index: number) => index !== optionIndex,
       );
       form.setValue(`questions.${questionIndex}.options`, newOptions);
 
       if (surveyType === "QUIZ") {
-        const questionType = form.watch(`questions.${questionIndex}.type`);
+        const questionType = form.getValues(`questions.${questionIndex}.type`);
         if (questionType === "SINGLE") {
           const hasCorrectOption = newOptions.some(
-            (opt: any) => opt.is_correct
+            (opt: any) => opt.is_correct,
           );
           if (!hasCorrectOption && newOptions.length > 0) {
             form.setValue(
               `questions.${questionIndex}.options.0.is_correct`,
-              true
+              true,
             );
           }
         }
@@ -242,7 +251,7 @@ function QuestionItem({
       form.setValue(`questions.${questionIndex}.options`, undefined);
     } else {
       const currentOptions = form.getValues(
-        `questions.${questionIndex}.options`
+        `questions.${questionIndex}.options`,
       );
       if (!currentOptions || currentOptions.length === 0) {
         form.setValue(`questions.${questionIndex}.options`, [
@@ -251,23 +260,23 @@ function QuestionItem({
         ]);
       } else if (surveyType === "QUIZ" && value === "SINGLE") {
         const hasCorrectOption = currentOptions.some(
-          (opt: any) => opt.is_correct
+          (opt: any) => opt.is_correct,
         );
         if (!hasCorrectOption && currentOptions.length > 0) {
           form.setValue(
             `questions.${questionIndex}.options.0.is_correct`,
-            true
+            true,
           );
         } else {
           const firstCorrectIndex = currentOptions.findIndex(
-            (opt: any) => opt.is_correct
+            (opt: any) => opt.is_correct,
           );
           if (firstCorrectIndex !== -1) {
             const updatedOptions = currentOptions.map(
               (opt: any, index: number) => ({
                 ...opt,
                 is_correct: index === firstCorrectIndex,
-              })
+              }),
             );
             form.setValue(`questions.${questionIndex}.options`, updatedOptions);
           }
@@ -278,7 +287,7 @@ function QuestionItem({
 
   const handleSingleCorrectOption = (
     questionIndex: number,
-    optionIndex: number
+    optionIndex: number,
   ) => {
     const currentOptions =
       form.getValues(`questions.${questionIndex}.options`) || [];
@@ -292,7 +301,7 @@ function QuestionItem({
   const handleMultipleCorrectOption = (
     questionIndex: number,
     optionIndex: number,
-    checked: boolean
+    checked: boolean,
   ) => {
     const currentOptions =
       form.getValues(`questions.${questionIndex}.options`) || [];
@@ -303,13 +312,16 @@ function QuestionItem({
     form.setValue(`questions.${questionIndex}.options`, updatedOptions);
   };
 
-  const questionText = form.watch(`questions.${questionIndex}.text`);
-  const questionType = form.watch(`questions.${questionIndex}.type`);
-  const displayText = questionText || `Pregunta ${questionIndex + 1}`;
-  const options = form.watch(`questions.${questionIndex}.options`) || [];
+  const question = useWatch({
+    control: form.control,
+    name: `questions.${questionIndex}`,
+  });
+  const questionType = question?.type;
+  const displayText = question?.text || `Pregunta ${questionIndex + 1}`;
+  const options = question?.options || [];
 
   const correctOptionsCount = options.filter(
-    (opt: any) => opt.is_correct
+    (opt: any) => opt.is_correct,
   ).length;
 
   return (
@@ -468,13 +480,13 @@ function QuestionItem({
                             if (questionType === "SINGLE") {
                               handleSingleCorrectOption(
                                 questionIndex,
-                                optionIndex
+                                optionIndex,
                               );
                             } else {
                               handleMultipleCorrectOption(
                                 questionIndex,
                                 optionIndex,
-                                checked
+                                checked,
                               );
                             }
                           }}
@@ -510,12 +522,12 @@ function QuestionItem({
                           </span>
                           {(correctOptionsCount === 0 ||
                             correctOptionsCount === options.length) && (
-                              <span className="text-red-500 ml-auto whitespace-nowrap shrink-0">
-                                {correctOptionsCount === 0
-                                  ? "Debe haber al menos una correcta"
-                                  : "Debe haber al menos una incorrecta"}
-                              </span>
-                            )}
+                            <span className="text-red-500 ml-auto whitespace-nowrap shrink-0">
+                              {correctOptionsCount === 0
+                                ? "Debe haber al menos una correcta"
+                                : "Debe haber al menos una incorrecta"}
+                            </span>
+                          )}
                         </>
                       )}
                     </div>
@@ -561,13 +573,13 @@ export function EditSurveyForm({ onClose, initialData }: FormProps) {
           is_correct: opt.is_correct || false,
         })) || [{ text: "", is_correct: false }],
       })) || [
-          {
-            text: "",
-            type: "SINGLE" as const,
-            is_required: true,
-            options: [{ text: "", is_correct: false }],
-          },
-        ],
+        {
+          text: "",
+          type: "SINGLE" as const,
+          is_required: true,
+          options: [{ text: "", is_correct: false }],
+        },
+      ],
     },
   });
 
@@ -576,7 +588,7 @@ export function EditSurveyForm({ onClose, initialData }: FormProps) {
     name: "questions",
   });
 
-  const surveyType = form.watch("type");
+  const surveyType = useWatch({ control: form.control, name: "type" });
 
   const addQuestion = () => {
     append({
@@ -615,7 +627,6 @@ export function EditSurveyForm({ onClose, initialData }: FormProps) {
         };
       }),
     };
-
 
     try {
       if (initialData) {
@@ -687,10 +698,11 @@ export function EditSurveyForm({ onClose, initialData }: FormProps) {
                       key={opt.value}
                       type="button"
                       onClick={() => field.onChange(opt.value)}
-                      className={`px-4 py-2 text-sm rounded-md border transition-colors ${field.value === opt.value
+                      className={`px-4 py-2 text-sm rounded-md border transition-colors ${
+                        field.value === opt.value
                           ? "bg-primary text-primary-foreground border-primary"
                           : "bg-background text-foreground border-border hover:bg-muted"
-                        }`}
+                      }`}
                     >
                       {opt.label}
                     </button>

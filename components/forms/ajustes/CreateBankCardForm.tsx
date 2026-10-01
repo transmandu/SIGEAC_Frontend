@@ -1,5 +1,8 @@
 "use client";
-import { useCreateBankCard, useUpdateBankCard } from "@/actions/sistema/banca/tarjetas/actions";
+import {
+  useCreateBankCard,
+  useUpdateBankCard,
+} from "@/actions/sistema/banca/tarjetas/actions";
 import { CompanyMultiSelect } from "@/components/misc/CompanyMultiSelect";
 import {
   Form,
@@ -25,7 +28,7 @@ import { BankCard } from "@/types";
 import { zodResolver } from "@/lib/zod-resolver";
 import { Loader2 } from "lucide-react";
 import { useMemo } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 
@@ -54,7 +57,7 @@ interface FormProps {
 export default function CreateBankCardForm({ onClose, bankCard }: FormProps) {
   const { selectedCompany } = useCompanyStore();
   const { data: accounts, isLoading: isAccLoading } = useGetBankAccounts(
-    selectedCompany?.id ? Number(selectedCompany.id) : undefined
+    selectedCompany?.id ? Number(selectedCompany.id) : undefined,
   );
   const { createCard } = useCreateBankCard();
   const { updateCard } = useUpdateBankCard();
@@ -75,12 +78,14 @@ export default function CreateBankCardForm({ onClose, bankCard }: FormProps) {
   });
   const { control } = form;
 
-  const selectedAccountId = form.watch("bank_account_id");
+  const selectedAccountId = useWatch({ control, name: "bank_account_id" });
 
   // El método de pago debe estar habilitado para la cuenta elegida
   // (pivote bank_account_payment_method).
   const accountMethods = useMemo(() => {
-    const account = accounts?.find((acc) => acc.id.toString() === selectedAccountId);
+    const account = accounts?.find(
+      (acc) => acc.id.toString() === selectedAccountId,
+    );
     return account?.payment_methods ?? [];
   }, [accounts, selectedAccountId]);
 
@@ -165,7 +170,11 @@ export default function CreateBankCardForm({ onClose, bankCard }: FormProps) {
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue
-                        placeholder={isAccLoading ? "Cargando..." : "Seleccione una cuenta..."}
+                        placeholder={
+                          isAccLoading
+                            ? "Cargando..."
+                            : "Seleccione una cuenta..."
+                        }
                       />
                     </SelectTrigger>
                   </FormControl>
@@ -237,7 +246,10 @@ export default function CreateBankCardForm({ onClose, bankCard }: FormProps) {
               <FormItem className="mt-2">
                 <FormLabel>Compañías habilitadas</FormLabel>
                 <FormControl>
-                  <CompanyMultiSelect value={field.value} onChange={field.onChange} />
+                  <CompanyMultiSelect
+                    value={field.value}
+                    onChange={field.onChange}
+                  />
                 </FormControl>
                 <FormDescription>
                   La tarjeta será válida solo para las compañías seleccionadas.

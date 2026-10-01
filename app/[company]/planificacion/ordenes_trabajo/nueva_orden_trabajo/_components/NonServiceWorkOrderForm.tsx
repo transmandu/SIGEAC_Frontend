@@ -22,7 +22,11 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Select,
@@ -48,7 +52,7 @@ import {
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
 const manualWorkOrderSchema = z.object({
@@ -75,10 +79,10 @@ const manualWorkOrderSchema = z.object({
             z.object({
               part_number: z.string().min(1, "Número de parte requerido"),
               alternate_part_number: z.string().optional(),
-            })
+            }),
           )
           .optional(),
-      })
+      }),
     )
     .min(1, "Debe agregar al menos una tarea"),
 });
@@ -150,8 +154,14 @@ const NonServiceWorkOrderForm = () => {
   };
 
   // ✅ Actualiza por id (no por index)
-  const updateTask = (id: string, field: keyof TaskInProgress, value: string) => {
-    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, [field]: value } : t)));
+  const updateTask = (
+    id: string,
+    field: keyof TaskInProgress,
+    value: string,
+  ) => {
+    setTasks((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, [field]: value } : t)),
+    );
   };
 
   // ✅ Borra por id (no por index)
@@ -166,10 +176,13 @@ const NonServiceWorkOrderForm = () => {
         task.id === taskId
           ? {
               ...task,
-              task_items: [...task.task_items, { part_number: "", alternate_part_number: "" }],
+              task_items: [
+                ...task.task_items,
+                { part_number: "", alternate_part_number: "" },
+              ],
             }
-          : task
-      )
+          : task,
+      ),
     );
   };
 
@@ -177,7 +190,7 @@ const NonServiceWorkOrderForm = () => {
     taskId: string,
     itemIndex: number,
     field: keyof TaskItem,
-    value: string
+    value: string,
   ) => {
     setTasks((prev) =>
       prev.map((task) =>
@@ -185,11 +198,11 @@ const NonServiceWorkOrderForm = () => {
           ? {
               ...task,
               task_items: task.task_items.map((item, i) =>
-                i === itemIndex ? { ...item, [field]: value } : item
+                i === itemIndex ? { ...item, [field]: value } : item,
               ),
             }
-          : task
-      )
+          : task,
+      ),
     );
   };
 
@@ -197,9 +210,12 @@ const NonServiceWorkOrderForm = () => {
     setTasks((prev) =>
       prev.map((task) =>
         task.id === taskId
-          ? { ...task, task_items: task.task_items.filter((_, i) => i !== itemIndex) }
-          : task
-      )
+          ? {
+              ...task,
+              task_items: task.task_items.filter((_, i) => i !== itemIndex),
+            }
+          : task,
+      ),
     );
   };
 
@@ -210,7 +226,7 @@ const NonServiceWorkOrderForm = () => {
 
   const onSubmit = async (data: ManualWorkOrderFormValues) => {
     const selectedAircraftData = aircrafts?.find(
-      (aircraft) => aircraft.id.toString() === data.aircraft_id
+      (aircraft) => aircraft.id.toString() === data.aircraft_id,
     );
 
     const formattedData = {
@@ -220,7 +236,10 @@ const NonServiceWorkOrderForm = () => {
       client_name: selectedAircraftData?.client.name,
     };
 
-    console.log("🚀 [NonServiceWorkOrderForm] Datos enviados al backend:", formattedData);
+    console.log(
+      "🚀 [NonServiceWorkOrderForm] Datos enviados al backend:",
+      formattedData,
+    );
 
     await createWorkOrder.mutateAsync({
       data: formattedData,
@@ -233,10 +252,18 @@ const NonServiceWorkOrderForm = () => {
     router.push(`/${selectedCompany!.slug}/planificacion/ordenes_trabajo`);
   };
 
-  const selectedAircraftData = useMemo(() => {
-    const currentId = form.watch("aircraft_id");
-    return aircrafts?.find((aircraft) => aircraft.id.toString() === currentId);
-  }, [aircrafts, form]);
+  const selectedAircraftId = useWatch({
+    control: form.control,
+    name: "aircraft_id",
+  });
+
+  const selectedAircraftData = useMemo(
+    () =>
+      aircrafts?.find(
+        (aircraft) => aircraft.id.toString() === selectedAircraftId,
+      ),
+    [aircrafts, selectedAircraftId],
+  );
 
   return (
     <div className="space-y-6">
@@ -262,7 +289,7 @@ const NonServiceWorkOrderForm = () => {
                             role="combobox"
                             className={cn(
                               "justify-between",
-                              !field.value && "text-muted-foreground"
+                              !field.value && "text-muted-foreground",
                             )}
                           >
                             {isAircraftsLoading && (
@@ -271,7 +298,8 @@ const NonServiceWorkOrderForm = () => {
 
                             {field.value
                               ? aircrafts?.find(
-                                  (aircraft) => `${aircraft.id.toString()}` === field.value
+                                  (aircraft) =>
+                                    `${aircraft.id.toString()}` === field.value,
                                 )?.acronym
                               : "Elige la aeronave..."}
 
@@ -293,17 +321,26 @@ const NonServiceWorkOrderForm = () => {
                                   value={`${aircraft.id}`}
                                   key={aircraft.id}
                                   onSelect={() => {
-                                    form.setValue("aircraft_id", aircraft.id.toString());
-                                    form.setValue("authorizing", aircraft.client.authorizing);
-                                    setSelectedAircraft(aircraft.manufacturer.id.toString());
+                                    form.setValue(
+                                      "aircraft_id",
+                                      aircraft.id.toString(),
+                                    );
+                                    form.setValue(
+                                      "authorizing",
+                                      aircraft.client.authorizing,
+                                    );
+                                    setSelectedAircraft(
+                                      aircraft.manufacturer.id.toString(),
+                                    );
                                   }}
                                 >
                                   <Check
                                     className={cn(
                                       "mr-2 h-4 w-4",
-                                      `${aircraft.id.toString()}` === field.value
+                                      `${aircraft.id.toString()}` ===
+                                        field.value
                                         ? "opacity-100"
-                                        : "opacity-0"
+                                        : "opacity-0",
                                     )}
                                   />
                                   <p>{aircraft.acronym}</p>
@@ -327,9 +364,7 @@ const NonServiceWorkOrderForm = () => {
                 control={form.control}
                 name="authorizing"
                 render={({ field }) => {
-                  const selected = aircrafts?.find(
-                    (aircraft) => aircraft.id.toString() === form.watch("aircraft_id")
-                  );
+                  const selected = selectedAircraftData;
 
                   return (
                     <FormItem>
@@ -341,15 +376,22 @@ const NonServiceWorkOrderForm = () => {
                           value={`${selected.client.name} (${selected.client.authorizing})`}
                         />
                       ) : (
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Quién autoriza..." />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="PROPIETARIO">Propietario</SelectItem>
-                            <SelectItem value="EXPLOTADOR">Explotador</SelectItem>
+                            <SelectItem value="PROPIETARIO">
+                              Propietario
+                            </SelectItem>
+                            <SelectItem value="EXPLOTADOR">
+                              Explotador
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                       )}
@@ -379,7 +421,7 @@ const NonServiceWorkOrderForm = () => {
                             variant="outline"
                             className={cn(
                               "pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
+                              !field.value && "text-muted-foreground",
                             )}
                           >
                             {field.value ? (
@@ -403,7 +445,9 @@ const NonServiceWorkOrderForm = () => {
                       </PopoverContent>
                     </Popover>
 
-                    <FormDescription>Fecha de la orden de trabajo.</FormDescription>
+                    <FormDescription>
+                      Fecha de la orden de trabajo.
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -416,7 +460,11 @@ const NonServiceWorkOrderForm = () => {
                   <FormItem className="w-full col-span-2">
                     <FormLabel>Descripción</FormLabel>
                     <FormControl>
-                      <Textarea rows={3} {...field} placeholder="Describa la orden de trabajo..." />
+                      <Textarea
+                        rows={3}
+                        {...field}
+                        placeholder="Describa la orden de trabajo..."
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -439,7 +487,9 @@ const NonServiceWorkOrderForm = () => {
                         className="disabled:opacity-65"
                       />
                     </FormControl>
-                    <FormDescription>Quien elabora la orden de trabajo.</FormDescription>
+                    <FormDescription>
+                      Quien elabora la orden de trabajo.
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -459,7 +509,9 @@ const NonServiceWorkOrderForm = () => {
                         className="disabled:opacity-65"
                       />
                     </FormControl>
-                    <FormDescription>Quien revisa la orden de trabajo.</FormDescription>
+                    <FormDescription>
+                      Quien revisa la orden de trabajo.
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -472,22 +524,33 @@ const NonServiceWorkOrderForm = () => {
                   defaultValue={"Dir. de Mantenimiento y Planificación"}
                   className="disabled:opacity-65"
                 />
-                <p className="text-xs text-muted-foreground">Quien revisa la orden de trabajo.</p>
+                <p className="text-xs text-muted-foreground">
+                  Quien revisa la orden de trabajo.
+                </p>
               </div>
             </div>
           </div>
 
           {/* Selección de tareas */}
           <div className="space-y-4">
-            <h2 className="text-3xl font-semibold text-center">Registro de Items</h2>
+            <h2 className="text-3xl font-semibold text-center">
+              Registro de Items
+            </h2>
 
             <div className="flex flex-col gap-4">
-              <Button type="button" onClick={addEmptyTask} variant="outline" className="gap-2">
+              <Button
+                type="button"
+                onClick={addEmptyTask}
+                variant="outline"
+                className="gap-2"
+              >
                 <PlusCircle className="h-4 w-4" />
                 Agregar Item
               </Button>
 
-              <ScrollArea className={cn("flex", tasks.length > 1 ? "h-[550px]" : "")}>
+              <ScrollArea
+                className={cn("flex", tasks.length > 1 ? "h-137.5" : "")}
+              >
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   {tasks.map((task) => (
                     <div key={task.id} className="p-4 border rounded-lg mb-2">
@@ -498,7 +561,9 @@ const NonServiceWorkOrderForm = () => {
                             <FormLabel>Código ATA</FormLabel>
                             <Input
                               value={task.ata}
-                              onChange={(e) => updateTask(task.id, "ata", e.target.value)}
+                              onChange={(e) =>
+                                updateTask(task.id, "ata", e.target.value)
+                              }
                               placeholder="Ej: 25"
                             />
                             <FormMessage />
@@ -510,7 +575,11 @@ const NonServiceWorkOrderForm = () => {
                             <Textarea
                               value={task.description_task}
                               onChange={(e) =>
-                                updateTask(task.id, "description_task", e.target.value)
+                                updateTask(
+                                  task.id,
+                                  "description_task",
+                                  e.target.value,
+                                )
                               }
                               placeholder="Describa la tarea..."
                             />
@@ -522,7 +591,9 @@ const NonServiceWorkOrderForm = () => {
                             <FormLabel>Material</FormLabel>
                             <Textarea
                               value={task.material}
-                              onChange={(e) => updateTask(task.id, "material", e.target.value)}
+                              onChange={(e) =>
+                                updateTask(task.id, "material", e.target.value)
+                              }
                               placeholder="Materiales requeridos.."
                             />
                             <FormMessage />

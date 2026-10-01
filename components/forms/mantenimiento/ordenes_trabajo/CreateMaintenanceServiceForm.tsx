@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useCreateMaintenanceService } from "@/actions/mantenimiento/planificacion/servicios/actions";
 import { Button } from "@/components/ui/button";
@@ -23,12 +23,29 @@ import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufactu
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { zodResolver } from "@/lib/zod-resolver";
-import { Check, ChevronsUpDown, Loader2, MinusCircle, PlusCircle } from "lucide-react";
+import {
+  Check,
+  ChevronsUpDown,
+  Loader2,
+  MinusCircle,
+  PlusCircle,
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { useFieldArray, useForm } from "react-hook-form";
+import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { useGetBatchesByLocationId } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByLocationId";
@@ -83,11 +100,22 @@ interface CreateMaintenanceServiceDialogProps {
   onClose: () => void;
 }
 
-export function CreateMaintenanceServiceForm({ onClose }: CreateMaintenanceServiceDialogProps) {
-  const { selectedStation, selectedCompany } = useCompanyStore()
-  const { mutate, data: batches, isPending: isBatchesLoading, isError: isBatchesError } = useGetBatchesByLocationId();
-  const { data: manufacturers, isLoading: isManufacturersLoading, isError: isManufacturersError } = useGetManufacturers(selectedCompany?.slug);
-  const { createService } = useCreateMaintenanceService()
+export function CreateMaintenanceServiceForm({
+  onClose,
+}: CreateMaintenanceServiceDialogProps) {
+  const { selectedStation, selectedCompany } = useCompanyStore();
+  const {
+    mutate,
+    data: batches,
+    isPending: isBatchesLoading,
+    isError: isBatchesError,
+  } = useGetBatchesByLocationId();
+  const {
+    data: manufacturers,
+    isLoading: isManufacturersLoading,
+    isError: isManufacturersError,
+  } = useGetManufacturers(selectedCompany?.slug);
+  const { createService } = useCreateMaintenanceService();
   const [currentStep, setCurrentStep] = useState(1); // Paso actual
   const [serviceData, setServiceData] = useState<ServiceFormType | null>(null); // Datos del servicio
   const [tasksData, setTasksData] = useState<TasksFormType>({ tasks: [] }); // Datos de las tareas
@@ -106,31 +134,41 @@ export function CreateMaintenanceServiceForm({ onClose }: CreateMaintenanceServi
   const tasksForm = useForm<TasksFormType>({
     resolver: zodResolver(tasksFormSchema),
     defaultValues: {
-      tasks: [{
-        description: "",
-        tools: []
-      }],
+      tasks: [
+        {
+          description: "",
+          tools: [],
+        },
+      ],
     },
   });
 
-  const { fields: taskFields, append: appendTask, remove: removeTask } = useFieldArray({
+  const {
+    fields: taskFields,
+    append: appendTask,
+    remove: removeTask,
+  } = useFieldArray({
     control: tasksForm.control,
     name: "tasks",
   });
 
-  const {type} = serviceForm.watch(); // Obtenemos el tipo de servicio seleccionado
+  const type = useWatch({ control: serviceForm.control, name: "type" });
+
+  // addToolToTask/removeToolFromTask mutan tools con setValue, que no re-renderiza
+  // por sí solo: observar el arreglo completo mantiene la lista al día.
+  const watchedTasks = useWatch({ control: tasksForm.control, name: "tasks" });
 
   const filteredManufacturers = useMemo(() => {
-    return manufacturers?.filter(
-      (manufacturer) => manufacturer.type === type
-    ) || [];
+    return (
+      manufacturers?.filter((manufacturer) => manufacturer.type === type) || []
+    );
   }, [manufacturers, type]);
 
   useEffect(() => {
     if (selectedStation) {
-      mutate({location_id: Number(selectedStation)})
+      mutate({ location_id: Number(selectedStation) });
     }
-  }, [selectedStation, mutate])
+  }, [selectedStation, mutate]);
 
   // Función para avanzar al siguiente paso
   const handleNext = () => {
@@ -147,7 +185,11 @@ export function CreateMaintenanceServiceForm({ onClose }: CreateMaintenanceServi
     const currentTools = tasksForm.getValues(`tasks.${taskIndex}.tools`) || [];
     tasksForm.setValue(`tasks.${taskIndex}.tools`, [
       ...currentTools,
-      { article_alt_part_number: "", article_serial: "", article_part_number: "" }
+      {
+        article_alt_part_number: "",
+        article_serial: "",
+        article_part_number: "",
+      },
     ]);
   };
 
@@ -165,12 +207,14 @@ export function CreateMaintenanceServiceForm({ onClose }: CreateMaintenanceServi
       tasks: tasksData.tasks, // Datos de las tareas
     };
     try {
-      await createService.mutateAsync({data: payload, company: selectedCompany!.slug});
+      await createService.mutateAsync({
+        data: payload,
+        company: selectedCompany!.slug,
+      });
     } catch (error) {
-      console.log(error)
+      console.log(error);
     } finally {
-
-      onClose()
+      onClose();
     }
   };
 
@@ -194,9 +238,14 @@ export function CreateMaintenanceServiceForm({ onClose }: CreateMaintenanceServi
                   <FormItem className="w-full">
                     <FormLabel>Nombre</FormLabel>
                     <FormControl>
-                      <Input placeholder="Ej: Mantenimiento de motor" {...field} />
+                      <Input
+                        placeholder="Ej: Mantenimiento de motor"
+                        {...field}
+                      />
                     </FormControl>
-                    <FormDescription className="text-xs">Nombre del servicio.</FormDescription>
+                    <FormDescription className="text-xs">
+                      Nombre del servicio.
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -207,7 +256,10 @@ export function CreateMaintenanceServiceForm({ onClose }: CreateMaintenanceServi
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Tipo</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Seleccione el tipo..." />
@@ -235,23 +287,34 @@ export function CreateMaintenanceServiceForm({ onClose }: CreateMaintenanceServi
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
-                            disabled={isManufacturersLoading || isManufacturersError || !serviceForm.getValues("type")}
+                            disabled={
+                              isManufacturersLoading ||
+                              isManufacturersError ||
+                              !serviceForm.getValues("type")
+                            }
                             variant="outline"
                             role="combobox"
                             className={cn(
                               "justify-between w-full",
-                              !field.value && "text-muted-foreground"
+                              !field.value && "text-muted-foreground",
                             )}
                           >
-                            {
-                              isManufacturersLoading && <Loader2 className="size-4 animate-spin mr-2" />
-                            }
-                            {field.value
-                              ? <p>{manufacturers?.find(
-                                (manufacturer) => `${manufacturer.id.toString()}` === field.value
-                              )?.name}</p>
-                              : "Elige al fabricante..."
-                            }
+                            {isManufacturersLoading && (
+                              <Loader2 className="size-4 animate-spin mr-2" />
+                            )}
+                            {field.value ? (
+                              <p>
+                                {
+                                  manufacturers?.find(
+                                    (manufacturer) =>
+                                      `${manufacturer.id.toString()}` ===
+                                      field.value,
+                                  )?.name
+                                }
+                              </p>
+                            ) : (
+                              "Elige al fabricante..."
+                            )}
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
                         </FormControl>
@@ -260,27 +323,31 @@ export function CreateMaintenanceServiceForm({ onClose }: CreateMaintenanceServi
                         <Command>
                           <CommandInput placeholder="Busque un fabricante..." />
                           <CommandList>
-                            <CommandEmpty className="text-sm p-2 text-center">No se ha encontrado ningún fabricante.</CommandEmpty>
+                            <CommandEmpty className="text-sm p-2 text-center">
+                              No se ha encontrado ningún fabricante.
+                            </CommandEmpty>
                             <CommandGroup>
                               {filteredManufacturers?.map((manufacturer) => (
                                 <CommandItem
                                   value={`${manufacturer.id}`}
                                   key={manufacturer.id}
                                   onSelect={() => {
-                                    serviceForm.setValue("manufacturer_id", manufacturer.id.toString())
+                                    serviceForm.setValue(
+                                      "manufacturer_id",
+                                      manufacturer.id.toString(),
+                                    );
                                   }}
                                 >
                                   <Check
                                     className={cn(
                                       "mr-2 h-4 w-4",
-                                      `${manufacturer.id.toString()}` === field.value
+                                      `${manufacturer.id.toString()}` ===
+                                        field.value
                                         ? "opacity-100"
-                                        : "opacity-0"
+                                        : "opacity-0",
                                     )}
                                   />
-                                  {
-                                    <p>{manufacturer.name}</p>
-                                  }
+                                  {<p>{manufacturer.name}</p>}
                                 </CommandItem>
                               ))}
                             </CommandGroup>
@@ -304,7 +371,9 @@ export function CreateMaintenanceServiceForm({ onClose }: CreateMaintenanceServi
                     <FormControl>
                       <Input placeholder="Ej: CMM - EMM - AMM" {...field} />
                     </FormControl>
-                    <FormDescription className="text-xs">Manual del cual se rige el servicio.</FormDescription>
+                    <FormDescription className="text-xs">
+                      Manual del cual se rige el servicio.
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -316,7 +385,11 @@ export function CreateMaintenanceServiceForm({ onClose }: CreateMaintenanceServi
                   <FormItem className="col-span-2">
                     <FormLabel>Descripción</FormLabel>
                     <FormControl>
-                      <Textarea className="resize-none" placeholder="Ej: Revisión completa del motor" {...field} />
+                      <Textarea
+                        className="resize-none"
+                        placeholder="Ej: Revisión completa del motor"
+                        {...field}
+                      />
                     </FormControl>
                     <FormDescription className="text-xs">
                       Descripción del servicio.
@@ -342,18 +415,28 @@ export function CreateMaintenanceServiceForm({ onClose }: CreateMaintenanceServi
             })}
             className="space-y-4"
           >
-            <ScrollArea className={cn("", taskFields.length > 1 ? "h-[400px]" : "")}>
+            <ScrollArea
+              className={cn("", taskFields.length > 1 ? "h-100" : "")}
+            >
               <div className="space-y-4">
                 {taskFields.map((taskField, taskIndex) => (
-                  <div key={taskField.id} className="space-y-4 border p-4 rounded-lg">
+                  <div
+                    key={taskField.id}
+                    className="space-y-4 border p-4 rounded-lg"
+                  >
                     <FormField
                       control={tasksForm.control}
                       name={`tasks.${taskIndex}.description`}
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Descripción de la Tarea {taskIndex + 1}:</FormLabel>
+                          <FormLabel>
+                            Descripción de la Tarea {taskIndex + 1}:
+                          </FormLabel>
                           <FormControl>
-                            <Input placeholder="Ej: Revisar sistema de combustible" {...field} />
+                            <Input
+                              placeholder="Ej: Revisar sistema de combustible"
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -363,60 +446,82 @@ export function CreateMaintenanceServiceForm({ onClose }: CreateMaintenanceServi
                     <div className="space-y-2">
                       <FormLabel>Herramientas requeridas:</FormLabel>
                       <div className="space-y-2">
-                        {(tasksForm.watch(`tasks.${taskIndex}.tools`) || []).map((tool, toolIndex) => (
-                          <div key={toolIndex}>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              className="hover:text-red-500"
-                              onClick={() => removeToolFromTask(taskIndex, toolIndex)}
-                            >
-                              <MinusCircle className="size-4" />
-                            </Button>
-                            <div key={toolIndex} className="grid grid-cols-3 gap-2 items-end border p-2 rounded">
-                              <FormField
-                                control={tasksForm.control}
-                                name={`tasks.${taskIndex}.tools.${toolIndex}.article_part_number`}
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel className="text-xs">N° Parte</FormLabel>
-                                    <FormControl>
-                                      <Input placeholder="Número de parte" {...field} />
-                                    </FormControl>
-                                    <FormMessage className="text-xs" />
-                                  </FormItem>
-                                )}
-                              />
-                              <FormField
-                                control={tasksForm.control}
-                                name={`tasks.${taskIndex}.tools.${toolIndex}.article_alt_part_number`}
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel className="text-xs">Código Alterno</FormLabel>
-                                    <FormControl>
-                                      <Input placeholder="Opcional" {...field} />
-                                    </FormControl>
-                                    <FormMessage className="text-xs" />
-                                  </FormItem>
-                                )}
-                              />
-                              <FormField
-                                control={tasksForm.control}
-                                name={`tasks.${taskIndex}.tools.${toolIndex}.article_serial`}
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel className="text-xs">N° Serie</FormLabel>
-                                    <FormControl>
-                                      <Input placeholder="Número de serie" {...field} />
-                                    </FormControl>
-                                    <FormMessage className="text-xs" />
-                                  </FormItem>
-                                )}
-                              />
+                        {(watchedTasks?.[taskIndex]?.tools || []).map(
+                          (tool, toolIndex) => (
+                            <div key={toolIndex}>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="hover:text-red-500"
+                                onClick={() =>
+                                  removeToolFromTask(taskIndex, toolIndex)
+                                }
+                              >
+                                <MinusCircle className="size-4" />
+                              </Button>
+                              <div
+                                key={toolIndex}
+                                className="grid grid-cols-3 gap-2 items-end border p-2 rounded"
+                              >
+                                <FormField
+                                  control={tasksForm.control}
+                                  name={`tasks.${taskIndex}.tools.${toolIndex}.article_part_number`}
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel className="text-xs">
+                                        N° Parte
+                                      </FormLabel>
+                                      <FormControl>
+                                        <Input
+                                          placeholder="Número de parte"
+                                          {...field}
+                                        />
+                                      </FormControl>
+                                      <FormMessage className="text-xs" />
+                                    </FormItem>
+                                  )}
+                                />
+                                <FormField
+                                  control={tasksForm.control}
+                                  name={`tasks.${taskIndex}.tools.${toolIndex}.article_alt_part_number`}
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel className="text-xs">
+                                        Código Alterno
+                                      </FormLabel>
+                                      <FormControl>
+                                        <Input
+                                          placeholder="Opcional"
+                                          {...field}
+                                        />
+                                      </FormControl>
+                                      <FormMessage className="text-xs" />
+                                    </FormItem>
+                                  )}
+                                />
+                                <FormField
+                                  control={tasksForm.control}
+                                  name={`tasks.${taskIndex}.tools.${toolIndex}.article_serial`}
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel className="text-xs">
+                                        N° Serie
+                                      </FormLabel>
+                                      <FormControl>
+                                        <Input
+                                          placeholder="Número de serie"
+                                          {...field}
+                                        />
+                                      </FormControl>
+                                      <FormMessage className="text-xs" />
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          ),
+                        )}
                       </div>
                       <Button
                         type="button"
@@ -467,18 +572,36 @@ export function CreateMaintenanceServiceForm({ onClose }: CreateMaintenanceServi
           <h3 className="text-lg font-semibold">Resumen</h3>
           <div>
             <h4 className="font-medium">Información del Servicio</h4>
-            <p><strong>Nombre:</strong> {serviceData?.name}</p>
-            <p><strong>Descripción:</strong> {serviceData?.description}</p>
-            <p><strong>Fabricante:</strong> {manufacturers?.find((m) => m.id.toString() === serviceData!.manufacturer_id)?.name}</p>
+            <p>
+              <strong>Nombre:</strong> {serviceData?.name}
+            </p>
+            <p>
+              <strong>Descripción:</strong> {serviceData?.description}
+            </p>
+            <p>
+              <strong>Fabricante:</strong>{" "}
+              {
+                manufacturers?.find(
+                  (m) => m.id.toString() === serviceData!.manufacturer_id,
+                )?.name
+              }
+            </p>
           </div>
           <div>
             <h4 className="font-medium">Tareas</h4>
-            <ScrollArea className="h-[300px]">
+            <ScrollArea className="h-75">
               <div className="flex flex-col gap-2">
                 {tasksData.tasks.map((task, index) => (
-                  <div key={index} className="border p-4 rounded-lg text-center">
-                    <p><strong>Tarea {index + 1}</strong></p>
-                    <p><strong>Descripción:</strong> {task.description}</p>
+                  <div
+                    key={index}
+                    className="border p-4 rounded-lg text-center"
+                  >
+                    <p>
+                      <strong>Tarea {index + 1}</strong>
+                    </p>
+                    <p>
+                      <strong>Descripción:</strong> {task.description}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -488,8 +611,16 @@ export function CreateMaintenanceServiceForm({ onClose }: CreateMaintenanceServi
             <Button type="button" variant="outline" onClick={handleBack}>
               Anterior
             </Button>
-            <Button disabled={createService.isPending} type="button" onClick={handleSubmit}>
-              {createService.isPending ? <Loader2 className="animate-spin size-4" /> : "Confirmar y Enviar"}
+            <Button
+              disabled={createService.isPending}
+              type="button"
+              onClick={handleSubmit}
+            >
+              {createService.isPending ? (
+                <Loader2 className="animate-spin size-4" />
+              ) : (
+                "Confirmar y Enviar"
+              )}
             </Button>
           </div>
         </div>

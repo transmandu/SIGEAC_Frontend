@@ -1,43 +1,50 @@
-'use client'
+"use client";
 
-import { CalendarDays, CheckCircle2, Clock3, FileText, Link2, XCircle } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
-import { cn } from '@/lib/utils'
-import type { Requisition } from '@/types/purchase'
-import Link from 'next/link'
-import { useCompanyStore } from '@/stores/CompanyStore'
-import { instantToCalendarDay } from "@/lib/date"
-import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone"
+import {
+  CalendarDays,
+  CheckCircle2,
+  Clock3,
+  FileText,
+  Link2,
+  XCircle,
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import type { Requisition } from "@/types/purchase";
+import Link from "next/link";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { instantToCalendarDay } from "@/lib/date";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
 
 const QUOTE_STATUS_LABELS: Record<string, string> = {
-  PENDING: 'PENDIENTE',
-  APPROVED: 'APROBADA',
-  REJECTED: 'RECHAZADA',
-}
+  PENDING: "PENDIENTE",
+  APPROVED: "APROBADA",
+  REJECTED: "RECHAZADA",
+};
 
 // Aprobada primero, luego su(s) complementaria(s), luego el resto en orden
 // de creación, y rechazadas siempre al final.
-const quoteSortRank = (quote: { status: string; parent_quote_order_id?: number | null }) => {
-  if (quote.status === 'APPROVED') return 0
-  if (quote.parent_quote_order_id) return 1
-  if (quote.status === 'REJECTED') return 3
-  return 2
-}
+const quoteSortRank = (quote: {
+  status: string;
+  parent_quote_order_id?: number | null;
+}) => {
+  if (quote.status === "APPROVED") return 0;
+  if (quote.parent_quote_order_id) return 1;
+  if (quote.status === "REJECTED") return 3;
+  return 2;
+};
 
 interface Props {
-  requisition: Requisition
-  selectedCompany: { slug: string } | null
+  requisition: Requisition;
+  selectedCompany: { slug: string } | null;
 }
 
-export default function RequisitionSubRow({
-  requisition,
-}: Props) {
-
-  const { selectedCompany } = useCompanyStore()
-  const timeZone = useCompanyTimezone()
+export default function RequisitionSubRow({ requisition }: Props) {
+  const { selectedCompany } = useCompanyStore();
+  const timeZone = useCompanyTimezone();
   const quotes = [...(requisition.quotes ?? [])].sort(
-    (a, b) => quoteSortRank(a) - quoteSortRank(b)
-  )
+    (a, b) => quoteSortRank(a) - quoteSortRank(b),
+  );
 
   return (
     <div className="flex flex-col gap-3">
@@ -50,32 +57,36 @@ export default function RequisitionSubRow({
             Requisición {requisition.order_number}
           </span>
         </div>
-        <Badge variant="outline" className="select-none rounded-md px-2 py-0.5 text-[11px] font-medium bg-background/60">
-          {quotes.length} {quotes.length === 1 ? 'cotización' : 'cotizaciones'}
+        <Badge
+          variant="outline"
+          className="select-none rounded-md px-2 py-0.5 text-[11px] font-medium bg-background/60"
+        >
+          {quotes.length} {quotes.length === 1 ? "cotización" : "cotizaciones"}
         </Badge>
       </div>
 
       <div className="flex flex-col gap-1.5">
         {quotes.map((quote) => {
-          const approved = quote.status === 'APPROVED'
-          const rejected = quote.status === 'REJECTED'
-          const pending = quote.status === 'PENDING'
-          const retailerNames = quote.article_retailers ?? []
-          const retailerLabel = retailerNames.length > 0
-            ? retailerNames.join(', ')
-            : 'No aplica "Lugar de compra" para esta cotización'
+          const approved = quote.status === "APPROVED";
+          const rejected = quote.status === "REJECTED";
+          const pending = quote.status === "PENDING";
+          const retailerNames = quote.article_retailers ?? [];
+          const retailerLabel =
+            retailerNames.length > 0
+              ? retailerNames.join(", ")
+              : 'No aplica "Lugar de compra" para esta cotización';
           // Instante: el día se lee en la zona de la compañía.
-          const decisionDate = instantToCalendarDay(quote.updated_at, timeZone)
+          const decisionDate = instantToCalendarDay(quote.updated_at, timeZone);
           return (
             <div
               key={quote.quote_number}
               className="group flex items-center justify-between gap-3 rounded-lg border px-3 py-2 bg-background/70 backdrop-blur-xs border-slate-200/70 dark:border-slate-700/60 hover:border-primary/40 hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-all"
             >
-            <div className="flex items-center gap-2.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-md bg-slate-100 dark:bg-slate-800">
-                 <FileText className="h-4 w-4 text-slate-600 dark:text-slate-300" />
-              </div>
-              <div className="flex flex-col leading-tight">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-8 w-8 items-center justify-center rounded-md bg-slate-100 dark:bg-slate-800">
+                  <FileText className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+                </div>
+                <div className="flex flex-col leading-tight">
                   <div className="flex items-center gap-1.5">
                     <Link
                       href={`/${selectedCompany?.slug}/compras/cotizaciones_generales/${quote.quote_number}`}
@@ -94,28 +105,29 @@ export default function RequisitionSubRow({
                       </Badge>
                     )}
                   </div>
-                  <span className="text-[11px] text-muted-foreground truncate max-w-[240px]">
+                  <span className="text-[11px] text-muted-foreground truncate max-w-60">
                     {retailerLabel}
                   </span>
+                </div>
               </div>
-            </div>
 
               <div className="flex items-center gap-4">
                 <div className="hidden md:flex items-center gap-1 text-[11px] text-muted-foreground">
                   <CalendarDays className="h-3 w-3" />
-                  <span>
-                    {decisionDate ?? 'Sin decisión'}
-                  </span>
+                  <span>{decisionDate ?? "Sin decisión"}</span>
                 </div>
                 <Badge
                   className={cn(
                     `whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-xs transition-colors duration-150 cursor-default`,
 
-                    approved && `border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300`,
+                    approved &&
+                      `border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300`,
 
-                    rejected && `border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300`,
+                    rejected &&
+                      `border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300`,
 
-                    pending && `border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300`
+                    pending &&
+                      `border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300`,
                   )}
                 >
                   <div className="flex items-center gap-1">
@@ -127,9 +139,9 @@ export default function RequisitionSubRow({
                 </Badge>
               </div>
             </div>
-          )
+          );
         })}
       </div>
     </div>
-  )
+  );
 }

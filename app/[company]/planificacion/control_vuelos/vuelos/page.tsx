@@ -154,7 +154,7 @@ const FlightControlPage = () => {
                       {data.length ? (
                         <DataTable columns={columns} data={data} />
                       ) : (
-                        <div className="flex min-h-[240px] flex-col items-center justify-center gap-2 rounded-lg border border-dashed p-8 text-center">
+                        <div className="flex min-h-60 flex-col items-center justify-center gap-2 rounded-lg border border-dashed p-8 text-center">
                           <Plane className="h-5 w-5 text-muted-foreground" />
                           <p className="text-sm font-medium">
                             Sin vuelos registrados

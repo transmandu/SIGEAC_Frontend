@@ -1,6 +1,9 @@
 "use client";
 
-import { useCompletePurchase, useMarkPurchaseOrderAsCompleted } from "@/actions/mantenimiento/compras/ordenes_compras/actions";
+import {
+  useCompletePurchase,
+  useMarkPurchaseOrderAsCompleted,
+} from "@/actions/mantenimiento/compras/ordenes_compras/actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,13 +33,18 @@ import type { PurchaseOrder } from "@/types/purchase";
 import { zodResolver } from "@/lib/zod-resolver";
 import { Building2, ClipboardCheck, Loader2 } from "lucide-react";
 import { useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { AmountInput } from "@/components/misc/AmountInput";
-import { InvoicesField, createInvoiceEntry, type InvoiceEntry } from "./InvoicesField";
+import {
+  InvoicesField,
+  createInvoiceEntry,
+  type InvoiceEntry,
+} from "./InvoicesField";
 
-const LABEL_CLS = "select-none text-[10px] leading-none text-muted-foreground uppercase";
+const LABEL_CLS =
+  "select-none text-[10px] leading-none text-muted-foreground uppercase";
 
 const INPUT_CLS =
   "h-9 rounded-lg border-border/50 bg-background/80 text-sm shadow-xs transition-shadow focus-visible:ring-1 focus-visible:ring-primary/40 focus-visible:ring-offset-0";
@@ -68,7 +76,7 @@ const FormSchema = z.object({
       total_justification: z.string().optional(),
       shipping_tracking: z.string(),
       international_shipping_tracking: z.string(),
-    })
+    }),
   ),
 });
 
@@ -81,22 +89,28 @@ interface FormProps {
   isAeronautical?: boolean;
 }
 
-export function CompleteOrderForm({ onClose, po, isAeronautical = false }: FormProps) {
+export function CompleteOrderForm({
+  onClose,
+  po,
+  isAeronautical = false,
+}: FormProps) {
   const { selectedCompany } = useCompanyStore();
-  const { data: paymentMethods, isLoading: isMethodsLoading } = useGetPaymentMethods();
+  const { data: paymentMethods, isLoading: isMethodsLoading } =
+    useGetPaymentMethods();
   const { data: paymentOptions } = useGetPaymentOptions(selectedCompany?.id);
-  const { data: shippingAgencies, isLoading: isAgenciesLoading } = useGetShippingAgencies(selectedCompany?.slug);
+  const { data: shippingAgencies, isLoading: isAgenciesLoading } =
+    useGetShippingAgencies(selectedCompany?.slug);
   const { completePurchase } = useCompletePurchase();
   const { markPurchaseOrderAsCompleted } = useMarkPurchaseOrderAsCompleted();
   const [invoices, setInvoices] = useState<InvoiceEntry[]>(() =>
     (po.invoices ?? []).length > 0
       ? po.invoices!.map((invoice) => ({
-        key: String(invoice.id),
-        id: invoice.id,
-        invoice_number: invoice.invoice_number ?? "",
-        file_path: invoice.file_path,
-      }))
-      : [createInvoiceEntry()]
+          key: String(invoice.id),
+          id: invoice.id,
+          invoice_number: invoice.invoice_number ?? "",
+          file_path: invoice.file_path,
+        }))
+      : [createInvoiceEntry()],
   );
 
   const articleRows = useMemo(
@@ -105,10 +119,13 @@ export function CompleteOrderForm({ onClose, po, isAeronautical = false }: FormP
         const quote = article.article_quote_order;
         const quantity = Number(quote?.quantity ?? 0);
         const unitPrice = Number(quote?.unit_price ?? 0);
-        const quotedTotal = quote?.total != null ? Number(quote.total) : quantity * unitPrice;
+        const quotedTotal =
+          quote?.total != null ? Number(quote.total) : quantity * unitPrice;
         return {
           article_purchase_order_id: article.id,
-          label: quote?.article_requisition_order?.article_part_number ?? `Artículo #${article.id}`,
+          label:
+            quote?.article_requisition_order?.article_part_number ??
+            `Artículo #${article.id}`,
           batchName: article.batch?.name ?? null,
           batchCategory: article.batch?.category ?? null,
           quantity,
@@ -118,17 +135,21 @@ export function CompleteOrderForm({ onClose, po, isAeronautical = false }: FormP
           totalJustification: article.total_justification ?? "",
           unitLabel: article.unit?.label ?? null,
           shipping_tracking: article.shipping_tracking ?? "",
-          international_shipping_tracking: article.international_shipping_tracking ?? "",
+          international_shipping_tracking:
+            article.international_shipping_tracking ?? "",
         };
       }),
       ...po.general_article_purchase_order.map((article) => {
         const quote = article.general_article_quote_order;
         const quantity = Number(quote?.quantity ?? 0);
         const unitPrice = Number(quote?.unit_price ?? 0);
-        const quotedTotal = quote?.total != null ? Number(quote.total) : quantity * unitPrice;
+        const quotedTotal =
+          quote?.total != null ? Number(quote.total) : quantity * unitPrice;
         return {
           article_purchase_order_id: article.id,
-          label: quote?.general_article_requisition_order?.description ?? `Artículo #${article.id}`,
+          label:
+            quote?.general_article_requisition_order?.description ??
+            `Artículo #${article.id}`,
           batchName: null,
           batchCategory: null,
           quantity,
@@ -138,11 +159,12 @@ export function CompleteOrderForm({ onClose, po, isAeronautical = false }: FormP
           totalJustification: article.total_justification ?? "",
           unitLabel: null,
           shipping_tracking: article.shipping_tracking ?? "",
-          international_shipping_tracking: article.international_shipping_tracking ?? "",
+          international_shipping_tracking:
+            article.international_shipping_tracking ?? "",
         };
       }),
     ],
-    [po.article_purchase_order, po.general_article_purchase_order]
+    [po.article_purchase_order, po.general_article_purchase_order],
   );
 
   const form = useForm<FormSchemaType>({
@@ -152,11 +174,16 @@ export function CompleteOrderForm({ onClose, po, isAeronautical = false }: FormP
       wire_fee: po.wire_fee != null ? String(po.wire_fee) : "",
       handling_fee: po.handling_fee != null ? String(po.handling_fee) : "",
       shipping_fee: po.shipping_fee != null ? String(po.shipping_fee) : "",
-      international_shipping: po.international_shipping != null ? String(po.international_shipping) : "",
+      international_shipping:
+        po.international_shipping != null
+          ? String(po.international_shipping)
+          : "",
       payment_method_id: po.payment_method ? String(po.payment_method.id) : "",
       bank_account_id: po.bank_account ? String(po.bank_account.id) : "",
       bank_card_id: po.bank_card ? String(po.bank_card.id) : "",
-      shipping_agency_id: po.shipping_agency ? String(po.shipping_agency.id) : "",
+      shipping_agency_id: po.shipping_agency
+        ? String(po.shipping_agency.id)
+        : "",
       observation: po.observation ?? "",
       articles_purchase_orders: articleRows.map((article) => ({
         article_purchase_order_id: article.article_purchase_order_id,
@@ -165,12 +192,22 @@ export function CompleteOrderForm({ onClose, po, isAeronautical = false }: FormP
         total: article.total.toFixed(2),
         total_justification: article.totalJustification,
         shipping_tracking: article.shipping_tracking,
-        international_shipping_tracking: article.international_shipping_tracking,
+        international_shipping_tracking:
+          article.international_shipping_tracking,
       })),
     },
   });
 
-  const { tax, wire_fee, handling_fee, shipping_fee, international_shipping, articles_purchase_orders } = form.watch();
+  const {
+    tax,
+    wire_fee,
+    handling_fee,
+    shipping_fee,
+    international_shipping,
+    articles_purchase_orders,
+  } = useWatch({
+    control: form.control,
+  });
 
   const subTotal = useMemo(
     () =>
@@ -178,10 +215,16 @@ export function CompleteOrderForm({ onClose, po, isAeronautical = false }: FormP
         const value = Number(article.total);
         return sum + (Number.isNaN(value) ? 0 : value);
       }, 0),
-    [articles_purchase_orders]
+    [articles_purchase_orders],
   );
-  const selectedMethodId = form.watch("payment_method_id");
-  const selectedCardId = form.watch("bank_card_id");
+  const selectedMethodId = useWatch({
+    control: form.control,
+    name: "payment_method_id",
+  });
+  const selectedCardId = useWatch({
+    control: form.control,
+    name: "bank_card_id",
+  });
   const effectiveWireFee = isAeronautical ? 0 : Number(wire_fee || 0);
 
   // ── Flujo de pago: método → tarjeta / cuenta (condicional) ───────────────
@@ -189,21 +232,25 @@ export function CompleteOrderForm({ onClose, po, isAeronautical = false }: FormP
     if (!paymentOptions || !selectedMethodId) return [];
     return paymentOptions.flatMap((account) =>
       (account.bank_cards ?? [])
-        .filter((card) => card.payment_method_id.toString() === selectedMethodId)
-        .map((card) => ({ ...card, bank_account: account }))
+        .filter(
+          (card) => card.payment_method_id.toString() === selectedMethodId,
+        )
+        .map((card) => ({ ...card, bank_account: account })),
     );
   }, [paymentOptions, selectedMethodId]);
 
   const accountsForMethod = useMemo(() => {
     if (!paymentOptions || !selectedMethodId) return [];
     return paymentOptions.filter((account) =>
-      (account.payment_methods ?? []).some((method) => method.id.toString() === selectedMethodId)
+      (account.payment_methods ?? []).some(
+        (method) => method.id.toString() === selectedMethodId,
+      ),
     );
   }, [paymentOptions, selectedMethodId]);
 
   const selectedCard = useMemo(
     () => cardsForMethod.find((card) => card.id.toString() === selectedCardId),
-    [cardsForMethod, selectedCardId]
+    [cardsForMethod, selectedCardId],
   );
 
   const total = useMemo(() => {
@@ -215,33 +262,58 @@ export function CompleteOrderForm({ onClose, po, isAeronautical = false }: FormP
       Number(shipping_fee || 0) +
       Number(international_shipping || 0)
     );
-  }, [subTotal, tax, effectiveWireFee, handling_fee, shipping_fee, international_shipping]);
+  }, [
+    subTotal,
+    tax,
+    effectiveWireFee,
+    handling_fee,
+    shipping_fee,
+    international_shipping,
+  ]);
 
   const onSubmit = async (data: FormSchemaType) => {
     // Si el método tiene tarjetas registradas, hay que indicar cuál se usó;
     // si no tiene tarjetas pero sí cuentas habilitadas, hay que indicar la cuenta.
-    if (data.payment_method_id && cardsForMethod.length > 0 && !data.bank_card_id) {
-      form.setError("bank_card_id", { message: "Debe seleccionar la tarjeta utilizada." });
+    if (
+      data.payment_method_id &&
+      cardsForMethod.length > 0 &&
+      !data.bank_card_id
+    ) {
+      form.setError("bank_card_id", {
+        message: "Debe seleccionar la tarjeta utilizada.",
+      });
       return;
     }
 
-    if (data.payment_method_id && cardsForMethod.length === 0 && accountsForMethod.length > 0 && !data.bank_account_id) {
-      form.setError("bank_account_id", { message: "Debe seleccionar la cuenta utilizada." });
+    if (
+      data.payment_method_id &&
+      cardsForMethod.length === 0 &&
+      accountsForMethod.length > 0 &&
+      !data.bank_account_id
+    ) {
+      form.setError("bank_account_id", {
+        message: "Debe seleccionar la cuenta utilizada.",
+      });
       return;
     }
 
     const missingJustification = data.articles_purchase_orders.some(
-      (article) => Number(article.total) !== article.quoted_total && !article.total_justification?.trim()
+      (article) =>
+        Number(article.total) !== article.quoted_total &&
+        !article.total_justification?.trim(),
     );
     if (missingJustification) {
-      toast.error("Debe justificar los artículos cuyo total difiere del monto cotizado.");
+      toast.error(
+        "Debe justificar los artículos cuyo total difiere del monto cotizado.",
+      );
       return;
     }
 
     // Una factura ya guardada conserva su archivo aunque no se reemplace; una
     // nueva sin adjunto no se puede persistir. La fila vacía se descarta.
     const filledInvoices = invoices.filter(
-      (invoice) => invoice.id != null || invoice.file || invoice.invoice_number.trim()
+      (invoice) =>
+        invoice.id != null || invoice.file || invoice.invoice_number.trim(),
     );
 
     if (filledInvoices.some((invoice) => invoice.id == null && !invoice.file)) {
@@ -253,7 +325,7 @@ export function CompleteOrderForm({ onClose, po, isAeronautical = false }: FormP
 
     const computedSubTotal = data.articles_purchase_orders.reduce(
       (sum, article) => sum + Number(article.total || 0),
-      0
+      0,
     );
 
     const computedTotal =
@@ -276,27 +348,36 @@ export function CompleteOrderForm({ onClose, po, isAeronautical = false }: FormP
         total: computedTotal,
         // La tarjeta determina su cuenta; sin método (orden previa a la
         // reingeniería) se preserva la cuenta que ya tenía la orden.
-        payment_method_id: data.payment_method_id ? Number(data.payment_method_id) : null,
+        payment_method_id: data.payment_method_id
+          ? Number(data.payment_method_id)
+          : null,
         bank_account_id: selectedCard
           ? selectedCard.bank_account_id
-          : (data.bank_account_id
+          : data.bank_account_id
             ? Number(data.bank_account_id)
-            : (! data.payment_method_id && po.bank_account ? po.bank_account.id : null)),
+            : !data.payment_method_id && po.bank_account
+              ? po.bank_account.id
+              : null,
         bank_card_id: selectedCard ? selectedCard.id : null,
-        shipping_agency_id: data.shipping_agency_id ? Number(data.shipping_agency_id) : null,
+        shipping_agency_id: data.shipping_agency_id
+          ? Number(data.shipping_agency_id)
+          : null,
         observation: data.observation || null,
         invoices: filledInvoices.map((invoice) => ({
           id: invoice.id,
           invoice_number: invoice.invoice_number.trim() || null,
           file: invoice.file,
         })),
-        articles_purchase_orders: data.articles_purchase_orders.map((article) => ({
-          article_purchase_order_id: article.article_purchase_order_id,
-          total: Number(article.total),
-          total_justification: article.total_justification || null,
-          shipping_tracking: article.shipping_tracking || null,
-          international_shipping_tracking: article.international_shipping_tracking || null,
-        })),
+        articles_purchase_orders: data.articles_purchase_orders.map(
+          (article) => ({
+            article_purchase_order_id: article.article_purchase_order_id,
+            total: Number(article.total),
+            total_justification: article.total_justification || null,
+            shipping_tracking: article.shipping_tracking || null,
+            international_shipping_tracking:
+              article.international_shipping_tracking || null,
+          }),
+        ),
       },
       company: selectedCompany!.slug,
     });
@@ -309,7 +390,8 @@ export function CompleteOrderForm({ onClose, po, isAeronautical = false }: FormP
     onClose();
   };
 
-  const isPending = completePurchase.isPending || markPurchaseOrderAsCompleted.isPending;
+  const isPending =
+    completePurchase.isPending || markPurchaseOrderAsCompleted.isPending;
 
   return (
     <Form {...form}>
@@ -317,109 +399,175 @@ export function CompleteOrderForm({ onClose, po, isAeronautical = false }: FormP
         onSubmit={form.handleSubmit(onSubmit)}
         className="flex flex-col gap-6"
       >
-
         {/* ── Artículos ──────────────────────────────────────────────────── */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold text-foreground select-none">Artículos</span>
+            <span className="text-sm font-semibold text-foreground select-none">
+              Artículos
+            </span>
             <span className="text-xs text-muted-foreground tabular-nums select-none">
               {articleRows.length} {articleRows.length === 1 ? "ítem" : "ítems"}
             </span>
           </div>
 
-          <ScrollArea className={cn("w-full", articleRows.length > 1 && "h-[300px]")}>
+          <ScrollArea
+            className={cn("w-full", articleRows.length > 1 && "h-75")}
+          >
             <div className="space-y-2 pr-1">
-              {articleRows.map((article, index) => (
-                <div
-                  key={article.article_purchase_order_id}
-                  className="rounded-lg border border-border/60 bg-background/60 overflow-hidden"
-                >
-                  {/* HEADER */}
-                  <div className="flex items-center justify-between border-b border-border/50 bg-muted/30 px-3 py-1.5">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="truncate text-sm font-medium text-foreground select-none">
-                        {article.batchName || "Artículo"}
-                      </span>
-                      {article.batchCategory && (
-                        <Badge
-                          variant="secondary"
-                          className="h-5 px-2 text-[10px] font-medium uppercase tracking-wide text-muted-foreground select-none"
-                        >
-                          {article.batchCategory}
-                        </Badge>
-                      )}
+              {articleRows.map((article, index) => {
+                const currentTotal = Number(
+                  articles_purchase_orders?.[index]?.total,
+                );
+                const differs =
+                  !Number.isNaN(currentTotal) &&
+                  currentTotal !== article.quotedTotal;
+                return (
+                  <div
+                    key={article.article_purchase_order_id}
+                    className="rounded-lg border border-border/60 bg-background/60 overflow-hidden"
+                  >
+                    {/* HEADER */}
+                    <div className="flex items-center justify-between border-b border-border/50 bg-muted/30 px-3 py-1.5">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="truncate text-sm font-medium text-foreground select-none">
+                          {article.batchName || "Artículo"}
+                        </span>
+                        {article.batchCategory && (
+                          <Badge
+                            variant="secondary"
+                            className="h-5 px-2 text-[10px] font-medium uppercase tracking-wide text-muted-foreground select-none"
+                          >
+                            {article.batchCategory}
+                          </Badge>
+                        )}
+                      </div>
                     </div>
-                  </div>
 
-                  {/* BODY */}
-                  <div className="relative px-3 py-2.5">
-                    <div className="grid grid-cols-[2fr_1fr_1fr_1fr] gap-x-3 gap-y-2.5">
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        <span className="text-[10px] px-1.5 py-[2px] rounded-md bg-primary/10 text-primary border border-primary/20 shrink-0 select-none">
-                          P/N
-                        </span>
-                        <span className="truncate text-sm font-medium text-foreground">
-                          {article.label}
-                        </span>
+                    {/* BODY */}
+                    <div className="relative px-3 py-2.5">
+                      <div className="grid grid-cols-[2fr_1fr_1fr_1fr] gap-x-3 gap-y-2.5">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20 shrink-0 select-none">
+                            P/N
+                          </span>
+                          <span className="truncate text-sm font-medium text-foreground">
+                            {article.label}
+                          </span>
+                        </div>
+
+                        <div className="flex flex-col gap-0.5">
+                          <span className={LABEL_CLS}>Cantidad</span>
+                          <span className="flex h-7 items-center text-sm tabular-nums">
+                            {article.quantity}
+                            {article.unitLabel ? ` ${article.unitLabel}` : ""}
+                          </span>
+                        </div>
+
+                        <div className="flex flex-col gap-0.5">
+                          <span className={LABEL_CLS}>Precio unitario</span>
+                          <span className="flex h-7 items-center text-sm tabular-nums">
+                            ${article.unitPrice.toFixed(2)}
+                          </span>
+                        </div>
+
+                        <FormField
+                          control={form.control}
+                          name={`articles_purchase_orders.${index}.total`}
+                          render={({ field }) => {
+                            return (
+                              <FormItem className="flex flex-col gap-0.5 space-y-0">
+                                <span
+                                  className={cn(
+                                    LABEL_CLS,
+                                    differs &&
+                                      "text-amber-600 dark:text-amber-400",
+                                  )}
+                                >
+                                  Total{" "}
+                                  {differs &&
+                                    `(cotizado $${article.quotedTotal.toFixed(2)})`}
+                                </span>
+                                <FormControl>
+                                  <AmountInput
+                                    className={cn(
+                                      INPUT_CLS,
+                                      "h-7",
+                                      differs &&
+                                        "border-amber-500/60 bg-amber-50/70 dark:bg-amber-900/20",
+                                    )}
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            );
+                          }}
+                        />
                       </div>
 
-                      <div className="flex flex-col gap-0.5">
-                        <span className={LABEL_CLS}>Cantidad</span>
-                        <span className="flex h-7 items-center text-sm tabular-nums">
-                          {article.quantity}{article.unitLabel ? ` ${article.unitLabel}` : ""}
-                        </span>
-                      </div>
+                      {currentTotal !== article.quotedTotal && (
+                        <div className="mt-2.5 border-t border-amber-500/30 bg-amber-50/40 -mx-3 px-3 py-2 dark:bg-amber-900/10">
+                          <span className="select-none text-[10px] leading-none text-amber-700 dark:text-amber-400 uppercase">
+                            Justificación de la diferencia
+                          </span>
+                          <FormField
+                            control={form.control}
+                            name={`articles_purchase_orders.${index}.total_justification`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormControl>
+                                  <Textarea
+                                    {...field}
+                                    placeholder="Explique el motivo de la diferencia con el monto cotizado..."
+                                    className="mt-1 min-h-12.5 resize-none border-amber-500/40 bg-background/70 text-sm"
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      )}
 
-                      <div className="flex flex-col gap-0.5">
-                        <span className={LABEL_CLS}>Precio unitario</span>
-                        <span className="flex h-7 items-center text-sm tabular-nums">${article.unitPrice.toFixed(2)}</span>
-                      </div>
-
-                      <FormField
-                        control={form.control}
-                        name={`articles_purchase_orders.${index}.total`}
-                        render={({ field }) => {
-                          const currentValue = Number(
-                            form.watch(`articles_purchase_orders.${index}.total`)
-                          );
-                          const differs = !Number.isNaN(currentValue) && currentValue !== article.quotedTotal;
-                          return (
-                            <FormItem className="flex flex-col gap-0.5 space-y-0">
-                              <span className={cn(LABEL_CLS, differs && "text-amber-600 dark:text-amber-400")}>
-                                Total {differs && `(cotizado $${article.quotedTotal.toFixed(2)})`}
+                      <div className="mt-2.5 grid grid-cols-2 gap-3 border-t border-border/40 pt-2.5">
+                        <FormField
+                          control={form.control}
+                          name={`articles_purchase_orders.${index}.shipping_tracking`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <span className={LABEL_CLS}>
+                                Tracking nacional
                               </span>
                               <FormControl>
-                                <AmountInput
+                                <Input
+                                  placeholder="Tracking #"
                                   className={cn(
                                     INPUT_CLS,
-                                    "h-7",
-                                    differs && "border-amber-500/60 bg-amber-50/70 dark:bg-amber-900/20"
+                                    "h-8 font-mono text-xs mt-0.5",
                                   )}
                                   {...field}
                                 />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
-                          );
-                        }}
-                      />
-                    </div>
-
-                    {Number(form.watch(`articles_purchase_orders.${index}.total`)) !== article.quotedTotal && (
-                      <div className="mt-2.5 border-t border-amber-500/30 bg-amber-50/40 -mx-3 px-3 py-2 dark:bg-amber-900/10">
-                        <span className="select-none text-[10px] leading-none text-amber-700 dark:text-amber-400 uppercase">
-                          Justificación de la diferencia
-                        </span>
+                          )}
+                        />
                         <FormField
                           control={form.control}
-                          name={`articles_purchase_orders.${index}.total_justification`}
+                          name={`articles_purchase_orders.${index}.international_shipping_tracking`}
                           render={({ field }) => (
                             <FormItem>
+                              <span className={LABEL_CLS}>
+                                Tracking int&apos;l
+                              </span>
                               <FormControl>
-                                <Textarea
+                                <Input
+                                  placeholder="Tracking #"
+                                  className={cn(
+                                    INPUT_CLS,
+                                    "h-8 font-mono text-xs mt-0.5",
+                                  )}
                                   {...field}
-                                  placeholder="Explique el motivo de la diferencia con el monto cotizado..."
-                                  className="mt-1 min-h-[50px] resize-none border-amber-500/40 bg-background/70 text-sm"
                                 />
                               </FormControl>
                               <FormMessage />
@@ -427,54 +575,16 @@ export function CompleteOrderForm({ onClose, po, isAeronautical = false }: FormP
                           )}
                         />
                       </div>
-                    )}
-
-                    <div className="mt-2.5 grid grid-cols-2 gap-3 border-t border-border/40 pt-2.5">
-                      <FormField
-                        control={form.control}
-                        name={`articles_purchase_orders.${index}.shipping_tracking`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <span className={LABEL_CLS}>Tracking nacional</span>
-                            <FormControl>
-                              <Input
-                                placeholder="Tracking #"
-                                className={cn(INPUT_CLS, "h-8 font-mono text-xs mt-0.5")}
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name={`articles_purchase_orders.${index}.international_shipping_tracking`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <span className={LABEL_CLS}>Tracking int&apos;l</span>
-                            <FormControl>
-                              <Input
-                                placeholder="Tracking #"
-                                className={cn(INPUT_CLS, "h-8 font-mono text-xs mt-0.5")}
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </ScrollArea>
         </div>
 
         {/* ── Costos de compra + Pago ───────────────────────────────────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-
           {/* Costos de compra */}
           <div className="space-y-3 rounded-xl border border-border/60 bg-muted/10 p-4">
             <span className="text-xs font-semibold uppercase tracking-wider text-foreground select-none">
@@ -489,7 +599,11 @@ export function CompleteOrderForm({ onClose, po, isAeronautical = false }: FormP
                   <FormItem>
                     <FormLabel className={LABEL_CLS}>Tax</FormLabel>
                     <FormControl>
-                      <AmountInput placeholder="$0.00" className={INPUT_CLS} {...field} />
+                      <AmountInput
+                        placeholder="$0.00"
+                        className={INPUT_CLS}
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -503,7 +617,11 @@ export function CompleteOrderForm({ onClose, po, isAeronautical = false }: FormP
                     <FormItem>
                       <FormLabel className={LABEL_CLS}>Wire Fee</FormLabel>
                       <FormControl>
-                        <AmountInput placeholder="$0.00" className={INPUT_CLS} {...field} />
+                        <AmountInput
+                          placeholder="$0.00"
+                          className={INPUT_CLS}
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -517,7 +635,11 @@ export function CompleteOrderForm({ onClose, po, isAeronautical = false }: FormP
                   <FormItem>
                     <FormLabel className={LABEL_CLS}>Handling Fee</FormLabel>
                     <FormControl>
-                      <AmountInput placeholder="$0.00" className={INPUT_CLS} {...field} />
+                      <AmountInput
+                        placeholder="$0.00"
+                        className={INPUT_CLS}
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -531,7 +653,11 @@ export function CompleteOrderForm({ onClose, po, isAeronautical = false }: FormP
                   <FormItem>
                     <FormLabel className={LABEL_CLS}>Envío nacional</FormLabel>
                     <FormControl>
-                      <AmountInput placeholder="$0.00" className={INPUT_CLS} {...field} />
+                      <AmountInput
+                        placeholder="$0.00"
+                        className={INPUT_CLS}
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -542,9 +668,15 @@ export function CompleteOrderForm({ onClose, po, isAeronautical = false }: FormP
                 name="international_shipping"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className={LABEL_CLS}>Envío internacional</FormLabel>
+                    <FormLabel className={LABEL_CLS}>
+                      Envío internacional
+                    </FormLabel>
                     <FormControl>
-                      <AmountInput placeholder="$0.00" className={INPUT_CLS} {...field} />
+                      <AmountInput
+                        placeholder="$0.00"
+                        className={INPUT_CLS}
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -555,8 +687,14 @@ export function CompleteOrderForm({ onClose, po, isAeronautical = false }: FormP
                 name="shipping_agency_id"
                 render={({ field }) => (
                   <FormItem className="col-span-2">
-                    <FormLabel className={LABEL_CLS}>Agencia de envío</FormLabel>
-                    <Select disabled={isAgenciesLoading} onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormLabel className={LABEL_CLS}>
+                      Agencia de envío
+                    </FormLabel>
+                    <Select
+                      disabled={isAgenciesLoading}
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger className={SELECT_TRIGGER_CLS}>
                           <SelectValue placeholder="Seleccionar agencia..." />
@@ -564,7 +702,11 @@ export function CompleteOrderForm({ onClose, po, isAeronautical = false }: FormP
                       </FormControl>
                       <SelectContent>
                         {shippingAgencies?.map((agency) => (
-                          <SelectItem value={agency.id.toString()} key={agency.id} className="text-sm">
+                          <SelectItem
+                            value={agency.id.toString()}
+                            key={agency.id}
+                            className="text-sm"
+                          >
                             {agency.name} ({agency.code})
                           </SelectItem>
                         ))}
@@ -603,12 +745,22 @@ export function CompleteOrderForm({ onClose, po, isAeronautical = false }: FormP
                     >
                       <FormControl>
                         <SelectTrigger className={SELECT_TRIGGER_CLS}>
-                          <SelectValue placeholder={isMethodsLoading ? "Cargando..." : "Seleccionar método..."} />
+                          <SelectValue
+                            placeholder={
+                              isMethodsLoading
+                                ? "Cargando..."
+                                : "Seleccionar método..."
+                            }
+                          />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         {paymentMethods?.map((method) => (
-                          <SelectItem value={method.id.toString()} key={method.id} className="text-sm">
+                          <SelectItem
+                            value={method.id.toString()}
+                            key={method.id}
+                            className="text-sm"
+                          >
                             {method.name}
                           </SelectItem>
                         ))}
@@ -628,7 +780,10 @@ export function CompleteOrderForm({ onClose, po, isAeronautical = false }: FormP
                   render={({ field }) => (
                     <FormItem className="col-span-2">
                       <FormLabel className={LABEL_CLS}>Tarjeta</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger className={SELECT_TRIGGER_CLS}>
                             <SelectValue placeholder="Seleccionar tarjeta..." />
@@ -636,8 +791,14 @@ export function CompleteOrderForm({ onClose, po, isAeronautical = false }: FormP
                         </FormControl>
                         <SelectContent>
                           {cardsForMethod.map((card) => (
-                            <SelectItem value={card.id.toString()} key={card.id} className="text-sm">
-                              {card.name} ({card.card_number}) — {card.bank_account.name} · {card.bank_account.bank.name}
+                            <SelectItem
+                              value={card.id.toString()}
+                              key={card.id}
+                              className="text-sm"
+                            >
+                              {card.name} ({card.card_number}) —{" "}
+                              {card.bank_account.name} ·{" "}
+                              {card.bank_account.bank.name}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -653,9 +814,13 @@ export function CompleteOrderForm({ onClose, po, isAeronautical = false }: FormP
                 <div className="col-span-2 flex items-center gap-2 rounded-lg border border-border/40 bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
                   <Building2 className="size-3.5 shrink-0" />
                   <span>
-                    Cuenta: <span className="font-medium text-foreground/90">{selectedCard.bank_account.name}</span>
-                    {" "}
-                    <span className="font-mono">(***{selectedCard.bank_account.account_number})</span>
+                    Cuenta:{" "}
+                    <span className="font-medium text-foreground/90">
+                      {selectedCard.bank_account.name}
+                    </span>{" "}
+                    <span className="font-mono">
+                      (***{selectedCard.bank_account.account_number})
+                    </span>
                     {" — "}
                     {selectedCard.bank_account.bank.name}
                   </span>
@@ -670,8 +835,13 @@ export function CompleteOrderForm({ onClose, po, isAeronautical = false }: FormP
                   name="bank_account_id"
                   render={({ field }) => (
                     <FormItem className="col-span-2">
-                      <FormLabel className={LABEL_CLS}>Cuenta bancaria</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <FormLabel className={LABEL_CLS}>
+                        Cuenta bancaria
+                      </FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger className={SELECT_TRIGGER_CLS}>
                             <SelectValue placeholder="Seleccionar cuenta..." />
@@ -679,8 +849,13 @@ export function CompleteOrderForm({ onClose, po, isAeronautical = false }: FormP
                         </FormControl>
                         <SelectContent>
                           {accountsForMethod.map((account) => (
-                            <SelectItem value={account.id.toString()} key={account.id} className="text-sm">
-                              {account.name} ({account.account_number}) — {account.bank.name}
+                            <SelectItem
+                              value={account.id.toString()}
+                              key={account.id}
+                              className="text-sm"
+                            >
+                              {account.name} ({account.account_number}) —{" "}
+                              {account.bank.name}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -698,7 +873,7 @@ export function CompleteOrderForm({ onClose, po, isAeronautical = false }: FormP
 
         {/* ── Total general ── */}
         <div className="flex justify-end pt-2 border-t border-border/60">
-          <div className="flex items-center justify-between gap-6 rounded-md bg-muted/10 px-4 py-2 border border-border/40 min-w-[220px]">
+          <div className="flex items-center justify-between gap-6 rounded-md bg-muted/10 px-4 py-2 border border-border/40 min-w-55">
             <div className="flex flex-col">
               <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground whitespace-nowrap">
                 Total general
@@ -719,7 +894,7 @@ export function CompleteOrderForm({ onClose, po, isAeronautical = false }: FormP
             disabled={isPending}
             type="submit"
             className="
-              w-[400px] h-10 rounded-lg
+              w-100 h-10 rounded-lg
               shadow-xs
               transition-colors
               flex items-center justify-center gap-2

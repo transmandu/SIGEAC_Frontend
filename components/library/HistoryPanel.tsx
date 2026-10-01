@@ -1,17 +1,29 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import libraryService from '@/lib/libraryService';
-import { 
-  X, Loader2, FileText, CalendarDays, MessageSquare,
-  CheckCircle2, AlertCircle, Eye, Copy, Check
-} from 'lucide-react';
+import { useState, useEffect } from "react";
+import libraryService from "@/lib/libraryService";
+import {
+  X,
+  Loader2,
+  FileText,
+  CalendarDays,
+  MessageSquare,
+  CheckCircle2,
+  AlertCircle,
+  Eye,
+  Copy,
+  Check,
+} from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { useCompanyTimezone } from '@/hooks/general/useCompanyTimezone';
-import { formatInstant } from '@/lib/date';
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import { formatInstant } from "@/lib/date";
 
-export default function TraceabilityPanel({ documentId, company, onClose }: any) {
+export default function TraceabilityPanel({
+  documentId,
+  company,
+  onClose,
+}: any) {
   const timeZone = useCompanyTimezone();
   const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -20,15 +32,17 @@ export default function TraceabilityPanel({ documentId, company, onClose }: any)
   const [isCopying, setIsCopying] = useState(false);
 
   const formatEmployeeName = (fullName: string) => {
-    if (!fullName) return 'N/A';
-    const index = fullName.indexOf('(');
+    if (!fullName) return "N/A";
+    const index = fullName.indexOf("(");
     if (index !== -1) {
       const name = fullName.substring(0, index).trim();
       const id = fullName.substring(index).trim();
       return (
         <>
           <span className="block truncate">{name}</span>
-          <span className="block text-[9px] text-slate-500 font-bold leading-none mt-1">{id}</span>
+          <span className="block text-[9px] text-slate-500 font-bold leading-none mt-1">
+            {id}
+          </span>
         </>
       );
     }
@@ -47,16 +61,24 @@ export default function TraceabilityPanel({ documentId, company, onClose }: any)
   };
 
   const getPublicViewerUrl = (token: string) => {
-    const configuredOrigin = process.env.NEXT_PUBLIC_FRONTEND_URL?.replace(/\/+$/, "");
-    const browserOrigin = typeof window !== "undefined" ? window.location.origin : "";
-    const isConfiguredLocal = !!configuredOrigin
-      && (configuredOrigin.includes("localhost") || configuredOrigin.includes("127.0.0.1"));
-    const isBrowserLocal = !browserOrigin
-      || browserOrigin.includes("localhost")
-      || browserOrigin.includes("127.0.0.1");
-    const origin = configuredOrigin && (!isConfiguredLocal || isBrowserLocal)
-      ? configuredOrigin
-      : browserOrigin;
+    const configuredOrigin = process.env.NEXT_PUBLIC_FRONTEND_URL?.replace(
+      /\/+$/,
+      "",
+    );
+    const browserOrigin =
+      typeof window !== "undefined" ? window.location.origin : "";
+    const isConfiguredLocal =
+      !!configuredOrigin &&
+      (configuredOrigin.includes("localhost") ||
+        configuredOrigin.includes("127.0.0.1"));
+    const isBrowserLocal =
+      !browserOrigin ||
+      browserOrigin.includes("localhost") ||
+      browserOrigin.includes("127.0.0.1");
+    const origin =
+      configuredOrigin && (!isConfiguredLocal || isBrowserLocal)
+        ? configuredOrigin
+        : browserOrigin;
 
     return `${origin}/acceso_publico/shared-viewer/${company}/${encodeURIComponent(token)}`;
   };
@@ -72,7 +94,9 @@ export default function TraceabilityPanel({ documentId, company, onClose }: any)
 
         setLogs(
           documentId
-            ? data.filter((l: any) => String(l.document_id) === String(documentId))
+            ? data.filter(
+                (l: any) => String(l.document_id) === String(documentId),
+              )
             : data,
         );
       } catch (err) {
@@ -87,29 +111,40 @@ export default function TraceabilityPanel({ documentId, company, onClose }: any)
 
   const getVersionLabel = (log: any) => {
     if (log.document && log.document.versions) {
-      const version = log.document.versions.find((v: any) => String(v.id) === String(log.version_id));
-      return version ? (version.version_label || version.version_number) : log.current_version;
+      const version = log.document.versions.find(
+        (v: any) => String(v.id) === String(log.version_id),
+      );
+      return version
+        ? version.version_label || version.version_number
+        : log.current_version;
     }
-    return log.current_version || 'N/A';
+    return log.current_version || "N/A";
   };
 
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-[#0f1112] border-l border-slate-300 dark:border-gray-800 shadow-2xl w-[400px] animate-in slide-in-from-right duration-300 ease-in-out">
-      
+    <div className="flex flex-col h-full bg-white dark:bg-[#0f1112] border-l border-slate-300 dark:border-gray-800 shadow-2xl w-100 animate-in slide-in-from-right duration-300 ease-in-out">
       <div className="p-6 border-b border-slate-200 dark:border-gray-800 flex justify-between items-center bg-slate-100/50 dark:bg-white/2">
         <div className="flex flex-col gap-1" data-tour="biblioteca-trace-title">
-          <h3 className="text-sm font-black text-slate-950 dark:text-white uppercase tracking-widest leading-none">Historial</h3>
+          <h3 className="text-sm font-black text-slate-950 dark:text-white uppercase tracking-widest leading-none">
+            Historial
+          </h3>
           <p className="text-[10px] text-slate-600 dark:text-gray-400 font-bold uppercase tracking-tight italic">
             Documentos Compartidos
           </p>
         </div>
-        <button onClick={onClose} className="p-2 hover:bg-slate-200 dark:hover:bg-gray-800 rounded-full transition-colors text-slate-700 dark:text-slate-400">
+        <button
+          onClick={onClose}
+          className="p-2 hover:bg-slate-200 dark:hover:bg-gray-800 rounded-full transition-colors text-slate-700 dark:text-slate-400"
+        >
           <X className="h-5 w-5" />
         </button>
       </div>
 
       {/* CONTENT - Scrollbar invisible */}
-      <div className="flex-1 overflow-y-auto p-6 bg-slate-50 dark:bg-[#0a0c0d] no-scrollbar" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+      <div
+        className="flex-1 overflow-y-auto p-6 bg-slate-50 dark:bg-[#0a0c0d] no-scrollbar"
+        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+      >
         <style jsx>{`
           .no-scrollbar::-webkit-scrollbar {
             display: none;
@@ -119,37 +154,52 @@ export default function TraceabilityPanel({ documentId, company, onClose }: any)
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-3">
             <Loader2 className="h-8 w-8 animate-spin text-blue-700" />
-            <p className="text-[10px] font-semibold text-slate-600 dark:text-gray-400 uppercase tracking-widest">Cargando registros...</p>
+            <p className="text-[10px] font-semibold text-slate-600 dark:text-gray-400 uppercase tracking-widest">
+              Cargando registros...
+            </p>
           </div>
         ) : error ? (
           <div className="text-center py-20 border-2 border-dashed border-red-300 dark:border-red-900 rounded-3xl bg-white dark:bg-transparent">
-            <p className="text-[10px] text-red-600 dark:text-red-400 font-semibold uppercase px-10 italic">{error}</p>
+            <p className="text-[10px] text-red-600 dark:text-red-400 font-semibold uppercase px-10 italic">
+              {error}
+            </p>
           </div>
         ) : logs.length === 0 ? (
           <div className="text-center py-20 border-2 border-dashed border-slate-300 dark:border-gray-800 rounded-3xl bg-white dark:bg-transparent">
-            <p className="text-[10px] text-slate-600 font-semibold uppercase px-10 italic">Sin registros disponibles</p>
+            <p className="text-[10px] text-slate-600 font-semibold uppercase px-10 italic">
+              Sin registros disponibles
+            </p>
           </div>
         ) : (
-          <div className="relative border-l-2 border-slate-300 dark:border-gray-700 ml-4 space-y-8 pb-6" data-tour="biblioteca-trace-timeline">
+          <div
+            className="relative border-l-2 border-slate-300 dark:border-gray-700 ml-4 space-y-8 pb-6"
+            data-tour="biblioteca-trace-timeline"
+          >
             {logs.map((log) => {
               const active = isLinkActive(log.expires_at);
               const versionLabel = getVersionLabel(log);
 
               return (
                 <div key={log.id} className="relative pl-8 group">
-                  <div className={`absolute left-[-18px] top-1 w-8 h-8 rounded-lg bg-white dark:bg-[#0f1112] border-2 ${active ? 'border-emerald-500' : 'border-slate-400'} z-10 shadow-md flex items-center justify-center p-1.5 ring-4 ring-slate-50 dark:ring-[#0a0c0d]`}>
-                    <FileText className={`h-full w-full ${active ? 'text-emerald-500' : 'text-slate-400'}`} strokeWidth={2.5}/>
+                  <div
+                    className={`absolute -left-4.5 top-1 w-8 h-8 rounded-lg bg-white dark:bg-[#0f1112] border-2 ${active ? "border-emerald-500" : "border-slate-400"} z-10 shadow-md flex items-center justify-center p-1.5 ring-4 ring-slate-50 dark:ring-[#0a0c0d]`}
+                  >
+                    <FileText
+                      className={`h-full w-full ${active ? "text-emerald-500" : "text-slate-400"}`}
+                      strokeWidth={2.5}
+                    />
                   </div>
-                  
-                  <div 
+
+                  <div
                     onClick={() => {
-                        const token = log.full_share_url || log.share_url || log.share_token;
-                        if (token) {
-                            const fullUrl = token.startsWith('http') 
-                            ? token 
-                            : getPublicViewerUrl(token);
-                            setSelectedQR(fullUrl);
-                        }
+                      const token =
+                        log.full_share_url || log.share_url || log.share_token;
+                      if (token) {
+                        const fullUrl = token.startsWith("http")
+                          ? token
+                          : getPublicViewerUrl(token);
+                        setSelectedQR(fullUrl);
+                      }
                     }}
                     className="bg-white dark:bg-white/3 rounded-2xl p-4 border border-slate-300 dark:border-gray-800 shadow-xs transition-all hover:border-blue-400 hover:shadow-md cursor-pointer active:scale-[0.98]"
                     data-tour="biblioteca-trace-qr-btn"
@@ -167,7 +217,7 @@ export default function TraceabilityPanel({ documentId, company, onClose }: any)
                         )}
                       </div>
                       <span className="text-[10px] text-slate-500 font-bold uppercase flex items-center gap-1">
-                        <CalendarDays className="h-3 w-3" /> 
+                        <CalendarDays className="h-3 w-3" />
                         {formatInstant(log.created_at, timeZone, "date")}
                       </span>
                     </div>
@@ -177,7 +227,7 @@ export default function TraceabilityPanel({ documentId, company, onClose }: any)
                         <p className="text-[12px] font-bold text-blue-900 dark:text-blue-400 uppercase tracking-tight truncate leading-tight flex-1">
                           {log.document_title}
                         </p>
-                        {versionLabel !== 'N/A' && (
+                        {versionLabel !== "N/A" && (
                           <span className="select-none shrink-0 text-[10px] font-medium bg-slate-100 dark:bg-white/4 text-slate-600 dark:text-slate-300 px-2.5 py-0.5 rounded-full border border-slate-200 dark:border-gray-800 tracking-tighter">
                             {versionLabel}
                           </span>
@@ -187,15 +237,21 @@ export default function TraceabilityPanel({ documentId, company, onClose }: any)
 
                     <div className="grid grid-cols-2 gap-3 mb-4">
                       <div>
-                        <p className="text-[8px] text-slate-500 dark:text-gray-500 font-semibold uppercase tracking-widest mb-1">Generado por</p>
+                        <p className="text-[8px] text-slate-500 dark:text-gray-500 font-semibold uppercase tracking-widest mb-1">
+                          Generado por
+                        </p>
                         <div className="text-[11px] font-semibold text-slate-950 dark:text-gray-100 uppercase tracking-tighter leading-tight">
                           {formatEmployeeName(log.created_by_name)}
                         </div>
                       </div>
                       <div className="border-l border-slate-300 dark:border-gray-800 pl-3">
-                        <p className="text-[8px] text-slate-500 dark:text-gray-500 font-semibold uppercase tracking-widest mb-1">Asignado a</p>
+                        <p className="text-[8px] text-slate-500 dark:text-gray-500 font-semibold uppercase tracking-widest mb-1">
+                          Asignado a
+                        </p>
                         <div className="text-[11px] font-semibold text-slate-950 dark:text-gray-100 uppercase tracking-tighter leading-tight">
-                          {formatEmployeeName(log.shared_with_name || 'Personal Externo')}
+                          {formatEmployeeName(
+                            log.shared_with_name || "Personal Externo",
+                          )}
                         </div>
                       </div>
                     </div>
@@ -204,7 +260,7 @@ export default function TraceabilityPanel({ documentId, company, onClose }: any)
                       <div className="flex items-start gap-2">
                         <MessageSquare className="h-3 w-3 text-slate-400 mt-0.5 shrink-0" />
                         <p className="text-[11px] text-slate-800 dark:text-gray-300 font-bold leading-tight italic line-clamp-2">
-                          &quot;{log.reason || 'Sin descripcion.'}&quot;
+                          &quot;{log.reason || "Sin descripcion."}&quot;
                         </p>
                       </div>
                     </div>
@@ -218,7 +274,7 @@ export default function TraceabilityPanel({ documentId, company, onClose }: any)
 
       {/* MODAL QR DINÁMICO */}
       <Dialog open={!!selectedQR} onOpenChange={() => setSelectedQR(null)}>
-        <DialogContent className="sm:max-w-[380px] p-0 flex flex-col items-center overflow-hidden shadow-2xl bg-white dark:bg-[#1a1c1e] border-slate-200 dark:border-gray-800 outline-hidden sm:ml-[-440px]! sm:translate-x-0! z-100!">
+        <DialogContent className="sm:max-w-95 p-0 flex flex-col items-center overflow-hidden shadow-2xl bg-white dark:bg-[#1a1c1e] border-slate-200 dark:border-gray-800 outline-hidden sm:-ml-110! sm:translate-x-0! z-100!">
           <div className="w-full px-6 py-4 border-b flex items-center justify-center bg-slate-100/50 dark:bg-gray-800/40 border-slate-200 dark:border-gray-700">
             <DialogTitle className="text-slate-900 dark:text-white text-center text-xs font-semibold uppercase tracking-widest">
               Vista del Código QR
@@ -228,19 +284,35 @@ export default function TraceabilityPanel({ documentId, company, onClose }: any)
           <div className="p-6 flex flex-col items-center w-full space-y-6">
             <div className="p-5 bg-white rounded-2xl shadow-xl border border-slate-200">
               {selectedQR && (
-                <QRCodeSVG value={selectedQR} size={200} level="H" marginSize={3} />
+                <QRCodeSVG
+                  value={selectedQR}
+                  size={200}
+                  level="H"
+                  marginSize={3}
+                />
               )}
             </div>
 
             <div className="w-full space-y-4 pb-2">
               <div className="flex items-center gap-2 p-1.5 rounded-xl border bg-slate-50 dark:bg-gray-800/50 border-slate-200 dark:border-gray-700">
-                <input readOnly value={selectedQR || ""} className="flex-1 h-8 bg-transparent border-none text-[10px] text-slate-700 dark:text-gray-400 outline-hidden px-2 font-mono truncate" />
-                <button onClick={copyToClipboard} className="h-8 w-8 p-0 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-gray-700 rounded-lg transition-colors">
-                  {isCopying ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5 text-slate-500 dark:text-gray-400" />}
+                <input
+                  readOnly
+                  value={selectedQR || ""}
+                  className="flex-1 h-8 bg-transparent border-none text-[10px] text-slate-700 dark:text-gray-400 outline-hidden px-2 font-mono truncate"
+                />
+                <button
+                  onClick={copyToClipboard}
+                  className="h-8 w-8 p-0 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                >
+                  {isCopying ? (
+                    <Check className="h-3.5 w-3.5 text-emerald-500" />
+                  ) : (
+                    <Copy className="h-3.5 w-3.5 text-slate-500 dark:text-gray-400" />
+                  )}
                 </button>
               </div>
 
-              <button 
+              <button
                 onClick={() => setSelectedQR(null)}
                 className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold text-[11px] uppercase tracking-widest shadow-lg shadow-blue-500/20"
               >

@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ComboboxField } from "@/components/ui/ComboboxField";
 import { Trash2 } from "lucide-react";
-import { UseFormReturn } from "react-hook-form";
+import { UseFormReturn, useWatch } from "react-hook-form";
 import { Employee } from "@/types";
 import { AuthorizedEmployeeResponse } from "@/hooks/ajustes/autorizados/useGetAuthorizedEmployees";
 
@@ -34,8 +34,14 @@ export function AgreementItem({
   isAuthorizedEmployeesLoading,
   onRemove,
 }: AgreementItemProps) {
-  const isExternal = form.watch(`agreements.${index}.is_external`);
-  const isAuthorized = form.watch(`agreements.${index}.is_authorized`);
+  const isExternal = useWatch({
+    control: form.control,
+    name: `agreements.${index}.is_external`,
+  });
+  const isAuthorized = useWatch({
+    control: form.control,
+    name: `agreements.${index}.is_authorized`,
+  });
 
   const employeeOptions = employees.map((e) => ({
     value: String(e.id),
@@ -64,8 +70,14 @@ export function AgreementItem({
                       field.onChange(checked);
                       if (checked) {
                         form.setValue(`agreements.${index}.is_external`, false);
-                        form.setValue(`agreements.${index}.responsible_name`, "");
-                        form.setValue(`agreements.${index}.responsible_job_title`, "");
+                        form.setValue(
+                          `agreements.${index}.responsible_name`,
+                          "",
+                        );
+                        form.setValue(
+                          `agreements.${index}.responsible_job_title`,
+                          "",
+                        );
                       }
                     }}
                   />
@@ -87,8 +99,14 @@ export function AgreementItem({
                     onCheckedChange={(checked) => {
                       field.onChange(checked);
                       if (checked) {
-                        form.setValue(`agreements.${index}.is_authorized`, false);
-                        form.setValue(`agreements.${index}.responsible_authorized_employee_id`, "");
+                        form.setValue(
+                          `agreements.${index}.is_authorized`,
+                          false,
+                        );
+                        form.setValue(
+                          `agreements.${index}.responsible_authorized_employee_id`,
+                          "",
+                        );
                       }
                     }}
                   />
@@ -120,7 +138,11 @@ export function AgreementItem({
               Descripción
             </FormLabel>
             <FormControl>
-              <Textarea placeholder="Acuerdo..." className="min-h-[60px]" {...field} />
+              <Textarea
+                placeholder="Acuerdo..."
+                className="min-h-15"
+                {...field}
+              />
             </FormControl>
             <FormMessage className="text-xs" />
           </FormItem>
@@ -142,7 +164,9 @@ export function AgreementItem({
           form={form}
           name={`agreements.${index}.responsible_authorized_employee_id`}
           label="Responsable autorizado"
-          placeholder={isAuthorizedEmployeesLoading ? "Cargando..." : "Seleccionar..."}
+          placeholder={
+            isAuthorizedEmployeesLoading ? "Cargando..." : "Seleccionar..."
+          }
           searchPlaceholder="Buscar responsable autorizado..."
           emptyText="No hay empleados autorizados."
           options={authorizedEmployeeOptions}

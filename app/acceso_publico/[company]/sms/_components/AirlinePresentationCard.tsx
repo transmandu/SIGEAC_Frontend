@@ -19,7 +19,7 @@ const AirlinePresentationCard = ({ company }: PresentationCardProps) => {
       <Card className="overflow-hidden border-0 shadow-lg">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Sección de Imagen */}
-          <div className="relative h-64 lg:h-full min-h-[300px]">
+          <div className="relative h-64 lg:h-full min-h-75">
             <Image
               src={`${storageBaseUrl}images/sms/LOGO_TMD.png`}
               alt="Logo Transmandu"

@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { AlertTriangle } from "lucide-react"
+import { AlertTriangle } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -10,14 +10,14 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import type { ActiveGeneralArticleRequisition } from "@/types/purchase"
-import { ActiveRequisitionWarning } from "./ActiveRequisitionWarning"
+} from "@/components/ui/alert-dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import type { ActiveGeneralArticleRequisition } from "@/types/purchase";
+import { ActiveRequisitionWarning } from "./ActiveRequisitionWarning";
 
 export interface DuplicateRequisitionConflict {
-  label: string
-  entries: ActiveGeneralArticleRequisition[]
+  label: string;
+  entries: ActiveGeneralArticleRequisition[];
 }
 
 /** Último aviso antes de repetir un pedido. Confirma, no bloquea. */
@@ -27,10 +27,10 @@ export function DuplicateRequisitionDialog({
   onOpenChange,
   onConfirm,
 }: {
-  conflicts: DuplicateRequisitionConflict[]
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onConfirm: () => void
+  conflicts: DuplicateRequisitionConflict[];
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onConfirm: () => void;
 }) {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -47,7 +47,7 @@ export function DuplicateRequisitionDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
 
-        <ScrollArea className={conflicts.length > 3 ? "h-[280px] pr-3" : ""}>
+        <ScrollArea className={conflicts.length > 3 ? "h-70 pr-3" : ""}>
           <div className="flex flex-col gap-3">
             {conflicts.map((conflict) => (
               <div key={conflict.label} className="flex flex-col gap-1.5">
@@ -60,9 +60,11 @@ export function DuplicateRequisitionDialog({
 
         <AlertDialogFooter>
           <AlertDialogCancel>Revisar</AlertDialogCancel>
-          <AlertDialogAction onClick={onConfirm}>Solicitar igual</AlertDialogAction>
+          <AlertDialogAction onClick={onConfirm}>
+            Solicitar igual
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
-  )
+  );
 }

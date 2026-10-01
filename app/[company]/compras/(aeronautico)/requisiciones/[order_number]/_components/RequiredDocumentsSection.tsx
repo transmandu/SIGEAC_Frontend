@@ -1,21 +1,31 @@
-import { useMemo } from 'react';
-import { FileBadge } from 'lucide-react';
+import { useMemo } from "react";
+import { FileBadge } from "lucide-react";
+
+import CopyPartNumberButton from "@/components/misc/CopyPartNumberButton";
 
 interface RequiredDocumentsSectionProps {
   batches: {
     batch_articles: {
       article_part_number: string;
-      document_types?: { id: number; name: string; regulation?: string | null }[];
+      document_types?: {
+        id: number;
+        name: string;
+        regulation?: string | null;
+      }[];
     }[];
   }[];
 }
 
-const RequiredDocumentsSection = ({ batches }: RequiredDocumentsSectionProps) => {
+const RequiredDocumentsSection = ({
+  batches,
+}: RequiredDocumentsSectionProps) => {
   const items = useMemo(() => {
     return batches
       .flatMap((batch) => batch.batch_articles ?? [])
       .filter((article) => (article.document_types?.length ?? 0) > 0)
-      .sort((a, b) => a.article_part_number.localeCompare(b.article_part_number));
+      .sort((a, b) =>
+        a.article_part_number.localeCompare(b.article_part_number),
+      );
   }, [batches]);
 
   return (
@@ -27,14 +37,17 @@ const RequiredDocumentsSection = ({ batches }: RequiredDocumentsSectionProps) =>
         </span>
       </div>
 
-      <div className="h-[100px] sm:h-[120px] overflow-y-auto">
+      <div className="h-25 sm:h-30 overflow-y-auto">
         {items.length > 0 ? (
           <ul className="space-y-2">
             {items.map((article, idx) => (
               <li key={`${article.article_part_number}-${idx}`}>
-                <span className="block text-[11px] font-medium text-foreground/90 truncate">
-                  {article.article_part_number}
-                </span>
+                <div className="flex min-w-0 items-center gap-1">
+                  <span className="truncate text-[11px] font-medium text-foreground/90">
+                    {article.article_part_number}
+                  </span>
+                  <CopyPartNumberButton value={article.article_part_number} />
+                </div>
                 <ul className="mt-0.5 space-y-0.5 border-l border-border/50 pl-2">
                   {article.document_types!.map((type) => (
                     <li

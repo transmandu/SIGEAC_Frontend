@@ -56,7 +56,7 @@ function CardHeaderBlock({
   description: string;
 }) {
   return (
-    <div className="text-center mb-3 space-y-1 flex flex-col items-center min-h-[110px]">
+    <div className="text-center mb-3 space-y-1 flex flex-col items-center min-h-27.5">
       <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600">{icon}</div>
 
       <h3 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">
@@ -115,7 +115,7 @@ export default function SMSStatistics({
             description="Relación entre cursos planificados y ejecutados"
           />
 
-          <div className="h-[180px] flex items-center justify-center">
+          <div className="h-45 flex items-center justify-center">
             {isLoadingCourseBarChart ? (
               <Loader2 className="animate-spin" />
             ) : coursePieChartData.length > 0 ? (
@@ -136,7 +136,7 @@ export default function SMSStatistics({
             description="Comparativa de cursos planificados vs ejecutados"
           />
 
-          <div className="h-[200px]">
+          <div className="h-50">
             {isLoadingCourseBarChart ? (
               <div className="flex justify-center items-center h-full">
                 <Loader2 className="animate-spin" />
@@ -168,7 +168,7 @@ export default function SMSStatistics({
           description="Evolución de reportes gestionados durante el año"
         />
 
-        <div className="h-[200px]">
+        <div className="h-50">
           {isLoadingBarChart ? (
             <div className="flex justify-center items-center h-full">
               <Loader2 className="animate-spin" />

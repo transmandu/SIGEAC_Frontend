@@ -1,15 +1,13 @@
-"use client"
+"use client";
 
 import {
   useCascadeDeleteQuote,
   useDeleteQuote,
-  useUpdateQuoteStatus
-} from "@/actions/mantenimiento/compras/cotizaciones/actions"
-import {
-  useCreatePurchaseOrder
-} from "@/actions/mantenimiento/compras/ordenes_compras/actions"
-import { useCompanyStore } from "@/stores/CompanyStore"
-import type { Quote } from "@/types/purchase"
+  useUpdateQuoteStatus,
+} from "@/actions/mantenimiento/compras/cotizaciones/actions";
+import { useCreatePurchaseOrder } from "@/actions/mantenimiento/compras/ordenes_compras/actions";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import type { Quote } from "@/types/purchase";
 import {
   AlertOctagon,
   AlertTriangle,
@@ -17,27 +15,27 @@ import {
   ClipboardX,
   Loader2,
   Receipt,
-  Trash2
-} from "lucide-react"
-import LoadingPage from "@/components/misc/LoadingPage"
+  Trash2,
+} from "lucide-react";
+import LoadingPage from "@/components/misc/LoadingPage";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
-  DialogTitle
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { useState } from "react"
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
 
 /* =========================
    STYLES
 ========================= */
 
 const dialogClass =
-  "sm:max-w-[390px] rounded-3xl border border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl overflow-hidden p-0"
+  "sm:max-w-[390px] rounded-3xl border border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl overflow-hidden p-0";
 const header =
-  "px-6 pt-8 pb-3 flex flex-col items-center text-center space-y-3"
+  "px-6 pt-8 pb-3 flex flex-col items-center text-center space-y-3";
 const iconBase = (color: "red" | "orange" | "green") => `
   flex items-center justify-center
   size-12 rounded-2xl
@@ -46,15 +44,14 @@ const iconBase = (color: "red" | "orange" | "green") => `
     color === "red"
       ? "border-red-500/15 bg-red-500/8 text-red-600"
       : color === "orange"
-      ? "border-orange-500/15 bg-orange-500/8 text-orange-600"
-      : "border-emerald-500/15 bg-emerald-500/8 text-emerald-600"
+        ? "border-orange-500/15 bg-orange-500/8 text-orange-600"
+        : "border-emerald-500/15 bg-emerald-500/8 text-emerald-600"
   }
-`
+`;
 
-const title =
-  "text-[16px] font-semibold tracking-tight"
+const title = "text-[16px] font-semibold tracking-tight";
 const description =
-  "text-sm text-muted-foreground text-center leading-relaxed max-w-sm"
+  "text-sm text-muted-foreground text-center leading-relaxed max-w-sm";
 const warningBox = (color: "red" | "orange") => `
   mx-6 mt-4 p-3 rounded-xl border text-sm leading-relaxed flex gap-2
   ${
@@ -62,32 +59,28 @@ const warningBox = (color: "red" | "orange") => `
       ? "border-red-500/20 bg-red-500/5 text-red-600"
       : "border-orange-500/20 bg-orange-500/5 text-orange-600"
   }
-`
+`;
 
-const footer =
-  "px-6 pb-6 pt-5 flex justify-end gap-2"
+const footer = "px-6 pb-6 pt-5 flex justify-end gap-2";
 const cancelBtn =
-  "rounded-xl border border-border/60 bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition"
-const dangerBtn =
-  "rounded-xl bg-red-600 hover:bg-red-700 text-white"
-const warningBtn =
-  "rounded-xl bg-orange-500 hover:bg-orange-600 text-white"
-const successBtn =
-  "rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white"
+  "rounded-xl border border-border/60 bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition";
+const dangerBtn = "rounded-xl bg-red-600 hover:bg-red-700 text-white";
+const warningBtn = "rounded-xl bg-orange-500 hover:bg-orange-600 text-white";
+const successBtn = "rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white";
 
 type Props = {
-  quote: Quote
-  openReject: boolean
-  setOpenReject: (open: boolean) => void
-  openApprove: boolean
-  setOpenApprove: (open: boolean) => void
-  openDelete: boolean
-  setOpenDelete: (open: boolean) => void
-  openCascadeDelete: boolean
-  setOpenCascadeDelete: (open: boolean) => void
-  onSuccessUpdate?: () => void
-  onSuccessDelete?: () => void
-}
+  quote: Quote;
+  openReject: boolean;
+  setOpenReject: (open: boolean) => void;
+  openApprove: boolean;
+  setOpenApprove: (open: boolean) => void;
+  openDelete: boolean;
+  setOpenDelete: (open: boolean) => void;
+  openCascadeDelete: boolean;
+  setOpenCascadeDelete: (open: boolean) => void;
+  onSuccessUpdate?: () => void;
+  onSuccessDelete?: () => void;
+};
 
 const QuoteDropdownDialogs = ({
   quote,
@@ -100,44 +93,44 @@ const QuoteDropdownDialogs = ({
   openCascadeDelete,
   setOpenCascadeDelete,
   onSuccessUpdate,
-  onSuccessDelete
+  onSuccessDelete,
 }: Props) => {
-  const { selectedCompany } = useCompanyStore()
+  const { selectedCompany } = useCompanyStore();
 
-  const { updateStatusQuote } = useUpdateQuoteStatus()
-  const { createPurchaseOrder } = useCreatePurchaseOrder()
-  const { deleteQuote } = useDeleteQuote()
-  const { cascadeDeleteQuote } = useCascadeDeleteQuote()
+  const { updateStatusQuote } = useUpdateQuoteStatus();
+  const { createPurchaseOrder } = useCreatePurchaseOrder();
+  const { deleteQuote } = useDeleteQuote();
+  const { cascadeDeleteQuote } = useCascadeDeleteQuote();
 
-  const [Observation, setObservation] = useState("")
+  const [Observation, setObservation] = useState("");
 
-  if (!selectedCompany) return <LoadingPage />
+  if (!selectedCompany) return <LoadingPage />;
 
   const handleReject = async () => {
     await updateStatusQuote.mutateAsync({
       id: quote.id,
       data: {
         status: "REJECTED",
-        observation: Observation.trim() || null
+        observation: Observation.trim() || null,
       },
-      company: selectedCompany.slug
-    })
+      company: selectedCompany.slug,
+    });
 
-    setObservation("")
-    setOpenReject(false)
+    setObservation("");
+    setOpenReject(false);
 
-    onSuccessUpdate?.()
-  }
+    onSuccessUpdate?.();
+  };
 
   const handleApprove = async () => {
     // El guard de reentrada va antes que cualquier await: el `disabled` del botón
     // no llega a repintar entre dos clics seguidos, y cada POST que se cuela crea
     // una orden de compra más.
-    if (createPurchaseOrder.isPending) return
+    if (createPurchaseOrder.isPending) return;
 
     const locationId =
       quote.article_quote_order.find((a) => a.location)?.location?.id ??
-      quote.general_article_quote_order.find((a) => a.location)?.location?.id
+      quote.general_article_quote_order.find((a) => a.location)?.location?.id;
 
     // sub_total/total aren't sent here — a quote spanning multiple vendors
     // (or retailers) splits into one PO per vendor, and the backend computes
@@ -149,163 +142,164 @@ const QuoteDropdownDialogs = ({
       articles_purchase_orders: quote.article_quote_order.map((a) => ({
         article_quote_order_id: a.id,
       })),
-      general_articles_purchase_orders: quote.general_article_quote_order.map((a) => ({
-        general_article_quote_order_id: a.id,
-      })),
-    }
+      general_articles_purchase_orders: quote.general_article_quote_order.map(
+        (a) => ({
+          general_article_quote_order_id: a.id,
+        }),
+      ),
+    };
 
     try {
       await createPurchaseOrder.mutateAsync({
         data: poData,
-        company: selectedCompany.slug
-      })
+        company: selectedCompany.slug,
+      });
 
-      onSuccessUpdate?.()
+      onSuccessUpdate?.();
     } catch {
       // El hook ya reportó el error (incluido el 409) por toast.
     } finally {
       // Se cierra pase lo que pase: dejarlo abierto tras un error solo invita a
       // insistir con el botón.
-      setOpenApprove(false)
+      setOpenApprove(false);
     }
-  }
+  };
   const handleDelete = async () => {
     await deleteQuote.mutateAsync({
       id: quote.id,
-      company: selectedCompany.slug
-    })
+      company: selectedCompany.slug,
+    });
 
-    setOpenDelete(false)
+    setOpenDelete(false);
 
-    onSuccessDelete?.()
-  }
+    onSuccessDelete?.();
+  };
 
   const handleCascadeDelete = async () => {
     await cascadeDeleteQuote.mutateAsync({
       id: quote.id,
-      company: selectedCompany.slug
-    })
+      company: selectedCompany.slug,
+    });
 
-    setOpenCascadeDelete(false)
+    setOpenCascadeDelete(false);
 
-    onSuccessDelete?.()
-  }
+    onSuccessDelete?.();
+  };
 
   return (
     <>
-    {/* =========================
+      {/* =========================
         CASCADE DELETE (SUPERUSER)
     ========================= */}
 
-    <Dialog open={openCascadeDelete} onOpenChange={setOpenCascadeDelete}>
-      <DialogContent className={dialogClass}>
-        <DialogHeader className={header}>
-          <div className={iconBase("red")}>
-            <AlertOctagon className="size-5" />
+      <Dialog open={openCascadeDelete} onOpenChange={setOpenCascadeDelete}>
+        <DialogContent className={dialogClass}>
+          <DialogHeader className={header}>
+            <div className={iconBase("red")}>
+              <AlertOctagon className="size-5" />
+            </div>
+
+            <DialogTitle className={title}>
+              Eliminar cotización en cascada
+            </DialogTitle>
+
+            <DialogDescription className={description}>
+              La cotización{" "}
+              <span className="font-medium text-foreground">
+                {quote.quote_number}
+              </span>{" "}
+              y toda su cadena serán eliminadas permanentemente.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className={warningBox("red")}>
+            <AlertTriangle className="size-4 mt-0.5" />
+
+            <div>
+              Esta acción es <b>irreversible</b>. Se eliminarán también sus
+              cotizaciones complementarias y cualquier orden de compra generada
+              a partir de ellas, revirtiendo el inventario (artículos y stock)
+              que ya se haya afectado, sin importar el estado en que se
+              encuentren.
+            </div>
           </div>
 
-          <DialogTitle className={title}>
-            Eliminar cotización en cascada
-          </DialogTitle>
+          <div className={footer}>
+            <Button
+              variant="outline"
+              onClick={() => setOpenCascadeDelete(false)}
+              className={cancelBtn}
+            >
+              Cancelar
+            </Button>
 
-          <DialogDescription className={description}>
-            La cotización{" "}
-            <span className="font-medium text-foreground">
-              {quote.quote_number}
-            </span>{" "}
-            y toda su cadena serán eliminadas permanentemente.
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className={warningBox("red")}>
-          <AlertTriangle className="size-4 mt-[2px]" />
-
-          <div>
-            Esta acción es <b>irreversible</b>. Se eliminarán también sus cotizaciones complementarias
-            y cualquier orden de compra generada a partir de ellas, revirtiendo el inventario (artículos
-            y stock) que ya se haya afectado, sin importar el estado en que se encuentren.
+            <Button
+              onClick={handleCascadeDelete}
+              disabled={cascadeDeleteQuote.isPending}
+              className={dangerBtn}
+            >
+              {cascadeDeleteQuote.isPending && (
+                <Loader2 className="mr-2 size-4 animate-spin" />
+              )}
+              Eliminar en cascada
+            </Button>
           </div>
-        </div>
+        </DialogContent>
+      </Dialog>
 
-        <div className={footer}>
-          <Button
-            variant="outline"
-            onClick={() => setOpenCascadeDelete(false)}
-            className={cancelBtn}
-          >
-            Cancelar
-          </Button>
-
-          <Button
-            onClick={handleCascadeDelete}
-            disabled={cascadeDeleteQuote.isPending}
-            className={dangerBtn}
-          >
-            {cascadeDeleteQuote.isPending && (
-              <Loader2 className="mr-2 size-4 animate-spin" />
-            )}
-
-            Eliminar en cascada
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
-
-    {/* =========================
+      {/* =========================
         DELETE
     ========================= */}
 
-    <Dialog open={openDelete} onOpenChange={setOpenDelete}>
-      <DialogContent className={dialogClass}>
-        <DialogHeader className={header}>
-          <div className={iconBase("red")}>
-            <Trash2 className="size-5" />
+      <Dialog open={openDelete} onOpenChange={setOpenDelete}>
+        <DialogContent className={dialogClass}>
+          <DialogHeader className={header}>
+            <div className={iconBase("red")}>
+              <Trash2 className="size-5" />
+            </div>
+
+            <DialogTitle className={title}>Eliminar cotización</DialogTitle>
+
+            <DialogDescription className={description}>
+              La cotización{" "}
+              <span className="font-medium text-foreground">
+                {quote.quote_number}
+              </span>{" "}
+              será eliminada permanentemente.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className={warningBox("red")}>
+            <AlertTriangle className="size-4 mt-0.5" />
+
+            <div>
+              Esta acción es <b>irreversible</b> y eliminará el registro del
+              sistema.
+            </div>
           </div>
 
-          <DialogTitle className={title}>
-            Eliminar cotización
-          </DialogTitle>
+          <div className={footer}>
+            <Button
+              variant="outline"
+              onClick={() => setOpenDelete(false)}
+              className={cancelBtn}
+            >
+              Cancelar
+            </Button>
 
-          <DialogDescription className={description}>
-            La cotización{" "}
-            <span className="font-medium text-foreground">
-              {quote.quote_number}
-            </span>{" "}
-            será eliminada permanentemente.
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className={warningBox("red")}>
-          <AlertTriangle className="size-4 mt-[2px]" />
-
-          <div>
-            Esta acción es <b>irreversible</b> y eliminará el registro del sistema.
+            <Button
+              onClick={handleDelete}
+              disabled={deleteQuote.isPending}
+              className={dangerBtn}
+            >
+              {deleteQuote.isPending && (
+                <Loader2 className="mr-2 size-4 animate-spin" />
+              )}
+              Eliminar
+            </Button>
           </div>
-        </div>
-
-        <div className={footer}>
-          <Button
-            variant="outline"
-            onClick={() => setOpenDelete(false)}
-            className={cancelBtn}
-          >
-            Cancelar
-          </Button>
-
-          <Button
-            onClick={handleDelete}
-            disabled={deleteQuote.isPending}
-            className={dangerBtn}
-          >
-            {deleteQuote.isPending && (
-              <Loader2 className="mr-2 size-4 animate-spin" />
-            )}
-
-            Eliminar
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+        </DialogContent>
+      </Dialog>
       {/* =========================
           REJECT
       ========================= */}
@@ -316,9 +310,7 @@ const QuoteDropdownDialogs = ({
             <div className={iconBase("orange")}>
               <ClipboardX className="size-5" />
             </div>
-            <DialogTitle className={title}>
-              Rechazar cotización
-            </DialogTitle>
+            <DialogTitle className={title}>Rechazar cotización</DialogTitle>
             <DialogDescription className={description}>
               La cotización{" "}
               <span className="font-medium text-foreground">
@@ -328,9 +320,10 @@ const QuoteDropdownDialogs = ({
             </DialogDescription>
           </DialogHeader>
           <div className={warningBox("orange")}>
-            <AlertTriangle className="size-4 mt-[2px]" />
+            <AlertTriangle className="size-4 mt-0.5" />
             <div>
-              Esta acción es <b>irreversible</b> y afectará el estado de la solicitud asociada.
+              Esta acción es <b>irreversible</b> y afectará el estado de la
+              solicitud asociada.
             </div>
           </div>
           <div className="mx-6 mt-4">
@@ -342,8 +335,8 @@ const QuoteDropdownDialogs = ({
               value={Observation}
               onChange={(e) => setObservation(e.target.value)}
               placeholder="Ej: precio no competitivo, proveedor no cumple requisitos..."
-              className="placeholder:text-gray-400 
-                w-full min-h-[90px] resize-none
+              className="placeholder:text-gray-400
+                w-full min-h-22.5 resize-none
                 rounded-xl border border-border/60
                 bg-background/70
                 px-3 py-2 text-sm
@@ -386,8 +379,8 @@ const QuoteDropdownDialogs = ({
         onOpenChange={(open) => {
           // Cerrar con Escape o clic afuera mientras se genera la orden dejaría
           // reabrir y aprobar de nuevo sobre un POST todavía en vuelo.
-          if (createPurchaseOrder.isPending) return
-          setOpenApprove(open)
+          if (createPurchaseOrder.isPending) return;
+          setOpenApprove(open);
         }}
       >
         <DialogContent className={dialogClass}>
@@ -395,20 +388,21 @@ const QuoteDropdownDialogs = ({
             <div className={iconBase("green")}>
               <ClipboardCheck className="size-5" />
             </div>
-            <DialogTitle className={title}>
-              Aprobar cotización
-            </DialogTitle>
+            <DialogTitle className={title}>Aprobar cotización</DialogTitle>
             <DialogDescription className={description}>
-              Se generará automáticamente una orden de compra a partir de la cotización{" "}
+              Se generará automáticamente una orden de compra a partir de la
+              cotización{" "}
               <span className="font-medium text-foreground">
                 {quote.quote_number}
-              </span>.
+              </span>
+              .
             </DialogDescription>
           </DialogHeader>
           <div className="mx-6 mt-4 p-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 text-sm text-emerald-600 flex gap-2 leading-relaxed">
-            <Receipt className="size-4 mt-[2px]" />
+            <Receipt className="size-4 mt-0.5" />
             <div>
-              Esta acción creará una orden de compra y actualizará el flujo de la solicitud.
+              Esta acción creará una orden de compra y actualizará el flujo de
+              la solicitud.
             </div>
           </div>
           <div className={footer}>
@@ -430,12 +424,11 @@ const QuoteDropdownDialogs = ({
               )}
               {createPurchaseOrder.isPending ? "Generando orden..." : "Aprobar"}
             </Button>
-
           </div>
         </DialogContent>
       </Dialog>
     </>
-  )
-}
+  );
+};
 
-export default QuoteDropdownDialogs
+export default QuoteDropdownDialogs;

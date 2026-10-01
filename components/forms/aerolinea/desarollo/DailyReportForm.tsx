@@ -1,11 +1,22 @@
-'use client';
+"use client";
 import { useRegisterActivity } from "@/actions/aerolinea/desarrollo/reportes_diarios/actions";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
@@ -13,8 +24,8 @@ import { zodResolver } from "@/lib/zod-resolver";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarIcon, Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useState } from "react";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { Label } from "@/components/ui/label";
 
@@ -36,7 +47,10 @@ interface DailyReportFormProps {
   report_id: string | number;
 }
 
-export function DailyReportForm({ activities_length, report_id }: DailyReportFormProps) {
+export function DailyReportForm({
+  activities_length,
+  report_id,
+}: DailyReportFormProps) {
   const { user } = useAuth();
   const { registerActivity } = useRegisterActivity();
   const [manualTime, setManualTime] = useState(false);
@@ -51,14 +65,15 @@ export function DailyReportForm({ activities_length, report_id }: DailyReportFor
     },
   });
 
-  const formWatch = form.watch();
-  const isFormValid = !!formWatch.description; // Validación simple para el campo requerido
+  const description = useWatch({ control: form.control, name: "description" });
+  const isFormValid = !!description;
 
-  useEffect(() => {
-    if (!manualTime) {
+  const handleManualTimeChange = (checked: boolean) => {
+    setManualTime(checked);
+    if (!checked) {
       form.setValue("start_hour", getCurrentTime());
     }
-  }, [manualTime, form]);
+  };
 
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
     const formattedData = {
@@ -71,11 +86,17 @@ export function DailyReportForm({ activities_length, report_id }: DailyReportFor
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="flex flex-col gap-4"
+      >
         <div className="flex items-center w-full gap-6">
           <div className="flex flex-col space-y-3">
             <Label>Analista</Label>
-            <Input value={`${user?.first_name || ""} ${user?.last_name || ""}`} disabled />
+            <Input
+              value={`${user?.first_name || ""} ${user?.last_name || ""}`}
+              disabled
+            />
           </div>
 
           <FormField
@@ -89,9 +110,16 @@ export function DailyReportForm({ activities_length, report_id }: DailyReportFor
                     <FormControl>
                       <Button
                         variant={"outline"}
-                        className={cn("w-[240px] pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
+                        className={cn(
+                          "w-60 pl-3 text-left font-normal",
+                          !field.value && "text-muted-foreground",
+                        )}
                       >
-                        {field.value ? format(field.value, "PPP", { locale: es }) : <span>Seleccionar fecha</span>}
+                        {field.value ? (
+                          format(field.value, "PPP", { locale: es })
+                        ) : (
+                          <span>Seleccionar fecha</span>
+                        )}
                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                       </Button>
                     </FormControl>
@@ -101,7 +129,9 @@ export function DailyReportForm({ activities_length, report_id }: DailyReportFor
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
-                      disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+                      disabled={(date) =>
+                        date > new Date() || date < new Date("1900-01-01")
+                      }
                       autoFocus
                     />
                   </PopoverContent>
@@ -124,7 +154,11 @@ export function DailyReportForm({ activities_length, report_id }: DailyReportFor
           <FormItem className="w-1/6">
             <FormLabel>Número de Actividad</FormLabel>
             <FormControl>
-              <Input value={activities_length + 1} disabled className="w-16 text-center" />
+              <Input
+                value={activities_length + 1}
+                disabled
+                className="w-16 text-center"
+              />
             </FormControl>
           </FormItem>
 
@@ -145,7 +179,9 @@ export function DailyReportForm({ activities_length, report_id }: DailyReportFor
           <FormItem className="flex items-center space-x-2">
             <Checkbox
               checked={manualTime}
-              onCheckedChange={(checked) => setManualTime(checked === true)}
+              onCheckedChange={(checked) =>
+                handleManualTimeChange(checked === true)
+              }
             />
             <FormLabel>Ingresar hora manualmente</FormLabel>
           </FormItem>
@@ -154,7 +190,7 @@ export function DailyReportForm({ activities_length, report_id }: DailyReportFor
             control={form.control}
             name="start_hour"
             render={({ field }) => (
-              <FormItem className="w-[110px]">
+              <FormItem className="w-27.5">
                 <FormLabel>Hora de Inicio</FormLabel>
                 <FormControl>
                   <Input
@@ -172,14 +208,16 @@ export function DailyReportForm({ activities_length, report_id }: DailyReportFor
         <Button
           type="submit"
           disabled={registerActivity.isPending || !isFormValid}
-          className="min-w-[100px] gap-2 justify-center"
+          className="min-w-25 gap-2 justify-center"
         >
           {registerActivity.isPending ? (
             <>
               <Loader2 className="animate-spin size-4" />
               Registrando...
             </>
-          ) : "Registrar"}
+          ) : (
+            "Registrar"
+          )}
         </Button>
       </form>
     </Form>

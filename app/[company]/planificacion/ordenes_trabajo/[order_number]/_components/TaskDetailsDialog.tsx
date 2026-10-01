@@ -54,8 +54,8 @@ import { zodResolver } from "@/lib/zod-resolver";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { ChevronLeft, Loader2, Pencil, User2 } from "lucide-react";
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useState } from "react";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import CreateNoRutineDialog from "./CreateNoRutineDialog";
 import { useParams } from "next/navigation";
@@ -75,7 +75,7 @@ const assignmentFormSchema = z.object({
           start: z.string(),
           end: z.string(),
           description: z.string(),
-        })
+        }),
       )
       .optional(),
   }),
@@ -97,7 +97,7 @@ export const TaskDetailsDialog = ({
   mainTask,
 }: TaskDetailsDialogProps) => {
   const [currentStep, setCurrentStep] = useState<"assign" | "schedule">(
-    "assign"
+    "assign",
   );
   const [isEditing, setIsEditing] = useState(false);
 
@@ -129,8 +129,8 @@ export const TaskDetailsDialog = ({
     },
   });
 
-  const { watch, setValue, handleSubmit } = form;
-  const scheduling = watch("scheduling");
+  const { control, setValue, handleSubmit } = form;
+  const scheduling = useWatch({ control, name: "scheduling" });
 
   // Hook que genera la programación automáticamente
   useAutoScheduleGenerator(scheduling, selectedTask, setValue);
@@ -212,23 +212,6 @@ export const TaskDetailsDialog = ({
       }
     }
   };
-
-  useEffect(() => {
-    if (selectedTask) {
-      form.reset({
-        technician_responsable: selectedTask.technician_responsable || "",
-        inspector_responsable: selectedTask.inspector_responsable || "",
-        scheduling: {
-          startDate: new Date(),
-          totalHours: 8,
-          hoursPerDay: 4,
-          events: [],
-        },
-      });
-      setIsEditing(false);
-      setCurrentStep("assign");
-    }
-  }, [selectedTask, form]);
 
   if (!selectedTask) return null;
 
@@ -312,7 +295,10 @@ export const TaskDetailsDialog = ({
                               : ""
                           }
                         >
-                          No Rutinaria - {workOrderStatusLabelEsUpper(selectedTask.non_routine.status)}
+                          No Rutinaria -{" "}
+                          {workOrderStatusLabelEsUpper(
+                            selectedTask.non_routine.status,
+                          )}
                         </Badge>
                       )}
                     </div>
@@ -438,7 +424,7 @@ export const TaskDetailsDialog = ({
                                   <li key={index} className="text-sm">
                                     {tech}
                                   </li>
-                                )
+                                ),
                               )}
                             </ul>
                           ) : (
@@ -469,7 +455,7 @@ export const TaskDetailsDialog = ({
                     <h3 className="font-medium">Artículos Requeridos</h3>
                     <ScrollArea
                       className={
-                        selectedTask.task_items.length > 3 ? "h-[200px]" : ""
+                        selectedTask.task_items.length > 3 ? "h-50" : ""
                       }
                     >
                       <Table>
@@ -557,7 +543,7 @@ export const TaskDetailsDialog = ({
                             onChange={(e) =>
                               setValue(
                                 "scheduling.totalHours",
-                                parseInt(e.target.value) || 0
+                                parseInt(e.target.value) || 0,
                               )
                             }
                           />
@@ -571,7 +557,7 @@ export const TaskDetailsDialog = ({
                             onChange={(e) =>
                               setValue(
                                 "scheduling.hoursPerDay",
-                                parseInt(e.target.value) || 0
+                                parseInt(e.target.value) || 0,
                               )
                             }
                           />
@@ -583,7 +569,7 @@ export const TaskDetailsDialog = ({
                                 <FormLabel className="p-2">
                                   Eventos Programados
                                 </FormLabel>
-                                <div className="border rounded-md divide-y max-h-[200px] overflow-y-auto">
+                                <div className="border rounded-md divide-y max-h-50 overflow-y-auto">
                                   {scheduling.events.map((event, index) => (
                                     <div key={index} className="p-3">
                                       <div className="font-medium">
@@ -614,7 +600,11 @@ export const TaskDetailsDialog = ({
             <DialogFooter className="sm:justify-between mt-5">
               {currentStep === "assign" ? (
                 <>
-                  <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => onOpenChange(false)}
+                  >
                     Cerrar
                   </Button>
                   {selectedTask.status === "OPEN" &&

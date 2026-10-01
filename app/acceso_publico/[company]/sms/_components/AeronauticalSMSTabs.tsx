@@ -333,7 +333,7 @@ export const AeronauticalSMSTabs = ({
           </CardHeader>
           <CardContent className="space-y-5">
             <div className="overflow-hidden rounded-[1.75rem] border border-border/60 bg-muted/20">
-              <div className="relative h-[280px] sm:h-[380px] lg:h-[460px]">
+              <div className="relative h-70 sm:h-95 lg:h-[460px]">
                 <Image
                   src={currentGalleryImage.src}
                   alt={currentGalleryImage.alt}
@@ -465,7 +465,7 @@ export const AeronauticalSMSTabs = ({
       </TabsContent>
 
       <TabsContent value="plan-respuesta" className="mt-6 space-y-4">
-        <Card className="min-h-[300px] border-border/60 shadow-lg">
+        <Card className="min-h-75 border-border/60 shadow-lg">
           <CardHeader>
             <CardTitle className="text-sm sm:text-xl">
               Plan de respuesta ante la emergencia de {company.toUpperCase()}

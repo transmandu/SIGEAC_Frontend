@@ -1,31 +1,26 @@
-'use client'
-import { Progress } from "@/components/ui/progress"
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs"
-import { useCheckWorkOrderArticles } from "@/hooks/mantenimiento/planificacion/useCheckWorkOrderArticles"
-import { cn } from "@/lib/utils"
-import { useCompanyStore } from "@/stores/CompanyStore"
-import { WorkOrder } from "@/types"
-import { zodResolver } from "@/lib/zod-resolver"
-import { useMemo, useState } from "react"
-import { useForm } from "react-hook-form"
-import { toast } from "sonner"
-import { z } from "zod"
-import { NonRoutineTasksList } from "./NoRoutineTasksList"
-import PrelimInspecTable from "./PrelimInspecTable"
-import ReportTable from "./ReportTable"
-import { RoutineTasksList } from "./RoutineTasksList"
-import { TaskDetailsDialog } from "./TaskDetailsDialog"
+"use client";
+import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useCheckWorkOrderArticles } from "@/hooks/mantenimiento/planificacion/useCheckWorkOrderArticles";
+import { cn } from "@/lib/utils";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { WorkOrder } from "@/types";
+import { zodResolver } from "@/lib/zod-resolver";
+import { useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
+import { NonRoutineTasksList } from "./NoRoutineTasksList";
+import PrelimInspecTable from "./PrelimInspecTable";
+import ReportTable from "./ReportTable";
+import { RoutineTasksList } from "./RoutineTasksList";
+import { TaskDetailsDialog } from "./TaskDetailsDialog";
 // Esquema del formulario para asignar técnicos/inspectores
 const assignmentFormSchema = z.object({
   task_id: z.number(),
   technician_responsable: z.string().min(1, "Debe seleccionar un técnico"),
-  inspector_responsable: z.string().optional()
-})
+  inspector_responsable: z.string().optional(),
+});
 
 interface ArticleAvailability {
   article: string;
@@ -34,35 +29,42 @@ interface ArticleAvailability {
   warehouse?: string;
 }
 
-type AssignmentFormValues = z.infer<typeof assignmentFormSchema>
+type AssignmentFormValues = z.infer<typeof assignmentFormSchema>;
 
 // Tipo para las tareas de la orden de trabajo
-type WorkOrderTask = WorkOrder["work_order_tasks"][0]
+type WorkOrderTask = WorkOrder["work_order_tasks"][0];
 
 const WorkOrderTasksDetails = ({ work_order }: { work_order: WorkOrder }) => {
-  const { selectedCompany } = useCompanyStore()
-  const [selectedTask, setSelectedTask] = useState<WorkOrderTask | null>(null)
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false)
-  const [isCreateOpen, setIsCreateOpen] = useState(false)
-  const [articleAvailability, setArticleAvailability] = useState<ArticleAvailability[]>([]);
-  const { data, mutateAsync: check_mutate, isPending: isCheckLoading } = useCheckWorkOrderArticles(selectedCompany?.slug)
+  const { selectedCompany } = useCompanyStore();
+  const [selectedTask, setSelectedTask] = useState<WorkOrderTask | null>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [articleAvailability, setArticleAvailability] = useState<
+    ArticleAvailability[]
+  >([]);
+  const {
+    data,
+    mutateAsync: check_mutate,
+    isPending: isCheckLoading,
+  } = useCheckWorkOrderArticles(selectedCompany?.slug);
 
   // Formulario para asignación de personal
   const form = useForm<AssignmentFormValues>({
-    resolver: zodResolver(assignmentFormSchema)
-  })
+    resolver: zodResolver(assignmentFormSchema),
+  });
 
   // Calcula estadísticas de progreso
   const { completedCount, totalCount, progressValue } = useMemo(() => {
-    const total = work_order.work_order_tasks.length
-    const completed = work_order.work_order_tasks.filter(task => task.status === "CLOSED").length
+    const total = work_order.work_order_tasks.length;
+    const completed = work_order.work_order_tasks.filter(
+      (task) => task.status === "CLOSED",
+    ).length;
     return {
       completedCount: completed,
       totalCount: total,
-      progressValue: total > 0 ? Math.round((completed / total) * 100) : 0
-    }
-  }, [work_order])
-
+      progressValue: total > 0 ? Math.round((completed / total) * 100) : 0,
+    };
+  }, [work_order]);
 
   const handleCheckTaskItems = async () => {
     if (!selectedCompany?.slug) {
@@ -71,11 +73,11 @@ const WorkOrderTasksDetails = ({ work_order }: { work_order: WorkOrder }) => {
     }
 
     try {
-      const taskIds = work_order.work_order_tasks.map(task => task.id);
+      const taskIds = work_order.work_order_tasks.map((task) => task.id);
       const result = await check_mutate(taskIds);
       setArticleAvailability(result);
       // Mostrar notificación o alerta con los resultados
-      const availableCount = result.filter(item => item.available).length;
+      const availableCount = result.filter((item) => item.available).length;
       if (availableCount > 0) {
         toast.success(`${availableCount} artículo(s) disponibles en almacén.`);
       } else {
@@ -87,28 +89,28 @@ const WorkOrderTasksDetails = ({ work_order }: { work_order: WorkOrder }) => {
   };
 
   const openTaskDetails = (task: WorkOrderTask) => {
-    setSelectedTask(task)
-    setIsDetailsOpen(true)
+    setSelectedTask(task);
+    setIsDetailsOpen(true);
     form.reset({
       task_id: task.id,
       technician_responsable: task.technician_responsable || "",
-      inspector_responsable: task.inspector_responsable || ""
-    })
-  }
+      inspector_responsable: task.inspector_responsable || "",
+    });
+  };
 
   return (
     <div className="space-y-4">
       {/* Encabezado y progreso */}
       <div className="space-y-2">
-        <h1 className="text-2xl font-bold text-center">Progreso de Orden de Trabajo</h1>
+        <h1 className="text-2xl font-bold text-center">
+          Progreso de Orden de Trabajo
+        </h1>
         <p className="text-center text-muted-foreground italic">
-          {completedCount} de {totalCount} tarea(s) completada(s).</p>
+          {completedCount} de {totalCount} tarea(s) completada(s).
+        </p>
         <Progress
           value={progressValue}
-          className={cn(
-            "w-full",
-            progressValue === 100 ? "bg-green-500" : ""
-          )}
+          className={cn("w-full", progressValue === 100 ? "bg-green-500" : "")}
         />
       </div>
       <Tabs defaultValue="rut">
@@ -131,7 +133,12 @@ const WorkOrderTasksDetails = ({ work_order }: { work_order: WorkOrder }) => {
             onCheckArticles={handleCheckTaskItems}
             isCheckLoading={isCheckLoading}
           />
-          <TaskDetailsDialog selectedTask={selectedTask!} open={isDetailsOpen} onOpenChange={setIsDetailsOpen} />
+          <TaskDetailsDialog
+            key={selectedTask?.id}
+            selectedTask={selectedTask!}
+            open={isDetailsOpen}
+            onOpenChange={setIsDetailsOpen}
+          />
         </TabsContent>
         <TabsContent value="norut">
           <NonRoutineTasksList
@@ -140,8 +147,8 @@ const WorkOrderTasksDetails = ({ work_order }: { work_order: WorkOrder }) => {
           />
         </TabsContent>
       </Tabs>
-    </div >
-  )
-}
+    </div>
+  );
+};
 
-export default WorkOrderTasksDetails
+export default WorkOrderTasksDetails;

@@ -1,30 +1,48 @@
-"use client"
+"use client";
 
-import { useCreatePlanificationEvent } from "@/actions/mantenimiento/planificacion/eventos/actions"
-import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { useCreatePlanificationEvent } from "@/actions/mantenimiento/planificacion/eventos/actions";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import { useGetMaintenanceAircrafts } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts"
-import { cn } from "@/lib/utils"
-import { useCompanyStore } from "@/stores/CompanyStore"
-import { zodResolver } from "@/lib/zod-resolver"
-import { format } from "date-fns"
-import { es } from "date-fns/locale"
-import { CalendarIcon, Check, ChevronsUpDown, Loader2 } from "lucide-react"
-import { useState } from "react"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { useGetMaintenanceAircrafts } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts";
+import { cn } from "@/lib/utils";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { zodResolver } from "@/lib/zod-resolver";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { CalendarIcon, Check, ChevronsUpDown, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 const formSchema = z.object({
   title: z.string().min(2, {
@@ -35,19 +53,23 @@ const formSchema = z.object({
   end_date: z.string(),
   priority: z.string(),
   aircraft_id: z.string(),
-})
+});
 
 const CreatePlanificationEventForm = ({
   date,
   onClose,
 }: {
-  date?: string,
-  onClose: (open: boolean) => void
+  date?: string;
+  onClose: (open: boolean) => void;
 }) => {
-  const [selectedAircraft, setSelectedAircraft] = useState<string | null>(null)
-  const { selectedCompany, selectedStation } = useCompanyStore()
-  const { createPlanificationEvent } = useCreatePlanificationEvent()
-  const { data: aircrafts, isLoading: isAircraftsLoading, isError: isAircraftsError } = useGetMaintenanceAircrafts(selectedCompany?.slug);
+  const [selectedAircraft, setSelectedAircraft] = useState<string | null>(null);
+  const { selectedCompany, selectedStation } = useCompanyStore();
+  const { createPlanificationEvent } = useCreatePlanificationEvent();
+  const {
+    data: aircrafts,
+    isLoading: isAircraftsLoading,
+    isError: isAircraftsError,
+  } = useGetMaintenanceAircrafts(selectedCompany?.slug);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -56,14 +78,14 @@ const CreatePlanificationEventForm = ({
       start_date: date,
       end_date: "",
     },
-  })
+  });
 
   const formatDateTime = (date: Date, time: string) => {
-    const [hours, minutes] = time.split(':')
-    date.setHours(parseInt(hours))
-    date.setMinutes(parseInt(minutes))
-    return format(date, "yyyy-MM-dd HH:mm")
-  }
+    const [hours, minutes] = time.split(":");
+    date.setHours(parseInt(hours));
+    date.setMinutes(parseInt(minutes));
+    return format(date, "yyyy-MM-dd HH:mm");
+  };
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     await createPlanificationEvent.mutateAsync({
@@ -71,9 +93,9 @@ const CreatePlanificationEventForm = ({
       data: {
         ...values,
         location_id: selectedStation!,
-      }
-    })
-    onClose(false)
+      },
+    });
+    onClose(false);
   }
 
   return (
@@ -111,18 +133,24 @@ const CreatePlanificationEventForm = ({
                         role="combobox"
                         className={cn(
                           "justify-between",
-                          !field.value && "text-muted-foreground"
+                          !field.value && "text-muted-foreground",
                         )}
                       >
-                        {
-                          isAircraftsLoading && <Loader2 className="size-4 animate-spin mr-2" />
-                        }
-                        {field.value
-                          ? <p>{aircrafts?.find(
-                            (aircraft) => `${aircraft.id.toString()}` === field.value
-                          )?.acronym}</p>
-                          : "Elige la aeronave..."
-                        }
+                        {isAircraftsLoading && (
+                          <Loader2 className="size-4 animate-spin mr-2" />
+                        )}
+                        {field.value ? (
+                          <p>
+                            {
+                              aircrafts?.find(
+                                (aircraft) =>
+                                  `${aircraft.id.toString()}` === field.value,
+                              )?.acronym
+                            }
+                          </p>
+                        ) : (
+                          "Elige la aeronave..."
+                        )}
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
                     </FormControl>
@@ -131,14 +159,19 @@ const CreatePlanificationEventForm = ({
                     <Command>
                       <CommandInput placeholder="Busque una aeronave..." />
                       <CommandList>
-                        <CommandEmpty className="text-xs p-2 text-center">No se ha encontrado ninguna aeronave.</CommandEmpty>
+                        <CommandEmpty className="text-xs p-2 text-center">
+                          No se ha encontrado ninguna aeronave.
+                        </CommandEmpty>
                         <CommandGroup>
                           {aircrafts?.map((aircraft) => (
                             <CommandItem
                               value={`${aircraft.id}`}
                               key={aircraft.id}
                               onSelect={() => {
-                                form.setValue("aircraft_id", aircraft.id.toString());
+                                form.setValue(
+                                  "aircraft_id",
+                                  aircraft.id.toString(),
+                                );
                                 setSelectedAircraft(aircraft.id.toString());
                               }}
                             >
@@ -147,12 +180,10 @@ const CreatePlanificationEventForm = ({
                                   "mr-2 h-4 w-4",
                                   `${aircraft.id.toString()}` === field.value
                                     ? "opacity-100"
-                                    : "opacity-0"
+                                    : "opacity-0",
                                 )}
                               />
-                              {
-                                <p>{aircraft.acronym}</p>
-                              }
+                              {<p>{aircraft.acronym}</p>}
                             </CommandItem>
                           ))}
                         </CommandGroup>
@@ -170,7 +201,10 @@ const CreatePlanificationEventForm = ({
             render={({ field }) => (
               <FormItem className="w-full">
                 <FormLabel>Prioridad</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Seleccione la prioridad..." />
@@ -196,7 +230,10 @@ const CreatePlanificationEventForm = ({
             <FormItem>
               <FormLabel>Descripción</FormLabel>
               <FormControl>
-                <Textarea placeholder="Ingrese la descripción del evento" {...field} />
+                <Textarea
+                  placeholder="Ingrese la descripción del evento"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -217,8 +254,8 @@ const CreatePlanificationEventForm = ({
                       <Button
                         variant={"outline"}
                         className={cn(
-                          "w-[240px] pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
+                          "w-60 pl-3 text-left font-normal",
+                          !field.value && "text-muted-foreground",
                         )}
                       >
                         {field.value ? (
@@ -236,10 +273,14 @@ const CreatePlanificationEventForm = ({
                       selected={field.value ? new Date(field.value) : undefined}
                       onSelect={(date) => {
                         if (date) {
-                          const currentValue = field.value ? new Date(field.value) : new Date()
-                          const timePart = field.value ? format(currentValue, "HH:mm") : "00:00"
-                          const newDateTime = formatDateTime(date, timePart)
-                          field.onChange(newDateTime)
+                          const currentValue = field.value
+                            ? new Date(field.value)
+                            : new Date();
+                          const timePart = field.value
+                            ? format(currentValue, "HH:mm")
+                            : "00:00";
+                          const newDateTime = formatDateTime(date, timePart);
+                          field.onChange(newDateTime);
                         }
                       }}
                       autoFocus
@@ -252,18 +293,20 @@ const CreatePlanificationEventForm = ({
                     type="time"
                     step="60"
                     onChange={(e) => {
-                      const time = e.target.value
+                      const time = e.target.value;
                       if (time && field.value) {
-                        const date = new Date(field.value)
-                        const newDateTime = formatDateTime(date, time)
-                        field.onChange(newDateTime)
+                        const date = new Date(field.value);
+                        const newDateTime = formatDateTime(date, time);
+                        field.onChange(newDateTime);
                       } else if (time) {
                         // Si no hay fecha pero sí hora, usamos hoy como fecha
-                        const newDateTime = formatDateTime(new Date(), time)
-                        field.onChange(newDateTime)
+                        const newDateTime = formatDateTime(new Date(), time);
+                        field.onChange(newDateTime);
                       }
                     }}
-                    value={field.value ? format(new Date(field.value), "HH:mm") : ""}
+                    value={
+                      field.value ? format(new Date(field.value), "HH:mm") : ""
+                    }
                   />
                 </FormControl>
               </div>
@@ -286,8 +329,8 @@ const CreatePlanificationEventForm = ({
                       <Button
                         variant={"outline"}
                         className={cn(
-                          "w-[240px] pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
+                          "w-60 pl-3 text-left font-normal",
+                          !field.value && "text-muted-foreground",
                         )}
                       >
                         {field.value ? (
@@ -305,10 +348,14 @@ const CreatePlanificationEventForm = ({
                       selected={field.value ? new Date(field.value) : undefined}
                       onSelect={(date) => {
                         if (date) {
-                          const currentValue = field.value ? new Date(field.value) : new Date()
-                          const timePart = field.value ? format(currentValue, "HH:mm") : "00:00"
-                          const newDateTime = formatDateTime(date, timePart)
-                          field.onChange(newDateTime)
+                          const currentValue = field.value
+                            ? new Date(field.value)
+                            : new Date();
+                          const timePart = field.value
+                            ? format(currentValue, "HH:mm")
+                            : "00:00";
+                          const newDateTime = formatDateTime(date, timePart);
+                          field.onChange(newDateTime);
                         }
                       }}
                       autoFocus
@@ -321,18 +368,20 @@ const CreatePlanificationEventForm = ({
                     type="time"
                     step="60"
                     onChange={(e) => {
-                      const time = e.target.value
+                      const time = e.target.value;
                       if (time && field.value) {
-                        const date = new Date(field.value)
-                        const newDateTime = formatDateTime(date, time)
-                        field.onChange(newDateTime)
+                        const date = new Date(field.value);
+                        const newDateTime = formatDateTime(date, time);
+                        field.onChange(newDateTime);
                       } else if (time) {
                         // Si no hay fecha pero sí hora, usamos hoy como fecha
-                        const newDateTime = formatDateTime(new Date(), time)
-                        field.onChange(newDateTime)
+                        const newDateTime = formatDateTime(new Date(), time);
+                        field.onChange(newDateTime);
                       }
                     }}
-                    value={field.value ? format(new Date(field.value), "HH:mm") : ""}
+                    value={
+                      field.value ? format(new Date(field.value), "HH:mm") : ""
+                    }
                   />
                 </FormControl>
               </div>
@@ -343,7 +392,7 @@ const CreatePlanificationEventForm = ({
         <Button type="submit">Crear Evento</Button>
       </form>
     </Form>
-  )
-}
+  );
+};
 
-export default CreatePlanificationEventForm
+export default CreatePlanificationEventForm;

@@ -160,7 +160,7 @@ const CertificatesDropDownActions = ({
 
           {/* DIALOGO DE ELIMINAR */}
           <Dialog open={openDelete} onOpenChange={setOpenDelete}>
-            <DialogContent className="max-w-[400px] p-8 border-t-4 border-t-red-500">
+            <DialogContent className="max-w-100 p-8 border-t-4 border-t-red-500">
               <DialogHeader className="flex flex-col items-center justify-center space-y-4">
                 <div className="h-12 w-12 rounded-full bg-red-100 flex items-center justify-center dark:bg-red-900/20">
                   <AlertTriangle className="h-6 w-6 text-red-600" />

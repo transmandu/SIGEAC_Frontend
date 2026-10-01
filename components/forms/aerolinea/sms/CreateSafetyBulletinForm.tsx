@@ -58,14 +58,15 @@ export function CreateSafetyBulletinForm({
   const { createBulletin } = useCreateBulletin();
   const { updateBulletin } = useUpdateBulletin();
   const { deleteBulletinDocument } = useDeleteBulletinDocument();
-  const [documentMarkedForDeletion, setDocumentMarkedForDeletion] = useState(false);
+  const [documentMarkedForDeletion, setDocumentMarkedForDeletion] =
+    useState(false);
 
   const baseDocumentSchema = z
     .instanceof(File, { message: "Debes seleccionar un archivo PDF" })
     .refine((file) => file.size <= 10 * 1024 * 1024, "Máximo 10MB")
     .refine(
       (file) => file.type === "application/pdf",
-      "Solo se permiten archivos PDF"
+      "Solo se permiten archivos PDF",
     );
 
   const FormSchema = z.object({
@@ -79,12 +80,14 @@ export function CreateSafetyBulletinForm({
       .refine((file) => file.size <= 10 * 1024 * 1024, "Max 10MB")
       .refine(
         (file) => ["image/jpeg", "image/png"].includes(file.type),
-        "Solo JPEG/PNG"
+        "Solo JPEG/PNG",
       )
       .nullable()
       .optional(),
 
-    document: isEditing ? baseDocumentSchema.nullable().optional() : baseDocumentSchema,
+    document: isEditing
+      ? baseDocumentSchema.nullable().optional()
+      : baseDocumentSchema,
   });
 
   type FormSchemaType = z.infer<typeof FormSchema>;
@@ -128,22 +131,22 @@ export function CreateSafetyBulletinForm({
       };
       await updateBulletin.mutateAsync(value);
     } else {
-        try {
-          const cleanData = {
-            ...data,
-            image: data.image ?? undefined,
-            document: data.document ?? undefined,
-            sms_activity_id: smsActivityId ?? undefined,
-          };
+      try {
+        const cleanData = {
+          ...data,
+          image: data.image ?? undefined,
+          document: data.document ?? undefined,
+          sms_activity_id: smsActivityId ?? undefined,
+        };
 
-          await createBulletin.mutateAsync({
-            company: selectedCompany!.slug,
-            data: cleanData, // Pasamos el objeto limpio aquí
-          });
-        } catch (error) {
-          console.error("Error al crear el boletin:", error);
-        }
+        await createBulletin.mutateAsync({
+          company: selectedCompany!.slug,
+          data: cleanData, // Pasamos el objeto limpio aquí
+        });
+      } catch (error) {
+        console.error("Error al crear el boletin:", error);
       }
+    }
     onClose(false);
   };
 
@@ -188,7 +191,7 @@ export function CreateSafetyBulletinForm({
                           variant={"outline"}
                           className={cn(
                             "w-full pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground"
+                            !field.value && "text-muted-foreground",
                           )}
                         >
                           {field.value ? (
@@ -298,7 +301,7 @@ export function CreateSafetyBulletinForm({
                           <FileText className="h-5 w-5 text-red-600" />
                         </div>
                         <div>
-                          <p className="font-medium text-sm truncate max-w-[200px]">
+                          <p className="font-medium text-sm truncate max-w-50">
                             {field.value.name}
                           </p>
                           <p className="text-xs text-gray-500">
@@ -317,7 +320,9 @@ export function CreateSafetyBulletinForm({
                         <X className="h-4 w-4" />
                       </Button>
                     </div>
-                  ) : !documentMarkedForDeletion && field.value !== null && initialData?.document &&
+                  ) : !documentMarkedForDeletion &&
+                    field.value !== null &&
+                    initialData?.document &&
                     typeof initialData.document === "string" ? (
                     <div className="flex items-center justify-between p-3 rounded-lg border">
                       <div className="flex items-center gap-3">
@@ -325,7 +330,7 @@ export function CreateSafetyBulletinForm({
                           <FileText className="h-5 w-5 text-red-600" />
                         </div>
                         <div>
-                          <p className="font-medium text-sm truncate max-w-[200px]">
+                          <p className="font-medium text-sm truncate max-w-50">
                             {initialData.document.split("/").pop() || ""}
                           </p>
                         </div>
@@ -366,7 +371,10 @@ export function CreateSafetyBulletinForm({
           <p className="text-muted-foreground">SIGEAC</p>
           <Separator className="flex-1" />
         </div>
-        <Button disabled={createBulletin.isPending || isSubmitting} className="w-full h-10">
+        <Button
+          disabled={createBulletin.isPending || isSubmitting}
+          className="w-full h-10"
+        >
           {createBulletin.isPending || isSubmitting ? (
             <Loader2 className="size-4 animate-spin" />
           ) : onStepSubmit ? (

@@ -24,7 +24,7 @@ import { DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { zodResolver } from "@/lib/zod-resolver";
 import { ImagePlus, Loader2, UploadCloud, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import {
   ERROR_REPORT_MODULES,
@@ -64,7 +64,11 @@ const REPORT_KINDS: {
   tag: string;
 }[] = [
   { value: "bug", label: "🐛 Error / Problema técnico", tag: "[ERROR]" },
-  { value: "suggestion", label: "💡 Sugerencia de mejora", tag: "[SUGERENCIA]" },
+  {
+    value: "suggestion",
+    label: "💡 Sugerencia de mejora",
+    tag: "[SUGERENCIA]",
+  },
   { value: "question", label: "❓ Duda / Consulta", tag: "[DUDA]" },
 ];
 
@@ -79,12 +83,17 @@ const SEVERITY_TONE: Record<string, ChipTone> = {
 
 const SEVERITY_ACTIVE_CLASS: Record<ChipTone, string> = {
   sky: "border-sky-400 bg-sky-500 text-white shadow-xs shadow-sky-500/30",
-  amber: "border-amber-400 bg-amber-500 text-white shadow-xs shadow-amber-500/30",
-  orange: "border-orange-400 bg-orange-500 text-white shadow-xs shadow-orange-500/30",
+  amber:
+    "border-amber-400 bg-amber-500 text-white shadow-xs shadow-amber-500/30",
+  orange:
+    "border-orange-400 bg-orange-500 text-white shadow-xs shadow-orange-500/30",
   rose: "border-rose-400 bg-rose-500 text-white shadow-xs shadow-rose-500/30",
-  emerald: "border-emerald-400 bg-emerald-500 text-white shadow-xs shadow-emerald-500/30",
-  indigo: "border-indigo-400 bg-indigo-500 text-white shadow-xs shadow-indigo-500/30",
-  slate: "border-slate-400 bg-slate-600 text-white shadow-xs shadow-slate-500/30",
+  emerald:
+    "border-emerald-400 bg-emerald-500 text-white shadow-xs shadow-emerald-500/30",
+  indigo:
+    "border-indigo-400 bg-indigo-500 text-white shadow-xs shadow-indigo-500/30",
+  slate:
+    "border-slate-400 bg-slate-600 text-white shadow-xs shadow-slate-500/30",
 };
 
 const HTTP_QUICK_PICKS = [
@@ -94,7 +103,10 @@ const HTTP_QUICK_PICKS = [
   { value: "400", label: "400 Bad Request" },
 ];
 
-export default function CreateErrorReportForm({ onClose, showAdvancedFields = false }: FormProps) {
+export default function CreateErrorReportForm({
+  onClose,
+  showAdvancedFields = false,
+}: FormProps) {
   const { createErrorReport } = useCreateErrorReport();
   const { user } = useAuth();
   const { selectedCompany } = useCompanyStore();
@@ -108,7 +120,9 @@ export default function CreateErrorReportForm({ onClose, showAdvancedFields = fa
     ? ERROR_REPORT_MODULES
     : getAvailableErrorReportModules(selectedCompany?.modules);
 
-  const defaultModule = showAdvancedFields ? "" : getDefaultErrorReportModule(user?.roles) ?? "";
+  const defaultModule = showAdvancedFields
+    ? ""
+    : (getDefaultErrorReportModule(user?.roles) ?? "");
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -122,10 +136,13 @@ export default function CreateErrorReportForm({ onClose, showAdvancedFields = fa
 
   const showSeverity = showAdvancedFields;
   const showHttpStatus = showAdvancedFields && reportKind === "bug";
-  const severity = form.watch("severity");
-  const httpStatus = form.watch("http_status");
+  const severity = useWatch({ control: form.control, name: "severity" });
+  const httpStatus = useWatch({ control: form.control, name: "http_status" });
 
-  const previews = useMemo(() => images.map((image) => URL.createObjectURL(image)), [images]);
+  const previews = useMemo(
+    () => images.map((image) => URL.createObjectURL(image)),
+    [images],
+  );
 
   useEffect(() => {
     return () => previews.forEach((preview) => URL.revokeObjectURL(preview));
@@ -155,18 +172,22 @@ export default function CreateErrorReportForm({ onClose, showAdvancedFields = fa
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     const tag = REPORT_KINDS.find((k) => k.value === reportKind)?.tag;
-    const description = tag ? `${tag} ${values.description}` : values.description;
+    const description = tag
+      ? `${tag} ${values.description}`
+      : values.description;
 
     try {
       await createErrorReport.mutateAsync({
         description,
         module: values.module,
-        severity: showSeverity && values.severity
-          ? (values.severity as "LOW" | "MEDIUM" | "HIGH" | "CRITICAL")
-          : undefined,
-        http_status: showHttpStatus && values.http_status
-          ? Number(values.http_status)
-          : undefined,
+        severity:
+          showSeverity && values.severity
+            ? (values.severity as "LOW" | "MEDIUM" | "HIGH" | "CRITICAL")
+            : undefined,
+        http_status:
+          showHttpStatus && values.http_status
+            ? Number(values.http_status)
+            : undefined,
         // Deja constancia de desde qué empresa se reportó: sin esto, un
         // soporte asignado por compañía no puede filtrar lo que le toca.
         company: selectedCompany?.slug,
@@ -185,14 +206,18 @@ export default function CreateErrorReportForm({ onClose, showAdvancedFields = fa
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="flex min-h-0 flex-1 flex-col">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="flex min-h-0 flex-1 flex-col"
+      >
         {/* ───────── Sticky header ───────── */}
         <div className="shrink-0 border-b border-slate-200/80 bg-linear-to-b from-slate-50 to-background px-6 pb-4 pt-6 dark:border-slate-800/80 dark:from-slate-900/40">
           <DialogTitle className="text-lg font-semibold tracking-tight">
             Reportar un problema o sugerencia
           </DialogTitle>
           <DialogDescription className="mt-1 text-xs">
-            Cuéntanos qué error encontraste o qué te gustaría que mejoráramos en SIGEAC.
+            Cuéntanos qué error encontraste o qué te gustaría que mejoráramos en
+            SIGEAC.
           </DialogDescription>
         </div>
 
@@ -202,7 +227,10 @@ export default function CreateErrorReportForm({ onClose, showAdvancedFields = fa
             <Label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
               Tipo de solicitud
             </Label>
-            <Select value={reportKind} onValueChange={(v) => setReportKind(v as ReportKind)}>
+            <Select
+              value={reportKind}
+              onValueChange={(v) => setReportKind(v as ReportKind)}
+            >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -224,7 +252,10 @@ export default function CreateErrorReportForm({ onClose, showAdvancedFields = fa
                 <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                   Módulo
                 </FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Seleccione el módulo relacionado..." />
@@ -283,7 +314,7 @@ export default function CreateErrorReportForm({ onClose, showAdvancedFields = fa
                 "rounded-xl border border-dashed p-3 transition-colors",
                 isDragging
                   ? "border-primary bg-primary/5"
-                  : "border-slate-200/80 bg-slate-50/40 dark:border-slate-800/80 dark:bg-slate-900/20"
+                  : "border-slate-200/80 bg-slate-50/40 dark:border-slate-800/80 dark:bg-slate-900/20",
               )}
             >
               <div className="flex flex-wrap gap-2">
@@ -354,7 +385,7 @@ export default function CreateErrorReportForm({ onClose, showAdvancedFields = fa
                         "select-none rounded-full border px-3 py-1 text-xs font-medium transition-all",
                         active
                           ? SEVERITY_ACTIVE_CLASS[tone]
-                          : "border-slate-200/80 bg-slate-50/60 text-muted-foreground hover:border-slate-300 dark:border-slate-800/80 dark:bg-slate-900/30"
+                          : "border-slate-200/80 bg-slate-50/60 text-muted-foreground hover:border-slate-300 dark:border-slate-800/80 dark:bg-slate-900/30",
                       )}
                     >
                       {option.label}
@@ -379,16 +410,20 @@ export default function CreateErrorReportForm({ onClose, showAdvancedFields = fa
                       key={option.value}
                       type="button"
                       onClick={() => {
-                        form.setValue("http_status", active ? "" : option.value, {
-                          shouldValidate: true,
-                        });
+                        form.setValue(
+                          "http_status",
+                          active ? "" : option.value,
+                          {
+                            shouldValidate: true,
+                          },
+                        );
                         setCustomHttpOpen(false);
                       }}
                       className={cn(
                         "select-none rounded-full border px-3 py-1 font-mono text-xs font-medium transition-all",
                         active
                           ? "border-primary bg-primary text-white shadow-xs shadow-primary/30"
-                          : "border-slate-200/80 bg-slate-50/60 text-muted-foreground hover:border-slate-300 dark:border-slate-800/80 dark:bg-slate-900/30"
+                          : "border-slate-200/80 bg-slate-50/60 text-muted-foreground hover:border-slate-300 dark:border-slate-800/80 dark:bg-slate-900/30",
                       )}
                     >
                       {option.label}
@@ -407,7 +442,7 @@ export default function CreateErrorReportForm({ onClose, showAdvancedFields = fa
                     "select-none rounded-full border px-3 py-1 text-xs font-medium transition-all",
                     customHttpOpen
                       ? "border-primary bg-primary text-white shadow-xs shadow-primary/30"
-                      : "border-slate-200/80 bg-slate-50/60 text-muted-foreground hover:border-slate-300 dark:border-slate-800/80 dark:bg-slate-900/30"
+                      : "border-slate-200/80 bg-slate-50/60 text-muted-foreground hover:border-slate-300 dark:border-slate-800/80 dark:bg-slate-900/30",
                   )}
                 >
                   Otro código…
@@ -420,7 +455,7 @@ export default function CreateErrorReportForm({ onClose, showAdvancedFields = fa
                       "select-none rounded-full border px-3 py-1 text-xs font-medium transition-all",
                       !httpStatus
                         ? "border-slate-400 bg-slate-600 text-white shadow-xs shadow-slate-500/30"
-                        : "border-slate-200/80 bg-slate-50/60 text-muted-foreground hover:border-slate-300 dark:border-slate-800/80 dark:bg-slate-900/30"
+                        : "border-slate-200/80 bg-slate-50/60 text-muted-foreground hover:border-slate-300 dark:border-slate-800/80 dark:bg-slate-900/30",
                     )}
                   >
                     No aplica
@@ -437,7 +472,7 @@ export default function CreateErrorReportForm({ onClose, showAdvancedFields = fa
                         <Input
                           type="number"
                           placeholder="Ej: 422"
-                          className="h-8 max-w-[140px] rounded-lg"
+                          className="h-8 max-w-35 rounded-lg"
                           {...field}
                         />
                       </FormControl>
@@ -455,7 +490,11 @@ export default function CreateErrorReportForm({ onClose, showAdvancedFields = fa
           <Button type="button" variant="outline" size="sm" onClick={onClose}>
             Cancelar
           </Button>
-          <Button size="sm" disabled={createErrorReport.isPending} type="submit">
+          <Button
+            size="sm"
+            disabled={createErrorReport.isPending}
+            type="submit"
+          >
             {createErrorReport.isPending ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (

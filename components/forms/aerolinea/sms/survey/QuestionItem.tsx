@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
-import { UseFormReturn } from "react-hook-form";
+import { UseFormReturn, useWatch } from "react-hook-form";
 
 interface QuestionItemProps {
   question: any;
@@ -32,11 +32,13 @@ function isAnswerProvided(answer: any, questionType: string): boolean {
 export function QuestionItem({ question, index, form }: QuestionItemProps) {
   const { type, text, is_required, options, id } = question;
 
+  const answer = useWatch({
+    control: form.control,
+    name: `responses.${index}.answer`,
+  });
+
   const formErrors = form.formState.errors.responses;
-  const hasError =
-    formErrors &&
-    is_required &&
-    !isAnswerProvided(form.watch(`responses.${index}.answer`), type);
+  const hasError = formErrors && is_required && !isAnswerProvided(answer, type);
 
   return (
     <Card
@@ -73,7 +75,7 @@ export function QuestionItem({ question, index, form }: QuestionItemProps) {
                 {type === "OPEN" ? (
                   <Textarea
                     placeholder="Escribe tu respuesta aquí..."
-                    className={`min-h-[100px] resize-y ${hasError ? "border-red-300 bg-red-25" : ""}`}
+                    className={`min-h-25 resize-y ${hasError ? "border-red-300 bg-red-25" : ""}`}
                     value={field.value?.text || ""}
                     onChange={(e) =>
                       field.onChange({
@@ -129,7 +131,7 @@ export function QuestionItem({ question, index, form }: QuestionItemProps) {
                             const newOptionIds = checked
                               ? [...current, option.id]
                               : current.filter(
-                                  (id: number) => id !== option.id
+                                  (id: number) => id !== option.id,
                                 );
 
                             field.onChange({

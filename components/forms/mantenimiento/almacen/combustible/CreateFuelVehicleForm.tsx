@@ -19,11 +19,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { applyFuelValidationErrors, FUEL_PLATE_REGEX, FUEL_TYPES, FUEL_VEHICLE_TYPES } from "@/lib/fuel";
+import {
+  applyFuelValidationErrors,
+  FUEL_PLATE_REGEX,
+  FUEL_TYPES,
+  FUEL_VEHICLE_TYPES,
+} from "@/lib/fuel";
 import { FuelType, FuelVehicleType } from "@/types";
 import { zodResolver } from "@/lib/zod-resolver";
 import { Loader2 } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
 const formSchema = z
@@ -32,9 +37,12 @@ const formSchema = z
       .string()
       .max(20, "Maximo 20 caracteres")
       .optional()
-      .transform((value) => (value ? value.toUpperCase().replace(/[\s-]/g, "") : value))
+      .transform((value) =>
+        value ? value.toUpperCase().replace(/[\s-]/g, "") : value,
+      )
       .refine((value) => !value || FUEL_PLATE_REGEX.test(value), {
-        message: "Formato de placa invalido (ej: AB123CD, AB123C, ABC123 o A71BR6D)",
+        message:
+          "Formato de placa invalido (ej: AB123CD, AB123C, ABC123 o A71BR6D)",
       }),
     brand: z.string().max(100).optional(),
     model: z.string().max(100).optional(),
@@ -53,23 +61,23 @@ const formSchema = z
     initial_balance_liters: z.coerce
       .number()
       .min(0, "El saldo inicial no puede ser negativo"),
-    km_per_liter: z.coerce.number().min(0, "Debe ser mayor o igual a 0").optional(),
-    initial_km: z.coerce.number().min(0, "Debe ser mayor o igual a 0").optional(),
+    km_per_liter: z.coerce
+      .number()
+      .min(0, "Debe ser mayor o igual a 0")
+      .optional(),
+    initial_km: z.coerce
+      .number()
+      .min(0, "Debe ser mayor o igual a 0")
+      .optional(),
   })
-  .refine(
-    (data) => data.initial_balance_liters <= data.tank_capacity_liters,
-    {
-      message: "El saldo inicial no puede superar la capacidad",
-      path: ["initial_balance_liters"],
-    },
-  )
-  .refine(
-    (data) => data.type !== "other" || !!data.type_other?.trim(),
-    {
-      message: "Debe especificar el tipo de vehiculo",
-      path: ["type_other"],
-    },
-  );
+  .refine((data) => data.initial_balance_liters <= data.tank_capacity_liters, {
+    message: "El saldo inicial no puede superar la capacidad",
+    path: ["initial_balance_liters"],
+  })
+  .refine((data) => data.type !== "other" || !!data.type_other?.trim(), {
+    message: "Debe especificar el tipo de vehiculo",
+    path: ["type_other"],
+  });
 
 type FormValues = z.infer<typeof formSchema>;
 
@@ -100,7 +108,7 @@ export function CreateFuelVehicleForm({
     },
   });
 
-  const watchedType = form.watch("type");
+  const watchedType = useWatch({ control: form.control, name: "type" });
 
   const onSubmit = async (values: FormValues) => {
     try {
@@ -211,7 +219,11 @@ export function CreateFuelVehicleForm({
               <FormItem>
                 <FormLabel>Especificar tipo</FormLabel>
                 <FormControl>
-                  <Input placeholder="Ej: Montacargas" maxLength={100} {...field} />
+                  <Input
+                    placeholder="Ej: Montacargas"
+                    maxLength={100}
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

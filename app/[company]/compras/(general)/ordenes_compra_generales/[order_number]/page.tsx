@@ -1,29 +1,36 @@
-'use client';
+"use client";
 
-import { ContentLayout } from '@/components/layout/ContentLayout';
-import LoadingPage from '@/components/misc/LoadingPage';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { useGetPurchaseOrder } from '@/hooks/mantenimiento/compras/useGetPurchaseOrder';
-import { useCompanyStore } from '@/stores/CompanyStore';
-import { CalendarDays, FileText, Ship, Truck, User } from 'lucide-react';
-import { useParams } from 'next/navigation';
-import Link from 'next/link';
-import PurchaseOrderActions from './_components/PurchaseOrderActions';
-import MetaItem from './_components/MetaItem';
-import InfoSection from './_components/InfoSection';
-import PurchaseOrderArticleCard from './_components/PurchaseOrderArticleCard';
-import PurchaseOrderGeneralArticleCard from './_components/PurchaseOrderGeneralArticleCard';
-import PurchaseOrderCostSummary from './_components/PurchaseOrderCostSummary';
-import { statusBadgeCls, statusLabel, formatPurchaseDate } from './_components/utils/uiHelpers';
-import { isAeronauticalPurchaseOrder } from '@/lib/purchases/purchase-order-scope';
+import { ContentLayout } from "@/components/layout/ContentLayout";
+import LoadingPage from "@/components/misc/LoadingPage";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useGetPurchaseOrder } from "@/hooks/mantenimiento/compras/useGetPurchaseOrder";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { CalendarDays, FileText, Ship, Truck, User } from "lucide-react";
+import { useParams } from "next/navigation";
+import Link from "next/link";
+import PurchaseOrderActions from "./_components/PurchaseOrderActions";
+import MetaItem from "./_components/MetaItem";
+import InfoSection from "./_components/InfoSection";
+import PurchaseOrderArticleCard from "./_components/PurchaseOrderArticleCard";
+import PurchaseOrderGeneralArticleCard from "./_components/PurchaseOrderGeneralArticleCard";
+import PurchaseOrderCostSummary from "./_components/PurchaseOrderCostSummary";
+import {
+  statusBadgeCls,
+  statusLabel,
+  formatPurchaseDate,
+} from "./_components/utils/uiHelpers";
+import { isAeronauticalPurchaseOrder } from "@/lib/purchases/purchase-order-scope";
 import { PageHeader } from "@/components/layout/PageHeader";
 
 const PurchaseOrderPage = () => {
   const { selectedCompany } = useCompanyStore();
   const { order_number } = useParams<{ order_number: string }>();
 
-  const { data, isLoading } = useGetPurchaseOrder(selectedCompany?.slug, order_number);
+  const { data, isLoading } = useGetPurchaseOrder(
+    selectedCompany?.slug,
+    order_number,
+  );
 
   const articles = data?.article_purchase_order ?? [];
   const generalArticles = data?.general_article_purchase_order ?? [];
@@ -33,20 +40,15 @@ const PurchaseOrderPage = () => {
   return (
     <ContentLayout title="Orden de Compra General">
       <div className="flex flex-col gap-6">
-
         {/* ── Breadcrumb ──────────────────────────────────────────────── */}
         <PageHeader currentLabel={order_number} />
 
         {/* ── Header ──────────────────────────────────────────────────── */}
         <div className="flex flex-col gap-2 border-b border-border/60 pb-4">
-
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-
             {/* Title block */}
             <div className="flex flex-col min-w-0 w-full">
-
               <div className="flex items-center gap-3 flex-wrap">
-
                 <h1 className="text-2xl md:text-3xl font-semibold tracking-tight min-w-0 wrap-break-word">
                   {order_number}
                 </h1>
@@ -54,14 +56,14 @@ const PurchaseOrderPage = () => {
                 <Badge className={statusBadgeCls(data?.status)}>
                   {statusLabel(data?.status)}
                 </Badge>
-
               </div>
 
               <p className="text-sm text-muted-foreground">
                 Orden de Compra General
                 {data?.requisition_order?.order_number && (
                   <>
-                    {' '}derivada de{' '}
+                    {" "}
+                    derivada de{" "}
                     <Link
                       href={`/${selectedCompany?.slug}/compras/requisiciones_generales/${data.requisition_order.order_number}`}
                       className="hover:text-foreground hover:underline underline-offset-4 decoration-1 transition-colors"
@@ -78,7 +80,6 @@ const PurchaseOrderPage = () => {
                   <PurchaseOrderActions po={data} />
                 </div>
               )}
-
             </div>
 
             {/* ACTIONS DESKTOP */}
@@ -87,14 +88,12 @@ const PurchaseOrderPage = () => {
                 <PurchaseOrderActions po={data} />
               </div>
             )}
-
           </div>
         </div>
 
         {/* ── Meta ────────────────────────────────────────────────────── */}
         <div className="mx-auto w-full max-w-4xl px-4 py-3 rounded-md border border-border/50 bg-muted/20">
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-x-4 sm:gap-x-6 md:gap-x-10 gap-y-3 md:gap-y-4 justify-items-center">
-
             <MetaItem
               label="LUGAR DE COMPRA"
               value={data?.retailer?.name}
@@ -120,13 +119,11 @@ const PurchaseOrderPage = () => {
                 icon={Ship}
               />
             )}
-
           </div>
         </div>
 
         {/* ── CONTEXTO DE LA ORDEN ───────────────────────────────────── */}
         <div className="w-full">
-
           {/* JUSTIFICACIÓN */}
           <InfoSection
             title="JUSTIFICACIÓN DE LA SOLICITUD ORIGEN"
@@ -135,15 +132,12 @@ const PurchaseOrderPage = () => {
             emptyMessage="SIN JUSTIFICACIÓN"
             compact
           />
-
         </div>
 
         {/* ── ARTÍCULOS ───────────────────────────────────────────── */}
         <div className="space-y-4">
-
           {/* HEADER */}
           <div className="flex items-end justify-between border-b border-border/60 pb-2 select-none">
-
             <div className="flex flex-col">
               <h2 className="text-xl font-semibold tracking-tight text-foreground/90">
                 Artículos de la Orden
@@ -159,13 +153,15 @@ const PurchaseOrderPage = () => {
                 {articles.length + generalArticles.length}
               </span>
             </div>
-
           </div>
 
           {/* Grid de artículos: 2 por fila, scroll a partir de la 2da fila */}
-          <ScrollArea className={(articles.length + generalArticles.length) > 2 ? 'h-[300px]' : ''}>
+          <ScrollArea
+            className={
+              articles.length + generalArticles.length > 2 ? "h-75" : ""
+            }
+          >
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pr-3">
-
               {/* ===================== BATCH ===================== */}
               {articles.map((article) => (
                 <PurchaseOrderArticleCard
@@ -183,10 +179,8 @@ const PurchaseOrderPage = () => {
                   orderStatus={data?.status}
                 />
               ))}
-
             </div>
           </ScrollArea>
-
         </div>
 
         {/* ── Desglose de costos + Total general ─────────────────── */}
@@ -205,9 +199,7 @@ const PurchaseOrderPage = () => {
           card={data?.bank_card}
           isAeronautical={isAeronauticalPurchaseOrder(data)}
         />
-
       </div>
-
     </ContentLayout>
   );
 };

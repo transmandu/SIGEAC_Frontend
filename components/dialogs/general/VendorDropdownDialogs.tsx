@@ -1,16 +1,28 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Loader2, Trash2, Edit3, AlertTriangle } from "lucide-react"
-import { Vendor } from "@/types"
-import { useCompanyStore } from "@/stores/CompanyStore"
-import { useDeleteVendor, useUpdateVendor } from "@/actions/ajustes/proveedores/actions"
-import CreateVendorForm from "@/components/forms/general/CreateVendorForm"
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Loader2, Trash2, Edit3, AlertTriangle } from "lucide-react";
+import { Vendor } from "@/types";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import {
+  useDeleteVendor,
+  useUpdateVendor,
+} from "@/actions/ajustes/proveedores/actions";
+import CreateVendorForm from "@/components/forms/general/CreateVendorForm";
 
-const dialogClass = "sm:max-w-[420px] rounded-3xl border border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl overflow-hidden p-0"
-const header = "px-6 pt-8 pb-3 flex flex-col items-center text-center space-y-3"
+const dialogClass =
+  "sm:max-w-105 rounded-3xl border border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl overflow-hidden p-0";
+const header =
+  "px-6 pt-8 pb-3 flex flex-col items-center text-center space-y-3";
 const iconBase = (color: "blue" | "red") => `
   flex items-center justify-center
   size-12 rounded-2xl
@@ -20,28 +32,26 @@ const iconBase = (color: "blue" | "red") => `
       ? "border-red-500/15 bg-red-500/8 text-red-600"
       : "border-blue-500/15 bg-blue-500/8 text-blue-600"
   }
-`
-const title = "text-[16px] font-semibold tracking-tight"
-const description = "text-sm text-muted-foreground text-center leading-relaxed max-w-sm"
+`;
+const title = "text-[16px] font-semibold tracking-tight";
+const description =
+  "text-sm text-muted-foreground text-center leading-relaxed max-w-sm";
 const warningBox = (color: "red") => `
   mx-6 mt-4 p-3 rounded-xl border text-sm leading-relaxed flex gap-2
-  ${
-    color === "red"
-      ? "border-red-500/20 bg-red-500/5 text-red-600"
-      : ""
-  }
-`
-const footer = "px-6 pb-6 pt-5 flex justify-end gap-2"
-const cancelBtn = "rounded-xl border border-border/60 bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition"
-const dangerBtn = "rounded-xl bg-red-600 hover:bg-red-700 text-white"
+  ${color === "red" ? "border-red-500/20 bg-red-500/5 text-red-600" : ""}
+`;
+const footer = "px-6 pb-6 pt-5 flex justify-end gap-2";
+const cancelBtn =
+  "rounded-xl border border-border/60 bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition";
+const dangerBtn = "rounded-xl bg-red-600 hover:bg-red-700 text-white";
 
 type Props = {
-  vendor: Vendor
-  openEdit: boolean
-  setOpenEdit: (v: boolean) => void
-  openDelete: boolean
-  setOpenDelete: (v: boolean) => void
-}
+  vendor: Vendor;
+  openEdit: boolean;
+  setOpenEdit: (v: boolean) => void;
+  openDelete: boolean;
+  setOpenDelete: (v: boolean) => void;
+};
 
 const VendorDropdownDialogs = ({
   vendor,
@@ -50,31 +60,31 @@ const VendorDropdownDialogs = ({
   openDelete,
   setOpenDelete,
 }: Props) => {
-  const { selectedCompany } = useCompanyStore()
+  const { selectedCompany } = useCompanyStore();
 
-  const updateMutation = useUpdateVendor(selectedCompany?.slug)
-  const deleteMutation = useDeleteVendor(selectedCompany?.slug)
+  const updateMutation = useUpdateVendor(selectedCompany?.slug);
+  const deleteMutation = useDeleteVendor(selectedCompany?.slug);
 
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(false);
 
-  if (!selectedCompany) return null
+  if (!selectedCompany) return null;
 
   const handleUpdate = async (data: any) => {
-    setLoading(true)
+    setLoading(true);
     await updateMutation.mutateAsync({
       ...data,
       id: vendor.id,
-    })
-    setLoading(false)
-    setOpenEdit(false)
-  }
+    });
+    setLoading(false);
+    setOpenEdit(false);
+  };
 
   const handleDelete = async () => {
-    setLoading(true)
-    await deleteMutation.mutateAsync(vendor.id)
-    setLoading(false)
-    setOpenDelete(false)
-  }
+    setLoading(true);
+    await deleteMutation.mutateAsync(vendor.id);
+    setLoading(false);
+    setOpenDelete(false);
+  };
 
   return (
     <>
@@ -85,15 +95,11 @@ const VendorDropdownDialogs = ({
               <Edit3 className="size-5" />
             </div>
 
-            <DialogTitle className={title}>
-              Editar proveedor
-            </DialogTitle>
+            <DialogTitle className={title}>Editar proveedor</DialogTitle>
 
             <DialogDescription className={description}>
               Actualiza la información de{" "}
-              <span className="font-medium text-foreground">
-                {vendor.name}
-              </span>
+              <span className="font-medium text-foreground">{vendor.name}</span>
             </DialogDescription>
           </DialogHeader>
 
@@ -121,23 +127,20 @@ const VendorDropdownDialogs = ({
               <Trash2 className="size-5" />
             </div>
 
-            <DialogTitle className={title}>
-              Eliminar proveedor
-            </DialogTitle>
+            <DialogTitle className={title}>Eliminar proveedor</DialogTitle>
 
             <DialogDescription className={description}>
               El proveedor{" "}
-              <span className="font-medium text-foreground">
-                {vendor.name}
-              </span>{" "}
+              <span className="font-medium text-foreground">{vendor.name}</span>{" "}
               será eliminado permanentemente.
             </DialogDescription>
           </DialogHeader>
 
           <div className={warningBox("red")}>
-            <AlertTriangle className="size-4 mt-[2px]" />
+            <AlertTriangle className="size-4 mt-0.5" />
             <div>
-              Esta acción es <b>irreversible</b>. Si el proveedor tiene órdenes de compra o cotizaciones asociadas, no podrá ser eliminado.
+              Esta acción es <b>irreversible</b>. Si el proveedor tiene órdenes
+              de compra o cotizaciones asociadas, no podrá ser eliminado.
             </div>
           </div>
 
@@ -164,7 +167,7 @@ const VendorDropdownDialogs = ({
         </DialogContent>
       </Dialog>
     </>
-  )
-}
+  );
+};
 
-export default VendorDropdownDialogs
+export default VendorDropdownDialogs;

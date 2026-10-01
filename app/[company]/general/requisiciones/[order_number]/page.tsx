@@ -358,10 +358,10 @@ const BatchArticleCard = ({ article }: { article: any }) => {
             alt="batch article"
             width={100}
             height={100}
-            className="w-[100px] h-[100px] object-contain border rounded-md"
+            className="w-25 h-[100px] object-contain border rounded-md"
           />
         ) : (
-          <div className="flex flex-col items-center justify-center text-muted-foreground text-xs gap-1 h-[100px] w-[100px] border rounded-md">
+          <div className="flex flex-col items-center justify-center text-muted-foreground text-xs gap-1 h-[100px] w-25 border rounded-md">
             <ImageIcon className="w-5 h-5 opacity-70" />
             <span>Sin imagen</span>
           </div>
@@ -514,10 +514,10 @@ const GeneralArticleCard = ({ article }: { article: any }) => {
             alt="general article"
             width={100}
             height={100}
-            className="w-[100px] h-[100px] object-contain border rounded-md"
+            className="w-25 h-[100px] object-contain border rounded-md"
           />
         ) : (
-          <div className="flex flex-col items-center justify-center text-muted-foreground text-xs gap-1 h-[100px] w-[100px] border rounded-md">
+          <div className="flex flex-col items-center justify-center text-muted-foreground text-xs gap-1 h-[100px] w-25 border rounded-md">
             <ImageIcon className="w-5 h-5 opacity-70" />
             <span>Sin imagen</span>
           </div>
@@ -850,7 +850,7 @@ const RequisitionPage = () => {
           </AlertDialogHeader>
 
           <div className="mx-1 p-3 rounded-xl border border-red-500/20 bg-red-500/5 text-sm text-red-600 flex gap-2 leading-relaxed">
-            <AlertTriangle className="size-4 mt-[2px] shrink-0" />
+            <AlertTriangle className="size-4 mt-0.5 shrink-0" />
             <div>
               Esta operación es <b>irreversible</b>. Verifica que realmente
               deseas eliminar este registro antes de continuar.

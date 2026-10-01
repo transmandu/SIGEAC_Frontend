@@ -21,7 +21,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { MarqueeBlockText } from "@/components/misc/MarqueeBlockText";
 import type { Retailer } from "@/types";
 import type { QuoteableRequisition } from "@/types/purchase/quote";
@@ -49,10 +53,8 @@ export function QuoteGeneralMetaSection({
 }: QuoteGeneralMetaSectionProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
-
       {/* ───────────── IZQUIERDA ───────────── */}
       <div className="h-full rounded-xl border bg-muted/15 overflow-hidden">
-
         <div className="flex items-center justify-between border-b bg-muted/30 px-4 py-1.5">
           <div className="flex flex-col">
             <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -65,17 +67,15 @@ export function QuoteGeneralMetaSection({
         </div>
 
         <div className="flex flex-col gap-3 p-3">
-
           {/* Fecha + Destino */}
           <div className="grid grid-cols-2 gap-3">
-
             {/* Fecha */}
             <FormField
               control={form.control}
               name="quote_date"
               render={({ field }) => (
                 <FormItem className="space-y-2">
-                  <div className="flex items-center gap-2 min-h-[16px] pb-1.5">
+                  <div className="flex items-center gap-2 min-h-4 pb-1.5">
                     <FormLabel className="m-0 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
                       Fecha de Cotización
                       <RequiredIndicator />
@@ -90,7 +90,7 @@ export function QuoteGeneralMetaSection({
                           variant="outline"
                           className={cn(
                             "h-9 w-full justify-start text-sm bg-background/70",
-                            !field.value && "text-muted-foreground"
+                            !field.value && "text-muted-foreground",
                           )}
                         >
                           <CalendarIcon className="mr-2 h-3 w-3 opacity-60" />
@@ -123,7 +123,7 @@ export function QuoteGeneralMetaSection({
               name="location_id"
               render={({ field }) => (
                 <FormItem className="space-y-2">
-                  <div className="flex items-center gap-2 min-h-[16px] pb-1.5">
+                  <div className="flex items-center gap-2 min-h-4 pb-1.5">
                     <FormLabel className="m-0 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
                       Destino
                       <RequiredIndicator />
@@ -131,7 +131,10 @@ export function QuoteGeneralMetaSection({
                     <div className="h-px flex-1 bg-border/60" />
                   </div>
 
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger className="h-9 bg-background/70 text-sm">
                         <SelectValue placeholder="Ubicación" />
@@ -140,7 +143,10 @@ export function QuoteGeneralMetaSection({
 
                     <SelectContent>
                       {locations?.map((location) => (
-                        <SelectItem key={location.id} value={location.id.toString()}>
+                        <SelectItem
+                          key={location.id}
+                          value={location.id.toString()}
+                        >
                           {location.address} — {location.type}
                         </SelectItem>
                       ))}
@@ -159,7 +165,7 @@ export function QuoteGeneralMetaSection({
             name="retailer_id"
             render={({ field }) => (
               <FormItem className="space-y-2">
-                <div className="flex items-center gap-2 min-h-[16px] pb-1.5">
+                <div className="flex items-center gap-2 min-h-4 pb-1.5">
                   <FormLabel className="m-0 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
                     Lugar de compra
                     <RequiredIndicator />
@@ -185,7 +191,6 @@ export function QuoteGeneralMetaSection({
 
       {/* ───────────── DERECHA ───────────── */}
       <div className="h-full rounded-xl border bg-muted/15 overflow-hidden">
-
         <div className="flex items-center justify-between border-b bg-muted/30 px-4 py-1.5">
           <div className="flex flex-col">
             <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -198,7 +203,6 @@ export function QuoteGeneralMetaSection({
         </div>
 
         <div className="flex flex-col gap-3 p-3">
-
           {/* Justificación */}
           <div className="space-y-2">
             <div className="flex items-center gap-2">
@@ -231,7 +235,7 @@ export function QuoteGeneralMetaSection({
                 <FormControl>
                   <Textarea
                     placeholder="Comentario adicional para la cotización..."
-                    className="min-h-[72px] resize-none border bg-background/70 text-sm"
+                    className="min-h-18 resize-none border bg-background/70 text-sm"
                     {...field}
                   />
                 </FormControl>

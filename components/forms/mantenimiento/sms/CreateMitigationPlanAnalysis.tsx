@@ -2,7 +2,7 @@
 
 import type { KeyboardEvent } from "react";
 import { useEffect, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@/lib/zod-resolver";
 import { Loader2, X } from "lucide-react";
@@ -128,13 +128,7 @@ const parsePossibleConsequences = (value?: string | null) => {
 
   const source = value.includes("~") ? value.split("~") : value.split(/\n|,/);
 
-  return Array.from(
-    new Set(
-      source
-        .map((item) => item.trim())
-        .filter(Boolean)
-    )
-  );
+  return Array.from(new Set(source.map((item) => item.trim()).filter(Boolean)));
 };
 
 const serializePossibleConsequences = (items: string[]) => items.join("~");
@@ -142,16 +136,19 @@ const serializePossibleConsequences = (items: string[]) => items.join("~");
 const getDefaultValues = (
   mitigationPlan: MitigationPlan | null,
   analysis: Analysis | null,
-  suggestedAnalysis?: Pick<Analysis, "probability" | "severity"> | null
+  suggestedAnalysis?: Pick<Analysis, "probability" | "severity"> | null,
 ): FormValues => {
   const parsedConsequences = parsePossibleConsequences(
-    mitigationPlan?.possible_consequences
+    mitigationPlan?.possible_consequences,
   );
-  const selectedConsequenceRaw = (mitigationPlan?.consequence_to_evaluate || "").trim();
+  const selectedConsequenceRaw = (
+    mitigationPlan?.consequence_to_evaluate || ""
+  ).trim();
 
   const selectedConsequence =
-    parsedConsequences.find((consequence) => consequence.trim() === selectedConsequenceRaw) ||
-    (parsedConsequences.length ? parsedConsequences[0] : "");
+    parsedConsequences.find(
+      (consequence) => consequence.trim() === selectedConsequenceRaw,
+    ) || (parsedConsequences.length ? parsedConsequences[0] : "");
 
   return {
     area_responsible: mitigationPlan?.area_responsible || "",
@@ -186,29 +183,44 @@ export default function CreateMitigationPlanAnalysis({
     // formulario sigue teniendo los seis, así que el resolver se expone con el
     // tipo del formulario y no con el del esquema de turno.
     resolver: zodResolver(
-      (isAnalysisOnly ? ANALYSIS_ONLY_SCHEMA : FORM_SCHEMA) as z.ZodType<FormValues>,
+      (isAnalysisOnly
+        ? ANALYSIS_ONLY_SCHEMA
+        : FORM_SCHEMA) as z.ZodType<FormValues>,
     ),
-    defaultValues: getDefaultValues(mitigationPlan, analysis, suggestedAnalysis),
+    defaultValues: getDefaultValues(
+      mitigationPlan,
+      analysis,
+      suggestedAnalysis,
+    ),
   });
 
   const [consequenceInput, setConsequenceInput] = useState("");
 
+  // Los dos call sites remontan con key al cambiar de registro, así que esto
+  // solo cubre el caso de initialData que llega async sobre la misma key.
   useEffect(() => {
     form.reset(getDefaultValues(mitigationPlan, analysis, suggestedAnalysis));
-    setConsequenceInput("");
   }, [analysis, form, mitigationPlan, suggestedAnalysis]);
 
-  const watchedProbability = form.watch("probability");
-  const watchedSeverity = form.watch("severity");
-  const watchedPossibleConsequences = form.watch("possible_consequences");
+  const watchedProbability = useWatch({
+    control: form.control,
+    name: "probability",
+  });
+  const watchedSeverity = useWatch({ control: form.control, name: "severity" });
+  const watchedPossibleConsequences = useWatch({
+    control: form.control,
+    name: "possible_consequences",
+  });
 
   const consequenceOptions = useMemo(
     () => parsePossibleConsequences(watchedPossibleConsequences),
-    [watchedPossibleConsequences]
+    [watchedPossibleConsequences],
   );
 
   const selectedResult =
-    watchedProbability && watchedSeverity ? `${watchedProbability}${watchedSeverity}` : null;
+    watchedProbability && watchedSeverity
+      ? `${watchedProbability}${watchedSeverity}`
+      : null;
   const selectedRiskLevel = selectedResult ? getResult(selectedResult) : null;
 
   const syncConsequences = (items: string[]) => {
@@ -222,11 +234,13 @@ export default function CreateMitigationPlanAnalysis({
 
     form.setValue(
       "consequence_to_evaluate",
-      items.includes(selectedConsequence) ? selectedConsequence : items[0] || "",
+      items.includes(selectedConsequence)
+        ? selectedConsequence
+        : items[0] || "",
       {
         shouldDirty: true,
         shouldValidate: true,
-      }
+      },
     );
   };
 
@@ -247,11 +261,13 @@ export default function CreateMitigationPlanAnalysis({
   };
 
   const removeConsequence = (valueToRemove: string) => {
-    syncConsequences(consequenceOptions.filter((item) => item !== valueToRemove));
+    syncConsequences(
+      consequenceOptions.filter((item) => item !== valueToRemove),
+    );
   };
 
   const handleConsequenceInputKeyDown = (
-    event: KeyboardEvent<HTMLInputElement>
+    event: KeyboardEvent<HTMLInputElement>,
   ) => {
     if (event.key !== "Enter") {
       return;
@@ -279,7 +295,9 @@ export default function CreateMitigationPlanAnalysis({
       const targetMitigationPlanId = mitigationPlanId || mitigationPlan?.id;
 
       if (!targetMitigationPlanId) {
-        throw new Error("No se encontró un plan de mitigación para asociar el análisis.");
+        throw new Error(
+          "No se encontró un plan de mitigación para asociar el análisis.",
+        );
       }
 
       if (analysis) {
@@ -378,7 +396,9 @@ export default function CreateMitigationPlanAnalysis({
                 name="area_responsible"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Área responsable</FormLabel>
+                    <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      Área responsable
+                    </FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -404,11 +424,13 @@ export default function CreateMitigationPlanAnalysis({
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Descripción del plan</FormLabel>
+                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Descripción del plan
+                  </FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="Describa el enfoque del plan de mitigación"
-                      className="min-h-[120px]"
+                      className="min-h-30"
                       {...field}
                     />
                   </FormControl>
@@ -422,7 +444,9 @@ export default function CreateMitigationPlanAnalysis({
               name="possible_consequences"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Posibles consecuencias</FormLabel>
+                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Posibles consecuencias
+                  </FormLabel>
                   <FormControl>
                     <div className="space-y-3">
                       <input
@@ -451,9 +475,7 @@ export default function CreateMitigationPlanAnalysis({
                               <button
                                 type="button"
                                 className="rounded-full p-0.5 hover:bg-background/60"
-                                onClick={() =>
-                                  removeConsequence(consequence)
-                                }
+                                onClick={() => removeConsequence(consequence)}
                               >
                                 <X className="h-3 w-3" />
                                 <span className="sr-only">
@@ -465,8 +487,8 @@ export default function CreateMitigationPlanAnalysis({
                         </div>
                       ) : (
                         <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
-                          Todavía no ha agregado consecuencias. Presione
-                          Enter para registrarlas una por una.
+                          Todavía no ha agregado consecuencias. Presione Enter
+                          para registrarlas una por una.
                         </div>
                       )}
                     </div>
@@ -484,7 +506,9 @@ export default function CreateMitigationPlanAnalysis({
               name="consequence_to_evaluate"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Consecuencia a evaluar</FormLabel>
+                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Consecuencia a evaluar
+                  </FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     value={field.value}
@@ -520,7 +544,9 @@ export default function CreateMitigationPlanAnalysis({
             name="probability"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Probabilidad</FormLabel>
+                <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Probabilidad
+                </FormLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
@@ -536,8 +562,8 @@ export default function CreateMitigationPlanAnalysis({
                   </SelectContent>
                 </Select>
                 <FormDescription>
-                  Puede tomar como referencia la evaluación estimada guardada para
-                  la notificación.
+                  Puede tomar como referencia la evaluación estimada guardada
+                  para la notificación.
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -549,7 +575,9 @@ export default function CreateMitigationPlanAnalysis({
             name="severity"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Severidad</FormLabel>
+                <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Severidad
+                </FormLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
@@ -581,7 +609,9 @@ export default function CreateMitigationPlanAnalysis({
             <span className="font-medium">Selección actual:</span>
             {selectedResult ? (
               <>
-                <Badge variant="secondary">Probabilidad {watchedProbability}</Badge>
+                <Badge variant="secondary">
+                  Probabilidad {watchedProbability}
+                </Badge>
                 <Badge variant="secondary">Severidad {watchedSeverity}</Badge>
                 <Badge>{selectedResult}</Badge>
                 {selectedRiskLevel && (

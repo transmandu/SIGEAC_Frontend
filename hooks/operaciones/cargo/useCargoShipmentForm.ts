@@ -1,6 +1,6 @@
 "use client";
 
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@/lib/zod-resolver";
 import { format, startOfMonth, endOfMonth, parseISO, isValid } from "date-fns";
@@ -20,7 +20,6 @@ import { useGetNextGuide } from "@/hooks/operaciones/cargo/useGetNextGuide";
 import { useGetPilots } from "@/hooks/sms/useGetPilots";
 import { useGetExternalAircraftSuggestions } from "@/hooks/operaciones/cargo/useGetExternalAircraftSuggestions";
 import { useGetCarriers } from "@/hooks/operaciones/cargo/useGetCarriers";
-
 
 const itemSchema = z.object({
   product_description: z.string().min(1, "La descripción es requerida"),
@@ -52,10 +51,7 @@ export const formSchema = z
 
 export type CargoShipmentFormValues = z.infer<typeof formSchema>;
 
-
-export function useCargoShipmentForm(
-  initialData?: any,
-) {
+export function useCargoShipmentForm(initialData?: any) {
   const params = useParams();
   const router = useRouter();
   const { user } = useAuth();
@@ -63,8 +59,8 @@ export function useCargoShipmentForm(
   const company = params.company as string;
   const aircraftIdFromUrl = params.aircraft_id;
   const externalNameFromUrl = params.name
-  ? decodeURIComponent(params.name as string)
-  : null;
+    ? decodeURIComponent(params.name as string)
+    : null;
 
   const isEditing = !!initialData;
 
@@ -90,9 +86,15 @@ export function useCargoShipmentForm(
     control: form.control,
   });
 
-  const watchedItems = form.watch("items");
-  const registrationDate = form.watch("registration_date");
-  const watchedAircraftId = form.watch("aircraft_id");
+  const watchedItems = useWatch({ control: form.control, name: "items" });
+  const registrationDate = useWatch({
+    control: form.control,
+    name: "registration_date",
+  });
+  const watchedAircraftId = useWatch({
+    control: form.control,
+    name: "aircraft_id",
+  });
 
   const { data: guideData, isLoading: loadingGuide } = useGetNextGuide(
     company,
@@ -120,11 +122,11 @@ export function useCargoShipmentForm(
   }, [aircraftIdFromUrl, isEditing, form]);
 
   useEffect(() => {
-    if(externalNameFromUrl && !isEditing && aircrafts) {
+    if (externalNameFromUrl && !isEditing && aircrafts) {
       const match = (aircrafts as any[]).find(
         (a) => a.acronym === externalNameFromUrl,
       );
-      if(match){
+      if (match) {
         form.setValue("aircraft_id", match.id);
       }
     }
@@ -156,7 +158,10 @@ export function useCargoShipmentForm(
   const onSubmit = async (values: CargoShipmentFormValues) => {
     // Dos renglones con la misma descripción son el mismo producto: se suman en
     // uno antes de enviar. La comparación ignora mayúsculas y espacios.
-    const itemMap = new Map<string, { product_description: string; units: number; weight: number }>();
+    const itemMap = new Map<
+      string,
+      { product_description: string; units: number; weight: number }
+    >();
     let hasDuplicates = false;
 
     values.items.forEach((item) => {
@@ -179,7 +184,8 @@ export function useCargoShipmentForm(
 
     if (hasDuplicates) {
       toast.info("Productos duplicados agrupados", {
-        description: "Se detectaron productos repetidos y se han agrupado automáticamente sumando sus unidades y pesos.",
+        description:
+          "Se detectaron productos repetidos y se han agrupado automáticamente sumando sus unidades y pesos.",
       });
       // Se reescribe el formulario para que lo enviado sea lo que se ve.
       form.setValue("items", finalItems);
@@ -248,7 +254,6 @@ export function useCargoShipmentForm(
   };
 }
 
-
 function buildDefaultValues(initialData?: any): CargoShipmentFormValues {
   const safeDate = (dateStr: string) => {
     if (!dateStr) return new Date();
@@ -284,7 +289,8 @@ function buildDefaultValues(initialData?: any): CargoShipmentFormValues {
         ? `ext:${initialData.external_copilot_id}`
         : "",
     client_id: initialData.client_id ?? initialData.client?.id ?? null,
-    aircraft_id: initialData.aircraft_id ?? initialData.aircraft?.id ?? undefined,
+    aircraft_id:
+      initialData.aircraft_id ?? initialData.aircraft?.id ?? undefined,
     items: initialData.items.map((item: any) => ({
       product_description: item.product_description,
       units: item.units,

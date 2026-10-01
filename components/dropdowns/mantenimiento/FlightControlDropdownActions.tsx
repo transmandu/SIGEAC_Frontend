@@ -1,6 +1,6 @@
-'use client'
+"use client";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -8,35 +8,40 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu"
-import { FlightControl } from "@/types"
-import { MoreHorizontal, SquarePen, Trash2, Loader2 } from "lucide-react"
-import { useState } from "react"
-import CreateFlightControlForm from "@/components/forms/mantenimiento/ordenes_trabajo/CreateFlightControlForm"
-import { useDeleteFlightControl } from "@/actions/mantenimiento/planificacion/vuelos/actions"
-import { useCompanyStore } from "@/stores/CompanyStore"
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { FlightControl } from "@/types";
+import { MoreHorizontal, SquarePen, Trash2, Loader2 } from "lucide-react";
+import { useState } from "react";
+import CreateFlightControlForm from "@/components/forms/mantenimiento/ordenes_trabajo/CreateFlightControlForm";
+import { useDeleteFlightControl } from "@/actions/mantenimiento/planificacion/vuelos/actions";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 interface FlightControlDropdownActionsProps {
-  flightControl: FlightControl
+  flightControl: FlightControl;
 }
 
-const FlightControlDropdownActions = ({ flightControl }: FlightControlDropdownActionsProps) => {
-  const [open, setOpen] = useState<boolean>(false)
-  const [openEdit, setOpenEdit] = useState<boolean>(false)
-  const [openDelete, setOpenDelete] = useState<boolean>(false)
+const FlightControlDropdownActions = ({
+  flightControl,
+}: FlightControlDropdownActionsProps) => {
+  const [open, setOpen] = useState<boolean>(false);
+  const [openEdit, setOpenEdit] = useState<boolean>(false);
+  const [openDelete, setOpenDelete] = useState<boolean>(false);
   const { deleteFlightControl } = useDeleteFlightControl();
   const { selectedCompany } = useCompanyStore();
 
   const handleDelete = () => {
-    deleteFlightControl.mutate({ id: flightControl.id, company: selectedCompany!.slug })
-    setOpenDelete(false)
-  }
+    deleteFlightControl.mutate({
+      id: flightControl.id,
+      company: selectedCompany!.slug,
+    });
+    setOpenDelete(false);
+  };
 
   return (
     <>
@@ -48,9 +53,12 @@ const FlightControlDropdownActions = ({ flightControl }: FlightControlDropdownAc
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="center" className="flex-col gap-2 justify-center">
+          <DropdownMenuContent
+            align="center"
+            className="flex-col gap-2 justify-center"
+          >
             <DropdownMenuItem onClick={() => setOpenDelete(true)}>
-              <Trash2 className='size-5 text-red-500' />
+              <Trash2 className="size-5 text-red-500" />
               <p className="pl-2">Eliminar</p>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => setOpenEdit(true)}>
@@ -68,7 +76,8 @@ const FlightControlDropdownActions = ({ flightControl }: FlightControlDropdownAc
                 ¿Seguro que desea eliminar el vuelo?
               </DialogTitle>
               <DialogDescription className="text-center p-2 mb-0 pb-0">
-                Esta acción es irreversible y estaría eliminando por completo el vuelo seleccionado.
+                Esta acción es irreversible y estaría eliminando por completo el
+                vuelo seleccionado.
               </DialogDescription>
             </DialogHeader>
 
@@ -98,7 +107,7 @@ const FlightControlDropdownActions = ({ flightControl }: FlightControlDropdownAc
 
         {/* DIALOGO DE EDITAR */}
         <Dialog open={openEdit} onOpenChange={setOpenEdit}>
-          <DialogContent className="sm:max-w-[420px] md:max-w-[650px]">
+          <DialogContent className="sm:max-w-105 md:max-w-162.5">
             <DialogHeader>
               <DialogTitle>Edición de Vuelo</DialogTitle>
               <DialogDescription>
@@ -123,8 +132,7 @@ const FlightControlDropdownActions = ({ flightControl }: FlightControlDropdownAc
         </Dialog>
       </Dialog>
     </>
-  )
-}
+  );
+};
 
-export default FlightControlDropdownActions
-
+export default FlightControlDropdownActions;

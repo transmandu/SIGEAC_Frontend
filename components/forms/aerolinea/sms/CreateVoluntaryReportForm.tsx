@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@/lib/zod-resolver";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
 import {
@@ -206,7 +206,10 @@ export function CreateVoluntaryReportForm({
     },
   });
 
-  const selectedDocument = form.watch("document");
+  const selectedDocument = useWatch({
+    control: form.control,
+    name: "document",
+  });
 
   useEffect(() => {
     if (initialData && isEditing) {
@@ -544,7 +547,7 @@ export function CreateVoluntaryReportForm({
                     <Textarea
                       placeholder="Breve descripción del peligro"
                       {...field}
-                      className="min-h-[100px]"
+                      className="min-h-25"
                     />
                   </FormControl>
                   <FormMessage className="text-xs" />

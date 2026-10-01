@@ -49,7 +49,7 @@ const ToolBoxToolsDialog = ({ tools, name }: DialogProps) => {
             </div>
             <Image
               src={"/LOGO_TRD.png"}
-              className="w-[70px] h-[70px]"
+              className="w-17.5 h-17.5"
               width={70}
               height={70}
               alt="logo"

@@ -12,7 +12,11 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Dialog,
   DialogContent,
@@ -67,7 +71,7 @@ export function VendorCombobox({
               "w-full min-w-0 justify-between bg-background/70 font-normal",
               !selected && "text-muted-foreground",
               invalid && "border-destructive/60 ring-1 ring-destructive/30",
-              triggerClassName
+              triggerClassName,
             )}
           >
             <span className="min-w-0 truncate">
@@ -116,7 +120,9 @@ export function VendorCombobox({
                     <Check
                       className={cn(
                         "mr-2 size-4 shrink-0",
-                        vendor.id.toString() === value ? "opacity-100" : "opacity-0"
+                        vendor.id.toString() === value
+                          ? "opacity-100"
+                          : "opacity-0",
                       )}
                     />
                     <span className="min-w-0 truncate">{vendor.name}</span>
@@ -130,11 +136,12 @@ export function VendorCombobox({
 
       {/* Crear proveedor modal — auto-selects the new vendor on success */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="sm:max-w-[560px]">
+        <DialogContent className="sm:max-w-140">
           <DialogHeader>
             <DialogTitle>Creación de Proveedor</DialogTitle>
             <DialogDescription>
-              Registre un proveedor o beneficiario rellenando la información necesaria.
+              Registre un proveedor o beneficiario rellenando la información
+              necesaria.
             </DialogDescription>
           </DialogHeader>
           <CreateVendorForm

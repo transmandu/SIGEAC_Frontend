@@ -1,29 +1,32 @@
-"use client"
-import { useCreateRequisition } from "@/actions/mantenimiento/compras/requisiciones/actions"
-import { Button } from "@/components/ui/button"
-import { Form } from "@/components/ui/form"
-import { useAuth } from "@/contexts/AuthContext"
-import { useGetBatchesByLocationId } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByLocationId"
-import { useSearchBatchesWithArticles, type BatchWithArticles } from "@/hooks/mantenimiento/almacen/renglones/useSearchBatchesWithArticles"
-import { useGetMaintenanceAircrafts } from '@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts'
-import { useGetWorkOrderEmployees } from "@/hooks/mantenimiento/planificacion/useGetWorkOrderEmployees"
-import { useGetWorkOrders } from '@/hooks/mantenimiento/planificacion/useGetWorkOrders'
-import { useCompanyStore } from "@/stores/CompanyStore"
-import { zodResolver } from "@/lib/zod-resolver"
-import { Loader2, Send } from "lucide-react"
-import { useEffect, useMemo, useRef, useState } from "react"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
-import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits"
-import { useDebounce } from "@/lib/useDebounce"
-import type { RequisitionBatchForm } from "@/types/purchase"
-import type { Aircraft } from "@/types"
-import { Separator } from "@/components/ui/separator"
-import { RequisitionHeader } from "./_components/RequisitionHeader"
-import { BatchArticlesSection } from "./_components/BatchArticlesSection"
-import { AdditionalInfoSection } from "./_components/AdditionalInfoSection"
-import { isHigherPriority, type Priority } from "./_components/priorityUtils"
-import { canAddRequisitionArticle } from "@/lib/purchases/requisition-article-limit"
+"use client";
+import { useCreateRequisition } from "@/actions/mantenimiento/compras/requisiciones/actions";
+import { Button } from "@/components/ui/button";
+import { Form } from "@/components/ui/form";
+import { useAuth } from "@/contexts/AuthContext";
+import { useGetBatchesByLocationId } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByLocationId";
+import {
+  useSearchBatchesWithArticles,
+  type BatchWithArticles,
+} from "@/hooks/mantenimiento/almacen/renglones/useSearchBatchesWithArticles";
+import { useGetMaintenanceAircrafts } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts";
+import { useGetWorkOrderEmployees } from "@/hooks/mantenimiento/planificacion/useGetWorkOrderEmployees";
+import { useGetWorkOrders } from "@/hooks/mantenimiento/planificacion/useGetWorkOrders";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { zodResolver } from "@/lib/zod-resolver";
+import { Loader2, Send } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useForm, useWatch } from "react-hook-form";
+import { z } from "zod";
+import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits";
+import { useDebounce } from "@/lib/useDebounce";
+import type { RequisitionBatchForm } from "@/types/purchase";
+import type { Aircraft } from "@/types";
+import { Separator } from "@/components/ui/separator";
+import { RequisitionHeader } from "./_components/RequisitionHeader";
+import { BatchArticlesSection } from "./_components/BatchArticlesSection";
+import { AdditionalInfoSection } from "./_components/AdditionalInfoSection";
+import { isHigherPriority, type Priority } from "./_components/priorityUtils";
+import { canAddRequisitionArticle } from "@/lib/purchases/requisition-article-limit";
 
 const FormSchema = z.object({
   justification: z
@@ -42,7 +45,7 @@ const FormSchema = z.object({
     .refine((file) => file.size <= 5 * 1024 * 1024, "Max 5MB")
     .refine(
       (file) => ["image/jpeg", "image/png"].includes(file.type),
-      "Solo JPEG/PNG"
+      "Solo JPEG/PNG",
     )
     .optional(),
   articles: z
@@ -59,10 +62,12 @@ const FormSchema = z.object({
             aircraft_id: z.string().optional(),
             priority: z.enum(["HIGH", "MEDIUM", "LOW"]).optional(),
             image: z.any().optional(),
-            document_type_ids: z.array(z.number()).min(1, "Debe seleccionar al menos un tipo de documento"),
-          })
+            document_type_ids: z
+              .array(z.number())
+              .min(1, "Debe seleccionar al menos un tipo de documento"),
+          }),
         ),
-      })
+      }),
     )
     .min(1, "Debe agregar al menos un artículo"),
 });
@@ -73,12 +78,15 @@ interface FormProps {
   onClose: () => void;
 }
 
-export function CreateAeronauticalRequisitionForm({
-  onClose,
-}: FormProps) {
+export function CreateAeronauticalRequisitionForm({ onClose }: FormProps) {
   const { user } = useAuth();
 
-  const { mutate, mutateAsync, data: batches, isPending: isBatchesLoading } = useGetBatchesByLocationId();
+  const {
+    mutate,
+    mutateAsync,
+    data: batches,
+    isPending: isBatchesLoading,
+  } = useGetBatchesByLocationId();
 
   const { selectedCompany, selectedStation } = useCompanyStore();
 
@@ -99,15 +107,19 @@ export function CreateAeronauticalRequisitionForm({
     return ownAcronym ? [...base, ownAcronym] : base;
   }, [user, selectedCompany?.slug]);
 
-  const { data: employees, isLoading: employeesLoading } = useGetWorkOrderEmployees({
-    company: selectedCompany?.slug,
-    location_id: selectedStation ?? undefined,
-    acronym: requesterAcronyms,
-  });
+  const { data: employees, isLoading: employeesLoading } =
+    useGetWorkOrderEmployees({
+      company: selectedCompany?.slug,
+      location_id: selectedStation ?? undefined,
+      acronym: requesterAcronyms,
+    });
 
-  const { data: units, isLoading: isUnitsLoading } = useGetUnits(selectedCompany?.slug);
+  const { data: units, isLoading: isUnitsLoading } = useGetUnits(
+    selectedCompany?.slug,
+  );
 
-  const { data: maintenanceAircrafts, isLoading: isAircraftsLoading } = useGetMaintenanceAircrafts(selectedCompany?.slug);
+  const { data: maintenanceAircrafts, isLoading: isAircraftsLoading } =
+    useGetMaintenanceAircrafts(selectedCompany?.slug);
 
   const aircrafts: Aircraft[] | undefined = maintenanceAircrafts?.map((ac) => ({
     id: ac.id,
@@ -119,8 +131,14 @@ export function CreateAeronauticalRequisitionForm({
     client: ac.client as any,
     location: ac.location,
     is_external: false,
-    flight_hours: typeof ac.flight_hours === "number" ? ac.flight_hours : parseFloat(String(ac.flight_hours)) || 0,
-    cycles: typeof ac.flight_cycles === "number" ? ac.flight_cycles : parseFloat(String(ac.flight_cycles)) || 0,
+    flight_hours:
+      typeof ac.flight_hours === "number"
+        ? ac.flight_hours
+        : parseFloat(String(ac.flight_hours)) || 0,
+    cycles:
+      typeof ac.flight_cycles === "number"
+        ? ac.flight_cycles
+        : parseFloat(String(ac.flight_cycles)) || 0,
     fabricant_date: new Date(ac.fabricant_date),
     owner: "",
     aircraft_operator: "",
@@ -130,11 +148,17 @@ export function CreateAeronauticalRequisitionForm({
     status: "EN POSESION" as const,
   }));
 
-  const { data: workOrders, isLoading: isWorkOrdersLoading, isError: isWorkOrdersError } = useGetWorkOrders(selectedStation, selectedCompany?.slug);
+  const {
+    data: workOrders,
+    isLoading: isWorkOrdersLoading,
+    isError: isWorkOrdersError,
+  } = useGetWorkOrders(selectedStation, selectedCompany?.slug);
 
   const { createRequisition } = useCreateRequisition();
 
-  const [selectedBatches, setSelectedBatches] = useState<RequisitionBatchForm[]>([]);
+  const [selectedBatches, setSelectedBatches] = useState<
+    RequisitionBatchForm[]
+  >([]);
 
   const [employeeSearch, setEmployeeSearch] = useState("");
   const [aircraftSearch, setAircraftSearch] = useState("");
@@ -143,18 +167,20 @@ export function CreateAeronauticalRequisitionForm({
   const [articleSearch, setArticleSearch] = useState("");
   const debouncedArticleSearch = useDebounce(articleSearch, 300);
 
-  const { data: articleResults, isFetching: isArticleResultsLoading } = useSearchBatchesWithArticles(
-    selectedCompany?.slug,
-    selectedStation ?? undefined,
-    debouncedArticleSearch || undefined
-  );
+  const { data: articleResults, isFetching: isArticleResultsLoading } =
+    useSearchBatchesWithArticles(
+      selectedCompany?.slug,
+      selectedStation ?? undefined,
+      debouncedArticleSearch || undefined,
+    );
 
   const filteredEmployees = useMemo(() => {
     if (!employees) return [];
     const query = employeeSearch.toLowerCase().trim();
     if (!query) return employees;
     return employees.filter((emp) => {
-      const searchText = `${emp.first_name} ${emp.last_name} ${emp.dni}`.toLowerCase();
+      const searchText =
+        `${emp.first_name} ${emp.last_name} ${emp.dni}`.toLowerCase();
       return searchText.includes(query);
     });
   }, [employees, employeeSearch]);
@@ -164,7 +190,8 @@ export function CreateAeronauticalRequisitionForm({
     const query = aircraftSearch.toLowerCase().trim();
     if (!query) return aircrafts;
     return aircrafts.filter((ac) => {
-      const searchText = `${ac.acronym} ${ac.fabricant} ${ac.model ?? ""} ${ac.serial ?? ""}`.toLowerCase();
+      const searchText =
+        `${ac.acronym} ${ac.fabricant} ${ac.model ?? ""} ${ac.serial ?? ""}`.toLowerCase();
       return searchText.includes(query);
     });
   }, [aircrafts, aircraftSearch]);
@@ -174,7 +201,8 @@ export function CreateAeronauticalRequisitionForm({
     const query = workOrderSearch.toLowerCase().trim();
     if (!query) return workOrders;
     return workOrders.filter((wo) => {
-      const searchText = `${wo.order_number} ${wo.aircraft?.acronym ?? ""} ${wo.description ?? ""}`.toLowerCase();
+      const searchText =
+        `${wo.order_number} ${wo.aircraft?.acronym ?? ""} ${wo.description ?? ""}`.toLowerCase();
       return searchText.includes(query);
     });
   }, [workOrders, workOrderSearch]);
@@ -199,9 +227,12 @@ export function CreateAeronauticalRequisitionForm({
 
   const getDefaultUnit = (category: string) => {
     const unidadUnit = units?.find(
-      (u) => u.label.toUpperCase() === "UNIDAD" || u.value.toUpperCase() === "UNIDAD"
+      (u) =>
+        u.label.toUpperCase() === "UNIDAD" ||
+        u.value.toUpperCase() === "UNIDAD",
     );
-    return (category === "componente" || category === "herramienta") && unidadUnit
+    return (category === "componente" || category === "herramienta") &&
+      unidadUnit
       ? unidadUnit.id.toString()
       : undefined;
   };
@@ -216,17 +247,25 @@ export function CreateAeronauticalRequisitionForm({
 
   useEffect(() => {
     if (selectedStation) {
-      mutate({ location_id: Number(selectedStation), company: selectedCompany?.slug });
+      mutate({
+        location_id: Number(selectedStation),
+        company: selectedCompany?.slug,
+      });
     }
   }, [selectedStation, mutate, selectedCompany]);
 
   useEffect(() => {
-    form.setValue("articles", selectedBatches, { shouldValidate: form.formState.isSubmitted });
+    form.setValue("articles", selectedBatches, {
+      shouldValidate: form.formState.isSubmitted,
+    });
   }, [selectedBatches, form]);
 
   // La aeronave de la cabecera baja a los renglones, pero solo a los que aún
   // seguían el valor anterior: si el usuario cambió uno a mano, no se pisa.
-  const headerAircraftId = form.watch("aircraft_id");
+  const headerAircraftId = useWatch({
+    control: form.control,
+    name: "aircraft_id",
+  });
   const previousHeaderAircraftId = useRef<string | undefined>(undefined);
 
   useEffect(() => {
@@ -238,9 +277,9 @@ export function CreateAeronauticalRequisitionForm({
           batch_articles: batch.batch_articles.map((article) =>
             article.aircraft_id === previous || !article.aircraft_id
               ? { ...article, aircraft_id: headerAircraftId }
-              : article
+              : article,
           ),
-        }))
+        })),
       );
       previousHeaderAircraftId.current = headerAircraftId;
     }
@@ -260,7 +299,11 @@ export function CreateAeronauticalRequisitionForm({
   const totalBatchArticles = (batches: RequisitionBatchForm[]) =>
     batches.reduce((sum, b) => sum + b.batch_articles.length, 0);
 
-  const handleBatchSelect = (batchName: string, batchId: string, batch_category: string) => {
+  const handleBatchSelect = (
+    batchName: string,
+    batchId: string,
+    batch_category: string,
+  ) => {
     setSelectedBatches((prev) => {
       if (prev.some((b) => b.batch === batchId)) {
         return prev.filter((b) => b.batch !== batchId);
@@ -271,7 +314,16 @@ export function CreateAeronauticalRequisitionForm({
         {
           batch: batchId,
           batch_name: batchName,
-          batch_articles: [{ part_number: "", quantity: 1, unit: getDefaultUnit(batch_category), priority: "MEDIUM", aircraft_id: headerAircraftId, document_type_ids: [] }],
+          batch_articles: [
+            {
+              part_number: "",
+              quantity: 1,
+              unit: getDefaultUnit(batch_category),
+              priority: "MEDIUM",
+              aircraft_id: headerAircraftId,
+              document_type_ids: [],
+            },
+          ],
         },
       ];
     });
@@ -281,7 +333,7 @@ export function CreateAeronauticalRequisitionForm({
   // estaba) y rellena la primera fila vacía, o crea una nueva.
   const handleArticleSelect = (
     batch: BatchWithArticles["batch"],
-    article: BatchWithArticles["articles"][number]
+    article: BatchWithArticles["articles"][number],
   ) => {
     const batchId = batch.id.toString();
     const altPartNumber = article.alternative_part_number?.[0] ?? "";
@@ -319,8 +371,14 @@ export function CreateAeronauticalRequisitionForm({
         ];
       }
 
-      const emptyIndex = existingBatch.batch_articles.findIndex((a) => !a.part_number);
-      if (emptyIndex === -1 && !canAddRequisitionArticle(totalBatchArticles(prev))) return prev;
+      const emptyIndex = existingBatch.batch_articles.findIndex(
+        (a) => !a.part_number,
+      );
+      if (
+        emptyIndex === -1 &&
+        !canAddRequisitionArticle(totalBatchArticles(prev))
+      )
+        return prev;
 
       return prev.map((b) => {
         if (b.batch !== batchId) return b;
@@ -345,8 +403,14 @@ export function CreateAeronauticalRequisitionForm({
           ...b,
           batch_articles: b.batch_articles.map((a, i) =>
             i === emptyIndex
-              ? { ...a, part_number: article.part_number, alt_part_number: altPartNumber, unit, document_type_ids: documentTypeIds }
-              : a
+              ? {
+                  ...a,
+                  part_number: article.part_number,
+                  alt_part_number: altPartNumber,
+                  unit,
+                  document_type_ids: documentTypeIds,
+                }
+              : a,
           ),
         };
       });
@@ -357,7 +421,7 @@ export function CreateAeronauticalRequisitionForm({
     batchId: string,
     index: number,
     field: string,
-    value: string | number | number[] | File | undefined
+    value: string | number | number[] | File | undefined,
   ) => {
     if (field === "priority") {
       escalateHeaderPriority(value as Priority);
@@ -368,11 +432,11 @@ export function CreateAeronauticalRequisitionForm({
           ? {
               ...batch,
               batch_articles: batch.batch_articles.map((article, i) =>
-                i === index ? { ...article, [field]: value } : article
+                i === index ? { ...article, [field]: value } : article,
               ),
             }
-          : batch
-      )
+          : batch,
+      ),
     );
   };
 
@@ -385,7 +449,14 @@ export function CreateAeronauticalRequisitionForm({
           ...batch,
           batch_articles: [
             ...batch.batch_articles,
-            { part_number: "", quantity: 1, unit: getDefaultUnit(batch.batch_name), priority: "MEDIUM", aircraft_id: headerAircraftId, document_type_ids: [] },
+            {
+              part_number: "",
+              quantity: 1,
+              unit: getDefaultUnit(batch.batch_name),
+              priority: "MEDIUM",
+              aircraft_id: headerAircraftId,
+              document_type_ids: [],
+            },
           ],
         };
       });
@@ -396,22 +467,36 @@ export function CreateAeronauticalRequisitionForm({
     setSelectedBatches((prev) =>
       prev.map((batch) =>
         batch.batch === batchId
-          ? { ...batch, batch_articles: batch.batch_articles.filter((_, i) => i !== articleIndex) }
-          : batch
-      )
+          ? {
+              ...batch,
+              batch_articles: batch.batch_articles.filter(
+                (_, i) => i !== articleIndex,
+              ),
+            }
+          : batch,
+      ),
     );
   };
 
   const removeBatch = (batchId: string) => {
-    setSelectedBatches((prev) => prev.filter((batch) => batch.batch !== batchId));
+    setSelectedBatches((prev) =>
+      prev.filter((batch) => batch.batch !== batchId),
+    );
   };
 
   const handleBatchCreated = async (batchName: string) => {
     if (!selectedStation) return;
-    const updatedBatches = await mutateAsync({ location_id: Number(selectedStation), company: selectedCompany?.slug });
+    const updatedBatches = await mutateAsync({
+      location_id: Number(selectedStation),
+      company: selectedCompany?.slug,
+    });
     const newBatch = updatedBatches.find((b) => b.name === batchName);
     if (newBatch) {
-      handleBatchSelect(newBatch.name, newBatch.id.toString(), newBatch.category ?? "");
+      handleBatchSelect(
+        newBatch.name,
+        newBatch.id.toString(),
+        newBatch.category ?? "",
+      );
     }
   };
 
@@ -419,12 +504,17 @@ export function CreateAeronauticalRequisitionForm({
     const formattedData = {
       ...data,
       type: "AERONAUTICAL" as const,
-      work_order_id: data.work_order_id ? Number(data.work_order_id) : undefined,
+      work_order_id: data.work_order_id
+        ? Number(data.work_order_id)
+        : undefined,
       work_order: data.work_order_id ? undefined : data.work_order,
       aircraft_id: data.aircraft_id ? Number(data.aircraft_id) : undefined,
     };
 
-    await createRequisition.mutateAsync({ data: formattedData, company: selectedCompany!.slug });
+    await createRequisition.mutateAsync({
+      data: formattedData,
+      company: selectedCompany!.slug,
+    });
     onClose();
   };
 
@@ -493,7 +583,9 @@ export function CreateAeronauticalRequisitionForm({
         </div>
 
         <Button disabled={createRequisition.isPending} className="gap-2">
-          <><Send className="size-4" /> Generar Requisición</>
+          <>
+            <Send className="size-4" /> Generar Requisición
+          </>
           {createRequisition.isPending && (
             <Loader2 className="size-4 animate-spin" />
           )}
