@@ -1,6 +1,6 @@
-'use client'
+"use client";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -8,10 +8,10 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Plus } from "lucide-react"
-import { useState } from "react"
-import CreateThirdPartyForm from "@/components/forms/general/CreateThirdPartyForm"
+} from "@/components/ui/dialog";
+import { Plus } from "lucide-react";
+import { useState } from "react";
+import CreateThirdPartyForm from "@/components/forms/general/CreateThirdPartyForm";
 
 export function CreateThirdPartyDialog() {
   const [open, setOpen] = useState(false);

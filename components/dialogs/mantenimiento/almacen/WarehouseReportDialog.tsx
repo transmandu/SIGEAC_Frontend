@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -7,14 +7,14 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
+  SelectValue,
 } from "@/components/ui/select";
 import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufacturers";
 import { useGetWarehouseReport } from "@/hooks/mantenimiento/almacen/reportes/useGetWarehouseReport";
@@ -26,12 +26,16 @@ import { useState } from "react";
 import WarehouseReportPdf from "@/components/pdf/almacen/GeneralWarehouseReport";
 
 export function WarehouseReportDialog() {
-  const { selectedStation, selectedCompany } = useCompanyStore()
+  const { selectedStation, selectedCompany } = useCompanyStore();
   const [open, setOpen] = useState(false);
-  const [manufacturer, setManufacturer] = useState<string | null>(null)
-  const { data: manufacturers, isLoading } = useGetManufacturers(selectedCompany?.slug);
-  const { data, isLoading: reportLoading } = useGetWarehouseReport({company: selectedCompany?.slug, location_id: selectedStation});
-
+  const [manufacturer, setManufacturer] = useState<string | null>(null);
+  const { data: manufacturers, isLoading } = useGetManufacturers(
+    selectedCompany?.slug,
+  );
+  const { data, isLoading: reportLoading } = useGetWarehouseReport({
+    company: selectedCompany?.slug,
+    location_id: selectedStation,
+  });
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

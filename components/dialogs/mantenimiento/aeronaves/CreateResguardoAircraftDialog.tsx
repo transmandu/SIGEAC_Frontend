@@ -1,21 +1,21 @@
-'use client'
+"use client";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger
-} from "@/components/ui/dialog"
-import { useState } from "react"
-import { CreateResguardoAircraftForm } from "@/components/forms/mantenimiento/aeronaves/CreateResguardoAircraftForm"
-import { Plus } from "lucide-react"
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { useState } from "react";
+import { CreateResguardoAircraftForm } from "@/components/forms/mantenimiento/aeronaves/CreateResguardoAircraftForm";
+import { Plus } from "lucide-react";
 
 interface CreateResguardoAircraftDialogProps {
-  onSuccess?: (aircraftId: string) => void
-  triggerButton?: React.ReactNode
+  onSuccess?: (aircraftId: string) => void;
+  triggerButton?: React.ReactNode;
 }
 
 export function CreateResguardoAircraftDialog({

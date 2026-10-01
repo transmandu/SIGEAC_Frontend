@@ -1,43 +1,43 @@
-"use client"
+"use client";
 
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
-  DialogTitle
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import {
   AlertOctagon,
   AlertTriangle,
   ClipboardCheck,
   Loader2,
   Wallet,
-} from "lucide-react"
-import type { PurchaseOrder } from "@/types/purchase"
-import { isAeronauticalPurchaseOrder } from "@/lib/purchases/purchase-order-scope"
-import { useCascadeDeletePurchaseOrder } from "@/actions/mantenimiento/compras/ordenes_compras/actions"
-import { useCompanyStore } from "@/stores/CompanyStore"
-import { PayPurchaseOrderForm } from "@/components/forms/mantenimiento/compras/PayPurchaseOrderForm"
-import { CompleteOrderForm } from "@/components/forms/mantenimiento/compras/CompleteOrderForm"
+} from "lucide-react";
+import type { PurchaseOrder } from "@/types/purchase";
+import { isAeronauticalPurchaseOrder } from "@/lib/purchases/purchase-order-scope";
+import { useCascadeDeletePurchaseOrder } from "@/actions/mantenimiento/compras/ordenes_compras/actions";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { PayPurchaseOrderForm } from "@/components/forms/mantenimiento/compras/PayPurchaseOrderForm";
+import { CompleteOrderForm } from "@/components/forms/mantenimiento/compras/CompleteOrderForm";
 
 type Props = {
-  po: PurchaseOrder
+  po: PurchaseOrder;
 
-  openApprove: boolean
-  setOpenApprove: (open: boolean) => void
+  openApprove: boolean;
+  setOpenApprove: (open: boolean) => void;
 
-  openCascadeDelete?: boolean
-  setOpenCascadeDelete?: (open: boolean) => void
-  onSuccessCascadeDelete?: () => void
-}
+  openCascadeDelete?: boolean;
+  setOpenCascadeDelete?: (open: boolean) => void;
+  onSuccessCascadeDelete?: () => void;
+};
 
 const dialogClass =
-  "w-[95vw] max-w-[95vw] sm:max-w-5xl max-h-[85vh] flex flex-col rounded-3xl border border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl overflow-hidden p-0"
+  "w-[95vw] max-w-[95vw] sm:max-w-5xl max-h-[85vh] flex flex-col rounded-3xl border border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl overflow-hidden p-0";
 
 const deleteDialogClass =
-  "sm:max-w-[390px] rounded-3xl border border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl overflow-hidden p-0"
+  "sm:max-w-[390px] rounded-3xl border border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl overflow-hidden p-0";
 
 const PurchaseOrderDropdownDialogs = ({
   po,
@@ -45,28 +45,29 @@ const PurchaseOrderDropdownDialogs = ({
   setOpenApprove,
   openCascadeDelete,
   setOpenCascadeDelete,
-  onSuccessCascadeDelete
+  onSuccessCascadeDelete,
 }: Props) => {
-  const { selectedCompany } = useCompanyStore()
-  const { cascadeDeletePurchaseOrder } = useCascadeDeletePurchaseOrder()
+  const { selectedCompany } = useCompanyStore();
+  const { cascadeDeletePurchaseOrder } = useCascadeDeletePurchaseOrder();
 
-  const isPaying = po.status === "PENDING"
-  const isCompleting = po.status === "PAID"
-  const isAeronautical = isAeronauticalPurchaseOrder(po)
-  const hasRealInventoryImpact = po.status === "PAID" || po.status === "COMPLETED"
+  const isPaying = po.status === "PENDING";
+  const isCompleting = po.status === "PAID";
+  const isAeronautical = isAeronauticalPurchaseOrder(po);
+  const hasRealInventoryImpact =
+    po.status === "PAID" || po.status === "COMPLETED";
 
   const handleCascadeDelete = async () => {
-    if (!selectedCompany) return
+    if (!selectedCompany) return;
 
     await cascadeDeletePurchaseOrder.mutateAsync({
       id: po.id,
-      company: selectedCompany.slug
-    })
+      company: selectedCompany.slug,
+    });
 
-    setOpenCascadeDelete?.(false)
+    setOpenCascadeDelete?.(false);
 
-    onSuccessCascadeDelete?.()
-  }
+    onSuccessCascadeDelete?.();
+  };
 
   return (
     <>
@@ -292,6 +293,6 @@ const PurchaseOrderDropdownDialogs = ({
       )}
     </>
   );
-}
+};
 
-export default PurchaseOrderDropdownDialogs
+export default PurchaseOrderDropdownDialogs;

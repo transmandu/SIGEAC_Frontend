@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Department } from "@/types"
+import { useState } from "react";
+import { Department } from "@/types";
 
 import {
   Dialog,
@@ -9,39 +9,34 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 
-import {
-  Loader2,
-  Trash2,
-  Pencil,
-  AlertTriangle,
-} from "lucide-react"
+import { Loader2, Trash2, Pencil, AlertTriangle } from "lucide-react";
 
 import {
   useDeleteDepartment,
   useUpdateDepartment,
-} from "@/actions/ajustes/departamento/actions"
-import { UpdateDepartmentForm } from "@/components/forms/general/UpdateDepartmentForm"
-import { useCompanyStore } from "@/stores/CompanyStore"
+} from "@/actions/ajustes/departamento/actions";
+import { UpdateDepartmentForm } from "@/components/forms/general/UpdateDepartmentForm";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 type Props = {
-  department: Department
+  department: Department;
 
-  openEdit: boolean
-  setOpenEdit: (open: boolean) => void
+  openEdit: boolean;
+  setOpenEdit: (open: boolean) => void;
 
-  openDelete: boolean
-  setOpenDelete: (open: boolean) => void
+  openDelete: boolean;
+  setOpenDelete: (open: boolean) => void;
 
-  onSuccessUpdate?: () => void
-  onSuccessDelete?: () => void
-}
+  onSuccessUpdate?: () => void;
+  onSuccessDelete?: () => void;
+};
 
 const dialogClass =
-  "sm:max-w-3xl rounded-3xl border border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl overflow-hidden p-0"
+  "sm:max-w-3xl rounded-3xl border border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl overflow-hidden p-0";
 
 const DepartmentDropdownDialogs = ({
   department,
@@ -52,43 +47,43 @@ const DepartmentDropdownDialogs = ({
   onSuccessUpdate,
   onSuccessDelete,
 }: Props) => {
-  const { selectedCompany } = useCompanyStore()
+  const { selectedCompany } = useCompanyStore();
 
-  const { deleteDepartment } = useDeleteDepartment()
-  const { updateDepartment } = useUpdateDepartment()
+  const { deleteDepartment } = useDeleteDepartment();
+  const { updateDepartment } = useUpdateDepartment();
 
-  const [loadingDelete, setLoadingDelete] = useState(false)
-  const [loadingUpdate, setLoadingUpdate] = useState(false)
+  const [loadingDelete, setLoadingDelete] = useState(false);
+  const [loadingUpdate, setLoadingUpdate] = useState(false);
 
   /* =========================
      DELETE
   ========================= */
   const handleDelete = async () => {
-    if (!selectedCompany) return
+    if (!selectedCompany) return;
 
     try {
-      setLoadingDelete(true)
+      setLoadingDelete(true);
 
       await deleteDepartment.mutateAsync({
         id: department.id,
         company: selectedCompany.slug,
-      })
+      });
 
-      setOpenDelete(false)
-      onSuccessDelete?.()
+      setOpenDelete(false);
+      onSuccessDelete?.();
     } finally {
-      setLoadingDelete(false)
+      setLoadingDelete(false);
     }
-  }
+  };
 
   /* =========================
      UPDATE (rápido placeholder)
   ========================= */
   const handleUpdate = async () => {
-    if (!selectedCompany) return
+    if (!selectedCompany) return;
 
     try {
-      setLoadingUpdate(true)
+      setLoadingUpdate(true);
 
       await updateDepartment.mutateAsync({
         id: department.id,
@@ -96,14 +91,14 @@ const DepartmentDropdownDialogs = ({
         name: department.name,
         email: department.email,
         company: selectedCompany.slug,
-      })
+      });
 
-      setOpenEdit(false)
-      onSuccessUpdate?.()
+      setOpenEdit(false);
+      onSuccessUpdate?.();
     } finally {
-      setLoadingUpdate(false)
+      setLoadingUpdate(false);
     }
-  }
+  };
 
   return (
     <>
@@ -201,6 +196,6 @@ const DepartmentDropdownDialogs = ({
       </Dialog>
     </>
   );
-}
+};
 
-export default DepartmentDropdownDialogs
+export default DepartmentDropdownDialogs;

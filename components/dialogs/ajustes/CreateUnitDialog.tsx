@@ -1,16 +1,16 @@
-'use client'
+"use client";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger
-} from "@/components/ui/dialog"
-import { useState } from "react"
-import CreateUnitForm from "@/components/forms/ajustes/CreateUnitForm"
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { useState } from "react";
+import CreateUnitForm from "@/components/forms/ajustes/CreateUnitForm";
 
 export function CreateUnitDialog() {
   const [open, setOpen] = useState(false);

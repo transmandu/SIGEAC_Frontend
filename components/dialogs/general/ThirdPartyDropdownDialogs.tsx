@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import {
   Dialog,
@@ -6,31 +6,28 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 
-import {
-  AlertTriangle,
-  Loader2,
-} from "lucide-react"
+import { AlertTriangle, Loader2 } from "lucide-react";
 
-import { Button } from "@/components/ui/button"
-import { ThirdParty } from "@/types"
+import { Button } from "@/components/ui/button";
+import { ThirdParty } from "@/types";
 
-import { useDeleteThirdParty } from "@/actions/sistema/terceros/actions"
-import UpdateThirdPartyForm from "@/components/forms/general/UpdateThirdPartyForm"
+import { useDeleteThirdParty } from "@/actions/sistema/terceros/actions";
+import UpdateThirdPartyForm from "@/components/forms/general/UpdateThirdPartyForm";
 
 type Props = {
-  thirdParty: ThirdParty
+  thirdParty: ThirdParty;
 
-  openEdit: boolean
-  setOpenEdit: (open: boolean) => void
+  openEdit: boolean;
+  setOpenEdit: (open: boolean) => void;
 
-  openDelete: boolean
-  setOpenDelete: (open: boolean) => void
-}
+  openDelete: boolean;
+  setOpenDelete: (open: boolean) => void;
+};
 
 const dialogClass =
-  "sm:max-w-[390px] rounded-3xl border border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl overflow-hidden p-0"
+  "sm:max-w-[390px] rounded-3xl border border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl overflow-hidden p-0";
 
 const ThirdPartyDropdownDialogs = ({
   thirdParty,
@@ -39,13 +36,12 @@ const ThirdPartyDropdownDialogs = ({
   openDelete,
   setOpenDelete,
 }: Props) => {
-
-  const { deleteThirdParty } = useDeleteThirdParty()
+  const { deleteThirdParty } = useDeleteThirdParty();
 
   const handleDelete = async () => {
-    await deleteThirdParty.mutateAsync(thirdParty.id)
-    setOpenDelete(false)
-  }
+    await deleteThirdParty.mutateAsync(thirdParty.id);
+    setOpenDelete(false);
+  };
 
   return (
     <>
@@ -144,6 +140,6 @@ const ThirdPartyDropdownDialogs = ({
       </Dialog>
     </>
   );
-}
+};
 
-export default ThirdPartyDropdownDialogs
+export default ThirdPartyDropdownDialogs;

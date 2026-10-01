@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import {
   Dialog,
@@ -6,32 +6,28 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 
-import {
-  Building2,
-  AlertTriangle,
-  Loader2,
-} from "lucide-react"
+import { Building2, AlertTriangle, Loader2 } from "lucide-react";
 
-import { Button } from "@/components/ui/button"
-import { Company } from "@/types"
+import { Button } from "@/components/ui/button";
+import { Company } from "@/types";
 
-import { useDeleteCompany } from "@/actions/sistema/empresas/actions"
-import { CompanyUpdateForm } from "@/components/forms/ajustes/CompanyUpdateForm"
+import { useDeleteCompany } from "@/actions/sistema/empresas/actions";
+import { CompanyUpdateForm } from "@/components/forms/ajustes/CompanyUpdateForm";
 
 type Props = {
-  company: Company
+  company: Company;
 
-  openEdit: boolean
-  setOpenEdit: (open: boolean) => void
+  openEdit: boolean;
+  setOpenEdit: (open: boolean) => void;
 
-  openDelete: boolean
-  setOpenDelete: (open: boolean) => void
-}
+  openDelete: boolean;
+  setOpenDelete: (open: boolean) => void;
+};
 
 const dialogClass =
-  "sm:max-w-[390px] rounded-3xl border border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl overflow-hidden p-0"
+  "sm:max-w-[390px] rounded-3xl border border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl overflow-hidden p-0";
 
 const CompanyDropdownDialogs = ({
   company,
@@ -40,13 +36,12 @@ const CompanyDropdownDialogs = ({
   openDelete,
   setOpenDelete,
 }: Props) => {
-
-  const { deleteCompany } = useDeleteCompany()
+  const { deleteCompany } = useDeleteCompany();
 
   const handleDelete = async () => {
-    await deleteCompany.mutateAsync(company.id)
-    setOpenDelete(false)
-  }
+    await deleteCompany.mutateAsync(company.id);
+    setOpenDelete(false);
+  };
 
   return (
     <>
@@ -187,6 +182,6 @@ const CompanyDropdownDialogs = ({
       </Dialog>
     </>
   );
-}
+};
 
-export default CompanyDropdownDialogs
+export default CompanyDropdownDialogs;

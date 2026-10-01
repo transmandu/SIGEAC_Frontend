@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { ChevronDown, Building2 } from 'lucide-react';
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
-import libraryService, { FolderNode } from '@/lib/libraryService';
-import { toast } from 'sonner';
+import { useState, useEffect } from "react";
+import { ChevronDown, Building2 } from "lucide-react";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import libraryService, { FolderNode } from "@/lib/libraryService";
+import { toast } from "sonner";
 
 interface CreateFolderDialogProps {
   open: boolean;
@@ -19,7 +19,10 @@ interface CreateFolderDialogProps {
   onSuccess: (deptId: number) => void;
 }
 
-function findFolderByPath(nodes: FolderNode[], targetPath: string): FolderNode | undefined {
+function findFolderByPath(
+  nodes: FolderNode[],
+  targetPath: string,
+): FolderNode | undefined {
   for (const node of nodes) {
     if (node.path === targetPath) return node;
     if (node.children.length > 0) {
@@ -31,30 +34,37 @@ function findFolderByPath(nodes: FolderNode[], targetPath: string): FolderNode |
 }
 
 export default function CreateFolderDialog({
-  open, onClose, company, departmentId, departmentName, departments, folders, selectedFolderPath, isSuperUser, onSuccess
+  open,
+  onClose,
+  company,
+  departmentId,
+  departmentName,
+  departments,
+  folders,
+  selectedFolderPath,
+  isSuperUser,
+  onSuccess,
 }: CreateFolderDialogProps) {
-  const [name, setName] = useState('');
-  const [parentId, setParentId] = useState('');
-  const [selectedDeptId, setSelectedDeptId] = useState(departmentId ?? '');
+  const [name, setName] = useState("");
+  const [parentId, setParentId] = useState("");
+  const [selectedDeptId, setSelectedDeptId] = useState(departmentId ?? "");
 
   useEffect(() => {
     if (open && departmentId) setSelectedDeptId(departmentId);
   }, [open, departmentId]);
 
   useEffect(() => {
-    if (open && selectedFolderPath && selectedFolderPath !== '/') {
+    if (open && selectedFolderPath && selectedFolderPath !== "/") {
       const match = findFolderByPath(folders, selectedFolderPath);
       if (match) setParentId(match.id);
     } else {
-      setParentId('');
+      setParentId("");
     }
   }, [open, selectedFolderPath, folders]);
 
   const [loading, setLoading] = useState(false);
 
-  const availableFolders = selectedDeptId
-    ? folders
-    : [];
+  const availableFolders = selectedDeptId ? folders : [];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,29 +78,36 @@ export default function CreateFolderDialog({
         name: name.trim(),
         parent_id: parentId || undefined,
       });
-      toast.success('Carpeta creada exitosamente');
-      setName('');
-      setParentId('');
+      toast.success("Carpeta creada exitosamente");
+      setName("");
+      setParentId("");
       onSuccess(deptId);
       onClose();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Error al crear la carpeta');
+      toast.error(error.response?.data?.message || "Error al crear la carpeta");
     } finally {
       setLoading(false);
     }
   };
 
   const handleClose = () => {
-    setName('');
-    setParentId('');
+    setName("");
+    setParentId("");
     onClose();
   };
 
-  const flattenFolders = (nodes: FolderNode[], depth = 0): { id: string; name: string; label: string }[] => {
+  const flattenFolders = (
+    nodes: FolderNode[],
+    depth = 0,
+  ): { id: string; name: string; label: string }[] => {
     const result: { id: string; name: string; label: string }[] = [];
-    const prefix = '\u00A0\u00A0'.repeat(depth * 2) + (depth > 0 ? '— ' : '');
+    const prefix = "\u00A0\u00A0".repeat(depth * 2) + (depth > 0 ? "— " : "");
     for (const node of nodes) {
-      result.push({ id: node.id, name: node.name, label: `${prefix}${node.name}` });
+      result.push({
+        id: node.id,
+        name: node.name,
+        label: `${prefix}${node.name}`,
+      });
       if (node.children.length > 0) {
         result.push(...flattenFolders(node.children, depth + 1));
       }
@@ -207,6 +224,3 @@ export default function CreateFolderDialog({
     </Dialog>
   );
 }
-
-
-

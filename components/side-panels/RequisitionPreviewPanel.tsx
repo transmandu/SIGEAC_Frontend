@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import {
   Plane,
@@ -10,65 +10,77 @@ import {
   Building2,
   Handshake,
   X,
-} from 'lucide-react'
+} from "lucide-react";
 
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import CopyPartNumberButton from '@/components/misc/CopyPartNumberButton'
-import { cn, formatRequestedDate } from '@/lib/utils'
-import type { Requisition } from '@/types/purchase'
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import CopyPartNumberButton from "@/components/misc/CopyPartNumberButton";
+import { cn, formatRequestedDate } from "@/lib/utils";
+import type { Requisition } from "@/types/purchase";
 
 interface Props {
-  requisition: Requisition | null
-  onClose: () => void
+  requisition: Requisition | null;
+  onClose: () => void;
 }
 
 const STATUS_LABELS: Record<string, string> = {
-  CREATED: 'CREADA',
-  RECEIVED: 'RECIBIDA',
-  IN_PROGRESS: 'EN PROCESO',
-  QUOTED: 'COTIZADA',
-  APPROVED: 'APROBADA',
-  REJECTED: 'RECHAZADA',
-}
+  CREATED: "CREADA",
+  RECEIVED: "RECIBIDA",
+  IN_PROGRESS: "EN PROCESO",
+  QUOTED: "COTIZADA",
+  APPROVED: "APROBADA",
+  REJECTED: "RECHAZADA",
+};
 
-const statusLabel = (status?: string) => STATUS_LABELS[status ?? ''] ?? status ?? '—'
+const statusLabel = (status?: string) =>
+  STATUS_LABELS[status ?? ""] ?? status ?? "—";
 
 const statusBadgeClass = (status?: string) => {
-  const created = status === 'CREATED'
-  const received = status === 'RECEIVED'
-  const process = status === 'IN_PROGRESS' || status === 'QUOTED'
-  const approved = status === 'APPROVED'
+  const created = status === "CREATED";
+  const received = status === "RECEIVED";
+  const process = status === "IN_PROGRESS" || status === "QUOTED";
+  const approved = status === "APPROVED";
 
   return cn(
-    'select-none whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-xs',
-    created && 'border-slate-500/30 bg-slate-500/10 text-slate-700 dark:text-slate-300',
-    received && 'border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300',
-    process && 'border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300',
-    approved && 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
-    !created && !received && !process && !approved && 'border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300'
-  )
-}
+    "select-none whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-xs",
+    created &&
+      "border-slate-500/30 bg-slate-500/10 text-slate-700 dark:text-slate-300",
+    received &&
+      "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300",
+    process &&
+      "border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300",
+    approved &&
+      "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+    !created &&
+      !received &&
+      !process &&
+      !approved &&
+      "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300",
+  );
+};
 
 const PRIORITY_LABELS: Record<string, string> = {
-  LOW: 'BAJA',
-  MEDIUM: 'MEDIA',
-  HIGH: 'ALTA',
-}
+  LOW: "BAJA",
+  MEDIUM: "MEDIA",
+  HIGH: "ALTA",
+};
 
 const priorityBadgeClass = (priority?: string) =>
   cn(
-    'select-none whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide',
-    priority === 'LOW' && 'border-green-500/30 bg-green-500/10 text-green-700 dark:text-green-300',
-    priority === 'MEDIUM' && 'border-orange-500/30 bg-orange-500/10 text-orange-700 dark:text-orange-300',
-    priority === 'HIGH' && 'border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300',
-    !priority && 'border-slate-500/30 bg-slate-500/10 text-slate-400'
-  )
+    "select-none whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide",
+    priority === "LOW" &&
+      "border-green-500/30 bg-green-500/10 text-green-700 dark:text-green-300",
+    priority === "MEDIUM" &&
+      "border-orange-500/30 bg-orange-500/10 text-orange-700 dark:text-orange-300",
+    priority === "HIGH" &&
+      "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300",
+    !priority && "border-slate-500/30 bg-slate-500/10 text-slate-400",
+  );
 
 interface MetaItemProps {
-  label: string
-  value?: string | null
-  icon?: typeof UserCheck
+  label: string;
+  value?: string | null;
+  icon?: typeof UserCheck;
 }
 
 const MetaItem = ({ label, value, icon: Icon }: MetaItemProps) => (
@@ -78,30 +90,30 @@ const MetaItem = ({ label, value, icon: Icon }: MetaItemProps) => (
     </span>
     <span className="text-sm font-medium flex items-center gap-1.5">
       {Icon && <Icon className="size-3.5 text-muted-foreground/50 shrink-0" />}
-      {value ?? '—'}
+      {value ?? "—"}
     </span>
   </div>
-)
+);
 
 interface DetailChipProps {
-  label: string
-  value: string | number
-  copyable?: boolean
+  label: string;
+  value: string | number;
+  copyable?: boolean;
 }
 
 interface DestinationEntry {
-  key: string
-  label: string
-  value: string
+  key: string;
+  label: string;
+  value: string;
 }
 
 interface ArticleRowProps {
-  title: string
-  typeBadge?: string
-  details: DetailChipProps[]
-  destinations: DestinationEntry[]
-  quantity: string | number
-  unit: string
+  title: string;
+  typeBadge?: string;
+  details: DetailChipProps[];
+  destinations: DestinationEntry[];
+  quantity: string | number;
+  unit: string;
 }
 
 const ArticleRow = ({
@@ -116,7 +128,9 @@ const ArticleRow = ({
     {/* ── Nivel 1: título + detalles ───────────────────── */}
     <div className="flex flex-col gap-1 px-3 pt-3 pb-2.5">
       <div className="flex items-start justify-between gap-2">
-        <span className="text-sm font-semibold leading-snug wrap-break-word">{title}</span>
+        <span className="text-sm font-semibold leading-snug wrap-break-word">
+          {title}
+        </span>
         {typeBadge && (
           <span className="select-none shrink-0 rounded bg-muted/60 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide text-muted-foreground/80">
             {typeBadge}
@@ -159,32 +173,41 @@ const ArticleRow = ({
         Cantidad
       </span>
       <span className="text-sm font-semibold tabular-nums">
-        {quantity}{' '}
-        <span className="text-[11px] font-normal text-muted-foreground">{unit}</span>
+        {quantity}{" "}
+        <span className="text-[11px] font-normal text-muted-foreground">
+          {unit}
+        </span>
       </span>
     </div>
   </div>
-)
+);
 
-export default function RequisitionPreviewPanel({ requisition, onClose }: Props) {
-  if (!requisition) return null
+export default function RequisitionPreviewPanel({
+  requisition,
+  onClose,
+}: Props) {
+  if (!requisition) return null;
 
-  const batches = requisition.batch ?? []
-  const generalArticles = requisition.general_articles ?? []
+  const batches = requisition.batch ?? [];
+  const generalArticles = requisition.general_articles ?? [];
   const hasArticles =
     batches.some((batch: any) => batch.batch_articles?.length) ||
-    generalArticles.length > 0
+    generalArticles.length > 0;
 
   const totalArticles =
-    batches.reduce((acc: number, batch: any) => acc + (batch.batch_articles?.length ?? 0), 0) +
-    generalArticles.length
+    batches.reduce(
+      (acc: number, batch: any) => acc + (batch.batch_articles?.length ?? 0),
+      0,
+    ) + generalArticles.length;
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
       <div className="flex items-start justify-between gap-2 border-b px-4 py-3">
         <div className="flex flex-col gap-1.5 min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="font-semibold truncate">{requisition.order_number}</span>
+            <span className="font-semibold truncate">
+              {requisition.order_number}
+            </span>
             <Badge className={statusBadgeClass(requisition.status)}>
               {statusLabel(requisition.status)}
             </Badge>
@@ -266,7 +289,7 @@ export default function RequisitionPreviewPanel({ requisition, onClose }: Props)
               </span>
             </div>
             <p className="text-sm text-foreground/80 whitespace-pre-wrap">
-              {requisition.justification?.trim() || 'Sin justificación.'}
+              {requisition.justification?.trim() || "Sin justificación."}
             </p>
           </div>
 
@@ -292,125 +315,135 @@ export default function RequisitionPreviewPanel({ requisition, onClose }: Props)
               ARTÍCULOS SOLICITADOS
             </span>
             <div className="flex items-center gap-1.5 rounded-md border border-border/50 bg-muted/30 px-2 py-0.5">
-              <span className="text-[9px] tracking-wider text-muted-foreground">TOTAL</span>
-              <span className="text-xs font-semibold tabular-nums">{totalArticles}</span>
+              <span className="text-[9px] tracking-wider text-muted-foreground">
+                TOTAL
+              </span>
+              <span className="text-xs font-semibold tabular-nums">
+                {totalArticles}
+              </span>
             </div>
           </div>
 
           <div className="flex flex-col gap-3">
             {batches.flatMap((batch: any, batchIndex: number) =>
-              (batch.batch_articles ?? []).map((article: any, articleIndex: number) => {
-                const acronym =
-                  typeof article.aircraft === 'string'
-                    ? article.aircraft
-                    : article.aircraft?.acronym
+              (batch.batch_articles ?? []).map(
+                (article: any, articleIndex: number) => {
+                  const acronym =
+                    typeof article.aircraft === "string"
+                      ? article.aircraft
+                      : article.aircraft?.acronym;
 
-                const details: DetailChipProps[] = [
-                  {
-                    label: 'P/N',
-                    value: article.article_part_number ?? 'N/A',
-                    copyable: !!article.article_part_number,
-                  },
-                ]
+                  const details: DetailChipProps[] = [
+                    {
+                      label: "P/N",
+                      value: article.article_part_number ?? "N/A",
+                      copyable: !!article.article_part_number,
+                    },
+                  ];
 
-                if (article.article_alt_part_number) {
-                  details.push({
-                    label: 'Alt. P/N',
-                    value: article.article_alt_part_number,
-                    copyable: true,
-                  })
-                }
+                  if (article.article_alt_part_number) {
+                    details.push({
+                      label: "Alt. P/N",
+                      value: article.article_alt_part_number,
+                      copyable: true,
+                    });
+                  }
 
-                const destinations: DestinationEntry[] = []
+                  const destinations: DestinationEntry[] = [];
 
-                if (requisition.requested_by) {
-                  destinations.push({
-                    key: 'requested_by',
-                    label: 'Solicitante',
-                    value: requisition.requested_by,
-                  })
-                }
+                  if (requisition.requested_by) {
+                    destinations.push({
+                      key: "requested_by",
+                      label: "Solicitante",
+                      value: requisition.requested_by,
+                    });
+                  }
 
-                if (acronym) {
-                  destinations.push({
-                    key: 'aircraft',
-                    label: 'Aeronave',
-                    value: acronym,
-                  })
-                }
+                  if (acronym) {
+                    destinations.push({
+                      key: "aircraft",
+                      label: "Aeronave",
+                      value: acronym,
+                    });
+                  }
 
-                return (
-                  <ArticleRow
-                    key={`batch-${batchIndex}-${articleIndex}`}
-                    title={batch.name}
-                    typeBadge={batch.category}
-                    details={details}
-                    destinations={destinations}
-                    quantity={article.quantity ?? '-'}
-                    unit={article.unit?.label ?? 'N/A'}
-                  />
-                )
-              })
+                  return (
+                    <ArticleRow
+                      key={`batch-${batchIndex}-${articleIndex}`}
+                      title={batch.name}
+                      typeBadge={batch.category}
+                      details={details}
+                      destinations={destinations}
+                      quantity={article.quantity ?? "-"}
+                      unit={article.unit?.label ?? "N/A"}
+                    />
+                  );
+                },
+              ),
             )}
 
             {generalArticles.map((article: any) => {
-              const details: DetailChipProps[] = []
+              const details: DetailChipProps[] = [];
 
               if (article.variant_type) {
-                details.push({ label: 'Present. / Especif.', value: article.variant_type })
+                details.push({
+                  label: "Present. / Especif.",
+                  value: article.variant_type,
+                });
               }
 
               if (article.requested_date) {
                 details.push({
-                  label: 'Fecha solicitud',
+                  label: "Fecha solicitud",
                   value: formatRequestedDate(article.requested_date),
-                })
+                });
               }
 
               const destinations: DestinationEntry[] = [
                 article.department && {
-                  key: 'department',
-                  label: 'Departamento',
+                  key: "department",
+                  label: "Departamento",
                   value: article.department.acronym ?? article.department.name,
                 },
                 article.third_party && {
-                  key: 'third_party',
-                  label: 'Tercero',
+                  key: "third_party",
+                  label: "Tercero",
                   value: article.third_party.name,
                 },
                 article.employee && {
-                  key: 'employee',
-                  label: 'Solicitante',
-                  value: `${article.employee.first_name} ${article.employee.last_name}`.trim(),
+                  key: "employee",
+                  label: "Solicitante",
+                  value:
+                    `${article.employee.first_name} ${article.employee.last_name}`.trim(),
                 },
                 article.authorized_employee && {
-                  key: 'authorized_employee',
-                  label: 'Solicitante externo',
+                  key: "authorized_employee",
+                  label: "Solicitante externo",
                   value:
                     article.authorized_employee.full_name ??
                     article.authorized_employee.dni_employee,
                 },
-              ].filter(Boolean) as DestinationEntry[]
+              ].filter(Boolean) as DestinationEntry[];
 
               if (destinations.length === 0 && requisition.requested_by) {
                 destinations.push({
-                  key: 'requested_by',
-                  label: 'Solicitante',
+                  key: "requested_by",
+                  label: "Solicitante",
                   value: requisition.requested_by,
-                })
+                });
               }
 
               return (
                 <ArticleRow
                   key={`general-${article.id}`}
-                  title={article.description ?? 'N/A'}
+                  title={article.description ?? "N/A"}
                   typeBadge="General"
                   details={details}
                   destinations={destinations}
-                  quantity={article.quantity ?? '-'}
-                  unit={article.unit?.label ?? 'N/A'}
+                  quantity={article.quantity ?? "-"}
+                  unit={article.unit?.label ?? "N/A"}
                 />
-              )
+              );
             })}
 
             {!hasArticles && (
@@ -422,5 +455,5 @@ export default function RequisitionPreviewPanel({ requisition, onClose }: Props)
         </div>
       </div>
     </div>
-  )
+  );
 }

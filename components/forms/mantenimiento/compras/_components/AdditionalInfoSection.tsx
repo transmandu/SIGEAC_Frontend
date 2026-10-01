@@ -1,14 +1,20 @@
-"use client"
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { FileText, ImageIcon, Upload, X } from "lucide-react"
-import Image from "next/image"
-import { useRef, useCallback } from "react"
-import type { UseFormReturn } from "react-hook-form"
-import { toast } from "sonner"
-import { Textarea } from "@/components/ui/textarea"
-import { Separator } from "@/components/ui/separator"
-import { cn } from "@/lib/utils"
-import { RequiredIndicator } from "./RequiredIndicator"
+"use client";
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { FileText, ImageIcon, Upload, X } from "lucide-react";
+import Image from "next/image";
+import { useRef, useCallback } from "react";
+import type { UseFormReturn } from "react-hook-form";
+import { toast } from "sonner";
+import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
+import { RequiredIndicator } from "./RequiredIndicator";
 
 const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png"];
@@ -17,39 +23,55 @@ interface AdditionalInfoSectionProps {
   form: UseFormReturn<any>;
 }
 
-function ImageUploadField({ value, onChange }: { value: File | undefined; onChange: (file: File | undefined) => void }) {
+function ImageUploadField({
+  value,
+  onChange,
+}: {
+  value: File | undefined;
+  onChange: (file: File | undefined) => void;
+}) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleClick = useCallback(() => {
     inputRef.current?.click();
   }, []);
 
-  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleFileChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
 
-    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
-      toast.error("Formato de imagen inválido. Solo se permiten archivos JPG o PNG.");
-      e.target.value = "";
-      return;
-    }
+      if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+        toast.error(
+          "Formato de imagen inválido. Solo se permiten archivos JPG o PNG.",
+        );
+        e.target.value = "";
+        return;
+      }
 
-    if (file.size > MAX_IMAGE_SIZE_BYTES) {
-      toast.error("La imagen excede el límite de 5MB. Por favor, selecciona una más ligera.");
-      e.target.value = "";
-      return;
-    }
+      if (file.size > MAX_IMAGE_SIZE_BYTES) {
+        toast.error(
+          "La imagen excede el límite de 5MB. Por favor, selecciona una más ligera.",
+        );
+        e.target.value = "";
+        return;
+      }
 
-    onChange(file);
-  }, [onChange]);
+      onChange(file);
+    },
+    [onChange],
+  );
 
-  const handleRemove = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    onChange(undefined);
-    if (inputRef.current) {
-      inputRef.current.value = "";
-    }
-  }, [onChange]);
+  const handleRemove = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      onChange(undefined);
+      if (inputRef.current) {
+        inputRef.current.value = "";
+      }
+    },
+    [onChange],
+  );
 
   return (
     <>
@@ -69,7 +91,7 @@ function ImageUploadField({ value, onChange }: { value: File | undefined; onChan
             ? "border-muted-foreground/40 hover:border-muted-foreground/70"
             : "border-muted-foreground/40 hover:border-muted-foreground/60",
           // Compact aspect ratio area
-          "aspect-video"
+          "aspect-video",
         )}
       >
         {value ? (

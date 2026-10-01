@@ -1,6 +1,6 @@
-'use client'
+"use client";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -8,35 +8,40 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu"
-import { FlightControl } from "@/types"
-import { MoreHorizontal, SquarePen, Trash2, Loader2 } from "lucide-react"
-import { useState } from "react"
-import CreateFlightControlForm from "@/components/forms/mantenimiento/ordenes_trabajo/CreateFlightControlForm"
-import { useDeleteFlightControl } from "@/actions/mantenimiento/planificacion/vuelos/actions"
-import { useCompanyStore } from "@/stores/CompanyStore"
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { FlightControl } from "@/types";
+import { MoreHorizontal, SquarePen, Trash2, Loader2 } from "lucide-react";
+import { useState } from "react";
+import CreateFlightControlForm from "@/components/forms/mantenimiento/ordenes_trabajo/CreateFlightControlForm";
+import { useDeleteFlightControl } from "@/actions/mantenimiento/planificacion/vuelos/actions";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 interface FlightControlDropdownActionsProps {
-  flightControl: FlightControl
+  flightControl: FlightControl;
 }
 
-const FlightControlDropdownActions = ({ flightControl }: FlightControlDropdownActionsProps) => {
-  const [open, setOpen] = useState<boolean>(false)
-  const [openEdit, setOpenEdit] = useState<boolean>(false)
-  const [openDelete, setOpenDelete] = useState<boolean>(false)
+const FlightControlDropdownActions = ({
+  flightControl,
+}: FlightControlDropdownActionsProps) => {
+  const [open, setOpen] = useState<boolean>(false);
+  const [openEdit, setOpenEdit] = useState<boolean>(false);
+  const [openDelete, setOpenDelete] = useState<boolean>(false);
   const { deleteFlightControl } = useDeleteFlightControl();
   const { selectedCompany } = useCompanyStore();
 
   const handleDelete = () => {
-    deleteFlightControl.mutate({ id: flightControl.id, company: selectedCompany!.slug })
-    setOpenDelete(false)
-  }
+    deleteFlightControl.mutate({
+      id: flightControl.id,
+      company: selectedCompany!.slug,
+    });
+    setOpenDelete(false);
+  };
 
   return (
     <>
@@ -128,7 +133,6 @@ const FlightControlDropdownActions = ({ flightControl }: FlightControlDropdownAc
       </Dialog>
     </>
   );
-}
+};
 
-export default FlightControlDropdownActions
-
+export default FlightControlDropdownActions;

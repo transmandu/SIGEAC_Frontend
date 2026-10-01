@@ -1,23 +1,24 @@
-'use client'
+"use client";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger
-} from "@/components/ui/dialog"
-import { useState } from "react"
-import { CreateCompanyForm } from "@/components/forms/general/CreateCompanyForm"
-import CreateManufacturerForm from "@/components/forms/general/CreateManufacturerForm"
-import { Plus } from "lucide-react"
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { useState } from "react";
+import { CreateCompanyForm } from "@/components/forms/general/CreateCompanyForm";
+import CreateManufacturerForm from "@/components/forms/general/CreateManufacturerForm";
+import { Plus } from "lucide-react";
 
 interface CreateManufacturerDialogProps {
-  defaultType?: "AIRCRAFT" | "ENGINE" | "APU" | "PROPELLER" | "GENERAL" | "PART",
-  onSuccess?: (manufacturer: any) => void,
-  triggerButton?: React.ReactNode,
+  defaultType?:
+    "AIRCRAFT" | "ENGINE" | "APU" | "PROPELLER" | "GENERAL" | "PART";
+  onSuccess?: (manufacturer: any) => void;
+  triggerButton?: React.ReactNode;
 }
 
 export function CreateManufacturerDialog({

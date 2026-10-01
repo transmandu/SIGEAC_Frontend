@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import {
   Dialog,
@@ -6,32 +6,38 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 
-import { AlertTriangle, Loader2 } from "lucide-react"
+import { AlertTriangle, Loader2 } from "lucide-react";
 
-import { Button } from "@/components/ui/button"
-import { useCompanyStore } from "@/stores/CompanyStore"
-import { useDeleteAuthorizedEmployee } from "@/actions/ajustes/autorizados/actions"
-import { AuthorizedEmployee } from "@/app/[company]/ajustes/autorizaciones/autorizar/columns"
+import { Button } from "@/components/ui/button";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { useDeleteAuthorizedEmployee } from "@/actions/ajustes/autorizados/actions";
+import { AuthorizedEmployee } from "@/app/[company]/ajustes/autorizaciones/autorizar/columns";
 
 type Props = {
-  authorizedEmployee: AuthorizedEmployee
-  open: boolean
-  setOpen: (open: boolean) => void
-}
+  authorizedEmployee: AuthorizedEmployee;
+  open: boolean;
+  setOpen: (open: boolean) => void;
+};
 
 const dialogClass =
-  "sm:max-w-[390px] rounded-3xl border border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl overflow-hidden p-0"
+  "sm:max-w-[390px] rounded-3xl border border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl overflow-hidden p-0";
 
-const DeleteAuthorizedEmployeeDialog = ({ authorizedEmployee, open, setOpen }: Props) => {
-  const { selectedCompany } = useCompanyStore()
-  const deleteAuthorizedEmployee = useDeleteAuthorizedEmployee(selectedCompany?.slug)
+const DeleteAuthorizedEmployeeDialog = ({
+  authorizedEmployee,
+  open,
+  setOpen,
+}: Props) => {
+  const { selectedCompany } = useCompanyStore();
+  const deleteAuthorizedEmployee = useDeleteAuthorizedEmployee(
+    selectedCompany?.slug,
+  );
 
   const handleDelete = async () => {
-    await deleteAuthorizedEmployee.mutateAsync(authorizedEmployee.id)
-    setOpen(false)
-  }
+    await deleteAuthorizedEmployee.mutateAsync(authorizedEmployee.id);
+    setOpen(false);
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -107,6 +113,6 @@ const DeleteAuthorizedEmployeeDialog = ({ authorizedEmployee, open, setOpen }: P
       </DialogContent>
     </Dialog>
   );
-}
+};
 
-export default DeleteAuthorizedEmployeeDialog
+export default DeleteAuthorizedEmployeeDialog;

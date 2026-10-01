@@ -1,15 +1,13 @@
-"use client"
+"use client";
 
 import {
   useCascadeDeleteQuote,
   useDeleteQuote,
-  useUpdateQuoteStatus
-} from "@/actions/mantenimiento/compras/cotizaciones/actions"
-import {
-  useCreatePurchaseOrder
-} from "@/actions/mantenimiento/compras/ordenes_compras/actions"
-import { useCompanyStore } from "@/stores/CompanyStore"
-import type { Quote } from "@/types/purchase"
+  useUpdateQuoteStatus,
+} from "@/actions/mantenimiento/compras/cotizaciones/actions";
+import { useCreatePurchaseOrder } from "@/actions/mantenimiento/compras/ordenes_compras/actions";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import type { Quote } from "@/types/purchase";
 import {
   AlertOctagon,
   AlertTriangle,
@@ -17,27 +15,27 @@ import {
   ClipboardX,
   Loader2,
   Receipt,
-  Trash2
-} from "lucide-react"
-import LoadingPage from "@/components/misc/LoadingPage"
+  Trash2,
+} from "lucide-react";
+import LoadingPage from "@/components/misc/LoadingPage";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
-  DialogTitle
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { useState } from "react"
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
 
 /* =========================
    STYLES
 ========================= */
 
 const dialogClass =
-  "sm:max-w-[390px] rounded-3xl border border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl overflow-hidden p-0"
+  "sm:max-w-[390px] rounded-3xl border border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl overflow-hidden p-0";
 const header =
-  "px-6 pt-8 pb-3 flex flex-col items-center text-center space-y-3"
+  "px-6 pt-8 pb-3 flex flex-col items-center text-center space-y-3";
 const iconBase = (color: "red" | "orange" | "green") => `
   flex items-center justify-center
   size-12 rounded-2xl
@@ -46,15 +44,14 @@ const iconBase = (color: "red" | "orange" | "green") => `
     color === "red"
       ? "border-red-500/15 bg-red-500/8 text-red-600"
       : color === "orange"
-      ? "border-orange-500/15 bg-orange-500/8 text-orange-600"
-      : "border-emerald-500/15 bg-emerald-500/8 text-emerald-600"
+        ? "border-orange-500/15 bg-orange-500/8 text-orange-600"
+        : "border-emerald-500/15 bg-emerald-500/8 text-emerald-600"
   }
-`
+`;
 
-const title =
-  "text-[16px] font-semibold tracking-tight"
+const title = "text-[16px] font-semibold tracking-tight";
 const description =
-  "text-sm text-muted-foreground text-center leading-relaxed max-w-sm"
+  "text-sm text-muted-foreground text-center leading-relaxed max-w-sm";
 const warningBox = (color: "red" | "orange") => `
   mx-6 mt-4 p-3 rounded-xl border text-sm leading-relaxed flex gap-2
   ${
@@ -62,32 +59,28 @@ const warningBox = (color: "red" | "orange") => `
       ? "border-red-500/20 bg-red-500/5 text-red-600"
       : "border-orange-500/20 bg-orange-500/5 text-orange-600"
   }
-`
+`;
 
-const footer =
-  "px-6 pb-6 pt-5 flex justify-end gap-2"
+const footer = "px-6 pb-6 pt-5 flex justify-end gap-2";
 const cancelBtn =
-  "rounded-xl border border-border/60 bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition"
-const dangerBtn =
-  "rounded-xl bg-red-600 hover:bg-red-700 text-white"
-const warningBtn =
-  "rounded-xl bg-orange-500 hover:bg-orange-600 text-white"
-const successBtn =
-  "rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white"
+  "rounded-xl border border-border/60 bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition";
+const dangerBtn = "rounded-xl bg-red-600 hover:bg-red-700 text-white";
+const warningBtn = "rounded-xl bg-orange-500 hover:bg-orange-600 text-white";
+const successBtn = "rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white";
 
 type Props = {
-  quote: Quote
-  openReject: boolean
-  setOpenReject: (open: boolean) => void
-  openApprove: boolean
-  setOpenApprove: (open: boolean) => void
-  openDelete: boolean
-  setOpenDelete: (open: boolean) => void
-  openCascadeDelete: boolean
-  setOpenCascadeDelete: (open: boolean) => void
-  onSuccessUpdate?: () => void
-  onSuccessDelete?: () => void
-}
+  quote: Quote;
+  openReject: boolean;
+  setOpenReject: (open: boolean) => void;
+  openApprove: boolean;
+  setOpenApprove: (open: boolean) => void;
+  openDelete: boolean;
+  setOpenDelete: (open: boolean) => void;
+  openCascadeDelete: boolean;
+  setOpenCascadeDelete: (open: boolean) => void;
+  onSuccessUpdate?: () => void;
+  onSuccessDelete?: () => void;
+};
 
 const QuoteDropdownDialogs = ({
   quote,
@@ -100,44 +93,44 @@ const QuoteDropdownDialogs = ({
   openCascadeDelete,
   setOpenCascadeDelete,
   onSuccessUpdate,
-  onSuccessDelete
+  onSuccessDelete,
 }: Props) => {
-  const { selectedCompany } = useCompanyStore()
+  const { selectedCompany } = useCompanyStore();
 
-  const { updateStatusQuote } = useUpdateQuoteStatus()
-  const { createPurchaseOrder } = useCreatePurchaseOrder()
-  const { deleteQuote } = useDeleteQuote()
-  const { cascadeDeleteQuote } = useCascadeDeleteQuote()
+  const { updateStatusQuote } = useUpdateQuoteStatus();
+  const { createPurchaseOrder } = useCreatePurchaseOrder();
+  const { deleteQuote } = useDeleteQuote();
+  const { cascadeDeleteQuote } = useCascadeDeleteQuote();
 
-  const [Observation, setObservation] = useState("")
+  const [Observation, setObservation] = useState("");
 
-  if (!selectedCompany) return <LoadingPage />
+  if (!selectedCompany) return <LoadingPage />;
 
   const handleReject = async () => {
     await updateStatusQuote.mutateAsync({
       id: quote.id,
       data: {
         status: "REJECTED",
-        observation: Observation.trim() || null
+        observation: Observation.trim() || null,
       },
-      company: selectedCompany.slug
-    })
+      company: selectedCompany.slug,
+    });
 
-    setObservation("")
-    setOpenReject(false)
+    setObservation("");
+    setOpenReject(false);
 
-    onSuccessUpdate?.()
-  }
+    onSuccessUpdate?.();
+  };
 
   const handleApprove = async () => {
     // El guard de reentrada va antes que cualquier await: el `disabled` del botón
     // no llega a repintar entre dos clics seguidos, y cada POST que se cuela crea
     // una orden de compra más.
-    if (createPurchaseOrder.isPending) return
+    if (createPurchaseOrder.isPending) return;
 
     const locationId =
       quote.article_quote_order.find((a) => a.location)?.location?.id ??
-      quote.general_article_quote_order.find((a) => a.location)?.location?.id
+      quote.general_article_quote_order.find((a) => a.location)?.location?.id;
 
     // sub_total/total aren't sent here — a quote spanning multiple vendors
     // (or retailers) splits into one PO per vendor, and the backend computes
@@ -149,47 +142,49 @@ const QuoteDropdownDialogs = ({
       articles_purchase_orders: quote.article_quote_order.map((a) => ({
         article_quote_order_id: a.id,
       })),
-      general_articles_purchase_orders: quote.general_article_quote_order.map((a) => ({
-        general_article_quote_order_id: a.id,
-      })),
-    }
+      general_articles_purchase_orders: quote.general_article_quote_order.map(
+        (a) => ({
+          general_article_quote_order_id: a.id,
+        }),
+      ),
+    };
 
     try {
       await createPurchaseOrder.mutateAsync({
         data: poData,
-        company: selectedCompany.slug
-      })
+        company: selectedCompany.slug,
+      });
 
-      onSuccessUpdate?.()
+      onSuccessUpdate?.();
     } catch {
       // El hook ya reportó el error (incluido el 409) por toast.
     } finally {
       // Se cierra pase lo que pase: dejarlo abierto tras un error solo invita a
       // insistir con el botón.
-      setOpenApprove(false)
+      setOpenApprove(false);
     }
-  }
+  };
   const handleDelete = async () => {
     await deleteQuote.mutateAsync({
       id: quote.id,
-      company: selectedCompany.slug
-    })
+      company: selectedCompany.slug,
+    });
 
-    setOpenDelete(false)
+    setOpenDelete(false);
 
-    onSuccessDelete?.()
-  }
+    onSuccessDelete?.();
+  };
 
   const handleCascadeDelete = async () => {
     await cascadeDeleteQuote.mutateAsync({
       id: quote.id,
-      company: selectedCompany.slug
-    })
+      company: selectedCompany.slug,
+    });
 
-    setOpenCascadeDelete(false)
+    setOpenCascadeDelete(false);
 
-    onSuccessDelete?.()
-  }
+    onSuccessDelete?.();
+  };
 
   return (
     <>
@@ -434,6 +429,6 @@ const QuoteDropdownDialogs = ({
       </Dialog>
     </>
   );
-}
+};
 
-export default QuoteDropdownDialogs
+export default QuoteDropdownDialogs;
