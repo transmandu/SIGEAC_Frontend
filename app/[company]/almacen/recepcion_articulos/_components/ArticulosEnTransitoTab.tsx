@@ -631,6 +631,12 @@ export function ArticulosEnTransitoTab() {
             description="Selecciona el rango de fechas de recepción para filtrar los artículos."
             dateRangeLabel="Rango de Fechas de Recepción"
             fileNamePrefix="articulos_en_recepcion"
+            sourceOptions={[
+              { value: "ALL", label: "Todas las procedencias" },
+              { value: "COMPANY_PURCHASE", label: "Compras de la empresa" },
+              { value: "OTHER", label: "Otra procedencia" },
+              { value: "UNDECLARED", label: "Sin declarar" },
+            ]}
           />
         </div>
       </div>

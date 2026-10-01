@@ -51,7 +51,12 @@ import {
 import { IdentificationSection } from "./sections/IdentificationSection";
 import { DestinationChecks } from "./sections/DestinationChecks";
 import { WarehouseDetailsSection } from "./sections/WarehouseDetailsSection";
-import type { ArticleFormProps } from "./types";
+import {
+  ARTICLE_SOURCES,
+  requireSourceJustification,
+  sourceLabel,
+  type ArticleFormProps,
+} from "./types";
 import { useArticleForm, useReportFormState } from "./useArticleForm";
 
 const formSchema = z
@@ -77,11 +82,13 @@ const formSchema = z
     goes_to_inventory: z.boolean().optional(),
     purchase_order_number: z.string().optional(),
 
+    source: z.enum(ARTICLE_SOURCES).optional(),
     sender: z.string().optional(),
     origin: z.string().optional(),
     destination: z.string().optional(),
     justification: z.string().optional(),
   })
+  .superRefine(requireSourceJustification)
   .superRefine((values, ctx) => {
     if (!values.needs_calibration) return;
 
@@ -188,6 +195,7 @@ export default function ToolArticleForm({
       destination_unknown: false,
       goes_to_inventory: false,
       purchase_order_number: initialData?.purchase_order_number ?? "",
+      source: (initialData as any)?.article_detail?.source ?? undefined,
       sender: (initialData as any)?.article_detail?.sender ?? "",
       origin: (initialData as any)?.article_detail?.origin ?? "",
       destination: (initialData as any)?.article_detail?.destination ?? "",
@@ -262,6 +270,7 @@ export default function ToolArticleForm({
     name: "manufacturer_id",
   });
   const imageFile = useWatch({ control: form.control, name: "image" });
+  const source = useWatch({ control: form.control, name: "source" });
 
   const canSave = canSaveWith(
     form.formState.isDirty,
@@ -350,6 +359,7 @@ export default function ToolArticleForm({
       {
         title: "Detalles de almacén",
         fields: [
+          { label: "Procedencia", value: sourceLabel(values.source) },
           { label: "Remitente", value: values.sender },
           { label: "Origen", value: values.origin },
           { label: "Destino", value: values.destination },
@@ -562,6 +572,8 @@ export default function ToolArticleForm({
           onReceptionDateChange={setReceptionDate}
           isEditing={isEditing}
           disabled={busy}
+          source={source}
+          hasSystemOrder={!!initialData?.purchase_order_id}
         />
 
         <ArticleDetailsSection
