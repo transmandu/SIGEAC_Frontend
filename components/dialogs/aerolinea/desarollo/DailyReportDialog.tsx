@@ -1,12 +1,29 @@
-'use client';
+"use client";
 import { useRegisterActivity } from "@/actions/aerolinea/desarrollo/reportes_diarios/actions";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
@@ -15,7 +32,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarIcon, FileText, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { Label } from "@/components/ui/label";
 
@@ -48,14 +65,22 @@ export const DailyReportDialog = ({
     resolver: zodResolver(FormSchema),
     defaultValues: {
       description: "",
-      start_hour: `${new Date().getHours().toString().padStart(2, '0')}:${new Date().getMinutes().toString().padStart(2, '0')}`,
+      start_hour: `${new Date().getHours().toString().padStart(2, "0")}:${new Date().getMinutes().toString().padStart(2, "0")}`,
       date: new Date(),
     },
   });
 
+  const description = useWatch({
+    control: form.control,
+    name: "description",
+  });
+
   useEffect(() => {
     if (!manualTime) {
-      form.setValue("start_hour", `${new Date().getHours().toString().padStart(2, '0')}:${new Date().getMinutes().toString().padStart(2, '0')}`);
+      form.setValue(
+        "start_hour",
+        `${new Date().getHours().toString().padStart(2, "0")}:${new Date().getMinutes().toString().padStart(2, "0")}`,
+      );
     }
   }, [manualTime, form]);
 
@@ -74,7 +99,10 @@ export const DailyReportDialog = ({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button onClick={() => setOpen(true)} className="flex items-center gap-x-2">
+        <Button
+          onClick={() => setOpen(true)}
+          className="flex items-center gap-x-2"
+        >
           <FileText className="size-5" />
           <span>Registrar Actividad</span>
         </Button>
@@ -84,11 +112,17 @@ export const DailyReportDialog = ({
           <DialogTitle>Registrar Actividad Diaria</DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="flex flex-col gap-4">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="flex flex-col gap-4"
+          >
             <div className="flex items-center w-full gap-6">
               <div className="flex flex-col space-y-3">
                 <Label>Analista</Label>
-                <Input value={`${user?.first_name || ""} ${user?.last_name || ""}`} disabled />
+                <Input
+                  value={`${user?.first_name || ""} ${user?.last_name || ""}`}
+                  disabled
+                />
               </div>
               <FormField
                 control={form.control}
@@ -102,11 +136,13 @@ export const DailyReportDialog = ({
                           <Button
                             variant="outline"
                             className={cn(
-                              "w-[240px] pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
+                              "w-60 pl-3 text-left font-normal",
+                              !field.value && "text-muted-foreground",
                             )}
                           >
-                            {field.value ? format(field.value, "PPP", { locale: es }) : "Seleccionar fecha"}
+                            {field.value
+                              ? format(field.value, "PPP", { locale: es })
+                              : "Seleccionar fecha"}
                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                           </Button>
                         </FormControl>
@@ -116,7 +152,9 @@ export const DailyReportDialog = ({
                           mode="single"
                           selected={field.value}
                           onSelect={field.onChange}
-                          disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+                          disabled={(date) =>
+                            date > new Date() || date < new Date("1900-01-01")
+                          }
                           autoFocus
                         />
                       </PopoverContent>
@@ -139,7 +177,11 @@ export const DailyReportDialog = ({
               <FormItem className="w-1/6">
                 <FormLabel>Número de Actividad</FormLabel>
                 <FormControl>
-                  <Input value={activities_length + 1} disabled className="w-16 text-center" />
+                  <Input
+                    value={activities_length + 1}
+                    disabled
+                    className="w-16 text-center"
+                  />
                 </FormControl>
               </FormItem>
               <FormField
@@ -166,7 +208,7 @@ export const DailyReportDialog = ({
                 control={form.control}
                 name="start_hour"
                 render={({ field }) => (
-                  <FormItem className="w-[110px]">
+                  <FormItem className="w-27.5">
                     <FormLabel>Hora de Inicio</FormLabel>
                     <FormControl>
                       <Input
@@ -182,15 +224,17 @@ export const DailyReportDialog = ({
             </div>
             <Button
               type="submit"
-              disabled={registerActivity.isPending || !form.watch("description")}
-              className="min-w-[100px] gap-2 justify-center"
+              disabled={registerActivity.isPending || !description}
+              className="min-w-25 gap-2 justify-center"
             >
               {registerActivity.isPending ? (
                 <>
                   <Loader2 className="animate-spin size-4" />
                   Registrando...
                 </>
-              ) : "Registrar"}
+              ) : (
+                "Registrar"
+              )}
             </Button>
           </form>
         </Form>

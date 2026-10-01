@@ -34,16 +34,22 @@ import { es } from "date-fns/locale/es";
 import { CalendarIcon, Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufacturers";
 
 const FormSchema = z.object({
-  manufacturer_id: z
-    .string({
-      message: "El fabricante es requerido",
-    }),
+  manufacturer_id: z.string({
+    message: "El fabricante es requerido",
+  }),
   brand: z
     .string()
     .min(2, {
@@ -83,7 +89,7 @@ const FormSchema = z.object({
     .string()
     .regex(
       /^[a-zA-Z0-9\s]+$/,
-      "No se permiten caracteres especiales, solo letras"
+      "No se permiten caracteres especiales, solo letras",
     )
     .min(2, {
       message: "El dueño debe tener al menos 2 caracteres.",
@@ -112,9 +118,13 @@ interface EditAircraftFormProps {
 
 export function EditAircraftForm({ aircraft, onClose }: EditAircraftFormProps) {
   const { updateAircraft } = useUpdateAircraft();
-  const {selectedCompany} = useCompanyStore();
+  const { selectedCompany } = useCompanyStore();
   const { data: locationsData } = useGetLocationsByCompanies();
-  const { data: manufacturers, isLoading: isManufacturersLoading, isError: isManufacturersError } = useGetManufacturers(selectedCompany?.slug);
+  const {
+    data: manufacturers,
+    isLoading: isManufacturersLoading,
+    isError: isManufacturersError,
+  } = useGetManufacturers(selectedCompany?.slug);
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -133,7 +143,11 @@ export function EditAircraftForm({ aircraft, onClose }: EditAircraftFormProps) {
   });
 
   const onSubmit = async (data: FormSchemaType) => {
-    await updateAircraft.mutateAsync({ acronym: aircraft.acronym, data, company: selectedCompany?.slug});
+    await updateAircraft.mutateAsync({
+      acronym: aircraft.acronym,
+      data,
+      company: selectedCompany?.slug,
+    });
     onClose();
   };
 
@@ -234,23 +248,32 @@ export function EditAircraftForm({ aircraft, onClose }: EditAircraftFormProps) {
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button
-                        disabled={isManufacturersLoading || isManufacturersError}
+                        disabled={
+                          isManufacturersLoading || isManufacturersError
+                        }
                         variant="outline"
                         role="combobox"
                         className={cn(
                           "justify-between",
-                          !field.value && "text-muted-foreground"
+                          !field.value && "text-muted-foreground",
                         )}
                       >
-                        {
-                          isManufacturersLoading && <Loader2 className="size-4 animate-spin mr-2" />
-                        }
-                        {field.value
-                          ? <p>{manufacturers?.find(
-                            (manufacturer) => `${manufacturer.id.toString()}` === field.value
-                          )?.name}</p>
-                          : "Elige al fabricante..."
-                        }
+                        {isManufacturersLoading && (
+                          <Loader2 className="size-4 animate-spin mr-2" />
+                        )}
+                        {field.value ? (
+                          <p>
+                            {
+                              manufacturers?.find(
+                                (manufacturer) =>
+                                  `${manufacturer.id.toString()}` ===
+                                  field.value,
+                              )?.name
+                            }
+                          </p>
+                        ) : (
+                          "Elige al fabricante..."
+                        )}
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
                     </FormControl>
@@ -259,29 +282,35 @@ export function EditAircraftForm({ aircraft, onClose }: EditAircraftFormProps) {
                     <Command>
                       <CommandInput placeholder="Busque un fabricante..." />
                       <CommandList>
-                        <CommandEmpty className="text-sm p-2 text-center">No se ha encontrado ningún fabricante.</CommandEmpty>
+                        <CommandEmpty className="text-sm p-2 text-center">
+                          No se ha encontrado ningún fabricante.
+                        </CommandEmpty>
                         <CommandGroup>
-                          {manufacturers?.filter((m) => m.type === 'AIRCRAFT').map((manufacturer) => (
-                            <CommandItem
-                              value={`${manufacturer.id}`}
-                              key={manufacturer.id}
-                              onSelect={() => {
-                                form.setValue("manufacturer_id", manufacturer.id.toString())
-                              }}
-                            >
-                              <Check
-                                className={cn(
-                                  "mr-2 h-4 w-4",
-                                  `${manufacturer.id.toString()}` === field.value
-                                    ? "opacity-100"
-                                    : "opacity-0"
-                                )}
-                              />
-                              {
-                                <p>{manufacturer.name}</p>
-                              }
-                            </CommandItem>
-                          ))}
+                          {manufacturers
+                            ?.filter((m) => m.type === "AIRCRAFT")
+                            .map((manufacturer) => (
+                              <CommandItem
+                                value={`${manufacturer.id}`}
+                                key={manufacturer.id}
+                                onSelect={() => {
+                                  form.setValue(
+                                    "manufacturer_id",
+                                    manufacturer.id.toString(),
+                                  );
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    `${manufacturer.id.toString()}` ===
+                                      field.value
+                                      ? "opacity-100"
+                                      : "opacity-0",
+                                  )}
+                                />
+                                {<p>{manufacturer.name}</p>}
+                              </CommandItem>
+                            ))}
                         </CommandGroup>
                       </CommandList>
                     </Command>
@@ -303,8 +332,8 @@ export function EditAircraftForm({ aircraft, onClose }: EditAircraftFormProps) {
                       <Button
                         variant={"outline"}
                         className={cn(
-                          "w-[240px] pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
+                          "w-60 pl-3 text-left font-normal",
+                          !field.value && "text-muted-foreground",
                         )}
                       >
                         {field.value ? (
@@ -349,7 +378,7 @@ export function EditAircraftForm({ aircraft, onClose }: EditAircraftFormProps) {
                   onValueChange={field.onChange}
                   defaultValue={field.value}
                 >
-                  <FormControl className="w-[220px]">
+                  <FormControl className="w-55">
                     <SelectTrigger>
                       <SelectValue placeholder="Tipo" />
                     </SelectTrigger>

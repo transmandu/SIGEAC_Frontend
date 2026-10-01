@@ -56,7 +56,7 @@ export function CreateBankAccountDialog() {
           Nuevo
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[420px] md:max-w-[650px]">
+      <DialogContent className="sm:max-w-105 md:max-w-162.5">
         <DialogHeader>
           <DialogTitle data-tour="cuentas-crear-header">
             Creación de Cuenta Bancaria

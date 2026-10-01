@@ -134,7 +134,7 @@ export const DeleteDocumentDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-white dark:bg-[#1a1c1e] border-none text-slate-900 dark:text-white sm:max-w-[480px] rounded-2xl overflow-hidden p-0 outline-hidden shadow-2xl">
+      <DialogContent className="bg-white dark:bg-[#1a1c1e] border-none text-slate-900 dark:text-white sm:max-w-120 rounded-2xl overflow-hidden p-0 outline-hidden shadow-2xl">
         <div
           className="bg-slate-50 dark:bg-gray-800/40 px-6 py-5 border-b border-slate-200 dark:border-gray-700"
           data-tour="biblioteca-delete-title"

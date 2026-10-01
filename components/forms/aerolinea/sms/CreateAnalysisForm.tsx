@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/form";
 
 import { zodResolver } from "@/lib/zod-resolver";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
 import {
@@ -87,8 +87,11 @@ export default function CreateAnalysisForm({
 
   const [currentSelection, setCurrentSelection] = useState("");
 
-  const watchedProbability = form.watch("probability");
-  const watchedSeverity = form.watch("severity");
+  const watchedProbability = useWatch({
+    control: form.control,
+    name: "probability",
+  });
+  const watchedSeverity = useWatch({ control: form.control, name: "severity" });
 
   useEffect(() => {
     if (watchedProbability && watchedSeverity) {
@@ -149,9 +152,6 @@ export default function CreateAnalysisForm({
     onClose();
   };
 
-  const currentProbability = form.watch("probability");
-  const currentSeverity = form.watch("severity");
-
   return (
     <Form {...form}>
       <form
@@ -169,7 +169,7 @@ export default function CreateAnalysisForm({
               <Select
                 onValueChange={(value) => {
                   field.onChange(value);
-                  setCurrentSelection(value + (currentSeverity || ""));
+                  setCurrentSelection(value + (watchedSeverity || ""));
                 }}
                 value={field.value}
               >
@@ -204,13 +204,12 @@ export default function CreateAnalysisForm({
               <Select
                 onValueChange={(value) => {
                   field.onChange(value);
-                  setCurrentSelection((currentProbability || "") + value);
+                  setCurrentSelection((watchedProbability || "") + value);
                 }}
                 value={field.value}
               >
                 <FormControl>
-                  <SelectTrigger
-                  >
+                  <SelectTrigger>
                     <SelectValue placeholder="Seleccionar severidad del peligro" />
                   </SelectTrigger>
                 </FormControl>
@@ -232,8 +231,8 @@ export default function CreateAnalysisForm({
 
         <RiskMatrix
           onCellClick={handleCellClick}
-          selectedProbability={currentProbability}
-          selectedSeverity={currentSeverity}
+          selectedProbability={watchedProbability}
+          selectedSeverity={watchedSeverity}
         />
 
         <div className="flex justify-between items-center gap-x-4">

@@ -443,7 +443,7 @@ export function CreateQuoteForm({
 
         {/* ── Total general ── */}
         <div className="flex justify-end pt-2 border-t border-border/60">
-          <div className="flex items-center justify-between gap-6 rounded-md bg-muted/10 px-4 py-2 border border-border/40 min-w-[200px]">
+          <div className="flex items-center justify-between gap-6 rounded-md bg-muted/10 px-4 py-2 border border-border/40 min-w-50">
             <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground whitespace-nowrap">
               Total general
             </span>
@@ -459,7 +459,7 @@ export function CreateQuoteForm({
             disabled={createQuote.isPending}
             type="submit"
             className="
-              w-[400px] h-10 rounded-lg
+              w-100 h-10 rounded-lg
               shadow-xs
               transition-colors
               flex items-center justify-center gap-2

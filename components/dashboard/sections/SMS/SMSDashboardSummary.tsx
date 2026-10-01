@@ -19,13 +19,7 @@ import { useGetSMSTraining } from "@/hooks/sms/useGetSMSTraining";
 import { useGetTotalReportsStatsByYear } from "@/hooks/sms/useGetTotalReportsStatsByYear";
 import { dateFormat } from "@/lib/utils";
 import { format, startOfYear } from "date-fns";
-import {
-  BarChart3,
-  Loader2,
-  ShieldCheck,
-  Users,
-  BellRing,
-} from "lucide-react";
+import { BarChart3, Loader2, ShieldCheck, Users, BellRing } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -66,7 +60,9 @@ function TintedCard({
   );
 }
 
-export default function DashboardSummary({ companySlug }: DashboardSummaryProps) {
+export default function DashboardSummary({
+  companySlug,
+}: DashboardSummaryProps) {
   const router = useRouter();
   const blueTone = "37,99,235";
 
@@ -77,7 +73,7 @@ export default function DashboardSummary({ companySlug }: DashboardSummaryProps)
   } = useGetTotalReportsStatsByYear(
     format(startOfYear(new Date()), "yyyy-MM-dd"),
     format(new Date(), "yyyy-MM-dd"),
-    companySlug
+    companySlug,
   );
 
   const {
@@ -93,7 +89,7 @@ export default function DashboardSummary({ companySlug }: DashboardSummaryProps)
   } = useGetReportsNumberByMonth(
     companySlug,
     format(startOfYear(new Date()), "yyyy-MM-dd"),
-    format(new Date(), "yyyy-MM-dd")
+    format(new Date(), "yyyy-MM-dd"),
   );
 
   const {
@@ -104,12 +100,10 @@ export default function DashboardSummary({ companySlug }: DashboardSummaryProps)
 
   return (
     <div className="space-y-10">
-
       {/* ================= TOP GRID ================= */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
         {/* LINE CHART */}
-        <TintedCard tone={blueTone} className="p-2 h-[360px] flex flex-col">
+        <TintedCard tone={blueTone} className="p-2 h-90 flex flex-col">
           <CardHeader className="text-center space-y-1 py-2">
             <div className="flex justify-center">
               <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600">
@@ -122,7 +116,8 @@ export default function DashboardSummary({ companySlug }: DashboardSummaryProps)
             </CardTitle>
 
             <CardDescription className="mx-auto max-w-md text-sm leading-relaxed text-slate-500 dark:text-slate-400">
-              Evolución mensual de reportes de seguridad operacional durante el año en curso.
+              Evolución mensual de reportes de seguridad operacional durante el
+              año en curso.
             </CardDescription>
           </CardHeader>
 
@@ -132,7 +127,10 @@ export default function DashboardSummary({ companySlug }: DashboardSummaryProps)
                 <Loader2 className="animate-spin" />
               </div>
             ) : isErrorReportsNumberByMonth ? (
-              <Message title="Error" description="No se pudieron cargar datos" />
+              <Message
+                title="Error"
+                description="No se pudieron cargar datos"
+              />
             ) : (
               reportsNumberByMonth && (
                 <SimpleLineChart
@@ -149,7 +147,7 @@ export default function DashboardSummary({ companySlug }: DashboardSummaryProps)
         </TintedCard>
 
         {/* TRAINING */}
-        <TintedCard tone={blueTone} className="p-3 h-[360px] flex flex-col">
+        <TintedCard tone={blueTone} className="p-3 h-90 flex flex-col">
           <CardHeader className="text-center space-y-1 py-2">
             <div className="flex justify-center">
               <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600">
@@ -162,7 +160,8 @@ export default function DashboardSummary({ companySlug }: DashboardSummaryProps)
             </CardTitle>
 
             <CardDescription className="mx-auto max-w-md text-sm leading-relaxed text-slate-500 dark:text-slate-400">
-              Estado de certificaciones, vencimientos y cumplimiento del personal activo.
+              Estado de certificaciones, vencimientos y cumplimiento del
+              personal activo.
             </CardDescription>
           </CardHeader>
 
@@ -180,7 +179,8 @@ export default function DashboardSummary({ companySlug }: DashboardSummaryProps)
                   >
                     {/* EMPLEADO */}
                     <div className="font-medium text-sm leading-tight">
-                      {t.employee?.first_name ?? ""} {t.employee?.last_name ?? ""}
+                      {t.employee?.first_name ?? ""}{" "}
+                      {t.employee?.last_name ?? ""}
                     </div>
 
                     {/* STATUS */}
@@ -210,12 +210,12 @@ export default function DashboardSummary({ companySlug }: DashboardSummaryProps)
                               const last = t.history
                                 ?.filter(
                                   (h) =>
-                                    h.event_type === "EXPIRED" && h.expiration
+                                    h.event_type === "EXPIRED" && h.expiration,
                                 )
                                 .sort(
                                   (a, b) =>
                                     new Date(b.created_at ?? 0).getTime() -
-                                    new Date(a.created_at ?? 0).getTime()
+                                    new Date(a.created_at ?? 0).getTime(),
                                 )[0];
                               return last?.expiration
                                 ? dateFormat(last.expiration, "dd/MM/yyyy")
@@ -233,11 +233,12 @@ export default function DashboardSummary({ companySlug }: DashboardSummaryProps)
 
       {/* ================= ACTION + REPORTS ================= */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-
         {/* BUTTON CARD */}
-        <TintedCard tone={blueTone} className="p-6 flex flex-col lg:col-span-4 h-full">
+        <TintedCard
+          tone={blueTone}
+          className="p-6 flex flex-col lg:col-span-4 h-full"
+        >
           <CardHeader className="text-center space-y-2 py-5 flex flex-col justify-start">
-            
             <div className="flex justify-center mb-1">
               <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600">
                 <ShieldCheck className="h-5 w-5" />
@@ -251,13 +252,12 @@ export default function DashboardSummary({ companySlug }: DashboardSummaryProps)
             <CardDescription className="mx-auto max-w-md text-sm leading-relaxed text-slate-500 dark:text-slate-400">
               Acceso directo a la revisión y gestión de reportes SMS.
             </CardDescription>
-
           </CardHeader>
 
           <CardContent className="flex justify-center pt-2 pb-1">
             <ActionTriggerButton
               onClick={() => router.push(`/${companySlug}/sms/reportes`)}
-              className="px-6 min-w-[180px]"
+              className="px-6 min-w-45"
             >
               Ver Reportes
             </ActionTriggerButton>
@@ -265,7 +265,6 @@ export default function DashboardSummary({ companySlug }: DashboardSummaryProps)
         </TintedCard>
 
         <TintedCard tone={blueTone} className="p-3 lg:col-span-8 relative">
-
           <div className="absolute top-3 right-3 flex items-center gap-2">
             <div className="scale-90 opacity-80 hover:opacity-100 transition">
               <SimpleNotificationBell
@@ -277,8 +276,7 @@ export default function DashboardSummary({ companySlug }: DashboardSummaryProps)
             </div>
           </div>
 
-          <CardHeader className="text-center space-y-2 py-3 min-h-[92px] flex flex-col justify-start">
-
+          <CardHeader className="text-center space-y-2 py-3 min-h-23 flex flex-col justify-start">
             <div className="flex justify-center">
               <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600">
                 <BellRing className="h-5 w-5" />
@@ -290,25 +288,24 @@ export default function DashboardSummary({ companySlug }: DashboardSummaryProps)
             </CardTitle>
 
             <CardDescription className="mx-auto max-w-md text-sm leading-relaxed text-slate-500 dark:text-slate-400">
-              Últimos reportes registrados en el sistema (voluntarios y obligatorios).
+              Últimos reportes registrados en el sistema (voluntarios y
+              obligatorios).
             </CardDescription>
-
           </CardHeader>
 
-          <CardContent className="space-y-3 max-h-[340px] overflow-auto">
-
+          <CardContent className="space-y-3 max-h-85 overflow-auto">
             {/* ================= EMPTY STATE ================= */}
-            {!newReports?.voluntary?.length && !newReports?.obligatory?.length ? (
+            {!newReports?.voluntary?.length &&
+            !newReports?.obligatory?.length ? (
               <div className="flex flex-col items-center justify-center py-10 text-center space-y-2">
-
                 <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
                   No hay reportes nuevos
                 </p>
 
-                <p className="text-xs text-slate-500 dark:text-slate-400 max-w-[260px]">
-                  Cuando se registren nuevos reportes voluntarios u obligatorios aparecerán aquí.
+                <p className="text-xs text-slate-500 dark:text-slate-400 max-w-65">
+                  Cuando se registren nuevos reportes voluntarios u obligatorios
+                  aparecerán aquí.
                 </p>
-
               </div>
             ) : (
               <>
@@ -323,7 +320,9 @@ export default function DashboardSummary({ companySlug }: DashboardSummaryProps)
 
                     <Badge className="bg-green-500">VOLUNTARIO</Badge>
 
-                    <Link href={`/${companySlug}/sms/reportes/reportes_voluntarios/${r.id}`}>
+                    <Link
+                      href={`/${companySlug}/sms/reportes/reportes_voluntarios/${r.id}`}
+                    >
                       <Button variant="outline" className="w-full mt-2">
                         Ver detalles
                       </Button>
@@ -342,7 +341,9 @@ export default function DashboardSummary({ companySlug }: DashboardSummaryProps)
 
                     <Badge className="bg-red-500">OBLIGATORIO</Badge>
 
-                    <Link href={`/${companySlug}/sms/reportes/reportes_obligatorios/${r.id}`}>
+                    <Link
+                      href={`/${companySlug}/sms/reportes/reportes_obligatorios/${r.id}`}
+                    >
                       <Button variant="outline" className="w-full mt-2">
                         Ver detalles
                       </Button>
@@ -351,10 +352,8 @@ export default function DashboardSummary({ companySlug }: DashboardSummaryProps)
                 ))}
               </>
             )}
-
           </CardContent>
         </TintedCard>
-
       </div>
     </div>
   );

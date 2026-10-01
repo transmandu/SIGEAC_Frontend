@@ -61,13 +61,19 @@ export function CreateGenObliReport({
 }: FormProps) {
   const FormSchema = z
     .object({
-      incident_location_id: z.string().min(1, "Debes seleccionar una ubicación"),
+      incident_location_id: z
+        .string()
+        .min(1, "Debes seleccionar una ubicación"),
       report_location_id: z.string().min(1, "Debes seleccionar una ubicación"),
       description: z.string().min(1, "La descripción es obligatoria"),
       name: z.string().min(1, "El nombre es requerido"),
       last_name: z.string().min(1, "El apellido es requerido"),
       phone: z.string().optional(),
-      email: z.string().email("Formato de correo inválido").optional().or(z.literal("")),
+      email: z
+        .string()
+        .email("Formato de correo inválido")
+        .optional()
+        .or(z.literal("")),
       report_date: z
         .date({ error: "La fecha de reporte es obligatoria" })
         .refine((val) => !isNaN(val.getTime()), { message: "Fecha inválida" }),
@@ -83,14 +89,14 @@ export function CreateGenObliReport({
       incidents: z.array(z.string()).optional(),
       other_incidents: z.preprocess(
         (val) => (val === null || val === undefined ? "" : val),
-        z.string().optional()
+        z.string().optional(),
       ),
       image: z
         .instanceof(File)
         .refine((file) => file.size <= 5 * 1024 * 1024, "Max 5MB")
         .refine(
           (file) => ["image/jpeg", "image/png"].includes(file.type),
-          "Solo JPEG/PNG"
+          "Solo JPEG/PNG",
         )
         .optional(),
       document: z
@@ -98,7 +104,7 @@ export function CreateGenObliReport({
         .refine((file) => file.size <= 5 * 1024 * 1024, "Máximo 5MB")
         .refine(
           (file) => file.type === "application/pdf",
-          "Solo se permiten archivos PDF"
+          "Solo se permiten archivos PDF",
         )
         .optional(),
     })
@@ -111,7 +117,7 @@ export function CreateGenObliReport({
       {
         message: "Debe proporcionar al menos un incidente o descripción",
         path: ["incidents"],
-      }
+      },
     );
 
   type FormSchemaType = z.infer<typeof FormSchema>;
@@ -120,7 +126,7 @@ export function CreateGenObliReport({
   const { company } = useParams<{ company: string }>();
 
   const [showOtherInput, setShowOtherInput] = useState(
-    initialData?.other_incidents ? true : false
+    initialData?.other_incidents ? true : false,
   );
 
   const [open, setOpen] = useState(false);
@@ -148,24 +154,35 @@ export function CreateGenObliReport({
     "DAÑOS CAUSADOS POR ELEMENTOS EXTRAÑOS (F.O.D)",
     "CUALQUIER DAÑO QUE SUFRA UNA AERONAVE",
     "EFECTUAR UN TRABAJO MIENTRAS SE ENCUENTRA BAJO LAS INFLUENCIAS DEL ALCOHOL O SUSTANCIAS PROHIBIDAS",
-    "UTILIZACIÓN DE UNA HERRAMIENTA NO CALIBRADA O CON EL PERIODO DE CALIBRACIÓN VENCIDO"
+    "UTILIZACIÓN DE UNA HERRAMIENTA NO CALIBRADA O CON EL PERIODO DE CALIBRACIÓN VENCIDO",
   ];
 
-  const { data: locations, isLoading: isLocationsLoading } = useGetLocationsByCompany(company);
+  const { data: locations, isLoading: isLocationsLoading } =
+    useGetLocationsByCompany(company);
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      report_date: initialData?.report_date ? new Date(initialData?.report_date) : new Date(),
-      report_time: initialData?.report_time ? initialData.report_time.substring(0, 5) : "00:00",
-      incident_date: initialData?.incident_date ? new Date(initialData?.incident_date) : new Date(),
-      incident_time: initialData?.incident_time ? initialData.incident_time.substring(0, 5) : "00:00",
+      report_date: initialData?.report_date
+        ? new Date(initialData?.report_date)
+        : new Date(),
+      report_time: initialData?.report_time
+        ? initialData.report_time.substring(0, 5)
+        : "00:00",
+      incident_date: initialData?.incident_date
+        ? new Date(initialData?.incident_date)
+        : new Date(),
+      incident_time: initialData?.incident_time
+        ? initialData.incident_time.substring(0, 5)
+        : "00:00",
       incident_location_id: initialData?.incident_location?.id.toString(),
       report_location_id: initialData?.report_location?.id?.toString(),
       name: initialData?.name,
       last_name: initialData?.last_name,
       phone: initialData?.phone,
       email: initialData?.email,
-      incidents: initialData?.incidents ? JSON.parse(initialData.incidents) : [],
+      incidents: initialData?.incidents
+        ? JSON.parse(initialData.incidents)
+        : [],
       other_incidents: initialData?.other_incidents ?? "",
       description: initialData?.description ?? "",
     },
@@ -192,7 +209,10 @@ export function CreateGenObliReport({
     };
 
     try {
-      await createObligatoryReport.mutateAsync({ data: value, company: company });
+      await createObligatoryReport.mutateAsync({
+        data: value,
+        company: company,
+      });
     } catch (error) {
       console.error("Error al crear reporte:", error);
     }
@@ -224,14 +244,18 @@ export function CreateGenObliReport({
     }
   };
 
-  const handleOtherInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleOtherInputChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     form.setValue("other_incidents", event.target.value);
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col space-y-5 w-full pb-4">
-
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="flex flex-col space-y-5 w-full pb-4"
+      >
         {/* Header */}
         <div className="pb-2 border-b border-border/60">
           <FormLabel className="text-base font-semibold">
@@ -240,9 +264,10 @@ export function CreateGenObliReport({
         </div>
         {/* --- SECCIÓN 1: FECHAS Y HORAS --- */}
         <div className="space-y-3 p-4 rounded-lg border border-border/60">
-          <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">1. Fechas y horas</h3>
+          <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            1. Fechas y horas
+          </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-
             {/* Bloque: Reporte */}
             <div className="flex flex-col gap-3">
               <FormField
@@ -250,7 +275,9 @@ export function CreateGenObliReport({
                 name="report_date"
                 render={({ field }) => (
                   <FormItem className="flex flex-col w-full">
-                    <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Fecha de Reporte</FormLabel>
+                    <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      Fecha de Reporte
+                    </FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
@@ -258,7 +285,7 @@ export function CreateGenObliReport({
                             variant={"outline"}
                             className={cn(
                               "w-full pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
+                              !field.value && "text-muted-foreground",
                             )}
                           >
                             {field.value ? (
@@ -291,13 +318,19 @@ export function CreateGenObliReport({
                 name="report_time"
                 render={({ field }) => (
                   <FormItem className="w-full">
-                    <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Hora del Reporte</FormLabel>
+                    <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      Hora del Reporte
+                    </FormLabel>
                     <FormControl>
                       <Input
                         type="time"
                         {...field}
                         onChange={(e) => {
-                          if (e.target.value.match(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/)) {
+                          if (
+                            e.target.value.match(
+                              /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/,
+                            )
+                          ) {
                             field.onChange(e.target.value);
                           }
                         }}
@@ -316,7 +349,9 @@ export function CreateGenObliReport({
                 name="incident_date"
                 render={({ field }) => (
                   <FormItem className="flex flex-col w-full">
-                    <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Fecha de Incidente</FormLabel>
+                    <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      Fecha de Incidente
+                    </FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
@@ -324,7 +359,7 @@ export function CreateGenObliReport({
                             variant={"outline"}
                             className={cn(
                               "w-full pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
+                              !field.value && "text-muted-foreground",
                             )}
                           >
                             {field.value ? (
@@ -357,13 +392,19 @@ export function CreateGenObliReport({
                 name="incident_time"
                 render={({ field }) => (
                   <FormItem className="w-full">
-                    <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Hora del incidente</FormLabel>
+                    <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      Hora del incidente
+                    </FormLabel>
                     <FormControl>
                       <Input
                         type="time"
                         {...field}
                         onChange={(e) => {
-                          if (e.target.value.match(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/)) {
+                          if (
+                            e.target.value.match(
+                              /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/,
+                            )
+                          ) {
                             field.onChange(e.target.value);
                           }
                         }}
@@ -374,22 +415,23 @@ export function CreateGenObliReport({
                 )}
               />
             </div>
-
           </div>
         </div>
 
-
-
         {/* --- SECCIÓN 3: UBICACIONES --- */}
         <div className="space-y-3 p-4 rounded-lg border border-border/60">
-          <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">2. Ubicaciones</h3>
+          <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            2. Ubicaciones
+          </h3>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 md:items-start">
             <FormField
               control={form.control}
               name="incident_location_id"
               render={({ field }) => (
                 <FormItem className="w-full">
-                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Base del Incidente</FormLabel>
+                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Base del Incidente
+                  </FormLabel>
                   {isLocationsLoading ? (
                     <div className="flex items-center gap-2 p-2 border rounded-md bg-muted">
                       <Loader2 className="h-4 w-4 animate-spin " />
@@ -424,7 +466,9 @@ export function CreateGenObliReport({
               name="report_location_id"
               render={({ field }) => (
                 <FormItem className="w-full">
-                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Base donde se genera</FormLabel>
+                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Base donde se genera
+                  </FormLabel>
                   {isLocationsLoading ? (
                     <div className="flex items-center gap-2 p-2 border rounded-md bg-muted">
                       <Loader2 className="h-4 w-4 animate-spin " />
@@ -453,18 +497,23 @@ export function CreateGenObliReport({
                   <FormMessage />
                 </FormItem>
               )}
-            />                     </div>
+            />{" "}
+          </div>
         </div>
         {/* --- SECCIÓN 3: DATOS DEL REPORTANTE --- */}
         <div className="space-y-3 p-4 rounded-lg border border-border/60">
-          <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">3. Datos del Reportante</h3>
+          <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            3. Datos del Reportante
+          </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <FormField
               control={form.control}
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Nombre</FormLabel>
+                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Nombre
+                  </FormLabel>
                   <FormControl>
                     <Input placeholder="Ej. Juan" {...field} />
                   </FormControl>
@@ -477,7 +526,9 @@ export function CreateGenObliReport({
               name="last_name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Apellido</FormLabel>
+                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Apellido
+                  </FormLabel>
                   <FormControl>
                     <Input placeholder="Ej. Pérez" {...field} />
                   </FormControl>
@@ -490,9 +541,15 @@ export function CreateGenObliReport({
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Correo Electrónico (Opcional)</FormLabel>
+                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Correo Electrónico (Opcional)
+                  </FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="correo@ejemplo.com" {...field} />
+                    <Input
+                      type="email"
+                      placeholder="correo@ejemplo.com"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage className="text-xs" />
                 </FormItem>
@@ -503,7 +560,9 @@ export function CreateGenObliReport({
               name="phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Teléfono (Opcional)</FormLabel>
+                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Teléfono (Opcional)
+                  </FormLabel>
                   <FormControl>
                     <Input type="tel" placeholder="+58..." {...field} />
                   </FormControl>
@@ -516,7 +575,9 @@ export function CreateGenObliReport({
 
         {/* --- SECCIÓN 4: DETALLES DEL SUCESO --- */}
         <div className="space-y-3 p-4 rounded-lg border border-border/60">
-          <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">4. Detalles del Suceso</h3>
+          <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            4. Detalles del Suceso
+          </h3>
 
           <div className="flex flex-col gap-3">
             {!showOtherInput && (
@@ -525,7 +586,9 @@ export function CreateGenObliReport({
                 name="incidents"
                 render={({ field }) => (
                   <FormItem className="flex flex-col w-full">
-                    <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Incidentes</FormLabel>
+                    <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      Incidentes
+                    </FormLabel>
                     <FormControl>
                       <Popover open={open} onOpenChange={setOpen}>
                         <PopoverTrigger asChild>
@@ -533,7 +596,7 @@ export function CreateGenObliReport({
                             variant="outline"
                             role="combobox"
                             aria-expanded={open}
-                            className="w-full sm:w-[400px] justify-between"
+                            className="w-full sm:w-100 justify-between"
                           >
                             {selectedValues && selectedValues.length > 0 ? (
                               <p>({selectedValues.length}) seleccionados</p>
@@ -543,23 +606,30 @@ export function CreateGenObliReport({
                             <ChevronsUpDown className="opacity-50" />
                           </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-[300px] sm:w-[400px] p-0">
+                        <PopoverContent className="w-75 sm:w-100 p-0">
                           <Command>
                             <CommandInput placeholder="Buscar opciones..." />
                             <CommandList>
-                              <CommandEmpty>No se encontraron opciones.</CommandEmpty>
+                              <CommandEmpty>
+                                No se encontraron opciones.
+                              </CommandEmpty>
                               <CommandGroup>
                                 {OPTIONS_LIST.map((option) => (
                                   <CommandItem
                                     key={option}
                                     value={option}
                                     onSelect={(currentValue) => {
-                                      const isSelected = selectedValues.includes(currentValue);
+                                      const isSelected =
+                                        selectedValues.includes(currentValue);
                                       const newValues = isSelected
-                                        ? selectedValues.filter((v) => v !== currentValue)
+                                        ? selectedValues.filter(
+                                            (v) => v !== currentValue,
+                                          )
                                         : [...selectedValues, currentValue];
                                       setSelectedValues(newValues);
-                                      field.onChange(newValues.length > 0 ? newValues : []);
+                                      field.onChange(
+                                        newValues.length > 0 ? newValues : [],
+                                      );
                                     }}
                                   >
                                     {option}
@@ -567,7 +637,9 @@ export function CreateGenObliReport({
                                       <Check
                                         className={cn(
                                           "ml-auto",
-                                          selectedValues.includes(option) ? "opacity-100" : "opacity-0"
+                                          selectedValues.includes(option)
+                                            ? "opacity-100"
+                                            : "opacity-0",
                                         )}
                                       />
                                     )}
@@ -621,9 +693,15 @@ export function CreateGenObliReport({
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Descripción Completa del Suceso</FormLabel>
+                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Descripción Completa del Suceso
+                  </FormLabel>
                   <FormControl>
-                    <Textarea className="min-h-[100px]" placeholder="Detalle lo ocurrido..." {...field} />
+                    <Textarea
+                      className="min-h-25"
+                      placeholder="Detalle lo ocurrido..."
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -634,14 +712,18 @@ export function CreateGenObliReport({
 
         {/* --- SECCIÓN 5: ADJUNTOS --- */}
         <div className="space-y-3 p-4 rounded-lg border border-border/60">
-          <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">5. Evidencia Adjunta</h3>
+          <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            5. Evidencia Adjunta
+          </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <FormField
               control={form.control}
               name="image"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Imagen General (JPEG/PNG)</FormLabel>
+                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Imagen General (JPEG/PNG)
+                  </FormLabel>
                   <div className="flex items-center gap-4 mt-2">
                     {field.value ? (
                       <div className="relative h-16 w-16">
@@ -653,10 +735,15 @@ export function CreateGenObliReport({
                           className="rounded-md object-cover"
                         />
                       </div>
-                    ) : initialData?.image && typeof initialData.image === "string" ? (
+                    ) : initialData?.image &&
+                      typeof initialData.image === "string" ? (
                       <div className="relative h-16 w-16">
                         <Image
-                          src={initialData.image.startsWith("data:image") ? initialData.image : `data:image/jpeg;base64,${initialData.image}`}
+                          src={
+                            initialData.image.startsWith("data:image")
+                              ? initialData.image
+                              : `data:image/jpeg;base64,${initialData.image}`
+                          }
                           alt="Preview"
                           width={64}
                           height={64}

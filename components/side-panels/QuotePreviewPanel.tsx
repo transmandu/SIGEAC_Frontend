@@ -1,7 +1,7 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import Link from 'next/link'
+import { useState } from "react";
+import Link from "next/link";
 import {
   ArrowRight,
   Ban,
@@ -15,59 +15,69 @@ import {
   Truck,
   User,
   X,
-} from 'lucide-react'
+} from "lucide-react";
 
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
-import { useCompanyStore } from '@/stores/CompanyStore'
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import CopyPartNumberButton from "@/components/misc/CopyPartNumberButton";
+import { cn } from "@/lib/utils";
+import { useCompanyStore } from "@/stores/CompanyStore";
 import type {
   ArticleQuoteOrder,
   GeneralArticleQuoteOrder,
   Quote,
-} from '@/types/purchase/quote'
+} from "@/types/purchase/quote";
 
 interface Props {
-  quote: Quote | null
-  onClose: () => void
+  quote: Quote | null;
+  onClose: () => void;
 }
 
 const STATUS_LABELS: Record<string, string> = {
-  PENDING: 'PENDIENTE',
-  APPROVED: 'APROBADA',
-  REJECTED: 'RECHAZADA',
-}
+  PENDING: "PENDIENTE",
+  APPROVED: "APROBADA",
+  REJECTED: "RECHAZADA",
+};
 
-const statusLabel = (status?: string) => STATUS_LABELS[status ?? ''] ?? status ?? '—'
+const statusLabel = (status?: string) =>
+  STATUS_LABELS[status ?? ""] ?? status ?? "—";
 
 const statusBadgeClass = (status?: string) => {
-  const pending = status === 'PENDING'
-  const approved = status === 'APPROVED'
+  const pending = status === "PENDING";
+  const approved = status === "APPROVED";
 
   return cn(
-    'select-none whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-xs',
-    pending && 'border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300',
-    approved && 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
-    !pending && !approved && 'border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300'
-  )
-}
+    "select-none whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-xs",
+    pending &&
+      "border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300",
+    approved &&
+      "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+    !pending &&
+      !approved &&
+      "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300",
+  );
+};
 
 const formatDate = (date?: string | null) => {
-  if (!date) return '—'
-  const d = new Date(date)
-  if (Number.isNaN(d.getTime())) return '—'
-  return d.toLocaleDateString('es-VE', { day: '2-digit', month: 'short', year: 'numeric' })
-}
+  if (!date) return "—";
+  const d = new Date(date);
+  if (Number.isNaN(d.getTime())) return "—";
+  return d.toLocaleDateString("es-VE", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
 
 const money = (value: number | string | null | undefined) => {
-  const n = Number(value ?? 0)
-  return `$${n.toFixed(2)}`
-}
+  const n = Number(value ?? 0);
+  return `$${n.toFixed(2)}`;
+};
 
 interface MetaItemProps {
-  label: string
-  value?: string | null
-  icon?: typeof User
+  label: string;
+  value?: string | null;
+  icon?: typeof User;
 }
 
 const MetaItem = ({ label, value, icon: Icon }: MetaItemProps) => (
@@ -77,17 +87,17 @@ const MetaItem = ({ label, value, icon: Icon }: MetaItemProps) => (
     </span>
     <span className="text-sm font-medium flex items-center gap-1.5">
       {Icon && <Icon className="size-3.5 text-muted-foreground/50 shrink-0" />}
-      {value ?? '—'}
+      {value ?? "—"}
     </span>
   </div>
-)
+);
 
 // ── Comparativa: solicitado vs cotizado ────────────────────────────────────
 interface CompareRowProps {
-  label: string
-  requested?: string | number | null
-  quoted?: string | number | null
-  changed: boolean
+  label: string;
+  requested?: string | number | null;
+  quoted?: string | number | null;
+  changed: boolean;
 }
 
 const CompareRow = ({ label, requested, quoted, changed }: CompareRowProps) => (
@@ -95,29 +105,34 @@ const CompareRow = ({ label, requested, quoted, changed }: CompareRowProps) => (
     <span className="shrink-0 text-muted-foreground/70">{label}</span>
     {changed ? (
       <div className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400">
-        <span className="tabular-nums line-through opacity-60">{requested ?? '—'}</span>
+        <span className="tabular-nums line-through opacity-60">
+          {requested ?? "—"}
+        </span>
         <ArrowRight className="size-2.5 shrink-0" />
-        <span className="tabular-nums font-semibold">{quoted ?? '—'}</span>
+        <span className="tabular-nums font-semibold">{quoted ?? "—"}</span>
       </div>
     ) : (
-      <span className="tabular-nums font-medium text-foreground/80">{quoted ?? '—'}</span>
+      <span className="tabular-nums font-medium text-foreground/80">
+        {quoted ?? "—"}
+      </span>
     )}
   </div>
-)
+);
 
 // ── Artículo de batch (aeronáutico) ────────────────────────────────────────
 const BatchArticleRow = ({ article }: { article: ArticleQuoteOrder }) => {
-  const [expanded, setExpanded] = useState(false)
-  const req = article.article_requisition_order
-  const isNotQuoted = !!article.is_not_quoted
-  const amount = article.quantity * Number(article.unit_price)
+  const [expanded, setExpanded] = useState(false);
+  const req = article.article_requisition_order;
+  const isNotQuoted = !!article.is_not_quoted;
+  const amount = article.quantity * Number(article.unit_price);
 
-  const quantityChanged = req != null && Number(req.quantity) !== Number(article.quantity)
+  const quantityChanged =
+    req != null && Number(req.quantity) !== Number(article.quantity);
   const unitChanged =
     req?.unit?.label != null &&
     article.unit?.label != null &&
-    req.unit.label !== article.unit.label
-  const hasComparison = req != null && (quantityChanged || unitChanged)
+    req.unit.label !== article.unit.label;
+  const hasComparison = req != null && (quantityChanged || unitChanged);
 
   return (
     <div className="rounded-md border border-border/60 bg-background/80 overflow-hidden">
@@ -125,7 +140,7 @@ const BatchArticleRow = ({ article }: { article: ArticleQuoteOrder }) => {
         <div className="min-w-0 flex-1 space-y-1">
           {/* Protagonista 1: lote (batch.name) — línea propia */}
           <span className="block text-sm font-semibold leading-snug wrap-break-word">
-            {req?.batch?.name ?? 'SIN LOTE'}
+            {req?.batch?.name ?? "SIN LOTE"}
           </span>
 
           {/* Badges de contexto del lote — línea propia, no comparte con el nombre */}
@@ -147,51 +162,72 @@ const BatchArticleRow = ({ article }: { article: ArticleQuoteOrder }) => {
 
           {/* Protagonista 2: P/N — línea propia */}
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="shrink-0 text-[9px] px-1.5 py-[2px] rounded bg-primary/10 text-primary border border-primary/20 font-medium select-none">
+            <span className="shrink-0 text-[9px] px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 font-medium select-none">
               P/N
             </span>
             <span className="text-[13px] font-medium text-foreground/90 wrap-break-word">
-              {req?.article_part_number ?? 'N/A'}
+              {req?.article_part_number ?? "N/A"}
             </span>
+            <CopyPartNumberButton value={req?.article_part_number} />
           </div>
 
           {req?.article_alt_part_number && (
             <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="shrink-0 text-[9px] px-1.5 py-[2px] rounded bg-slate-500/10 text-slate-600 border border-slate-500/20 font-medium select-none">
+              <span className="shrink-0 text-[9px] px-1.5 py-0.5 rounded bg-slate-500/10 text-slate-600 border border-slate-500/20 font-medium select-none">
                 ALT
               </span>
               <span className="text-[11px] text-muted-foreground wrap-break-word">
                 {req.article_alt_part_number}
               </span>
+              <CopyPartNumberButton
+                value={req.article_alt_part_number}
+                label="P/N alterno"
+              />
             </div>
           )}
 
           <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
             <span>
-              Proveedor: <span className="text-foreground/70">{article.vendor?.name ?? '—'}</span>
+              Proveedor:{" "}
+              <span className="text-foreground/70">
+                {article.vendor?.name ?? "—"}
+              </span>
             </span>
             {article.condition?.name && (
               <span>
-                Condición: <span className="text-foreground/70">{article.condition.name}</span>
+                Condición:{" "}
+                <span className="text-foreground/70">
+                  {article.condition.name}
+                </span>
               </span>
             )}
           </div>
         </div>
 
         <div className="flex flex-col items-end gap-0.5 shrink-0">
-          <span className="text-[10px] uppercase tracking-wide text-muted-foreground/60">Total</span>
-          <span className="text-sm font-semibold tabular-nums">{money(amount)}</span>
+          <span className="text-[10px] uppercase tracking-wide text-muted-foreground/60">
+            Total
+          </span>
+          <span className="text-sm font-semibold tabular-nums">
+            {money(amount)}
+          </span>
         </div>
       </div>
 
       <div className="flex items-center justify-between border-t border-border/50 px-3 py-2">
         <div className="flex items-center gap-4 text-[11px]">
           <span className="text-muted-foreground/60">
-            Cant. <span className="font-medium tabular-nums text-foreground/80">{article.quantity}</span>{' '}
-            {article.unit?.label ?? ''}
+            Cant.{" "}
+            <span className="font-medium tabular-nums text-foreground/80">
+              {article.quantity}
+            </span>{" "}
+            {article.unit?.label ?? ""}
           </span>
           <span className="text-muted-foreground/60">
-            P/U <span className="font-medium tabular-nums text-foreground/80">{money(article.unit_price)}</span>
+            P/U{" "}
+            <span className="font-medium tabular-nums text-foreground/80">
+              {money(article.unit_price)}
+            </span>
           </span>
         </div>
 
@@ -203,7 +239,12 @@ const BatchArticleRow = ({ article }: { article: ArticleQuoteOrder }) => {
           >
             <Scale className="size-3" />
             Ver comparativa
-            <ChevronDown className={cn('size-3 transition-transform', expanded && 'rotate-180')} />
+            <ChevronDown
+              className={cn(
+                "size-3 transition-transform",
+                expanded && "rotate-180",
+              )}
+            />
           </button>
         )}
       </div>
@@ -228,22 +269,27 @@ const BatchArticleRow = ({ article }: { article: ArticleQuoteOrder }) => {
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
 // ── Artículo general ────────────────────────────────────────────────────────
-const GeneralArticleRow = ({ article }: { article: GeneralArticleQuoteOrder }) => {
-  const [expanded, setExpanded] = useState(false)
-  const req = article.general_article_requisition_order
-  const isNotQuoted = !!article.is_not_quoted
-  const amount = article.quantity * Number(article.unit_price)
+const GeneralArticleRow = ({
+  article,
+}: {
+  article: GeneralArticleQuoteOrder;
+}) => {
+  const [expanded, setExpanded] = useState(false);
+  const req = article.general_article_requisition_order;
+  const isNotQuoted = !!article.is_not_quoted;
+  const amount = article.quantity * Number(article.unit_price);
 
-  const quantityChanged = req != null && Number(req.quantity) !== Number(article.quantity)
+  const quantityChanged =
+    req != null && Number(req.quantity) !== Number(article.quantity);
   const unitChanged =
     req?.unit?.label != null &&
     article.unit?.label != null &&
-    req.unit.label !== article.unit.label
-  const hasComparison = req != null && (quantityChanged || unitChanged)
+    req.unit.label !== article.unit.label;
+  const hasComparison = req != null && (quantityChanged || unitChanged);
 
   return (
     <div className="rounded-md border border-border/60 bg-background/80 overflow-hidden">
@@ -251,7 +297,7 @@ const GeneralArticleRow = ({ article }: { article: GeneralArticleQuoteOrder }) =
         <div className="min-w-0 flex-1 space-y-1">
           <div className="flex items-center gap-1.5 flex-wrap">
             <span className="text-sm font-semibold leading-snug wrap-break-word">
-              {req?.description ?? 'N/A'}
+              {req?.description ?? "N/A"}
             </span>
             {isNotQuoted && (
               <span className="select-none inline-flex items-center gap-1 rounded bg-red-500/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-red-600 dark:text-red-400">
@@ -263,34 +309,51 @@ const GeneralArticleRow = ({ article }: { article: GeneralArticleQuoteOrder }) =
           <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
             {req?.variant_type && (
               <span>
-                Present. / Especif.: <span className="text-foreground/70">{req.variant_type}</span>
+                Present. / Especif.:{" "}
+                <span className="text-foreground/70">{req.variant_type}</span>
               </span>
             )}
             <span>
-              Lugar de compra: <span className="text-foreground/70">{article.retailer?.name ?? '—'}</span>
+              Lugar de compra:{" "}
+              <span className="text-foreground/70">
+                {article.retailer?.name ?? "—"}
+              </span>
             </span>
             {article.brand_model && (
               <span>
-                Marca: <span className="text-foreground/70">{article.brand_model}</span>
+                Marca:{" "}
+                <span className="text-foreground/70">
+                  {article.brand_model}
+                </span>
               </span>
             )}
           </div>
         </div>
 
         <div className="flex flex-col items-end gap-0.5 shrink-0">
-          <span className="text-[10px] uppercase tracking-wide text-muted-foreground/60">Total</span>
-          <span className="text-sm font-semibold tabular-nums">{money(amount)}</span>
+          <span className="text-[10px] uppercase tracking-wide text-muted-foreground/60">
+            Total
+          </span>
+          <span className="text-sm font-semibold tabular-nums">
+            {money(amount)}
+          </span>
         </div>
       </div>
 
       <div className="flex items-center justify-between border-t border-border/50 px-3 py-2">
         <div className="flex items-center gap-4 text-[11px]">
           <span className="text-muted-foreground/60">
-            Cant. <span className="font-medium tabular-nums text-foreground/80">{article.quantity}</span>{' '}
-            {article.unit?.label ?? ''}
+            Cant.{" "}
+            <span className="font-medium tabular-nums text-foreground/80">
+              {article.quantity}
+            </span>{" "}
+            {article.unit?.label ?? ""}
           </span>
           <span className="text-muted-foreground/60">
-            P/U <span className="font-medium tabular-nums text-foreground/80">{money(article.unit_price)}</span>
+            P/U{" "}
+            <span className="font-medium tabular-nums text-foreground/80">
+              {money(article.unit_price)}
+            </span>
           </span>
         </div>
 
@@ -302,7 +365,12 @@ const GeneralArticleRow = ({ article }: { article: GeneralArticleQuoteOrder }) =
           >
             <Scale className="size-3" />
             Ver comparativa
-            <ChevronDown className={cn('size-3 transition-transform', expanded && 'rotate-180')} />
+            <ChevronDown
+              className={cn(
+                "size-3 transition-transform",
+                expanded && "rotate-180",
+              )}
+            />
           </button>
         )}
       </div>
@@ -327,34 +395,36 @@ const GeneralArticleRow = ({ article }: { article: GeneralArticleQuoteOrder }) =
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
 export default function QuotePreviewPanel({ quote, onClose }: Props) {
-  const { selectedCompany } = useCompanyStore()
+  const { selectedCompany } = useCompanyStore();
 
-  if (!quote) return null
+  if (!quote) return null;
 
-  const articles = quote.article_quote_order ?? []
-  const generalArticles = quote.general_article_quote_order ?? []
-  const totalArticles = articles.length + generalArticles.length
-  const hasArticles = totalArticles > 0
+  const articles = quote.article_quote_order ?? [];
+  const generalArticles = quote.general_article_quote_order ?? [];
+  const totalArticles = articles.length + generalArticles.length;
+  const hasArticles = totalArticles > 0;
 
   const vendorNames = Array.from(
     new Set(
       [quote.vendor?.name, ...articles.map((a) => a.vendor?.name)].filter(
-        (name): name is string => !!name
-      )
-    )
-  )
+        (name): name is string => !!name,
+      ),
+    ),
+  );
   const retailerNames = Array.from(
     new Set(
-      [quote.retailer?.name, ...generalArticles.map((a) => a.retailer?.name)].filter(
-        (name): name is string => !!name
-      )
-    )
-  )
-  const placeLabel = vendorNames.length > 0 ? vendorNames.join(', ') : retailerNames.join(', ')
+      [
+        quote.retailer?.name,
+        ...generalArticles.map((a) => a.retailer?.name),
+      ].filter((name): name is string => !!name),
+    ),
+  );
+  const placeLabel =
+    vendorNames.length > 0 ? vendorNames.join(", ") : retailerNames.join(", ");
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
@@ -362,7 +432,9 @@ export default function QuotePreviewPanel({ quote, onClose }: Props) {
         <div className="flex flex-col gap-1.5 min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-semibold truncate">{quote.quote_number}</span>
-            <Badge className={statusBadgeClass(quote.status)}>{statusLabel(quote.status)}</Badge>
+            <Badge className={statusBadgeClass(quote.status)}>
+              {statusLabel(quote.status)}
+            </Badge>
             {quote.parent_quote_order && (
               <span className="select-none rounded border border-violet-500/40 bg-violet-500/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-violet-700 dark:text-violet-300">
                 Complementaria
@@ -374,7 +446,12 @@ export default function QuotePreviewPanel({ quote, onClose }: Props) {
           </span>
         </div>
 
-        <Button variant="ghost" size="icon" className="shrink-0 size-7" onClick={onClose}>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="shrink-0 size-7"
+          onClick={onClose}
+        >
           <X className="size-4" />
         </Button>
       </div>
@@ -383,7 +460,7 @@ export default function QuotePreviewPanel({ quote, onClose }: Props) {
         <div className="flex items-center gap-2 border-b border-violet-500/20 bg-violet-500/5 px-4 py-2">
           <Link2 className="size-3.5 shrink-0 text-violet-600 dark:text-violet-400" />
           <span className="text-xs text-violet-700 dark:text-violet-300">
-            Complementaria de{' '}
+            Complementaria de{" "}
             <Link
               href={`/${selectedCompany?.slug}/compras/cotizaciones_generales/${quote.parent_quote_order.quote_number}`}
               className="font-semibold underline underline-offset-2 decoration-1 hover:text-violet-900 dark:hover:text-violet-100 transition-colors"
@@ -399,12 +476,20 @@ export default function QuotePreviewPanel({ quote, onClose }: Props) {
         <div className="rounded-md border border-border/50 bg-muted/20 px-3 py-3">
           <div className="grid grid-cols-2 gap-x-4 gap-y-3">
             <MetaItem
-              label={vendorNames.length > 0 ? 'PROVEEDOR' : 'LUGAR DE COMPRA'}
+              label={vendorNames.length > 0 ? "PROVEEDOR" : "LUGAR DE COMPRA"}
               value={placeLabel || undefined}
               icon={Truck}
             />
-            <MetaItem label="CREADO POR" value={quote.created_by?.toUpperCase?.() ?? quote.created_by} icon={User} />
-            <MetaItem label="FECHA DE COTIZACIÓN" value={formatDate(quote.quote_date)} icon={CalendarDays} />
+            <MetaItem
+              label="CREADO POR"
+              value={quote.created_by?.toUpperCase?.() ?? quote.created_by}
+              icon={User}
+            />
+            <MetaItem
+              label="FECHA DE COTIZACIÓN"
+              value={formatDate(quote.quote_date)}
+              icon={CalendarDays}
+            />
             <MetaItem
               label="REQUISICIÓN ORIGEN"
               value={quote.requisition_order?.order_number}
@@ -437,7 +522,9 @@ export default function QuotePreviewPanel({ quote, onClose }: Props) {
                 OBSERVACIÓN
               </span>
             </div>
-            <p className="text-sm text-foreground/80 whitespace-pre-wrap">{quote.observation}</p>
+            <p className="text-sm text-foreground/80 whitespace-pre-wrap">
+              {quote.observation}
+            </p>
           </div>
         )}
 
@@ -448,8 +535,12 @@ export default function QuotePreviewPanel({ quote, onClose }: Props) {
               ARTÍCULOS COTIZADOS
             </span>
             <div className="flex items-center gap-1.5 rounded-md border border-border/50 bg-muted/30 px-2 py-0.5">
-              <span className="text-[9px] tracking-wider text-muted-foreground">TOTAL</span>
-              <span className="text-xs font-semibold tabular-nums">{totalArticles}</span>
+              <span className="text-[9px] tracking-wider text-muted-foreground">
+                TOTAL
+              </span>
+              <span className="text-xs font-semibold tabular-nums">
+                {totalArticles}
+              </span>
             </div>
           </div>
 
@@ -482,5 +573,5 @@ export default function QuotePreviewPanel({ quote, onClose }: Props) {
         </div>
       </div>
     </div>
-  )
+  );
 }

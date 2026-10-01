@@ -49,7 +49,6 @@ export function DataTable<TData extends RowData>({
 
   const router = useRouter();
 
-
   return (
     <>
       <div className="flex flex-col gap-2 mb-4">
@@ -57,11 +56,6 @@ export function DataTable<TData extends RowData>({
         <p className="text-sm italic text-muted-foreground text-center">
           Aquí se pueden visualizar los boletines realizados hasta el momento.
         </p>
-      </div>
-
-      <div className="flex items-center py-4">
-        <CreateSafetyBulletinDialog title="Nuevo" />
-        <DataTableViewOptions table={table} />
       </div>
 
       <div className="rounded-md border mb-4">
@@ -76,7 +70,7 @@ export function DataTable<TData extends RowData>({
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                     </TableHead>
                   );
@@ -95,7 +89,7 @@ export function DataTable<TData extends RowData>({
                     <TableCell key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}

@@ -17,6 +17,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
+import CopyPartNumberButton from "@/components/misc/CopyPartNumberButton";
 import { DetermineDestinationDialog } from "./_components/DetermineDestinationDialog";
 
 import type { DestinationArticle } from "@/types/purchase";
@@ -86,9 +87,12 @@ export const columns: AppColumnDef<DestinationArticle>[] = [
     ),
     cell: ({ row }) => (
       <div className="space-y-1.5">
-        <p className="font-mono text-sm font-semibold tracking-wide">
-          {row.original.part_number || "Sin P/N"}
-        </p>
+        <div className="flex items-center gap-1.5">
+          <p className="font-mono text-sm font-semibold tracking-wide">
+            {row.original.part_number || "Sin P/N"}
+          </p>
+          <CopyPartNumberButton value={row.original.part_number} />
+        </div>
         {toAltPartNumbers(row.original.alternative_part_number).length > 0 && (
           <div className="flex items-center gap-1.5">
             <span className="shrink-0 select-none rounded border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[10px] font-mono font-semibold tracking-widest text-amber-600 dark:border-amber-800/60 dark:bg-amber-950/60 dark:text-amber-500">
@@ -99,6 +103,12 @@ export const columns: AppColumnDef<DestinationArticle>[] = [
                 " / ",
               )}
             </span>
+            <CopyPartNumberButton
+              value={toAltPartNumbers(
+                row.original.alternative_part_number,
+              ).join(" / ")}
+              label="P/N alternos"
+            />
           </div>
         )}
       </div>

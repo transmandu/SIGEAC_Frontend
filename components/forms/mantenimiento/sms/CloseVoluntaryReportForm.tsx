@@ -4,7 +4,7 @@ import { zodResolver } from "@/lib/zod-resolver";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarIcon, Loader2, LockKeyhole, Paperclip } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
 import { useCloseVoluntaryReport } from "@/actions/mantenimiento/sms/reporte_voluntario/actions";
@@ -35,7 +35,10 @@ const FORM_SCHEMA = z.object({
     .custom<File>((value) => value instanceof File, {
       message: "Adjunte el documento de cierre",
     })
-    .refine((file) => file.type === "application/pdf", "Solo se permiten archivos PDF"),
+    .refine(
+      (file) => file.type === "application/pdf",
+      "Solo se permiten archivos PDF",
+    ),
 });
 
 type FormValues = z.infer<typeof FORM_SCHEMA>;
@@ -64,7 +67,10 @@ export default function CloseVoluntaryReportForm({
     defaultValues: DEFAULT_VALUES,
   });
 
-  const selectedDocument = form.watch("management_doc");
+  const selectedDocument = useWatch({
+    control: form.control,
+    name: "management_doc",
+  });
 
   const handleCancel = () => {
     form.reset(DEFAULT_VALUES);
@@ -93,7 +99,9 @@ export default function CloseVoluntaryReportForm({
           name="close_date"
           render={({ field }) => (
             <FormItem className="flex flex-col">
-              <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Fecha de cierre</FormLabel>
+              <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Fecha de cierre
+              </FormLabel>
               <Popover>
                 <PopoverTrigger asChild>
                   <FormControl>
@@ -102,7 +110,7 @@ export default function CloseVoluntaryReportForm({
                       variant="outline"
                       className={cn(
                         "pl-3 text-left font-normal",
-                        !field.value && "text-muted-foreground"
+                        !field.value && "text-muted-foreground",
                       )}
                     >
                       {field.value ? (
@@ -136,7 +144,9 @@ export default function CloseVoluntaryReportForm({
           name="management_doc"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Documento de gestión (PDF)</FormLabel>
+              <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Documento de gestión (PDF)
+              </FormLabel>
               <FormControl>
                 <Input
                   type="file"

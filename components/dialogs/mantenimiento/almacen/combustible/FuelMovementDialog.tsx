@@ -47,11 +47,13 @@ export function FuelMovementDialog({
           size={size}
           className={cn("justify-start gap-2", className)}
         >
-          <Icon className={cn("h-4 w-4 shrink-0 text-primary/70", iconClassName)} />
+          <Icon
+            className={cn("h-4 w-4 shrink-0 text-primary/70", iconClassName)}
+          />
           {getFuelMovementLabel(type)}
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[560px]">
+      <DialogContent className="sm:max-w-140">
         <DialogHeader>
           <DialogTitle>{getFuelMovementLabel(type)}</DialogTitle>
           <DialogDescription>

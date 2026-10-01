@@ -78,7 +78,7 @@ const FlightControlDropdownActions = ({
 
         {/* DIALOGO DE EDITAR */}
         <Dialog open={openEdit} onOpenChange={setOpenEdit}>
-          <DialogContent className="sm:max-w-[420px] md:max-w-[650px]">
+          <DialogContent className="sm:max-w-105 md:max-w-162.5">
             <DialogHeader>
               <DialogTitle>Edición de Vuelo</DialogTitle>
               <DialogDescription>

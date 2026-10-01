@@ -1,22 +1,23 @@
-'use client';
+"use client";
 
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
-import type { GeneralArticleQuoteOrder } from '@/types/purchase/quote';
-import QuoteComparisonToggle from '@/components/misc/QuoteComparisonToggle';
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import type { GeneralArticleQuoteOrder } from "@/types/purchase/quote";
+import QuoteComparisonToggle from "@/components/misc/QuoteComparisonToggle";
 
 interface QuoteGeneralArticleCardProps {
   article: GeneralArticleQuoteOrder;
 }
 
 // ── Shared column widths so row 1 and row 2 fields line up vertically ──────
-const FIELDS_GRID_COLS = 'grid-cols-[80px_120px]';
+const FIELDS_GRID_COLS = "grid-cols-[80px_120px]";
 
 const QuoteGeneralArticleCard = ({ article }: QuoteGeneralArticleCardProps) => {
   const req = article.general_article_requisition_order;
   const amount = article.quantity * Number(article.unit_price);
 
-  const quantityChanged = req != null && Number(req.quantity) !== Number(article.quantity);
+  const quantityChanged =
+    req != null && Number(req.quantity) !== Number(article.quantity);
   const unitChanged =
     req?.unit?.label != null &&
     article.unit?.label != null &&
@@ -24,12 +25,11 @@ const QuoteGeneralArticleCard = ({ article }: QuoteGeneralArticleCardProps) => {
 
   return (
     <div className="rounded-lg border border-border/60 bg-background/70 overflow-hidden mx-3">
-
       {/* HEADER */}
       <div className="flex items-center justify-between border-b border-border/50 bg-muted/25 px-3 py-1.5">
         <div className="flex items-center gap-2 min-w-0">
           <span className="truncate text-sm font-medium text-foreground">
-            {req?.description || 'Artículo'}
+            {req?.description || "Artículo"}
           </span>
           <Badge
             variant="secondary"
@@ -56,18 +56,16 @@ const QuoteGeneralArticleCard = ({ article }: QuoteGeneralArticleCardProps) => {
       {/* BODY */}
       <div className="px-3 py-3">
         <div className="grid grid-cols-[1fr_auto] gap-5 items-center">
-
           {/* IZQUIERDA */}
           <div className="min-w-0 space-y-2.5">
-
             {/* PRESENT. / ESPECIF. */}
             <div className="space-y-1">
               <span className="text-[10px] leading-none uppercase tracking-wide text-muted-foreground select-none">
                 Present. / Especif.
               </span>
               <div className="flex items-center gap-2 min-w-0">
-                <div className="w-[300px] text-sm bg-muted/40 border border-border/40 rounded px-2 py-1 truncate">
-                  {req?.variant_type || 'N/A'}
+                <div className="w-75 text-sm bg-muted/40 border border-border/40 rounded px-2 py-1 truncate">
+                  {req?.variant_type || "N/A"}
                 </div>
               </div>
             </div>
@@ -78,23 +76,19 @@ const QuoteGeneralArticleCard = ({ article }: QuoteGeneralArticleCardProps) => {
                 Marca / Modelo
               </span>
               <div className="flex items-center gap-2 min-w-0">
-                <div className="w-[300px] text-sm bg-muted/40 border border-border/40 rounded px-2 py-1 truncate">
-                  {article.brand_model || 'N/A'}
+                <div className="w-75 text-sm bg-muted/40 border border-border/40 rounded px-2 py-1 truncate">
+                  {article.brand_model || "N/A"}
                 </div>
               </div>
             </div>
-
           </div>
 
           {/* DERECHA */}
           <div className="flex items-center gap-6 shrink-0">
-
             {/* FILAS */}
             <div className="flex flex-col gap-2">
-
               {/* FILA 1: Cantidad · Precio unitario */}
-              <div className={cn('grid gap-x-5', FIELDS_GRID_COLS)}>
-
+              <div className={cn("grid gap-x-5", FIELDS_GRID_COLS)}>
                 {/* CANTIDAD */}
                 <div className="flex flex-col items-start min-w-0">
                   <span className="h-4 text-[10px] uppercase tracking-wide text-muted-foreground select-none mb-2 block">
@@ -114,19 +108,17 @@ const QuoteGeneralArticleCard = ({ article }: QuoteGeneralArticleCardProps) => {
                     ${Number(article.unit_price).toFixed(2)}
                   </span>
                 </div>
-
               </div>
 
               {/* FILA 2: Unidad · Destino */}
-              <div className={cn('grid gap-x-5', FIELDS_GRID_COLS)}>
-
+              <div className={cn("grid gap-x-5", FIELDS_GRID_COLS)}>
                 {/* UNIDAD */}
                 <div className="flex flex-col items-start min-w-0">
                   <span className="h-4 text-[10px] uppercase tracking-wide text-muted-foreground select-none mb-2 block">
                     Unidad
                   </span>
                   <span className="text-sm leading-none block">
-                    {article.unit?.label ?? '—'}
+                    {article.unit?.label ?? "—"}
                   </span>
                 </div>
 
@@ -136,16 +128,14 @@ const QuoteGeneralArticleCard = ({ article }: QuoteGeneralArticleCardProps) => {
                     Destino
                   </span>
                   <span className="text-sm leading-none block truncate w-full">
-                    {article.location?.address ?? '—'}
+                    {article.location?.address ?? "—"}
                   </span>
                 </div>
-
               </div>
-
             </div>
 
             {/* TOTAL (separado horizontalmente, centrado verticalmente respecto a ambas filas) */}
-            <div className="flex flex-col items-start min-w-[100px] pl-6 border-border/40 self-stretch justify-center">
+            <div className="flex flex-col items-start min-w-25 pl-6 border-border/40 self-stretch justify-center">
               <span className="h-4 text-[10px] uppercase tracking-wide text-muted-foreground select-none mb-2 block">
                 Total
               </span>
@@ -153,21 +143,28 @@ const QuoteGeneralArticleCard = ({ article }: QuoteGeneralArticleCardProps) => {
                 ${amount.toFixed(2)}
               </span>
             </div>
-
           </div>
-
         </div>
       </div>
 
       {/* COMPARATIVA SOLICITADO VS. COTIZADO + JUSTIFICACIÓN */}
       <QuoteComparisonToggle
         fields={[
-          { label: 'Cantidad', requested: req?.quantity, quoted: article.quantity, changed: quantityChanged },
-          { label: 'Unidad', requested: req?.unit?.label, quoted: article.unit?.label, changed: unitChanged },
+          {
+            label: "Cantidad",
+            requested: req?.quantity,
+            quoted: article.quantity,
+            changed: quantityChanged,
+          },
+          {
+            label: "Unidad",
+            requested: req?.unit?.label,
+            quoted: article.unit?.label,
+            changed: unitChanged,
+          },
         ]}
         justification={article.justification}
       />
-
     </div>
   );
 };

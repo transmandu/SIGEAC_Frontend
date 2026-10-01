@@ -1,43 +1,43 @@
-"use client"
+"use client";
 
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
-  DialogTitle
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import {
   AlertOctagon,
   AlertTriangle,
   ClipboardCheck,
   Loader2,
   Wallet,
-} from "lucide-react"
-import type { PurchaseOrder } from "@/types/purchase"
-import { isAeronauticalPurchaseOrder } from "@/lib/purchases/purchase-order-scope"
-import { useCascadeDeletePurchaseOrder } from "@/actions/mantenimiento/compras/ordenes_compras/actions"
-import { useCompanyStore } from "@/stores/CompanyStore"
-import { PayPurchaseOrderForm } from "@/components/forms/mantenimiento/compras/PayPurchaseOrderForm"
-import { CompleteOrderForm } from "@/components/forms/mantenimiento/compras/CompleteOrderForm"
+} from "lucide-react";
+import type { PurchaseOrder } from "@/types/purchase";
+import { isAeronauticalPurchaseOrder } from "@/lib/purchases/purchase-order-scope";
+import { useCascadeDeletePurchaseOrder } from "@/actions/mantenimiento/compras/ordenes_compras/actions";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { PayPurchaseOrderForm } from "@/components/forms/mantenimiento/compras/PayPurchaseOrderForm";
+import { CompleteOrderForm } from "@/components/forms/mantenimiento/compras/CompleteOrderForm";
 
 type Props = {
-  po: PurchaseOrder
+  po: PurchaseOrder;
 
-  openApprove: boolean
-  setOpenApprove: (open: boolean) => void
+  openApprove: boolean;
+  setOpenApprove: (open: boolean) => void;
 
-  openCascadeDelete?: boolean
-  setOpenCascadeDelete?: (open: boolean) => void
-  onSuccessCascadeDelete?: () => void
-}
+  openCascadeDelete?: boolean;
+  setOpenCascadeDelete?: (open: boolean) => void;
+  onSuccessCascadeDelete?: () => void;
+};
 
 const dialogClass =
-  "w-[95vw] max-w-[95vw] sm:max-w-5xl max-h-[85vh] flex flex-col rounded-3xl border border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl overflow-hidden p-0"
+  "w-[95vw] max-w-[95vw] sm:max-w-5xl max-h-[85vh] flex flex-col rounded-3xl border border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl overflow-hidden p-0";
 
 const deleteDialogClass =
-  "sm:max-w-[390px] rounded-3xl border border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl overflow-hidden p-0"
+  "sm:max-w-[390px] rounded-3xl border border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl overflow-hidden p-0";
 
 const PurchaseOrderDropdownDialogs = ({
   po,
@@ -45,28 +45,29 @@ const PurchaseOrderDropdownDialogs = ({
   setOpenApprove,
   openCascadeDelete,
   setOpenCascadeDelete,
-  onSuccessCascadeDelete
+  onSuccessCascadeDelete,
 }: Props) => {
-  const { selectedCompany } = useCompanyStore()
-  const { cascadeDeletePurchaseOrder } = useCascadeDeletePurchaseOrder()
+  const { selectedCompany } = useCompanyStore();
+  const { cascadeDeletePurchaseOrder } = useCascadeDeletePurchaseOrder();
 
-  const isPaying = po.status === "PENDING"
-  const isCompleting = po.status === "PAID"
-  const isAeronautical = isAeronauticalPurchaseOrder(po)
-  const hasRealInventoryImpact = po.status === "PAID" || po.status === "COMPLETED"
+  const isPaying = po.status === "PENDING";
+  const isCompleting = po.status === "PAID";
+  const isAeronautical = isAeronauticalPurchaseOrder(po);
+  const hasRealInventoryImpact =
+    po.status === "PAID" || po.status === "COMPLETED";
 
   const handleCascadeDelete = async () => {
-    if (!selectedCompany) return
+    if (!selectedCompany) return;
 
     await cascadeDeletePurchaseOrder.mutateAsync({
       id: po.id,
-      company: selectedCompany.slug
-    })
+      company: selectedCompany.slug,
+    });
 
-    setOpenCascadeDelete?.(false)
+    setOpenCascadeDelete?.(false);
 
-    onSuccessCascadeDelete?.()
-  }
+    onSuccessCascadeDelete?.();
+  };
 
   return (
     <>
@@ -103,7 +104,7 @@ const PurchaseOrderDropdownDialogs = ({
             </DialogHeader>
 
             <div className="mx-6 mt-4 p-3 rounded-xl border border-red-500/20 bg-red-500/5 text-sm text-red-600 flex gap-2 leading-relaxed">
-              <AlertTriangle className="size-4 mt-[2px]" />
+              <AlertTriangle className="size-4 mt-0.5" />
               <div>
                 Esta acción es <b>irreversible</b>.{" "}
                 {hasRealInventoryImpact
@@ -153,12 +154,8 @@ const PurchaseOrderDropdownDialogs = ({
       ========================= */}
 
       {isPaying && (
-        <Dialog
-          open={openApprove}
-          onOpenChange={setOpenApprove}
-        >
+        <Dialog open={openApprove} onOpenChange={setOpenApprove}>
           <DialogContent className={dialogClass}>
-
             <DialogHeader
               className="
                 shrink-0
@@ -171,7 +168,6 @@ const PurchaseOrderDropdownDialogs = ({
               "
             >
               <div className="flex items-start gap-4">
-
                 <div
                   className="
                     flex items-center justify-center
@@ -203,14 +199,14 @@ const PurchaseOrderDropdownDialogs = ({
                       text-muted-foreground
                     "
                   >
-                    Ingrese los datos de pago, costos e impuestos
-                    para la orden de compra{" "}
+                    Ingrese los datos de pago, costos e impuestos para la orden
+                    de compra{" "}
                     <span className="font-medium text-foreground">
                       {po.order_number}
-                    </span>.
+                    </span>
+                    .
                   </DialogDescription>
                 </div>
-
               </div>
             </DialogHeader>
 
@@ -218,12 +214,9 @@ const PurchaseOrderDropdownDialogs = ({
               <PayPurchaseOrderForm
                 po={po}
                 isAeronautical={isAeronautical}
-                onClose={() =>
-                  setOpenApprove(false)
-                }
+                onClose={() => setOpenApprove(false)}
               />
             </div>
-
           </DialogContent>
         </Dialog>
       )}
@@ -233,12 +226,8 @@ const PurchaseOrderDropdownDialogs = ({
       ========================= */}
 
       {isCompleting && (
-        <Dialog
-          open={openApprove}
-          onOpenChange={setOpenApprove}
-        >
+        <Dialog open={openApprove} onOpenChange={setOpenApprove}>
           <DialogContent className={dialogClass}>
-
             <DialogHeader
               className="
                 shrink-0
@@ -251,7 +240,6 @@ const PurchaseOrderDropdownDialogs = ({
               "
             >
               <div className="flex items-start gap-4">
-
                 <div
                   className="
                     flex items-center justify-center
@@ -283,14 +271,13 @@ const PurchaseOrderDropdownDialogs = ({
                       text-muted-foreground
                     "
                   >
-                    Revise y confirme la información de la orden
-                    de compra{" "}
+                    Revise y confirme la información de la orden de compra{" "}
                     <span className="font-medium text-foreground">
                       {po.order_number}
-                    </span>.
+                    </span>
+                    .
                   </DialogDescription>
                 </div>
-
               </div>
             </DialogHeader>
 
@@ -298,17 +285,14 @@ const PurchaseOrderDropdownDialogs = ({
               <CompleteOrderForm
                 po={po}
                 isAeronautical={isAeronautical}
-                onClose={() =>
-                  setOpenApprove(false)
-                }
+                onClose={() => setOpenApprove(false)}
               />
             </div>
-
           </DialogContent>
         </Dialog>
       )}
     </>
-  )
-}
+  );
+};
 
-export default PurchaseOrderDropdownDialogs
+export default PurchaseOrderDropdownDialogs;

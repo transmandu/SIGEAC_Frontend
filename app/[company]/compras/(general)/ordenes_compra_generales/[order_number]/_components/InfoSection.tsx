@@ -1,5 +1,5 @@
-import { ElementType } from 'react';
-import LinkifiedText from '@/components/misc/LinkifiedText';
+import { ElementType } from "react";
+import LinkifiedText from "@/components/misc/LinkifiedText";
 
 interface InfoSectionProps {
   title: string;
@@ -9,9 +9,17 @@ interface InfoSectionProps {
   compact?: boolean;
 }
 
-const InfoSection = ({ title, icon: Icon, content, emptyMessage, compact }: InfoSectionProps) => {
+const InfoSection = ({
+  title,
+  icon: Icon,
+  content,
+  emptyMessage,
+  compact,
+}: InfoSectionProps) => {
   return (
-    <div className={`relative mx-auto min-w-0 rounded-xl border border-border/60 bg-linear-to-b from-muted/30 to-muted/10 shadow-xs ${compact ? 'max-w-2xl p-4' : 'p-5'}`}>
+    <div
+      className={`relative mx-auto min-w-0 rounded-xl border border-border/60 bg-linear-to-b from-muted/30 to-muted/10 shadow-xs ${compact ? "max-w-2xl p-4" : "p-5"}`}
+    >
       <div className="flex items-center gap-3 mb-3 select-none">
         <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground whitespace-nowrap">
           {title}
@@ -19,7 +27,9 @@ const InfoSection = ({ title, icon: Icon, content, emptyMessage, compact }: Info
         <div className="h-px flex-1 bg-border/50" />
       </div>
 
-      <div className={`flex items-center justify-center ${compact ? 'min-h-[56px]' : 'min-h-[100px]'}`}>
+      <div
+        className={`flex items-center justify-center ${compact ? "min-h-14" : "min-h-25"}`}
+      >
         {content?.trim() ? (
           <p className="w-full min-w-0 indent-5 text-sm leading-relaxed text-foreground/80 whitespace-pre-wrap">
             <LinkifiedText text={content} />

@@ -1,12 +1,21 @@
-'use client'
+"use client";
 
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { DataTableColumnHeader } from '@/components/tables/DataTableHeader'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { cn } from '@/lib/utils'
-import { formatQuarantineDate, quarantineRisk } from '@/lib/warehouse/quarantine'
-import type { QuarantineRecord } from '@/types/quarantine'
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
+import CopyPartNumberButton from "@/components/misc/CopyPartNumberButton";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
+import {
+  formatQuarantineDate,
+  quarantineRisk,
+} from "@/lib/warehouse/quarantine";
+import type { QuarantineRecord } from "@/types/quarantine";
 import { type AppColumnDef } from "@/lib/table";
 import {
   AlertTriangle,
@@ -18,12 +27,14 @@ import {
   ShieldCheck,
   User,
   Wrench,
-} from 'lucide-react'
-import { useState } from 'react'
-import { ResolveQuarantineDialog } from './_components/ResolveQuarantineDialog'
+} from "lucide-react";
+import { useState } from "react";
+import { ResolveQuarantineDialog } from "./_components/ResolveQuarantineDialog";
 
 const pendingDocumentCount = (record: QuarantineRecord) =>
-  (record.article?.document_requirements ?? []).filter((req) => req.documents.length === 0).length
+  (record.article?.document_requirements ?? []).filter(
+    (req) => req.documents.length === 0,
+  ).length;
 
 /**
  * Acción de compras. Solo los OPEN se resuelven: los ya enviados a
@@ -31,17 +42,17 @@ const pendingDocumentCount = (record: QuarantineRecord) =>
  * consulta — por eso ahí no se renderiza ningún botón en vez de uno inerte.
  */
 function ResolveAction({ record }: { record: QuarantineRecord }) {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(false);
 
-  const pendingDocs = pendingDocumentCount(record)
+  const pendingDocs = pendingDocumentCount(record);
 
-  if (record.status !== 'OPEN') {
+  if (record.status !== "OPEN") {
     return (
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
             <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
-              {record.status === 'PENDING_REINSPECTION' ? (
+              {record.status === "PENDING_REINSPECTION" ? (
                 <>
                   <ShieldCheck className="size-3.5 text-sky-500" />
                   En calidad
@@ -55,13 +66,13 @@ function ResolveAction({ record }: { record: QuarantineRecord }) {
             </span>
           </TooltipTrigger>
           <TooltipContent side="top" className="px-2 py-1 text-xs">
-            {record.status === 'PENDING_REINSPECTION'
-              ? 'Ya corregido: espera la re-inspección de Control de Calidad'
-              : 'El artículo salió del ciclo de cuarentena'}
+            {record.status === "PENDING_REINSPECTION"
+              ? "Ya corregido: espera la re-inspección de Control de Calidad"
+              : "El artículo salió del ciclo de cuarentena"}
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
-    )
+    );
   }
 
   return (
@@ -70,8 +81,8 @@ function ResolveAction({ record }: { record: QuarantineRecord }) {
         variant="ghost"
         size="sm"
         onClick={(e) => {
-          e.stopPropagation()
-          setOpen(true)
+          e.stopPropagation();
+          setOpen(true);
         }}
         className="h-7 gap-1.5 rounded-full border border-slate-200/60 bg-white/50 px-3 text-[11px] hover:bg-slate-100 dark:border-slate-700/60 dark:bg-slate-800/40 dark:hover:bg-slate-800"
       >
@@ -89,15 +100,21 @@ function ResolveAction({ record }: { record: QuarantineRecord }) {
       </Button>
 
       {open && (
-        <ResolveQuarantineDialog record={record} open={open} onOpenChange={setOpen} />
+        <ResolveQuarantineDialog
+          record={record}
+          open={open}
+          onOpenChange={setOpen}
+        />
       )}
     </>
-  )
+  );
 }
 
-export const getColumns = (legalDays: number): AppColumnDef<QuarantineRecord>[] => [
+export const getColumns = (
+  legalDays: number,
+): AppColumnDef<QuarantineRecord>[] => [
   {
-    id: 'expander',
+    id: "expander",
     size: 50,
     header: () => null,
     cell: ({ row }) => (
@@ -105,8 +122,8 @@ export const getColumns = (legalDays: number): AppColumnDef<QuarantineRecord>[] 
         {row.getCanExpand() && (
           <ChevronRight
             className={cn(
-              'size-3.5 text-muted-foreground/50 transition-transform',
-              row.getIsExpanded() && 'rotate-90 text-emerald-500',
+              "size-3.5 text-muted-foreground/50 transition-transform",
+              row.getIsExpanded() && "rotate-90 text-emerald-500",
             )}
           />
         )}
@@ -117,7 +134,7 @@ export const getColumns = (legalDays: number): AppColumnDef<QuarantineRecord>[] 
   },
 
   {
-    accessorKey: 'article.part_number',
+    accessorKey: "article.part_number",
     size: 210,
 
     header: ({ column }) => (
@@ -127,8 +144,8 @@ export const getColumns = (legalDays: number): AppColumnDef<QuarantineRecord>[] 
     ),
 
     cell: ({ row }) => {
-      const article = row.original.article
-      const serial = article?.serial
+      const article = row.original.article;
+      const serial = article?.serial;
 
       return (
         <div className="flex w-full justify-start">
@@ -138,35 +155,40 @@ export const getColumns = (legalDays: number): AppColumnDef<QuarantineRecord>[] 
                 P/N
               </span>
               <span className="rounded px-1 py-0.5 text-[13px] font-semibold tracking-tight text-slate-900 dark:text-slate-100">
-                {article?.part_number ?? 'Sin parte'}
+                {article?.part_number ?? "Sin parte"}
               </span>
+              <CopyPartNumberButton value={article?.part_number} />
             </div>
 
             <div className="flex items-center gap-2">
               <span
                 className={cn(
-                  'rounded-md px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-widest',
+                  "rounded-md px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-widest",
                   serial
-                    ? 'border border-slate-300/40 bg-slate-200/60 text-slate-600 dark:border-slate-600/40 dark:bg-slate-700/40 dark:text-slate-300'
-                    : 'bg-slate-100 text-slate-400 dark:bg-slate-800',
+                    ? "border border-slate-300/40 bg-slate-200/60 text-slate-600 dark:border-slate-600/40 dark:bg-slate-700/40 dark:text-slate-300"
+                    : "bg-slate-100 text-slate-400 dark:bg-slate-800",
                 )}
               >
                 S/N
               </span>
               {serial ? (
-                <span className="font-mono text-[11px] text-muted-foreground">{serial}</span>
+                <span className="font-mono text-[11px] text-muted-foreground">
+                  {serial}
+                </span>
               ) : (
-                <span className="text-[11px] italic text-muted-foreground/40">Sin serial</span>
+                <span className="text-[11px] italic text-muted-foreground/40">
+                  Sin serial
+                </span>
               )}
             </div>
           </div>
         </div>
-      )
+      );
     },
   },
 
   {
-    accessorKey: 'article.batch.name',
+    accessorKey: "article.batch.name",
     size: 190,
 
     header: ({ column }) => (
@@ -178,14 +200,14 @@ export const getColumns = (legalDays: number): AppColumnDef<QuarantineRecord>[] 
     cell: ({ row }) => (
       <div className="flex w-full items-center justify-center px-2 text-center">
         <span className="block w-full wrap-break-word text-sm font-medium text-slate-800 dark:text-slate-200">
-          {row.original.article?.batch?.name ?? 'Sin descripción'}
+          {row.original.article?.batch?.name ?? "Sin descripción"}
         </span>
       </div>
     ),
   },
 
   {
-    id: 'reason',
+    id: "reason",
     size: 260,
 
     header: ({ column }) => (
@@ -197,18 +219,18 @@ export const getColumns = (legalDays: number): AppColumnDef<QuarantineRecord>[] 
     accessorFn: (row) => row.reason,
 
     cell: ({ row }) => {
-      const record = row.original
-      const attempts = record.cycles?.length ?? 0
+      const record = row.original;
+      const attempts = record.cycles?.length ?? 0;
 
       return (
         <div className="space-y-1">
-          <p className="max-w-[260px] text-sm text-slate-800 dark:text-slate-200">
+          <p className="max-w-65 text-sm text-slate-800 dark:text-slate-200">
             {record.reason}
           </p>
           <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
             <span className="inline-flex items-center gap-1">
               <User className="size-3" />
-              {record.inspector ?? '—'}
+              {record.inspector ?? "—"}
             </span>
             <span className="inline-flex items-center gap-1">
               <CalendarClock className="size-3" />
@@ -222,12 +244,12 @@ export const getColumns = (legalDays: number): AppColumnDef<QuarantineRecord>[] 
             )}
           </div>
         </div>
-      )
+      );
     },
   },
 
   {
-    id: 'legal_window',
+    id: "legal_window",
     size: 150,
 
     header: ({ column }) => (
@@ -238,37 +260,49 @@ export const getColumns = (legalDays: number): AppColumnDef<QuarantineRecord>[] 
 
     // Ordena por urgencia: lo vencido primero.
     accessorFn: (row) => {
-      const risk = quarantineRisk(row.quarantine_entry_date, legalDays, row.days_in_quarantine)
-      if (risk.days === null) return -1
-      return risk.state === 'expired' ? 1000 + risk.days : risk.days
+      const risk = quarantineRisk(
+        row.quarantine_entry_date,
+        legalDays,
+        row.days_in_quarantine,
+      );
+      if (risk.days === null) return -1;
+      return risk.state === "expired" ? 1000 + risk.days : risk.days;
     },
 
     cell: ({ row }) => {
-      const record = row.original
-      const risk = quarantineRisk(record.quarantine_entry_date, legalDays, record.days_in_quarantine)
+      const record = row.original;
+      const risk = quarantineRisk(
+        record.quarantine_entry_date,
+        legalDays,
+        record.days_in_quarantine,
+      );
 
       if (risk.days === null) {
         return (
           <div className="flex w-full justify-center">
             <span className="text-xs text-muted-foreground/40">Sin fecha</span>
           </div>
-        )
+        );
       }
 
-      const expired = risk.state === 'expired'
-      const warning = risk.state === 'warning'
+      const expired = risk.state === "expired";
+      const warning = risk.state === "warning";
 
       return (
         <div className="flex w-full flex-col items-center gap-1">
           <Badge
             className={cn(
-              'select-none whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-xs',
-              expired && 'border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300',
-              warning && 'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300',
-              !expired && !warning && 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
+              "select-none whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-xs",
+              expired &&
+                "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300",
+              warning &&
+                "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300",
+              !expired &&
+                !warning &&
+                "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
             )}
           >
-            {expired ? 'Vencido' : warning ? 'Por vencer' : 'En plazo'}
+            {expired ? "Vencido" : warning ? "Por vencer" : "En plazo"}
           </Badge>
 
           <span className="text-sm font-semibold tabular-nums">
@@ -281,12 +315,12 @@ export const getColumns = (legalDays: number): AppColumnDef<QuarantineRecord>[] 
               : `Vencido por ${Math.abs(risk.remaining ?? 0)} días`}
           </span>
         </div>
-      )
+      );
     },
   },
 
   {
-    accessorKey: 'status',
+    accessorKey: "status",
     size: 170,
 
     header: ({ column }) => (
@@ -296,19 +330,23 @@ export const getColumns = (legalDays: number): AppColumnDef<QuarantineRecord>[] 
     ),
 
     cell: ({ row }) => {
-      const status = row.original.status
+      const status = row.original.status;
 
-      const isOpen = status === 'OPEN'
-      const isPending = status === 'PENDING_REINSPECTION'
+      const isOpen = status === "OPEN";
+      const isPending = status === "PENDING_REINSPECTION";
 
       return (
         <div className="flex w-full justify-center">
           <Badge
             className={cn(
-              'gap-1 whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-xs transition-colors duration-150',
-              isOpen && 'border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300',
-              isPending && 'border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300',
-              !isOpen && !isPending && 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
+              "gap-1 whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-xs transition-colors duration-150",
+              isOpen &&
+                "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300",
+              isPending &&
+                "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300",
+              !isOpen &&
+                !isPending &&
+                "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
             )}
           >
             {isOpen ? (
@@ -329,12 +367,12 @@ export const getColumns = (legalDays: number): AppColumnDef<QuarantineRecord>[] 
             )}
           </Badge>
         </div>
-      )
+      );
     },
   },
 
   {
-    id: 'actions',
+    id: "actions",
     size: 150,
 
     header: () => (
@@ -344,11 +382,14 @@ export const getColumns = (legalDays: number): AppColumnDef<QuarantineRecord>[] 
     ),
 
     cell: ({ row }) => (
-      <div className="flex w-full justify-center" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="flex w-full justify-center"
+        onClick={(e) => e.stopPropagation()}
+      >
         <ResolveAction record={row.original} />
       </div>
     ),
     enableSorting: false,
     enableHiding: false,
   },
-]
+];

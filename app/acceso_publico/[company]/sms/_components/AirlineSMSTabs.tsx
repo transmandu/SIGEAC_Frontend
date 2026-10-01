@@ -107,7 +107,7 @@ export const AirlineSMSTabs = ({ company, surveyNumbers }: SMSTabsProps) => {
 
       {/* CONTENIDO PARA POLÍTICAS */}
       <TabsContent value="politicas" className="space-y-4 mt-4 sm:mt-6">
-        <Card className="min-h-[300px] sm:min-h-[400px]">
+        <Card className="min-h-75 sm:min-h-100">
           <CardHeader>
             <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
               Políticas del Sistema de Gestión de Seguridad
@@ -146,7 +146,7 @@ export const AirlineSMSTabs = ({ company, surveyNumbers }: SMSTabsProps) => {
 
       {/* CONTENIDO PARA NUESTRA EMPRESA */}
       <TabsContent value="empresa" className="space-y-4 mt-4 sm:mt-6">
-        <Card className="min-h-[300px] sm:min-h-[400px] transition-all duration-700 ease-out opacity-0 animate-fade-in">
+        <Card className="min-h-75 sm:min-h-100 transition-all duration-700 ease-out opacity-0 animate-fade-in">
           <CardHeader>
             <CardTitle className="text-lg sm:text-xl flex items-center gap-2 transition-all duration-800 ease-out opacity-0 animate-fade-in delay-100">
               Nuestra Empresa
@@ -173,7 +173,7 @@ export const AirlineSMSTabs = ({ company, surveyNumbers }: SMSTabsProps) => {
 
       {/* CONTENIDO PARA ESTRATEGIAS */}
       <TabsContent value="estrategias" className="space-y-4 mt-4 sm:mt-6">
-        <Card className="min-h-[300px] sm:min-h-[400px]">
+        <Card className="min-h-75 sm:min-h-100">
           <CardHeader>
             <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
               Estrategias de Seguridad Operacional
@@ -264,7 +264,7 @@ export const AirlineSMSTabs = ({ company, surveyNumbers }: SMSTabsProps) => {
 
       {/* CONTENIDO PARA PLAN DE RESPUESTA */}
       <TabsContent value="plan-respuesta" className="space-y-4 mt-4 sm:mt-6">
-        <Card className="min-h-[300px] sm:min-h-[400px]">
+        <Card className="min-h-75 sm:min-h-100">
           <CardHeader>
             <CardTitle className="text-sm sm:text-xl flex items-center gap-2">
               Plan de Respuesta Ante la Emergencia de {company.toUpperCase()}

@@ -41,7 +41,7 @@ import { zodResolver } from "@/lib/zod-resolver";
 import { format } from "date-fns";
 import { Loader2 } from "lucide-react";
 import { useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
 const formSchema = z.object({
@@ -74,9 +74,11 @@ const needsThirdParty = (type: FuelMovementType) =>
   type === "warehouse_dispatch_third_party";
 
 const needsDispatchPurpose = (type: FuelMovementType) =>
-  ["warehouse_dispatch_vehicle", "warehouse_dispatch_third_party", "vehicle_trip"].includes(
-    type,
-  );
+  [
+    "warehouse_dispatch_vehicle",
+    "warehouse_dispatch_third_party",
+    "vehicle_trip",
+  ].includes(type);
 
 const findVehicle = (vehicles: FuelVehicle[], id?: string) =>
   vehicles.find((vehicle) => vehicle.id.toString() === id) ?? null;
@@ -113,7 +115,14 @@ export function FuelMovementForm({
     },
   });
 
-  const selectedFuelType = form.watch("fuel_type");
+  const selectedFuelType = useWatch({
+    control: form.control,
+    name: "fuel_type",
+  });
+  const selectedVehicleId = useWatch({
+    control: form.control,
+    name: "vehicle_id",
+  });
 
   const activeVehicles = useMemo(() => {
     const active = vehicles.filter((vehicle) => vehicle.status === "active");
@@ -123,7 +132,7 @@ export function FuelMovementForm({
     return active;
   }, [vehicles, type, selectedFuelType]);
 
-  const selectedVehicle = findVehicle(activeVehicles, form.watch("vehicle_id"));
+  const selectedVehicle = findVehicle(activeVehicles, selectedVehicleId);
 
   const validateMovement = (values: FormValues) => {
     if (needsVehicle(type, values.fuel_type) && !values.vehicle_id) {
@@ -132,7 +141,9 @@ export function FuelMovementForm({
     }
 
     if (needsThirdParty(type) && !values.third_party_id) {
-      form.setError("third_party_id", { message: "Debe seleccionar un tercero" });
+      form.setError("third_party_id", {
+        message: "Debe seleccionar un tercero",
+      });
       return false;
     }
 
@@ -145,9 +156,10 @@ export function FuelMovementForm({
 
     if (needsDispatchPurpose(type) && !values.dispatch_purpose?.trim()) {
       form.setError("dispatch_purpose", {
-        message: type === "vehicle_trip"
-          ? "Debe indicar el destino o motivo del recorrido"
-          : "Debe indicar para que fue realizado el despacho",
+        message:
+          type === "vehicle_trip"
+            ? "Debe indicar el destino o motivo del recorrido"
+            : "Debe indicar para que fue realizado el despacho",
       });
       return false;
     }
@@ -155,7 +167,9 @@ export function FuelMovementForm({
     // In odometer mode, validate km instead of liters
     if (type === "vehicle_trip" && useOdometer) {
       if (!values.odometer_km || values.odometer_km <= 0) {
-        form.setError("odometer_km", { message: "Debe ingresar el kilometraje actual" });
+        form.setError("odometer_km", {
+          message: "Debe ingresar el kilometraje actual",
+        });
         return false;
       }
       if (selectedVehicle && !selectedVehicle.km_per_liter) {
@@ -173,7 +187,8 @@ export function FuelMovementForm({
           return false;
         }
         const distance = values.odometer_km - lastKm;
-        const estimatedLiters = Math.round((distance / selectedVehicle.km_per_liter!) * 100) / 100;
+        const estimatedLiters =
+          Math.round((distance / selectedVehicle.km_per_liter!) * 100) / 100;
         if (estimatedLiters > Number(selectedVehicle.current_balance_liters)) {
           form.setError("odometer_km", {
             message: `El consumo estimado (${formatLiters(estimatedLiters)}) supera el saldo del vehiculo (${formatLiters(selectedVehicle.current_balance_liters)})`,
@@ -213,7 +228,11 @@ export function FuelMovementForm({
     }
 
     if (
-      ["warehouse_unload", "vehicle_daily_consumption", "vehicle_trip"].includes(type) &&
+      [
+        "warehouse_unload",
+        "vehicle_daily_consumption",
+        "vehicle_trip",
+      ].includes(type) &&
       selectedVehicle &&
       values.liters > Number(selectedVehicle.current_balance_liters)
     ) {
@@ -250,7 +269,8 @@ export function FuelMovementForm({
     if (isOdometerTrip && selectedVehicle?.km_per_liter && values.odometer_km) {
       const lastKm = Number(selectedVehicle.initial_km ?? 0);
       const distance = values.odometer_km - lastKm;
-      computedLiters = Math.round((distance / selectedVehicle.km_per_liter) * 100) / 100;
+      computedLiters =
+        Math.round((distance / selectedVehicle.km_per_liter) * 100) / 100;
     }
 
     await createFuelMovement.mutateAsync({
@@ -327,7 +347,13 @@ export function FuelMovementForm({
                 <FormItem>
                   <FormLabel>Kilometraje actual</FormLabel>
                   <FormControl>
-                    <Input type="number" min="0" step="0.01" placeholder="Ej: 15320" {...field} />
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      placeholder="Ej: 15320"
+                      {...field}
+                    />
                   </FormControl>
                   {selectedVehicle?.km_per_liter ? (
                     <p className="text-xs text-muted-foreground">
@@ -424,7 +450,10 @@ export function FuelMovementForm({
                         .join(" ");
                       const colorHex = getVehicleColorHex(vehicle.color);
                       return (
-                        <SelectItem key={vehicle.id} value={vehicle.id.toString()}>
+                        <SelectItem
+                          key={vehicle.id}
+                          value={vehicle.id.toString()}
+                        >
                           <span className="inline-flex items-center gap-1.5">
                             {colorHex ? (
                               <span
@@ -447,13 +476,18 @@ export function FuelMovementForm({
                       <span
                         className="h-2 w-2 shrink-0 rounded-full border border-black/10"
                         style={{
-                          backgroundColor: getVehicleColorHex(selectedVehicle.color)!,
+                          backgroundColor: getVehicleColorHex(
+                            selectedVehicle.color,
+                          )!,
                         }}
                       />
                     ) : null}
-                    Combustible: {getFuelTypeLabel(selectedVehicle.fuel_type)} · Capacidad{" "}
+                    Combustible: {getFuelTypeLabel(selectedVehicle.fuel_type)} ·
+                    Capacidad{" "}
                     {formatLiters(selectedVehicle.tank_capacity_liters)}
-                    {selectedVehicle.color ? ` · Color: ${selectedVehicle.color}` : ""}
+                    {selectedVehicle.color
+                      ? ` · Color: ${selectedVehicle.color}`
+                      : ""}
                   </p>
                 ) : null}
                 <FormMessage />
@@ -501,7 +535,9 @@ export function FuelMovementForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  {type === "vehicle_trip" ? "Destino / Motivo" : "Finalidad del despacho"}
+                  {type === "vehicle_trip"
+                    ? "Destino / Motivo"
+                    : "Finalidad del despacho"}
                 </FormLabel>
                 <FormControl>
                   <Textarea

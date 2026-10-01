@@ -138,7 +138,7 @@ const NuevoManifiestoPage = () => {
 
           {/* Aeronave */}
           <div
-            className="flex flex-col items-center min-w-[300px]"
+            className="flex flex-col items-center min-w-75"
             data-tour="cargo-manifiestos-nuevo-aeronave"
           >
             <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1.5 block">

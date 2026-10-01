@@ -1,30 +1,53 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { FormControl, FormDescription, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Check, ChevronsUpDown, Loader2 } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { useCreateManufacturer } from "@/actions/ajustes/fabricantes/actions"
-import { useCompanyStore } from "@/stores/CompanyStore"
-import { Manufacturer } from "@/types"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  FormControl,
+  FormDescription,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useCreateManufacturer } from "@/actions/ajustes/fabricantes/actions";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { Manufacturer } from "@/types";
 
 interface ManufacturerComboboxProps {
-  value: string | undefined
-  onChange: (value: string) => void
-  manufacturers?: Manufacturer[]
-  isLoading?: boolean
-  isError?: boolean
-  label?: string
-  description?: string
-  placeholder?: string
-  filterType?: "AIRCRAFT" | "ENGINE" | "APU" | "PROPELLER" | "GENERAL" | "ALL"
-  showTypeSelector?: boolean
-  disabled?: boolean
+  value: string | undefined;
+  onChange: (value: string) => void;
+  manufacturers?: Manufacturer[];
+  isLoading?: boolean;
+  isError?: boolean;
+  label?: string;
+  description?: string;
+  placeholder?: string;
+  filterType?: "AIRCRAFT" | "ENGINE" | "APU" | "PROPELLER" | "GENERAL" | "ALL";
+  showTypeSelector?: boolean;
+  disabled?: boolean;
 }
 
 export function ManufacturerCombobox({
@@ -40,77 +63,90 @@ export function ManufacturerCombobox({
   showTypeSelector = false,
   disabled = false,
 }: ManufacturerComboboxProps) {
-  const { selectedCompany } = useCompanyStore()
-  const { createManufacturer } = useCreateManufacturer()
-  
-  const [open, setOpen] = useState(false)
-  const [searchValue, setSearchValue] = useState("")
-  const [showCreateForm, setShowCreateForm] = useState(false)
-  const [newManufacturerType, setNewManufacturerType] = useState<"ENGINE" | "APU" | "PROPELLER" | "GENERAL">("GENERAL")
-  const [newManufacturerDescription, setNewManufacturerDescription] = useState("")
+  const { selectedCompany } = useCompanyStore();
+  const { createManufacturer } = useCreateManufacturer();
+
+  const [open, setOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [newManufacturerType, setNewManufacturerType] = useState<
+    "ENGINE" | "APU" | "PROPELLER" | "GENERAL"
+  >("GENERAL");
+  const [newManufacturerDescription, setNewManufacturerDescription] =
+    useState("");
 
   // Filtrar fabricantes según el tipo
-  const filteredManufacturers = manufacturers?.filter((m) => {
-    if (filterType === "ALL") return true
-    if (filterType === "AIRCRAFT") return m.type === "AIRCRAFT"
-    
-    // Excluir fabricantes de aeronaves para partes
-    if (m.type === "AIRCRAFT") return false
-    
-    // Si se especifica un tipo de parte (ENGINE, APU, PROPELLER)
-    if (filterType === "ENGINE" || filterType === "APU" || filterType === "PROPELLER") {
-      return m.type === filterType || m.type === "GENERAL"
-    }
-    
-    // Para partes sin categoría específica, mostrar solo GENERAL
-    return m.type === "GENERAL"
-  }) || []
+  const filteredManufacturers =
+    manufacturers?.filter((m) => {
+      if (filterType === "ALL") return true;
+      if (filterType === "AIRCRAFT") return m.type === "AIRCRAFT";
+
+      // Excluir fabricantes de aeronaves para partes
+      if (m.type === "AIRCRAFT") return false;
+
+      // Si se especifica un tipo de parte (ENGINE, APU, PROPELLER)
+      if (
+        filterType === "ENGINE" ||
+        filterType === "APU" ||
+        filterType === "PROPELLER"
+      ) {
+        return m.type === filterType || m.type === "GENERAL";
+      }
+
+      // Para partes sin categoría específica, mostrar solo GENERAL
+      return m.type === "GENERAL";
+    }) || [];
 
   const handleCreate = async () => {
-    if (!searchValue.trim()) return
-    
+    if (!searchValue.trim()) return;
+
     try {
-      const manufacturerType = filterType === "AIRCRAFT" ? "AIRCRAFT" : newManufacturerType
-      
+      const manufacturerType =
+        filterType === "AIRCRAFT" ? "AIRCRAFT" : newManufacturerType;
+
       const result = await createManufacturer.mutateAsync({
         company: selectedCompany?.slug,
         data: {
           name: searchValue,
           type: manufacturerType,
-          description: newManufacturerDescription || `Fabricante ${manufacturerType}`,
-        }
-      })
-      
+          description:
+            newManufacturerDescription || `Fabricante ${manufacturerType}`,
+        },
+      });
+
       // Si el backend devuelve el ID, usarlo; de lo contrario, usar el nombre
       if (result?.id) {
-        onChange(result.id.toString())
+        onChange(result.id.toString());
       } else {
-        onChange(searchValue)
+        onChange(searchValue);
       }
-      
+
       // Cerrar y resetear
-      setOpen(false)
-      setShowCreateForm(false)
-      setSearchValue("")
-      setNewManufacturerDescription("")
-      setNewManufacturerType("GENERAL")
+      setOpen(false);
+      setShowCreateForm(false);
+      setSearchValue("");
+      setNewManufacturerDescription("");
+      setNewManufacturerType("GENERAL");
     } catch (error) {
-      console.error("Error al crear fabricante:", error)
+      console.error("Error al crear fabricante:", error);
     }
-  }
+  };
 
   return (
     <FormItem className="flex flex-col">
       <FormLabel>{label}</FormLabel>
-      <Popover open={open} onOpenChange={(isOpen) => {
-        setOpen(isOpen)
-        if (!isOpen) {
-          setShowCreateForm(false)
-          setSearchValue("")
-          setNewManufacturerDescription("")
-          setNewManufacturerType("GENERAL")
-        }
-      }}>
+      <Popover
+        open={open}
+        onOpenChange={(isOpen) => {
+          setOpen(isOpen);
+          if (!isOpen) {
+            setShowCreateForm(false);
+            setSearchValue("");
+            setNewManufacturerDescription("");
+            setNewManufacturerType("GENERAL");
+          }
+        }}
+      >
         <PopoverTrigger asChild>
           <FormControl>
             <Button
@@ -119,22 +155,23 @@ export function ManufacturerCombobox({
               role="combobox"
               className={cn(
                 "justify-between",
-                !value && "text-muted-foreground"
+                !value && "text-muted-foreground",
               )}
             >
               {isLoading && <Loader2 className="size-4 animate-spin mr-2" />}
               {value
-                ? manufacturers?.find((m) => m.id.toString() === value || m.name === value)?.name
-                : placeholder
-              }
+                ? manufacturers?.find(
+                    (m) => m.id.toString() === value || m.name === value,
+                  )?.name
+                : placeholder}
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </FormControl>
         </PopoverTrigger>
-        <PopoverContent className="w-[300px] p-0">
+        <PopoverContent className="w-75 p-0">
           <Command>
-            <CommandInput 
-              placeholder="Buscar o escribir..." 
+            <CommandInput
+              placeholder="Buscar o escribir..."
               value={searchValue}
               onValueChange={setSearchValue}
             />
@@ -161,21 +198,25 @@ export function ManufacturerCombobox({
                           Crear: &quot;{searchValue}&quot;
                         </p>
                       </div>
-                      
+
                       {showTypeSelector && filterType !== "AIRCRAFT" && (
                         <div className="space-y-2">
                           <label className="text-xs font-medium text-muted-foreground">
                             Tipo *
                           </label>
-                          <Select 
-                            value={newManufacturerType} 
-                            onValueChange={(val: "ENGINE" | "APU" | "PROPELLER" | "GENERAL") => setNewManufacturerType(val)}
+                          <Select
+                            value={newManufacturerType}
+                            onValueChange={(
+                              val: "ENGINE" | "APU" | "PROPELLER" | "GENERAL",
+                            ) => setNewManufacturerType(val)}
                           >
                             <SelectTrigger className="h-8">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="ENGINE">Plantas de Poder</SelectItem>
+                              <SelectItem value="ENGINE">
+                                Plantas de Poder
+                              </SelectItem>
                               <SelectItem value="APU">APU</SelectItem>
                               <SelectItem value="PROPELLER">Hélice</SelectItem>
                               <SelectItem value="GENERAL">General</SelectItem>
@@ -183,7 +224,7 @@ export function ManufacturerCombobox({
                           </Select>
                         </div>
                       )}
-                      
+
                       <div className="space-y-2">
                         <label className="text-xs font-medium text-muted-foreground">
                           Descripción
@@ -192,7 +233,9 @@ export function ManufacturerCombobox({
                           className="h-8"
                           placeholder="Descripción..."
                           value={newManufacturerDescription}
-                          onChange={(e) => setNewManufacturerDescription(e.target.value)}
+                          onChange={(e) =>
+                            setNewManufacturerDescription(e.target.value)
+                          }
                         />
                       </div>
 
@@ -201,9 +244,9 @@ export function ManufacturerCombobox({
                           size="sm"
                           variant="outline"
                           onClick={() => {
-                            setShowCreateForm(false)
-                            setNewManufacturerType("GENERAL")
-                            setNewManufacturerDescription("")
+                            setShowCreateForm(false);
+                            setNewManufacturerType("GENERAL");
+                            setNewManufacturerDescription("");
                           }}
                           className="flex-1"
                         >
@@ -215,7 +258,9 @@ export function ManufacturerCombobox({
                           disabled={createManufacturer.isPending}
                           className="flex-1"
                         >
-                          {createManufacturer.isPending ? "Creando..." : "Crear"}
+                          {createManufacturer.isPending
+                            ? "Creando..."
+                            : "Crear"}
                         </Button>
                       </div>
                     </div>
@@ -228,16 +273,17 @@ export function ManufacturerCombobox({
                     value={manufacturer.name}
                     key={manufacturer.id}
                     onSelect={() => {
-                      onChange(manufacturer.id.toString())
-                      setOpen(false)
+                      onChange(manufacturer.id.toString());
+                      setOpen(false);
                     }}
                   >
                     <Check
                       className={cn(
                         "mr-2 h-4 w-4",
-                        manufacturer.id.toString() === value || manufacturer.name === value
+                        manufacturer.id.toString() === value ||
+                          manufacturer.name === value
                           ? "opacity-100"
-                          : "opacity-0"
+                          : "opacity-0",
                       )}
                     />
                     {manufacturer.name}
@@ -249,12 +295,9 @@ export function ManufacturerCombobox({
         </PopoverContent>
       </Popover>
       {description && (
-        <FormDescription className="text-xs">
-          {description}
-        </FormDescription>
+        <FormDescription className="text-xs">{description}</FormDescription>
       )}
       <FormMessage />
     </FormItem>
-  )
+  );
 }
-

@@ -107,17 +107,17 @@ const UniformesPage = () => {
 
   const articleTypesColumns = useMemo(
     () => getArticleTypesColumns({ onEdit: openEditType }),
-    []
+    [],
   );
 
   const brandsColumns = useMemo(
     () => getBrandsColumns({ onEdit: openEditBrand }),
-    []
+    [],
   );
 
   const lowStockCount = useMemo(
     () => items?.filter((i) => i.is_low_stock).length ?? 0,
-    [items]
+    [items],
   );
 
   const handleExport = async () => {
@@ -126,14 +126,14 @@ const UniformesPage = () => {
       setExporting(true);
       const response = await axiosInstance.get(
         `/${company}/sms/uniforms/export`,
-        { responseType: "blob" }
+        { responseType: "blob" },
       );
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = url;
       link.setAttribute(
         "download",
-        `inventario_uniformes_${toCalendarPayload(new Date())}.xlsx`
+        `inventario_uniformes_${toCalendarPayload(new Date())}.xlsx`,
       );
       document.body.appendChild(link);
       link.click();
@@ -338,7 +338,7 @@ const UniformesPage = () => {
 
       {/* Crear artículo */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="sm:max-w-[480px]">
+        <DialogContent className="sm:max-w-120">
           <DialogHeader>
             <DialogTitle className="text-center text-xl font-bold">
               Nuevo artículo de uniforme
@@ -353,7 +353,7 @@ const UniformesPage = () => {
 
       {/* Registrar movimiento */}
       <Dialog open={movementOpen} onOpenChange={setMovementOpen}>
-        <DialogContent className="sm:max-w-[480px]">
+        <DialogContent className="sm:max-w-120">
           <DialogHeader>
             <DialogTitle className="text-center text-xl font-bold">
               Registrar movimiento
@@ -372,7 +372,7 @@ const UniformesPage = () => {
 
       {/* Editar artículo */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="sm:max-w-[420px]">
+        <DialogContent className="sm:max-w-105">
           <DialogHeader>
             <DialogTitle className="text-center text-xl font-bold">
               Editar artículo
@@ -392,7 +392,7 @@ const UniformesPage = () => {
 
       {/* Crear / editar tipo de artículo */}
       <Dialog open={typeFormOpen} onOpenChange={setTypeFormOpen}>
-        <DialogContent className="sm:max-w-[480px]">
+        <DialogContent className="sm:max-w-120">
           <DialogHeader>
             <DialogTitle className="text-center text-xl font-bold">
               {editType ? "Editar tipo de artículo" : "Nuevo tipo de artículo"}
@@ -412,7 +412,7 @@ const UniformesPage = () => {
 
       {/* Crear / editar marca */}
       <Dialog open={brandFormOpen} onOpenChange={setBrandFormOpen}>
-        <DialogContent className="sm:max-w-[420px]">
+        <DialogContent className="sm:max-w-105">
           <DialogHeader>
             <DialogTitle className="text-center text-xl font-bold">
               {editBrand ? "Editar marca" : "Nueva marca"}

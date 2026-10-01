@@ -27,7 +27,7 @@ export function DayMonthYearPicker({ date, onDateChange, className }: Props) {
         <Button
           variant="outline"
           className={cn(
-            "w-[240px] justify-start text-left font-normal bg-background",
+            "w-60 justify-start text-left font-normal bg-background",
             !date && "text-muted-foreground",
             className,
           )}

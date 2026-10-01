@@ -37,7 +37,7 @@ export function CreateConditionDialog({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[420px]">
+      <DialogContent className="sm:max-w-105">
         <DialogHeader>
           <DialogTitle data-tour="condiciones-dialog-header">
             Creación de Condicion (Articulo)

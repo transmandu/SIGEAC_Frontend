@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import { useEffect, useMemo, useState } from "react"
-import { Check, Link2, Loader2, PackagePlus } from "lucide-react"
+import { useMemo, useState } from "react";
+import { Check, Link2, Loader2, PackagePlus } from "lucide-react";
 
-import { useCreateComplementaryQuote } from "@/actions/mantenimiento/compras/cotizaciones/actions"
-import { AmountInput } from "@/components/misc/AmountInput"
-import { Button } from "@/components/ui/button"
+import { useCreateComplementaryQuote } from "@/actions/mantenimiento/compras/cotizaciones/actions";
+import { AmountInput } from "@/components/misc/AmountInput";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -13,20 +13,21 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Textarea } from "@/components/ui/textarea"
-import { cn } from "@/lib/utils"
-import type { Quote } from "@/types/purchase"
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
+import type { Quote } from "@/types/purchase";
 
 type ItemState = {
-  included: boolean
-  quantity: string
-  unitPrice: string
-}
+  included: boolean;
+  quantity: string;
+  unitPrice: string;
+};
 
-const LABEL_CLS = "select-none text-[10px] leading-none text-muted-foreground uppercase"
+const LABEL_CLS =
+  "select-none text-[10px] leading-none text-muted-foreground uppercase";
 
 /**
  * Crea una cotización complementaria sobre una cotización general APROBADA:
@@ -42,64 +43,66 @@ export default function CreateComplementaryQuoteDialog({
   onOpenChange,
   onSuccess,
 }: {
-  quote: Quote
-  company: string
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onSuccess?: () => Promise<any> | void
+  quote: Quote;
+  company: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSuccess?: () => Promise<any> | void;
 }) {
-  const { createComplementaryQuote } = useCreateComplementaryQuote()
+  const { createComplementaryQuote } = useCreateComplementaryQuote();
 
   const quotedItems = useMemo(
-    () => (quote.general_article_quote_order ?? []).filter((item) => !item.is_not_quoted),
-    [quote.general_article_quote_order]
-  )
+    () =>
+      (quote.general_article_quote_order ?? []).filter(
+        (item) => !item.is_not_quoted,
+      ),
+    [quote.general_article_quote_order],
+  );
 
-  const [justification, setJustification] = useState("")
-  const [items, setItems] = useState<Record<number, ItemState>>({})
-
-  // Precarga cada ítem con su precio unitario original apenas se abre el
-  // diálogo. No depender de que Radix invoque onOpenChange en el momento
-  // exacto del primer render evita que la card muestre "0" en Precio unit.
-  // cuando el checkbox se marca antes de que el estado se haya poblado.
-  useEffect(() => {
-    if (!open) return
-
-    setJustification("")
-    setItems(
-      Object.fromEntries(
-        quotedItems.map((item) => [
-          item.id,
-          { included: false, quantity: "", unitPrice: String(item.unit_price ?? "") },
-        ])
-      )
-    )
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open])
+  const [justification, setJustification] = useState("");
+  // Precarga cada ítem con su precio unitario original ya en el primer render
+  // — si se poblara después, marcar el checkbox antes de que el estado exista
+  // mostraría "0" en Precio unit. El call site remonta con key al abrir, así
+  // que este inicializador corre de nuevo en cada apertura.
+  const [items, setItems] = useState<Record<number, ItemState>>(() =>
+    Object.fromEntries(
+      quotedItems.map((item) => [
+        item.id,
+        {
+          included: false,
+          quantity: "",
+          unitPrice: String(item.unit_price ?? ""),
+        },
+      ]),
+    ),
+  );
 
   const setItem = (id: number, patch: Partial<ItemState>) =>
-    setItems((prev) => ({ ...prev, [id]: { ...prev[id], ...patch } }))
+    setItems((prev) => ({ ...prev, [id]: { ...prev[id], ...patch } }));
 
   const toggleItem = (id: number) =>
-    setItem(id, { included: !items[id]?.included })
+    setItem(id, { included: !items[id]?.included });
 
-  const selected = quotedItems.filter((item) => items[item.id]?.included)
+  const selected = quotedItems.filter((item) => items[item.id]?.included);
 
   const selectedValid =
     selected.length > 0 &&
     selected.every((item) => {
-      const state = items[item.id]
-      return Number(state?.quantity) > 0 && Number(state?.unitPrice) > 0
-    })
+      const state = items[item.id];
+      return Number(state?.quantity) > 0 && Number(state?.unitPrice) > 0;
+    });
 
   const total = selected.reduce((acc, item) => {
-    const state = items[item.id]
-    const qty = Number(state?.quantity) || 0
-    const price = Number(state?.unitPrice) || 0
-    return acc + qty * price
-  }, 0)
+    const state = items[item.id];
+    const qty = Number(state?.quantity) || 0;
+    const price = Number(state?.unitPrice) || 0;
+    return acc + qty * price;
+  }, 0);
 
-  const canSubmit = selectedValid && justification.trim().length > 0 && !createComplementaryQuote.isPending
+  const canSubmit =
+    selectedValid &&
+    justification.trim().length > 0 &&
+    !createComplementaryQuote.isPending;
 
   const handleSubmit = () => {
     createComplementaryQuote.mutate(
@@ -120,12 +123,12 @@ export default function CreateComplementaryQuoteDialog({
       },
       {
         onSuccess: async () => {
-          onOpenChange(false)
-          await onSuccess?.()
+          onOpenChange(false);
+          await onSuccess?.();
         },
-      }
-    )
-  }
+      },
+    );
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -133,7 +136,7 @@ export default function CreateComplementaryQuoteDialog({
         className="
           w-[95vw]
           max-w-[95vw]
-          sm:max-w-[720px]
+          sm:max-w-180
           p-0
           overflow-hidden
           max-h-[85vh]
@@ -173,8 +176,11 @@ export default function CreateComplementaryQuoteDialog({
 
               <DialogDescription className="mt-1 text-xs leading-relaxed text-muted-foreground">
                 Registra la diferencia comprada que{" "}
-                <span className="font-medium text-foreground">{quote.quote_number}</span> no amparaba.
-                Indique solo la cantidad extra por artículo, no el total recibido.
+                <span className="font-medium text-foreground">
+                  {quote.quote_number}
+                </span>{" "}
+                no amparaba. Indique solo la cantidad extra por artículo, no el
+                total recibido.
               </DialogDescription>
             </div>
           </div>
@@ -191,13 +197,18 @@ export default function CreateComplementaryQuoteDialog({
             </span>
           </div>
 
-          <ScrollArea className={cn("w-full", quotedItems.length > 3 && "h-[280px]")}>
+          <ScrollArea
+            className={cn("w-full", quotedItems.length > 3 && "h-70")}
+          >
             <div className="space-y-2 pr-1">
               {quotedItems.map((item) => {
-                const state = items[item.id]
-                const description = item.general_article_requisition_order?.description ?? "—"
-                const included = state?.included ?? false
-                const rowTotal = (Number(state?.quantity) || 0) * (Number(state?.unitPrice) || 0)
+                const state = items[item.id];
+                const description =
+                  item.general_article_requisition_order?.description ?? "—";
+                const included = state?.included ?? false;
+                const rowTotal =
+                  (Number(state?.quantity) || 0) *
+                  (Number(state?.unitPrice) || 0);
 
                 return (
                   <div
@@ -206,7 +217,7 @@ export default function CreateComplementaryQuoteDialog({
                       "rounded-lg border overflow-hidden transition-colors",
                       included
                         ? "border-primary/40 bg-primary/4"
-                        : "border-border/60 bg-background/60"
+                        : "border-border/60 bg-background/60",
                     )}
                   >
                     <button
@@ -220,7 +231,7 @@ export default function CreateComplementaryQuoteDialog({
                             "flex size-4 shrink-0 items-center justify-center rounded-sm border transition-colors",
                             included
                               ? "border-primary bg-primary text-white"
-                              : "border-muted-foreground/30"
+                              : "border-muted-foreground/30",
                           )}
                         >
                           {included && <Check className="size-3" />}
@@ -231,7 +242,8 @@ export default function CreateComplementaryQuoteDialog({
                       </div>
 
                       <span className="shrink-0 text-[11px] text-muted-foreground">
-                        Cotizado: {item.quantity} {item.unit?.label ?? ""} · ${Number(item.unit_price).toFixed(2)} c/u
+                        Cotizado: {item.quantity} {item.unit?.label ?? ""} · $
+                        {Number(item.unit_price).toFixed(2)} c/u
                       </span>
                     </button>
 
@@ -251,8 +263,11 @@ export default function CreateComplementaryQuoteDialog({
                               type="text"
                               value={state.quantity}
                               onChange={(e) => {
-                                const value = e.target.value.replace(/[^0-9.]/g, "")
-                                setItem(item.id, { quantity: value })
+                                const value = e.target.value.replace(
+                                  /[^0-9.]/g,
+                                  "",
+                                );
+                                setItem(item.id, { quantity: value });
                               }}
                               placeholder="0"
                               className="h-7 text-sm text-center"
@@ -265,7 +280,9 @@ export default function CreateComplementaryQuoteDialog({
                               key={item.id}
                               defaultValue={state.unitPrice}
                               value={state.unitPrice}
-                              onChange={(value) => setItem(item.id, { unitPrice: value ?? "" })}
+                              onChange={(value) =>
+                                setItem(item.id, { unitPrice: value ?? "" })
+                              }
                               className="h-7 text-sm"
                             />
                           </div>
@@ -273,7 +290,7 @@ export default function CreateComplementaryQuoteDialog({
                       </div>
                     )}
                   </div>
-                )
+                );
               })}
 
               {quotedItems.length === 0 && (
@@ -297,7 +314,7 @@ export default function CreateComplementaryQuoteDialog({
               value={justification}
               onChange={(e) => setJustification(e.target.value)}
               placeholder="Motivo de la diferencia..."
-              className="min-h-[72px] resize-none border bg-background/70 text-sm"
+              className="min-h-18 resize-none border bg-background/70 text-sm"
               maxLength={2000}
             />
           </div>
@@ -314,8 +331,12 @@ export default function CreateComplementaryQuoteDialog({
         >
           <div className="flex items-center gap-2 rounded-md border border-border/50 bg-background/70 px-3 py-1.5">
             <Link2 className="size-3.5 text-primary" />
-            <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Total</span>
-            <span className="font-mono text-sm font-semibold tabular-nums">${total.toFixed(2)}</span>
+            <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
+              Total
+            </span>
+            <span className="font-mono text-sm font-semibold tabular-nums">
+              ${total.toFixed(2)}
+            </span>
           </div>
 
           <div className="flex gap-2">
@@ -361,5 +382,5 @@ export default function CreateComplementaryQuoteDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

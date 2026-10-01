@@ -21,7 +21,7 @@ import { AgreementItem } from "@/components/forms/general/AgreementItem";
 import FolderSelect from "@/components/library/FolderSelect";
 
 import { zodResolver } from "@/lib/zod-resolver";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, useWatch } from "react-hook-form";
 import { z } from "zod";
 import {
   ChevronLeft,
@@ -297,6 +297,11 @@ export function CreateMeetingMinuteForm({
     remove: removeAgreement,
   } = useFieldArray({ control: form.control, name: "agreements" });
 
+  const watchedAttendees = useWatch({
+    control: form.control,
+    name: "attendees",
+  });
+
   const isPending =
     createMeetingMinute.isPending || updateMeetingMinute.isPending;
 
@@ -438,7 +443,7 @@ export function CreateMeetingMinuteForm({
                     <FormControl>
                       <Textarea
                         placeholder="Objetivo de la reunión"
-                        className="min-h-[80px]"
+                        className="min-h-20"
                         {...field}
                       />
                     </FormControl>
@@ -508,10 +513,8 @@ export function CreateMeetingMinuteForm({
               )}
 
               {attendeeFields.map((field, index) => {
-                const isExternal = form.watch(`attendees.${index}.is_external`);
-                const isAuthorized = form.watch(
-                  `attendees.${index}.is_authorized`,
-                );
+                const isExternal = watchedAttendees?.[index]?.is_external;
+                const isAuthorized = watchedAttendees?.[index]?.is_authorized;
                 return (
                   <div
                     key={field.id}

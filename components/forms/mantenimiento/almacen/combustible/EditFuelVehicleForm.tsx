@@ -20,45 +20,59 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { applyFuelValidationErrors, FUEL_PLATE_REGEX, FUEL_TYPES, FUEL_VEHICLE_TYPES, formatLiters } from "@/lib/fuel";
+import {
+  applyFuelValidationErrors,
+  FUEL_PLATE_REGEX,
+  FUEL_TYPES,
+  FUEL_VEHICLE_TYPES,
+  formatLiters,
+} from "@/lib/fuel";
 import { FuelType, FuelVehicle, FuelVehicleType } from "@/types";
 import { zodResolver } from "@/lib/zod-resolver";
 import { Loader2 } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
-const formSchema = z.object({
-  plate: z
-    .string()
-    .max(20, "Maximo 20 caracteres")
-    .optional()
-    .transform((value) => (value ? value.toUpperCase().replace(/[\s-]/g, "") : value))
-    .refine((value) => !value || FUEL_PLATE_REGEX.test(value), {
-      message: "Formato de placa invalido (ej: AB123CD, AB123C, ABC123 o A71BR6D)",
+const formSchema = z
+  .object({
+    plate: z
+      .string()
+      .max(20, "Maximo 20 caracteres")
+      .optional()
+      .transform((value) =>
+        value ? value.toUpperCase().replace(/[\s-]/g, "") : value,
+      )
+      .refine((value) => !value || FUEL_PLATE_REGEX.test(value), {
+        message:
+          "Formato de placa invalido (ej: AB123CD, AB123C, ABC123 o A71BR6D)",
+      }),
+    brand: z.string().max(100).optional(),
+    model: z.string().max(100).optional(),
+    color: z.string().max(50).optional(),
+    type: z.enum(["car", "truck", "motorcycle", "crane", "mule", "other"], {
+      error: "Debe seleccionar un tipo",
     }),
-  brand: z.string().max(100).optional(),
-  model: z.string().max(100).optional(),
-  color: z.string().max(50).optional(),
-  type: z.enum(["car", "truck", "motorcycle", "crane", "mule", "other"], {
-    error: "Debe seleccionar un tipo",
-  }),
-  type_other: z.string().max(100).optional(),
-  fuel_type: z.enum(["GASOLINE", "DIESEL"], {
-    error: "Debe seleccionar el tipo de combustible",
-  }),
-  responsible: z.string().optional(),
-  tank_capacity_liters: z.coerce
-    .number()
-    .positive("La capacidad debe ser mayor a 0"),
-  km_per_liter: z.coerce.number().min(0, "Debe ser mayor o igual a 0").optional(),
-  initial_km: z.coerce.number().min(0, "Debe ser mayor o igual a 0").optional(),
-}).refine(
-  (data) => data.type !== "other" || !!data.type_other?.trim(),
-  {
+    type_other: z.string().max(100).optional(),
+    fuel_type: z.enum(["GASOLINE", "DIESEL"], {
+      error: "Debe seleccionar el tipo de combustible",
+    }),
+    responsible: z.string().optional(),
+    tank_capacity_liters: z.coerce
+      .number()
+      .positive("La capacidad debe ser mayor a 0"),
+    km_per_liter: z.coerce
+      .number()
+      .min(0, "Debe ser mayor o igual a 0")
+      .optional(),
+    initial_km: z.coerce
+      .number()
+      .min(0, "Debe ser mayor o igual a 0")
+      .optional(),
+  })
+  .refine((data) => data.type !== "other" || !!data.type_other?.trim(), {
     message: "Debe especificar el tipo de vehiculo",
     path: ["type_other"],
-  },
-);
+  });
 
 type FormValues = z.infer<typeof formSchema>;
 
@@ -90,7 +104,7 @@ export function EditFuelVehicleForm({
     },
   });
 
-  const watchedType = form.watch("type");
+  const watchedType = useWatch({ control: form.control, name: "type" });
 
   const onSubmit = async (values: FormValues) => {
     // Guard de UI: la capacidad no puede quedar por debajo del saldo actual
@@ -214,7 +228,11 @@ export function EditFuelVehicleForm({
               <FormItem>
                 <FormLabel>Especificar tipo</FormLabel>
                 <FormControl>
-                  <Input placeholder="Ej: Montacargas" maxLength={100} {...field} />
+                  <Input
+                    placeholder="Ej: Montacargas"
+                    maxLength={100}
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

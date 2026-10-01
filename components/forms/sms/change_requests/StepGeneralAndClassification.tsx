@@ -1,4 +1,4 @@
-import { UseFormReturn } from "react-hook-form";
+import { UseFormReturn, useWatch } from "react-hook-form";
 import {
   FormControl,
   FormField,
@@ -46,6 +46,9 @@ export function StepGeneralAndClassification({
   isLoadingDepartments,
   isLoadingEmployees,
 }: StepGeneralAndClassificationProps) {
+  const isTemporary = useWatch({ control: form.control, name: "is_temporary" });
+  const changeType = useWatch({ control: form.control, name: "change_type" });
+
   const departmentOptions = departments.map((d) => ({
     value: d.id,
     label: `${d.name} (${d.acronym})`,
@@ -161,7 +164,7 @@ export function StepGeneralAndClassification({
             )}
           />
 
-          {form.watch("is_temporary") && (
+          {isTemporary && (
             <FormItem className="col-span-2">
               <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 Duración Temporal
@@ -193,7 +196,7 @@ export function StepGeneralAndClassification({
                         onValueChange={field.onChange}
                         value={field.value}
                       >
-                        <SelectTrigger className="w-[120px]">
+                        <SelectTrigger className="w-30">
                           <SelectValue placeholder="Unidad" />
                         </SelectTrigger>
                         <SelectContent>
@@ -246,7 +249,7 @@ export function StepGeneralAndClassification({
             )}
           />
 
-          {form.watch("change_type") === "other" && (
+          {changeType === "other" && (
             <FormField
               control={form.control}
               name="other_type_description"
@@ -279,7 +282,7 @@ export function StepGeneralAndClassification({
                 <FormControl>
                   <Textarea
                     placeholder="Describa el cambio solicitado..."
-                    className="min-h-[80px]"
+                    className="min-h-20"
                     {...field}
                   />
                 </FormControl>
@@ -315,7 +318,7 @@ export function StepGeneralAndClassification({
                 <FormControl>
                   <Textarea
                     placeholder="Justificación del cambio..."
-                    className="min-h-[80px]"
+                    className="min-h-20"
                     {...field}
                   />
                 </FormControl>

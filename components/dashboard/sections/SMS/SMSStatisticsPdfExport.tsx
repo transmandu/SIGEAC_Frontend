@@ -707,7 +707,7 @@ export default function SMSStatisticsPdfExport({
                 {ready ? (
                   card.render()
                 ) : (
-                  <div className="h-[280px] flex items-center justify-center">
+                  <div className="h-70 flex items-center justify-center">
                     <p className="text-sm text-slate-500">
                       {card?.isError
                         ? "No se pudieron cargar los datos."
@@ -739,7 +739,7 @@ export default function SMSStatisticsPdfExport({
                     forceLight
                   />
                 ) : (
-                  <div className="h-[280px] flex items-center justify-center">
+                  <div className="h-70 flex items-center justify-center">
                     <p className="text-sm text-slate-500">
                       {isErrorCourseStats
                         ? "No se pudieron cargar los datos."
@@ -760,7 +760,7 @@ export default function SMSStatisticsPdfExport({
                     title="Porcentaje cursos planificados y ejecutados"
                   />
                 ) : (
-                  <div className="h-[280px] flex items-center justify-center">
+                  <div className="h-70 flex items-center justify-center">
                     <p className="text-sm text-slate-500">
                       No hay datos para mostrar.
                     </p>

@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import {
   ColumnFiltersState,
@@ -17,16 +17,16 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
-import { useState } from "react"
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
 
 interface DataTableProps<TData extends RowData> {
-  columns: AppColumnDef<TData>[]
-  data: TData[]
-  totalRecords?: number
-  currentPage?: number
-  onPageChange?: (page: number) => void
+  columns: AppColumnDef<TData>[];
+  data: TData[];
+  totalRecords?: number;
+  currentPage?: number;
+  onPageChange?: (page: number) => void;
 }
 
 export function DataTable<TData extends RowData>({
@@ -39,10 +39,11 @@ export function DataTable<TData extends RowData>({
   // ============================================
   // STATE MANAGEMENT
   // ============================================
-  const [sorting, setSorting] = useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-  const [columnVisibility, setColumnVisibility] = useState<ColumnVisibilityState>({})
-  const [expanded, setExpanded] = useState<ExpandedState>({}) // {} = todas colapsadas por defecto
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] =
+    useState<ColumnVisibilityState>({});
+  const [expanded, setExpanded] = useState<ExpandedState>({}); // {} = todas colapsadas por defecto
 
   // ============================================
   // TABLE CONFIGURATION
@@ -68,7 +69,7 @@ export function DataTable<TData extends RowData>({
         pageSize: 50,
       },
     },
-  })
+  });
 
   // ============================================
   // RENDER
@@ -86,7 +87,7 @@ export function DataTable<TData extends RowData>({
                       ? null
                       : flexRender(
                           header.column.columnDef.header,
-                          header.getContext()
+                          header.getContext(),
                         )}
                   </TableHead>
                 ))}
@@ -103,14 +104,20 @@ export function DataTable<TData extends RowData>({
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
                   No hay registros de historial de vuelo.
                 </TableCell>
               </TableRow>
@@ -124,8 +131,13 @@ export function DataTable<TData extends RowData>({
         <div className="flex-1 text-sm text-muted-foreground">
           {totalRecords > 0 ? (
             <>
-              Mostrando {((currentPage - 1) * table.state.pagination.pageSize) + 1} -{" "}
-              {Math.min(currentPage * table.state.pagination.pageSize, totalRecords)} de {totalRecords} registro(s)
+              Mostrando{" "}
+              {(currentPage - 1) * table.state.pagination.pageSize + 1} -{" "}
+              {Math.min(
+                currentPage * table.state.pagination.pageSize,
+                totalRecords,
+              )}{" "}
+              de {totalRecords} registro(s)
             </>
           ) : (
             "No hay registros"
@@ -137,7 +149,7 @@ export function DataTable<TData extends RowData>({
             <select
               value={table.state.pagination.pageSize}
               onChange={(e) => table.setPageSize(Number(e.target.value))}
-              className="h-8 w-[70px] rounded-md border border-input bg-transparent px-2 py-1 text-sm"
+              className="h-8 w-17.5 rounded-md border border-input bg-transparent px-2 py-1 text-sm"
             >
               {[25, 50, 100].map((pageSize) => (
                 <option key={pageSize} value={pageSize}>
@@ -146,8 +158,9 @@ export function DataTable<TData extends RowData>({
               ))}
             </select>
           </div>
-          <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-            Página {currentPage} de {Math.ceil(totalRecords / table.state.pagination.pageSize)}
+          <div className="flex w-25 items-center justify-center text-sm font-medium">
+            Página {currentPage} de{" "}
+            {Math.ceil(totalRecords / table.state.pagination.pageSize)}
           </div>
           <div className="flex items-center space-x-2">
             <Button
@@ -162,7 +175,10 @@ export function DataTable<TData extends RowData>({
               variant="outline"
               size="sm"
               onClick={() => onPageChange?.(currentPage + 1)}
-              disabled={currentPage >= Math.ceil(totalRecords / table.state.pagination.pageSize)}
+              disabled={
+                currentPage >=
+                Math.ceil(totalRecords / table.state.pagination.pageSize)
+              }
             >
               Siguiente
             </Button>
@@ -170,6 +186,5 @@ export function DataTable<TData extends RowData>({
         </div>
       </div>
     </div>
-  )
+  );
 }
-

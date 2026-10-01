@@ -12,7 +12,7 @@ import {
 
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@/lib/zod-resolver";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
 import { useState, useEffect } from "react";
@@ -274,7 +274,10 @@ export function CreateObligatoryReportForm({
     },
   });
 
-  const selectedDocument = form.watch("document");
+  const selectedDocument = useWatch({
+    control: form.control,
+    name: "document",
+  });
 
   const onSubmit = async (data: FormSchemaType) => {
     if (isEditing && initialData && data.report_number) {
@@ -833,7 +836,7 @@ export function CreateObligatoryReportForm({
                           variant="outline"
                           role="combobox"
                           aria-expanded={open}
-                          className="w-[300px] justify-between"
+                          className="w-75 justify-between"
                         >
                           {selectedValues && selectedValues.length > 0 ? (
                             <p>({selectedValues.length}) seleccionados</p>
@@ -843,7 +846,7 @@ export function CreateObligatoryReportForm({
                           <ChevronsUpDown className="opacity-50" />
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-[300px] p-0">
+                      <PopoverContent className="w-75 p-0">
                         <Command>
                           <CommandInput placeholder="Buscar opciones..." />
                           <CommandList>

@@ -17,74 +17,74 @@ import { articleNeedsJustification } from "@/components/forms/mantenimiento/comp
 import { QuoteGeneralMetaSection } from "./_components/QuoteGeneralMetaSection";
 import { QuoteGeneralArticlesSection } from "@/components/forms/mantenimiento/compras/_components/QuoteGeneralArticlesSection";
 
-const FormSchema = z.object({
-  justification: z.string(),
-  general_articles: z.array(
-    z.object({
-      general_article_requisition_order_id: z.number().optional(),
-      description: z.string(),
-      variant_type: z.string().optional(),
-      brand_model: z.string().optional(),
-      original_brand_model: z.string().optional(),
-      retailer_id: z.string().optional(),
-      quantity: z.string().regex(/^\d+(\.\d{0,2})?$/),
-      original_quantity: z.string().optional(),
-      unit: z.string().optional(),
-      original_unit: z.string().optional(),
-      unit_price: z
-        .string()
-        .regex(/^\d+(\.\d{0,2})?$/, "Precio inválido"),
-      location_id: z.string().optional(),
-      reference: z.string().optional(),
-      lead_time_value: z.string().optional(),
-      lead_time_unit: z.string().optional(),
-      not_quoted: z.boolean().optional(),
-      quote_justification: z.string().optional(),
-    })
-  ),
-  retailer_id: z.string().optional(),
-  location_id: z.string({ message: "Debe ingresar una ubicacion destino." }),
-  quote_date: z.date({ message: "Debe ingresar una fecha de cotizacion." }),
-  observation: z.string().optional(),
-}).superRefine((data, ctx) => {
-  if (!data.retailer_id) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "Debe seleccionar un lugar de compra.",
-      path: ["retailer_id"],
-    });
-  }
+const FormSchema = z
+  .object({
+    justification: z.string(),
+    general_articles: z.array(
+      z.object({
+        general_article_requisition_order_id: z.number().optional(),
+        description: z.string(),
+        variant_type: z.string().optional(),
+        brand_model: z.string().optional(),
+        original_brand_model: z.string().optional(),
+        retailer_id: z.string().optional(),
+        quantity: z.string().regex(/^\d+(\.\d{0,2})?$/),
+        original_quantity: z.string().optional(),
+        unit: z.string().optional(),
+        original_unit: z.string().optional(),
+        unit_price: z.string().regex(/^\d+(\.\d{0,2})?$/, "Precio inválido"),
+        location_id: z.string().optional(),
+        reference: z.string().optional(),
+        lead_time_value: z.string().optional(),
+        lead_time_unit: z.string().optional(),
+        not_quoted: z.boolean().optional(),
+        quote_justification: z.string().optional(),
+      }),
+    ),
+    retailer_id: z.string().optional(),
+    location_id: z.string({ message: "Debe ingresar una ubicacion destino." }),
+    quote_date: z.date({ message: "Debe ingresar una fecha de cotizacion." }),
+    observation: z.string().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (!data.retailer_id) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Debe seleccionar un lugar de compra.",
+        path: ["retailer_id"],
+      });
+    }
 
-  data.general_articles.forEach((article, index) => {
-    if (article.not_quoted) return;
+    data.general_articles.forEach((article, index) => {
+      if (article.not_quoted) return;
 
-    const requiredFields: { key: keyof typeof article; message: string }[] = [
-      { key: "brand_model", message: "La marca/modelo es obligatoria." },
-      { key: "quantity", message: "La cantidad es obligatoria." },
-      { key: "unit", message: "La unidad es obligatoria." },
-      { key: "retailer_id", message: "El lugar de compra es obligatorio." },
-      { key: "location_id", message: "El destino es obligatorio." },
-    ];
+      const requiredFields: { key: keyof typeof article; message: string }[] = [
+        { key: "brand_model", message: "La marca/modelo es obligatoria." },
+        { key: "quantity", message: "La cantidad es obligatoria." },
+        { key: "unit", message: "La unidad es obligatoria." },
+        { key: "retailer_id", message: "El lugar de compra es obligatorio." },
+        { key: "location_id", message: "El destino es obligatorio." },
+      ];
 
-    requiredFields.forEach(({ key, message }) => {
-      if (!article[key]) {
+      requiredFields.forEach(({ key, message }) => {
+        if (!article[key]) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message,
+            path: ["general_articles", index, key],
+          });
+        }
+      });
+
+      if (!(Number(article.unit_price) > 0)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message,
-          path: ["general_articles", index, key],
+          message: "El precio debe ser mayor a 0 para artículos cotizados.",
+          path: ["general_articles", index, "unit_price"],
         });
       }
     });
-
-    if (!(Number(article.unit_price) > 0)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "El precio debe ser mayor a 0 para artículos cotizados.",
-        path: ["general_articles", index, "unit_price"],
-      });
-    }
   });
-});
 
 type FormSchemaType = z.infer<typeof FormSchema>;
 
@@ -100,34 +100,33 @@ export function CreateGeneralQuoteForm({
   const { data: retailers } = useGetRetailers(selectedCompany?.slug);
   const { createQuote } = useCreateQuote();
 
-  const {
-    mutate,
-    data: locations,
-  } = useGetLocationsByCompanyId();
+  const { mutate, data: locations } = useGetLocationsByCompanyId();
 
   useEffect(() => {
     if (selectedCompany) mutate(Number(2));
   }, [selectedCompany, mutate]);
 
-  const transformedGeneralArticles = (req.general_articles ?? []).map((article: any) => ({
-    general_article_requisition_order_id: article.id as number | undefined,
-    description: article.description,
-    variant_type: article.variant_type ?? "",
-    brand_model: "",
-    original_brand_model: "",
-    retailer_id: undefined,
-    quantity: article.quantity,
-    original_quantity: article.quantity,
-    unit: article.unit ? article.unit.id.toString() : undefined,
-    original_unit: article.unit ? article.unit.id.toString() : undefined,
-    unit_price: "0",
-    location_id: undefined,
-    reference: "",
-    lead_time_value: "",
-    lead_time_unit: "día",
-    not_quoted: false,
-    quote_justification: "",
-  }));
+  const transformedGeneralArticles = (req.general_articles ?? []).map(
+    (article: any) => ({
+      general_article_requisition_order_id: article.id as number | undefined,
+      description: article.description,
+      variant_type: article.variant_type ?? "",
+      brand_model: "",
+      original_brand_model: "",
+      retailer_id: undefined,
+      quantity: article.quantity,
+      original_quantity: article.quantity,
+      unit: article.unit ? article.unit.id.toString() : undefined,
+      original_unit: article.unit ? article.unit.id.toString() : undefined,
+      unit_price: "0",
+      location_id: undefined,
+      reference: "",
+      lead_time_value: "",
+      lead_time_unit: "día",
+      not_quoted: false,
+      quote_justification: "",
+    }),
+  );
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
@@ -138,9 +137,18 @@ export function CreateGeneralQuoteForm({
     },
   });
 
-  const generalArticles = useWatch({ control: form.control, name: "general_articles" });
-  const headerLocationId = useWatch({ control: form.control, name: "location_id" });
-  const headerRetailerId = useWatch({ control: form.control, name: "retailer_id" });
+  const generalArticles = useWatch({
+    control: form.control,
+    name: "general_articles",
+  });
+  const headerLocationId = useWatch({
+    control: form.control,
+    name: "location_id",
+  });
+  const headerRetailerId = useWatch({
+    control: form.control,
+    name: "retailer_id",
+  });
 
   // La ubicación de la cabecera baja a todos los artículos como valor por
   // defecto; cada uno sigue siendo editable después.
@@ -171,11 +179,13 @@ export function CreateGeneralQuoteForm({
         if (Number.isNaN(qty) || Number.isNaN(price)) return sum;
         return sum + qty * price;
       }, 0),
-    [generalArticles]
+    [generalArticles],
   );
 
   const onSubmit = async (data: FormSchemaType) => {
-    const quotedGeneralArticles = data.general_articles.filter((a) => !a.not_quoted);
+    const quotedGeneralArticles = data.general_articles.filter(
+      (a) => !a.not_quoted,
+    );
 
     if (quotedGeneralArticles.length === 0) {
       toast.error("Debe cotizar al menos un artículo.");
@@ -183,18 +193,20 @@ export function CreateGeneralQuoteForm({
     }
 
     const missingJustification = data.general_articles.some(
-      (a) => articleNeedsJustification(a) && !a.quote_justification?.trim()
+      (a) => articleNeedsJustification(a) && !a.quote_justification?.trim(),
     );
     if (missingJustification) {
       toast.error(
-        "Debe justificar los artículos no cotizados o con cambios en cantidad/unidad."
+        "Debe justificar los artículos no cotizados o con cambios en cantidad/unidad.",
       );
       return;
     }
 
-    if (data.general_articles.some((a) => !a.general_article_requisition_order_id)) {
+    if (
+      data.general_articles.some((a) => !a.general_article_requisition_order_id)
+    ) {
       toast.error(
-        "Uno o más artículos generales no tienen un identificador válido de la requisición. Recargue la página e intente de nuevo."
+        "Uno o más artículos generales no tienen un identificador válido de la requisición. Recargue la página e intente de nuevo.",
       );
       return;
     }
@@ -209,11 +221,14 @@ export function CreateGeneralQuoteForm({
       observation: data.observation || null,
       articles: [],
       general_articles: data.general_articles.map((a) => ({
-        general_article_requisition_order_id: a.general_article_requisition_order_id ?? 0,
+        general_article_requisition_order_id:
+          a.general_article_requisition_order_id ?? 0,
         is_not_quoted: !!a.not_quoted,
         quantity: a.not_quoted ? 0 : Number(a.quantity),
         unit_price: a.not_quoted ? 0 : Number(a.unit_price),
-        total: a.not_quoted ? 0 : (Number(a.quantity) || 0) * (Number(a.unit_price) || 0),
+        total: a.not_quoted
+          ? 0
+          : (Number(a.quantity) || 0) * (Number(a.unit_price) || 0),
         unit_id: a.unit ? Number(a.unit) : undefined,
         retailer_id: a.retailer_id ? Number(a.retailer_id) : undefined,
         location_id: a.location_id ? Number(a.location_id) : undefined,
@@ -228,18 +243,25 @@ export function CreateGeneralQuoteForm({
         quote_justification: a.quote_justification || undefined,
       })),
     };
-    await createQuote.mutateAsync({ data: formattedData, company: selectedCompany!.slug });
+    await createQuote.mutateAsync({
+      data: formattedData,
+      company: selectedCompany!.slug,
+    });
     onClose();
   };
 
   const onInvalid = () => {
-    toast.error("Hay campos obligatorios sin completar. Revise los artículos marcados con *.");
+    toast.error(
+      "Hay campos obligatorios sin completar. Revise los artículos marcados con *.",
+    );
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit, onInvalid)} className="flex flex-col gap-5">
-
+      <form
+        onSubmit={form.handleSubmit(onSubmit, onInvalid)}
+        className="flex flex-col gap-5"
+      >
         <QuoteGeneralMetaSection
           form={form}
           req={req}
@@ -257,7 +279,7 @@ export function CreateGeneralQuoteForm({
 
         {/* ── Total general ── */}
         <div className="flex justify-end pt-2 border-t border-border/60">
-          <div className="flex items-center justify-between gap-6 rounded-md bg-muted/10 px-4 py-2 border border-border/40 min-w-[200px]">
+          <div className="flex items-center justify-between gap-6 rounded-md bg-muted/10 px-4 py-2 border border-border/40 min-w-50">
             <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground whitespace-nowrap">
               Total general
             </span>
@@ -273,7 +295,7 @@ export function CreateGeneralQuoteForm({
             disabled={createQuote.isPending}
             type="submit"
             className="
-              w-[400px] h-10 rounded-lg
+              w-100 h-10 rounded-lg
               shadow-xs
               transition-colors
               flex items-center justify-center gap-2

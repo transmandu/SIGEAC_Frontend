@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { useParams } from "next/navigation";
 import {
   useGetSMSCoursesList,
@@ -82,7 +82,7 @@ export const CreateCertificateForm = ({
     register,
     handleSubmit,
     setValue,
-    watch,
+    control,
     formState: { errors },
   } = useForm({
     defaultValues: {
@@ -93,7 +93,8 @@ export const CreateCertificateForm = ({
     },
   });
 
-  const selectedDni = watch("employee_dni");
+  const selectedDni = useWatch({ control, name: "employee_dni" });
+  const selectedCourseId = useWatch({ control, name: "course_id" });
 
   const onSubmit = async (data: any) => {
     const formData = new FormData();
@@ -202,7 +203,7 @@ export const CreateCertificateForm = ({
             >
               <Command className="w-full" shouldFilter={true}>
                 <CommandInput placeholder="Buscar por nombre o DNI..." />
-                <CommandList className="max-h-[200px] overflow-y-auto overflow-x-hidden">
+                <CommandList className="max-h-50 overflow-y-auto overflow-x-hidden">
                   <CommandEmpty>No se encontraron resultados.</CommandEmpty>
                   <CommandGroup>
                     {employees?.map((emp: any) => (
@@ -254,7 +255,7 @@ export const CreateCertificateForm = ({
             <User className="h-4 w-4" />
           </div>
           <div className="text-sm">
-            <p className="text-muted-foreground text-[10px] uppercase font-bold text-blue-600 dark:text-blue-400">
+            <p className="text-blue-600 dark:text-blue-400 text-[10px] uppercase font-bold">
               Certificado para:
             </p>
             <p className="font-bold text-blue-900 dark:text-blue-100 leading-none">
@@ -268,7 +269,7 @@ export const CreateCertificateForm = ({
         <Label>Curso / Capacitación</Label>
         <Select
           onValueChange={(value) => setValue("course_id", value)}
-          defaultValue={watch("course_id")}
+          value={selectedCourseId}
           disabled={isDataLoading} // Deshabilitar mientras carga
         >
           <SelectTrigger className="w-full">
@@ -317,7 +318,7 @@ export const CreateCertificateForm = ({
             {fileName ? (
               <>
                 <FileCheck className="w-8 h-8 mb-2 text-green-500" />
-                <p className="text-xs text-green-600 dark:text-green-400 font-medium truncate max-w-[250px]">
+                <p className="text-xs text-green-600 dark:text-green-400 font-medium truncate max-w-62.5">
                   {fileName}
                 </p>
               </>
@@ -365,7 +366,7 @@ export const CreateCertificateForm = ({
         <Button
           type="submit"
           disabled={isPending || isDataLoading}
-          className="min-w-[140px]"
+          className="min-w-35"
           data-tour="cert-create-submit"
         >
           {isDataLoading ? (

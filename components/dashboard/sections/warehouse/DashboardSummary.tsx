@@ -46,8 +46,6 @@ export default function DashboardSummary({
 
   const blueTone = "37,99,235";
 
-
-
   return (
     <div className="mt-10 sm:mt-16">
       {/* ================= BIENVENIDA ================= */}
@@ -69,7 +67,6 @@ export default function DashboardSummary({
         <div className="w-full max-w-md sm:max-w-lg">
           <TintedCard tone={blueTone}>
             <CardHeader className="pb-4 text-center space-y-3 sm:space-y-4">
-
               <div className="flex justify-center">
                 <div className="p-2 sm:p-2.5 rounded-xl bg-blue-500/10 text-blue-600">
                   <BarChart3 className="h-5 w-5 sm:h-6 sm:w-6" />
@@ -83,15 +80,12 @@ export default function DashboardSummary({
               <CardDescription className="mx-auto max-w-xs sm:max-w-md text-xs sm:text-sm leading-relaxed text-slate-500 dark:text-slate-400">
                 Acceda al sistema completo de gestión de inventario aeronáutico
               </CardDescription>
-
             </CardHeader>
 
             <CardContent className="flex justify-center pb-6 sm:pb-8">
-
-              <ActionTriggerButton className="w-full sm:w-auto px-5 sm:px-6 min-w-0 sm:min-w-[220px]">
+              <ActionTriggerButton className="w-full sm:w-auto px-5 sm:px-6 min-w-0 sm:min-w-55">
                 Ver Inventario Completo
               </ActionTriggerButton>
-
             </CardContent>
           </TintedCard>
         </div>

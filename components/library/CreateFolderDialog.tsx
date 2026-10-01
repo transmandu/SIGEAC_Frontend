@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { ChevronDown, Building2 } from 'lucide-react';
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
-import libraryService, { FolderNode } from '@/lib/libraryService';
-import { toast } from 'sonner';
+import { useState, useEffect } from "react";
+import { ChevronDown, Building2 } from "lucide-react";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import libraryService, { FolderNode } from "@/lib/libraryService";
+import { toast } from "sonner";
 
 interface CreateFolderDialogProps {
   open: boolean;
@@ -19,7 +19,10 @@ interface CreateFolderDialogProps {
   onSuccess: (deptId: number) => void;
 }
 
-function findFolderByPath(nodes: FolderNode[], targetPath: string): FolderNode | undefined {
+function findFolderByPath(
+  nodes: FolderNode[],
+  targetPath: string,
+): FolderNode | undefined {
   for (const node of nodes) {
     if (node.path === targetPath) return node;
     if (node.children.length > 0) {
@@ -31,30 +34,37 @@ function findFolderByPath(nodes: FolderNode[], targetPath: string): FolderNode |
 }
 
 export default function CreateFolderDialog({
-  open, onClose, company, departmentId, departmentName, departments, folders, selectedFolderPath, isSuperUser, onSuccess
+  open,
+  onClose,
+  company,
+  departmentId,
+  departmentName,
+  departments,
+  folders,
+  selectedFolderPath,
+  isSuperUser,
+  onSuccess,
 }: CreateFolderDialogProps) {
-  const [name, setName] = useState('');
-  const [parentId, setParentId] = useState('');
-  const [selectedDeptId, setSelectedDeptId] = useState(departmentId ?? '');
+  const [name, setName] = useState("");
+  const [parentId, setParentId] = useState("");
+  const [selectedDeptId, setSelectedDeptId] = useState(departmentId ?? "");
 
   useEffect(() => {
     if (open && departmentId) setSelectedDeptId(departmentId);
   }, [open, departmentId]);
 
   useEffect(() => {
-    if (open && selectedFolderPath && selectedFolderPath !== '/') {
+    if (open && selectedFolderPath && selectedFolderPath !== "/") {
       const match = findFolderByPath(folders, selectedFolderPath);
       if (match) setParentId(match.id);
     } else {
-      setParentId('');
+      setParentId("");
     }
   }, [open, selectedFolderPath, folders]);
 
   const [loading, setLoading] = useState(false);
 
-  const availableFolders = selectedDeptId
-    ? folders
-    : [];
+  const availableFolders = selectedDeptId ? folders : [];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,29 +78,36 @@ export default function CreateFolderDialog({
         name: name.trim(),
         parent_id: parentId || undefined,
       });
-      toast.success('Carpeta creada exitosamente');
-      setName('');
-      setParentId('');
+      toast.success("Carpeta creada exitosamente");
+      setName("");
+      setParentId("");
       onSuccess(deptId);
       onClose();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Error al crear la carpeta');
+      toast.error(error.response?.data?.message || "Error al crear la carpeta");
     } finally {
       setLoading(false);
     }
   };
 
   const handleClose = () => {
-    setName('');
-    setParentId('');
+    setName("");
+    setParentId("");
     onClose();
   };
 
-  const flattenFolders = (nodes: FolderNode[], depth = 0): { id: string; name: string; label: string }[] => {
+  const flattenFolders = (
+    nodes: FolderNode[],
+    depth = 0,
+  ): { id: string; name: string; label: string }[] => {
     const result: { id: string; name: string; label: string }[] = [];
-    const prefix = '\u00A0\u00A0'.repeat(depth * 2) + (depth > 0 ? '— ' : '');
+    const prefix = "\u00A0\u00A0".repeat(depth * 2) + (depth > 0 ? "— " : "");
     for (const node of nodes) {
-      result.push({ id: node.id, name: node.name, label: `${prefix}${node.name}` });
+      result.push({
+        id: node.id,
+        name: node.name,
+        label: `${prefix}${node.name}`,
+      });
       if (node.children.length > 0) {
         result.push(...flattenFolders(node.children, depth + 1));
       }
@@ -100,7 +117,7 @@ export default function CreateFolderDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="bg-white dark:bg-[#1a1c1e] border-none text-slate-900 dark:text-white sm:max-w-[420px] rounded-2xl overflow-hidden p-0 outline-hidden shadow-2xl">
+      <DialogContent className="bg-white dark:bg-[#1a1c1e] border-none text-slate-900 dark:text-white sm:max-w-105 rounded-2xl overflow-hidden p-0 outline-hidden shadow-2xl">
         <div className="bg-slate-50 dark:bg-gray-800/40 px-6 py-5 border-b border-slate-200 dark:border-gray-700">
           <DialogTitle className="text-lg font-bold text-slate-800 dark:text-white tracking-tight uppercase">
             Nueva Carpeta
@@ -111,12 +128,16 @@ export default function CreateFolderDialog({
           onSubmit={handleSubmit}
           className="p-6 space-y-5 max-h-[65vh] overflow-y-auto"
         >
-          <div className="space-y-1.5" data-tour="biblioteca-folder-create-name">
+          <div
+            className="space-y-1.5"
+            data-tour="biblioteca-folder-create-name"
+          >
             <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-gray-400">
               Nombre de la carpeta
             </label>
             <input
-              type="text" required
+              type="text"
+              required
               className="placeholder:text-gray-400 w-full h-11 px-4 border border-slate-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-slate-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-hidden transition-all"
               placeholder="Ej. Manuales 2026"
               value={name}
@@ -127,7 +148,10 @@ export default function CreateFolderDialog({
 
           {/* Selector de departamento — solo para superusers que ven múltiples deptos */}
           {(isSuperUser || departments.length > 1) && (
-            <div className="space-y-1.5" data-tour="biblioteca-folder-create-depto">
+            <div
+              className="space-y-1.5"
+              data-tour="biblioteca-folder-create-depto"
+            >
               <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-gray-400 flex items-center gap-2">
                 <Building2 className="h-3.5 w-3.5 text-blue-500" /> Departamento
               </label>
@@ -137,9 +161,13 @@ export default function CreateFolderDialog({
                   onChange={(e) => setSelectedDeptId(e.target.value)}
                   className="w-full h-11 pl-4 pr-10 border border-slate-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-slate-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-hidden appearance-none cursor-pointer"
                 >
-                  {!departmentId && <option value="">Seleccionar departamento</option>}
-                  {departments.map(d => (
-                    <option key={d.id} value={d.id}>{d.name}</option>
+                  {!departmentId && (
+                    <option value="">Seleccionar departamento</option>
+                  )}
+                  {departments.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.name}
+                    </option>
                   ))}
                 </select>
                 <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
@@ -147,9 +175,13 @@ export default function CreateFolderDialog({
             </div>
           )}
 
-          <div className="space-y-1.5" data-tour="biblioteca-folder-create-parent">
+          <div
+            className="space-y-1.5"
+            data-tour="biblioteca-folder-create-parent"
+          >
             <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-gray-400">
-              Carpeta padre <span className="text-[10px] font-normal normal-case tracking-normal text-slate-400"></span>
+              Carpeta padre{" "}
+              <span className="text-[10px] font-normal normal-case tracking-normal text-slate-400"></span>
             </label>
             <div className="relative">
               <select
@@ -160,7 +192,9 @@ export default function CreateFolderDialog({
               >
                 <option value="">Raíz</option>
                 {flattenFolders(availableFolders).map((f) => (
-                  <option key={f.id} value={f.id}>{f.label}</option>
+                  <option key={f.id} value={f.id}>
+                    {f.label}
+                  </option>
                 ))}
               </select>
               <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
@@ -182,7 +216,7 @@ export default function CreateFolderDialog({
               disabled={loading || !name.trim() || !selectedDeptId}
               className="flex-1 px-4 py-3 text-[10px] font-black text-white bg-blue-600 rounded-xl hover:bg-blue-700 disabled:opacity-50 shadow-lg shadow-blue-500/20 uppercase tracking-widest transition-all"
             >
-              {loading ? 'CREANDO...' : 'CREAR CARPETA'}
+              {loading ? "CREANDO..." : "CREAR CARPETA"}
             </button>
           </div>
         </form>
@@ -190,6 +224,3 @@ export default function CreateFolderDialog({
     </Dialog>
   );
 }
-
-
-

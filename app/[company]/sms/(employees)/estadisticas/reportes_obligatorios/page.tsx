@@ -35,7 +35,6 @@ import MultipleBarChartComponent from "@/components/charts/MultipleBarChartCompo
 import { PieChartComponent } from "@/components/charts/PieChartComponent";
 import { Message } from "@/components/misc/Message";
 
-
 const graphicsOptions = [
   {
     id: "Todos",
@@ -221,8 +220,6 @@ const Statistics = () => {
   const shouldShow = (id: string) =>
     selectedGraphics.includes("Todos") || selectedGraphics.includes(id);
 
-
-
   return (
     <ContentLayout
       title="Gráficos Estadísticos de los Reportes (Obligatorios)"
@@ -279,7 +276,7 @@ const Statistics = () => {
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-[300px] p-0">
+              <PopoverContent className="w-75 p-0">
                 <Command>
                   <CommandInput placeholder="Buscar gráficos..." />
                   <CommandList>

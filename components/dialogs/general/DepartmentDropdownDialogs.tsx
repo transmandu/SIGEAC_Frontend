@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Department } from "@/types"
+import { useState } from "react";
+import { Department } from "@/types";
 
 import {
   Dialog,
@@ -9,39 +9,34 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 
-import {
-  Loader2,
-  Trash2,
-  Pencil,
-  AlertTriangle,
-} from "lucide-react"
+import { Loader2, Trash2, Pencil, AlertTriangle } from "lucide-react";
 
 import {
   useDeleteDepartment,
   useUpdateDepartment,
-} from "@/actions/ajustes/departamento/actions"
-import { UpdateDepartmentForm } from "@/components/forms/general/UpdateDepartmentForm"
-import { useCompanyStore } from "@/stores/CompanyStore"
+} from "@/actions/ajustes/departamento/actions";
+import { UpdateDepartmentForm } from "@/components/forms/general/UpdateDepartmentForm";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 type Props = {
-  department: Department
+  department: Department;
 
-  openEdit: boolean
-  setOpenEdit: (open: boolean) => void
+  openEdit: boolean;
+  setOpenEdit: (open: boolean) => void;
 
-  openDelete: boolean
-  setOpenDelete: (open: boolean) => void
+  openDelete: boolean;
+  setOpenDelete: (open: boolean) => void;
 
-  onSuccessUpdate?: () => void
-  onSuccessDelete?: () => void
-}
+  onSuccessUpdate?: () => void;
+  onSuccessDelete?: () => void;
+};
 
 const dialogClass =
-  "sm:max-w-3xl rounded-3xl border border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl overflow-hidden p-0"
+  "sm:max-w-3xl rounded-3xl border border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl overflow-hidden p-0";
 
 const DepartmentDropdownDialogs = ({
   department,
@@ -52,43 +47,43 @@ const DepartmentDropdownDialogs = ({
   onSuccessUpdate,
   onSuccessDelete,
 }: Props) => {
-  const { selectedCompany } = useCompanyStore()
+  const { selectedCompany } = useCompanyStore();
 
-  const { deleteDepartment } = useDeleteDepartment()
-  const { updateDepartment } = useUpdateDepartment()
+  const { deleteDepartment } = useDeleteDepartment();
+  const { updateDepartment } = useUpdateDepartment();
 
-  const [loadingDelete, setLoadingDelete] = useState(false)
-  const [loadingUpdate, setLoadingUpdate] = useState(false)
+  const [loadingDelete, setLoadingDelete] = useState(false);
+  const [loadingUpdate, setLoadingUpdate] = useState(false);
 
   /* =========================
      DELETE
   ========================= */
   const handleDelete = async () => {
-    if (!selectedCompany) return
+    if (!selectedCompany) return;
 
     try {
-      setLoadingDelete(true)
+      setLoadingDelete(true);
 
       await deleteDepartment.mutateAsync({
         id: department.id,
         company: selectedCompany.slug,
-      })
+      });
 
-      setOpenDelete(false)
-      onSuccessDelete?.()
+      setOpenDelete(false);
+      onSuccessDelete?.();
     } finally {
-      setLoadingDelete(false)
+      setLoadingDelete(false);
     }
-  }
+  };
 
   /* =========================
      UPDATE (rápido placeholder)
   ========================= */
   const handleUpdate = async () => {
-    if (!selectedCompany) return
+    if (!selectedCompany) return;
 
     try {
-      setLoadingUpdate(true)
+      setLoadingUpdate(true);
 
       await updateDepartment.mutateAsync({
         id: department.id,
@@ -96,62 +91,62 @@ const DepartmentDropdownDialogs = ({
         name: department.name,
         email: department.email,
         company: selectedCompany.slug,
-      })
+      });
 
-      setOpenEdit(false)
-      onSuccessUpdate?.()
+      setOpenEdit(false);
+      onSuccessUpdate?.();
     } finally {
-      setLoadingUpdate(false)
+      setLoadingUpdate(false);
     }
-  }
+  };
 
   return (
     <>
       {/* =========================
           EDIT
       ========================= */}
-    <Dialog open={openEdit} onOpenChange={setOpenEdit}>
-    <DialogContent className={dialogClass}>
-        <DialogHeader
-        className="
+      <Dialog open={openEdit} onOpenChange={setOpenEdit}>
+        <DialogContent className={dialogClass}>
+          <DialogHeader
+            className="
             border-b border-border/40
             bg-muted/20
             px-8 pt-8 pb-6
             text-left
         "
-        >
-        <div className="flex items-start gap-4">
-            <div className="flex items-center justify-center size-14 rounded-2xl bg-blue-500/8 border border-blue-500/10">
-            <Pencil className="size-6 text-blue-600" />
+          >
+            <div className="flex items-start gap-4">
+              <div className="flex items-center justify-center size-14 rounded-2xl bg-blue-500/8 border border-blue-500/10">
+                <Pencil className="size-6 text-blue-600" />
+              </div>
+
+              <div className="space-y-2">
+                <DialogTitle className="text-2xl font-semibold">
+                  Editar departamento
+                </DialogTitle>
+
+                <DialogDescription className="text-sm text-muted-foreground">
+                  Edita el departamento{" "}
+                  <span className="font-medium text-foreground">
+                    {department.name}
+                  </span>
+                </DialogDescription>
+              </div>
             </div>
+          </DialogHeader>
 
-            <div className="space-y-2">
-            <DialogTitle className="text-2xl font-semibold">
-                Editar departamento
-            </DialogTitle>
-
-            <DialogDescription className="text-sm text-muted-foreground">
-                Edita el departamento{" "}
-                <span className="font-medium text-foreground">
-                {department.name}
-                </span>
-            </DialogDescription>
-            </div>
-        </div>
-        </DialogHeader>
-
-        <div className="px-8 py-6">
-        <UpdateDepartmentForm
-            department={department}
-            onClose={() => setOpenEdit(false)}
-            onSuccess={() => {
-            setOpenEdit(false)
-            onSuccessUpdate?.()
-            }}
-        />
-        </div>
-    </DialogContent>
-    </Dialog>
+          <div className="px-8 py-6">
+            <UpdateDepartmentForm
+              department={department}
+              onClose={() => setOpenEdit(false)}
+              onSuccess={() => {
+                setOpenEdit(false);
+                onSuccessUpdate?.();
+              }}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* =========================
           DELETE
@@ -177,15 +172,12 @@ const DepartmentDropdownDialogs = ({
           </DialogHeader>
 
           <div className="mx-6 mt-4 p-3 rounded-xl border border-red-500/20 bg-red-500/5 text-sm text-red-600 flex gap-2">
-            <AlertTriangle className="size-4 mt-[2px]" />
+            <AlertTriangle className="size-4 mt-0.5" />
             Esta acción no se puede deshacer.
           </div>
 
           <div className="px-6 pb-6 pt-5 flex justify-end gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setOpenDelete(false)}
-            >
+            <Button variant="outline" onClick={() => setOpenDelete(false)}>
               Cancelar
             </Button>
 
@@ -203,7 +195,7 @@ const DepartmentDropdownDialogs = ({
         </DialogContent>
       </Dialog>
     </>
-  )
-}
+  );
+};
 
-export default DepartmentDropdownDialogs
+export default DepartmentDropdownDialogs;

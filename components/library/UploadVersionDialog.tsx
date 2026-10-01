@@ -201,7 +201,7 @@ export const UploadVersionDialog = ({
                       : "Agrega un Nuevo Archivo"}
                 </p>
                 {selectedFile && !isDragging && (
-                  <p className="text-[10px] text-slate-400 truncate max-w-[250px] font-medium">
+                  <p className="text-[10px] text-slate-400 truncate max-w-62.5 font-medium">
                     {selectedFile.name}
                   </p>
                 )}

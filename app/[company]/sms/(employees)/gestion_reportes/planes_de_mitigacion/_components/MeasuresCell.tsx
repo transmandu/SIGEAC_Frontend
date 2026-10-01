@@ -37,11 +37,7 @@ export const MeasuresCell = ({ measures, planId }: MeasuresCellProps) => {
     <div className="flex justify-center">
       <Dialog>
         <DialogTrigger asChild>
-          <Button
-            variant="outline"
-            size="sm"
-            className="min-w-[100px] md:min-w-[120px]"
-          >
+          <Button variant="outline" size="sm" className="min-w-25 md:min-w-30">
             <span className="flex items-center gap-1 md:gap-2">
               <span className="h-2 w-2 rounded-full bg-green-500" />
               <span className="hidden sm:inline">

@@ -50,7 +50,7 @@ export function CreateVendorDialog({
         </ActionTriggerButton>
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-[560px] p-0 overflow-hidden rounded-3xl border border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl">
+      <DialogContent className="sm:max-w-140 p-0 overflow-hidden rounded-3xl border border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl">
         <div
           className="relative px-6 pt-8 pb-5 bg-linear-to-br from-blue-500/5 via-background to-background"
           data-tour="proveedores-dialog-header"

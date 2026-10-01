@@ -57,7 +57,7 @@ import {
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
 const manualWorkOrderSchema = z.object({
@@ -406,10 +406,18 @@ const NonServiceWorkOrderForm = () => {
     );
   };
 
-  const selectedAircraftData = useMemo(() => {
-    const currentId = form.watch("aircraft_id");
-    return aircrafts?.find((aircraft) => aircraft.id.toString() === currentId);
-  }, [aircrafts, form]);
+  const selectedAircraftId = useWatch({
+    control: form.control,
+    name: "aircraft_id",
+  });
+
+  const selectedAircraftData = useMemo(
+    () =>
+      aircrafts?.find(
+        (aircraft) => aircraft.id.toString() === selectedAircraftId,
+      ),
+    [aircrafts, selectedAircraftId],
+  );
 
   return (
     <div className="space-y-6">
@@ -527,10 +535,7 @@ const NonServiceWorkOrderForm = () => {
                 control={form.control}
                 name="authorizing"
                 render={({ field }) => {
-                  const selected = aircrafts?.find(
-                    (aircraft) =>
-                      aircraft.id.toString() === form.watch("aircraft_id"),
-                  );
+                  const selected = selectedAircraftData;
 
                   return (
                     <FormItem>
@@ -715,7 +720,7 @@ const NonServiceWorkOrderForm = () => {
               </Button>
 
               <ScrollArea
-                className={cn("flex", tasks.length > 1 ? "h-[550px]" : "")}
+                className={cn("flex", tasks.length > 1 ? "h-137.5" : "")}
               >
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   {tasks.map((task) => (

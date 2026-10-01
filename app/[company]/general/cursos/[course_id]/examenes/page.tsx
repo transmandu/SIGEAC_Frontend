@@ -301,7 +301,7 @@ const ManageExamsPage = () => {
                   value={selectedExamId}
                   onValueChange={setSelectedExamId}
                 >
-                  <SelectTrigger className="w-full md:w-[400px]">
+                  <SelectTrigger className="w-full md:w-100">
                     <SelectValue placeholder="Seleccionar Examen" />
                   </SelectTrigger>
                   <SelectContent>

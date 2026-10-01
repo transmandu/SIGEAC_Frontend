@@ -97,7 +97,7 @@ export const columns: AppColumnDef<ChangeRequest>[] = [
     ),
     meta: { title: "Descripción" },
     cell: ({ row }) => (
-      <div className="max-w-[200px] truncate text-center">
+      <div className="max-w-50 truncate text-center">
         {row.original.description}
       </div>
     ),

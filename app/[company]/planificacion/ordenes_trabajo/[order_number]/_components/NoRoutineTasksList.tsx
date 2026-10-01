@@ -117,7 +117,7 @@ export const NonRoutineTasksList = ({ tasks }: NonRoutineTasksListProps) => {
                           <Badge
                             className={cn(
                               "ml-2",
-                              mainTask.status === "OPEN" ? "" : "bg-red-500"
+                              mainTask.status === "OPEN" ? "" : "bg-red-500",
                             )}
                           >
                             {workOrderStatusLabelEsUpper(nonRoutine.status)}
@@ -160,9 +160,7 @@ export const NonRoutineTasksList = ({ tasks }: NonRoutineTasksListProps) => {
                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {subtasks.map((subtask, index) => (
                               <TaskCard
-                              index={
-                                index
-                              }
+                                index={index}
                                 task={subtask}
                                 key={subtask.id}
                                 onClick={() =>
@@ -187,13 +185,13 @@ export const NonRoutineTasksList = ({ tasks }: NonRoutineTasksListProps) => {
             <TableHeader>
               <TableRow>
                 {/* Nueva columna para el botón de expansión */}
-                <TableHead className="w-[50px]"></TableHead>
-                <TableHead className="min-w-[300px]">Descripción</TableHead>
-                <TableHead className="w-[100px]">ATA</TableHead>
-                <TableHead className="w-[120px]">Origen</TableHead>
-                <TableHead className="min-w-[200px]">Acción</TableHead>
-                <TableHead className="w-[100px]">Estado</TableHead>
-                <TableHead className="w-[120px]">Tareas</TableHead>
+                <TableHead className="w-12.5"></TableHead>
+                <TableHead className="min-w-75">Descripción</TableHead>
+                <TableHead className="w-25">ATA</TableHead>
+                <TableHead className="w-30">Origen</TableHead>
+                <TableHead className="min-w-50">Acción</TableHead>
+                <TableHead className="w-25">Estado</TableHead>
+                <TableHead className="w-30">Tareas</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -232,15 +230,13 @@ export const NonRoutineTasksList = ({ tasks }: NonRoutineTasksListProps) => {
                       </TableCell>
                       <TableCell>{nonRoutine.ata}</TableCell>
                       <TableCell>{taskOrigin}</TableCell>
-                      <TableCell className="max-w-[200px] truncate">
+                      <TableCell className="max-w-50 truncate">
                         {nonRoutine.action || "N/A"}
                       </TableCell>
                       <TableCell>
                         <Badge
                           variant={
-                            mainTask.status === "OPEN"
-                              ? "default"
-                              : "secondary"
+                            mainTask.status === "OPEN" ? "default" : "secondary"
                           }
                         >
                           {workOrderStatusLabelEsUpper(mainTask.status)}aa
@@ -300,6 +296,7 @@ export const NonRoutineTasksList = ({ tasks }: NonRoutineTasksListProps) => {
         </div>
       )}
       <TaskDetailsDialog
+        key={selectedTask?.id}
         selectedTask={selectedTask!}
         open={isDetailsOpen}
         onOpenChange={setIsDetailsOpen}

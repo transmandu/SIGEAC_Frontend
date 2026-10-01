@@ -208,7 +208,7 @@ function FolderNodeRow({
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 align="start"
-                className="min-w-[140px] bg-white dark:bg-[#1a1c1e] border-slate-200 dark:border-gray-700"
+                className="min-w-35 bg-white dark:bg-[#1a1c1e] border-slate-200 dark:border-gray-700"
               >
                 <div className="" data-tour="biblioteca-folder-rename">
                   <DropdownMenuItem

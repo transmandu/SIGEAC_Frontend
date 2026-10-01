@@ -1,46 +1,44 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Plane } from 'lucide-react'
-import { useCompanyStore } from "@/stores/CompanyStore"
-import Image from 'next/image'
-import loadingGif from "@/public/loading2.gif"
-import { useAuth } from '@/contexts/AuthContext'
-import { motion, AnimatePresence } from 'motion/react'
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Plane } from "lucide-react";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import Image from "next/image";
+import loadingGif from "@/public/loading2.gif";
+import { useAuth } from "@/contexts/AuthContext";
+import { motion, AnimatePresence } from "motion/react";
 
 export default function NotFound() {
-  const { selectedCompany } = useCompanyStore()
-  const { user } = useAuth()
+  const { selectedCompany } = useCompanyStore();
+  const { user } = useAuth();
 
-  const [isRedirecting, setIsRedirecting] = useState(false)
-  const router = useRouter()
+  const [isRedirecting, setIsRedirecting] = useState(false);
+  const router = useRouter();
 
   const handleRedirect = () => {
-    if (isRedirecting) return
+    if (isRedirecting) return;
 
     if (!user) {
-      router.push('/login')
-      return
+      router.push("/login");
+      return;
     }
 
-    setIsRedirecting(true)
-    router.push(`/${selectedCompany?.slug}/dashboard`)
-  }
+    setIsRedirecting(true);
+    router.push(`/${selectedCompany?.slug}/dashboard`);
+  };
 
   return (
     <div className="relative min-h-dvh w-dvw flex items-center justify-center overflow-hidden bg-background select-none">
-
       <div className="absolute inset-0 bg-linear-to-b from-sky-500/15 via-transparent to-background dark:from-sky-400/10" />
       <div className="absolute inset-0 opacity-[0.08] bg-[radial-gradient(circle_at_20%_10%,black,transparent_45%),radial-gradient(circle_at_80%_60%,black,transparent_50%)] dark:opacity-[0.12]" />
 
       <motion.div
         initial={{ opacity: 0, y: 18 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: 'easeOut' }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
         className="relative flex flex-col items-center text-center max-w-3xl px-6 sm:px-8"
       >
-
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -85,8 +83,8 @@ export default function NotFound() {
           </h2>
 
           <p className="text-base text-muted-foreground leading-relaxed max-w-xl mx-auto">
-            La ruta que intentas acceder no existe o fue movida.
-            Revisa la URL o vuelve al panel principal para continuar.
+            La ruta que intentas acceder no existe o fue movida. Revisa la URL o
+            vuelve al panel principal para continuar.
           </p>
         </motion.div>
 
@@ -95,7 +93,7 @@ export default function NotFound() {
           disabled={isRedirecting}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          className="group relative inline-flex h-14 min-w-[220px] items-center justify-center overflow-hidden rounded-xl bg-foreground px-8 py-4 text-base font-medium text-background transition-all duration-300 disabled:pointer-events-none disabled:opacity-80"
+          className="group relative inline-flex h-14 min-w-55 items-center justify-center overflow-hidden rounded-xl bg-foreground px-8 py-4 text-base font-medium text-background transition-all duration-300 disabled:pointer-events-none disabled:opacity-80"
         >
           <div className="absolute inset-0 rounded-xl bg-foreground opacity-0 blur-md transition group-hover:opacity-10" />
 
@@ -129,8 +127,7 @@ export default function NotFound() {
             )}
           </AnimatePresence>
         </motion.button>
-
       </motion.div>
     </div>
-  )
+  );
 }

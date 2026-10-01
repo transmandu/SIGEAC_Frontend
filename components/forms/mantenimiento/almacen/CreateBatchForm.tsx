@@ -69,15 +69,11 @@ const requiresUnidadAndWarehouseRestrictions = (category: string) => {
 // Función para determinar si una categoría requiere almacén aeronáutico
 const requiresAeronauticWarehouse = (category: string) => {
   return (
-    category === CATEGORY_VALUES.COMPONENT ||
-    category === CATEGORY_VALUES.PART
+    category === CATEGORY_VALUES.COMPONENT || category === CATEGORY_VALUES.PART
   );
 };
 
-const COMPONENT_PART_GROUP = [
-  CATEGORY_VALUES.COMPONENT,
-  CATEGORY_VALUES.PART,
-];
+const COMPONENT_PART_GROUP = [CATEGORY_VALUES.COMPONENT, CATEGORY_VALUES.PART];
 const isComponentOrPart = (category?: string) =>
   COMPONENT_PART_GROUP.includes(category as any);
 
@@ -95,7 +91,9 @@ const FormSchema = z
   .object({
     name: z.string().min(3, { message: "Debe introducir un nombre válido." }),
     description: z.string().optional(),
-    category: z.string({ message: "Debe ingresar una categoria para el lote." }),
+    category: z.string({
+      message: "Debe ingresar una categoria para el lote.",
+    }),
     alternative_part_number: z.string().optional(),
     // ata_code: z.string().optional(),
     is_hazardous: z.boolean().optional(),
@@ -151,23 +149,23 @@ export function CreateBatchForm({
   const { createBatch } = useCreateBatch();
   const { updateBatch } = useUpdateBatch();
 
-const form = useForm<FormSchemaType>({
-  resolver: zodResolver(FormSchema),
-  defaultValues: {
-    is_hazardous: initialData?.is_hazardous || false,
-    category: initialData?.category
-      ? getValueFromLabel(initialData.category)
-      : defaultCategory || "",
-    name: initialData?.name || "",
-    description: initialData?.description || "",
-    // ata_code: initialData?.ata_code || "",
-    // medition_unit: initialData?.unit?.value?.toString() || "",
-    warehouse_id: initialData?.warehouse_id?.toString() || "",
-    // `undefined` y no 0: son opcionales, y un mínimo en 0 nunca alertaría.
-    min_quantity: initialData?.min_quantity ?? undefined,
-    maximum_quantity: initialData?.maximum_quantity ?? undefined,
-  },
-});
+  const form = useForm<FormSchemaType>({
+    resolver: zodResolver(FormSchema),
+    defaultValues: {
+      is_hazardous: initialData?.is_hazardous || false,
+      category: initialData?.category
+        ? getValueFromLabel(initialData.category)
+        : defaultCategory || "",
+      name: initialData?.name || "",
+      description: initialData?.description || "",
+      // ata_code: initialData?.ata_code || "",
+      // medition_unit: initialData?.unit?.value?.toString() || "",
+      warehouse_id: initialData?.warehouse_id?.toString() || "",
+      // `undefined` y no 0: son opcionales, y un mínimo en 0 nunca alertaría.
+      min_quantity: initialData?.min_quantity ?? undefined,
+      maximum_quantity: initialData?.maximum_quantity ?? undefined,
+    },
+  });
 
   const { control, setError, clearErrors, setValue } = form;
   const name = useWatch({ control, name: "name" });
@@ -219,7 +217,10 @@ const form = useForm<FormSchemaType>({
   }, [category, warehouses, isLoading, form]);
 
   useEffect(() => {
-    if (isNameDuplicate && !(isEditing && initialData?.name === form.getValues("name"))) {
+    if (
+      isNameDuplicate &&
+      !(isEditing && initialData?.name === form.getValues("name"))
+    ) {
       setError("name", {
         type: "manual",
         message: "El numero de parte ya existe en esta categoría.",
@@ -227,7 +228,14 @@ const form = useForm<FormSchemaType>({
     } else {
       clearErrors("name");
     }
-  }, [isNameDuplicate, setError, clearErrors, form, initialData?.name, isEditing]);
+  }, [
+    isNameDuplicate,
+    setError,
+    clearErrors,
+    form,
+    initialData?.name,
+    isEditing,
+  ]);
 
   const onSubmit = async (data: FormSchemaType) => {
     if (isSubmitting) return; // bloquea clicks múltiples
@@ -293,7 +301,7 @@ const form = useForm<FormSchemaType>({
             control={form.control}
             name="category"
             render={({ field }) => (
-              <FormItem className="w-[240px]">
+              <FormItem className="w-60">
                 <FormLabel>Categoria del Renglón</FormLabel>
                 <Select
                   onValueChange={field.onChange}
@@ -574,7 +582,7 @@ const form = useForm<FormSchemaType>({
         </Button>
       </form>
       {/* <Dialog open={isUnitDialogOpen} onOpenChange={setIsUnitDialogOpen}>
-        <DialogContent className="sm:max-w-[420px]">
+        <DialogContent className="sm:max-w-105">
           <DialogHeader>
             <DialogTitle>Crear Unidad Primaria</DialogTitle>
             <DialogDescription>

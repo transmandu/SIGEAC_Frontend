@@ -170,7 +170,9 @@ export default function ShareRequestsPanel({
     // Sin el SVG en pantalla no hay QR que exportar: antes se descargaba un
     // PNG en blanco de 1x1 y el usuario se quedaba con un archivo inservible.
     if (!svg) {
-      toast.error("No se pudo generar la imagen del QR. Abre el detalle e inténtalo de nuevo.");
+      toast.error(
+        "No se pudo generar la imagen del QR. Abre el detalle e inténtalo de nuevo.",
+      );
       return;
     }
     const svgData = new XMLSerializer().serializeToString(svg);
@@ -506,7 +508,7 @@ export default function ShareRequestsPanel({
         open={!!selectedDetails}
         onOpenChange={() => setSelectedDetails(null)}
       >
-        <DialogContent className="bg-white dark:bg-[#1a1c1e] border-none text-slate-900 dark:text-white sm:max-w-[480px] rounded-2xl overflow-hidden p-0 outline-hidden shadow-2xl z-100!">
+        <DialogContent className="bg-white dark:bg-[#1a1c1e] border-none text-slate-900 dark:text-white sm:max-w-120 rounded-2xl overflow-hidden p-0 outline-hidden shadow-2xl z-100!">
           <div className="bg-slate-50 dark:bg-slate-800/50 px-6 py-5 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
             <div className="flex items-center gap-2">
               <DialogTitle className="text-lg font-bold text-slate-800 dark:text-white tracking-tight uppercase">

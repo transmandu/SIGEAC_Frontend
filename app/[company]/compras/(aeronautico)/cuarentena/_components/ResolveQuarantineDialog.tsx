@@ -1,27 +1,28 @@
-'use client'
+"use client";
 
 import {
   assertCanSendToReinspection,
   useSendToReinspection,
-} from '@/actions/mantenimiento/control_calidad/cuarentena/actions'
-import RegisterArticleForm from '@/components/forms/mantenimiento/almacen/RegisterArticleForm'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+} from "@/actions/mantenimiento/control_calidad/cuarentena/actions";
+import RegisterArticleForm from "@/components/forms/mantenimiento/almacen/RegisterArticleForm";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { useGetArticleById } from '@/hooks/mantenimiento/almacen/articulos/useGetArticleById'
-import { cn } from '@/lib/utils'
-import { formatQuarantineDate } from '@/lib/warehouse/quarantine'
-import { useCompanyStore } from '@/stores/CompanyStore'
-import type { QuarantineRecord } from '@/types/quarantine'
-import { useQueryClient } from '@tanstack/react-query'
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import CopyPartNumberButton from "@/components/misc/CopyPartNumberButton";
+import { useGetArticleById } from "@/hooks/mantenimiento/almacen/articulos/useGetArticleById";
+import { cn } from "@/lib/utils";
+import { formatQuarantineDate } from "@/lib/warehouse/quarantine";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import type { QuarantineRecord } from "@/types/quarantine";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   AlertTriangle,
   CalendarClock,
@@ -30,16 +31,16 @@ import {
   SendHorizonal,
   ShieldX,
   User,
-} from 'lucide-react'
-import { useCallback, useRef, useState } from 'react'
-import { toast } from 'sonner'
+} from "lucide-react";
+import { useCallback, useRef, useState } from "react";
+import { toast } from "sonner";
 
-const MIN_NOTES_LENGTH = 5
+const MIN_NOTES_LENGTH = 5;
 
 interface Props {
-  record: QuarantineRecord
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  record: QuarantineRecord;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 /**
@@ -50,61 +51,67 @@ interface Props {
  * footer del diálogo, fuera del área que se desplaza.
  */
 export function ResolveQuarantineDialog({ record, open, onOpenChange }: Props) {
-  const { selectedCompany } = useCompanyStore()
-  const queryClient = useQueryClient()
-  const { sendToReinspection } = useSendToReinspection()
+  const { selectedCompany } = useCompanyStore();
+  const queryClient = useQueryClient();
+  const { sendToReinspection } = useSendToReinspection();
 
-  const [notes, setNotes] = useState('')
+  const [notes, setNotes] = useState("");
   /**
    * Estado del formulario embebido, elevado hasta aquí: el botón está fuera de
    * él y necesita saber si hay algo que guardar y si está ocupado.
    */
-  const [formState, setFormState] = useState({ busy: false, canSave: false })
+  const [formState, setFormState] = useState({ busy: false, canSave: false });
   /**
    * El artículo ya se guardó pero el pase falló: el reintento no debe volver a
    * guardar (los cambios ya están) ni cerrar como si se hubiera perdido todo.
    */
-  const [articleSaved, setArticleSaved] = useState(false)
-  const [checkingEligibility, setCheckingEligibility] = useState(false)
-  const scrollRef = useRef<HTMLDivElement>(null)
+  const [articleSaved, setArticleSaved] = useState(false);
+  const [checkingEligibility, setCheckingEligibility] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   // Estable entre renders y sin re-render si el estado no cambió: el formulario
   // la usa como dependencia de efecto.
-  const handleFormState = useCallback((next: { busy: boolean; canSave: boolean }) => {
-    setFormState((prev) =>
-      prev.busy === next.busy && prev.canSave === next.canSave ? prev : next,
-    )
-  }, [])
+  const handleFormState = useCallback(
+    (next: { busy: boolean; canSave: boolean }) => {
+      setFormState((prev) =>
+        prev.busy === next.busy && prev.canSave === next.canSave ? prev : next,
+      );
+    },
+    [],
+  );
 
   const { data: article, isLoading } = useGetArticleById(
-    open ? String(record.article_id) : '',
+    open ? String(record.article_id) : "",
     selectedCompany?.slug,
-  )
+  );
 
-  const notesAreValid = notes.trim().length >= MIN_NOTES_LENGTH
-  const sending = sendToReinspection.isPending
-  const busy = formState.busy || sending || checkingEligibility
+  const notesAreValid = notes.trim().length >= MIN_NOTES_LENGTH;
+  const sending = sendToReinspection.isPending;
+  const busy = formState.busy || sending || checkingEligibility;
 
-  const cycles = record.cycles ?? []
-  const currentCycle = cycles.length > 0
-    ? cycles.reduce((latest, cycle) => (cycle.cycle_number > latest.cycle_number ? cycle : latest))
-    : null
+  const cycles = record.cycles ?? [];
+  const currentCycle =
+    cycles.length > 0
+      ? cycles.reduce((latest, cycle) =>
+          cycle.cycle_number > latest.cycle_number ? cycle : latest,
+        )
+      : null;
 
   const close = () => {
-    setNotes('')
-    setFormState({ busy: false, canSave: false })
-    setArticleSaved(false)
-    onOpenChange(false)
-  }
+    setNotes("");
+    setFormState({ busy: false, canSave: false });
+    setArticleSaved(false);
+    onOpenChange(false);
+  };
 
   const sendToQuality = async () => {
     await sendToReinspection.mutateAsync({
       id: record.id,
       resolution_notes: notes.trim(),
-    })
+    });
 
-    close()
-  }
+    close();
+  };
 
   /**
    * El formulario guardó; se continúa con el pase. Si el pase falla, el diálogo
@@ -112,13 +119,15 @@ export function ResolveQuarantineDialog({ record, open, onOpenChange }: Props) {
    * entender que se perdió, y el reintento solo repite el pase.
    */
   const handleArticleSaved = async () => {
-    queryClient.invalidateQueries({ queryKey: ['article', String(record.article_id)] })
-    queryClient.invalidateQueries({ queryKey: ['quarantine-articles'] })
+    queryClient.invalidateQueries({
+      queryKey: ["article", String(record.article_id)],
+    });
+    queryClient.invalidateQueries({ queryKey: ["quarantine-articles"] });
 
-    setArticleSaved(true)
+    setArticleSaved(true);
 
-    await sendToQuality()
-  }
+    await sendToQuality();
+  };
 
   /**
    * Con cambios pendientes dispara el submit del formulario embebido, que al
@@ -126,12 +135,12 @@ export function ResolveQuarantineDialog({ record, open, onOpenChange }: Props) {
    * <form>, así que el submit se provoca por requestSubmit().
    */
   const handleConfirm = async () => {
-    if (!notesAreValid || busy) return
+    if (!notesAreValid || busy) return;
 
     // Ya guardado en un intento anterior: solo falta el pase.
     if (articleSaved) {
-      await sendToQuality()
-      return
+      await sendToQuality();
+      return;
     }
 
     if (formState.canSave) {
@@ -139,31 +148,36 @@ export function ResolveQuarantineDialog({ record, open, onOpenChange }: Props) {
       // transacción: si el pase no va a ser posible, no se toca el artículo.
       if (selectedCompany?.slug) {
         try {
-          setCheckingEligibility(true)
-          await assertCanSendToReinspection(selectedCompany.slug, record.id)
+          setCheckingEligibility(true);
+          await assertCanSendToReinspection(selectedCompany.slug, record.id);
         } catch (error) {
-          const message = (error as { response?: { data?: { message?: string } } })
-            ?.response?.data?.message
+          const message = (
+            error as { response?: { data?: { message?: string } } }
+          )?.response?.data?.message;
 
-          toast.error('No se puede enviar a re-inspección', {
-            description: message ?? 'El registro de cuarentena ya no admite esta acción.',
-          })
+          toast.error("No se puede enviar a re-inspección", {
+            description:
+              message ?? "El registro de cuarentena ya no admite esta acción.",
+          });
 
-          return
+          return;
         } finally {
-          setCheckingEligibility(false)
+          setCheckingEligibility(false);
         }
       }
 
-      scrollRef.current?.querySelector('form')?.requestSubmit()
-      return
+      scrollRef.current?.querySelector("form")?.requestSubmit();
+      return;
     }
 
-    await sendToQuality()
-  }
+    await sendToQuality();
+  };
 
   return (
-    <Dialog open={open} onOpenChange={(next) => (next ? onOpenChange(true) : close())}>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => (next ? onOpenChange(true) : close())}
+    >
       <DialogContent className="flex max-h-[92vh] max-w-6xl flex-col gap-0 overflow-hidden p-0">
         <DialogHeader className="shrink-0 border-b px-6 py-4">
           <DialogTitle className="flex items-center gap-2 text-base">
@@ -171,19 +185,22 @@ export function ResolveQuarantineDialog({ record, open, onOpenChange }: Props) {
             Corregir artículo en cuarentena
           </DialogTitle>
           <DialogDescription className="text-xs">
-            Resuelva el hallazgo de calidad y describa qué corrigió. El artículo pasará a
-            re-inspección.
+            Resuelva el hallazgo de calidad y describa qué corrigió. El artículo
+            pasará a re-inspección.
           </DialogDescription>
         </DialogHeader>
 
-        <div ref={scrollRef} className="min-h-0 flex-1 space-y-5 overflow-y-auto px-6 py-5">
+        <div
+          ref={scrollRef}
+          className="min-h-0 flex-1 space-y-5 overflow-y-auto px-6 py-5"
+        >
           {/* Hallazgo: el punto de partida de todo lo que sigue */}
           <section
             className={cn(
-              'rounded-xl border p-4',
+              "rounded-xl border p-4",
               record.is_overdue
-                ? 'border-red-500/40 bg-red-500/5'
-                : 'border-slate-200/70 bg-slate-50/60 dark:border-slate-700/60 dark:bg-slate-900/40',
+                ? "border-red-500/40 bg-red-500/5"
+                : "border-slate-200/70 bg-slate-50/60 dark:border-slate-700/60 dark:bg-slate-900/40",
             )}
           >
             <div className="flex flex-wrap items-center justify-between gap-2">
@@ -192,8 +209,9 @@ export function ResolveQuarantineDialog({ record, open, onOpenChange }: Props) {
                   P/N
                 </span>
                 <span className="text-[13px] font-semibold tracking-tight text-slate-900 dark:text-slate-100">
-                  {record.article?.part_number ?? 'Sin part number'}
+                  {record.article?.part_number ?? "Sin part number"}
                 </span>
+                <CopyPartNumberButton value={record.article?.part_number} />
                 {record.article?.serial && (
                   <span className="font-mono text-[11px] text-muted-foreground">
                     S/N {record.article.serial}
@@ -223,7 +241,7 @@ export function ResolveQuarantineDialog({ record, open, onOpenChange }: Props) {
             <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground">
               <span className="inline-flex items-center gap-1">
                 <User className="size-3" />
-                {record.inspector ?? '—'}
+                {record.inspector ?? "—"}
               </span>
               <span className="inline-flex items-center gap-1">
                 <CalendarClock className="size-3" />
@@ -234,7 +252,7 @@ export function ResolveQuarantineDialog({ record, open, onOpenChange }: Props) {
                   {record.days_in_quarantine} día(s) retenido
                   {record.days_remaining !== null && (
                     <>
-                      {' · '}
+                      {" · "}
                       {record.days_remaining >= 0
                         ? `restan ${record.days_remaining}`
                         : `vencido por ${Math.abs(record.days_remaining)}`}
@@ -261,13 +279,14 @@ export function ResolveQuarantineDialog({ record, open, onOpenChange }: Props) {
             />
             {notes.length > 0 && !notesAreValid && (
               <p className="text-xs text-destructive">
-                Mínimo {MIN_NOTES_LENGTH} caracteres: es lo que el inspector va a verificar.
+                Mínimo {MIN_NOTES_LENGTH} caracteres: es lo que el inspector va
+                a verificar.
               </p>
             )}
           </section>
 
           {isLoading || !article ? (
-            <div className="flex min-h-[240px] items-center justify-center">
+            <div className="flex min-h-60 items-center justify-center">
               <Loader2 className="size-6 animate-spin text-muted-foreground" />
             </div>
           ) : (
@@ -288,17 +307,19 @@ export function ResolveQuarantineDialog({ record, open, onOpenChange }: Props) {
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <p
               className={cn(
-                'text-[11px]',
-                articleSaved ? 'font-medium text-amber-600 dark:text-amber-400' : 'text-muted-foreground',
+                "text-[11px]",
+                articleSaved
+                  ? "font-medium text-amber-600 dark:text-amber-400"
+                  : "text-muted-foreground",
               )}
             >
               {articleSaved
-                ? 'Los cambios del artículo ya se guardaron; falta enviarlo a re-inspección.'
+                ? "Los cambios del artículo ya se guardaron; falta enviarlo a re-inspección."
                 : !notesAreValid
-                  ? 'Describa la corrección para poder enviar el artículo.'
+                  ? "Describa la corrección para poder enviar el artículo."
                   : formState.canSave
-                    ? 'Se guardarán los cambios del artículo y pasará a re-inspección.'
-                    : 'El artículo pasará a re-inspección con la corrección descrita.'}
+                    ? "Se guardarán los cambios del artículo y pasará a re-inspección."
+                    : "El artículo pasará a re-inspección con la corrección descrita."}
             </p>
 
             <div className="flex gap-2">
@@ -318,15 +339,15 @@ export function ResolveQuarantineDialog({ record, open, onOpenChange }: Props) {
                   <SendHorizonal className="size-3.5" />
                 )}
                 {articleSaved
-                  ? 'Reintentar envío a re-inspección'
+                  ? "Reintentar envío a re-inspección"
                   : formState.canSave
-                    ? 'Guardar y enviar a re-inspección'
-                    : 'Enviar a re-inspección'}
+                    ? "Guardar y enviar a re-inspección"
+                    : "Enviar a re-inspección"}
               </Button>
             </div>
           </div>
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

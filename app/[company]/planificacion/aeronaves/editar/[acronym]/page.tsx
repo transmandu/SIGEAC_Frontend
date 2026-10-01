@@ -452,7 +452,7 @@ export default function EditAircraftPage({
       <ContentLayout title="Error">
         <PageHeader className="mb-6" />
 
-        <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+        <div className="flex flex-col items-center justify-center min-h-100 space-y-4">
           <h2 className="text-2xl font-bold text-destructive">
             Aeronave no encontrada
           </h2>
@@ -630,7 +630,7 @@ export default function EditAircraftPage({
                       </div>
                     </CardHeader>
                     <CardContent className="p-4">
-                      <ScrollArea className="h-[300px]">
+                      <ScrollArea className="h-75">
                         {partsData.parts.length > 0 ? (
                           <PartsSummaryTree parts={partsData.parts} />
                         ) : (
@@ -670,7 +670,7 @@ export default function EditAircraftPage({
                       disabled={updateMaintenanceAircraft.isPending}
                       type="button"
                       onClick={handleSubmit}
-                      className="min-w-[180px]"
+                      className="min-w-45"
                     >
                       {updateMaintenanceAircraft.isPending ? (
                         <>

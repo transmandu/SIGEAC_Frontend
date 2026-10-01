@@ -30,7 +30,7 @@ export function ImageGalleryDialog({
 
   const goToPreviousImage = () => {
     setCurrentIndex(
-      (prevIndex) => (prevIndex - 1 + images.length) % images.length
+      (prevIndex) => (prevIndex - 1 + images.length) % images.length,
     );
   };
 
@@ -48,6 +48,13 @@ export function ImageGalleryDialog({
   };
 
   if (images.length === 0) return null;
+
+  // Los blob: (FileServer) y data: no son rutas servibles por /_next/image, así
+  // que se cargan tal cual en vez de pasar por el optimizador.
+  const currentImage = images[currentIndex];
+  const isInlineSource =
+    currentImage.src.startsWith("blob:") ||
+    currentImage.src.startsWith("data:");
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
@@ -101,11 +108,12 @@ export function ImageGalleryDialog({
         <div className="w-full h-full flex items-center justify-center p-2 sm:p-3 md:p-4">
           <div className="relative w-full h-full max-w-full max-h-full flex items-center justify-center">
             <Image
-              src={images[currentIndex].src}
-              alt={images[currentIndex].alt}
+              src={currentImage.src}
+              alt={currentImage.alt}
               width={800} // Agregar width
               height={600} // Agregar height
               className="max-w-[calc(100%-2rem)] max-h-[calc(100%-2rem)] object-contain"
+              unoptimized={isInlineSource}
             />
           </div>
         </div>
@@ -121,7 +129,7 @@ export function ImageGalleryDialog({
                   "w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-all",
                   index === currentIndex
                     ? "bg-white"
-                    : "bg-white/50 hover:bg-white/70"
+                    : "bg-white/50 hover:bg-white/70",
                 )}
               />
             ))}

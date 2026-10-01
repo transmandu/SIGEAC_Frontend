@@ -1,60 +1,74 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { useAuth } from "@/contexts/AuthContext"
-import { useCompanyStore } from "@/stores/CompanyStore"
-import { Button } from "@/components/ui/button"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { AlertOctagon, ClipboardCheck, ClipboardX, Trash2, FileDown, PackagePlus } from "lucide-react"
-import QuoteDropdownDialogs from "@/components/dialogs/mantenimiento/compras/QuoteDropdownDialogs"
-import type { Quote } from "@/types/purchase"
-import PurchaseOrderLinkButton from "@/components/dropdowns/mantenimiento/compras/PurchaseOrderLinkButton"
-import CreateComplementaryQuoteDialog from "./CreateComplementaryQuoteDialog"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  AlertOctagon,
+  ClipboardCheck,
+  ClipboardX,
+  Trash2,
+  FileDown,
+  PackagePlus,
+} from "lucide-react";
+import QuoteDropdownDialogs from "@/components/dialogs/mantenimiento/compras/QuoteDropdownDialogs";
+import type { Quote } from "@/types/purchase";
+import PurchaseOrderLinkButton from "@/components/dropdowns/mantenimiento/compras/PurchaseOrderLinkButton";
+import CreateComplementaryQuoteDialog from "./CreateComplementaryQuoteDialog";
 
 /* =========================
    STYLES
 ========================= */
 
 const iconBase =
-  "size-[20px] transition-all duration-200 ease-out group-hover:scale-110"
+  "size-[20px] transition-all duration-200 ease-out group-hover:scale-110";
 
 const itemBase =
   "group relative flex items-center justify-center size-11 rounded-full transition-all duration-200 " +
   "hover:bg-muted/60 hover:shadow-xs active:scale-95 " +
-  "border border-transparent hover:border-border/40"
+  "border border-transparent hover:border-border/40";
 
 const toolbar =
   "flex items-center gap-1.5 px-2 py-1 rounded-full " +
   "bg-muted/30 border border-border/40 shadow-xs backdrop-blur-md " +
-  "flex-wrap sm:flex-nowrap"
+  "flex-wrap sm:flex-nowrap";
 
 export default function QuoteActions({
   quote,
-  onSuccessUpdate
+  onSuccessUpdate,
 }: {
-  quote: Quote
-  onSuccessUpdate?: () => Promise<any>
+  quote: Quote;
+  onSuccessUpdate?: () => Promise<any>;
 }) {
-  const router = useRouter()
-  const { user } = useAuth()
-  const { selectedCompany } = useCompanyStore()
+  const router = useRouter();
+  const { user } = useAuth();
+  const { selectedCompany } = useCompanyStore();
 
-  const [openApprove, setOpenApprove] = useState(false)
-  const [openReject, setOpenReject] = useState(false)
-  const [openDelete, setOpenDelete] = useState(false)
-  const [openCascadeDelete, setOpenCascadeDelete] = useState(false)
-  const [openComplementary, setOpenComplementary] = useState(false)
+  const [openApprove, setOpenApprove] = useState(false);
+  const [openReject, setOpenReject] = useState(false);
+  const [openDelete, setOpenDelete] = useState(false);
+  const [openCascadeDelete, setOpenCascadeDelete] = useState(false);
+  const [openComplementary, setOpenComplementary] = useState(false);
 
-  const status = quote.status
+  const status = quote.status;
 
-  const isApproved = status === "APPROVED"
-  const isRejected = status === "REJECTED"
-  const isPending = status === "PENDING"
+  const isApproved = status === "APPROVED";
+  const isRejected = status === "REJECTED";
+  const isPending = status === "PENDING";
 
-  const canAct = isPending
-  const canDelete = !isApproved
-  const isSuperUser = (user?.roles?.map((role) => role.name) || []).includes("SUPERUSER")
+  const canAct = isPending;
+  const canDelete = !isApproved;
+  const isSuperUser = (user?.roles?.map((role) => role.name) || []).includes(
+    "SUPERUSER",
+  );
 
   // Cotización complementaria: solo sobre una original APROBADA con
   // artículos generales cotizados. Registra la diferencia entre lo comprado
@@ -62,17 +76,15 @@ export default function QuoteActions({
   const canCreateComplementary =
     isApproved &&
     !quote.parent_quote_order &&
-    (quote.general_article_quote_order ?? []).some((i) => !i.is_not_quoted)
+    (quote.general_article_quote_order ?? []).some((i) => !i.is_not_quoted);
 
-  const shouldFetchPO =
-    isApproved && !!selectedCompany?.slug && !!quote.id
+  const shouldFetchPO = isApproved && !!selectedCompany?.slug && !!quote.id;
 
-  if (!selectedCompany) return null
+  if (!selectedCompany) return null;
 
   return (
     <TooltipProvider delayDuration={120}>
       <div className={toolbar}>
-
         {/* APPROVE */}
         {canAct && (
           <Tooltip>
@@ -106,27 +118,25 @@ export default function QuoteActions({
             <TooltipContent>Rechazar cotización</TooltipContent>
           </Tooltip>
         )}
-        
+
         {/* PDF DOWNLOAD (placeholder) */}
         <Tooltip>
-        <TooltipTrigger asChild>
+          <TooltipTrigger asChild>
             <span className="inline-flex">
-            <Button
+              <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => {
-                console.log("PDF download not implemented yet")
+                  console.log("PDF download not implemented yet");
                 }}
                 className={`${itemBase} text-blue-600`}
-            >
+              >
                 <FileDown className={iconBase} />
-            </Button>
+              </Button>
             </span>
-        </TooltipTrigger>
+          </TooltipTrigger>
 
-        <TooltipContent side="top">
-            ¡Próximamente!
-        </TooltipContent>
+          <TooltipContent side="top">¡Próximamente!</TooltipContent>
         </Tooltip>
 
         {/* DELETE */}
@@ -145,7 +155,7 @@ export default function QuoteActions({
             <TooltipContent>Eliminar cotización</TooltipContent>
           </Tooltip>
         )}
-        
+
         {/* COMPLEMENTARY QUOTE */}
         {canCreateComplementary && (
           <Tooltip>
@@ -159,7 +169,10 @@ export default function QuoteActions({
                 <PackagePlus className={iconBase} />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Crear cotización complementaria (diferencia comprada aún no registrada)</TooltipContent>
+            <TooltipContent>
+              Crear cotización complementaria (diferencia comprada aún no
+              registrada)
+            </TooltipContent>
           </Tooltip>
         )}
 
@@ -204,20 +217,22 @@ export default function QuoteActions({
           setOpenCascadeDelete={setOpenCascadeDelete}
           onSuccessUpdate={onSuccessUpdate}
           onSuccessDelete={() => {
-            router.push(`/${selectedCompany.slug}/compras/cotizaciones_generales`)
-            router.refresh()
+            router.push(
+              `/${selectedCompany.slug}/compras/cotizaciones_generales`,
+            );
+            router.refresh();
           }}
         />
 
         <CreateComplementaryQuoteDialog
+          key={openComplementary ? "open" : "closed"}
           quote={quote}
           company={selectedCompany.slug}
           open={openComplementary}
           onOpenChange={setOpenComplementary}
           onSuccess={onSuccessUpdate}
         />
-
       </div>
     </TooltipProvider>
-  )
+  );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo, useRef } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@/lib/zod-resolver";
 import * as z from "zod";
 import { useRouter } from "next/navigation";
@@ -277,8 +277,15 @@ const CreateGeneralArticleForm = ({
     },
   });
 
-  const currentMode = form.watch("mode");
-  const watchedUnitId = form.watch("primary_unit_id");
+  const currentMode = useWatch({ control: form.control, name: "mode" });
+  const watchedUnitId = useWatch({
+    control: form.control,
+    name: "primary_unit_id",
+  });
+  const watchedQuantity = useWatch({
+    control: form.control,
+    name: "quantity",
+  });
 
   // Equivalencias del artículo. Viven fuera de RHF porque son una lista y no
   // un campo: se envían junto al resto del payload al guardar.
@@ -882,7 +889,7 @@ const CreateGeneralArticleForm = ({
                 <DimensionFields
                   value={dimension}
                   onChange={setDimension}
-                  quantity={form.watch("quantity")}
+                  quantity={watchedQuantity}
                   existingProfile={initialData?.dimension}
                   disabled={busy}
                 />

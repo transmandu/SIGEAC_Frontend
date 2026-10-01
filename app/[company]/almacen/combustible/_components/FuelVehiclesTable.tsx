@@ -114,8 +114,11 @@ export function FuelVehiclesTable({
                   </TableCell>
                   <TableCell
                     className={cn(
-                      "max-w-[200px] truncate",
-                      !vehicle.brand && !vehicle.model && !vehicle.color && "text-muted-foreground",
+                      "max-w-50 truncate",
+                      !vehicle.brand &&
+                        !vehicle.model &&
+                        !vehicle.color &&
+                        "text-muted-foreground",
                     )}
                   >
                     {[vehicle.brand, vehicle.model, vehicle.color]
@@ -128,7 +131,7 @@ export function FuelVehiclesTable({
                   </TableCell>
                   <TableCell
                     className={cn(
-                      "max-w-[220px] truncate",
+                      "max-w-55 truncate",
                       !vehicle.responsible && "text-muted-foreground",
                     )}
                   >
@@ -149,7 +152,9 @@ export function FuelVehiclesTable({
                         <span
                           className={cn(
                             "block h-full rounded-full transition-[width] duration-300 ease-out",
-                            isInactive ? "bg-muted-foreground/40" : "bg-primary",
+                            isInactive
+                              ? "bg-muted-foreground/40"
+                              : "bg-primary",
                           )}
                           style={{ width: `${tankPct}%` }}
                         />
@@ -167,7 +172,9 @@ export function FuelVehiclesTable({
                       <span
                         className={cn(
                           "h-1.5 w-1.5 rounded-full",
-                          isInactive ? "bg-muted-foreground/50" : "bg-emerald-500",
+                          isInactive
+                            ? "bg-muted-foreground/50"
+                            : "bg-emerald-500",
                         )}
                       />
                       {getFuelStatusLabel(vehicle.status)}

@@ -1,125 +1,139 @@
-"use client"
-import { useCreateRequisition } from "@/actions/mantenimiento/compras/requisiciones/actions"
-import { Button } from "@/components/ui/button"
-import { Form } from "@/components/ui/form"
-import { useAuth } from "@/contexts/AuthContext"
-import { useGetBatchesByLocationId } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByLocationId"
-import { useSearchBatchesWithArticles, type BatchWithArticles } from "@/hooks/mantenimiento/almacen/renglones/useSearchBatchesWithArticles"
-import { useGetMaintenanceAircrafts } from '@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts'
-import { useGetWorkOrders } from '@/hooks/mantenimiento/planificacion/useGetWorkOrders'
-import { useGetUserDepartamentEmployees } from "@/hooks/ajustes/empleados/useGetUserDepartamentEmployees"
-import { useGetEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetEmployees"
-import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment"
-import { useGetThirdParties } from "@/hooks/general/terceros/useGetThirdParties"
-import { useGetAuthorizedEmployees } from "@/hooks/ajustes/autorizados/useGetAuthorizedEmployees"
-import { useCompanyStore } from "@/stores/CompanyStore"
-import { zodResolver } from "@/lib/zod-resolver"
-import { Loader2, Send, Plane, Package } from "lucide-react"
-import { useEffect, useMemo, useRef, useState } from "react"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
-import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits"
-import { useDebounce } from "@/lib/useDebounce"
-import { cn } from "@/lib/utils"
-import { useGetGeneralArticles } from "@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticles"
-import type { RequisitionBatchForm, RequisitionGeneralArticleForm } from "@/types/purchase"
-import type { Aircraft, GeneralArticle } from "@/types"
-import { Separator } from "@/components/ui/separator"
-import { RequisitionHeader } from "./_components/RequisitionHeader"
-import { BatchArticlesSection } from "./_components/BatchArticlesSection"
-import { GeneralArticlesSection } from "./_components/GeneralArticlesSection"
+"use client";
+import { useCreateRequisition } from "@/actions/mantenimiento/compras/requisiciones/actions";
+import { Button } from "@/components/ui/button";
+import { Form } from "@/components/ui/form";
+import { useAuth } from "@/contexts/AuthContext";
+import { useGetBatchesByLocationId } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByLocationId";
+import {
+  useSearchBatchesWithArticles,
+  type BatchWithArticles,
+} from "@/hooks/mantenimiento/almacen/renglones/useSearchBatchesWithArticles";
+import { useGetMaintenanceAircrafts } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts";
+import { useGetWorkOrders } from "@/hooks/mantenimiento/planificacion/useGetWorkOrders";
+import { useGetUserDepartamentEmployees } from "@/hooks/ajustes/empleados/useGetUserDepartamentEmployees";
+import { useGetEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetEmployees";
+import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment";
+import { useGetThirdParties } from "@/hooks/general/terceros/useGetThirdParties";
+import { useGetAuthorizedEmployees } from "@/hooks/ajustes/autorizados/useGetAuthorizedEmployees";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { zodResolver } from "@/lib/zod-resolver";
+import { Loader2, Send, Plane, Package } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useForm, useWatch } from "react-hook-form";
+import { z } from "zod";
+import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits";
+import { useDebounce } from "@/lib/useDebounce";
+import { cn } from "@/lib/utils";
+import { useGetGeneralArticles } from "@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticles";
+import type {
+  RequisitionBatchForm,
+  RequisitionGeneralArticleForm,
+} from "@/types/purchase";
+import type { Aircraft, GeneralArticle } from "@/types";
+import { Separator } from "@/components/ui/separator";
+import { RequisitionHeader } from "./_components/RequisitionHeader";
+import { BatchArticlesSection } from "./_components/BatchArticlesSection";
+import { GeneralArticlesSection } from "./_components/GeneralArticlesSection";
 import {
   DuplicateRequisitionDialog,
   type DuplicateRequisitionConflict,
-} from "./_components/DuplicateRequisitionDialog"
+} from "./_components/DuplicateRequisitionDialog";
 import {
   getRequisitionArticleKey,
   useGetActiveGeneralArticleRequisitions,
-} from "@/hooks/mantenimiento/compras/useGetActiveGeneralArticleRequisitions"
-import { AdditionalInfoSection } from "./_components/AdditionalInfoSection"
-import { isHigherPriority, type Priority } from "./_components/priorityUtils"
-import { getStoragePathFromUrl } from "./_components/imageUtils"
-import { canAddRequisitionArticle } from "@/lib/purchases/requisition-article-limit"
+} from "@/hooks/mantenimiento/compras/useGetActiveGeneralArticleRequisitions";
+import { AdditionalInfoSection } from "./_components/AdditionalInfoSection";
+import { isHigherPriority, type Priority } from "./_components/priorityUtils";
+import { getStoragePathFromUrl } from "./_components/imageUtils";
+import { canAddRequisitionArticle } from "@/lib/purchases/requisition-article-limit";
 import { toCalendarPayload } from "@/lib/date";
 
-type WarehouseRequisitionType = "AERONAUTICAL" | "GENERAL"
+type WarehouseRequisitionType = "AERONAUTICAL" | "GENERAL";
 
-const FormSchema = z.object({
-  justification: z
-    .string({ message: "La justificación debe ser válida." })
-    .min(2, { message: "La justificación debe ser válida." }),
-  company: z.string(),
-  location_id: z.string(),
-  created_by: z.string(),
-  requested_by: z.string().optional(),
-  requested_by_authorized_employee_id: z.string().optional(),
-  priority: z.enum(["HIGH", "MEDIUM", "LOW"]).optional(),
-  work_order_id: z.string().optional(),
-  work_order: z.string().optional(),
-  aircraft_id: z.string().optional(),
-  image: z
-    .instanceof(File)
-    .refine((file) => file.size <= 5 * 1024 * 1024, "Max 5MB")
-    .refine(
-      (file) => ["image/jpeg", "image/png"].includes(file.type),
-      "Solo JPEG/PNG"
-    )
-    .optional(),
-  articles: z
-    .array(
-      z.object({
-        batch: z.string(),
-        batch_name: z.string(),
-        batch_articles: z.array(
-          z.object({
-            part_number: z.string().min(1, "El número de parte es obligatorio"),
-            alt_part_number: z.string().optional(),
-            quantity: z.number().min(1, "Debe ingresar una cantidad válida"),
-            unit: z.string().optional(),
-            aircraft_id: z.string().optional(),
-            priority: z.enum(["HIGH", "MEDIUM", "LOW"]).optional(),
-            image: z.any().optional(),
-            document_type_ids: z.array(z.number()).min(1, "Debe seleccionar al menos un tipo de documento"),
-          })
-        ),
-      })
-    )
-    .optional(),
-  general_articles: z
-    .array(
-      z.object({
-        description: z.string().min(1, "La descripción es obligatoria"),
-        requested_date: z.string().optional(),
-        variant_type: z.string().nullable().optional(),
-        quantity: z.number().min(1, "La cantidad debe ser mayor a 0"),
-        unit_id: z.string().optional(),
-        priority: z.enum(["HIGH", "MEDIUM", "LOW"]).optional(),
-        image: z.any().optional(),
-        existing_image_path: z.string().optional(),
-        department_id: z.string().optional(),
-        third_party_id: z.string().optional(),
-        employee_id: z.string().optional(),
-        authorized_employee_id: z.string().optional(),
-      })
-    )
-    .optional(),
-}).refine(
-  (data) => {
-    const hasArticles = data.articles && data.articles.length > 0;
-    const hasGeneralArticles = data.general_articles && data.general_articles.length > 0;
-    return hasArticles || hasGeneralArticles;
-  },
-  {
-    message: "Debe agregar al menos un artículo",
-    path: ["articles"],
-  }
-).refine(
-  (data) => !!data.requested_by || !!data.requested_by_authorized_employee_id,
-  {
-    message: "Debe seleccionar un empleado o un empleado autorizado.",
-    path: ["requested_by"],
-  }
-);
+const FormSchema = z
+  .object({
+    justification: z
+      .string({ message: "La justificación debe ser válida." })
+      .min(2, { message: "La justificación debe ser válida." }),
+    company: z.string(),
+    location_id: z.string(),
+    created_by: z.string(),
+    requested_by: z.string().optional(),
+    requested_by_authorized_employee_id: z.string().optional(),
+    priority: z.enum(["HIGH", "MEDIUM", "LOW"]).optional(),
+    work_order_id: z.string().optional(),
+    work_order: z.string().optional(),
+    aircraft_id: z.string().optional(),
+    image: z
+      .instanceof(File)
+      .refine((file) => file.size <= 5 * 1024 * 1024, "Max 5MB")
+      .refine(
+        (file) => ["image/jpeg", "image/png"].includes(file.type),
+        "Solo JPEG/PNG",
+      )
+      .optional(),
+    articles: z
+      .array(
+        z.object({
+          batch: z.string(),
+          batch_name: z.string(),
+          batch_articles: z.array(
+            z.object({
+              part_number: z
+                .string()
+                .min(1, "El número de parte es obligatorio"),
+              alt_part_number: z.string().optional(),
+              quantity: z.number().min(1, "Debe ingresar una cantidad válida"),
+              unit: z.string().optional(),
+              aircraft_id: z.string().optional(),
+              priority: z.enum(["HIGH", "MEDIUM", "LOW"]).optional(),
+              image: z.any().optional(),
+              document_type_ids: z
+                .array(z.number())
+                .min(1, "Debe seleccionar al menos un tipo de documento"),
+            }),
+          ),
+        }),
+      )
+      .optional(),
+    general_articles: z
+      .array(
+        z.object({
+          description: z.string().min(1, "La descripción es obligatoria"),
+          requested_date: z.string().optional(),
+          variant_type: z.string().nullable().optional(),
+          quantity: z.number().min(1, "La cantidad debe ser mayor a 0"),
+          unit_id: z.string().optional(),
+          priority: z.enum(["HIGH", "MEDIUM", "LOW"]).optional(),
+          image: z.any().optional(),
+          existing_image_path: z.string().optional(),
+          department_id: z.string().optional(),
+          third_party_id: z.string().optional(),
+          employee_id: z.string().optional(),
+          authorized_employee_id: z.string().optional(),
+        }),
+      )
+      .optional(),
+  })
+  .refine(
+    (data) => {
+      const hasArticles = data.articles && data.articles.length > 0;
+      const hasGeneralArticles =
+        data.general_articles && data.general_articles.length > 0;
+      return hasArticles || hasGeneralArticles;
+    },
+    {
+      message: "Debe agregar al menos un artículo",
+      path: ["articles"],
+    },
+  )
+  .refine(
+    (data) => !!data.requested_by || !!data.requested_by_authorized_employee_id,
+    {
+      message: "Debe seleccionar un empleado o un empleado autorizado.",
+      path: ["requested_by"],
+    },
+  );
 
 type FormSchemaType = z.infer<typeof FormSchema>;
 
@@ -134,15 +148,23 @@ export function CreateWarehouseRequisitionForm({
 }: FormProps) {
   const { user } = useAuth();
 
-  const { mutate, data: batches, isPending: isBatchesLoading } = useGetBatchesByLocationId();
+  const {
+    mutate,
+    data: batches,
+    isPending: isBatchesLoading,
+  } = useGetBatchesByLocationId();
 
   const { selectedCompany, selectedStation } = useCompanyStore();
 
-  const { data: employees, isPending: employeesLoading } = useGetUserDepartamentEmployees(selectedCompany?.slug);
+  const { data: employees, isPending: employeesLoading } =
+    useGetUserDepartamentEmployees(selectedCompany?.slug);
 
-  const { data: units, isLoading: isUnitsLoading } = useGetUnits(selectedCompany?.slug);
+  const { data: units, isLoading: isUnitsLoading } = useGetUnits(
+    selectedCompany?.slug,
+  );
 
-  const { data: maintenanceAircrafts, isLoading: isAircraftsLoading } = useGetMaintenanceAircrafts(selectedCompany?.slug);
+  const { data: maintenanceAircrafts, isLoading: isAircraftsLoading } =
+    useGetMaintenanceAircrafts(selectedCompany?.slug);
 
   const aircrafts: Aircraft[] | undefined = maintenanceAircrafts?.map((ac) => ({
     id: ac.id,
@@ -154,8 +176,14 @@ export function CreateWarehouseRequisitionForm({
     client: ac.client as any,
     location: ac.location,
     is_external: false,
-    flight_hours: typeof ac.flight_hours === "number" ? ac.flight_hours : parseFloat(String(ac.flight_hours)) || 0,
-    cycles: typeof ac.flight_cycles === "number" ? ac.flight_cycles : parseFloat(String(ac.flight_cycles)) || 0,
+    flight_hours:
+      typeof ac.flight_hours === "number"
+        ? ac.flight_hours
+        : parseFloat(String(ac.flight_hours)) || 0,
+    cycles:
+      typeof ac.flight_cycles === "number"
+        ? ac.flight_cycles
+        : parseFloat(String(ac.flight_cycles)) || 0,
     fabricant_date: new Date(ac.fabricant_date),
     owner: "",
     aircraft_operator: "",
@@ -165,26 +193,44 @@ export function CreateWarehouseRequisitionForm({
     status: "EN POSESION" as const,
   }));
 
-  const { data: workOrders, isLoading: isWorkOrdersLoading, isError: isWorkOrdersError } = useGetWorkOrders(selectedStation, selectedCompany?.slug);
+  const {
+    data: workOrders,
+    isLoading: isWorkOrdersLoading,
+    isError: isWorkOrdersError,
+  } = useGetWorkOrders(selectedStation, selectedCompany?.slug);
 
-  const { data: generalArticles, isLoading: isGeneralArticlesLoading } = useGetGeneralArticles();
+  const { data: generalArticles, isLoading: isGeneralArticlesLoading } =
+    useGetGeneralArticles();
 
-  const { data: departments, isLoading: isDepartmentsLoading } = useGetDepartments(selectedCompany?.slug);
+  const { data: departments, isLoading: isDepartmentsLoading } =
+    useGetDepartments(selectedCompany?.slug);
 
-  const { data: thirdParties, isLoading: isThirdPartiesLoading } = useGetThirdParties();
+  const { data: thirdParties, isLoading: isThirdPartiesLoading } =
+    useGetThirdParties();
 
-  const { data: destinationEmployees, isLoading: isDestinationEmployeesLoading } = useGetEmployeesByCompany(selectedCompany?.slug);
+  const {
+    data: destinationEmployees,
+    isLoading: isDestinationEmployeesLoading,
+  } = useGetEmployeesByCompany(selectedCompany?.slug);
 
-  const { data: authorizedEmployees, isLoading: isAuthorizedEmployeesLoading } = useGetAuthorizedEmployees(selectedCompany?.slug);
+  const { data: authorizedEmployees, isLoading: isAuthorizedEmployeesLoading } =
+    useGetAuthorizedEmployees(selectedCompany?.slug);
 
   const { createRequisition } = useCreateRequisition();
 
-  const [requisitionType, setRequisitionType] = useState<WarehouseRequisitionType>("AERONAUTICAL");
+  const [requisitionType, setRequisitionType] =
+    useState<WarehouseRequisitionType>("AERONAUTICAL");
 
-  const [selectedBatches, setSelectedBatches] = useState<RequisitionBatchForm[]>([]);
-  const [selectedGeneralArticles, setSelectedGeneralArticles] = useState<RequisitionGeneralArticleForm[]>([]);
+  const [selectedBatches, setSelectedBatches] = useState<
+    RequisitionBatchForm[]
+  >([]);
+  const [selectedGeneralArticles, setSelectedGeneralArticles] = useState<
+    RequisitionGeneralArticleForm[]
+  >([]);
   // Datos validados, en espera de que el usuario confirme los duplicados.
-  const [pendingSubmit, setPendingSubmit] = useState<FormSchemaType | null>(null);
+  const [pendingSubmit, setPendingSubmit] = useState<FormSchemaType | null>(
+    null,
+  );
 
   // Solo en modo GENERAL: el aeronáutico identifica sus artículos por part_number.
   const { byArticle: activeRequisitionsByArticle } =
@@ -198,18 +244,20 @@ export function CreateWarehouseRequisitionForm({
   const [articleSearch, setArticleSearch] = useState("");
   const debouncedArticleSearch = useDebounce(articleSearch, 300);
 
-  const { data: articleResults, isFetching: isArticleResultsLoading } = useSearchBatchesWithArticles(
-    selectedCompany?.slug,
-    selectedStation ?? undefined,
-    debouncedArticleSearch || undefined
-  );
+  const { data: articleResults, isFetching: isArticleResultsLoading } =
+    useSearchBatchesWithArticles(
+      selectedCompany?.slug,
+      selectedStation ?? undefined,
+      debouncedArticleSearch || undefined,
+    );
 
   const filteredEmployees = useMemo(() => {
     if (!employees) return [];
     const query = employeeSearch.toLowerCase().trim();
     if (!query) return employees;
     return employees.filter((emp) => {
-      const searchText = `${emp.first_name} ${emp.last_name} ${emp.dni}`.toLowerCase();
+      const searchText =
+        `${emp.first_name} ${emp.last_name} ${emp.dni}`.toLowerCase();
       return searchText.includes(query);
     });
   }, [employees, employeeSearch]);
@@ -219,7 +267,8 @@ export function CreateWarehouseRequisitionForm({
     const query = aircraftSearch.toLowerCase().trim();
     if (!query) return aircrafts;
     return aircrafts.filter((ac) => {
-      const searchText = `${ac.acronym} ${ac.fabricant} ${ac.model ?? ""} ${ac.serial ?? ""}`.toLowerCase();
+      const searchText =
+        `${ac.acronym} ${ac.fabricant} ${ac.model ?? ""} ${ac.serial ?? ""}`.toLowerCase();
       return searchText.includes(query);
     });
   }, [aircrafts, aircraftSearch]);
@@ -229,7 +278,8 @@ export function CreateWarehouseRequisitionForm({
     const query = workOrderSearch.toLowerCase().trim();
     if (!query) return workOrders;
     return workOrders.filter((wo) => {
-      const searchText = `${wo.order_number} ${wo.aircraft?.acronym ?? ""} ${wo.description ?? ""}`.toLowerCase();
+      const searchText =
+        `${wo.order_number} ${wo.aircraft?.acronym ?? ""} ${wo.description ?? ""}`.toLowerCase();
       return searchText.includes(query);
     });
   }, [workOrders, workOrderSearch]);
@@ -249,7 +299,8 @@ export function CreateWarehouseRequisitionForm({
     const query = generalArticleSearch.toLowerCase().trim();
     if (!query) return generalArticles;
     return generalArticles.filter((article) => {
-      const searchText = `${article.description} ${article.variant_type ?? ""}`.toLowerCase();
+      const searchText =
+        `${article.description} ${article.variant_type ?? ""}`.toLowerCase();
       return searchText.includes(query);
     });
   }, [generalArticles, generalArticleSearch]);
@@ -265,9 +316,12 @@ export function CreateWarehouseRequisitionForm({
 
   const getDefaultUnit = (category: string) => {
     const unidadUnit = units?.find(
-      (u) => u.label.toUpperCase() === "UNIDAD" || u.value.toUpperCase() === "UNIDAD"
+      (u) =>
+        u.label.toUpperCase() === "UNIDAD" ||
+        u.value.toUpperCase() === "UNIDAD",
     );
-    return (category === "componente" || category === "herramienta") && unidadUnit
+    return (category === "componente" || category === "herramienta") &&
+      unidadUnit
       ? unidadUnit.id.toString()
       : undefined;
   };
@@ -282,18 +336,32 @@ export function CreateWarehouseRequisitionForm({
 
   useEffect(() => {
     if (selectedStation) {
-      mutate({ location_id: Number(selectedStation), company: selectedCompany?.slug });
+      mutate({
+        location_id: Number(selectedStation),
+        company: selectedCompany?.slug,
+      });
     }
   }, [selectedStation, mutate, selectedCompany]);
 
   useEffect(() => {
-    form.setValue("articles", selectedBatches.length > 0 ? selectedBatches : undefined, { shouldValidate: form.formState.isSubmitted });
-    form.setValue("general_articles", selectedGeneralArticles.length > 0 ? selectedGeneralArticles : undefined, { shouldValidate: form.formState.isSubmitted });
+    form.setValue(
+      "articles",
+      selectedBatches.length > 0 ? selectedBatches : undefined,
+      { shouldValidate: form.formState.isSubmitted },
+    );
+    form.setValue(
+      "general_articles",
+      selectedGeneralArticles.length > 0 ? selectedGeneralArticles : undefined,
+      { shouldValidate: form.formState.isSubmitted },
+    );
   }, [selectedBatches, selectedGeneralArticles, form]);
 
   // La aeronave de la cabecera baja a los renglones, pero solo a los que aún
   // seguían el valor anterior: si el usuario cambió uno a mano, no se pisa.
-  const headerAircraftId = form.watch("aircraft_id");
+  const headerAircraftId = useWatch({
+    control: form.control,
+    name: "aircraft_id",
+  });
   const previousHeaderAircraftId = useRef<string | undefined>(undefined);
 
   useEffect(() => {
@@ -305,9 +373,9 @@ export function CreateWarehouseRequisitionForm({
           batch_articles: batch.batch_articles.map((article) =>
             article.aircraft_id === previous || !article.aircraft_id
               ? { ...article, aircraft_id: headerAircraftId }
-              : article
+              : article,
           ),
-        }))
+        })),
       );
       previousHeaderAircraftId.current = headerAircraftId;
     }
@@ -338,7 +406,11 @@ export function CreateWarehouseRequisitionForm({
   const totalBatchArticles = (batches: RequisitionBatchForm[]) =>
     batches.reduce((sum, b) => sum + b.batch_articles.length, 0);
 
-  const handleBatchSelect = (batchName: string, batchId: string, batch_category: string) => {
+  const handleBatchSelect = (
+    batchName: string,
+    batchId: string,
+    batch_category: string,
+  ) => {
     setSelectedBatches((prev) => {
       if (prev.some((b) => b.batch === batchId)) {
         return prev.filter((b) => b.batch !== batchId);
@@ -349,7 +421,16 @@ export function CreateWarehouseRequisitionForm({
         {
           batch: batchId,
           batch_name: batchName,
-          batch_articles: [{ part_number: "", quantity: 1, unit: getDefaultUnit(batch_category), priority: "MEDIUM", aircraft_id: headerAircraftId, document_type_ids: [] }],
+          batch_articles: [
+            {
+              part_number: "",
+              quantity: 1,
+              unit: getDefaultUnit(batch_category),
+              priority: "MEDIUM",
+              aircraft_id: headerAircraftId,
+              document_type_ids: [],
+            },
+          ],
         },
       ];
     });
@@ -359,7 +440,7 @@ export function CreateWarehouseRequisitionForm({
   // estaba) y rellena la primera fila vacía, o crea una nueva.
   const handleArticleSelect = (
     batch: BatchWithArticles["batch"],
-    article: BatchWithArticles["articles"][number]
+    article: BatchWithArticles["articles"][number],
   ) => {
     const batchId = batch.id.toString();
     const altPartNumber = article.alternative_part_number?.[0] ?? "";
@@ -397,8 +478,14 @@ export function CreateWarehouseRequisitionForm({
         ];
       }
 
-      const emptyIndex = existingBatch.batch_articles.findIndex((a) => !a.part_number);
-      if (emptyIndex === -1 && !canAddRequisitionArticle(totalBatchArticles(prev))) return prev;
+      const emptyIndex = existingBatch.batch_articles.findIndex(
+        (a) => !a.part_number,
+      );
+      if (
+        emptyIndex === -1 &&
+        !canAddRequisitionArticle(totalBatchArticles(prev))
+      )
+        return prev;
 
       return prev.map((b) => {
         if (b.batch !== batchId) return b;
@@ -423,8 +510,14 @@ export function CreateWarehouseRequisitionForm({
           ...b,
           batch_articles: b.batch_articles.map((a, i) =>
             i === emptyIndex
-              ? { ...a, part_number: article.part_number, alt_part_number: altPartNumber, unit, document_type_ids: documentTypeIds }
-              : a
+              ? {
+                  ...a,
+                  part_number: article.part_number,
+                  alt_part_number: altPartNumber,
+                  unit,
+                  document_type_ids: documentTypeIds,
+                }
+              : a,
           ),
         };
       });
@@ -435,7 +528,7 @@ export function CreateWarehouseRequisitionForm({
     batchId: string,
     index: number,
     field: string,
-    value: string | number | number[] | File | undefined
+    value: string | number | number[] | File | undefined,
   ) => {
     if (field === "priority") {
       escalateHeaderPriority(value as Priority);
@@ -446,11 +539,11 @@ export function CreateWarehouseRequisitionForm({
           ? {
               ...batch,
               batch_articles: batch.batch_articles.map((article, i) =>
-                i === index ? { ...article, [field]: value } : article
+                i === index ? { ...article, [field]: value } : article,
               ),
             }
-          : batch
-      )
+          : batch,
+      ),
     );
   };
 
@@ -463,7 +556,14 @@ export function CreateWarehouseRequisitionForm({
           ...batch,
           batch_articles: [
             ...batch.batch_articles,
-            { part_number: "", quantity: 1, unit: getDefaultUnit(batch.batch_name), priority: "MEDIUM", aircraft_id: headerAircraftId, document_type_ids: [] },
+            {
+              part_number: "",
+              quantity: 1,
+              unit: getDefaultUnit(batch.batch_name),
+              priority: "MEDIUM",
+              aircraft_id: headerAircraftId,
+              document_type_ids: [],
+            },
           ],
         };
       });
@@ -474,22 +574,37 @@ export function CreateWarehouseRequisitionForm({
     setSelectedBatches((prev) =>
       prev.map((batch) =>
         batch.batch === batchId
-          ? { ...batch, batch_articles: batch.batch_articles.filter((_, i) => i !== articleIndex) }
-          : batch
-      )
+          ? {
+              ...batch,
+              batch_articles: batch.batch_articles.filter(
+                (_, i) => i !== articleIndex,
+              ),
+            }
+          : batch,
+      ),
     );
   };
 
   const removeBatch = (batchId: string) => {
-    setSelectedBatches((prev) => prev.filter((batch) => batch.batch !== batchId));
+    setSelectedBatches((prev) =>
+      prev.filter((batch) => batch.batch !== batchId),
+    );
   };
 
   // Dos artículos generales pueden compartir descripción y variante y diferir
   // solo en la marca, así que la identidad compara siempre los tres campos
   // juntos — nunca la descripción sola.
   const isSameGeneralArticle = (
-    a: { description: string; variant_type?: string | null; brand_model?: string | null },
-    b: { description: string; variant_type?: string | null; brand_model?: string | null }
+    a: {
+      description: string;
+      variant_type?: string | null;
+      brand_model?: string | null;
+    },
+    b: {
+      description: string;
+      variant_type?: string | null;
+      brand_model?: string | null;
+    },
   ) =>
     a.description === b.description &&
     (a.variant_type ?? "") === (b.variant_type ?? "") &&
@@ -524,7 +639,7 @@ export function CreateWarehouseRequisitionForm({
   const handleGeneralArticleChange = (
     index: number,
     field: keyof RequisitionGeneralArticleForm,
-    value: any
+    value: any,
   ) => {
     if (field === "priority") {
       escalateHeaderPriority(value as Priority);
@@ -538,7 +653,7 @@ export function CreateWarehouseRequisitionForm({
           return { ...article, image: value, existing_image_path: undefined };
         }
         return { ...article, [field]: value };
-      })
+      }),
     );
   };
 
@@ -564,20 +679,26 @@ export function CreateWarehouseRequisitionForm({
   };
 
   /** Al enviar y no al seleccionar, para atrapar también los escritos a mano. */
-  const findDuplicateConflicts = (data: FormSchemaType): DuplicateRequisitionConflict[] => {
+  const findDuplicateConflicts = (
+    data: FormSchemaType,
+  ): DuplicateRequisitionConflict[] => {
     if (requisitionType !== "GENERAL") return [];
 
     return (data.general_articles ?? []).flatMap((article) => {
       const entries = activeRequisitionsByArticle.get(
-        getRequisitionArticleKey(article.description, article.variant_type)
+        getRequisitionArticleKey(article.description, article.variant_type),
       );
 
       if (!entries?.length) return [];
 
-      return [{
-        label: [article.description, article.variant_type].filter(Boolean).join(" - "),
-        entries,
-      }];
+      return [
+        {
+          label: [article.description, article.variant_type]
+            .filter(Boolean)
+            .join(" - "),
+          entries,
+        },
+      ];
     });
   };
 
@@ -585,12 +706,15 @@ export function CreateWarehouseRequisitionForm({
     const formattedData = {
       ...data,
       type: requisitionType,
-      work_order_id: data.work_order_id ? Number(data.work_order_id) : undefined,
+      work_order_id: data.work_order_id
+        ? Number(data.work_order_id)
+        : undefined,
       work_order: data.work_order_id ? undefined : data.work_order,
       aircraft_id: data.aircraft_id ? Number(data.aircraft_id) : undefined,
-      requested_by_authorized_employee_id: data.requested_by_authorized_employee_id
-        ? Number(data.requested_by_authorized_employee_id)
-        : undefined,
+      requested_by_authorized_employee_id:
+        data.requested_by_authorized_employee_id
+          ? Number(data.requested_by_authorized_employee_id)
+          : undefined,
       general_articles: data.general_articles?.map((article) => ({
         ...article,
         // `image` solo lleva un File nuevo, o la URL del catálogo para la vista
@@ -600,7 +724,10 @@ export function CreateWarehouseRequisitionForm({
       })),
     };
 
-    await createRequisition.mutateAsync({ data: formattedData, company: selectedCompany!.slug });
+    await createRequisition.mutateAsync({
+      data: formattedData,
+      company: selectedCompany!.slug,
+    });
     onClose();
   };
 
@@ -654,7 +781,7 @@ export function CreateWarehouseRequisitionForm({
                   "flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium transition-colors duration-200",
                   requisitionType === "AERONAUTICAL"
                     ? "bg-background text-blue-600 shadow-xs"
-                    : "text-muted-foreground hover:text-blue-600"
+                    : "text-muted-foreground hover:text-blue-600",
                 )}
               >
                 <Plane className="w-3.5 h-3.5 shrink-0" />
@@ -667,7 +794,7 @@ export function CreateWarehouseRequisitionForm({
                   "flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium transition-colors duration-200",
                   requisitionType === "GENERAL"
                     ? "bg-background text-blue-600 shadow-xs"
-                    : "text-muted-foreground hover:text-blue-600"
+                    : "text-muted-foreground hover:text-blue-600",
                 )}
               >
                 <Package className="w-3.5 h-3.5 shrink-0" />
@@ -745,7 +872,9 @@ export function CreateWarehouseRequisitionForm({
         </div>
 
         <Button disabled={createRequisition.isPending} className="gap-2">
-          <><Send className="size-4" /> Generar Requisición</>
+          <>
+            <Send className="size-4" /> Generar Requisición
+          </>
           {createRequisition.isPending && (
             <Loader2 className="size-4 animate-spin" />
           )}

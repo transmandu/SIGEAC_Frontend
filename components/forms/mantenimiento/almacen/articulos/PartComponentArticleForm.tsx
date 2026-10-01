@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@/lib/zod-resolver";
 import { z } from "zod";
 import { format, parseISO } from "date-fns";
@@ -324,8 +324,14 @@ export default function PartComponentArticleForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [articleId]);
 
-  const hasDocumentation = form.watch("has_documentation");
-  const conditionId = form.watch("condition_id");
+  const hasDocumentation = useWatch({
+    control: form.control,
+    name: "has_documentation",
+  });
+  const conditionId = useWatch({ control: form.control, name: "condition_id" });
+  const partNumber = useWatch({ control: form.control, name: "part_number" });
+  const batchId = useWatch({ control: form.control, name: "batch_id" });
+  const imageFile = useWatch({ control: form.control, name: "image" });
 
   // Solo estas condiciones traen el artículo desde una aeronave concreta.
   const selectedCondition = conditions?.find((c) => `${c.id}` === conditionId);
@@ -335,7 +341,7 @@ export default function PartComponentArticleForm({
 
   const canSave = canSaveWith(
     form.formState.isDirty,
-    !!form.watch("part_number") && !!form.watch("batch_id"),
+    !!partNumber && !!batchId,
   );
   useReportFormState(reportState, canSave);
 
@@ -824,7 +830,7 @@ export default function PartComponentArticleForm({
           control={form.control}
           descriptionPlaceholder="Ej: Motor V8 de..."
           descriptionHint="Breve descripción del artículo."
-          imageFile={form.watch("image")}
+          imageFile={imageFile}
           onImageChange={(file) =>
             form.setValue("image", file, {
               shouldDirty: true,

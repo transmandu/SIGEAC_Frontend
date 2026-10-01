@@ -138,7 +138,7 @@ const CertificatesPage = () => {
         <Dialog open={open} onOpenChange={setOpen}>
           {/* Eliminamos bg-slate-900 y border-slate-800 para usar variables del tema */}
           <DialogContent
-            className="sm:max-w-[480px] bg-background border-border shadow-lg"
+            className="sm:max-w-120 bg-background border-border shadow-lg"
             data-tour="cert-create-dialog"
           >
             <DialogHeader>
@@ -166,7 +166,7 @@ const CertificatesPage = () => {
             if (!open) setSelectedEmployee(null);
           }}
         >
-          <DialogContent className="sm:max-w-[560px] bg-background border-border shadow-lg">
+          <DialogContent className="sm:max-w-140 bg-background border-border shadow-lg">
             <DialogHeader className="pb-2 border-b border-border/60">
               <div className="flex items-center gap-3">
                 {selectedEmployee && (
@@ -204,7 +204,7 @@ const CertificatesPage = () => {
               </div>
             </DialogHeader>
 
-            <ScrollArea className="h-[360px] pr-2">
+            <ScrollArea className="h-90 pr-2">
               <div className="flex flex-col gap-2 py-1">
                 {selectedEmployee?.certificates.map((cert) => (
                   <div

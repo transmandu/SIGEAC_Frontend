@@ -67,7 +67,7 @@ function CustomTooltip({ active, payload }: any) {
   const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
 
   return (
-    <div className="rounded-xl border bg-background/90 backdrop-blur-xl shadow-lg px-3 py-2 sm:px-4 sm:py-3 min-w-[140px] sm:min-w-[180px]">
+    <div className="rounded-xl border bg-background/90 backdrop-blur-xl shadow-lg px-3 py-2 sm:px-4 sm:py-3 min-w-35 sm:min-w-45">
       <p className="text-center font-semibold text-xs sm:text-sm mb-2 text-slate-700 dark:text-slate-200">
         {data?.payload?.name}
       </p>
@@ -84,11 +84,7 @@ function CustomTooltip({ active, payload }: any) {
   );
 }
 
-export default function ArticlesSummary({
-  data,
-  isLoading,
-  isError,
-}: Props) {
+export default function ArticlesSummary({ data, isLoading, isError }: Props) {
   if (isLoading)
     return (
       <div className="text-center text-cyan-600 py-8">
@@ -107,22 +103,42 @@ export default function ArticlesSummary({
   const dispatchByCategory = data.dispatchByCategory;
 
   const rawChartData = [
-    { name: "Componentes", value: dispatchByCategory?.component ?? 0, color: "#2a78d6" },
+    {
+      name: "Componentes",
+      value: dispatchByCategory?.component ?? 0,
+      color: "#2a78d6",
+    },
     { name: "Partes", value: dispatchByCategory?.part ?? 0, color: "#1baf7a" },
-    { name: "Consumibles", value: dispatchByCategory?.consumable ?? 0, color: "#eda100" },
-    { name: "Herramientas", value: dispatchByCategory?.tool ?? 0, color: "#008300" },
-    { name: "Artículos Generales", value: dispatchByCategory?.general ?? 0, color: "#4a3aa7" },
+    {
+      name: "Consumibles",
+      value: dispatchByCategory?.consumable ?? 0,
+      color: "#eda100",
+    },
+    {
+      name: "Herramientas",
+      value: dispatchByCategory?.tool ?? 0,
+      color: "#008300",
+    },
+    {
+      name: "Artículos Generales",
+      value: dispatchByCategory?.general ?? 0,
+      color: "#4a3aa7",
+    },
   ];
 
-  const totalDispatched = rawChartData.reduce((sum, item) => sum + item.value, 0);
-  const chartData = rawChartData.map((item) => ({ ...item, total: totalDispatched }));
+  const totalDispatched = rawChartData.reduce(
+    (sum, item) => sum + item.value,
+    0,
+  );
+  const chartData = rawChartData.map((item) => ({
+    ...item,
+    total: totalDispatched,
+  }));
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-
       {/* IZQUIERDA */}
       <div className="flex flex-col gap-4 sm:gap-6">
-
         {/* KPIs */}
         <TintedCard tone={cyanTone}>
           <CardHeader className="pb-2 text-center space-y-2">
@@ -143,7 +159,6 @@ export default function ArticlesSummary({
 
           <CardContent>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6 text-center">
-
               <div>
                 <div className="text-lg sm:text-xl font-bold bg-linear-to-b from-sky-600 to-cyan-500 bg-clip-text text-transparent">
                   {data.storedCount ?? 0}%
@@ -189,7 +204,6 @@ export default function ArticlesSummary({
                   Salidas a Taller
                 </p>
               </div>
-
             </div>
           </CardContent>
         </TintedCard>
@@ -208,24 +222,31 @@ export default function ArticlesSummary({
             </CardTitle>
 
             <CardDescription className="mx-auto max-w-xs sm:max-w-md text-xs sm:text-sm">
-              Listado de artículos sin disponibilidad<br />
-              Por Lote: {data.restockCount ?? 0} | Generales: {data.generalArticlesRestockCount ?? 0}
+              Listado de artículos sin disponibilidad
+              <br />
+              Por Lote: {data.restockCount ?? 0} | Generales:{" "}
+              {data.generalArticlesRestockCount ?? 0}
             </CardDescription>
           </CardHeader>
 
           <CardContent>
             <div className="overflow-hidden rounded-xl border border-cyan-100/40 dark:border-cyan-900/20">
-              
               {/* scroll horizontal solo si rompe */}
               <div className="overflow-x-auto">
-                <div className="min-w-[500px]">
-                  <div className="overflow-y-auto max-h-[180px] sm:max-h-[220px]">
+                <div className="min-w-125">
+                  <div className="overflow-y-auto max-h-45 sm:max-h-55">
                     <Table>
                       <TableHeader className="sticky top-0 bg-background/80 backdrop-blur-sm">
                         <TableRow>
-                          <TableHead className="text-center w-[40%]">Descripción</TableHead>
-                          <TableHead className="text-center w-[30%]">Part Number</TableHead>
-                          <TableHead className="text-center w-[30%]">Categoría</TableHead>
+                          <TableHead className="text-center w-[40%]">
+                            Descripción
+                          </TableHead>
+                          <TableHead className="text-center w-[30%]">
+                            Part Number
+                          </TableHead>
+                          <TableHead className="text-center w-[30%]">
+                            Categoría
+                          </TableHead>
                         </TableRow>
                       </TableHeader>
 
@@ -258,7 +279,6 @@ export default function ArticlesSummary({
                   </div>
                 </div>
               </div>
-
             </div>
           </CardContent>
         </TintedCard>
@@ -282,7 +302,7 @@ export default function ArticlesSummary({
           </CardDescription>
         </CardHeader>
 
-        <CardContent className="h-[320px] sm:h-[420px] pt-2 sm:pt-4 pb-6 sm:pb-8 px-4 sm:px-6">
+        <CardContent className="h-80 sm:h-105 pt-2 sm:pt-4 pb-6 sm:pb-8 px-4 sm:px-6">
           {totalDispatched === 0 ? (
             <div className="h-full flex items-center justify-center text-center text-sm text-slate-500">
               No hay despachos registrados en esta semana
@@ -316,7 +336,9 @@ export default function ArticlesSummary({
                   iconSize={8}
                   wrapperStyle={{ fontSize: 12, paddingTop: 12 }}
                   formatter={(value) => (
-                    <span className="text-slate-600 dark:text-slate-300">{value}</span>
+                    <span className="text-slate-600 dark:text-slate-300">
+                      {value}
+                    </span>
                   )}
                 />
               </PieChart>
@@ -324,7 +346,6 @@ export default function ArticlesSummary({
           )}
         </CardContent>
       </TintedCard>
-
     </div>
   );
 }
