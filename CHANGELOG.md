@@ -1,3 +1,7 @@
+## v4.39.0 — 2026-10-01
+
+- feat: new button copy p/n (#309)
+
 ## v4.38.3 — 2026-09-30
 
 - fix: add required message for input in zod schema (#308)
