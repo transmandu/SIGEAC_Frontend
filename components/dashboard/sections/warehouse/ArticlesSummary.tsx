@@ -234,7 +234,7 @@ export default function ArticlesSummary({ data, isLoading, isError }: Props) {
               {/* scroll horizontal solo si rompe */}
               <div className="overflow-x-auto">
                 <div className="min-w-125">
-                  <div className="overflow-y-auto max-h-45 sm:max-h-[220px]">
+                  <div className="overflow-y-auto max-h-45 sm:max-h-55">
                     <Table>
                       <TableHeader className="sticky top-0 bg-background/80 backdrop-blur-sm">
                         <TableRow>

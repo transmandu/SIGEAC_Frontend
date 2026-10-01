@@ -42,7 +42,7 @@ interface DestinationEntry {
 const DestinationChip = ({ icon: Icon, value, tooltip }: DestinationEntry) => (
   <Tooltip>
     <TooltipTrigger asChild>
-      <span className="inline-flex items-center justify-center gap-1 text-[11px] text-muted-foreground bg-background/60 border border-border/40 rounded-full px-2 py-1 w-fit max-w-[150px] cursor-default">
+      <span className="inline-flex items-center justify-center gap-1 text-[11px] text-muted-foreground bg-background/60 border border-border/40 rounded-full px-2 py-1 w-fit max-w-37.5 cursor-default">
         <Icon className="size-3 shrink-0 opacity-70" />
         <span className="truncate font-medium text-foreground/80">{value}</span>
       </span>

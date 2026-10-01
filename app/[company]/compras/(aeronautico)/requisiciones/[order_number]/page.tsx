@@ -221,7 +221,7 @@ const RequisitionPage = () => {
                   {order_number}
                 </h1>
 
-                <div className="flex flex-col items-center justify-start gap-1 min-w-[70px] sm:min-w-20">
+                <div className="flex flex-col items-center justify-start gap-1 min-w-17.5 sm:min-w-20">
                   <span className="text-[8px] sm:text-[9px] leading-none tracking-widest text-muted-foreground select-none">
                     ESTADO
                   </span>
@@ -233,7 +233,7 @@ const RequisitionPage = () => {
                   />
                 </div>
 
-                <div className="flex flex-col items-center justify-start gap-1 min-w-[70px] sm:min-w-20">
+                <div className="flex flex-col items-center justify-start gap-1 min-w-17.5 sm:min-w-20">
                   <span className="text-[8px] sm:text-[9px] leading-none tracking-widest text-muted-foreground select-none">
                     PRIORIDAD
                   </span>
@@ -318,7 +318,7 @@ const RequisitionPage = () => {
             />
 
             {/* DOCUMENTOS REQUERIDOS POR ÍTEM */}
-            <div className="w-full h-full xl:w-[220px] shrink-0">
+            <div className="w-full h-full xl:w-55 shrink-0">
               <RequiredDocumentsSection batches={batches} />
             </div>
           </div>

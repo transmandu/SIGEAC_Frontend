@@ -293,7 +293,7 @@ export default function DashboardSummary({
             </CardDescription>
           </CardHeader>
 
-          <CardContent className="space-y-3 max-h-[340px] overflow-auto">
+          <CardContent className="space-y-3 max-h-85 overflow-auto">
             {/* ================= EMPTY STATE ================= */}
             {!newReports?.voluntary?.length &&
             !newReports?.obligatory?.length ? (
