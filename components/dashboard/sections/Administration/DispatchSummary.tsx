@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import {
   Card,
@@ -6,7 +6,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card'
+} from "@/components/ui/card";
 
 import {
   Cell,
@@ -15,19 +15,15 @@ import {
   PieChart,
   ResponsiveContainer,
   Tooltip,
-} from 'recharts'
+} from "recharts";
 
-import { WarehouseDashboard } from '@/types'
-import {
-  Plane,
-  Package,
-  PackageSearch,
-} from 'lucide-react'
+import { WarehouseDashboard } from "@/types";
+import { Plane, Package, PackageSearch } from "lucide-react";
 
 interface Props {
-  data?: WarehouseDashboard
-  isLoading: boolean
-  isError: boolean
+  data?: WarehouseDashboard;
+  isLoading: boolean;
+  isError: boolean;
 }
 
 /* =========================
@@ -37,8 +33,8 @@ function TintedCard({
   children,
   tone,
 }: {
-  children: React.ReactNode
-  tone: string
+  children: React.ReactNode;
+  tone: string;
 }) {
   return (
     <Card
@@ -50,22 +46,22 @@ function TintedCard({
     >
       {children}
     </Card>
-  )
+  );
 }
 
 /* =========================
    TOOLTIP
    ========================= */
 function CustomTooltip({ active, payload }: any) {
-  if (!active || !payload?.length) return null
+  if (!active || !payload?.length) return null;
 
-  const data = payload[0]
-  const total = data?.payload?.total ?? 0
-  const value = data?.value ?? 0
-  const percentage = total > 0 ? Math.round((value / total) * 100) : 0
+  const data = payload[0];
+  const total = data?.payload?.total ?? 0;
+  const value = data?.value ?? 0;
+  const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
 
   return (
-    <div className="rounded-xl border bg-background/90 backdrop-blur-xl shadow-lg px-3 py-2 sm:px-4 sm:py-3 min-w-[140px] sm:min-w-[180px]">
+    <div className="rounded-xl border bg-background/90 backdrop-blur-xl shadow-lg px-3 py-2 sm:px-4 sm:py-3 min-w-35 sm:min-w-45">
       <p className="text-center font-semibold text-xs sm:text-sm mb-2 text-slate-700 dark:text-slate-200">
         {data?.payload?.name}
       </p>
@@ -79,7 +75,7 @@ function CustomTooltip({ active, payload }: any) {
         </span>
       </div>
     </div>
-  )
+  );
 }
 
 /* =========================
@@ -90,9 +86,9 @@ function Metric({
   label,
   tone,
 }: {
-  value: number | string
-  label: string
-  tone: string
+  value: number | string;
+  label: string;
+  tone: string;
 }) {
   return (
     <div className="text-center">
@@ -104,24 +100,18 @@ function Metric({
       >
         {value}
       </div>
-      <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-        {label}
-      </p>
+      <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">{label}</p>
     </div>
-  )
+  );
 }
 
-export default function DispatchSummary({
-  data,
-  isLoading,
-  isError,
-}: Props) {
+export default function DispatchSummary({ data, isLoading, isError }: Props) {
   if (isLoading) {
     return (
       <div className="py-8 text-center text-slate-600 dark:text-slate-300">
         Cargando información...
       </div>
-    )
+    );
   }
 
   if (isError || !data) {
@@ -129,26 +119,48 @@ export default function DispatchSummary({
       <div className="py-8 text-center text-red-500 dark:text-red-400">
         Error al cargar información.
       </div>
-    )
+    );
   }
 
   /* =========================
      BLUE BASE
      ========================= */
-  const blueTone = "37,99,235"
+  const blueTone = "37,99,235";
 
-  const dispatchByCategory = data.dispatchByCategory
+  const dispatchByCategory = data.dispatchByCategory;
 
   const rawChartData = [
-    { name: 'Componentes', value: dispatchByCategory?.component ?? 0, color: '#2a78d6' },
-    { name: 'Partes', value: dispatchByCategory?.part ?? 0, color: '#1baf7a' },
-    { name: 'Consumibles', value: dispatchByCategory?.consumable ?? 0, color: '#eda100' },
-    { name: 'Herramientas', value: dispatchByCategory?.tool ?? 0, color: '#008300' },
-    { name: 'Artículos Generales', value: dispatchByCategory?.general ?? 0, color: '#4a3aa7' },
-  ]
+    {
+      name: "Componentes",
+      value: dispatchByCategory?.component ?? 0,
+      color: "#2a78d6",
+    },
+    { name: "Partes", value: dispatchByCategory?.part ?? 0, color: "#1baf7a" },
+    {
+      name: "Consumibles",
+      value: dispatchByCategory?.consumable ?? 0,
+      color: "#eda100",
+    },
+    {
+      name: "Herramientas",
+      value: dispatchByCategory?.tool ?? 0,
+      color: "#008300",
+    },
+    {
+      name: "Artículos Generales",
+      value: dispatchByCategory?.general ?? 0,
+      color: "#4a3aa7",
+    },
+  ];
 
-  const totalDispatched = rawChartData.reduce((sum, item) => sum + item.value, 0)
-  const chartData = rawChartData.map((item) => ({ ...item, total: totalDispatched }))
+  const totalDispatched = rawChartData.reduce(
+    (sum, item) => sum + item.value,
+    0,
+  );
+  const chartData = rawChartData.map((item) => ({
+    ...item,
+    total: totalDispatched,
+  }));
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -174,9 +186,21 @@ export default function DispatchSummary({
 
           <CardContent className="py-8">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
-              <Metric value={`${data.storedCount ?? 0}%`} label="Artículos por Lote Activos" tone="29,78,216" />
-              <Metric value={`${data.generalArticlesAvailablePercentage ?? 0}%`} label="Artículos Generales Disponibles" tone="79,70,229" />
-              <Metric value={data.dispatchCount ?? 0} label="Salidas Totales" tone="8,145,178" />
+              <Metric
+                value={`${data.storedCount ?? 0}%`}
+                label="Artículos por Lote Activos"
+                tone="29,78,216"
+              />
+              <Metric
+                value={`${data.generalArticlesAvailablePercentage ?? 0}%`}
+                label="Artículos Generales Disponibles"
+                tone="79,70,229"
+              />
+              <Metric
+                value={data.dispatchCount ?? 0}
+                label="Salidas Totales"
+                tone="8,145,178"
+              />
             </div>
           </CardContent>
         </TintedCard>
@@ -201,8 +225,16 @@ export default function DispatchSummary({
 
           <CardContent className="py-8">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-12">
-              <Metric value={data.generalArticleIntakeCount ?? 0} label="Registro de Artículos Generales" tone="79,70,229" />
-              <Metric value={data.batchReceptionCount ?? 0} label="Recepción de Artículos Aeronáuticos" tone="129,140,248" />
+              <Metric
+                value={data.generalArticleIntakeCount ?? 0}
+                label="Registro de Artículos Generales"
+                tone="79,70,229"
+              />
+              <Metric
+                value={data.batchReceptionCount ?? 0}
+                label="Recepción de Artículos Aeronáuticos"
+                tone="129,140,248"
+              />
             </div>
           </CardContent>
         </TintedCard>
@@ -226,7 +258,7 @@ export default function DispatchSummary({
           </CardDescription>
         </CardHeader>
 
-        <CardContent className="h-[320px] sm:h-[420px] pt-2 sm:pt-4 pb-6 sm:pb-8 px-4 sm:px-6">
+        <CardContent className="h-80 sm:h-105 pt-2 sm:pt-4 pb-6 sm:pb-8 px-4 sm:px-6">
           {totalDispatched === 0 ? (
             <div className="h-full flex items-center justify-center text-center text-sm text-slate-500">
               No hay despachos registrados en esta semana
@@ -260,7 +292,9 @@ export default function DispatchSummary({
                   iconSize={8}
                   wrapperStyle={{ fontSize: 12, paddingTop: 12 }}
                   formatter={(value) => (
-                    <span className="text-slate-600 dark:text-slate-300">{value}</span>
+                    <span className="text-slate-600 dark:text-slate-300">
+                      {value}
+                    </span>
                   )}
                 />
               </PieChart>
@@ -269,5 +303,5 @@ export default function DispatchSummary({
         </CardContent>
       </TintedCard>
     </div>
-  )
+  );
 }

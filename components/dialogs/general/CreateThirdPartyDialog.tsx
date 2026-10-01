@@ -26,7 +26,7 @@ export function CreateThirdPartyDialog() {
           Nuevo Tercero
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[420px]">
+      <DialogContent className="sm:max-w-105">
         <DialogHeader>
           <DialogTitle>Creación de Tercero</DialogTitle>
           <DialogDescription>
@@ -36,5 +36,5 @@ export function CreateThirdPartyDialog() {
         <CreateThirdPartyForm onClose={() => setOpen(false)} />
       </DialogContent>
     </Dialog>
-  )
+  );
 }

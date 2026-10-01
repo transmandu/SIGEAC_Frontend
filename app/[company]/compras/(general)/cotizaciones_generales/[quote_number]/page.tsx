@@ -1,20 +1,30 @@
-'use client';
+"use client";
 
-import { ContentLayout } from '@/components/layout/ContentLayout';
-import LoadingPage from '@/components/misc/LoadingPage';
-import { Badge } from '@/components/ui/badge';
-import { useGetQuoteByQuoteNumber } from '@/hooks/mantenimiento/compras/useGetQuoteByQuoteNumber';
-import { useCompanyStore } from '@/stores/CompanyStore';
-import { CalendarDays, FileText, MessageSquare, Truck, User } from 'lucide-react';
-import { useParams } from 'next/navigation';
-import Link from 'next/link';
-import QuoteActions from './_components/QuoteActions';
-import MetaItem from './_components/MetaItem';
-import InfoSection from './_components/InfoSection';
-import QuoteGeneralArticleCard from './_components/QuoteGeneralArticleCard';
-import QuoteOutOfScope from './_components/QuoteOutOfScope';
-import { statusBadgeCls, statusLabel, formatQuoteDate } from './_components/utils/uiHelpers';
-import { isGeneralQuoteScope } from '@/lib/purchases/quote-scope';
+import { ContentLayout } from "@/components/layout/ContentLayout";
+import LoadingPage from "@/components/misc/LoadingPage";
+import { Badge } from "@/components/ui/badge";
+import { useGetQuoteByQuoteNumber } from "@/hooks/mantenimiento/compras/useGetQuoteByQuoteNumber";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import {
+  CalendarDays,
+  FileText,
+  MessageSquare,
+  Truck,
+  User,
+} from "lucide-react";
+import { useParams } from "next/navigation";
+import Link from "next/link";
+import QuoteActions from "./_components/QuoteActions";
+import MetaItem from "./_components/MetaItem";
+import InfoSection from "./_components/InfoSection";
+import QuoteGeneralArticleCard from "./_components/QuoteGeneralArticleCard";
+import QuoteOutOfScope from "./_components/QuoteOutOfScope";
+import {
+  statusBadgeCls,
+  statusLabel,
+  formatQuoteDate,
+} from "./_components/utils/uiHelpers";
+import { isGeneralQuoteScope } from "@/lib/purchases/quote-scope";
 import { PageHeader } from "@/components/layout/PageHeader";
 
 const QuotePage = () => {
@@ -23,7 +33,7 @@ const QuotePage = () => {
 
   const { data, isLoading, refetch } = useGetQuoteByQuoteNumber(
     selectedCompany?.slug ?? null,
-    quote_number
+    quote_number,
   );
 
   const generalArticles = data?.general_article_quote_order ?? [];
@@ -38,8 +48,8 @@ const QuotePage = () => {
       [
         data?.retailer?.name,
         ...generalArticles.map((a) => a.retailer?.name),
-      ].filter((name): name is string => !!name)
-    )
+      ].filter((name): name is string => !!name),
+    ),
   );
 
   if (isLoading) return <LoadingPage />;
@@ -49,20 +59,15 @@ const QuotePage = () => {
   return (
     <ContentLayout title="Cotización General">
       <div className="flex flex-col gap-6">
-
         {/* ── Breadcrumb ──────────────────────────────────────────────── */}
         <PageHeader currentLabel={quote_number} />
 
         {/* ── Header ──────────────────────────────────────────────────── */}
         <div className="flex flex-col gap-2 border-b border-border/60 pb-4">
-
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-
             {/* Title block */}
             <div className="flex flex-col min-w-0 w-full">
-
               <div className="flex items-center gap-3 flex-wrap">
-
                 <h1 className="text-2xl md:text-3xl font-semibold tracking-tight min-w-0 wrap-break-word">
                   {quote_number}
                 </h1>
@@ -76,7 +81,7 @@ const QuotePage = () => {
                     variant="outline"
                     className="border-violet-500/40 bg-violet-500/10 text-violet-700 dark:text-violet-300 text-[10px] font-semibold uppercase tracking-wide"
                   >
-                    Complementaria de{' '}
+                    Complementaria de{" "}
                     <Link
                       href={`/${selectedCompany?.slug}/compras/cotizaciones_generales/${data.parent_quote_order.quote_number}`}
                       className="ml-1 underline underline-offset-2 hover:opacity-80"
@@ -85,14 +90,14 @@ const QuotePage = () => {
                     </Link>
                   </Badge>
                 )}
-
               </div>
 
               <p className="text-sm text-muted-foreground">
                 Cotización de Compra General
                 {data?.requisition_order?.order_number && (
                   <>
-                    {' '}derivada de{' '}
+                    {" "}
+                    derivada de{" "}
                     <Link
                       href={`/${selectedCompany?.slug}/compras/requisiciones_generales/${data.requisition_order.order_number}`}
                       className="hover:text-foreground hover:underline underline-offset-4 decoration-1 transition-colors"
@@ -109,7 +114,6 @@ const QuotePage = () => {
                   <QuoteActions quote={data} onSuccessUpdate={refetch} />
                 </div>
               )}
-
             </div>
 
             {/* ACTIONS DESKTOP */}
@@ -118,18 +122,20 @@ const QuotePage = () => {
                 <QuoteActions quote={data} onSuccessUpdate={refetch} />
               </div>
             )}
-
           </div>
         </div>
 
         {/* ── Meta ────────────────────────────────────────────────────── */}
         <div className="mx-auto w-full max-w-4xl px-4 py-3 rounded-md border border-border/50 bg-muted/20">
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-x-4 sm:gap-x-6 md:gap-x-10 gap-y-3 md:gap-y-4 justify-items-center">
-
             {retailerNames.length > 0 && (
               <MetaItem
-                label={retailerNames.length > 1 ? 'LUGARES DE COMPRA' : 'LUGAR DE COMPRA'}
-                value={retailerNames.join(', ').toUpperCase()}
+                label={
+                  retailerNames.length > 1
+                    ? "LUGARES DE COMPRA"
+                    : "LUGAR DE COMPRA"
+                }
+                value={retailerNames.join(", ").toUpperCase()}
                 icon={Truck}
                 clamp
               />
@@ -146,16 +152,13 @@ const QuotePage = () => {
               value={formatQuoteDate(data?.quote_date)}
               icon={CalendarDays}
             />
-
           </div>
         </div>
 
         {/* ── CONTEXTO DE LA COTIZACIÓN ───────────────────────────── */}
         <div className="w-full space-y-6">
-
           {/* GRID PRINCIPAL */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-
             {/* JUSTIFICACIÓN */}
             <InfoSection
               title="JUSTIFICACIÓN DE LA SOLICITUD ORIGEN"
@@ -181,16 +184,13 @@ const QuotePage = () => {
                 emptyMessage="SIN JUSTIFICACIÓN"
               />
             )}
-
           </div>
         </div>
 
         {/* ── ARTÍCULOS ───────────────────────────────────────────── */}
         <div className="space-y-4">
-
           {/* HEADER */}
           <div className="flex items-end justify-between border-b border-border/60 pb-2 select-none">
-
             <div className="flex flex-col">
               <h2 className="text-xl font-semibold tracking-tight text-foreground/90">
                 Artículos Cotizados
@@ -206,23 +206,18 @@ const QuotePage = () => {
                 {generalArticles.length}
               </span>
             </div>
-
           </div>
 
           {/* ===================== GENERAL ===================== */}
           <div className="space-y-2">
             {generalArticles.map((article) => (
-              <QuoteGeneralArticleCard
-                key={article.id}
-                article={article}
-              />
+              <QuoteGeneralArticleCard key={article.id} article={article} />
             ))}
           </div>
 
           {/* ── Total general ──────────────────────────────────────── */}
           <div className="flex justify-end pt-2 border-t border-border/60">
-            <div className="flex items-center justify-between gap-6 rounded-md bg-muted/10 px-4 py-2 border border-border/40 min-w-[200px]">
-
+            <div className="flex items-center justify-between gap-6 rounded-md bg-muted/10 px-4 py-2 border border-border/40 min-w-50">
               <span className="text-[10px] font-medium tracking-wide text-muted-foreground whitespace-nowrap">
                 TOTAL GENERAL
               </span>
@@ -230,13 +225,10 @@ const QuotePage = () => {
               <span className="font-mono text-xl font-semibold tabular-nums leading-none">
                 ${Number(data?.total).toFixed(2)}
               </span>
-
             </div>
           </div>
-
         </div>
       </div>
-
     </ContentLayout>
   );
 };

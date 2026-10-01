@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
-import libraryService from '@/lib/libraryService';
-import { toast } from 'sonner';
+import { useState } from "react";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import libraryService from "@/lib/libraryService";
+import { toast } from "sonner";
 
 interface RenameFolderDialogProps {
   open: boolean;
@@ -16,7 +16,13 @@ interface RenameFolderDialogProps {
 }
 
 export default function RenameFolderDialog({
-  open, onClose, company, folderId, currentName, departmentId, onSuccess
+  open,
+  onClose,
+  company,
+  folderId,
+  currentName,
+  departmentId,
+  onSuccess,
 }: RenameFolderDialogProps) {
   const [name, setName] = useState(currentName);
   const [loading, setLoading] = useState(false);
@@ -31,11 +37,13 @@ export default function RenameFolderDialog({
         department_id: departmentId,
         name: name.trim(),
       });
-      toast.success('Carpeta renombrada exitosamente');
+      toast.success("Carpeta renombrada exitosamente");
       onSuccess();
       onClose();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Error al renombrar la carpeta');
+      toast.error(
+        error.response?.data?.message || "Error al renombrar la carpeta",
+      );
     } finally {
       setLoading(false);
     }
@@ -48,7 +56,7 @@ export default function RenameFolderDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="bg-white dark:bg-[#1a1c1e] border-none text-slate-900 dark:text-white sm:max-w-[380px] rounded-2xl overflow-hidden p-0 outline-hidden shadow-2xl">
+      <DialogContent className="bg-white dark:bg-[#1a1c1e] border-none text-slate-900 dark:text-white sm:max-w-95 rounded-2xl overflow-hidden p-0 outline-hidden shadow-2xl">
         <div className="bg-slate-50 dark:bg-gray-800/40 px-6 py-5 border-b border-slate-200 dark:border-gray-700">
           <div className="flex items-center gap-2">
             <DialogTitle className="text-lg font-bold text-slate-800 dark:text-white tracking-tight uppercase">
@@ -63,7 +71,9 @@ export default function RenameFolderDialog({
               Nuevo nombre
             </label>
             <input
-              type="text" required autoFocus
+              type="text"
+              required
+              autoFocus
               className="w-full h-11 px-4 border border-slate-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-slate-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-hidden transition-all"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -84,7 +94,7 @@ export default function RenameFolderDialog({
               disabled={loading || !name.trim() || name.trim() === currentName}
               className="flex-1 px-4 py-3 text-[10px] font-black text-white bg-blue-600 rounded-xl hover:bg-blue-700 disabled:opacity-50 shadow-lg shadow-blue-500/20 uppercase tracking-widest transition-all"
             >
-              {loading ? 'GUARDANDO...' : 'GUARDAR'}
+              {loading ? "GUARDANDO..." : "GUARDAR"}
             </button>
           </div>
         </form>

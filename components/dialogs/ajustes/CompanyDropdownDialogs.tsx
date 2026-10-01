@@ -53,10 +53,10 @@ const CompanyDropdownDialogs = ({
       {/* =========================
           EDIT COMPANY (placeholder)
       ========================= */}
-        <Dialog open={openEdit} onOpenChange={setOpenEdit}>
+      <Dialog open={openEdit} onOpenChange={setOpenEdit}>
         <DialogContent
-            className="
-            sm:max-w-[1100px] w-[95vw]
+          className="
+            sm:max-w-275 w-[95vw]
             max-h-[90vh] overflow-y-auto
             rounded-3xl
             border border-border/50
@@ -65,18 +65,17 @@ const CompanyDropdownDialogs = ({
             overflow-hidden p-0
             "
         >
-            {/* HEADER */}
-            <DialogHeader
+          {/* HEADER */}
+          <DialogHeader
             className="
                 border-b border-border/40
                 bg-muted/20
                 px-8 pt-8 pb-6
                 text-left
             "
-            >
+          >
             <div className="flex items-start gap-4">
-
-                <div
+              <div
                 className="
                     flex items-center justify-center
                     size-14 shrink-0
@@ -84,45 +83,41 @@ const CompanyDropdownDialogs = ({
                     border border-blue-500/10
                     bg-blue-500/8
                 "
-                >
+              >
                 <Building2 className="size-6 text-blue-600" />
-                </div>
+              </div>
 
-                <div className="space-y-2">
+              <div className="space-y-2">
                 <DialogTitle className="text-2xl font-semibold tracking-tight">
-                    Editar empresa
+                  Editar empresa
                 </DialogTitle>
 
                 <DialogDescription className="text-sm text-muted-foreground">
-                    Modifique la información de{" "}
-                    <span className="font-medium text-foreground">
+                  Modifique la información de{" "}
+                  <span className="font-medium text-foreground">
                     {company.name}
-                    </span>
+                  </span>
                 </DialogDescription>
-                </div>
-
+              </div>
             </div>
-            </DialogHeader>
+          </DialogHeader>
 
-            {/* BODY */}
-            <div className="px-8 py-6">
+          {/* BODY */}
+          <div className="px-8 py-6">
             <CompanyUpdateForm
-                company={company}
-                onSuccess={() => setOpenEdit(false)}
+              company={company}
+              onSuccess={() => setOpenEdit(false)}
             />
-            </div>
-
+          </div>
         </DialogContent>
-        </Dialog>
+      </Dialog>
 
       {/* =========================
           DELETE COMPANY (CONSISTENTE CON REQUISITION)
       ========================= */}
       <Dialog open={openDelete} onOpenChange={setOpenDelete}>
         <DialogContent className={dialogClass}>
-
           <DialogHeader className="px-6 pt-8 pb-3 flex flex-col items-center text-center space-y-3">
-
             <div
               className="
                 flex items-center justify-center
@@ -144,20 +139,19 @@ const CompanyDropdownDialogs = ({
                 {company.name}
               </span>
             </DialogDescription>
-
           </DialogHeader>
 
           {/* WARNING BOX */}
           <div className="mx-6 mt-4 p-3 rounded-xl border border-red-500/20 bg-red-500/5 text-sm text-red-600 flex gap-2 leading-relaxed">
-            <AlertTriangle className="size-4 mt-[2px]" />
+            <AlertTriangle className="size-4 mt-0.5" />
             <div>
-              Esta acción es <b>irreversible</b> y eliminará permanentemente el registro del sistema.
+              Esta acción es <b>irreversible</b> y eliminará permanentemente el
+              registro del sistema.
             </div>
           </div>
 
           {/* ACTIONS */}
           <div className="px-6 pb-6 pt-5 flex justify-end gap-2">
-
             <Button
               variant="outline"
               onClick={() => setOpenDelete(false)}
@@ -188,13 +182,11 @@ const CompanyDropdownDialogs = ({
               )}
               Eliminar
             </Button>
-
           </div>
-
         </DialogContent>
       </Dialog>
     </>
-  )
+  );
 }
 
 export default CompanyDropdownDialogs

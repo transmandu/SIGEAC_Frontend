@@ -1,33 +1,63 @@
-'use client';
+"use client";
 
-import { ContentLayout } from '@/components/layout/ContentLayout';
-import LoadingPage from '@/components/misc/LoadingPage';
-import { Badge } from '@/components/ui/badge';
-import { useGetRequisitionByOrderNumber } from '@/hooks/mantenimiento/compras/useGetRequisitionByOrderNumber';
-import { useCompanyStore } from '@/stores/CompanyStore';
-import { FileText, MessageSquare, Plane, UserCheck, UserPlus, CalendarDays, Loader2, Building2, Handshake } from 'lucide-react';
-import { useParams } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { useAuth } from '@/contexts/AuthContext';
-import { useUpdateRequisitionStatus } from '@/actions/mantenimiento/compras/requisiciones/actions';
-import { cn } from '@/lib/utils';
-import RequisitionActions from './_components/RequisitionActions';
-import MetaItem from './_components/MetaItem';
-import InfoSection from './_components/InfoSection';
-import ImageAttachment from './_components/ImageAttachment';
-import GeneralArticleCard from './_components/GeneralArticleCard';
-import ImageViewer from '@/components/misc/ImageViewer';
-import RequisitionOutOfScope from './_components/RequisitionOutOfScope';
-import { statusBadgeCls, requisitionStatusLabel, requisitionTypeLabel, formatSolicitudDate, priorityPageBadgeCls, priorityLabel } from './_components/utils/uiHelpers';
+import { ContentLayout } from "@/components/layout/ContentLayout";
+import LoadingPage from "@/components/misc/LoadingPage";
+import { Badge } from "@/components/ui/badge";
+import { useGetRequisitionByOrderNumber } from "@/hooks/mantenimiento/compras/useGetRequisitionByOrderNumber";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import {
+  FileText,
+  MessageSquare,
+  Plane,
+  UserCheck,
+  UserPlus,
+  CalendarDays,
+  Loader2,
+  Building2,
+  Handshake,
+} from "lucide-react";
+import { useParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { useAuth } from "@/contexts/AuthContext";
+import { useUpdateRequisitionStatus } from "@/actions/mantenimiento/compras/requisiciones/actions";
+import { cn } from "@/lib/utils";
+import RequisitionActions from "./_components/RequisitionActions";
+import MetaItem from "./_components/MetaItem";
+import InfoSection from "./_components/InfoSection";
+import ImageAttachment from "./_components/ImageAttachment";
+import GeneralArticleCard from "./_components/GeneralArticleCard";
+import ImageViewer from "@/components/misc/ImageViewer";
+import RequisitionOutOfScope from "./_components/RequisitionOutOfScope";
+import {
+  statusBadgeCls,
+  requisitionStatusLabel,
+  requisitionTypeLabel,
+  formatSolicitudDate,
+  priorityPageBadgeCls,
+  priorityLabel,
+} from "./_components/utils/uiHelpers";
 import { PageHeader } from "@/components/layout/PageHeader";
 import {
   AdvanceRequisitionStatusDialog,
   ADVANCE_REQUISITION_TOOLTIP,
   NEXT_REQUISITION_STATUS,
-} from '@/components/dialogs/mantenimiento/compras/AdvanceRequisitionStatusDialog';
+} from "@/components/dialogs/mantenimiento/compras/AdvanceRequisitionStatusDialog";
 
-function StatusBadge({ status, id, onSuccess }: { status?: string; id?: number; onSuccess: () => void }) {
+function StatusBadge({
+  status,
+  id,
+  onSuccess,
+}: {
+  status?: string;
+  id?: number;
+  onSuccess: () => void;
+}) {
   const { user } = useAuth();
   const { selectedCompany } = useCompanyStore();
   const { updateStatusRequisition } = useUpdateRequisitionStatus();
@@ -38,21 +68,23 @@ function StatusBadge({ status, id, onSuccess }: { status?: string; id?: number; 
    */
   const [confirmingFrom, setConfirmingFrom] = useState<string | null>(null);
 
-  const nextStatus = NEXT_REQUISITION_STATUS[status ?? ''];
+  const nextStatus = NEXT_REQUISITION_STATUS[status ?? ""];
   const isClickable = !!nextStatus && !!selectedCompany && !!id;
 
   const badge = (
     <Badge
       className={cn(
         statusBadgeCls(status),
-        isClickable ? 'cursor-pointer' : 'cursor-default'
+        isClickable ? "cursor-pointer" : "cursor-default",
       )}
       onClick={() => {
         if (!isClickable || updateStatusRequisition.isPending) return;
         setConfirmingFrom(status ?? null);
       }}
     >
-      {updateStatusRequisition.isPending && <Loader2 className="mr-1 size-3 animate-spin" />}
+      {updateStatusRequisition.isPending && (
+        <Loader2 className="mr-1 size-3 animate-spin" />
+      )}
       {requisitionStatusLabel(status)}
     </Badge>
   );
@@ -64,19 +96,22 @@ function StatusBadge({ status, id, onSuccess }: { status?: string; id?: number; 
       onOpenChange={(next) => !next && setConfirmingFrom(null)}
       isPending={updateStatusRequisition.isPending}
       onConfirm={() => {
-        const target = NEXT_REQUISITION_STATUS[confirmingFrom ?? ''];
+        const target = NEXT_REQUISITION_STATUS[confirmingFrom ?? ""];
         if (!target || !selectedCompany || !id) return;
 
         updateStatusRequisition.mutate(
           {
             id,
-            data: { status: target, updated_by: `${user?.first_name} ${user?.last_name}` },
+            data: {
+              status: target,
+              updated_by: `${user?.first_name} ${user?.last_name}`,
+            },
             company: selectedCompany.slug,
           },
           {
             onSuccess,
             onSettled: () => setConfirmingFrom(null),
-          }
+          },
         );
       }}
     />
@@ -98,7 +133,9 @@ function StatusBadge({ status, id, onSuccess }: { status?: string; id?: number; 
           <TooltipTrigger asChild>
             <span className="inline-flex">{badge}</span>
           </TooltipTrigger>
-          <TooltipContent>{ADVANCE_REQUISITION_TOOLTIP[status ?? '']}</TooltipContent>
+          <TooltipContent>
+            {ADVANCE_REQUISITION_TOOLTIP[status ?? ""]}
+          </TooltipContent>
         </Tooltip>
       </TooltipProvider>
 
@@ -120,55 +157,51 @@ const RequisitionPage = () => {
   const batches = data?.batch ?? [];
   const generalArticles = data?.general_articles ?? [];
 
-  const isOutOfScope = !!data && data.type === 'AERONAUTICAL';
+  const isOutOfScope = !!data && data.type === "AERONAUTICAL";
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpenImage(null);
+      if (e.key === "Escape") setOpenImage(null);
     };
 
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
   }, []);
 
   const aircraftList = useMemo(() => {
-    if (!data) return []
+    if (!data) return [];
 
-    const reqAircraft =
-      data.aircraft?.acronym
-        ? [data.aircraft.acronym]
-        : []
+    const reqAircraft = data.aircraft?.acronym ? [data.aircraft.acronym] : [];
 
-    const articleAircraft = (data.batch ?? [])
-      .flatMap((b: any) =>
-        (b.batch_articles ?? [])
-          .map((a: any) => {
-            if (typeof a.aircraft === 'string') return a.aircraft
-            if (a.aircraft?.acronym) return a.aircraft.acronym
-            return null
-          })
-          .filter(Boolean)
-      )
+    const articleAircraft = (data.batch ?? []).flatMap((b: any) =>
+      (b.batch_articles ?? [])
+        .map((a: any) => {
+          if (typeof a.aircraft === "string") return a.aircraft;
+          if (a.aircraft?.acronym) return a.aircraft.acronym;
+          return null;
+        })
+        .filter(Boolean),
+    );
 
     // prioridad: requisición + artículos
-    const merged = [...reqAircraft, ...articleAircraft]
+    const merged = [...reqAircraft, ...articleAircraft];
 
     // dedupe
-    return Array.from(new Set(merged))
-  }, [data])
+    return Array.from(new Set(merged));
+  }, [data]);
 
   const aircraftChunks = useMemo(() => {
     return aircraftList.reduce((acc: string[][], item, idx) => {
-      const chunkIndex = Math.floor(idx / 2)
+      const chunkIndex = Math.floor(idx / 2);
 
-      if (!acc[chunkIndex]) acc[chunkIndex] = []
+      if (!acc[chunkIndex]) acc[chunkIndex] = [];
 
-      acc[chunkIndex].push(item)
+      acc[chunkIndex].push(item);
 
-      return acc
-    }, [])
-  }, [aircraftList])
-  
+      return acc;
+    }, []);
+  }, [aircraftList]);
+
   if (isLoading) return <LoadingPage />;
 
   if (isOutOfScope) return <RequisitionOutOfScope />;
@@ -176,33 +209,32 @@ const RequisitionPage = () => {
   return (
     <ContentLayout title="Requisición General">
       <div className="flex flex-col gap-4 sm:gap-6">
-
         {/* ── Breadcrumb ──────────────────────────────────────────────── */}
         <PageHeader currentLabel={order_number} />
 
         {/* ── Header ──────────────────────────────────────────────────── */}
         <div className="flex flex-col gap-2 border-b border-border/60 pb-3 sm:pb-4">
-
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 sm:gap-4">
-
             {/* Title block */}
             <div className="flex flex-col min-w-0 w-full">
-
               <div className="flex items-end gap-3 sm:gap-4 flex-wrap">
-
                 <h1 className="text-xl sm:text-2xl md:text-3xl font-semibold tracking-tight min-w-0 wrap-break-word">
                   {order_number}
                 </h1>
 
-                <div className="flex flex-col items-center justify-start gap-1 min-w-[70px] sm:min-w-[80px]">
+                <div className="flex flex-col items-center justify-start gap-1 min-w-17.5 sm:min-w-20">
                   <span className="text-[8px] sm:text-[9px] leading-none tracking-widest text-muted-foreground select-none">
                     ESTADO
                   </span>
 
-                  <StatusBadge status={data?.status} id={data?.id} onSuccess={refetch} />
+                  <StatusBadge
+                    status={data?.status}
+                    id={data?.id}
+                    onSuccess={refetch}
+                  />
                 </div>
 
-                <div className="flex flex-col items-center justify-start gap-1 min-w-[70px] sm:min-w-[80px]">
+                <div className="flex flex-col items-center justify-start gap-1 min-w-17.5 sm:min-w-20">
                   <span className="text-[8px] sm:text-[9px] leading-none tracking-widest text-muted-foreground select-none">
                     PRIORIDAD
                   </span>
@@ -211,29 +243,27 @@ const RequisitionPage = () => {
                     {priorityLabel(data?.priority)}
                   </div>
                 </div>
-
               </div>
 
               <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                Solicitud de Compra General de {requisitionTypeLabel(data?.type)}
+                Solicitud de Compra General de{" "}
+                {requisitionTypeLabel(data?.type)}
               </p>
 
               {/* ACTIONS SOLO MOBILE (debajo del título) */}
               {data && (
                 <div className="flex md:hidden justify-center mt-3">
-                  <RequisitionActions req={data} onSuccessUpdate={refetch}/>
+                  <RequisitionActions req={data} onSuccessUpdate={refetch} />
                 </div>
               )}
-
             </div>
 
             {/* ACTIONS DESKTOP */}
             {data && (
               <div className="hidden md:flex items-center gap-1.5 shrink-0">
-                <RequisitionActions req={data} onSuccessUpdate={refetch}/>
+                <RequisitionActions req={data} onSuccessUpdate={refetch} />
               </div>
             )}
-
           </div>
         </div>
 
@@ -285,10 +315,8 @@ const RequisitionPage = () => {
 
         {/* ── CONTEXTO DE LA REQUISICIÓN ───────────────────────────── */}
         <div className="w-full space-y-4 sm:space-y-6">
-
           {/* GRID PRINCIPAL */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
-
             {/* JUSTIFICACIÓN */}
             <InfoSection
               title="JUSTIFICACIÓN DE SOLICITUD"
@@ -308,20 +336,14 @@ const RequisitionPage = () => {
 
           {/* ── IMAGEN ADJUNTA ───────────────────────────── */}
           {data?.image && (
-            <ImageAttachment
-              image={data.image}
-              onImageClick={setOpenImage}
-            />
+            <ImageAttachment image={data.image} onImageClick={setOpenImage} />
           )}
-
         </div>
 
         {/* ── ARTÍCULOS ───────────────────────────────────────── */}
         <div className="space-y-3 sm:space-y-4">
-
           {/* HEADER ÚNICO */}
           <div className="flex items-end justify-between border-b border-border/60 pb-2 select-none">
-
             <div className="flex flex-col">
               <h2 className="text-lg sm:text-xl font-semibold tracking-tight text-foreground/90">
                 ARTÍCULOS SOLICITADOS
@@ -337,7 +359,6 @@ const RequisitionPage = () => {
                 {generalArticles?.length ?? 0}
               </span>
             </div>
-
           </div>
 
           {/* ===================== GENERAL ARTICLES ===================== */}
@@ -353,14 +374,10 @@ const RequisitionPage = () => {
               ))}
             </div>
           )}
-
         </div>
 
         {/* ── Image Modal ───────────────────────────────────────── */}
-        <ImageViewer
-          openImage={openImage}
-          onClose={() => setOpenImage(null)}
-        />
+        <ImageViewer openImage={openImage} onClose={() => setOpenImage(null)} />
       </div>
     </ContentLayout>
   );

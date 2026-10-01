@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react"; 
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -11,7 +11,11 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { CalendarDays, FileDown, Loader2, CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -21,25 +25,30 @@ import { useSmsReport } from "@/hooks/sms/useGetReportSmsByDate";
 export function ReportModal() {
   const [isOpen, setIsOpen] = useState(false);
 
-  const { 
-    reportFrom, setReportFrom, 
-    reportTo, setReportTo, 
-    isGenerating, handleGenerate,
-    canGenerate // <--- Traemos canGenerate del hook
-  } = useSmsReport(() => setIsOpen(false)); 
+  const {
+    reportFrom,
+    setReportFrom,
+    reportTo,
+    setReportTo,
+    isGenerating,
+    handleGenerate,
+    canGenerate, // <--- Traemos canGenerate del hook
+  } = useSmsReport(() => setIsOpen(false));
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}> 
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="h-8 flex gap-2">
           <FileDown className="size-4" />
           Generar Cronograma
         </Button>
       </DialogTrigger>
-      
-      <DialogContent className="sm:max-w-[480px]">
+
+      <DialogContent className="sm:max-w-120">
         <DialogHeader className="flex flex-col items-center">
-          <DialogTitle className="text-3xl font-bold text-center">Generar Cronograma</DialogTitle>
+          <DialogTitle className="text-3xl font-bold text-center">
+            Generar Cronograma
+          </DialogTitle>
           <DialogDescription className="text-sm italic text-center">
             Selecciona el rango de fechas para la consulta en el servidor.
           </DialogDescription>
@@ -51,7 +60,7 @@ export function ReportModal() {
               <span>Rango por fechas</span>
               <CalendarDays className="size-5 text-primary" />
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4">
               {/* Selector DESDE */}
               <div className="flex flex-col gap-2">
@@ -62,11 +71,13 @@ export function ReportModal() {
                       variant="outline"
                       className={cn(
                         "w-full justify-start text-left font-normal border-input bg-background text-foreground",
-                        !reportFrom && "text-muted-foreground"
+                        !reportFrom && "text-muted-foreground",
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {reportFrom ? format(reportFrom, "dd/MM/yyyy", { locale: es }) : "DD/MM/YYYY"}
+                      {reportFrom
+                        ? format(reportFrom, "dd/MM/yyyy", { locale: es })
+                        : "DD/MM/YYYY"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -90,11 +101,13 @@ export function ReportModal() {
                       variant="outline"
                       className={cn(
                         "w-full justify-start text-left font-normal border-input bg-background text-foreground",
-                        !reportTo && "text-muted-foreground"
+                        !reportTo && "text-muted-foreground",
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {reportTo ? format(reportTo, "dd/MM/yyyy", { locale: es }) : "DD/MM/YYYY"}
+                      {reportTo
+                        ? format(reportTo, "dd/MM/yyyy", { locale: es })
+                        : "DD/MM/YYYY"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -102,7 +115,9 @@ export function ReportModal() {
                       mode="single"
                       selected={reportTo}
                       onSelect={setReportTo}
-                      disabled={(date) => (reportFrom ? date < reportFrom : false)}
+                      disabled={(date) =>
+                        reportFrom ? date < reportFrom : false
+                      }
                       autoFocus
                       locale={es}
                     />
@@ -113,14 +128,15 @@ export function ReportModal() {
           </div>
 
           <div className="flex flex-col gap-3">
-            <Button 
-              onClick={handleGenerate} 
+            <Button
+              onClick={handleGenerate}
               // Cambiamos disabled para que dependa de canGenerate
-              disabled={!canGenerate} 
+              disabled={!canGenerate}
               className={cn(
                 "w-full font-bold text-lg h-12 transition-all duration-200",
                 // Si no puede generar, forzamos estilos de "apagado"
-                !canGenerate && "bg-muted text-muted-foreground cursor-not-allowed opacity-50 shadow-none border-none hover:bg-muted"
+                !canGenerate &&
+                  "bg-muted text-muted-foreground cursor-not-allowed opacity-50 shadow-none border-none hover:bg-muted",
               )}
             >
               {isGenerating ? (

@@ -1,75 +1,87 @@
-'use client'
+"use client";
 
-import { ContentLayout } from '@/components/layout/ContentLayout'
-import { PageHeader } from '@/components/layout/PageHeader'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useQuarantineLegalDays } from '@/hooks/general/useCompanySettings'
-import { useGetQuarantineArticles } from '@/hooks/mantenimiento/control_calidad/useGetQuarantineArticles'
-import { quarantineRisk } from '@/lib/warehouse/quarantine'
-import type { QuarantineStatusFilter } from '@/types/quarantine'
-import { AlertTriangle, PackageSearch, ShieldAlert, ShieldCheck } from 'lucide-react'
-import { useDeferredValue, useMemo, useState } from 'react'
-import { DataTable } from '@/app/[company]/compras/data-table'
-import { getColumns } from './columns'
-import { QuarantineCycleHistory } from './_components/QuarantineCycleHistory'
-import QuarantineToolBar from './_components/QuarantineToolBar'
+import { ContentLayout } from "@/components/layout/ContentLayout";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import CopyPartNumberButton from "@/components/misc/CopyPartNumberButton";
+import { useQuarantineLegalDays } from "@/hooks/general/useCompanySettings";
+import { useGetQuarantineArticles } from "@/hooks/mantenimiento/control_calidad/useGetQuarantineArticles";
+import { quarantineRisk } from "@/lib/warehouse/quarantine";
+import type { QuarantineStatusFilter } from "@/types/quarantine";
+import {
+  AlertTriangle,
+  PackageSearch,
+  ShieldAlert,
+  ShieldCheck,
+} from "lucide-react";
+import { useDeferredValue, useMemo, useState } from "react";
+import { DataTable } from "@/app/[company]/compras/data-table";
+import { getColumns } from "./columns";
+import { QuarantineCycleHistory } from "./_components/QuarantineCycleHistory";
+import QuarantineToolBar from "./_components/QuarantineToolBar";
 
 const QuarantinePurchasesPage = () => {
-  const [search, setSearch] = useState('')
-  const [status, setStatus] = useState<QuarantineStatusFilter>('UNRESOLVED')
+  const [search, setSearch] = useState("");
+  const [status, setStatus] = useState<QuarantineStatusFilter>("UNRESOLVED");
 
-  const deferredSearch = useDeferredValue(search)
-  const legalDays = useQuarantineLegalDays()
+  const deferredSearch = useDeferredValue(search);
+  const legalDays = useQuarantineLegalDays();
 
-  const { data: records, isLoading } = useGetQuarantineArticles(status)
+  const { data: records, isLoading } = useGetQuarantineArticles(status);
   // Las métricas deben contar todo el ciclo, no solo lo que el filtro muestra.
-  const { data: allRecords } = useGetQuarantineArticles('ALL')
+  const { data: allRecords } = useGetQuarantineArticles("ALL");
 
   const filteredRecords = useMemo(() => {
-    const list = records ?? []
+    const list = records ?? [];
 
-    if (!deferredSearch.trim()) return list
+    if (!deferredSearch.trim()) return list;
 
-    const q = deferredSearch.toLowerCase()
+    const q = deferredSearch.toLowerCase();
 
     return list.filter((record) => {
-      const article = record.article
+      const article = record.article;
 
       return (
         article?.part_number?.toLowerCase().includes(q) ||
         article?.serial?.toLowerCase().includes(q) ||
         article?.batch?.name?.toLowerCase().includes(q) ||
         record.reason?.toLowerCase().includes(q)
-      )
-    })
-  }, [records, deferredSearch])
+      );
+    });
+  }, [records, deferredSearch]);
 
   const metrics = useMemo(() => {
-    const list = allRecords ?? []
+    const list = allRecords ?? [];
 
-    const open = list.filter((record) => record.status === 'OPEN')
-    const pending = list.filter((record) => record.status === 'PENDING_REINSPECTION')
-    const overdue = open.filter((record) => record.is_overdue)
+    const open = list.filter((record) => record.status === "OPEN");
+    const pending = list.filter(
+      (record) => record.status === "PENDING_REINSPECTION",
+    );
+    const overdue = open.filter((record) => record.is_overdue);
 
     // El más urgente entre los que esperan corrección: es lo que compras debe
     // atender primero, y con qué margen.
     const mostUrgent = [...open]
       .map((record) => ({
         record,
-        risk: quarantineRisk(record.quarantine_entry_date, legalDays, record.days_in_quarantine),
+        risk: quarantineRisk(
+          record.quarantine_entry_date,
+          legalDays,
+          record.days_in_quarantine,
+        ),
       }))
       .filter((entry) => entry.risk.remaining !== null)
-      .sort((a, b) => (a.risk.remaining ?? 0) - (b.risk.remaining ?? 0))[0]
+      .sort((a, b) => (a.risk.remaining ?? 0) - (b.risk.remaining ?? 0))[0];
 
     return {
       openCount: open.length,
       pendingCount: pending.length,
       overdueCount: overdue.length,
       mostUrgent,
-    }
-  }, [allRecords, legalDays])
+    };
+  }, [allRecords, legalDays]);
 
-  const columns = useMemo(() => getColumns(legalDays), [legalDays])
+  const columns = useMemo(() => getColumns(legalDays), [legalDays]);
 
   return (
     <ContentLayout title="Cuarentena">
@@ -80,8 +92,9 @@ const QuarantinePurchasesPage = () => {
           <h1 className="text-3xl font-semibold tracking-tight">Cuarentena</h1>
 
           <p className="text-sm text-muted-foreground">
-            Artículos retenidos por Control de Calidad que requieren corrección de Compras.
-            Corrija el artículo o su documentación y envíelo a re-inspección.
+            Artículos retenidos por Control de Calidad que requieren corrección
+            de Compras. Corrija el artículo o su documentación y envíelo a
+            re-inspección.
           </p>
         </div>
 
@@ -96,7 +109,9 @@ const QuarantinePurchasesPage = () => {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold">{metrics.openCount}</div>
-              <p className="mt-1 text-xs text-muted-foreground">Esperan acción de Compras</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Esperan acción de Compras
+              </p>
             </CardContent>
           </Card>
 
@@ -109,15 +124,17 @@ const QuarantinePurchasesPage = () => {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold">{metrics.pendingCount}</div>
-              <p className="mt-1 text-xs text-muted-foreground">Ya corregidos, en manos de Calidad</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Ya corregidos, en manos de Calidad
+              </p>
             </CardContent>
           </Card>
 
           <Card
             className={
               metrics.overdueCount > 0
-                ? 'rounded-2xl border-red-500/40 bg-red-500/5'
-                : 'rounded-2xl'
+                ? "rounded-2xl border-red-500/40 bg-red-500/5"
+                : "rounded-2xl"
             }
           >
             <CardHeader className="pb-2">
@@ -142,14 +159,22 @@ const QuarantinePurchasesPage = () => {
             </CardHeader>
             <CardContent>
               {!metrics.mostUrgent ? (
-                <p className="text-sm text-muted-foreground">Nada pendiente de corrección.</p>
+                <p className="text-sm text-muted-foreground">
+                  Nada pendiente de corrección.
+                </p>
               ) : (
                 <div className="flex items-start gap-2">
                   <PackageSearch className="mt-0.5 size-4 shrink-0" />
                   <div className="min-w-0 space-y-0.5">
-                    <p className="truncate text-sm font-semibold">
-                      {metrics.mostUrgent.record.article?.part_number ?? 'Sin parte'}
-                    </p>
+                    <div className="flex items-center gap-1.5">
+                      <p className="truncate text-sm font-semibold">
+                        {metrics.mostUrgent.record.article?.part_number ??
+                          "Sin parte"}
+                      </p>
+                      <CopyPartNumberButton
+                        value={metrics.mostUrgent.record.article?.part_number}
+                      />
+                    </div>
                     <p className="text-xs text-muted-foreground">
                       {(metrics.mostUrgent.risk.remaining ?? 0) >= 0
                         ? `Vence en ${metrics.mostUrgent.risk.remaining} días`
@@ -190,7 +215,7 @@ const QuarantinePurchasesPage = () => {
         />
       </div>
     </ContentLayout>
-  )
-}
+  );
+};
 
-export default QuarantinePurchasesPage
+export default QuarantinePurchasesPage;

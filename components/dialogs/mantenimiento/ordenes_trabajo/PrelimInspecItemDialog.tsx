@@ -17,9 +17,15 @@ export function PrelimInspectItemDialog({ id }: { id: string }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button onClick={() => setOpen(true)} variant={'outline'} className="flex items-center justify-center gap-2 h-8 border-dashed">Agregar Observacion</Button>
+        <Button
+          onClick={() => setOpen(true)}
+          variant={"outline"}
+          className="flex items-center justify-center gap-2 h-8 border-dashed"
+        >
+          Agregar Observacion
+        </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[420px]">
+      <DialogContent className="sm:max-w-105">
         <DialogHeader>
           <DialogTitle>Agregar Observación</DialogTitle>
           <DialogDescription>
@@ -29,5 +35,5 @@ export function PrelimInspectItemDialog({ id }: { id: string }) {
         <AddInspectionItemForm id={id} onClose={() => setOpen(false)} />
       </DialogContent>
     </Dialog>
-  )
+  );
 }

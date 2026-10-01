@@ -15,7 +15,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, ChevronsUpDown, Check, Edit, Loader2, Loader } from "lucide-react";
+import {
+  Search,
+  ChevronsUpDown,
+  Check,
+  Edit,
+  Loader2,
+  Loader,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useGetBatchesByCategory } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByCategory";
 // Importa el nuevo hook (ajusta la ruta según tu proyecto)
@@ -39,9 +46,7 @@ const SelectBatchCategory = ({
   onEditBatch,
 }: IRegisterArticleProps) => {
   const { selectedCompany, selectedStation } = useCompanyStore();
-  const [type, setType] = useState(
-    initialData?.category.toUpperCase() ?? "",
-  );
+  const [type, setType] = useState(initialData?.category.toUpperCase() ?? "");
 
   const [selectedBatch, setSelectedBatch] = useState<Batch | null>(
     initialData || null,
@@ -214,7 +219,7 @@ const SelectBatchCategory = ({
               </Button>
             </PopoverTrigger>
 
-            <PopoverContent className="w-[400px] p-0" align="start">
+            <PopoverContent className="w-100 p-0" align="start">
               <div className="p-2 border-b">
                 <div className="flex items-center px-2">
                   <Search className="mr-2 h-4 w-4 shrink-0 text-gray-500" />
@@ -227,7 +232,7 @@ const SelectBatchCategory = ({
                 </div>
               </div>
 
-              <div className="max-h-[300px] overflow-y-auto">
+              <div className="max-h-75 overflow-y-auto">
                 {filteredBatches.length === 0 ? (
                   <div className="p-4 text-center text-sm text-gray-500">
                     No hay batches que coincidan.

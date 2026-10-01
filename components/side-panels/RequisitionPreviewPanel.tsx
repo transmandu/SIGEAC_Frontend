@@ -14,6 +14,7 @@ import {
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import CopyPartNumberButton from '@/components/misc/CopyPartNumberButton'
 import { cn, formatRequestedDate } from '@/lib/utils'
 import type { Requisition } from '@/types/purchase'
 
@@ -85,6 +86,7 @@ const MetaItem = ({ label, value, icon: Icon }: MetaItemProps) => (
 interface DetailChipProps {
   label: string
   value: string | number
+  copyable?: boolean
 }
 
 interface DestinationEntry {
@@ -125,8 +127,14 @@ const ArticleRow = ({
       {details.length > 0 && (
         <div className="flex flex-wrap gap-x-3 gap-y-0.5">
           {details.map((d) => (
-            <span key={d.label} className="text-[11px] text-muted-foreground">
+            <span
+              key={d.label}
+              className="inline-flex items-center gap-1 text-[11px] text-muted-foreground"
+            >
               {d.label}: <span className="text-foreground/70">{d.value}</span>
+              {d.copyable && (
+                <CopyPartNumberButton value={String(d.value)} label={d.label} />
+              )}
             </span>
           ))}
         </div>
@@ -298,11 +306,19 @@ export default function RequisitionPreviewPanel({ requisition, onClose }: Props)
                     : article.aircraft?.acronym
 
                 const details: DetailChipProps[] = [
-                  { label: 'P/N', value: article.article_part_number ?? 'N/A' },
+                  {
+                    label: 'P/N',
+                    value: article.article_part_number ?? 'N/A',
+                    copyable: !!article.article_part_number,
+                  },
                 ]
 
                 if (article.article_alt_part_number) {
-                  details.push({ label: 'Alt. P/N', value: article.article_alt_part_number })
+                  details.push({
+                    label: 'Alt. P/N',
+                    value: article.article_alt_part_number,
+                    copyable: true,
+                  })
                 }
 
                 const destinations: DestinationEntry[] = []

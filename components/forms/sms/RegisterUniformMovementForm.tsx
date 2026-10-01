@@ -39,12 +39,16 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@/lib/zod-resolver";
 import { AlertTriangle, Loader2, PackagePlus } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import {
   uniformCompanyLabel,
@@ -116,10 +120,10 @@ export const RegisterUniformMovementForm = ({ onClose, itemId }: Props) => {
   const { selectedCompany } = useCompanyStore();
   const { data: items, isLoading: loadingItems } = useGetUniformItems(
     selectedCompany?.slug,
-    true
+    true,
   );
   const { data: options, isLoading: loadingOptions } = useGetUniformOptions(
-    selectedCompany?.slug
+    selectedCompany?.slug,
   );
   const { data: employees } = useGetEmployeesByCompany(selectedCompany?.slug);
   const createMovement = useCreateUniformMovement();
@@ -142,13 +146,22 @@ export const RegisterUniformMovementForm = ({ onClose, itemId }: Props) => {
     },
   });
 
-  const movementType = form.watch("movement_type");
-  const selectedItemId = form.watch("uniform_item_id");
-  const isEmployee = form.watch("is_employee");
-  const selectedEmployeeId = form.watch("employee_id");
+  const movementType = useWatch({
+    control: form.control,
+    name: "movement_type",
+  });
+  const selectedItemId = useWatch({
+    control: form.control,
+    name: "uniform_item_id",
+  });
+  const isEmployee = useWatch({ control: form.control, name: "is_employee" });
+  const selectedEmployeeId = useWatch({
+    control: form.control,
+    name: "employee_id",
+  });
   const selectedItem = items?.find((i) => String(i.id) === selectedItemId);
   const selectedEmployee = employees?.find(
-    (e) => String(e.id) === selectedEmployeeId
+    (e) => String(e.id) === selectedEmployeeId,
   );
 
   const employeeFullName = (e: Employee) =>
@@ -166,7 +179,9 @@ export const RegisterUniformMovementForm = ({ onClose, itemId }: Props) => {
           quantity: data.quantity,
           date: data.date,
           employee_id:
-            data.movement_type === ISSUANCE && data.is_employee && data.employee_id
+            data.movement_type === ISSUANCE &&
+            data.is_employee &&
+            data.employee_id
               ? Number(data.employee_id)
               : undefined,
           recipient_name:
@@ -182,7 +197,7 @@ export const RegisterUniformMovementForm = ({ onClose, itemId }: Props) => {
           notes: data.notes || undefined,
         },
       },
-      { onSuccess: () => onClose() }
+      { onSuccess: () => onClose() },
     );
   };
 
@@ -225,8 +240,7 @@ export const RegisterUniformMovementForm = ({ onClose, itemId }: Props) => {
                       {uniformGenderLabel(i.gender)
                         ? ` · ${uniformGenderLabel(i.gender)}`
                         : ""}{" "}
-                      (stock:{" "}
-                      {i.current_stock})
+                      (stock: {i.current_stock})
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -363,7 +377,7 @@ export const RegisterUniformMovementForm = ({ onClose, itemId }: Props) => {
                             aria-expanded={employeePopoverOpen}
                             className={cn(
                               "w-full justify-between bg-background/70 font-normal",
-                              !selectedEmployee && "text-muted-foreground"
+                              !selectedEmployee && "text-muted-foreground",
                             )}
                           >
                             <span className="min-w-0 truncate">
@@ -411,7 +425,7 @@ export const RegisterUniformMovementForm = ({ onClose, itemId }: Props) => {
                                         "mr-2 size-4 shrink-0",
                                         String(emp.id) === field.value
                                           ? "opacity-100"
-                                          : "opacity-0"
+                                          : "opacity-0",
                                       )}
                                     />
                                     <div className="flex flex-col">

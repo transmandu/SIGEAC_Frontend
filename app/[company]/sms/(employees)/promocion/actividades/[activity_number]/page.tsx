@@ -80,9 +80,9 @@ const ShowSMSActivity = () => {
 
   const pieChartData = attendanceStats
     ? [
-      { name: "Asistentes", value: attendanceStats.attended },
-      { name: "Inasistentes", value: attendanceStats.not_attended },
-    ]
+        { name: "Asistentes", value: attendanceStats.attended },
+        { name: "Inasistentes", value: attendanceStats.not_attended },
+      ]
     : [];
 
   const dateLabel = (date: Date) =>
@@ -92,14 +92,15 @@ const ShowSMSActivity = () => {
 
   const topics = activity?.topics
     ? activity.topics
-      .split(",")
-      .map((topic) => topic.trim())
-      .filter(Boolean)
+        .split(",")
+        .map((topic) => topic.trim())
+        .filter(Boolean)
     : [];
 
-  const attendancePercentage = attendanceStats && attendanceStats.total > 0
-    ? Math.round((attendanceStats.attended / attendanceStats.total) * 100)
-    : 0;
+  const attendancePercentage =
+    attendanceStats && attendanceStats.total > 0
+      ? Math.round((attendanceStats.attended / attendanceStats.total) * 100)
+      : 0;
 
   return (
     <>
@@ -125,10 +126,11 @@ const ShowSMSActivity = () => {
 
               {activity?.status && (
                 <Badge
-                  className={`border text-xs font-medium ${statusClassName[
-                    activity.status as keyof typeof statusClassName
-                  ] || "bg-muted text-foreground border-border/40"
-                    }`}
+                  className={`border text-xs font-medium ${
+                    statusClassName[
+                      activity.status as keyof typeof statusClassName
+                    ] || "bg-muted text-foreground border-border/40"
+                  }`}
                 >
                   {activity.status.replace("_", " ")}
                 </Badge>
@@ -150,28 +152,36 @@ const ShowSMSActivity = () => {
                   className="flex items-center gap-2 px-2 data-[state=active]:bg-muted"
                 >
                   <Info className="h-4 w-4 shrink-0" />
-                  <span className="truncate text-xs sm:text-sm">Información</span>
+                  <span className="truncate text-xs sm:text-sm">
+                    Información
+                  </span>
                 </TabsTrigger>
                 <TabsTrigger
                   value="participantes"
                   className="flex items-center gap-2 px-2 data-[state=active]:bg-muted"
                 >
                   <Users className="h-4 w-4 shrink-0" />
-                  <span className="truncate text-xs sm:text-sm">Participantes</span>
+                  <span className="truncate text-xs sm:text-sm">
+                    Participantes
+                  </span>
                 </TabsTrigger>
                 <TabsTrigger
                   value="asistencia"
                   className="flex items-center gap-2 px-2 data-[state=active]:bg-muted"
                 >
                   <UserCheck className="h-4 w-4 shrink-0" />
-                  <span className="truncate text-xs sm:text-sm">Asistencia</span>
+                  <span className="truncate text-xs sm:text-sm">
+                    Asistencia
+                  </span>
                 </TabsTrigger>
                 <TabsTrigger
                   value="estadisticas"
                   className="flex items-center gap-2 px-2 data-[state=active]:bg-muted"
                 >
                   <BarChart3 className="h-4 w-4 shrink-0" />
-                  <span className="truncate text-xs sm:text-sm">Estadísticas</span>
+                  <span className="truncate text-xs sm:text-sm">
+                    Estadísticas
+                  </span>
                 </TabsTrigger>
               </TabsList>
 
@@ -181,13 +191,17 @@ const ShowSMSActivity = () => {
                     <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                       Título
                     </p>
-                    <p className="mt-1 text-sm font-medium">{activity.title || "N/A"}</p>
+                    <p className="mt-1 text-sm font-medium">
+                      {activity.title || "N/A"}
+                    </p>
                   </div>
                   <div className="rounded-lg border border-border/60 bg-muted/20 p-3">
                     <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                       Nombre de Actividad
                     </p>
-                    <p className="mt-1 text-sm">{activity.activity_name || "N/A"}</p>
+                    <p className="mt-1 text-sm">
+                      {activity.activity_name || "N/A"}
+                    </p>
                   </div>
                   <div className="rounded-lg border border-border/60 bg-muted/20 p-3">
                     <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -215,20 +229,25 @@ const ShowSMSActivity = () => {
                         <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                           Fecha Inicio
                         </p>
-                        <p className="text-sm">{dateLabel(activity.start_date)}</p>
+                        <p className="text-sm">
+                          {dateLabel(activity.start_date)}
+                        </p>
                       </div>
                       <div className="space-y-1 border border-border/40 px-3 py-3">
                         <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                           Fecha Final
                         </p>
-                        <p className="text-sm">{dateLabel(activity.end_date)}</p>
+                        <p className="text-sm">
+                          {dateLabel(activity.end_date)}
+                        </p>
                       </div>
                       <div className="space-y-1 border border-border/40 px-3 py-3">
                         <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                           Horario
                         </p>
                         <p className="text-sm font-mono">
-                          {activity.start_time || "N/A"} - {activity.end_time || "N/A"}
+                          {activity.start_time || "N/A"} -{" "}
+                          {activity.end_time || "N/A"}
                         </p>
                       </div>
                     </div>
@@ -251,7 +270,9 @@ const ShowSMSActivity = () => {
                           ))}
                         </div>
                       ) : (
-                        <p className="text-sm text-muted-foreground">Sin categorías registradas.</p>
+                        <p className="text-sm text-muted-foreground">
+                          Sin categorías registradas.
+                        </p>
                       )}
                     </div>
                   </section>
@@ -268,7 +289,8 @@ const ShowSMSActivity = () => {
                           Autorizado por
                         </p>
                         <p className="mt-1 font-medium">
-                          {activity.authorized_by.first_name || "N/A"} {activity.authorized_by.last_name || ""}
+                          {activity.authorized_by.first_name || "N/A"}{" "}
+                          {activity.authorized_by.last_name || ""}
                         </p>
                         <p className="text-xs text-muted-foreground">
                           DNI: {activity.authorized_by.dni || "N/A"}
@@ -279,7 +301,8 @@ const ShowSMSActivity = () => {
                           Elaborado por
                         </p>
                         <p className="mt-1 font-medium">
-                          {activity.planned_by.first_name || "N/A"} {activity.planned_by.last_name || ""}
+                          {activity.planned_by.first_name || "N/A"}{" "}
+                          {activity.planned_by.last_name || ""}
                         </p>
                         <p className="text-xs text-muted-foreground">
                           DNI: {activity.planned_by.dni || "N/A"}
@@ -289,7 +312,9 @@ const ShowSMSActivity = () => {
                         <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                           Realizado por
                         </p>
-                        <p className="mt-1 font-medium">{activity.executed_by || "N/A"}</p>
+                        <p className="mt-1 font-medium">
+                          {activity.executed_by || "N/A"}
+                        </p>
                       </div>
                     </div>
                   </section>
@@ -314,7 +339,9 @@ const ShowSMSActivity = () => {
                           ))}
                         </div>
                       ) : (
-                        <p className="text-sm text-muted-foreground">No hay temas registrados.</p>
+                        <p className="text-sm text-muted-foreground">
+                          No hay temas registrados.
+                        </p>
                       )}
                     </div>
                   </section>
@@ -327,7 +354,8 @@ const ShowSMSActivity = () => {
                     </h2>
                     <div className="border-t border-border/60 pt-3">
                       <p className="whitespace-pre-line text-sm text-muted-foreground">
-                        {activity.objetive || "No hay observaciones registradas."}
+                        {activity.objetive ||
+                          "No hay observaciones registradas."}
                       </p>
                     </div>
                   </section>
@@ -338,7 +366,8 @@ const ShowSMSActivity = () => {
                     </h2>
                     <div className="border-t border-border/60 pt-3">
                       <p className="whitespace-pre-line text-sm text-muted-foreground">
-                        {activity.description || "No hay descripción registrada."}
+                        {activity.description ||
+                          "No hay descripción registrada."}
                       </p>
                     </div>
                   </section>
@@ -431,23 +460,34 @@ const ShowSMSActivity = () => {
                         </thead>
                         <tbody className="divide-y divide-border/30">
                           {attendedList.map((attended, index) => (
-                            <tr key={attended.id} className="transition-colors hover:bg-muted/20">
+                            <tr
+                              key={attended.id}
+                              className="transition-colors hover:bg-muted/20"
+                            >
                               <td className="whitespace-nowrap px-3 py-3 text-sm text-muted-foreground">
                                 {index + 1}
                               </td>
                               <td className="whitespace-nowrap px-3 py-3 text-sm font-medium">
-                                {attended.employee?.first_name} {attended.employee?.last_name}
+                                {attended.employee?.first_name}{" "}
+                                {attended.employee?.last_name}
                               </td>
                               <td className="whitespace-nowrap px-3 py-3 text-sm text-muted-foreground font-mono">
-                                {attended.employee?.dni || attended.employee_dni || "N/A"}
+                                {attended.employee?.dni ||
+                                  attended.employee_dni ||
+                                  "N/A"}
                               </td>
                               <td className="whitespace-nowrap px-3 py-3 text-sm">
                                 {attended.employee_type === "authorized" ? (
-                                  <Badge variant="outline" className="text-[10px]">
+                                  <Badge
+                                    variant="outline"
+                                    className="text-[10px]"
+                                  >
                                     Externo
                                   </Badge>
                                 ) : (
-                                  <span className="text-muted-foreground">Interno</span>
+                                  <span className="text-muted-foreground">
+                                    Interno
+                                  </span>
                                 )}
                               </td>
                             </tr>
@@ -517,23 +557,34 @@ const ShowSMSActivity = () => {
                         </thead>
                         <tbody className="divide-y divide-border/30">
                           {attendedList.map((attended, index) => (
-                            <tr key={attended.id} className="transition-colors hover:bg-muted/20">
+                            <tr
+                              key={attended.id}
+                              className="transition-colors hover:bg-muted/20"
+                            >
                               <td className="whitespace-nowrap px-3 py-3 text-sm text-muted-foreground">
                                 {index + 1}
                               </td>
                               <td className="whitespace-nowrap px-3 py-3 text-sm font-medium">
-                                {attended.employee?.first_name} {attended.employee?.last_name}
+                                {attended.employee?.first_name}{" "}
+                                {attended.employee?.last_name}
                               </td>
                               <td className="hidden whitespace-nowrap px-3 py-3 text-sm text-muted-foreground font-mono sm:table-cell">
-                                {attended.employee?.dni || attended.employee_dni || "N/A"}
+                                {attended.employee?.dni ||
+                                  attended.employee_dni ||
+                                  "N/A"}
                               </td>
                               <td className="whitespace-nowrap px-3 py-3 text-sm">
                                 {attended.employee_type === "authorized" ? (
-                                  <Badge variant="outline" className="text-[10px]">
+                                  <Badge
+                                    variant="outline"
+                                    className="text-[10px]"
+                                  >
                                     Externo
                                   </Badge>
                                 ) : (
-                                  <span className="text-muted-foreground">Interno</span>
+                                  <span className="text-muted-foreground">
+                                    Interno
+                                  </span>
                                 )}
                               </td>
                               <td className="whitespace-nowrap px-3 py-3">
@@ -640,7 +691,7 @@ const ShowSMSActivity = () => {
                             bar_second_name="Inasistente"
                           />
                         </div>
-                        <div className="h-[300px] w-full md:w-1/2">
+                        <div className="h-75 w-full md:w-1/2">
                           <PieChartComponent
                             data={pieChartData}
                             title="Porcentaje de Asistencia"
@@ -651,7 +702,8 @@ const ShowSMSActivity = () => {
                   ) : (
                     <div className="rounded-lg border border-border/60 p-6 text-center">
                       <p className="text-sm text-muted-foreground">
-                        No hay datos estadísticos disponibles para esta actividad.
+                        No hay datos estadísticos disponibles para esta
+                        actividad.
                       </p>
                     </div>
                   )}
@@ -676,7 +728,9 @@ const ShowSMSActivity = () => {
               <Button
                 type="button"
                 className="h-10 w-full sm:w-auto"
-                onClick={() => generateMinutaPDF(activity, attendedList?.length || 0)}
+                onClick={() =>
+                  generateMinutaPDF(activity, attendedList?.length || 0)
+                }
               >
                 <FileText className="mr-2 h-4 w-4" />
                 Descargar Minuta PDF

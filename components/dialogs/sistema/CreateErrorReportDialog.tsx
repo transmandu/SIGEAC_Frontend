@@ -17,7 +17,7 @@ export default function CreateErrorReportDialog({
 }: CreateErrorReportDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[85vh] flex-col overflow-hidden rounded-2xl border-slate-200/80 p-0 sm:max-w-[560px] dark:border-slate-800/80">
+      <DialogContent className="flex max-h-[85vh] flex-col overflow-hidden rounded-2xl border-slate-200/80 p-0 sm:max-w-140 dark:border-slate-800/80">
         <CreateErrorReportForm
           onClose={() => onOpenChange(false)}
           showAdvancedFields={showAdvancedFields}

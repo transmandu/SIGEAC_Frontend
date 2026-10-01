@@ -247,7 +247,7 @@ export default function MoveDocumentsDialog({
               destino
             </label>
 
-            <div className="border border-slate-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 max-h-[320px] overflow-y-auto p-2 space-y-0.5 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-200 dark:[&::-webkit-scrollbar-thumb]:bg-slate-700 [&::-webkit-scrollbar-thumb]:rounded-full">
+            <div className="border border-slate-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 max-h-80 overflow-y-auto p-2 space-y-0.5 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-200 dark:[&::-webkit-scrollbar-thumb]:bg-slate-700 [&::-webkit-scrollbar-thumb]:rounded-full">
               {/* Raíz option */}
               <div
                 className={`group flex items-center gap-1.5 py-1.5 px-2 rounded-lg cursor-pointer transition-all text-sm ${

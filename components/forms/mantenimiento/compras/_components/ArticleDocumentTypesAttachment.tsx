@@ -8,8 +8,17 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useGetArticleDocumentTypes } from "@/hooks/mantenimiento/almacen/articulos/useGetArticleDocumentTypes";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
@@ -26,9 +35,15 @@ interface Props {
  * solicitarse al vendedor para un ítem de requisición. Solo registra la
  * expectativa de compra: aquí no se suben archivos.
  */
-export const ArticleDocumentTypesAttachment = ({ selectedIds, onChange, invalid = false }: Props) => {
+export const ArticleDocumentTypesAttachment = ({
+  selectedIds,
+  onChange,
+  invalid = false,
+}: Props) => {
   const { selectedCompany } = useCompanyStore();
-  const { data: documentTypes, isLoading } = useGetArticleDocumentTypes(selectedCompany?.slug);
+  const { data: documentTypes, isLoading } = useGetArticleDocumentTypes(
+    selectedCompany?.slug,
+  );
 
   const ids = selectedIds ?? [];
 
@@ -36,7 +51,7 @@ export const ArticleDocumentTypesAttachment = ({ selectedIds, onChange, invalid 
     onChange(
       ids.includes(typeId)
         ? ids.filter((id) => id !== typeId)
-        : [...ids, typeId]
+        : [...ids, typeId],
     );
   };
 
@@ -57,7 +72,7 @@ export const ArticleDocumentTypesAttachment = ({ selectedIds, onChange, invalid 
                     ? "text-primary"
                     : invalid
                       ? "text-destructive"
-                      : "text-muted-foreground"
+                      : "text-muted-foreground",
                 )}
               >
                 <FileBadge className="size-3.5" />
@@ -77,12 +92,14 @@ export const ArticleDocumentTypesAttachment = ({ selectedIds, onChange, invalid 
         </Tooltip>
       </TooltipProvider>
 
-      <PopoverContent className="w-[300px] p-0" align="end">
+      <PopoverContent className="w-75 p-0" align="end">
         <Command>
           <CommandInput placeholder="Buscar tipo de documento..." />
           <CommandList>
             <CommandEmpty>
-              {isLoading ? "Cargando..." : "No se encontraron tipos de documento"}
+              {isLoading
+                ? "Cargando..."
+                : "No se encontraron tipos de documento"}
             </CommandEmpty>
             <CommandGroup heading="Documentación requerida del vendedor">
               {documentTypes?.map((type) => (
@@ -94,7 +111,7 @@ export const ArticleDocumentTypesAttachment = ({ selectedIds, onChange, invalid 
                   <Check
                     className={cn(
                       "mr-2 h-4 w-4",
-                      ids.includes(type.id) ? "opacity-100" : "opacity-0"
+                      ids.includes(type.id) ? "opacity-100" : "opacity-0",
                     )}
                   />
                   <div className="flex flex-col">

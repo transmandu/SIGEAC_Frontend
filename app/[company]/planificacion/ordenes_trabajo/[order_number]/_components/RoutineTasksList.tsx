@@ -1,27 +1,48 @@
 // components/RoutineTasksList.tsx
-'use client'
+"use client";
 
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { cn } from "@/lib/utils"
-import { WorkOrder } from "@/types"
-import { Check, Filter, Grid, List, Loader2, PackageCheck, Plus, Search } from "lucide-react"
-import { useState } from "react"
-import TaskCard from "./TaskCard"
-import { AddRoutineTaskDialog } from "./AddRoutineTaskDialog"
-import { workOrderStatusLabelEsUpper } from "@/lib/planificacion/statuses"
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { cn } from "@/lib/utils";
+import { WorkOrder } from "@/types";
+import {
+  Check,
+  Filter,
+  Grid,
+  List,
+  Loader2,
+  PackageCheck,
+  Plus,
+  Search,
+} from "lucide-react";
+import { useState } from "react";
+import TaskCard from "./TaskCard";
+import { AddRoutineTaskDialog } from "./AddRoutineTaskDialog";
+import { workOrderStatusLabelEsUpper } from "@/lib/planificacion/statuses";
 
-type WorkOrderTask = WorkOrder["work_order_tasks"][0]
+type WorkOrderTask = WorkOrder["work_order_tasks"][0];
 
 interface RoutineTasksListProps {
-  work_order_id: string,
-  tasks: WorkOrderTask[]
-  onTaskClick: (task: WorkOrderTask) => void
-  onCheckArticles: () => Promise<void>
-  isCheckLoading: boolean
+  work_order_id: string;
+  tasks: WorkOrderTask[];
+  onTaskClick: (task: WorkOrderTask) => void;
+  onCheckArticles: () => Promise<void>;
+  isCheckLoading: boolean;
 }
 
 export const RoutineTasksList = ({
@@ -31,30 +52,37 @@ export const RoutineTasksList = ({
   onCheckArticles,
   isCheckLoading,
 }: RoutineTasksListProps) => {
-  const [searchTerm, setSearchTerm] = useState("")
-  const [viewMode, setViewMode] = useState<"cards" | "table">("cards")
-  const [statusFilter, setStatusFilter] = useState<"all" | "OPEN" | "CLOSED">("all")
+  const [searchTerm, setSearchTerm] = useState("");
+  const [viewMode, setViewMode] = useState<"cards" | "table">("cards");
+  const [statusFilter, setStatusFilter] = useState<"all" | "OPEN" | "CLOSED">(
+    "all",
+  );
 
   const filteredTasks = tasks
-    .filter(task => {
+    .filter((task) => {
       // Filtrado por término de búsqueda
-      const matchesSearch = searchTerm === "" || [
-        task.description_task,
-        task.task_number,
-        task.ata,
-        task.technician_responsable,
-        task.inspector_responsable,
-        ...(task.old_technician || [])
-      ].some(field => field?.toLowerCase().includes(searchTerm.toLowerCase()))
-      const matchesStatus = statusFilter === "all" || task.status === statusFilter
-      return matchesSearch && matchesStatus
+      const matchesSearch =
+        searchTerm === "" ||
+        [
+          task.description_task,
+          task.task_number,
+          task.ata,
+          task.technician_responsable,
+          task.inspector_responsable,
+          ...(task.old_technician || []),
+        ].some((field) =>
+          field?.toLowerCase().includes(searchTerm.toLowerCase()),
+        );
+      const matchesStatus =
+        statusFilter === "all" || task.status === statusFilter;
+      return matchesSearch && matchesStatus;
     })
     .sort((a, b) => {
       if (a.status !== b.status) {
-        return a.status === "OPEN" ? -1 : 1
+        return a.status === "OPEN" ? -1 : 1;
       }
-      return a.id - b.id
-    })
+      return a.id - b.id;
+    });
 
   return (
     <div className="space-y-4">
@@ -74,28 +102,40 @@ export const RoutineTasksList = ({
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="flex gap-2">
                 <Filter className="h-4 w-4" />
-                <span>Filtrar: {statusFilter === "all" ? "Todos" : statusFilter}</span>
+                <span>
+                  Filtrar: {statusFilter === "all" ? "Todos" : statusFilter}
+                </span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               {["all", "OPEN", "CLOSED"].map((filter) => (
                 <DropdownMenuItem
                   key={filter}
-                  onClick={() => setStatusFilter(filter as "all" | "OPEN" | "CLOSED")}
+                  onClick={() =>
+                    setStatusFilter(filter as "all" | "OPEN" | "CLOSED")
+                  }
                   className="flex items-center gap-2"
                 >
-                  <Check className={cn(
-                    "h-4 w-4",
-                    statusFilter !== filter && "invisible"
-                  )} />
-                  {filter === "all" ? "Todos" : filter === "OPEN" ? "Abiertas" : "Cerradas"}
+                  <Check
+                    className={cn(
+                      "h-4 w-4",
+                      statusFilter !== filter && "invisible",
+                    )}
+                  />
+                  {filter === "all"
+                    ? "Todos"
+                    : filter === "OPEN"
+                      ? "Abiertas"
+                      : "Cerradas"}
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
           <Button
             variant="outline"
-            onClick={() => setViewMode(viewMode === "cards" ? "table" : "cards")}
+            onClick={() =>
+              setViewMode(viewMode === "cards" ? "table" : "cards")
+            }
             className="gap-2"
           >
             {viewMode === "cards" ? (
@@ -118,7 +158,9 @@ export const RoutineTasksList = ({
             {isCheckLoading ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
-              <p className="flex gap-2 items-center text-sm"><PackageCheck className="h-4 w-4" /> Verificar Articulos</p>
+              <p className="flex gap-2 items-center text-sm">
+                <PackageCheck className="h-4 w-4" /> Verificar Articulos
+              </p>
             )}
           </Button>
           {/*<AddRoutineTaskDialog work_order_id={work_order_id}   ESCONDER BOTON DE CREAR TAREA EN DETALLES DE WO/>*/}
@@ -135,7 +177,7 @@ export const RoutineTasksList = ({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredTasks.map((task, _index) => (
             <TaskCard
-            index={_index}
+              index={_index}
               key={task.id}
               task={task}
               onClick={() => onTaskClick(task)}
@@ -166,14 +208,18 @@ export const RoutineTasksList = ({
                 >
                   <TableCell className="font-medium">{task.id}</TableCell>
                   <TableCell>{task.ata}</TableCell>
-                  <TableCell className="max-w-[200px] truncate">
+                  <TableCell className="max-w-50 truncate">
                     {task.description_task}
                   </TableCell>
                   <TableCell>
                     {task.task_items.length > 0 ? (
                       <div className="flex flex-wrap gap-1">
                         {task.task_items.map((item, idx) => (
-                          <Badge key={idx} variant="outline" className="truncate max-w-24">
+                          <Badge
+                            key={idx}
+                            variant="outline"
+                            className="truncate max-w-24"
+                          >
                             {item.article_part_number}
                           </Badge>
                         ))}
@@ -183,13 +229,20 @@ export const RoutineTasksList = ({
                     )}
                   </TableCell>
                   <TableCell>
-                    {task.assigned_technicians && task.assigned_technicians.length > 0 ? (
+                    {task.assigned_technicians &&
+                    task.assigned_technicians.length > 0 ? (
                       <div className="flex flex-col gap-1">
-                        {task.assigned_technicians.slice(0, 2).map((tech, idx) => (
-                          <Badge key={idx} variant="outline" className="text-xs">
-                            {tech.name}
-                          </Badge>
-                        ))}
+                        {task.assigned_technicians
+                          .slice(0, 2)
+                          .map((tech, idx) => (
+                            <Badge
+                              key={idx}
+                              variant="outline"
+                              className="text-xs"
+                            >
+                              {tech.name}
+                            </Badge>
+                          ))}
                         {task.assigned_technicians.length > 2 && (
                           <span className="text-xs text-muted-foreground">
                             +{task.assigned_technicians.length - 2} más
@@ -197,16 +250,20 @@ export const RoutineTasksList = ({
                         )}
                       </div>
                     ) : task.technician_responsable ? (
-                      <Badge variant="outline">{task.technician_responsable}</Badge>
+                      <Badge variant="outline">
+                        {task.technician_responsable}
+                      </Badge>
                     ) : (
                       <span className="text-muted-foreground">No asignado</span>
                     )}
                   </TableCell>
                   <TableCell>
                     <Badge variant="secondary" className="font-mono">
-                      {task.assigned_technicians?.reduce((sum, t) => sum + t.hours, 0).toFixed(1) ||
-                       task.total_man_hours?.toFixed(1) ||
-                       '8.0'}
+                      {task.assigned_technicians
+                        ?.reduce((sum, t) => sum + t.hours, 0)
+                        .toFixed(1) ||
+                        task.total_man_hours?.toFixed(1) ||
+                        "8.0"}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -215,7 +272,9 @@ export const RoutineTasksList = ({
                     )}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={task.status === "OPEN" ? "default" : "secondary"}>
+                    <Badge
+                      variant={task.status === "OPEN" ? "default" : "secondary"}
+                    >
                       {workOrderStatusLabelEsUpper(task.status)}
                     </Badge>
                   </TableCell>
@@ -226,5 +285,5 @@ export const RoutineTasksList = ({
         </div>
       )}
     </div>
-  )
-}
+  );
+};

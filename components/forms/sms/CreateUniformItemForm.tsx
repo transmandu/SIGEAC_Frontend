@@ -33,7 +33,7 @@ import { zodResolver } from "@/lib/zod-resolver";
 import { Loader2, Plus } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { uniformCompanyLabel, uniformGenderLabel } from "@/lib/sms/uniforms";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
 const formSchema = z.object({
@@ -55,7 +55,7 @@ interface Props {
 export const CreateUniformItemForm = ({ onClose }: Props) => {
   const { selectedCompany } = useCompanyStore();
   const { data: options, isLoading: loadingOptions } = useGetUniformOptions(
-    selectedCompany?.slug
+    selectedCompany?.slug,
   );
   const createItem = useCreateUniformItem();
   const [brandModalOpen, setBrandModalOpen] = useState(false);
@@ -66,7 +66,7 @@ export const CreateUniformItemForm = ({ onClose }: Props) => {
         value: String(b.value),
         label: b.label,
       })),
-    [options?.brands]
+    [options?.brands],
   );
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -82,7 +82,10 @@ export const CreateUniformItemForm = ({ onClose }: Props) => {
     },
   });
 
-  const selectedType = form.watch("uniform_article_type_id");
+  const selectedType = useWatch({
+    control: form.control,
+    name: "uniform_article_type_id",
+  });
   const availableSizes =
     options?.types.find((t) => String(t.value) === selectedType)?.sizes ?? [];
 
@@ -106,7 +109,7 @@ export const CreateUniformItemForm = ({ onClose }: Props) => {
           initial_quantity: data.initial_quantity,
         },
       },
-      { onSuccess: () => onClose() }
+      { onSuccess: () => onClose() },
     );
   };
 
@@ -121,192 +124,196 @@ export const CreateUniformItemForm = ({ onClose }: Props) => {
   return (
     <>
       <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="flex flex-col gap-y-4"
-      >
-        <FormField
-          control={form.control}
-          name="uniform_article_type_id"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Tipo de artículo</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccione un tipo" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {options?.types.length ? (
-                    options.types.map((t) => (
-                      <SelectItem key={t.value} value={String(t.value)}>
-                        {t.label}
-                      </SelectItem>
-                    ))
-                  ) : (
-                    <div className="px-2 py-1.5 text-sm text-muted-foreground">
-                      No hay tipos. Créelos en la pestaña “Tipos”.
-                    </div>
-                  )}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <ComboboxField
-          form={form}
-          name="uniform_brand_id"
-          label="Marca"
-          placeholder="Seleccione una marca"
-          searchPlaceholder="Buscar marca..."
-          emptyText="No se encontraron marcas."
-          options={brandOptions}
-          onCreateNew={() => setBrandModalOpen(true)}
-          createNewLabel="Nueva marca"
-        />
-
-        <FormField
-          control={form.control}
-          name="size"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Talla</FormLabel>
-              <Select
-                onValueChange={field.onChange}
-                value={field.value}
-                disabled={!selectedType}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue
-                      placeholder={
-                        selectedType
-                          ? "Seleccione una talla"
-                          : "Seleccione primero el tipo"
-                      }
-                    />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {availableSizes.map((s) => (
-                    <SelectItem key={s} value={s}>
-                      {s}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="company"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Empresa</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Empresa" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {options?.companies.map((c) => (
-                      <SelectItem key={c} value={c}>
-                        {uniformCompanyLabel(c)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="gender"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Género</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Género" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {options?.genders.map((g) => (
-                      <SelectItem key={g} value={g}>
-                        {uniformGenderLabel(g)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="min_stock"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Stock mínimo</FormLabel>
-                <FormControl>
-                  <Input type="number" min={0} {...field} />
-                </FormControl>
-                <FormDescription>Para la alerta de bajo stock.</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="initial_quantity"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Cantidad inicial</FormLabel>
-                <FormControl>
-                  <Input type="number" min={0} {...field} />
-                </FormControl>
-                <FormDescription>Registra una entrada inicial.</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <Button
-          type="submit"
-          disabled={createItem.isPending}
-          className="bg-primary mt-2 gap-2 text-white hover:bg-blue-900 disabled:bg-primary/70"
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="flex flex-col gap-y-4"
         >
-          {createItem.isPending ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <>
-              <Plus className="size-4" />
-              Crear artículo
-            </>
-          )}
-        </Button>
-      </form>
+          <FormField
+            control={form.control}
+            name="uniform_article_type_id"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Tipo de artículo</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccione un tipo" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {options?.types.length ? (
+                      options.types.map((t) => (
+                        <SelectItem key={t.value} value={String(t.value)}>
+                          {t.label}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                        No hay tipos. Créelos en la pestaña “Tipos”.
+                      </div>
+                    )}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <ComboboxField
+            form={form}
+            name="uniform_brand_id"
+            label="Marca"
+            placeholder="Seleccione una marca"
+            searchPlaceholder="Buscar marca..."
+            emptyText="No se encontraron marcas."
+            options={brandOptions}
+            onCreateNew={() => setBrandModalOpen(true)}
+            createNewLabel="Nueva marca"
+          />
+
+          <FormField
+            control={form.control}
+            name="size"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Talla</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  value={field.value}
+                  disabled={!selectedType}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue
+                        placeholder={
+                          selectedType
+                            ? "Seleccione una talla"
+                            : "Seleccione primero el tipo"
+                        }
+                      />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {availableSizes.map((s) => (
+                      <SelectItem key={s} value={s}>
+                        {s}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <div className="grid grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="company"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Empresa</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Empresa" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {options?.companies.map((c) => (
+                        <SelectItem key={c} value={c}>
+                          {uniformCompanyLabel(c)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="gender"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Género</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Género" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {options?.genders.map((g) => (
+                        <SelectItem key={g} value={g}>
+                          {uniformGenderLabel(g)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="min_stock"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Stock mínimo</FormLabel>
+                  <FormControl>
+                    <Input type="number" min={0} {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    Para la alerta de bajo stock.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="initial_quantity"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Cantidad inicial</FormLabel>
+                  <FormControl>
+                    <Input type="number" min={0} {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    Registra una entrada inicial.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <Button
+            type="submit"
+            disabled={createItem.isPending}
+            className="bg-primary mt-2 gap-2 text-white hover:bg-blue-900 disabled:bg-primary/70"
+          >
+            {createItem.isPending ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <>
+                <Plus className="size-4" />
+                Crear artículo
+              </>
+            )}
+          </Button>
+        </form>
       </Form>
 
       {/* Crear marca al vuelo desde el combobox */}
       <Dialog open={brandModalOpen} onOpenChange={setBrandModalOpen}>
-        <DialogContent className="sm:max-w-[420px]">
+        <DialogContent className="sm:max-w-105">
           <DialogHeader>
             <DialogTitle className="text-center text-xl font-bold">
               Nueva marca

@@ -110,48 +110,48 @@ const DepartmentDropdownDialogs = ({
       {/* =========================
           EDIT
       ========================= */}
-    <Dialog open={openEdit} onOpenChange={setOpenEdit}>
-    <DialogContent className={dialogClass}>
-        <DialogHeader
-        className="
+      <Dialog open={openEdit} onOpenChange={setOpenEdit}>
+        <DialogContent className={dialogClass}>
+          <DialogHeader
+            className="
             border-b border-border/40
             bg-muted/20
             px-8 pt-8 pb-6
             text-left
         "
-        >
-        <div className="flex items-start gap-4">
-            <div className="flex items-center justify-center size-14 rounded-2xl bg-blue-500/8 border border-blue-500/10">
-            <Pencil className="size-6 text-blue-600" />
+          >
+            <div className="flex items-start gap-4">
+              <div className="flex items-center justify-center size-14 rounded-2xl bg-blue-500/8 border border-blue-500/10">
+                <Pencil className="size-6 text-blue-600" />
+              </div>
+
+              <div className="space-y-2">
+                <DialogTitle className="text-2xl font-semibold">
+                  Editar departamento
+                </DialogTitle>
+
+                <DialogDescription className="text-sm text-muted-foreground">
+                  Edita el departamento{" "}
+                  <span className="font-medium text-foreground">
+                    {department.name}
+                  </span>
+                </DialogDescription>
+              </div>
             </div>
+          </DialogHeader>
 
-            <div className="space-y-2">
-            <DialogTitle className="text-2xl font-semibold">
-                Editar departamento
-            </DialogTitle>
-
-            <DialogDescription className="text-sm text-muted-foreground">
-                Edita el departamento{" "}
-                <span className="font-medium text-foreground">
-                {department.name}
-                </span>
-            </DialogDescription>
-            </div>
-        </div>
-        </DialogHeader>
-
-        <div className="px-8 py-6">
-        <UpdateDepartmentForm
-            department={department}
-            onClose={() => setOpenEdit(false)}
-            onSuccess={() => {
-            setOpenEdit(false)
-            onSuccessUpdate?.()
-            }}
-        />
-        </div>
-    </DialogContent>
-    </Dialog>
+          <div className="px-8 py-6">
+            <UpdateDepartmentForm
+              department={department}
+              onClose={() => setOpenEdit(false)}
+              onSuccess={() => {
+                setOpenEdit(false);
+                onSuccessUpdate?.();
+              }}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* =========================
           DELETE
@@ -177,15 +177,12 @@ const DepartmentDropdownDialogs = ({
           </DialogHeader>
 
           <div className="mx-6 mt-4 p-3 rounded-xl border border-red-500/20 bg-red-500/5 text-sm text-red-600 flex gap-2">
-            <AlertTriangle className="size-4 mt-[2px]" />
+            <AlertTriangle className="size-4 mt-0.5" />
             Esta acción no se puede deshacer.
           </div>
 
           <div className="px-6 pb-6 pt-5 flex justify-end gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setOpenDelete(false)}
-            >
+            <Button variant="outline" onClick={() => setOpenDelete(false)}>
               Cancelar
             </Button>
 
@@ -203,7 +200,7 @@ const DepartmentDropdownDialogs = ({
         </DialogContent>
       </Dialog>
     </>
-  )
+  );
 }
 
 export default DepartmentDropdownDialogs

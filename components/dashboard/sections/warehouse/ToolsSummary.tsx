@@ -65,7 +65,7 @@ function CustomTooltip({ active, payload, label }: any) {
   const value = payload?.[0]?.value ?? 0;
 
   return (
-    <div className="rounded-xl border bg-background/90 backdrop-blur-xl shadow-lg px-4 py-3 min-w-[200px]">
+    <div className="rounded-xl border bg-background/90 backdrop-blur-xl shadow-lg px-4 py-3 min-w-50">
       <p className="text-center font-semibold text-sm mb-2 text-slate-700 dark:text-slate-200">
         {label}
       </p>
@@ -119,9 +119,7 @@ export default function ToolsSummary({ data, isLoading, isError }: Props) {
 
   return (
     <div className="flex flex-col gap-6">
-
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
         {/* LEFT */}
         <TintedCard tone={skyTone}>
           <CardHeader className="pb-2 text-center space-y-2">
@@ -143,16 +141,12 @@ export default function ToolsSummary({ data, isLoading, isError }: Props) {
 
           <CardContent>
             <div className="overflow-hidden rounded-xl border border-sky-100/40 dark:border-sky-900/20">
-              <div className="overflow-y-auto max-h-[220px]">
+              <div className="overflow-y-auto max-h-55">
                 <Table>
                   <TableHeader className="sticky top-0 bg-background/80 backdrop-blur-sm">
                     <TableRow>
-                      <TableHead className="text-center">
-                        Descripción
-                      </TableHead>
-                      <TableHead className="text-center">
-                        Part Number
-                      </TableHead>
+                      <TableHead className="text-center">Descripción</TableHead>
+                      <TableHead className="text-center">Part Number</TableHead>
                       <TableHead className="text-center">
                         Fecha de Calibración
                       </TableHead>
@@ -209,16 +203,12 @@ export default function ToolsSummary({ data, isLoading, isError }: Props) {
 
           <CardContent>
             <div className="overflow-hidden rounded-xl border border-sky-100/40 dark:border-sky-900/20">
-              <div className="overflow-y-auto max-h-[220px]">
+              <div className="overflow-y-auto max-h-55">
                 <Table>
                   <TableHeader className="sticky top-0 bg-background/80 backdrop-blur-sm">
                     <TableRow>
-                      <TableHead className="text-center">
-                        Descripción
-                      </TableHead>
-                      <TableHead className="text-center">
-                        Part Number
-                      </TableHead>
+                      <TableHead className="text-center">Descripción</TableHead>
+                      <TableHead className="text-center">Part Number</TableHead>
                       <TableHead className="text-center">
                         Fecha de Calibración
                       </TableHead>
@@ -321,7 +311,6 @@ export default function ToolsSummary({ data, isLoading, isError }: Props) {
           </ResponsiveContainer>
         </CardContent>
       </TintedCard>
-
     </div>
   );
 }

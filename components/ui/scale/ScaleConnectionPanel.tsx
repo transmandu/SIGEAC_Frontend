@@ -20,7 +20,7 @@ export function ScaleConnectionPanel() {
           Simulación
         </span>
       )}
-  
+
       {isConnected && state.reading !== null && (
         <span
           className={`text-sm font-mono font-semibold px-2 py-0.5 rounded ${
@@ -36,7 +36,7 @@ export function ScaleConnectionPanel() {
       <div className="ml-auto flex items-center gap-2">
         {state.error && (
           <span
-            className="text-xs text-destructive max-w-[200px] truncate"
+            className="text-xs text-destructive max-w-50 truncate"
             title={state.error}
           >
             {state.error}

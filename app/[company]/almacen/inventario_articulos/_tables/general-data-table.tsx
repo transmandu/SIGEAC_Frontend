@@ -35,7 +35,8 @@ export function DataTable<TData extends RowData>({
   // ============================================
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<ColumnVisibilityState>({});
+  const [columnVisibility, setColumnVisibility] =
+    useState<ColumnVisibilityState>({});
 
   // ============================================
   // TABLE CONFIGURATION
@@ -80,7 +81,7 @@ export function DataTable<TData extends RowData>({
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                     </TableHead>
                   );
@@ -110,7 +111,7 @@ export function DataTable<TData extends RowData>({
                       >
                         {flexRender(
                           cell.column.columnDef.cell,
-                          cell.getContext()
+                          cell.getContext(),
                         )}
                       </TableCell>
                     );
@@ -142,7 +143,7 @@ export function DataTable<TData extends RowData>({
             <select
               value={table.state.pagination.pageSize}
               onChange={(e) => table.setPageSize(Number(e.target.value))}
-              className="h-8 w-[70px] rounded-md border border-input bg-transparent px-2 py-1 text-sm"
+              className="h-8 w-17.5 rounded-md border border-input bg-transparent px-2 py-1 text-sm"
             >
               {[10, 20, 30, 40, 50].map((pageSize) => (
                 <option key={pageSize} value={pageSize}>
@@ -152,7 +153,7 @@ export function DataTable<TData extends RowData>({
             </select>
           </div>
 
-          <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+          <div className="flex w-25 items-center justify-center text-sm font-medium">
             Página {table.state.pagination.pageIndex + 1} de{" "}
             {table.getPageCount()}
           </div>

@@ -208,7 +208,7 @@ export default function CreateMitigationPlanForm({
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
-                    <PopoverContent className="w-[300px] p-0" align="start">
+                    <PopoverContent className="w-75 p-0" align="start">
                       <Command>
                         <CommandList>
                           <CommandEmpty>

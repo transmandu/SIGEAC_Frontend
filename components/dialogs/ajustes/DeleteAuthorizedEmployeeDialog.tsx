@@ -36,9 +36,7 @@ const DeleteAuthorizedEmployeeDialog = ({ authorizedEmployee, open, setOpen }: P
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className={dialogClass}>
-
         <DialogHeader className="px-6 pt-8 pb-3 flex flex-col items-center text-center space-y-3">
-
           <div
             className="
               flex items-center justify-center
@@ -64,18 +62,17 @@ const DeleteAuthorizedEmployeeDialog = ({ authorizedEmployee, open, setOpen }: P
               {authorizedEmployee.to_company_db}
             </span>
           </DialogDescription>
-
         </DialogHeader>
 
         <div className="mx-6 mt-4 p-3 rounded-xl border border-red-500/20 bg-red-500/5 text-sm text-red-600 flex gap-2 leading-relaxed">
-          <AlertTriangle className="size-4 mt-[2px]" />
+          <AlertTriangle className="size-4 mt-0.5" />
           <div>
-            Esta acción es <b>irreversible</b> y eliminará permanentemente la autorización del sistema.
+            Esta acción es <b>irreversible</b> y eliminará permanentemente la
+            autorización del sistema.
           </div>
         </div>
 
         <div className="px-6 pb-6 pt-5 flex justify-end gap-2">
-
           <Button
             variant="outline"
             onClick={() => setOpen(false)}
@@ -106,12 +103,10 @@ const DeleteAuthorizedEmployeeDialog = ({ authorizedEmployee, open, setOpen }: P
             )}
             Eliminar
           </Button>
-
         </div>
-
       </DialogContent>
     </Dialog>
-  )
+  );
 }
 
 export default DeleteAuthorizedEmployeeDialog

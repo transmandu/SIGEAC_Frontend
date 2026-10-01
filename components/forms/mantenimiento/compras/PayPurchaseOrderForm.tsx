@@ -1,6 +1,9 @@
 "use client";
 
-import { useCompletePurchase, useMarkPurchaseOrderAsPaid } from "@/actions/mantenimiento/compras/ordenes_compras/actions";
+import {
+  useCompletePurchase,
+  useMarkPurchaseOrderAsPaid,
+} from "@/actions/mantenimiento/compras/ordenes_compras/actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -31,13 +34,18 @@ import type { PurchaseOrder } from "@/types/purchase";
 import { zodResolver } from "@/lib/zod-resolver";
 import { Building2, Loader2, Truck, Wallet } from "lucide-react";
 import { useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { AmountInput } from "@/components/misc/AmountInput";
-import { InvoicesField, createInvoiceEntry, type InvoiceEntry } from "./InvoicesField";
+import {
+  InvoicesField,
+  createInvoiceEntry,
+  type InvoiceEntry,
+} from "./InvoicesField";
 
-const LABEL_CLS = "select-none text-[10px] leading-none text-muted-foreground uppercase";
+const LABEL_CLS =
+  "select-none text-[10px] leading-none text-muted-foreground uppercase";
 
 const INPUT_CLS =
   "h-9 rounded-lg border-border/50 bg-background/80 text-sm shadow-xs transition-shadow focus-visible:ring-1 focus-visible:ring-primary/40 focus-visible:ring-offset-0";
@@ -54,7 +62,9 @@ const FormSchema = z.object({
   // Flujo de pago: SIEMPRE arranca por el método (catálogo fijo). Según el
   // método elegido aparece condicionalmente la tarjeta (que determina su
   // cuenta) o la cuenta bancaria; métodos como Efectivo no piden nada más.
-  payment_method_id: z.string().min(1, { message: "Debe seleccionar un método de pago." }),
+  payment_method_id: z
+    .string()
+    .min(1, { message: "Debe seleccionar un método de pago." }),
   bank_account_id: z.string().optional(),
   bank_card_id: z.string().optional(),
   knows_shipping_info: z.boolean(),
@@ -69,7 +79,7 @@ const FormSchema = z.object({
       total_justification: z.string().optional(),
       shipping_tracking: z.string(),
       international_shipping_tracking: z.string(),
-    })
+    }),
   ),
 });
 
@@ -82,11 +92,17 @@ interface FormProps {
   isAeronautical?: boolean;
 }
 
-export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: FormProps) {
+export function PayPurchaseOrderForm({
+  onClose,
+  po,
+  isAeronautical = false,
+}: FormProps) {
   const { selectedCompany } = useCompanyStore();
-  const { data: paymentMethods, isLoading: isMethodsLoading } = useGetPaymentMethods();
+  const { data: paymentMethods, isLoading: isMethodsLoading } =
+    useGetPaymentMethods();
   const { data: paymentOptions } = useGetPaymentOptions(selectedCompany?.id);
-  const { data: shippingAgencies, isLoading: isAgenciesLoading } = useGetShippingAgencies(selectedCompany?.slug);
+  const { data: shippingAgencies, isLoading: isAgenciesLoading } =
+    useGetShippingAgencies(selectedCompany?.slug);
   const { completePurchase } = useCompletePurchase();
   const { markPurchaseOrderAsPaid } = useMarkPurchaseOrderAsPaid();
   // Normalmente una orden PENDING no tiene facturas, pero puede tenerlas si un
@@ -95,12 +111,12 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
   const [invoices, setInvoices] = useState<InvoiceEntry[]>(() =>
     (po.invoices ?? []).length > 0
       ? po.invoices!.map((invoice) => ({
-        key: String(invoice.id),
-        id: invoice.id,
-        invoice_number: invoice.invoice_number ?? "",
-        file_path: invoice.file_path,
-      }))
-      : [createInvoiceEntry()]
+          key: String(invoice.id),
+          id: invoice.id,
+          invoice_number: invoice.invoice_number ?? "",
+          file_path: invoice.file_path,
+        }))
+      : [createInvoiceEntry()],
   );
 
   const articleRows = useMemo(
@@ -109,10 +125,13 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
         const quote = article.article_quote_order;
         const quantity = Number(quote?.quantity ?? 0);
         const unitPrice = Number(quote?.unit_price ?? 0);
-        const quotedTotal = quote?.total != null ? Number(quote.total) : quantity * unitPrice;
+        const quotedTotal =
+          quote?.total != null ? Number(quote.total) : quantity * unitPrice;
         return {
           article_purchase_order_id: article.id,
-          label: quote?.article_requisition_order?.article_part_number ?? `Artículo #${article.id}`,
+          label:
+            quote?.article_requisition_order?.article_part_number ??
+            `Artículo #${article.id}`,
           batchName: article.batch?.name ?? null,
           batchCategory: article.batch?.category ?? null,
           quantity,
@@ -127,10 +146,13 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
         const quote = article.general_article_quote_order;
         const quantity = Number(quote?.quantity ?? 0);
         const unitPrice = Number(quote?.unit_price ?? 0);
-        const quotedTotal = quote?.total != null ? Number(quote.total) : quantity * unitPrice;
+        const quotedTotal =
+          quote?.total != null ? Number(quote.total) : quantity * unitPrice;
         return {
           article_purchase_order_id: article.id,
-          label: quote?.general_article_requisition_order?.description ?? `Artículo #${article.id}`,
+          label:
+            quote?.general_article_requisition_order?.description ??
+            `Artículo #${article.id}`,
           batchName: null,
           batchCategory: null,
           quantity,
@@ -142,7 +164,7 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
         };
       }),
     ],
-    [po.article_purchase_order, po.general_article_purchase_order]
+    [po.article_purchase_order, po.general_article_purchase_order],
   );
 
   const form = useForm<FormSchemaType>({
@@ -170,7 +192,16 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
     },
   });
 
-  const { tax, wire_fee, handling_fee, shipping_fee, international_shipping, articles_purchase_orders } = form.watch();
+  const {
+    tax,
+    wire_fee,
+    handling_fee,
+    shipping_fee,
+    international_shipping,
+    articles_purchase_orders,
+  } = useWatch({
+    control: form.control,
+  });
 
   const subTotal = useMemo(
     () =>
@@ -178,11 +209,20 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
         const value = Number(article.total);
         return sum + (Number.isNaN(value) ? 0 : value);
       }, 0),
-    [articles_purchase_orders]
+    [articles_purchase_orders],
   );
-  const selectedMethodId = form.watch("payment_method_id");
-  const selectedCardId = form.watch("bank_card_id");
-  const knowsShippingInfo = form.watch("knows_shipping_info");
+  const selectedMethodId = useWatch({
+    control: form.control,
+    name: "payment_method_id",
+  });
+  const selectedCardId = useWatch({
+    control: form.control,
+    name: "bank_card_id",
+  });
+  const knowsShippingInfo = useWatch({
+    control: form.control,
+    name: "knows_shipping_info",
+  });
   const effectiveWireFee = isAeronautical ? 0 : Number(wire_fee || 0);
 
   // ── Flujo de pago: método → tarjeta / cuenta (condicional) ───────────────
@@ -196,21 +236,25 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
     if (!paymentOptions || !selectedMethodId) return [];
     return paymentOptions.flatMap((account) =>
       (account.bank_cards ?? [])
-        .filter((card) => card.payment_method_id.toString() === selectedMethodId)
-        .map((card) => ({ ...card, bank_account: account }))
+        .filter(
+          (card) => card.payment_method_id.toString() === selectedMethodId,
+        )
+        .map((card) => ({ ...card, bank_account: account })),
     );
   }, [paymentOptions, selectedMethodId]);
 
   const accountsForMethod = useMemo(() => {
     if (!paymentOptions || !selectedMethodId) return [];
     return paymentOptions.filter((account) =>
-      (account.payment_methods ?? []).some((method) => method.id.toString() === selectedMethodId)
+      (account.payment_methods ?? []).some(
+        (method) => method.id.toString() === selectedMethodId,
+      ),
     );
   }, [paymentOptions, selectedMethodId]);
 
   const selectedCard = useMemo(
     () => cardsForMethod.find((card) => card.id.toString() === selectedCardId),
-    [cardsForMethod, selectedCardId]
+    [cardsForMethod, selectedCardId],
   );
 
   const total = useMemo(() => {
@@ -222,32 +266,53 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
       Number(shipping_fee || 0) +
       Number(international_shipping || 0)
     );
-  }, [subTotal, tax, effectiveWireFee, handling_fee, shipping_fee, international_shipping]);
+  }, [
+    subTotal,
+    tax,
+    effectiveWireFee,
+    handling_fee,
+    shipping_fee,
+    international_shipping,
+  ]);
 
   const onSubmit = async (data: FormSchemaType) => {
     // Si el método tiene tarjetas registradas, hay que indicar cuál se usó;
     // si no tiene tarjetas pero sí cuentas habilitadas, hay que indicar la cuenta.
     if (cardsForMethod.length > 0 && !data.bank_card_id) {
-      form.setError("bank_card_id", { message: "Debe seleccionar la tarjeta utilizada." });
+      form.setError("bank_card_id", {
+        message: "Debe seleccionar la tarjeta utilizada.",
+      });
       return;
     }
 
-    if (cardsForMethod.length === 0 && accountsForMethod.length > 0 && !data.bank_account_id) {
-      form.setError("bank_account_id", { message: "Debe seleccionar la cuenta utilizada." });
+    if (
+      cardsForMethod.length === 0 &&
+      accountsForMethod.length > 0 &&
+      !data.bank_account_id
+    ) {
+      form.setError("bank_account_id", {
+        message: "Debe seleccionar la cuenta utilizada.",
+      });
       return;
     }
 
     const missingJustification = data.articles_purchase_orders.some(
-      (article) => Number(article.total) !== article.quoted_total && !article.total_justification?.trim()
+      (article) =>
+        Number(article.total) !== article.quoted_total &&
+        !article.total_justification?.trim(),
     );
     if (missingJustification) {
-      toast.error("Debe justificar los artículos cuyo total difiere del monto cotizado.");
+      toast.error(
+        "Debe justificar los artículos cuyo total difiere del monto cotizado.",
+      );
       return;
     }
 
     // Una factura sin archivo no se puede guardar; la fila vacía del formulario
     // se descarta sin avisar, pero un número escrito sin adjunto sí es un error.
-    const filledInvoices = invoices.filter((invoice) => invoice.file || invoice.invoice_number.trim());
+    const filledInvoices = invoices.filter(
+      (invoice) => invoice.file || invoice.invoice_number.trim(),
+    );
 
     if (filledInvoices.some((invoice) => !invoice.file)) {
       toast.error("Cada factura debe tener su archivo adjunto.");
@@ -258,7 +323,7 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
 
     const computedSubTotal = data.articles_purchase_orders.reduce(
       (sum, article) => sum + Number(article.total || 0),
-      0
+      0,
     );
 
     const computedTotal =
@@ -275,8 +340,12 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
         tax: Number(data.tax || 0),
         wire_fee: wireFee,
         handling_fee: Number(data.handling_fee || 0),
-        shipping_fee: data.knows_shipping_info ? Number(data.shipping_fee || 0) : 0,
-        international_shipping: data.knows_shipping_info ? Number(data.international_shipping || 0) : 0,
+        shipping_fee: data.knows_shipping_info
+          ? Number(data.shipping_fee || 0)
+          : 0,
+        international_shipping: data.knows_shipping_info
+          ? Number(data.international_shipping || 0)
+          : 0,
         sub_total: computedSubTotal,
         total: computedTotal,
         // La tarjeta determina su cuenta; sin tarjeta va la cuenta elegida
@@ -284,21 +353,32 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
         payment_method_id: Number(data.payment_method_id),
         bank_account_id: selectedCard
           ? selectedCard.bank_account_id
-          : (data.bank_account_id ? Number(data.bank_account_id) : null),
+          : data.bank_account_id
+            ? Number(data.bank_account_id)
+            : null,
         bank_card_id: selectedCard ? selectedCard.id : null,
-        shipping_agency_id: data.knows_shipping_info && data.shipping_agency_id ? Number(data.shipping_agency_id) : null,
+        shipping_agency_id:
+          data.knows_shipping_info && data.shipping_agency_id
+            ? Number(data.shipping_agency_id)
+            : null,
         observation: data.observation || null,
         invoices: filledInvoices.map((invoice) => ({
           invoice_number: invoice.invoice_number.trim() || null,
           file: invoice.file,
         })),
-        articles_purchase_orders: data.articles_purchase_orders.map((article) => ({
-          article_purchase_order_id: article.article_purchase_order_id,
-          total: Number(article.total),
-          total_justification: article.total_justification || null,
-          shipping_tracking: data.knows_shipping_info ? article.shipping_tracking || null : null,
-          international_shipping_tracking: data.knows_shipping_info ? article.international_shipping_tracking || null : null,
-        })),
+        articles_purchase_orders: data.articles_purchase_orders.map(
+          (article) => ({
+            article_purchase_order_id: article.article_purchase_order_id,
+            total: Number(article.total),
+            total_justification: article.total_justification || null,
+            shipping_tracking: data.knows_shipping_info
+              ? article.shipping_tracking || null
+              : null,
+            international_shipping_tracking: data.knows_shipping_info
+              ? article.international_shipping_tracking || null
+              : null,
+          }),
+        ),
       },
       company: selectedCompany!.slug,
     });
@@ -311,7 +391,8 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
     onClose();
   };
 
-  const isPending = completePurchase.isPending || markPurchaseOrderAsPaid.isPending;
+  const isPending =
+    completePurchase.isPending || markPurchaseOrderAsPaid.isPending;
 
   return (
     <Form {...form}>
@@ -319,7 +400,6 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
         onSubmit={form.handleSubmit(onSubmit)}
         className="flex flex-col gap-6"
       >
-
         {/* ── Toggle: datos de envío conocidos ──────────────────────────── */}
         <FormField
           control={form.control}
@@ -330,7 +410,7 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
                 "flex items-center gap-2 rounded-lg border px-3 py-2 transition-colors",
                 field.value
                   ? "border-primary/20 bg-primary/4"
-                  : "border-border/40 bg-muted/10"
+                  : "border-border/40 bg-muted/10",
               )}
             >
               <FormControl>
@@ -340,7 +420,12 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
                   className="size-3.5"
                 />
               </FormControl>
-              <Truck className={cn("size-3.5", field.value ? "text-primary" : "text-muted-foreground/60")} />
+              <Truck
+                className={cn(
+                  "size-3.5",
+                  field.value ? "text-primary" : "text-muted-foreground/60",
+                )}
+              />
               <FormLabel className="mt-0! text-xs font-medium cursor-pointer select-none text-foreground/90">
                 Ya conozco los datos de envío
               </FormLabel>
@@ -354,162 +439,191 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
         {/* ── Artículos ──────────────────────────────────────────────────── */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold text-foreground select-none">Artículos</span>
+            <span className="text-sm font-semibold text-foreground select-none">
+              Artículos
+            </span>
             <span className="text-xs text-muted-foreground tabular-nums select-none">
               {articleRows.length} {articleRows.length === 1 ? "ítem" : "ítems"}
             </span>
           </div>
 
-          <ScrollArea className={cn("w-full", articleRows.length > 1 && "h-[300px]")}>
+          <ScrollArea
+            className={cn("w-full", articleRows.length > 1 && "h-75")}
+          >
             <div className="space-y-2 pr-1">
-              {articleRows.map((article, index) => (
-                <div
-                  key={article.article_purchase_order_id}
-                  className="rounded-lg border border-border/60 bg-background/60 overflow-hidden"
-                >
-                  {/* HEADER */}
-                  <div className="flex items-center justify-between border-b border-border/50 bg-muted/30 px-3 py-1.5">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="truncate text-sm font-medium text-foreground select-none">
-                        {article.batchName || "Artículo"}
-                      </span>
-                      {article.batchCategory && (
-                        <Badge
-                          variant="secondary"
-                          className="h-5 px-2 text-[10px] font-medium uppercase tracking-wide text-muted-foreground select-none"
-                        >
-                          {article.batchCategory}
-                        </Badge>
+              {articleRows.map((article, index) => {
+                const currentTotal = Number(
+                  articles_purchase_orders?.[index]?.total,
+                );
+                const differs =
+                  !Number.isNaN(currentTotal) &&
+                  currentTotal !== article.quotedTotal;
+                return (
+                  <div
+                    key={article.article_purchase_order_id}
+                    className="rounded-lg border border-border/60 bg-background/60 overflow-hidden"
+                  >
+                    {/* HEADER */}
+                    <div className="flex items-center justify-between border-b border-border/50 bg-muted/30 px-3 py-1.5">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="truncate text-sm font-medium text-foreground select-none">
+                          {article.batchName || "Artículo"}
+                        </span>
+                        {article.batchCategory && (
+                          <Badge
+                            variant="secondary"
+                            className="h-5 px-2 text-[10px] font-medium uppercase tracking-wide text-muted-foreground select-none"
+                          >
+                            {article.batchCategory}
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* BODY */}
+                    <div className="relative px-3 py-2.5">
+                      <div className="grid grid-cols-[2fr_1fr_1fr_1fr] gap-x-3 gap-y-2.5">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20 shrink-0 select-none">
+                            P/N
+                          </span>
+                          <span className="truncate text-sm font-medium text-foreground">
+                            {article.label}
+                          </span>
+                        </div>
+
+                        <div className="flex flex-col gap-0.5">
+                          <span className={LABEL_CLS}>Cantidad</span>
+                          <span className="flex h-7 items-center text-sm tabular-nums">
+                            {article.quantity}
+                            {article.unitLabel ? ` ${article.unitLabel}` : ""}
+                          </span>
+                        </div>
+
+                        <div className="flex flex-col gap-0.5">
+                          <span className={LABEL_CLS}>Precio unitario</span>
+                          <span className="flex h-7 items-center text-sm tabular-nums">
+                            ${article.unitPrice.toFixed(2)}
+                          </span>
+                        </div>
+
+                        <FormField
+                          control={form.control}
+                          name={`articles_purchase_orders.${index}.total`}
+                          render={({ field }) => {
+                            return (
+                              <FormItem className="flex flex-col gap-0.5 space-y-0">
+                                <span
+                                  className={cn(
+                                    LABEL_CLS,
+                                    differs &&
+                                      "text-amber-600 dark:text-amber-400",
+                                  )}
+                                >
+                                  Total{" "}
+                                  {differs &&
+                                    `(cotizado $${article.quotedTotal.toFixed(2)})`}
+                                </span>
+                                <FormControl>
+                                  <AmountInput
+                                    className={cn(
+                                      INPUT_CLS,
+                                      "h-7",
+                                      differs &&
+                                        "border-amber-500/60 bg-amber-50/70 dark:bg-amber-900/20",
+                                    )}
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            );
+                          }}
+                        />
+                      </div>
+
+                      {currentTotal !== article.quotedTotal && (
+                        <div className="mt-2.5 border-t border-amber-500/30 bg-amber-50/40 -mx-3 px-3 py-2 dark:bg-amber-900/10">
+                          <span className="select-none text-[10px] leading-none text-amber-700 dark:text-amber-400 uppercase">
+                            Justificación de la diferencia
+                          </span>
+                          <FormField
+                            control={form.control}
+                            name={`articles_purchase_orders.${index}.total_justification`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormControl>
+                                  <Textarea
+                                    {...field}
+                                    placeholder="Explique el motivo de la diferencia con el monto cotizado..."
+                                    className="mt-1 min-h-12.5 resize-none border-amber-500/40 bg-background/70 text-sm"
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      )}
+
+                      {knowsShippingInfo && (
+                        <div className="mt-2.5 grid grid-cols-2 gap-3 border-t border-border/40 pt-2.5">
+                          <FormField
+                            control={form.control}
+                            name={`articles_purchase_orders.${index}.shipping_tracking`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <span className={LABEL_CLS}>
+                                  Tracking nacional
+                                </span>
+                                <FormControl>
+                                  <Input
+                                    placeholder="Tracking #"
+                                    className={cn(
+                                      INPUT_CLS,
+                                      "h-8 font-mono text-xs mt-0.5",
+                                    )}
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name={`articles_purchase_orders.${index}.international_shipping_tracking`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <span className={LABEL_CLS}>
+                                  Tracking int&apos;l
+                                </span>
+                                <FormControl>
+                                  <Input
+                                    placeholder="Tracking #"
+                                    className={cn(
+                                      INPUT_CLS,
+                                      "h-8 font-mono text-xs mt-0.5",
+                                    )}
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
                       )}
                     </div>
                   </div>
-
-                  {/* BODY */}
-                  <div className="relative px-3 py-2.5">
-                    <div className="grid grid-cols-[2fr_1fr_1fr_1fr] gap-x-3 gap-y-2.5">
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        <span className="text-[10px] px-1.5 py-[2px] rounded-md bg-primary/10 text-primary border border-primary/20 shrink-0 select-none">
-                          P/N
-                        </span>
-                        <span className="truncate text-sm font-medium text-foreground">
-                          {article.label}
-                        </span>
-                      </div>
-
-                      <div className="flex flex-col gap-0.5">
-                        <span className={LABEL_CLS}>Cantidad</span>
-                        <span className="flex h-7 items-center text-sm tabular-nums">
-                          {article.quantity}{article.unitLabel ? ` ${article.unitLabel}` : ""}
-                        </span>
-                      </div>
-
-                      <div className="flex flex-col gap-0.5">
-                        <span className={LABEL_CLS}>Precio unitario</span>
-                        <span className="flex h-7 items-center text-sm tabular-nums">${article.unitPrice.toFixed(2)}</span>
-                      </div>
-
-                      <FormField
-                        control={form.control}
-                        name={`articles_purchase_orders.${index}.total`}
-                        render={({ field }) => {
-                          const currentValue = Number(
-                            form.watch(`articles_purchase_orders.${index}.total`)
-                          );
-                          const differs = !Number.isNaN(currentValue) && currentValue !== article.quotedTotal;
-                          return (
-                            <FormItem className="flex flex-col gap-0.5 space-y-0">
-                              <span className={cn(LABEL_CLS, differs && "text-amber-600 dark:text-amber-400")}>
-                                Total {differs && `(cotizado $${article.quotedTotal.toFixed(2)})`}
-                              </span>
-                              <FormControl>
-                                <AmountInput
-                                  className={cn(
-                                    INPUT_CLS,
-                                    "h-7",
-                                    differs && "border-amber-500/60 bg-amber-50/70 dark:bg-amber-900/20"
-                                  )}
-                                  {...field}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          );
-                        }}
-                      />
-                    </div>
-
-                    {Number(form.watch(`articles_purchase_orders.${index}.total`)) !== article.quotedTotal && (
-                      <div className="mt-2.5 border-t border-amber-500/30 bg-amber-50/40 -mx-3 px-3 py-2 dark:bg-amber-900/10">
-                        <span className="select-none text-[10px] leading-none text-amber-700 dark:text-amber-400 uppercase">
-                          Justificación de la diferencia
-                        </span>
-                        <FormField
-                          control={form.control}
-                          name={`articles_purchase_orders.${index}.total_justification`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormControl>
-                                <Textarea
-                                  {...field}
-                                  placeholder="Explique el motivo de la diferencia con el monto cotizado..."
-                                  className="mt-1 min-h-[50px] resize-none border-amber-500/40 bg-background/70 text-sm"
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                    )}
-
-                    {knowsShippingInfo && (
-                      <div className="mt-2.5 grid grid-cols-2 gap-3 border-t border-border/40 pt-2.5">
-                        <FormField
-                          control={form.control}
-                          name={`articles_purchase_orders.${index}.shipping_tracking`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <span className={LABEL_CLS}>Tracking nacional</span>
-                              <FormControl>
-                                <Input
-                                  placeholder="Tracking #"
-                                  className={cn(INPUT_CLS, "h-8 font-mono text-xs mt-0.5")}
-                                  {...field}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name={`articles_purchase_orders.${index}.international_shipping_tracking`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <span className={LABEL_CLS}>Tracking int&apos;l</span>
-                              <FormControl>
-                                <Input
-                                  placeholder="Tracking #"
-                                  className={cn(INPUT_CLS, "h-8 font-mono text-xs mt-0.5")}
-                                  {...field}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </ScrollArea>
         </div>
 
         {/* ── Costos de compra + Pago ───────────────────────────────────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-
           {/* Costos de compra */}
           <div className="space-y-3 rounded-xl border border-border/60 bg-muted/10 p-4">
             <span className="text-xs font-semibold uppercase tracking-wider text-foreground select-none">
@@ -524,7 +638,11 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
                   <FormItem>
                     <FormLabel className={LABEL_CLS}>Tax</FormLabel>
                     <FormControl>
-                      <AmountInput placeholder="$0.00" className={INPUT_CLS} {...field} />
+                      <AmountInput
+                        placeholder="$0.00"
+                        className={INPUT_CLS}
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -538,7 +656,11 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
                     <FormItem>
                       <FormLabel className={LABEL_CLS}>Wire Fee</FormLabel>
                       <FormControl>
-                        <AmountInput placeholder="$0.00" className={INPUT_CLS} {...field} />
+                        <AmountInput
+                          placeholder="$0.00"
+                          className={INPUT_CLS}
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -552,7 +674,11 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
                   <FormItem>
                     <FormLabel className={LABEL_CLS}>Handling Fee</FormLabel>
                     <FormControl>
-                      <AmountInput placeholder="$0.00" className={INPUT_CLS} {...field} />
+                      <AmountInput
+                        placeholder="$0.00"
+                        className={INPUT_CLS}
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -566,9 +692,15 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
                     name="shipping_fee"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className={LABEL_CLS}>Envío nacional</FormLabel>
+                        <FormLabel className={LABEL_CLS}>
+                          Envío nacional
+                        </FormLabel>
                         <FormControl>
-                          <AmountInput placeholder="$0.00" className={INPUT_CLS} {...field} />
+                          <AmountInput
+                            placeholder="$0.00"
+                            className={INPUT_CLS}
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -579,9 +711,15 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
                     name="international_shipping"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className={LABEL_CLS}>Envío internacional</FormLabel>
+                        <FormLabel className={LABEL_CLS}>
+                          Envío internacional
+                        </FormLabel>
                         <FormControl>
-                          <AmountInput placeholder="$0.00" className={INPUT_CLS} {...field} />
+                          <AmountInput
+                            placeholder="$0.00"
+                            className={INPUT_CLS}
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -592,8 +730,14 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
                     name="shipping_agency_id"
                     render={({ field }) => (
                       <FormItem className="col-span-2">
-                        <FormLabel className={LABEL_CLS}>Agencia de envío</FormLabel>
-                        <Select disabled={isAgenciesLoading} onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormLabel className={LABEL_CLS}>
+                          Agencia de envío
+                        </FormLabel>
+                        <Select
+                          disabled={isAgenciesLoading}
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
                           <FormControl>
                             <SelectTrigger className={SELECT_TRIGGER_CLS}>
                               <SelectValue placeholder="Seleccionar agencia..." />
@@ -601,7 +745,11 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
                           </FormControl>
                           <SelectContent>
                             {shippingAgencies?.map((agency) => (
-                              <SelectItem value={agency.id.toString()} key={agency.id} className="text-sm">
+                              <SelectItem
+                                value={agency.id.toString()}
+                                key={agency.id}
+                                className="text-sm"
+                              >
                                 {agency.name} ({agency.code})
                               </SelectItem>
                             ))}
@@ -642,12 +790,22 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
                     >
                       <FormControl>
                         <SelectTrigger className={SELECT_TRIGGER_CLS}>
-                          <SelectValue placeholder={isMethodsLoading ? "Cargando..." : "Seleccionar método..."} />
+                          <SelectValue
+                            placeholder={
+                              isMethodsLoading
+                                ? "Cargando..."
+                                : "Seleccionar método..."
+                            }
+                          />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         {paymentMethods?.map((method) => (
-                          <SelectItem value={method.id.toString()} key={method.id} className="text-sm">
+                          <SelectItem
+                            value={method.id.toString()}
+                            key={method.id}
+                            className="text-sm"
+                          >
                             {method.name}
                           </SelectItem>
                         ))}
@@ -667,7 +825,10 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
                   render={({ field }) => (
                     <FormItem className="col-span-2">
                       <FormLabel className={LABEL_CLS}>Tarjeta</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger className={SELECT_TRIGGER_CLS}>
                             <SelectValue placeholder="Seleccionar tarjeta..." />
@@ -675,8 +836,14 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
                         </FormControl>
                         <SelectContent>
                           {cardsForMethod.map((card) => (
-                            <SelectItem value={card.id.toString()} key={card.id} className="text-sm">
-                              {card.name} ({card.card_number}) — {card.bank_account.name} · {card.bank_account.bank.name}
+                            <SelectItem
+                              value={card.id.toString()}
+                              key={card.id}
+                              className="text-sm"
+                            >
+                              {card.name} ({card.card_number}) —{" "}
+                              {card.bank_account.name} ·{" "}
+                              {card.bank_account.bank.name}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -692,9 +859,13 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
                 <div className="col-span-2 flex items-center gap-2 rounded-lg border border-border/40 bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
                   <Building2 className="size-3.5 shrink-0" />
                   <span>
-                    Cuenta: <span className="font-medium text-foreground/90">{selectedCard.bank_account.name}</span>
-                    {" "}
-                    <span className="font-mono">(***{selectedCard.bank_account.account_number})</span>
+                    Cuenta:{" "}
+                    <span className="font-medium text-foreground/90">
+                      {selectedCard.bank_account.name}
+                    </span>{" "}
+                    <span className="font-mono">
+                      (***{selectedCard.bank_account.account_number})
+                    </span>
                     {" — "}
                     {selectedCard.bank_account.bank.name}
                   </span>
@@ -709,8 +880,13 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
                   name="bank_account_id"
                   render={({ field }) => (
                     <FormItem className="col-span-2">
-                      <FormLabel className={LABEL_CLS}>Cuenta bancaria</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <FormLabel className={LABEL_CLS}>
+                        Cuenta bancaria
+                      </FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger className={SELECT_TRIGGER_CLS}>
                             <SelectValue placeholder="Seleccionar cuenta..." />
@@ -718,8 +894,13 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
                         </FormControl>
                         <SelectContent>
                           {accountsForMethod.map((account) => (
-                            <SelectItem value={account.id.toString()} key={account.id} className="text-sm">
-                              {account.name} ({account.account_number}) — {account.bank.name}
+                            <SelectItem
+                              value={account.id.toString()}
+                              key={account.id}
+                              className="text-sm"
+                            >
+                              {account.name} ({account.account_number}) —{" "}
+                              {account.bank.name}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -737,7 +918,7 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
 
         {/* ── Total general ── */}
         <div className="flex justify-end pt-2 border-t border-border/60">
-          <div className="flex items-center justify-between gap-6 rounded-md bg-muted/10 px-4 py-2 border border-border/40 min-w-[220px]">
+          <div className="flex items-center justify-between gap-6 rounded-md bg-muted/10 px-4 py-2 border border-border/40 min-w-55">
             <div className="flex flex-col">
               <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground whitespace-nowrap">
                 Total general
@@ -758,7 +939,7 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
             disabled={isPending}
             type="submit"
             className="
-              w-[400px] h-10 rounded-lg
+              w-100 h-10 rounded-lg
               shadow-xs
               transition-colors
               flex items-center justify-center gap-2

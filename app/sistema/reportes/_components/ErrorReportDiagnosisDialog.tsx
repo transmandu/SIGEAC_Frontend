@@ -31,10 +31,19 @@ import { ErrorReport } from "@/types";
 import { normalizeAssetUrl } from "@/lib/utils";
 import { getErrorReportSeverityLabel } from "@/lib/errorReportSeverity";
 import { ERROR_REPORT_MODULES } from "@/lib/errorReportModules";
-import { useAddErrorReportImages, useDeleteErrorReportImage, useUpdateErrorReportDiagnosis } from "@/actions/sistema/reportes/actions";
+import {
+  useAddErrorReportImages,
+  useDeleteErrorReportImage,
+  useUpdateErrorReportDiagnosis,
+} from "@/actions/sistema/reportes/actions";
 import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
 import { formatInstant } from "@/lib/date";
-import { Chip, STATUS_CHIP, sourceTone, httpStatusTone } from "./errorReportChips";
+import {
+  Chip,
+  STATUS_CHIP,
+  sourceTone,
+  httpStatusTone,
+} from "./errorReportChips";
 
 interface ErrorReportDiagnosisDialogProps {
   open: boolean;
@@ -76,14 +85,22 @@ function ConsoleField({
             onClick={handleCopy}
             className="flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-slate-200"
           >
-            {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+            {copied ? (
+              <Check className="h-3 w-3" />
+            ) : (
+              <Copy className="h-3 w-3" />
+            )}
             {copied ? "Copiado" : "Copiar"}
           </button>
         )}
       </div>
       {readOnly ? (
         <p className="whitespace-pre-wrap px-3 py-2.5 font-mono text-[13px] leading-relaxed text-slate-200">
-          {value || <span className="text-slate-600">Sin causa técnica registrada.</span>}
+          {value || (
+            <span className="text-slate-600">
+              Sin causa técnica registrada.
+            </span>
+          )}
         </p>
       ) : (
         <textarea
@@ -116,7 +133,11 @@ function StepsTimeline({
   editable: boolean;
 }) {
   if (steps.length === 0 && !editable) {
-    return <p className="text-sm text-muted-foreground">Sin pasos de diagnóstico registrados.</p>;
+    return (
+      <p className="text-sm text-muted-foreground">
+        Sin pasos de diagnóstico registrados.
+      </p>
+    );
   }
 
   return (
@@ -195,7 +216,8 @@ function Lightbox({
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
       if (e.key === "ArrowRight") onNavigate((index + 1) % images.length);
-      if (e.key === "ArrowLeft") onNavigate((index - 1 + images.length) % images.length);
+      if (e.key === "ArrowLeft")
+        onNavigate((index - 1 + images.length) % images.length);
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
@@ -270,8 +292,12 @@ export default function ErrorReportDiagnosisDialog({
   report,
 }: ErrorReportDiagnosisDialogProps) {
   const timeZone = useCompanyTimezone();
-  const [httpStatus, setHttpStatus] = useState(report.http_status?.toString() ?? "");
-  const [technicalCause, setTechnicalCause] = useState(report.technical_cause ?? "");
+  const [httpStatus, setHttpStatus] = useState(
+    report.http_status?.toString() ?? "",
+  );
+  const [technicalCause, setTechnicalCause] = useState(
+    report.technical_cause ?? "",
+  );
   const [newStep, setNewStep] = useState("");
   const [activeTab, setActiveTab] = useState("resumen");
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
@@ -293,16 +319,20 @@ export default function ErrorReportDiagnosisDialog({
   const canEdit = report.status === "OPEN" || report.status === "IN_PROGRESS";
   const diagnosticSteps = report.diagnostic_steps ?? [];
   const moduleLabel =
-    ERROR_REPORT_MODULES.find((m) => m.value === report.module)?.label ?? report.module;
+    ERROR_REPORT_MODULES.find((m) => m.value === report.module)?.label ??
+    report.module;
   const severityLabel = getErrorReportSeverityLabel(report.severity);
   const statusChip = STATUS_CHIP[report.status];
 
   const galleryImages = useMemo(
     () =>
       report.images
-        .map((image) => ({ id: image.id, url: normalizeAssetUrl(image.image_url) }))
+        .map((image) => ({
+          id: image.id,
+          url: normalizeAssetUrl(image.image_url),
+        }))
         .filter((image): image is { id: number; url: string } => !!image.url),
-    [report.images]
+    [report.images],
   );
 
   const handleSaveDiagnosis = async () => {
@@ -327,7 +357,10 @@ export default function ErrorReportDiagnosisDialog({
 
   const handleAddImages = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
-    await addErrorReportImages.mutateAsync({ id: report.id, images: Array.from(files) });
+    await addErrorReportImages.mutateAsync({
+      id: report.id,
+      images: Array.from(files),
+    });
   };
 
   const handleDeleteImage = async (imageId: number) => {
@@ -342,10 +375,15 @@ export default function ErrorReportDiagnosisDialog({
           <div className="flex items-start justify-between gap-3 pr-6">
             <div className="space-y-1.5">
               <DialogTitle className="text-lg font-semibold tracking-tight">
-                Reporte <span className="text-muted-foreground">#{report.id}</span>
+                Reporte{" "}
+                <span className="text-muted-foreground">#{report.id}</span>
               </DialogTitle>
               <p className="text-xs text-muted-foreground">
-                {formatInstant(report.reported_at, timeZone, "dd MMM yyyy, HH:mm")}
+                {formatInstant(
+                  report.reported_at,
+                  timeZone,
+                  "dd MMM yyyy, HH:mm",
+                )}
               </p>
             </div>
             <div className="flex flex-wrap justify-end gap-1.5">
@@ -385,7 +423,9 @@ export default function ErrorReportDiagnosisDialog({
                     <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
                       Reportado por
                     </p>
-                    <p className="truncate text-sm font-medium">{report.reported_by}</p>
+                    <p className="truncate text-sm font-medium">
+                      {report.reported_by}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 rounded-xl border border-slate-200/80 bg-slate-50/60 px-3 py-2 dark:border-slate-800/80 dark:bg-slate-900/30">
@@ -394,7 +434,9 @@ export default function ErrorReportDiagnosisDialog({
                     <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
                       Teléfono
                     </p>
-                    <p className="truncate text-sm font-medium">{report.phone ?? "—"}</p>
+                    <p className="truncate text-sm font-medium">
+                      {report.phone ?? "—"}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -434,7 +476,9 @@ export default function ErrorReportDiagnosisDialog({
                     />
                   ))}
                   {galleryImages.length === 0 && (
-                    <p className="text-sm text-muted-foreground">Sin imágenes adjuntas.</p>
+                    <p className="text-sm text-muted-foreground">
+                      Sin imágenes adjuntas.
+                    </p>
                   )}
                 </div>
               </div>
@@ -445,7 +489,10 @@ export default function ErrorReportDiagnosisDialog({
               {canEdit ? (
                 <>
                   <div className="space-y-1.5">
-                    <Label htmlFor="http-status" className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    <Label
+                      htmlFor="http-status"
+                      className="text-xs font-medium uppercase tracking-wide text-muted-foreground"
+                    >
                       Código HTTP
                     </Label>
                     <Input
@@ -454,7 +501,7 @@ export default function ErrorReportDiagnosisDialog({
                       value={httpStatus}
                       onChange={(event) => setHttpStatus(event.target.value)}
                       placeholder="Ej: 404"
-                      className="h-9 max-w-[140px]"
+                      className="h-9 max-w-35"
                     />
                   </div>
 
@@ -490,7 +537,10 @@ export default function ErrorReportDiagnosisDialog({
                     </Label>
                     <div className="flex flex-wrap gap-2">
                       {galleryImages.map((image, index) => (
-                        <div key={image.id} className="group relative h-20 w-20">
+                        <div
+                          key={image.id}
+                          className="group relative h-20 w-20"
+                        >
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={image.url}
@@ -556,7 +606,10 @@ export default function ErrorReportDiagnosisDialog({
                     <Label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                       Causa técnica
                     </Label>
-                    <ConsoleField value={report.technical_cause ?? ""} readOnly />
+                    <ConsoleField
+                      value={report.technical_cause ?? ""}
+                      readOnly
+                    />
                   </div>
 
                   <div className="space-y-1.5 border-t border-slate-200/80 pt-4 dark:border-slate-800/80">
@@ -580,11 +633,19 @@ export default function ErrorReportDiagnosisDialog({
                         <CheckCircle2 className="h-3.5 w-3.5" />
                         Resolución
                       </p>
-                      <p className="whitespace-pre-wrap text-sm leading-relaxed">{report.resolution}</p>
+                      <p className="whitespace-pre-wrap text-sm leading-relaxed">
+                        {report.resolution}
+                      </p>
                       <p className="text-xs text-muted-foreground">
                         Resuelto por {report.resolved_by} el{" "}
-                        {formatInstant(report.resolved_at, timeZone, "dateTime", "—")}
-                        {report.resolution_minutes != null && ` (${report.resolution_minutes} min)`}
+                        {formatInstant(
+                          report.resolved_at,
+                          timeZone,
+                          "dateTime",
+                          "—",
+                        )}
+                        {report.resolution_minutes != null &&
+                          ` (${report.resolution_minutes} min)`}
                       </p>
                     </div>
                   )}
@@ -596,7 +657,12 @@ export default function ErrorReportDiagnosisDialog({
 
         {/* ───────── Sticky footer ───────── */}
         <div className="flex shrink-0 items-center justify-end gap-2 border-t border-slate-200/80 bg-linear-to-t from-slate-50 to-background px-6 py-3.5 dark:border-slate-800/80 dark:from-slate-900/40">
-          <Button type="button" variant="outline" size="sm" onClick={() => onOpenChange(false)}>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => onOpenChange(false)}
+          >
             {canEdit ? "Cancelar" : "Cerrar"}
           </Button>
           {canEdit && (

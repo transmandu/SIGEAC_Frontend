@@ -52,7 +52,11 @@ export default function ManifestDetailPage() {
   const { registerTour, unregisterTour } = useTourContext();
 
   useEffect(() => {
-    registerTour("cargo-manifiesto-detalle", "Detalle de Manifiesto", cargoManifiestoDetalleSteps);
+    registerTour(
+      "cargo-manifiesto-detalle",
+      "Detalle de Manifiesto",
+      cargoManifiestoDetalleSteps,
+    );
     return () => unregisterTour("cargo-manifiesto-detalle");
   }, [registerTour, unregisterTour]);
 
@@ -107,9 +111,18 @@ export default function ManifestDetailPage() {
 
       <div className="flex flex-col gap-6 p-1 max-w-6xl mx-auto w-full pb-10">
         {/* Header */}
-        <div className="flex items-center justify-between bg-muted/30 p-4 rounded-xl border" data-tour="cargo-manifiestos-detalle-header">
+        <div
+          className="flex items-center justify-between bg-muted/30 p-4 rounded-xl border"
+          data-tour="cargo-manifiestos-detalle-header"
+        >
           <div className="flex items-center gap-4">
-            <Button asChild variant="outline" size="icon" className="h-9 w-9" data-tour="cargo-manifiestos-detalle-btn-volver">
+            <Button
+              asChild
+              variant="outline"
+              size="icon"
+              className="h-9 w-9"
+              data-tour="cargo-manifiestos-detalle-btn-volver"
+            >
               <Link
                 href={`/${company}/operaciones/cargo/manifiestos?month=${manifest.month}&year=${manifest.year}`}
               >
@@ -137,7 +150,10 @@ export default function ManifestDetailPage() {
 
         {/* Info Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="shadow-xs" data-tour="cargo-manifiestos-detalle-card-generales">
+          <Card
+            className="shadow-xs"
+            data-tour="cargo-manifiestos-detalle-card-generales"
+          >
             <CardHeader className="pb-3 border-b bg-muted/10">
               <CardTitle className="text-base flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-blue-500" /> Datos Generales
@@ -165,7 +181,10 @@ export default function ManifestDetailPage() {
             </CardContent>
           </Card>
 
-          <Card className="shadow-xs" data-tour="cargo-manifiestos-detalle-card-info">
+          <Card
+            className="shadow-xs"
+            data-tour="cargo-manifiestos-detalle-card-info"
+          >
             <CardHeader className="pb-3 border-b bg-muted/10">
               <CardTitle className="text-base flex items-center gap-2">
                 <Clock className="h-4 w-4 text-blue-500" /> Información del
@@ -207,7 +226,10 @@ export default function ManifestDetailPage() {
         </div>
 
         {/* Items Table */}
-        <Card className="shadow-xs mt-4" data-tour="cargo-manifiestos-detalle-guias">
+        <Card
+          className="shadow-xs mt-4"
+          data-tour="cargo-manifiestos-detalle-guias"
+        >
           <CardHeader className="pb-3 border-b">
             <CardTitle className="text-lg">
               Guías incluidas en el manifiesto
@@ -218,7 +240,7 @@ export default function ManifestDetailPage() {
               <Table>
                 <TableHeader className="bg-muted/30">
                   <TableRow>
-                    <TableHead className="w-[50px]"></TableHead>
+                    <TableHead className="w-12.5"></TableHead>
                     <TableHead className="text-center font-semibold">
                       Nº Guía
                     </TableHead>
@@ -290,7 +312,12 @@ function ShipmentGroupRow({ group }: { group: any }) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <Collapsible asChild open={isOpen} onOpenChange={setIsOpen} data-tour="cargo-manifiestos-detalle-guia-row">
+    <Collapsible
+      asChild
+      open={isOpen}
+      onOpenChange={setIsOpen}
+      data-tour="cargo-manifiestos-detalle-guia-row"
+    >
       <>
         <TableRow
           className="cursor-pointer hover:bg-muted/10 transition-colors"
@@ -325,7 +352,10 @@ function ShipmentGroupRow({ group }: { group: any }) {
             {group.total_units}
           </TableCell>
         </TableRow>
-        <CollapsibleContent asChild data-tour="cargo-manifiestos-detalle-productos">
+        <CollapsibleContent
+          asChild
+          data-tour="cargo-manifiestos-detalle-productos"
+        >
           <TableRow className="bg-muted/5 border-b hover:bg-muted/5">
             <TableCell colSpan={6} className="p-0">
               <div className="px-14 py-4">

@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import Image from 'next/image';
+import Image from "next/image";
 
 interface ImageAttachmentProps {
   image: string;
@@ -9,7 +9,7 @@ interface ImageAttachmentProps {
 
 const ImageAttachment = ({ image, onImageClick }: ImageAttachmentProps) => {
   const getImageSrc = () => {
-    return image.startsWith('data:image')
+    return image.startsWith("data:image")
       ? image
       : `data:image/jpeg;base64,${image}`;
   };
@@ -20,7 +20,7 @@ const ImageAttachment = ({ image, onImageClick }: ImageAttachmentProps) => {
       <div className="hidden md:flex flex-1 h-px bg-border/50 mr-4" />
 
       {/* CARD */}
-      <div className="relative w-fit max-w-[300px] rounded-md border border-border/60 bg-linear-to-b from-muted/30 to-muted/10 p-2.5 shadow-xs space-y-2 shrink-0">
+      <div className="relative w-fit max-w-75 rounded-md border border-border/60 bg-linear-to-b from-muted/30 to-muted/10 p-2.5 shadow-xs space-y-2 shrink-0">
         {/* HEADER */}
         <div className="flex items-center gap-2 select-none">
           <span className="text-[11px] font-semibold tracking-widest text-muted-foreground whitespace-nowrap">
@@ -31,13 +31,13 @@ const ImageAttachment = ({ image, onImageClick }: ImageAttachmentProps) => {
 
         {/* CONTENIDO */}
         <div className="flex items-center justify-center">
-          <div className="max-w-[260px] max-h-[160px]">
+          <div className="max-w-65 max-h-40">
             <Image
               src={getImageSrc()}
               alt="Imagen adjunta"
               width={260}
               height={160}
-              className="object-contain w-auto h-auto max-w-full max-h-[160px] cursor-pointer transition hover:opacity-90"
+              className="object-contain w-auto h-auto max-w-full max-h-40 cursor-pointer transition hover:opacity-90"
               onClick={() => onImageClick(image)}
             />
           </div>
@@ -48,6 +48,6 @@ const ImageAttachment = ({ image, onImageClick }: ImageAttachmentProps) => {
       <div className="hidden md:flex flex-1 h-px bg-border/50 ml-4" />
     </div>
   );
-}
+};
 
 export default ImageAttachment;

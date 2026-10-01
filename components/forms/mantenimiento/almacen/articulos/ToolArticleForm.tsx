@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@/lib/zod-resolver";
 import { z } from "zod";
 import { format, parseISO } from "date-fns";
@@ -247,14 +247,25 @@ export default function ToolArticleForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [articleId]);
 
-  const needsCalibration = form.watch("needs_calibration");
-  const hasDocumentation = form.watch("has_documentation");
+  const needsCalibration = useWatch({
+    control: form.control,
+    name: "needs_calibration",
+  });
+  const hasDocumentation = useWatch({
+    control: form.control,
+    name: "has_documentation",
+  });
+  const partNumber = useWatch({ control: form.control, name: "part_number" });
+  const batchId = useWatch({ control: form.control, name: "batch_id" });
+  const manufacturerId = useWatch({
+    control: form.control,
+    name: "manufacturer_id",
+  });
+  const imageFile = useWatch({ control: form.control, name: "image" });
 
   const canSave = canSaveWith(
     form.formState.isDirty,
-    !!form.watch("part_number") &&
-      !!form.watch("batch_id") &&
-      !!form.watch("manufacturer_id"),
+    !!partNumber && !!batchId && !!manufacturerId,
   );
   useReportFormState(reportState, canSave);
 
@@ -558,7 +569,7 @@ export default function ToolArticleForm({
           descriptionPlaceholder="Ej: Torquímetro 1/2'' rango 20–200 Nm..."
           descriptionHint="Observaciones sobre la herramienta."
           imageLabel="Imagen de la herramienta"
-          imageFile={form.watch("image")}
+          imageFile={imageFile}
           onImageChange={(file) =>
             form.setValue("image", file, {
               shouldDirty: true,

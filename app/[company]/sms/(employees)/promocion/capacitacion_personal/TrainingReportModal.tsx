@@ -48,7 +48,7 @@ export function TrainingReportModal({ company }: { company?: string }) {
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-[480px]">
+      <DialogContent className="sm:max-w-120">
         <DialogHeader className="pb-2 border-b border-border/60">
           <div className="flex items-center gap-3">
             <div className="flex items-center justify-center h-9 w-9 rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-500 shrink-0">

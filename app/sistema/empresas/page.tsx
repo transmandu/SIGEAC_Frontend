@@ -1,30 +1,30 @@
-'use client'
+"use client";
 
-import { useMemo, useState, useDeferredValue } from 'react'
-import { ContentLayout } from '@/components/layout/ContentLayout'
-import LoadingPage from '@/components/misc/LoadingPage'
-import { useCompanyStore } from '@/stores/CompanyStore'
-import { useGetCompanies } from '@/hooks/sistema/useGetCompanies'
-import { getColumns } from './columns'
-import { DataTable } from './data-table'
-import CompaniesToolBar from './_components/CompaniesToolBar'
-import CompaniesSubRow from './_components/CompaniesSubRow'
+import { useMemo, useState, useDeferredValue } from "react";
+import { ContentLayout } from "@/components/layout/ContentLayout";
+import LoadingPage from "@/components/misc/LoadingPage";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { useGetCompanies } from "@/hooks/sistema/useGetCompanies";
+import { getColumns } from "./columns";
+import { DataTable } from "./data-table";
+import CompaniesToolBar from "./_components/CompaniesToolBar";
+import CompaniesSubRow from "./_components/CompaniesSubRow";
 import { PageHeader } from "@/components/layout/PageHeader";
 
 const CompaniesPage = () => {
-  const { selectedCompany } = useCompanyStore()
-  const { data: companies, isLoading, isError } = useGetCompanies()
-  const [search, setSearch] = useState('')
+  const { selectedCompany } = useCompanyStore();
+  const { data: companies, isLoading, isError } = useGetCompanies();
+  const [search, setSearch] = useState("");
 
-  const deferredSearch = useDeferredValue(search)
+  const deferredSearch = useDeferredValue(search);
 
-  const isInitialLoading = isLoading && !companies
-  const isUpdating = isLoading && !!companies
+  const isInitialLoading = isLoading && !companies;
+  const isUpdating = isLoading && !!companies;
 
   const filteredCompanies = useMemo(() => {
-    if (!companies) return []
+    if (!companies) return [];
 
-    const q = deferredSearch.toLowerCase()
+    const q = deferredSearch.toLowerCase();
 
     return companies.filter((company: any) => {
       const matchesSearch =
@@ -32,18 +32,17 @@ const CompaniesPage = () => {
         company.name?.toLowerCase()?.includes(q) ||
         company.slug?.toLowerCase()?.includes(q) ||
         company.rif?.toLowerCase()?.includes(q) ||
-        company.acronym?.toLowerCase()?.includes(q)
+        company.acronym?.toLowerCase()?.includes(q);
 
-      return matchesSearch
-    })
-  }, [companies, deferredSearch])
+      return matchesSearch;
+    });
+  }, [companies, deferredSearch]);
 
-  const columns = useMemo(() => getColumns(), [])
+  const columns = useMemo(() => getColumns(), []);
 
   return (
     <ContentLayout title="Empresas">
       <div className="flex flex-col gap-6">
-
         <PageHeader />
 
         <div className="flex flex-col gap-2 border-b pb-4">
@@ -52,25 +51,22 @@ const CompaniesPage = () => {
           </h1>
 
           <p className="text-sm text-muted-foreground">
-            Administra las compañías del sistema, sus módulos y configuración global.
+            Administra las compañías del sistema, sus módulos y configuración
+            global.
           </p>
         </div>
 
         <div className="flex items-center justify-between gap-4 px-3 py-2 rounded-xl border bg-slate-200/40 border-slate-200/40 dark:bg-slate-800/70 dark:border-slate-700/60 backdrop-blur-md dark:shadow-[0_4px_20px_rgba(0,0,0,0.35)]">
-
-          <CompaniesToolBar
-            search={search}
-            setSearch={setSearch}
-          />
+          <CompaniesToolBar search={search} setSearch={setSearch} />
 
           <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
-            {filteredCompanies.length}{' '}
-            {filteredCompanies.length === 1 ? 'empresa' : 'empresas'}
+            {filteredCompanies.length}{" "}
+            {filteredCompanies.length === 1 ? "empresa" : "empresas"}
           </span>
         </div>
 
         {isInitialLoading ? (
-          <div className="flex items-center justify-center min-h-[300px]">
+          <div className="flex items-center justify-center min-h-75">
             <LoadingPage />
           </div>
         ) : (
@@ -79,9 +75,7 @@ const CompaniesPage = () => {
             data={filteredCompanies}
             loading={isUpdating}
             canExpandRow={() => true}
-            renderSubRow={(row) => (
-              <CompaniesSubRow company={row.original} />
-            )}
+            renderSubRow={(row) => <CompaniesSubRow company={row.original} />}
           />
         )}
 
@@ -92,10 +86,9 @@ const CompaniesPage = () => {
             </p>
           </div>
         )}
-
       </div>
     </ContentLayout>
-  )
-}
+  );
+};
 
-export default CompaniesPage
+export default CompaniesPage;

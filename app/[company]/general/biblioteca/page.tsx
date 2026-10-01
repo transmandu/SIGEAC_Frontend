@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useMemo, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { bibliotecaPageSteps } from "@/components/tour/steps/general/biblioteca/biblioteca-page";
 import useLibraryNotifications from "@/hooks/notifications/useLibraryNotifications";
@@ -51,18 +52,33 @@ import { cn } from "@/lib/utils";
 
 // El árbol puede venir anidado, así que un find() plano no encuentra a los hijos.
 
+// Poda el árbol dejando solo las ramas que llevan a un departamento accesible:
+// un padre no accesible se descarta pero sus hijos permitidos suben de nivel.
+const collectAllowedDepartments = (
+  dept: any,
+  accessibleDepartmentIds: number[],
+): any[] => {
+  const children = Array.isArray(dept.descendants)
+    ? dept.descendants.flatMap((child: any) =>
+        collectAllowedDepartments(child, accessibleDepartmentIds),
+      )
+    : [];
+
+  if (accessibleDepartmentIds.includes(Number(dept.id))) {
+    return [{ ...dept, descendants: children }];
+  }
+
+  return children;
+};
+
 const BibliotecaPage = () => {
   const params = useParams();
   const { user } = useAuth();
   const companySlug = (params.company as string) || "transmandu";
 
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [selectedStatus, setSelectedStatus] = useState<string>("");
-  const [categoriesList, setCategoriesList] = useState<
-    { id: number; name: string }[]
-  >([]);
   const [showFilters, setShowFilters] = useState(false);
   const [mobileFolderOpen, setMobileFolderOpen] = useState(false);
 
@@ -95,7 +111,7 @@ const BibliotecaPage = () => {
   const [foldersMap, setFoldersMap] = useState<Record<number, FolderNode[]>>(
     {},
   );
-  const [selectedDeptName, setSelectedDeptName] = useState<string | null>(null);
+  const [pickedDeptName, setSelectedDeptName] = useState<string | null>(null);
   const [selectedFolderPath, setSelectedFolderPath] = useState<string | null>(
     null,
   );
@@ -103,10 +119,6 @@ const BibliotecaPage = () => {
   const [movingDocument, setMovingDocument] = useState(false);
   const [selectedDocumentIds, setSelectedDocumentIds] = useState<number[]>([]);
   const [moveDialogOpen, setMoveDialogOpen] = useState(false);
-
-  const [groupedDocuments, setGroupedDocuments] = useState<
-    Record<string, Document[]>
-  >({});
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [viewingDocId, setViewingDocId] = useState<number | string | null>(
@@ -120,7 +132,6 @@ const BibliotecaPage = () => {
   const [dashboardOpen, setDashboardOpen] = useState(false);
 
   const [createFolderOpen, setCreateFolderOpen] = useState(false);
-  const [pendingRequestCount, setPendingRequestCount] = useState(0);
   const [renameTarget, setRenameTarget] = useState<{
     node: FolderNode;
     departmentId: number;
@@ -197,21 +208,6 @@ const BibliotecaPage = () => {
     );
   }, [rawDepartments]);
 
-  const collectAllowedDepartments = useCallback(
-    (dept: any): any[] => {
-      const children = Array.isArray(dept.descendants)
-        ? dept.descendants.flatMap(collectAllowedDepartments)
-        : [];
-
-      if (accessibleDepartmentIds.includes(Number(dept.id))) {
-        return [{ ...dept, descendants: children }];
-      }
-
-      return children;
-    },
-    [accessibleDepartmentIds],
-  );
-
   const buildFlatDepartmentTree = useCallback((departmentsList: any[]) => {
     const nodes: Record<number, any> = {};
     departmentsList.forEach((dept: any) => {
@@ -249,24 +245,110 @@ const BibliotecaPage = () => {
     }
 
     if (hasNestedDepartmentTree) {
-      return rawDepartments.flatMap(collectAllowedDepartments);
+      return rawDepartments.flatMap((dept: any) =>
+        collectAllowedDepartments(dept, accessibleDepartmentIds),
+      );
     }
 
     const rootTree = buildFlatDepartmentTree(rawDepartments);
-    return rootTree.flatMap(collectAllowedDepartments);
+    return rootTree.flatMap((dept: any) =>
+      collectAllowedDepartments(dept, accessibleDepartmentIds),
+    );
   }, [
     rawDepartments,
     isSuperUser,
     isDipDirector,
     accessibleDepartmentIds,
     hasNestedDepartmentTree,
-    collectAllowedDepartments,
     buildFlatDepartmentTree,
   ]);
+
+  // Con un solo departamento no hay nada que elegir: queda seleccionado de
+  // entrada en vez de fijarlo con un efecto tras el primer render.
+  const selectedDeptName =
+    pickedDeptName ??
+    (departments.length === 1 ? (departments[0].name as string) : null);
 
   const isMultiDept = useMemo(() => {
     return isSuperUser || departments.length > 1;
   }, [isSuperUser, departments]);
+
+  const documentsQuery = useQuery({
+    queryKey: ["library-documents", companySlug],
+    queryFn: async () => {
+      const response = await libraryService.getDocuments(companySlug);
+      return (response.data || {}) as Record<string, Document[]>;
+    },
+    enabled: !!companySlug,
+  });
+
+  const categoriesQuery = useQuery({
+    queryKey: ["library-categories", companySlug],
+    queryFn: async () => {
+      const response = await axiosInstance.get(
+        `/${companySlug}/library/categories-list`,
+      );
+      return (response.data || []) as { id: number; name: string }[];
+    },
+    enabled: !!companySlug,
+  });
+
+  const pendingRequestsQuery = useQuery({
+    queryKey: ["library-pending-requests", companySlug],
+    queryFn: async () => {
+      const res = await libraryService.getShareRequests(companySlug, {
+        status: "pending",
+      });
+      const list = Array.isArray(res) ? res : res.data || [];
+      return list.length as number;
+    },
+    enabled: !!companySlug,
+    // Un fallo de red no debe mostrarse como "no hay solicitudes": se conserva
+    // el último conteo bueno en lugar de caer a cero.
+    placeholderData: (previous: number | undefined) => previous,
+  });
+
+  // El ?? crea un valor nuevo en cada render, así que se memoiza para no
+  // invalidar los useMemo que dependen de estos datos.
+  const groupedDocuments = useMemo(
+    () => documentsQuery.data ?? {},
+    [documentsQuery.data],
+  );
+  const categoriesList = useMemo(
+    () => categoriesQuery.data ?? [],
+    [categoriesQuery.data],
+  );
+  const pendingRequestCount = pendingRequestsQuery.data ?? 0;
+
+  const loading =
+    documentsQuery.isPending ||
+    categoriesQuery.isPending ||
+    pendingRequestsQuery.isPending;
+
+  useEffect(() => {
+    if (documentsQuery.isError) {
+      console.error("Error al cargar la biblioteca:", documentsQuery.error);
+      toast.error("Error al sincronizar documentos");
+    }
+  }, [documentsQuery.isError, documentsQuery.error]);
+
+  useEffect(() => {
+    if (categoriesQuery.isError) {
+      console.error("Error al cargar categorías:", categoriesQuery.error);
+      toast.error("No se pudieron cargar las categorías");
+    }
+  }, [categoriesQuery.isError, categoriesQuery.error]);
+
+  const { refetch: refetchDocuments } = documentsQuery;
+  const { refetch: refetchPendingRequests } = pendingRequestsQuery;
+
+  const fetchDocs = useCallback(async () => {
+    await refetchDocuments();
+  }, [refetchDocuments]);
+
+  const refreshPendingCount = useCallback(async () => {
+    await refetchPendingRequests();
+  }, [refetchPendingRequests]);
 
   const currentDeptDocs = useMemo(() => {
     if (!selectedDeptName || !groupedDocuments[selectedDeptName]) return [];
@@ -339,50 +421,12 @@ const BibliotecaPage = () => {
     selectedStatus,
   ]);
 
-  const fetchDocs = useCallback(async () => {
-    try {
-      const response = await libraryService.getDocuments(companySlug);
-      setGroupedDocuments(response.data || {});
-    } catch (error) {
-      console.error("Error al cargar la biblioteca:", error);
-      toast.error("Error al sincronizar documentos");
-    }
-  }, [companySlug]);
-
-  const fetchCategories = useCallback(async () => {
-    try {
-      const response = await axiosInstance.get(
-        `/${companySlug}/library/categories-list`,
-      );
-      setCategoriesList(response.data || []);
-    } catch (error) {
-      console.error("Error al cargar categorías:", error);
-      toast.error("No se pudieron cargar las categorías");
-    }
-  }, [companySlug]);
-
-  const refreshPendingCount = useCallback(async () => {
-    try {
-      const res = await libraryService.getShareRequests(companySlug, {
-        status: "pending",
-      });
-      const list = Array.isArray(res) ? res : res.data || [];
-      setPendingRequestCount(list.length);
-    } catch (error) {
-      // Un fallo de red no se muestra como "no hay solicitudes": se deja el
-      // contador anterior en lugar de ponerlo a cero.
-      console.error("Error al consultar solicitudes pendientes:", error);
-    }
-  }, [companySlug]);
-
-  const initialLoad = useCallback(async () => {
-    setLoading(true);
-    await Promise.all([fetchDocs(), fetchCategories(), refreshPendingCount()]);
-    setLoading(false);
-  }, [fetchDocs, fetchCategories, refreshPendingCount]);
-
+  // Espejo de foldersMap para que los callbacks lean el valor vigente sin
+  // depender de él: incluirlo en sus deps los recrearía en cada carga de carpetas.
   const foldersMapRef = useRef(foldersMap);
-  foldersMapRef.current = foldersMap;
+  useEffect(() => {
+    foldersMapRef.current = foldersMap;
+  }, [foldersMap]);
 
   const handleToggleDept = useCallback(
     async (deptId: number) => {
@@ -402,12 +446,6 @@ const BibliotecaPage = () => {
     },
     [companySlug],
   );
-
-  useEffect(() => {
-    if (companySlug) {
-      initialLoad();
-    }
-  }, [companySlug, initialLoad]);
 
   // Polling eliminado — las notificaciones llegan vía WebSocket (useLibraryNotifications)
 
@@ -510,6 +548,9 @@ const BibliotecaPage = () => {
   const handleSelectFolder = (folderPath: string, departmentName: string) => {
     setSelectedDeptName(departmentName);
     setSelectedFolderPath(folderPath);
+    // Al cambiar de vista la selección anterior deja de tener sentido: se
+    // limpia para no mover documentos que ya no están visibles.
+    setSelectedDocumentIds([]);
     setMobileFolderOpen(false);
   };
 
@@ -591,18 +632,6 @@ const BibliotecaPage = () => {
     return group?.folders || [];
   }, [selectedDeptName, departmentFolders]);
 
-  useEffect(() => {
-    if (departments.length === 1 && !selectedDeptName) {
-      setSelectedDeptName(departments[0].name);
-    }
-  }, [departments, selectedDeptName]);
-
-  // Al navegar a otro departamento/carpeta la selección anterior deja de tener
-  // sentido: se limpia para evitar mover documentos que ya no están visibles.
-  useEffect(() => {
-    setSelectedDocumentIds([]);
-  }, [selectedDeptName, selectedFolderPath]);
-
   // Scroll lock del drawer de carpetas en móvil: mientras esté abierto la
   // página de fondo no debe moverse.
   useEffect(() => {
@@ -632,8 +661,8 @@ const BibliotecaPage = () => {
       <div className="flex flex-col gap-y-4">
         {loading ? (
           <div className="w-full rounded-4xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#1a1c1e] shadow-xl animate-pulse overflow-hidden">
-            <div className="flex min-h-[400px]">
-              <div className="hidden lg:block w-[380px] shrink-0 border-r border-slate-200 dark:border-slate-800 p-5">
+            <div className="flex min-h-100">
+              <div className="hidden lg:block w-95 shrink-0 border-r border-slate-200 dark:border-slate-800 p-5">
                 <div className="h-3 w-16 bg-slate-200 dark:bg-slate-700 rounded mb-4" />
                 {[1, 2, 3, 4].map((i) => (
                   <div
@@ -705,7 +734,7 @@ const BibliotecaPage = () => {
                         <Send className="h-4 w-4" />
                         Solicitudes
                         {pendingRequestCount > 0 && (
-                          <span className="select-none ml-1 px-1.5 py-0.5 text-[9px] font-bold text-white bg-red-500 rounded-full min-w-[18px] text-center leading-none">
+                          <span className="select-none ml-1 px-1.5 py-0.5 text-[9px] font-bold text-white bg-red-500 rounded-full min-w-4.5 text-center leading-none">
                             {pendingRequestCount > 99
                               ? "99+"
                               : pendingRequestCount}
@@ -858,7 +887,7 @@ const BibliotecaPage = () => {
                   </p>
                 </div>
               )}
-              <div className="flex min-h-[400px]">
+              <div className="flex min-h-100">
                 {/* Backdrop del drawer de carpetas en móvil */}
                 {mobileFolderOpen && (
                   <button
@@ -875,7 +904,7 @@ const BibliotecaPage = () => {
                     "flex flex-col border-r border-slate-200 dark:border-slate-800",
                     mobileFolderOpen
                       ? "fixed inset-y-0 left-0 z-50 w-[85vw] max-w-xs bg-white dark:bg-[#1a1c1e] p-5 shadow-2xl animate-in slide-in-from-left-2 duration-200"
-                      : "hidden lg:flex lg:w-[350px] shrink-0 lg:p-5 lg:pt-8",
+                      : "hidden lg:flex lg:w-87.5 shrink-0 lg:p-5 lg:pt-8",
                   )}
                 >
                   <div
@@ -899,7 +928,7 @@ const BibliotecaPage = () => {
                     </button>
                   </div>
                   <div
-                    className="flex-1 overflow-y-auto max-h-[500px] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-200 dark:[&::-webkit-scrollbar-thumb]:bg-slate-700 [&::-webkit-scrollbar-thumb]:rounded-full pr-2"
+                    className="flex-1 overflow-y-auto max-h-125 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-200 dark:[&::-webkit-scrollbar-thumb]:bg-slate-700 [&::-webkit-scrollbar-thumb]:rounded-full pr-2"
                     data-tour="biblioteca-folder-tree"
                   >
                     <FolderTree

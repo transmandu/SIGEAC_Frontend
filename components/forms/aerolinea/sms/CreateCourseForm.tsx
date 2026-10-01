@@ -12,7 +12,7 @@ import {
 
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@/lib/zod-resolver";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
 import {
@@ -121,7 +121,10 @@ export function CreateCourseForm({
     },
   });
 
-  const selectedDocument = form.watch("document");
+  const selectedDocument = useWatch({
+    control: form.control,
+    name: "document",
+  });
 
   const onSubmit = async (data: FormSchemaType) => {
     if (initialData && isEditing) {

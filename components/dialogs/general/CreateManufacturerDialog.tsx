@@ -20,19 +20,19 @@ interface CreateManufacturerDialogProps {
   triggerButton?: React.ReactNode,
 }
 
-export function CreateManufacturerDialog({ 
-  defaultType = "GENERAL", 
-  onSuccess, 
-  triggerButton 
+export function CreateManufacturerDialog({
+  defaultType = "GENERAL",
+  onSuccess,
+  triggerButton,
 }: CreateManufacturerDialogProps) {
   const [open, setOpen] = useState(false);
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {triggerButton || (
-          <Button 
-            onClick={() => setOpen(true)} 
-            variant={'outline'} 
+          <Button
+            onClick={() => setOpen(true)}
+            variant={"outline"}
             className="flex items-center justify-center gap-2 h-8 border-dashed"
           >
             <Plus className="h-4 w-4" />
@@ -40,19 +40,19 @@ export function CreateManufacturerDialog({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[420px]">
+      <DialogContent className="sm:max-w-105">
         <DialogHeader>
           <DialogTitle>Creación de Fabricante</DialogTitle>
           <DialogDescription>
             Cree un fabricante rellenando la información necesaria.
           </DialogDescription>
         </DialogHeader>
-        <CreateManufacturerForm 
-          onClose={() => setOpen(false)} 
+        <CreateManufacturerForm
+          onClose={() => setOpen(false)}
           defaultType={defaultType}
           onSuccess={onSuccess}
         />
       </DialogContent>
     </Dialog>
-  )
+  );
 }

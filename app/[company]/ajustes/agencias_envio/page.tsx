@@ -62,7 +62,7 @@ const ShippingAgenciesPage = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[300px]">
+      <div className="flex items-center justify-center min-h-75">
         <LoadingPage />
       </div>
     );

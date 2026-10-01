@@ -16,7 +16,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage
+  FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -29,19 +29,31 @@ import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 
 const formSchema = z.object({
-  description_task: z.string().min(1, 'La descripción de la tarea es obligatoria'),
-  ata: z.string().min(1, 'Código ATA requerido'),
-  task_number: z.string().min(5, 'Número de tarea requerido al menos 5 caracteres'),
-  origin_manual: z.string().min(1, 'Origen manual requerido'),
-  task_items: z.array(z.object({
-    part_number: z.string().min(1, 'Número de parte requerido'),
-    alternate_part_number: z.string().optional(),
-  })).optional()
+  description_task: z
+    .string()
+    .min(1, "La descripción de la tarea es obligatoria"),
+  ata: z.string().min(1, "Código ATA requerido"),
+  task_number: z
+    .string()
+    .min(5, "Número de tarea requerido al menos 5 caracteres"),
+  origin_manual: z.string().min(1, "Origen manual requerido"),
+  task_items: z
+    .array(
+      z.object({
+        part_number: z.string().min(1, "Número de parte requerido"),
+        alternate_part_number: z.string().optional(),
+      }),
+    )
+    .optional(),
 });
 
-export function AddRoutineTaskDialog({work_order_id}: {work_order_id: string}) {
+export function AddRoutineTaskDialog({
+  work_order_id,
+}: {
+  work_order_id: string;
+}) {
   const [open, setOpen] = useState(false);
-  const {addWorkOrderTask} = useAddWorkOrderTask()
+  const { addWorkOrderTask } = useAddWorkOrderTask();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -49,7 +61,7 @@ export function AddRoutineTaskDialog({work_order_id}: {work_order_id: string}) {
       description_task: "",
       origin_manual: "",
       task_number: "",
-      task_items: [{ part_number: "", alternate_part_number: "" }]
+      task_items: [{ part_number: "", alternate_part_number: "" }],
     },
   });
 
@@ -59,15 +71,18 @@ export function AddRoutineTaskDialog({work_order_id}: {work_order_id: string}) {
   });
 
   const scrollAreaHeight = useMemo(() => {
-    return fields.length > 2 ? "h-[320px]" : "";
+    return fields.length > 2 ? "h-80" : "";
   }, [fields.length]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    await addWorkOrderTask.mutateAsync({work_order_id: work_order_id, data: {
-      ...values,
-      status: "OPEN",
-    }});
-    form.reset()
+    await addWorkOrderTask.mutateAsync({
+      work_order_id: work_order_id,
+      data: {
+        ...values,
+        status: "OPEN",
+      },
+    });
+    form.reset();
     setOpen(false);
   };
 
@@ -76,14 +91,16 @@ export function AddRoutineTaskDialog({work_order_id}: {work_order_id: string}) {
       <DialogTrigger asChild>
         <Button className="flex items-center gap-2">
           <p className="flex gap-2 items-center text-sm">
-            <Plus className="h-4 w-4"/> Añadir Tarea
+            <Plus className="h-4 w-4" /> Añadir Tarea
           </p>
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[580px]">
+      <DialogContent className="sm:max-w-145">
         <DialogHeader>
           <DialogTitle>Añadir Nueva Tarea</DialogTitle>
-          <DialogDescription>Añada una tarea nueva a una orden de trabajo ya creada.</DialogDescription>
+          <DialogDescription>
+            Añada una tarea nueva a una orden de trabajo ya creada.
+          </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -147,7 +164,9 @@ export function AddRoutineTaskDialog({work_order_id}: {work_order_id: string}) {
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => append({ part_number: "", alternate_part_number: "" })}
+                  onClick={() =>
+                    append({ part_number: "", alternate_part_number: "" })
+                  }
                 >
                   <PlusCircle className="h-4 w-4 mr-2" />
                   Agregar Artículo
@@ -156,7 +175,10 @@ export function AddRoutineTaskDialog({work_order_id}: {work_order_id: string}) {
 
               <ScrollArea className={cn("space-y-3", scrollAreaHeight)}>
                 {fields.map((field, index) => (
-                  <div key={field.id} className="p-3 border rounded-md bg-muted/50 mb-2">
+                  <div
+                    key={field.id}
+                    className="p-3 border rounded-md bg-muted/50 mb-2"
+                  >
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                       <FormField
                         name={`task_items.${index}.part_number`}

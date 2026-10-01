@@ -123,7 +123,7 @@ export function CreateGeneralObligatoryReportForm({
       incidents: z.array(z.string()).optional(),
       other_incidents: z.preprocess(
         (val) => (val === null || val === undefined ? "" : val),
-        z.string().optional()
+        z.string().optional(),
       ),
       email: z.string().email("Email inválido").optional().nullable(),
       phone_number: z.string().optional().nullable(),
@@ -132,7 +132,7 @@ export function CreateGeneralObligatoryReportForm({
         .refine((file) => file.size <= 5 * 1024 * 1024, "Max 5MB")
         .refine(
           (file) => ["image/jpeg", "image/png"].includes(file.type),
-          "Solo JPEG/PNG"
+          "Solo JPEG/PNG",
         )
         .optional(),
       document: z
@@ -140,7 +140,7 @@ export function CreateGeneralObligatoryReportForm({
         .refine((file) => file.size <= 5 * 1024 * 1024, "Máximo 5MB")
         .refine(
           (file) => file.type === "application/pdf",
-          "Solo se permiten archivos PDF"
+          "Solo se permiten archivos PDF",
         )
         .optional(),
     })
@@ -153,7 +153,7 @@ export function CreateGeneralObligatoryReportForm({
       {
         message: "Debe proporcionar al menos un incidente o descripción",
         path: ["incidents"],
-      }
+      },
     );
 
   type FormSchemaType = z.infer<typeof FormSchema>;
@@ -163,7 +163,7 @@ export function CreateGeneralObligatoryReportForm({
   const { company } = useParams<{ company: string }>();
 
   const [showOtherInput, setShowOtherInput] = useState(
-    initialData?.other_incidents ? true : false
+    initialData?.other_incidents ? true : false,
   );
 
   const [open, setOpen] = useState(false);
@@ -279,7 +279,7 @@ export function CreateGeneralObligatoryReportForm({
   };
 
   const handleOtherInputChange = (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     form.setValue("other_incidents", event.target.value);
   };
@@ -337,7 +337,7 @@ export function CreateGeneralObligatoryReportForm({
                         variant={"outline"}
                         className={cn(
                           "w-full pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
+                          !field.value && "text-muted-foreground",
                         )}
                       >
                         {field.value ? (
@@ -380,7 +380,7 @@ export function CreateGeneralObligatoryReportForm({
                         variant={"outline"}
                         className={cn(
                           "w-full pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
+                          !field.value && "text-muted-foreground",
                         )}
                       >
                         {field.value ? (
@@ -622,10 +622,7 @@ export function CreateGeneralObligatoryReportForm({
               <FormItem className="w-full">
                 <FormLabel>Numero de vuelo</FormLabel>
                 <FormControl>
-                  <Input
-                    placeholder="Numero del vuelo"
-                    {...field}
-                  />
+                  <Input placeholder="Numero del vuelo" {...field} />
                 </FormControl>
                 <FormMessage className="text-xs" />
               </FormItem>
@@ -690,7 +687,7 @@ export function CreateGeneralObligatoryReportForm({
                         variant="outline"
                         role="combobox"
                         aria-expanded={open}
-                        className="w-[300px] justify-between"
+                        className="w-75 justify-between"
                       >
                         {selectedValues && selectedValues.length > 0 ? (
                           <p>({selectedValues.length}) seleccionados</p>
@@ -700,7 +697,7 @@ export function CreateGeneralObligatoryReportForm({
                         <ChevronsUpDown className="opacity-50" />
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-[300px] p-0">
+                    <PopoverContent className="w-75 p-0">
                       <Command>
                         <CommandInput placeholder="Buscar opciones..." />
                         <CommandList>
@@ -717,13 +714,13 @@ export function CreateGeneralObligatoryReportForm({
                                     selectedValues.includes(currentValue);
                                   const newValues = isSelected
                                     ? selectedValues.filter(
-                                      (v) => v !== currentValue
-                                    )
+                                        (v) => v !== currentValue,
+                                      )
                                     : [...selectedValues, currentValue];
 
                                   setSelectedValues(newValues);
                                   field.onChange(
-                                    newValues.length > 0 ? newValues : []
+                                    newValues.length > 0 ? newValues : [],
                                   ); // Actualizar el valor del campo de formulario
                                 }}
                               >
@@ -734,7 +731,7 @@ export function CreateGeneralObligatoryReportForm({
                                       "ml-auto",
                                       selectedValues.includes(option)
                                         ? "opacity-100"
-                                        : "opacity-0"
+                                        : "opacity-0",
                                     )}
                                   />
                                 )}

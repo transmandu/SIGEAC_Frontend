@@ -37,7 +37,10 @@ import axiosInstance from "@/lib/axios";
 import { cn } from "@/lib/utils";
 import { isImageDocument } from "@/lib/warehouse/documents";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import type { ArticleDocument, ArticleDocumentRequirementSummary } from "@/types";
+import type {
+  ArticleDocument,
+  ArticleDocumentRequirementSummary,
+} from "@/types";
 import type { PurchaseOrderInvoice } from "@/types/purchase";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -116,7 +119,7 @@ function InspectionStrip({
               v === true && "bg-emerald-500",
               v === false && "bg-red-500",
               v === "NA" && "bg-slate-400 dark:bg-slate-500",
-              v === undefined && "bg-slate-200 dark:bg-slate-700"
+              v === undefined && "bg-slate-200 dark:bg-slate-700",
             )}
           />
         );
@@ -150,7 +153,7 @@ function InfoField({
         <p
           className={cn(
             "mt-0.5 text-sm font-medium text-foreground",
-            mono && "font-mono"
+            mono && "font-mono",
           )}
         >
           {value ?? <span className="text-muted-foreground">—</span>}
@@ -180,12 +183,11 @@ function CompactCheckRow({
       className={cn(
         "rounded-lg border-2 p-3 transition-colors",
         value === true &&
-        "border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/20",
-        value === false &&
-        "border-red-500 bg-red-50/50 dark:bg-red-950/20",
+          "border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/20",
+        value === false && "border-red-500 bg-red-50/50 dark:bg-red-950/20",
         value === "NA" &&
-        "border-slate-400 bg-slate-50/50 dark:border-l-slate-500 dark:bg-slate-800/20",
-        value === undefined && "border-l-slate-200 dark:border-l-slate-700"
+          "border-slate-400 bg-slate-50/50 dark:border-l-slate-500 dark:bg-slate-800/20",
+        value === undefined && "border-l-slate-200 dark:border-l-slate-700",
       )}
     >
       <div className="flex items-start gap-1.5">
@@ -212,7 +214,7 @@ function CompactCheckRow({
             "h-7 px-3 text-[11px] font-semibold transition-colors",
             value === true
               ? "bg-emerald-500 text-white"
-              : "bg-background text-muted-foreground hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
+              : "bg-background text-muted-foreground hover:bg-emerald-50 dark:hover:bg-emerald-950/30",
           )}
           aria-pressed={value === true}
         >
@@ -228,7 +230,7 @@ function CompactCheckRow({
             value === "NA"
               ? "bg-slate-400 text-white dark:bg-slate-500"
               : "bg-background text-muted-foreground hover:bg-slate-50 dark:hover:bg-slate-800",
-            critical && "cursor-not-allowed opacity-40 hover:bg-background"
+            critical && "cursor-not-allowed opacity-40 hover:bg-background",
           )}
           aria-pressed={value === "NA"}
         >
@@ -241,7 +243,7 @@ function CompactCheckRow({
             "h-7 px-3 text-[11px] font-semibold transition-colors",
             value === false
               ? "bg-red-500 text-white"
-              : "bg-background text-muted-foreground hover:bg-red-50 dark:hover:bg-red-950/30"
+              : "bg-background text-muted-foreground hover:bg-red-50 dark:hover:bg-red-950/30",
           )}
           aria-pressed={value === false}
         >
@@ -272,12 +274,11 @@ function StampCheckRow({
       className={cn(
         "rounded-xl border-l-[3px] p-4 transition-colors",
         value === true &&
-        "border-l-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/20",
-        value === false &&
-        "border-l-red-500 bg-red-50/50 dark:bg-red-950/20",
+          "border-l-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/20",
+        value === false && "border-l-red-500 bg-red-50/50 dark:bg-red-950/20",
         value === "NA" &&
-        "border-l-slate-400 bg-slate-50/50 dark:border-l-slate-500 dark:bg-slate-800/20",
-        value === undefined && "border-l-slate-200 dark:border-l-slate-700"
+          "border-l-slate-400 bg-slate-50/50 dark:border-l-slate-500 dark:bg-slate-800/20",
+        value === undefined && "border-l-slate-200 dark:border-l-slate-700",
       )}
     >
       <div className="flex items-start gap-2">
@@ -302,7 +303,7 @@ function StampCheckRow({
             "flex h-12 w-16 flex-col items-center justify-center rounded-lg border text-xs font-semibold transition-all",
             value === true
               ? "border-emerald-500 bg-emerald-500 text-white shadow-xs"
-              : "border-border bg-background text-muted-foreground hover:border-emerald-400 hover:bg-emerald-50 dark:hover:border-emerald-600 dark:hover:bg-emerald-950/30"
+              : "border-border bg-background text-muted-foreground hover:border-emerald-400 hover:bg-emerald-50 dark:hover:border-emerald-600 dark:hover:bg-emerald-950/30",
           )}
           aria-pressed={value === true}
         >
@@ -319,7 +320,8 @@ function StampCheckRow({
             value === "NA"
               ? "border-slate-400 bg-slate-400 text-white shadow-xs dark:border-slate-500 dark:bg-slate-500"
               : "border-border bg-background text-muted-foreground hover:border-slate-400 hover:bg-slate-50 dark:hover:border-slate-600 dark:hover:bg-slate-800",
-            critical && "cursor-not-allowed opacity-40 hover:border-border hover:bg-background"
+            critical &&
+              "cursor-not-allowed opacity-40 hover:border-border hover:bg-background",
           )}
           aria-pressed={value === "NA"}
         >
@@ -333,7 +335,7 @@ function StampCheckRow({
             "flex h-12 w-16 flex-col items-center justify-center rounded-lg border text-xs font-semibold transition-all",
             value === false
               ? "border-red-500 bg-red-500 text-white shadow-xs"
-              : "border-border bg-background text-muted-foreground hover:border-red-400 hover:bg-red-50 dark:hover:border-red-600 dark:hover:bg-red-950/30"
+              : "border-border bg-background text-muted-foreground hover:border-red-400 hover:bg-red-50 dark:hover:border-red-600 dark:hover:bg-red-950/30",
           )}
           aria-pressed={value === false}
         >
@@ -354,7 +356,7 @@ function DocPill({ label, ready }: { label: string; ready: boolean }) {
         "select-none inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium",
         ready
           ? "border-emerald-300/60 bg-emerald-50 text-emerald-700 dark:border-emerald-700/40 dark:bg-emerald-950/30 dark:text-emerald-400"
-          : "border-border bg-muted/50 text-muted-foreground"
+          : "border-border bg-muted/50 text-muted-foreground",
       )}
     >
       {ready ? <Check className="h-3 w-3" /> : <Minus className="h-3 w-3" />}
@@ -431,7 +433,7 @@ function ChecklistContent({
         groups.map((g) => {
           const IconComp = g.icon;
           const groupDone = g.items.filter(
-            (i) => checklist[i.key] !== undefined
+            (i) => checklist[i.key] !== undefined,
           ).length;
 
           return (
@@ -472,7 +474,8 @@ function ChecklistContent({
 export function IncomingReview({ article }: { article: any }) {
   const { selectedCompany, selectedStation } = useCompanyStore();
   const [previewDoc, setPreviewDoc] = useState<ArticleDocument | null>(null);
-  const [previewInvoice, setPreviewInvoice] = useState<PurchaseOrderInvoice | null>(null);
+  const [previewInvoice, setPreviewInvoice] =
+    useState<PurchaseOrderInvoice | null>(null);
   const router = useRouter();
   const { confirmIncoming } = useConfirmIncomingArticle();
   const { sendToQuarantine } = useSendToQuarantine();
@@ -483,7 +486,7 @@ export function IncomingReview({ article }: { article: any }) {
   const documentRequirements: ArticleDocumentRequirementSummary[] =
     article?.document_requirements ?? [];
   const pendingRequirements = documentRequirements.filter(
-    (req) => req.documents.length === 0
+    (req) => req.documents.length === 0,
   );
   // Riesgo documental: hay documentos esperados sin consignar, o el artículo
   // declara documentación pero no tiene ningún requerimiento registrado.
@@ -506,7 +509,7 @@ export function IncomingReview({ article }: { article: any }) {
     try {
       const response = await axiosInstance.get(
         `/${selectedCompany?.slug}/article-documents/${doc.id}/download`,
-        { responseType: "blob" }
+        { responseType: "blob" },
       );
 
       const downloadUrl = window.URL.createObjectURL(new Blob([response.data]));
@@ -514,7 +517,7 @@ export function IncomingReview({ article }: { article: any }) {
       link.href = downloadUrl;
       link.setAttribute(
         "download",
-        doc.file_path?.split("/").pop() ?? `documento-${doc.id}`
+        doc.file_path?.split("/").pop() ?? `documento-${doc.id}`,
       );
       document.body.appendChild(link);
       link.click();
@@ -536,7 +539,7 @@ export function IncomingReview({ article }: { article: any }) {
   const invoiceEndpoint = (invoice: PurchaseOrderInvoice) =>
     `/${selectedCompany?.slug}/files/serve/${btoa(invoice.file_path)}`;
   const [checklist, setChecklist] = useState<Record<string, ChecklistValue>>(
-    {}
+    {},
   );
   const [inspectorNotes, setInspectorNotes] = useState("");
 
@@ -556,16 +559,17 @@ export function IncomingReview({ article }: { article: any }) {
   const [quarantineOpen, setQuarantineOpen] = useState(false);
   const [incomingDate, setIncomingDate] = useState<Date>(new Date());
   const [quarantineEntryDate, setQuarantineEntryDate] = useState<Date>(
-    new Date()
+    new Date(),
   );
 
   const quarantineEnabled = inspectorNotes.trim().length >= 5;
   const actionDisabled =
-    (decision === "QUARANTINE" ? !quarantineEnabled : false) || (progress !== 100);
+    (decision === "QUARANTINE" ? !quarantineEnabled : false) ||
+    progress !== 100;
 
   const currentWarehouseId = Number(selectedStation);
   const incomingQuantity = Number(
-    article?.consumable?.quantity ?? article?.quantity ?? 1
+    article?.consumable?.quantity ?? article?.quantity ?? 1,
   );
 
   /* ── Handlers ── */
@@ -591,8 +595,12 @@ export function IncomingReview({ article }: { article: any }) {
 
     return {
       warehouse_id: currentWarehouseId,
-      purchase_order_code: article?.purchase_order_number ? article.purchase_order_number : "N/A",
-      purchase_order_id: article?.purchase_order_id ? article.purchase_order_id : null,
+      purchase_order_code: article?.purchase_order_number
+        ? article.purchase_order_number
+        : "N/A",
+      purchase_order_id: article?.purchase_order_id
+        ? article.purchase_order_id
+        : null,
       inspection_date: format(incomingDate, "yyyy-MM-dd"),
       items: [
         {
@@ -600,9 +608,10 @@ export function IncomingReview({ article }: { article: any }) {
           serial: Array.isArray(article?.serial)
             ? article.serial[0]
             : article?.serial,
-          quantity: Number.isFinite(incomingQuantity) && incomingQuantity > 0
-            ? incomingQuantity
-            : 1,
+          quantity:
+            Number.isFinite(incomingQuantity) && incomingQuantity > 0
+              ? incomingQuantity
+              : 1,
           checks,
         },
       ],
@@ -611,8 +620,14 @@ export function IncomingReview({ article }: { article: any }) {
 
   const confirmAccept = async () => {
     if (!user || !selectedCompany) return;
-    if (!selectedStation || !Number.isFinite(currentWarehouseId) || currentWarehouseId <= 0) {
-      toast.error("Seleccione un almacén válido antes de registrar el incoming.");
+    if (
+      !selectedStation ||
+      !Number.isFinite(currentWarehouseId) ||
+      currentWarehouseId <= 0
+    ) {
+      toast.error(
+        "Seleccione un almacén válido antes de registrar el incoming.",
+      );
       return;
     }
 
@@ -659,7 +674,7 @@ export function IncomingReview({ article }: { article: any }) {
   /* ── Loading ── */
   if (isLoading) {
     return (
-      <div className="flex min-h-[400px] items-center justify-center">
+      <div className="flex min-h-100 items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
@@ -710,7 +725,8 @@ export function IncomingReview({ article }: { article: any }) {
               </h1>
               {article?.purchase_order_number && (
                 <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
-                  Artículo proveniente de la orden de compra: {article.purchase_order_number}
+                  Artículo proveniente de la orden de compra:{" "}
+                  {article.purchase_order_number}
                 </p>
               )}
               {article?.description && (
@@ -808,7 +824,7 @@ export function IncomingReview({ article }: { article: any }) {
                           "flex flex-wrap items-center justify-between gap-2 rounded-lg border px-3 py-2",
                           consigned
                             ? "border-emerald-300/60 bg-emerald-50/50 dark:border-emerald-700/40 dark:bg-emerald-950/20"
-                            : "border-border bg-muted/30"
+                            : "border-border bg-muted/30",
                         )}
                       >
                         <div className="flex items-center gap-2 min-w-0">
@@ -831,7 +847,10 @@ export function IncomingReview({ article }: { article: any }) {
 
                         <div className="flex flex-wrap items-center gap-1.5">
                           {req.documents.map((doc) => (
-                            <span key={doc.id} className="flex items-center gap-1.5">
+                            <span
+                              key={doc.id}
+                              className="flex items-center gap-1.5"
+                            >
                               {doc.is_physical && (
                                 <span className="select-none inline-flex items-center rounded-full border border-amber-300/60 bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-700 dark:border-amber-600/40 dark:bg-amber-950/30 dark:text-amber-400">
                                   Físico
@@ -845,7 +864,7 @@ export function IncomingReview({ article }: { article: any }) {
                                     className="select-none inline-flex items-center gap-1 rounded-full border border-emerald-300/60 bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700 hover:bg-emerald-100 dark:border-emerald-700/40 dark:bg-emerald-950/30 dark:text-emerald-400 dark:hover:bg-emerald-900/40"
                                   >
                                     <Eye className="h-3 w-3" />
-                                    <span className="max-w-[140px] truncate">
+                                    <span className="max-w-35 truncate">
                                       {doc.file_path.split("/").pop()}
                                     </span>
                                   </button>
@@ -907,7 +926,8 @@ export function IncomingReview({ article }: { article: any }) {
                         <Receipt className="h-4 w-4 shrink-0 text-muted-foreground" />
                         <div className="min-w-0">
                           <p className="truncate text-sm font-medium text-foreground">
-                            {invoice.invoice_number?.trim() || `Factura ${index + 1}`}
+                            {invoice.invoice_number?.trim() ||
+                              `Factura ${index + 1}`}
                           </p>
                           <p className="truncate text-[10px] text-muted-foreground">
                             {invoice.file_path.split("/").pop()}
@@ -942,7 +962,6 @@ export function IncomingReview({ article }: { article: any }) {
               )}
             </section>
 
-
             {/* ── Inspector notes ── */}
             <section className="rounded-xl border border-border/80 bg-background p-5">
               <button
@@ -963,7 +982,7 @@ export function IncomingReview({ article }: { article: any }) {
                   <ChevronDown
                     className={cn(
                       "h-3.5 w-3.5 text-muted-foreground transition-transform duration-200",
-                      notesOpen && "rotate-180"
+                      notesOpen && "rotate-180",
                     )}
                   />
                 </div>
@@ -1004,7 +1023,7 @@ export function IncomingReview({ article }: { article: any }) {
                     "flex items-center gap-3 rounded-xl border p-4 text-left transition-all w-full",
                     decision === "STORE"
                       ? "border-emerald-500 bg-emerald-50 dark:border-emerald-600 dark:bg-emerald-950/30"
-                      : "border-border hover:border-emerald-300 dark:hover:border-emerald-700"
+                      : "border-border hover:border-emerald-300 dark:hover:border-emerald-700",
                   )}
                 >
                   <div
@@ -1012,7 +1031,7 @@ export function IncomingReview({ article }: { article: any }) {
                       "rounded-lg p-2",
                       decision === "STORE"
                         ? "bg-emerald-500 text-white"
-                        : "bg-muted text-muted-foreground"
+                        : "bg-muted text-muted-foreground",
                     )}
                   >
                     <PackageCheck className="h-5 w-5" />
@@ -1023,7 +1042,7 @@ export function IncomingReview({ article }: { article: any }) {
                         "text-sm font-semibold",
                         decision === "STORE"
                           ? "text-emerald-900 dark:text-emerald-200"
-                          : "text-foreground"
+                          : "text-foreground",
                       )}
                     >
                       Almacén
@@ -1045,7 +1064,7 @@ export function IncomingReview({ article }: { article: any }) {
                     "flex items-center gap-3 rounded-xl border p-4 text-left transition-all w-full",
                     decision === "QUARANTINE"
                       ? "border-red-500 bg-red-50 dark:border-red-600 dark:bg-red-950/30"
-                      : "border-border hover:border-red-300 dark:hover:border-red-700"
+                      : "border-border hover:border-red-300 dark:hover:border-red-700",
                   )}
                 >
                   <div
@@ -1053,7 +1072,7 @@ export function IncomingReview({ article }: { article: any }) {
                       "rounded-lg p-2",
                       decision === "QUARANTINE"
                         ? "bg-red-500 text-white"
-                        : "bg-muted text-muted-foreground"
+                        : "bg-muted text-muted-foreground",
                     )}
                   >
                     <ShieldX className="h-5 w-5" />
@@ -1064,7 +1083,7 @@ export function IncomingReview({ article }: { article: any }) {
                         "text-sm font-semibold",
                         decision === "QUARANTINE"
                           ? "text-red-900 dark:text-red-200"
-                          : "text-foreground"
+                          : "text-foreground",
                       )}
                     >
                       Cuarentena
@@ -1080,9 +1099,7 @@ export function IncomingReview({ article }: { article: any }) {
                 className="mt-4 h-12 w-full text-sm font-semibold"
                 onClick={openDecisionDialog}
                 disabled={actionDisabled}
-                variant={
-                  decision === "QUARANTINE" ? "destructive" : "default"
-                }
+                variant={decision === "QUARANTINE" ? "destructive" : "default"}
               >
                 {decision === "QUARANTINE"
                   ? "Enviar a cuarentena"
@@ -1217,10 +1234,7 @@ export function IncomingReview({ article }: { article: any }) {
             </Popover>
           </div>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setQuarantineOpen(false)}
-            >
+            <Button variant="outline" onClick={() => setQuarantineOpen(false)}>
               Cancelar
             </Button>
             <Button
@@ -1243,7 +1257,7 @@ export function IncomingReview({ article }: { article: any }) {
           fetchBlobUrl={async () => {
             const { data } = await axiosInstance.get(
               `/${selectedCompany?.slug}/article-documents/${previewDoc.id}/view`,
-              { responseType: "blob" }
+              { responseType: "blob" },
             );
             return URL.createObjectURL(data);
           }}
@@ -1254,12 +1268,18 @@ export function IncomingReview({ article }: { article: any }) {
         <SecureFileViewer
           isOpen={!!previewInvoice}
           onClose={() => setPreviewInvoice(null)}
-          title={previewInvoice.invoice_number?.trim() || previewInvoice.file_path.split("/").pop()}
+          title={
+            previewInvoice.invoice_number?.trim() ||
+            previewInvoice.file_path.split("/").pop()
+          }
           isImage={isImageDocument(previewInvoice.file_path)}
           fetchBlobUrl={async () => {
-            const { data } = await axiosInstance.get(invoiceEndpoint(previewInvoice), {
-              responseType: "blob",
-            });
+            const { data } = await axiosInstance.get(
+              invoiceEndpoint(previewInvoice),
+              {
+                responseType: "blob",
+              },
+            );
             return URL.createObjectURL(data);
           }}
         />

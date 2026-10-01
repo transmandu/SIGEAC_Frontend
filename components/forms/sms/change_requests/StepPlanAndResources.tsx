@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { UseFormReturn, useFieldArray } from "react-hook-form";
+import { UseFormReturn, useFieldArray, useWatch } from "react-hook-form";
 import {
   FormControl,
   FormField,
@@ -70,12 +70,14 @@ function ResponsibleSelect({
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
 
-  const assignedId = form.watch(
-    `activities.${index}.assigned_employee_id` as any,
-  );
-  const authorizedId = form.watch(
-    `activities.${index}.authorized_employee_id` as any,
-  );
+  const assignedId = useWatch({
+    control: form.control,
+    name: `activities.${index}.assigned_employee_id` as any,
+  });
+  const authorizedId = useWatch({
+    control: form.control,
+    name: `activities.${index}.authorized_employee_id` as any,
+  });
 
   const selectedLocal = localEmployees.find(
     (e) => String(e.id) === String(assignedId),
@@ -315,7 +317,7 @@ export function StepPlanAndResources({
               <FormControl>
                 <Textarea
                   placeholder="Describa los cambios planificados..."
-                  className="min-h-[80px]"
+                  className="min-h-20"
                   {...field}
                   value={field.value ?? ""}
                 />
@@ -509,7 +511,7 @@ export function StepPlanAndResources({
                   <FormControl>
                     <Textarea
                       placeholder="Descripción de la actividad"
-                      className="min-h-[60px]"
+                      className="min-h-15"
                       {...field}
                     />
                   </FormControl>

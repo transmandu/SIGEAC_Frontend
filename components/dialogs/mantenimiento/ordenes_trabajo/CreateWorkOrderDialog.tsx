@@ -17,9 +17,15 @@ export function CreateWorkOrderDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button onClick={() => setOpen(true)} variant={'outline'} className="flex items-center justify-center gap-2 h-8 border-dashed">Nueva Ord. de Trabajo</Button>
+        <Button
+          onClick={() => setOpen(true)}
+          variant={"outline"}
+          className="flex items-center justify-center gap-2 h-8 border-dashed"
+        >
+          Nueva Ord. de Trabajo
+        </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[420px]">
+      <DialogContent className="sm:max-w-105">
         <DialogHeader>
           <DialogTitle>Creación de Ord. de Trabajo</DialogTitle>
           <DialogDescription>
@@ -29,5 +35,5 @@ export function CreateWorkOrderDialog() {
         <CreateCompanyForm onClose={() => setOpen(false)} />
       </DialogContent>
     </Dialog>
-  )
+  );
 }

@@ -43,16 +43,21 @@ export function ItemsTable({
       {/* Encabezado */}
       <div className="flex items-center px-4 py-4 border-b border-border/80 bg-muted/20">
         <div className="flex items-center gap-6 w-1/3">
-          <h3 className="font-semibold text-foreground text-2xl" data-tour="cargo-crear-items-header">Productos</h3>
+          <h3
+            className="font-semibold text-foreground text-2xl"
+            data-tour="cargo-crear-items-header"
+          >
+            Productos
+          </h3>
         </div>
 
-        <div className="flex-1 flex justify-center min-w-[500px]">
+        <div className="flex-1 flex justify-center min-w-125">
           {useScale && <ScaleConnectionPanel />}
         </div>
 
         <div className="w-1/3 flex justify-end">
           <div className="flex flex-col gap-1.5">
-{/*             <div className="flex items-center gap-2">
+            {/*             <div className="flex items-center gap-2">
               <Checkbox
                 data-tour="cargo-crear-items-usar-balanza"
                 id="use-scale-toggle"
@@ -96,10 +101,7 @@ export function ItemsTable({
 
       {/* Filas */}
       <ScrollArea
-        className={cn(
-          "pr-2",
-          fields.length > 5 ? "h-[320px]" : "h-auto max-h-[320px]",
-        )}
+        className={cn("pr-2", fields.length > 5 ? "h-80" : "h-auto max-h-80")}
       >
         <div className="space-y-0" data-tour="cargo-crear-items-row-{index}">
           {fields.map((field, index) => (
@@ -200,7 +202,10 @@ export function ItemsTable({
 
       {/* Totals footer */}
       <div className="grid grid-cols-[1fr_120px_140px_48px] gap-2 items-center pl-4 pr-6 py-2 border-t-2 border-border/60 bg-muted/20 rounded-b-xl">
-        <div className="text-right text-sm font-extrabold tracking-widest text-muted-foreground pr-4" data-tour="cargo-crear-items-total">
+        <div
+          className="text-right text-sm font-extrabold tracking-widest text-muted-foreground pr-4"
+          data-tour="cargo-crear-items-total"
+        >
           TOTAL
         </div>
         <TotalCell value={String(totalUnits)} />

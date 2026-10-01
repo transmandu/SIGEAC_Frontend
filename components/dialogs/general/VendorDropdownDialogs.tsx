@@ -9,7 +9,8 @@ import { useCompanyStore } from "@/stores/CompanyStore"
 import { useDeleteVendor, useUpdateVendor } from "@/actions/ajustes/proveedores/actions"
 import CreateVendorForm from "@/components/forms/general/CreateVendorForm"
 
-const dialogClass = "sm:max-w-[420px] rounded-3xl border border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl overflow-hidden p-0"
+const dialogClass =
+  "sm:max-w-105 rounded-3xl border border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl overflow-hidden p-0";
 const header = "px-6 pt-8 pb-3 flex flex-col items-center text-center space-y-3"
 const iconBase = (color: "blue" | "red") => `
   flex items-center justify-center
@@ -85,15 +86,11 @@ const VendorDropdownDialogs = ({
               <Edit3 className="size-5" />
             </div>
 
-            <DialogTitle className={title}>
-              Editar proveedor
-            </DialogTitle>
+            <DialogTitle className={title}>Editar proveedor</DialogTitle>
 
             <DialogDescription className={description}>
               Actualiza la información de{" "}
-              <span className="font-medium text-foreground">
-                {vendor.name}
-              </span>
+              <span className="font-medium text-foreground">{vendor.name}</span>
             </DialogDescription>
           </DialogHeader>
 
@@ -121,23 +118,20 @@ const VendorDropdownDialogs = ({
               <Trash2 className="size-5" />
             </div>
 
-            <DialogTitle className={title}>
-              Eliminar proveedor
-            </DialogTitle>
+            <DialogTitle className={title}>Eliminar proveedor</DialogTitle>
 
             <DialogDescription className={description}>
               El proveedor{" "}
-              <span className="font-medium text-foreground">
-                {vendor.name}
-              </span>{" "}
+              <span className="font-medium text-foreground">{vendor.name}</span>{" "}
               será eliminado permanentemente.
             </DialogDescription>
           </DialogHeader>
 
           <div className={warningBox("red")}>
-            <AlertTriangle className="size-4 mt-[2px]" />
+            <AlertTriangle className="size-4 mt-0.5" />
             <div>
-              Esta acción es <b>irreversible</b>. Si el proveedor tiene órdenes de compra o cotizaciones asociadas, no podrá ser eliminado.
+              Esta acción es <b>irreversible</b>. Si el proveedor tiene órdenes
+              de compra o cotizaciones asociadas, no podrá ser eliminado.
             </div>
           </div>
 
@@ -164,7 +158,7 @@ const VendorDropdownDialogs = ({
         </DialogContent>
       </Dialog>
     </>
-  )
+  );
 }
 
 export default VendorDropdownDialogs

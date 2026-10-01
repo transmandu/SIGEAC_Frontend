@@ -53,7 +53,7 @@ const ThirdPartyDropdownDialogs = ({
           EDIT THIRD PARTY
       ========================= */}
       <Dialog open={openEdit} onOpenChange={setOpenEdit}>
-        <DialogContent className="sm:max-w-[420px]">
+        <DialogContent className="sm:max-w-105">
           <DialogHeader>
             <DialogTitle>Editar tercero</DialogTitle>
             <DialogDescription>
@@ -76,9 +76,7 @@ const ThirdPartyDropdownDialogs = ({
       ========================= */}
       <Dialog open={openDelete} onOpenChange={setOpenDelete}>
         <DialogContent className={dialogClass}>
-
           <DialogHeader className="px-6 pt-8 pb-3 flex flex-col items-center text-center space-y-3">
-
             <div
               className="
                 flex items-center justify-center
@@ -100,18 +98,17 @@ const ThirdPartyDropdownDialogs = ({
                 {thirdParty.name}
               </span>
             </DialogDescription>
-
           </DialogHeader>
 
           <div className="mx-6 mt-4 p-3 rounded-xl border border-red-500/20 bg-red-500/5 text-sm text-red-600 flex gap-2 leading-relaxed">
-            <AlertTriangle className="size-4 mt-[2px]" />
+            <AlertTriangle className="size-4 mt-0.5" />
             <div>
-              Esta acción es <b>irreversible</b> y eliminará permanentemente el registro del sistema.
+              Esta acción es <b>irreversible</b> y eliminará permanentemente el
+              registro del sistema.
             </div>
           </div>
 
           <div className="px-6 pb-6 pt-5 flex justify-end gap-2">
-
             <Button
               variant="outline"
               onClick={() => setOpenDelete(false)}
@@ -142,13 +139,11 @@ const ThirdPartyDropdownDialogs = ({
               )}
               Eliminar
             </Button>
-
           </div>
-
         </DialogContent>
       </Dialog>
     </>
-  )
+  );
 }
 
 export default ThirdPartyDropdownDialogs

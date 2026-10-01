@@ -114,7 +114,7 @@ export function StepRisksAndDetails({
                   <FormControl>
                     <Textarea
                       placeholder="Descripción del peligro"
-                      className="min-h-[60px]"
+                      className="min-h-15"
                       {...field}
                     />
                   </FormControl>
@@ -206,7 +206,7 @@ export function StepRisksAndDetails({
               <FormControl>
                 <Textarea
                   placeholder="Describa el plan de mitigación..."
-                  className="min-h-[80px]"
+                  className="min-h-20"
                   {...field}
                   value={field.value ?? ""}
                 />
@@ -290,7 +290,7 @@ export function StepRisksAndDetails({
                 render={({ field }) => (
                   <FormControl>
                     <Select onValueChange={field.onChange} value={field.value}>
-                      <SelectTrigger className="w-[120px]">
+                      <SelectTrigger className="w-30">
                         <SelectValue placeholder="Unidad" />
                       </SelectTrigger>
                       <SelectContent>

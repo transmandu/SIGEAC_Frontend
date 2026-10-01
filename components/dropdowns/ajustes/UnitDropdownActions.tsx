@@ -94,7 +94,11 @@ const UnitDropdownActions = ({ unit }: { unit: Unit }) => {
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="h-8 w-8 p-0" data-tour="unidades-primary-actions">
+          <Button
+            variant="ghost"
+            className="h-8 w-8 p-0"
+            data-tour="unidades-primary-actions"
+          >
             <span className="sr-only">Abrir menu</span>
             <MoreHorizontal className="h-4 w-4" />
           </Button>
@@ -102,7 +106,10 @@ const UnitDropdownActions = ({ unit }: { unit: Unit }) => {
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>Acciones</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem className="cursor-pointer" onSelect={() => setEditOpen(true)}>
+          <DropdownMenuItem
+            className="cursor-pointer"
+            onSelect={() => setEditOpen(true)}
+          >
             <Pencil className="mr-2 h-4 w-4" /> Editar
           </DropdownMenuItem>
           <DropdownMenuItem
@@ -116,7 +123,7 @@ const UnitDropdownActions = ({ unit }: { unit: Unit }) => {
 
       {/* ── Editar ── */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="sm:max-w-[420px]">
+        <DialogContent className="sm:max-w-105">
           <DialogHeader>
             <DialogTitle>Editar Unidad Primaria</DialogTitle>
             <DialogDescription>
@@ -133,7 +140,10 @@ const UnitDropdownActions = ({ unit }: { unit: Unit }) => {
                     <FormItem>
                       <FormLabel>Nombre</FormLabel>
                       <FormControl>
-                        <Input placeholder="EJ: Kilogramo, Litro, Mililitro" {...field} />
+                        <Input
+                          placeholder="EJ: Kilogramo, Litro, Mililitro"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -197,14 +207,33 @@ const UnitDropdownActions = ({ unit }: { unit: Unit }) => {
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-center">¿Seguro que desea eliminar esta unidad primaria?</DialogTitle>
+            <DialogTitle className="text-center">
+              ¿Seguro que desea eliminar esta unidad primaria?
+            </DialogTitle>
             <DialogDescription className="text-center p-2 mb-0 pb-0">
-              Esta acción es irreversible y estaría eliminando por completo la unidad seleccionada.
+              Esta acción es irreversible y estaría eliminando por completo la
+              unidad seleccionada.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex flex-col gap-2 md:gap-0">
-            <Button className="bg-rose-400 hover:bg-white hover:text-black hover:border hover:border-black" onClick={() => setDeleteOpen(false)} type="button">Cancelar</Button>
-            <Button disabled={deleteUnit.isPending} className="hover:bg-white hover:text-black hover:border hover:border-black transition-all" onClick={() => handleDelete(unit.id)}>{deleteUnit.isPending ? <Loader2 className="size-4 animate-spin" /> : <p>Confirmar</p>}</Button>
+            <Button
+              className="bg-rose-400 hover:bg-white hover:text-black hover:border hover:border-black"
+              onClick={() => setDeleteOpen(false)}
+              type="button"
+            >
+              Cancelar
+            </Button>
+            <Button
+              disabled={deleteUnit.isPending}
+              className="hover:bg-white hover:text-black hover:border hover:border-black transition-all"
+              onClick={() => handleDelete(unit.id)}
+            >
+              {deleteUnit.isPending ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <p>Confirmar</p>
+              )}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

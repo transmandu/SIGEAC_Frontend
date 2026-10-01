@@ -20,6 +20,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
+import CopyPartNumberButton from "@/components/misc/CopyPartNumberButton";
 import {
   INCOMING_REASON_ACTIONS,
   INCOMING_REASON_LABELS,
@@ -358,6 +359,8 @@ export const getColumns = (
               >
                 {row.original.part_number}
               </span>
+
+              <CopyPartNumberButton value={row.original.part_number} />
             </div>
             {hasAlt ? (
               <div className="flex items-center gap-2">
@@ -378,6 +381,13 @@ export const getColumns = (
                     " / ",
                   )}
                 </span>
+
+                <CopyPartNumberButton
+                  value={toAltPartNumbers(
+                    row.original.alternative_part_number,
+                  ).join(" / ")}
+                  label="P/N alternos"
+                />
               </div>
             ) : (
               <div className="flex items-center gap-2">

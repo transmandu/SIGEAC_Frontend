@@ -12,7 +12,7 @@ import {
 
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@/lib/zod-resolver";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
 import {
@@ -59,7 +59,8 @@ export function CreateGenVolReport({
   const { company } = useParams<{ company: string }>();
   const { createVoluntaryReport } = useCreateVoluntaryReport();
   const { updateVoluntaryReport } = useUpdateVoluntaryReport();
-  const { data: locations, isLoading: isLocationsLoading } = useGetLocationsByCompany(company);
+  const { data: locations, isLoading: isLocationsLoading } =
+    useGetLocationsByCompany(company);
 
   const [isAnonymous, setIsAnonymous] = useState(false);
 
@@ -77,7 +78,9 @@ export function CreateGenVolReport({
       .refine((val) => !isNaN(val.getTime()), { message: "Fecha inválida" }),
 
     location_id: z.string().min(1, "Seleccione una ubicación"),
-    identification_area: z.string().min(1, "Seleccione el área de identificación"),
+    identification_area: z
+      .string()
+      .min(1, "Seleccione el área de identificación"),
     description: z
       .string()
       .min(3, {
@@ -92,7 +95,8 @@ export function CreateGenVolReport({
         message: "Debe agregar al menos una consecuencia válida",
       })
       .max(255, {
-        message: "Las consecuencias no deben exceder los 255 caracteres en total",
+        message:
+          "Las consecuencias no deben exceder los 255 caracteres en total",
       }),
 
     reporter_name: z
@@ -121,7 +125,7 @@ export function CreateGenVolReport({
       .refine((file) => file.size <= 5 * 1024 * 1024, "Max 5MB")
       .refine(
         (file) => ["image/jpeg", "image/png"].includes(file.type),
-        "Solo JPEG/PNG"
+        "Solo JPEG/PNG",
       )
       .optional(),
 
@@ -130,7 +134,7 @@ export function CreateGenVolReport({
       .refine((file) => file.size <= 5 * 1024 * 1024, "Máximo 5MB")
       .refine(
         (file) => file.type === "application/pdf",
-        "Solo se permiten archivos PDF"
+        "Solo se permiten archivos PDF",
       )
       .optional(),
   });
@@ -180,7 +184,10 @@ export function CreateGenVolReport({
   });
 
   // Observamos el string actual para poder separarlo y renderizar las etiquetas
-  const currentConsequencesStr = form.watch("possible_consequences");
+  const currentConsequencesStr = useWatch({
+    control: form.control,
+    name: "possible_consequences",
+  });
   const consequencesList = currentConsequencesStr
     ? currentConsequencesStr.split("~").filter(Boolean)
     : [];
@@ -206,7 +213,9 @@ export function CreateGenVolReport({
     const list = currentVal.split("~");
     list.splice(indexToRemove, 1);
 
-    form.setValue("possible_consequences", list.join("~"), { shouldValidate: true });
+    form.setValue("possible_consequences", list.join("~"), {
+      shouldValidate: true,
+    });
   };
 
   const onSubmit = async (data: FormSchemaType) => {
@@ -277,14 +286,18 @@ export function CreateGenVolReport({
 
         {/* --- SECCIÓN 1: FECHAS --- */}
         <div className="space-y-3 p-4 rounded-lg border border-border/60">
-          <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">1. Tiempos del Reporte</h3>
+          <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            1. Tiempos del Reporte
+          </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-start">
             <FormField
               control={form.control}
               name="report_date"
               render={({ field }) => (
                 <FormItem className="flex flex-col w-full">
-                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Fecha de Reporte</FormLabel>
+                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Fecha de Reporte
+                  </FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -292,7 +305,7 @@ export function CreateGenVolReport({
                           variant={"outline"}
                           className={cn(
                             "w-full pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground"
+                            !field.value && "text-muted-foreground",
                           )}
                         >
                           {field.value ? (
@@ -326,7 +339,9 @@ export function CreateGenVolReport({
               name="identification_date"
               render={({ field }) => (
                 <FormItem className="flex flex-col w-full">
-                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Fecha de Identificación</FormLabel>
+                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Fecha de Identificación
+                  </FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -334,7 +349,7 @@ export function CreateGenVolReport({
                           variant={"outline"}
                           className={cn(
                             "w-full pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground"
+                            !field.value && "text-muted-foreground",
                           )}
                         >
                           {field.value ? (
@@ -367,14 +382,18 @@ export function CreateGenVolReport({
 
         {/* --- SECCIÓN 2: UBICACIONES --- */}
         <div className="space-y-3 p-4 rounded-lg border border-border/60">
-          <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">2. Localización</h3>
+          <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            2. Localización
+          </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-start">
             <FormField
               control={form.control}
               name="location_id"
               render={({ field }) => (
                 <FormItem className="w-full">
-                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Base donde se genera</FormLabel>
+                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Base donde se genera
+                  </FormLabel>
                   {isLocationsLoading ? (
                     <div className="flex items-center gap-2 p-2 border rounded-md bg-muted">
                       <Loader2 className="h-4 w-4 animate-spin " />
@@ -410,11 +429,10 @@ export function CreateGenVolReport({
               name="identification_area"
               render={({ field }) => (
                 <FormItem className="w-full">
-                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Área de identificación del Peligro</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value}
-                  >
+                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Área de identificación del Peligro
+                  </FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Seleccionar área" />
@@ -422,7 +440,9 @@ export function CreateGenVolReport({
                     </FormControl>
                     <SelectContent>
                       <SelectItem value="TALLER">TALLER</SelectItem>
-                      <SelectItem value="MANTENIMIENTO">MANTENIMIENTO</SelectItem>
+                      <SelectItem value="MANTENIMIENTO">
+                        MANTENIMIENTO
+                      </SelectItem>
                       <SelectItem value="OFICINA">OFICINAS</SelectItem>
                       <SelectItem value="OTROS">OTROS</SelectItem>
                     </SelectContent>
@@ -436,7 +456,9 @@ export function CreateGenVolReport({
 
         {/* --- SECCIÓN 3: DATOS DEL REPORTANTE --- */}
         <div className="space-y-3 p-4 rounded-lg border border-border/60">
-          <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">3. Información del Reportante</h3>
+          <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            3. Información del Reportante
+          </h3>
 
           <div className="flex items-center space-x-2 py-2">
             <Checkbox
@@ -449,7 +471,10 @@ export function CreateGenVolReport({
               }}
               value={isAnonymous.toString()}
             />
-            <Label htmlFor="anonymous-check-gen" className="text-sm font-medium cursor-pointer">
+            <Label
+              htmlFor="anonymous-check-gen"
+              className="text-sm font-medium cursor-pointer"
+            >
               Realizar este reporte de forma anónima
             </Label>
           </div>
@@ -461,7 +486,9 @@ export function CreateGenVolReport({
                 name="reporter_name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Nombre</FormLabel>
+                    <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      Nombre
+                    </FormLabel>
                     <FormControl>
                       <Input placeholder="Nombre de quien reporta" {...field} />
                     </FormControl>
@@ -475,9 +502,14 @@ export function CreateGenVolReport({
                 name="reporter_last_name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Apellido</FormLabel>
+                    <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      Apellido
+                    </FormLabel>
                     <FormControl>
-                      <Input placeholder="Apellido de quien reporta" {...field} />
+                      <Input
+                        placeholder="Apellido de quien reporta"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage className="text-xs" />
                   </FormItem>
@@ -489,7 +521,9 @@ export function CreateGenVolReport({
                 name="reporter_email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Correo electrónico</FormLabel>
+                    <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      Correo electrónico
+                    </FormLabel>
                     <FormControl>
                       <Input placeholder="ejemplo@gmail.com" {...field} />
                     </FormControl>
@@ -503,7 +537,9 @@ export function CreateGenVolReport({
                 name="reporter_phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Teléfono</FormLabel>
+                    <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      Teléfono
+                    </FormLabel>
                     <FormControl>
                       <Input placeholder="Ej. 04141234567" {...field} />
                     </FormControl>
@@ -517,16 +553,23 @@ export function CreateGenVolReport({
 
         {/* --- SECCIÓN 4: DETALLES DEL PELIGRO --- */}
         <div className="space-y-3 p-4 rounded-lg border border-border/60">
-          <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">4. Detalles del Peligro</h3>
+          <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            4. Detalles del Peligro
+          </h3>
           <div className="flex flex-col gap-3">
             <FormField
               control={form.control}
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Descripción de peligro</FormLabel>
+                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Descripción de peligro
+                  </FormLabel>
                   <FormControl>
-                    <Input placeholder="Breve descripción del peligro" {...field} />
+                    <Input
+                      placeholder="Breve descripción del peligro"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage className="text-xs" />
                 </FormItem>
@@ -538,7 +581,9 @@ export function CreateGenVolReport({
               name="possible_consequences"
               render={() => (
                 <FormItem>
-                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Consecuencias según su criterio</FormLabel>
+                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Consecuencias según su criterio
+                  </FormLabel>
                   <div className="flex flex-col sm:flex-row gap-2">
                     <Input
                       value={consequenceInput}
@@ -562,7 +607,7 @@ export function CreateGenVolReport({
 
                   {/* Contenedor visual de las etiquetas (píldoras) */}
                   {consequencesList.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-3 p-3 bg-muted/20 border border-border/60 rounded-md min-h-[50px]">
+                    <div className="flex flex-wrap gap-2 mt-3 p-3 bg-muted/20 border border-border/60 rounded-md min-h-12.5">
                       {consequencesList.map((cons, index) => (
                         <div
                           key={index}
@@ -589,14 +634,18 @@ export function CreateGenVolReport({
 
         {/* --- SECCIÓN 5: EVIDENCIA ADJUNTA --- */}
         <div className="space-y-3 p-4 rounded-lg border border-border/60">
-          <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">5. Evidencia Adjunta</h3>
+          <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            5. Evidencia Adjunta
+          </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-start">
             <FormField
               control={form.control}
               name="image"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Imagen del Reporte (JPEG/PNG)</FormLabel>
+                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Imagen del Reporte (JPEG/PNG)
+                  </FormLabel>
                   <div className="flex flex-col gap-3 mt-2">
                     {field.value ? (
                       <div className="relative border border-border/60 rounded-md p-2 bg-muted/20 inline-block">
@@ -608,7 +657,8 @@ export function CreateGenVolReport({
                           className="rounded-md object-contain h-16 w-auto"
                         />
                       </div>
-                    ) : initialData?.image && typeof initialData.image === "string" ? (
+                    ) : initialData?.image &&
+                      typeof initialData.image === "string" ? (
                       <div className="relative border border-border/60 rounded-md p-2 bg-muted/20 inline-block">
                         <Image
                           src={
@@ -642,7 +692,9 @@ export function CreateGenVolReport({
               name="document"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Documento adjunto (PDF)</FormLabel>
+                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Documento adjunto (PDF)
+                  </FormLabel>
                   <div className="flex flex-col gap-3 mt-2">
                     {field.value ? (
                       <p className="text-sm text-muted-foreground border border-border/60 rounded-md bg-muted/20 px-3 py-2">
@@ -662,7 +714,6 @@ export function CreateGenVolReport({
                 </FormItem>
               )}
             />
-
           </div>
         </div>
 

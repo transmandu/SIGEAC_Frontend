@@ -118,7 +118,7 @@ export function ProductAutocompleteInput({
       {isOpen && search.length >= 2 && (
         <div
           style={dropdownStyle}
-          className="bg-popover border border-border rounded-md shadow-lg max-h-[200px] overflow-y-auto"
+          className="bg-popover border border-border rounded-md shadow-lg max-h-50 overflow-y-auto"
         >
           {isLoading ? (
             <div className="px-3 py-2 text-sm text-muted-foreground">

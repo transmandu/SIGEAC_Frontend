@@ -1,5 +1,5 @@
-import { ElementType } from 'react';
-import LinkifiedText from '@/components/misc/LinkifiedText';
+import { ElementType } from "react";
+import LinkifiedText from "@/components/misc/LinkifiedText";
 
 interface InfoSectionProps {
   title: string;
@@ -8,7 +8,12 @@ interface InfoSectionProps {
   emptyMessage: string;
 }
 
-const InfoSection = ({ title, icon: Icon, content, emptyMessage }: InfoSectionProps) => {
+const InfoSection = ({
+  title,
+  icon: Icon,
+  content,
+  emptyMessage,
+}: InfoSectionProps) => {
   return (
     <div className="relative min-w-0 rounded-xl border border-border/60 bg-linear-to-b from-muted/30 to-muted/10 p-4 sm:p-5 shadow-xs">
       <div className="flex items-center gap-3 mb-3 select-none">
@@ -18,7 +23,7 @@ const InfoSection = ({ title, icon: Icon, content, emptyMessage }: InfoSectionPr
         <div className="h-px flex-1 bg-border/50" />
       </div>
 
-      <div className="min-h-[80px] sm:min-h-[100px] flex items-center justify-center">
+      <div className="min-h-20 sm:min-h-25 flex items-center justify-center">
         {content?.trim() ? (
           <p className="w-full min-w-0 indent-5 text-sm leading-relaxed text-foreground/80 whitespace-pre-wrap">
             <LinkifiedText text={content} />
@@ -34,6 +39,6 @@ const InfoSection = ({ title, icon: Icon, content, emptyMessage }: InfoSectionPr
       </div>
     </div>
   );
-}
+};
 
 export default InfoSection;

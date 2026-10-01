@@ -30,27 +30,35 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { useAddModulesToUser } from '@/actions/sistema/usuarios/actions';
-import { useGetJobTitles } from '@/hooks/ajustes/cargo/useGetJobTitles';
-import { useGetDepartments } from '@/hooks/ajustes/departamento/useGetDepartment';
-import { useGetLocationsByCompanies } from '@/hooks/sistema/useGetLocationsByCompanies';
-import { useGetLocationsByCompany } from '@/hooks/sistema/useGetLocationsByCompany';
-import { useGetRoles } from '@/hooks/sistema/usuario/useGetRoles';
-import { useGetUsers } from '@/hooks/sistema/usuario/useGetUsers';
-import { cn } from '@/lib/utils';
-import { useCompanyStore } from '@/stores/CompanyStore';
+} from "@/components/ui/select";
+import { useAddModulesToUser } from "@/actions/sistema/usuarios/actions";
+import { useGetJobTitles } from "@/hooks/ajustes/cargo/useGetJobTitles";
+import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment";
+import { useGetLocationsByCompanies } from "@/hooks/sistema/useGetLocationsByCompanies";
+import { useGetLocationsByCompany } from "@/hooks/sistema/useGetLocationsByCompany";
+import { useGetRoles } from "@/hooks/sistema/usuario/useGetRoles";
+import { useGetUsers } from "@/hooks/sistema/usuario/useGetUsers";
+import { cn } from "@/lib/utils";
+import { useCompanyStore } from "@/stores/CompanyStore";
 import { zodResolver } from "@/lib/zod-resolver";
-import { Check, ChevronsUpDown, Eye, EyeOff, Loader2, Camera, X } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
-import { useGetCompanies } from '@/hooks/sistema/useGetCompanies';
-import { useCreateUser } from '@/actions/sistema/usuarios/actions';
+import {
+  Check,
+  ChevronsUpDown,
+  Eye,
+  EyeOff,
+  Loader2,
+  Camera,
+  X,
+} from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useForm, useWatch } from "react-hook-form";
+import { z } from "zod";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { useGetCompanies } from "@/hooks/sistema/useGetCompanies";
+import { useCreateUser } from "@/actions/sistema/usuarios/actions";
 import Image from "next/image";
 import { Department, Location as AppLocation } from "@/types";
 
@@ -86,7 +94,7 @@ const formSchema = z
         z.object({
           companyID: z.number(),
           locationID: z.array(z.number()),
-        })
+        }),
       )
       .optional(),
   })
@@ -153,44 +161,54 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
   const [openUserSearch, setOpenUserSearch] = useState(false);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
-  const [selectedUserCompanyId, setSelectedUserCompanyId] = useState<number | undefined>(undefined);
+  const [selectedUserCompanyId, setSelectedUserCompanyId] = useState<
+    number | undefined
+  >(undefined);
 
   const { data: locations, isLoading: isLocLoading } = useGetLocationsByCompany(
-    selectedCompany?.slug
+    selectedCompany?.slug,
   );
   const { data: departments, isLoading: isDepartmentsLoading } =
     useGetDepartments(selectedCompany?.slug);
   const { data: jobTitles, isLoading: isJobTitlesLoading } = useGetJobTitles(
-    selectedCompany?.slug
+    selectedCompany?.slug,
   );
-  const { data: roles, error: rolesError, isLoading: isRolesLoading } = useGetRoles(selectedUserCompanyId);
+  const {
+    data: roles,
+    error: rolesError,
+    isLoading: isRolesLoading,
+  } = useGetRoles(selectedUserCompanyId);
   const {
     data: companies,
     error: companiesError,
     isLoading: isCompaniesLoading,
   } = useGetCompanies();
-  const {
-    data: companies_locations,
-    isLoading: companies_locationsLoading,
-  } = useGetLocationsByCompanies();
+  const { data: companies_locations, isLoading: companies_locationsLoading } =
+    useGetLocationsByCompanies();
   const { data: users, isLoading: isUsersLoading } = useGetUsers();
 
   const availableUsers = useMemo(
     () => users?.filter((user) => !user.employee || user.employee.length === 0),
-    [users]
+    [users],
   );
 
   const locationsByCompany = useMemo(() => {
     if (!companies_locations) return {};
 
-    return companies_locations.reduce((acc, item) => {
-      acc[item.company_id] = item.locations;
-      return acc;
-    }, {} as Record<number, AppLocation[]>);
+    return companies_locations.reduce(
+      (acc, item) => {
+        acc[item.company_id] = item.locations;
+        return acc;
+      },
+      {} as Record<number, AppLocation[]>,
+    );
   }, [companies_locations]);
 
   const selectedUserCompanyModules = useMemo(() => {
-    return companies?.find((company) => company.id === selectedUserCompanyId)?.modules ?? [];
+    return (
+      companies?.find((company) => company.id === selectedUserCompanyId)
+        ?.modules ?? []
+    );
   }, [companies, selectedUserCompanyId]);
 
   const form = useForm<EmployeeForm>({
@@ -199,7 +217,7 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
       first_name: "",
       last_name: "",
       dni: "",
-      dni_type: 'V',
+      dni_type: "V",
       blood_type: "",
       gender: "MALE",
       middle_name: "",
@@ -208,19 +226,32 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
       roles: [],
     },
   });
-  const selectedRoles = form.watch("roles") || [];
-  const selectedModuleIds = form.watch("module_ids") || [];
-  const existingUserId = form.watch("existing_user_id");
+  const selectedRoles =
+    useWatch({ control: form.control, name: "roles" }) || [];
+  const selectedModuleIds =
+    useWatch({ control: form.control, name: "module_ids" }) || [];
+  const existingUserId = useWatch({
+    control: form.control,
+    name: "existing_user_id",
+  });
   const selectedExistingUser = availableUsers?.find(
-    (user) => String(user.id) === existingUserId
+    (user) => String(user.id) === existingUserId,
   );
 
-  const shouldCreateUser = form.watch("createUser");
-  const firstName = form.watch("first_name");
-  const lastName = form.watch("last_name");
+  const shouldCreateUser = useWatch({
+    control: form.control,
+    name: "createUser",
+  });
+  const firstName = useWatch({ control: form.control, name: "first_name" });
+  const lastName = useWatch({ control: form.control, name: "last_name" });
 
   useEffect(() => {
-    if (shouldCreateUser && firstName && lastName && !form.getValues("username")) {
+    if (
+      shouldCreateUser &&
+      firstName &&
+      lastName &&
+      !form.getValues("username")
+    ) {
       const username = `${firstName.charAt(0)}${lastName}`.toLowerCase();
       form.setValue("username", username);
     }
@@ -256,20 +287,26 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
     form.setValue("module_ids", newModules);
   };
 
-  const isModuleSelected = (moduleId: number) => selectedModuleIds.includes(moduleId);
+  const isModuleSelected = (moduleId: number) =>
+    selectedModuleIds.includes(moduleId);
 
   const handleUserCompanyChange = (companyID: string) => {
     const parsedCompanyID = Number(companyID);
     setSelectedUserCompanyId(parsedCompanyID);
-    form.setValue('companies_locations', [{ companyID: parsedCompanyID, locationID: [] }]);
-    form.setValue('roles', []);
-    form.setValue('module_ids', []);
+    form.setValue("companies_locations", [
+      { companyID: parsedCompanyID, locationID: [] },
+    ]);
+    form.setValue("roles", []);
+    form.setValue("module_ids", []);
   };
 
   const handleSelectExistingUser = (userId: string | number) => {
     const parsedUserId = String(userId);
-    form.setValue('existing_user_id', parsedUserId === existingUserId ? undefined : parsedUserId);
-    form.setValue('createUser', false);
+    form.setValue(
+      "existing_user_id",
+      parsedUserId === existingUserId ? undefined : parsedUserId,
+    );
+    form.setValue("createUser", false);
     setOpenUserSearch(false);
   };
 
@@ -295,9 +332,16 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
         const newUserId = resolveCreatedUserId(userResponse);
         userId = newUserId ? Number(newUserId) : null;
 
-        if (selectedUserCompanyId && data.module_ids && data.module_ids.length > 0) {
+        if (
+          selectedUserCompanyId &&
+          data.module_ids &&
+          data.module_ids.length > 0
+        ) {
           if (!newUserId) {
-            console.error("No se pudo determinar el ID del usuario recién creado para asignar los módulos.", userResponse);
+            console.error(
+              "No se pudo determinar el ID del usuario recién creado para asignar los módulos.",
+              userResponse,
+            );
           } else {
             await addModules.mutateAsync({
               userId: newUserId,
@@ -334,14 +378,13 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
         URL.revokeObjectURL(photoPreview);
       }
       setPhotoPreview(null);
-
     } catch (error) {
       console.error("Error creating employee:", error);
     }
   };
 
   const handleNextStep = () => {
-    if (form.watch("createUser")) {
+    if (shouldCreateUser) {
       setStep(2);
     } else {
       // Si no se va a crear usuario, enviar directamente el formulario
@@ -355,24 +398,19 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
       ...flattenDepartments(department.descendants ?? []),
     ]);
 
-  const allDepartments = departments
-    ? flattenDepartments(departments)
-    : [];
+  const allDepartments = departments ? flattenDepartments(departments) : [];
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mt-4">
-
         {step === 1 && (
           <>
             <h3 className="text-lg font-medium">Datos del Empleado</h3>
 
             {/* ================= GRID 50/50 ================= */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-
               {/* =============== LEFT COLUMN =============== */}
               <div className="flex flex-col items-center gap-4">
-
                 <FormField
                   control={form.control}
                   name="profile_photo"
@@ -382,7 +420,6 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
 
                       <FormControl>
                         <div className="flex items-center gap-6">
-
                           <Input
                             type="file"
                             accept="image/*"
@@ -398,9 +435,11 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
                             }}
                           />
 
-                          <label htmlFor="photo-upload" className="cursor-pointer">
+                          <label
+                            htmlFor="photo-upload"
+                            className="cursor-pointer"
+                          >
                             <div className="relative group h-20 w-20">
-
                               {photoPreview ? (
                                 <Image
                                   src={photoPreview}
@@ -437,10 +476,8 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
                                   <X className="h-3 w-3" />
                                 </button>
                               )}
-
                             </div>
                           </label>
-
                         </div>
                       </FormControl>
 
@@ -450,7 +487,6 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
                 />
 
                 <div className="grid grid-cols-2 gap-4 w-full">
-
                   <FormField
                     control={form.control}
                     name="first_name"
@@ -506,23 +542,22 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
                       </FormItem>
                     )}
                   />
-
                 </div>
-
               </div>
 
               {/* =============== RIGHT COLUMN =============== */}
               <div className="flex flex-col gap-4">
-
                 <div className="grid grid-cols-12 gap-4 w-full items-end">
-                  
                   <FormField
                     control={form.control}
                     name="dni_type"
                     render={({ field }) => (
                       <FormItem className="col-span-2">
                         <FormLabel>T. Doc</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value ?? ""}>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value ?? ""}
+                        >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="V / J" />
@@ -559,7 +594,10 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
                     render={({ field }) => (
                       <FormItem className="col-span-2">
                         <FormLabel>Sangre</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value ?? ""}>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value ?? ""}
+                        >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="+" />
@@ -587,7 +625,10 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
                     render={({ field }) => (
                       <FormItem className="col-span-3">
                         <FormLabel>Género</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value ?? ""}>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value ?? ""}
+                        >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="-" />
@@ -602,11 +643,9 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
                       </FormItem>
                     )}
                   />
-
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-
                   <FormField
                     control={form.control}
                     name="job_title_id"
@@ -625,7 +664,10 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
                           </FormControl>
                           <SelectContent>
                             {jobTitles?.map((title) => (
-                              <SelectItem key={title.id} value={title.id.toString()}>
+                              <SelectItem
+                                key={title.id}
+                                value={title.id.toString()}
+                              >
                                 {title.name}
                               </SelectItem>
                             ))}
@@ -662,7 +704,6 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
                       </FormItem>
                     )}
                   />
-
                 </div>
 
                 <FormField
@@ -699,7 +740,10 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
                   render={() => (
                     <FormItem className="flex flex-col gap-2 p-4 border rounded-lg">
                       <FormLabel>¿Vincular a un usuario ya creado?</FormLabel>
-                      <Popover open={openUserSearch} onOpenChange={setOpenUserSearch}>
+                      <Popover
+                        open={openUserSearch}
+                        onOpenChange={setOpenUserSearch}
+                      >
                         <PopoverTrigger asChild>
                           <Button
                             type="button"
@@ -712,28 +756,35 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-[400px] p-0">
+                        <PopoverContent className="w-100 p-0">
                           <Command>
                             <CommandInput placeholder="Buscar usuario..." />
                             <CommandList>
-                              <CommandEmpty>No se encontraron usuarios disponibles.</CommandEmpty>
+                              <CommandEmpty>
+                                No se encontraron usuarios disponibles.
+                              </CommandEmpty>
                               <CommandGroup>
-                                {
-                                  isUsersLoading && <Loader2 className="animate-spin size-4" />
-                                }
+                                {isUsersLoading && (
+                                  <Loader2 className="animate-spin size-4" />
+                                )}
                                 {availableUsers?.map((user) => (
                                   <CommandItem
                                     key={user.id}
                                     value={`${user.first_name} ${user.last_name} ${user.username}`}
-                                    onSelect={() => handleSelectExistingUser(user.id)}
+                                    onSelect={() =>
+                                      handleSelectExistingUser(user.id)
+                                    }
                                   >
                                     <Check
                                       className={cn(
                                         "mr-2 h-4 w-4",
-                                        existingUserId === String(user.id) ? "opacity-100" : "opacity-0"
+                                        existingUserId === String(user.id)
+                                          ? "opacity-100"
+                                          : "opacity-0",
                                       )}
                                     />
-                                    {user.first_name} {user.last_name} ({user.username})
+                                    {user.first_name} {user.last_name} (
+                                    {user.username})
                                   </CommandItem>
                                 ))}
                               </CommandGroup>
@@ -747,7 +798,9 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
                           variant="ghost"
                           size="sm"
                           className="self-start text-muted-foreground"
-                          onClick={() => form.setValue('existing_user_id', undefined)}
+                          onClick={() =>
+                            form.setValue("existing_user_id", undefined)
+                          }
                         >
                           Quitar selección
                         </Button>
@@ -769,7 +822,7 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
                           onCheckedChange={(checked) => {
                             field.onChange(checked);
                             if (checked) {
-                              form.setValue('existing_user_id', undefined);
+                              form.setValue("existing_user_id", undefined);
                             }
                           }}
                         />
@@ -787,12 +840,10 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
                     onClick={handleNextStep}
                     disabled={createEmployee.isPending}
                   >
-                    {form.watch("createUser") ? "Siguiente" : "Crear Empleado"}
+                    {shouldCreateUser ? "Siguiente" : "Crear Empleado"}
                   </Button>
                 </div>
-
               </div>
-
             </div>
           </>
         )}
@@ -800,17 +851,11 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
         {step === 2 && (
           <div className="flex justify-center">
             <div className="w-full max-w-2xl space-y-6">
-
-              <h3 className="text-lg font-medium">
-                Datos de Usuario
-              </h3>
+              <h3 className="text-lg font-medium">Datos de Usuario</h3>
 
               <div className="grid grid-cols-2 gap-8">
-
                 <div className="space-y-6">
-
                   <div className="grid grid-cols-2 gap-4">
-
                     <FormField
                       control={form.control}
                       name="username"
@@ -823,7 +868,7 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
                               placeholder="Nombre de usuario"
                               onChange={(e) =>
                                 field.onChange(
-                                  e.target.value.toLowerCase().trim()
+                                  e.target.value.toLowerCase().trim(),
                                 )
                               }
                             />
@@ -850,7 +895,6 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
                         </FormItem>
                       )}
                     />
-
                   </div>
 
                   <FormField
@@ -874,15 +918,17 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
                   <p className="text-xs text-muted-foreground -mt-4">
                     Usa una contraseña segura para el acceso del usuario
                   </p>
-
                 </div>
 
                 <div className="space-y-6">
-
                   <FormItem className="flex flex-col">
                     <FormLabel>Empresa</FormLabel>
                     <Select
-                      value={selectedUserCompanyId ? selectedUserCompanyId.toString() : undefined}
+                      value={
+                        selectedUserCompanyId
+                          ? selectedUserCompanyId.toString()
+                          : undefined
+                      }
                       onValueChange={handleUserCompanyChange}
                     >
                       <FormControl>
@@ -891,36 +937,40 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {
-                          isCompaniesLoading && <Loader2 className="animate-spin size-4" />
-                        }
+                        {isCompaniesLoading && (
+                          <Loader2 className="animate-spin size-4" />
+                        )}
                         {companies?.map((company) => (
-                          <SelectItem key={company.id} value={company.id.toString()}>
+                          <SelectItem
+                            key={company.id}
+                            value={company.id.toString()}
+                          >
                             {company.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
-                    {
-                      companiesError && <p className="text-center text-muted-foreground text-sm">Ha ocurrido un error al cargar las empresas...</p>
-                    }
+                    {companiesError && (
+                      <p className="text-center text-muted-foreground text-sm">
+                        Ha ocurrido un error al cargar las empresas...
+                      </p>
+                    )}
                   </FormItem>
 
                   <FormField
                     control={form.control}
                     name="companies_locations"
                     render={({ field }) => {
-
                       const handleLocationChange = (
                         locationID: number,
-                        isSelected: boolean | string
+                        isSelected: boolean | string,
                       ) => {
                         if (!selectedUserCompanyId) return;
 
                         const currentValue = [...(field.value || [])];
 
                         const companyIndex = currentValue.findIndex(
-                          (item) => item.companyID === selectedUserCompanyId
+                          (item) => item.companyID === selectedUserCompanyId,
                         );
 
                         if (companyIndex === -1 && isSelected) {
@@ -937,7 +987,7 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
                             }
                           } else {
                             company.locationID = company.locationID.filter(
-                              (id) => id !== locationID
+                              (id) => id !== locationID,
                             );
                           }
                         }
@@ -946,7 +996,7 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
                       };
 
                       const userLocations = selectedUserCompanyId
-                        ? (locationsByCompany[selectedUserCompanyId] || [])
+                        ? locationsByCompany[selectedUserCompanyId] || []
                         : [];
 
                       return (
@@ -959,15 +1009,18 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
                             </p>
                           )}
 
-                          {selectedUserCompanyId && companies_locationsLoading && (
-                            <Loader2 className="animate-spin size-4" />
-                          )}
+                          {selectedUserCompanyId &&
+                            companies_locationsLoading && (
+                              <Loader2 className="animate-spin size-4" />
+                            )}
 
-                          {selectedUserCompanyId && !companies_locationsLoading && userLocations.length === 0 && (
-                            <p className="text-xs text-muted-foreground">
-                              No hay ubicaciones
-                            </p>
-                          )}
+                          {selectedUserCompanyId &&
+                            !companies_locationsLoading &&
+                            userLocations.length === 0 && (
+                              <p className="text-xs text-muted-foreground">
+                                No hay ubicaciones
+                              </p>
+                            )}
 
                           <div className="flex flex-col gap-2">
                             {userLocations.map((loc) => (
@@ -979,9 +1032,10 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
                                   checked={Boolean(
                                     field.value?.find(
                                       (item) =>
-                                        item.companyID === selectedUserCompanyId &&
-                                        item.locationID.includes(loc.id)
-                                    )
+                                        item.companyID ===
+                                          selectedUserCompanyId &&
+                                        item.locationID.includes(loc.id),
+                                    ),
                                   )}
                                   onCheckedChange={(isSelected) =>
                                     handleLocationChange(loc.id, isSelected)
@@ -1013,7 +1067,10 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
                             >
                               {selectedRoles?.length > 0 && (
                                 <>
-                                  <Separator orientation="vertical" className="mx-2 h-4" />
+                                  <Separator
+                                    orientation="vertical"
+                                    className="mx-2 h-4"
+                                  />
                                   <Badge
                                     variant="secondary"
                                     className="rounded-sm px-1 font-normal lg:hidden"
@@ -1029,7 +1086,12 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
                                         {selectedRoles.length} seleccionados
                                       </Badge>
                                     ) : (
-                                      roles?.filter((option) => selectedRoles.includes(option.id.toString()))
+                                      roles
+                                        ?.filter((option) =>
+                                          selectedRoles.includes(
+                                            option.id.toString(),
+                                          ),
+                                        )
                                         .map((option) => (
                                           <Badge
                                             variant="secondary"
@@ -1043,9 +1105,10 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
                                   </div>
                                 </>
                               )}
-                              {
-                                selectedRoles.length <= 0 && (selectedUserCompanyId ? "Seleccione..." : "Seleccione una empresa primero")
-                              }
+                              {selectedRoles.length <= 0 &&
+                                (selectedUserCompanyId
+                                  ? "Seleccione..."
+                                  : "Seleccione una empresa primero")}
                               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                             </Button>
                           </PopoverTrigger>
@@ -1053,31 +1116,38 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
                             <Command>
                               <CommandInput placeholder="Buscar rol..." />
                               <CommandList className="max-h-60 overflow-auto">
-                                <CommandEmpty>No se encontraron roles.</CommandEmpty>
+                                <CommandEmpty>
+                                  No se encontraron roles.
+                                </CommandEmpty>
                                 <CommandGroup>
-                                  {
-                                    isRolesLoading && <Loader2 className="animate-spin size-4" />
-                                  }
+                                  {isRolesLoading && (
+                                    <Loader2 className="animate-spin size-4" />
+                                  )}
                                   {roles?.map((role) => (
                                     <CommandItem
                                       key={role.id}
                                       value={role.name}
-                                      onSelect={() => handleRoleSelect(role.id.toString())}
+                                      onSelect={() =>
+                                        handleRoleSelect(role.id.toString())
+                                      }
                                     >
                                       <Check
                                         className={cn(
                                           "mr-2 h-4 w-4",
                                           isRoleSelected(role.id.toString())
                                             ? "opacity-100"
-                                            : "opacity-0"
+                                            : "opacity-0",
                                         )}
                                       />
                                       {role.name}
                                     </CommandItem>
                                   ))}
-                                  {
-                                    rolesError && <p className="text-center text-muted-foreground text-sm">Ha ocurrido un error al cargar los roles...</p>
-                                  }
+                                  {rolesError && (
+                                    <p className="text-center text-muted-foreground text-sm">
+                                      Ha ocurrido un error al cargar los
+                                      roles...
+                                    </p>
+                                  )}
                                 </CommandGroup>
                               </CommandList>
                             </Command>
@@ -1094,7 +1164,10 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
                     render={() => (
                       <FormItem className="flex flex-col">
                         <FormLabel>Módulo(s)</FormLabel>
-                        <Popover open={openModules} onOpenChange={setOpenModules}>
+                        <Popover
+                          open={openModules}
+                          onOpenChange={setOpenModules}
+                        >
                           <PopoverTrigger asChild>
                             <Button
                               type="button"
@@ -1104,7 +1177,9 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
                             >
                               {selectedModuleIds.length > 0
                                 ? `${selectedModuleIds.length} módulo(s)`
-                                : (selectedUserCompanyId ? "Seleccionar módulos" : "Seleccione una empresa primero")}
+                                : selectedUserCompanyId
+                                  ? "Seleccionar módulos"
+                                  : "Seleccione una empresa primero"}
                               <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
                             </Button>
                           </PopoverTrigger>
@@ -1119,14 +1194,16 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
                                     <CommandItem
                                       key={module.id}
                                       value={module.label}
-                                      onSelect={() => handleModuleSelect(module.id)}
+                                      onSelect={() =>
+                                        handleModuleSelect(module.id)
+                                      }
                                     >
                                       <Check
                                         className={cn(
                                           "mr-2 h-4 w-4",
                                           isModuleSelected(module.id)
                                             ? "opacity-100"
-                                            : "opacity-0"
+                                            : "opacity-0",
                                         )}
                                       />
                                       {module.label}
@@ -1141,9 +1218,7 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
                       </FormItem>
                     )}
                   />
-
                 </div>
-
               </div>
 
               <div className="flex justify-between pt-4">
@@ -1163,11 +1238,9 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
                   Crear Usuario + Empleado
                 </Button>
               </div>
-
             </div>
           </div>
         )}
-
       </form>
     </Form>
   );

@@ -103,7 +103,7 @@ const PurchaseOrderDropdownDialogs = ({
             </DialogHeader>
 
             <div className="mx-6 mt-4 p-3 rounded-xl border border-red-500/20 bg-red-500/5 text-sm text-red-600 flex gap-2 leading-relaxed">
-              <AlertTriangle className="size-4 mt-[2px]" />
+              <AlertTriangle className="size-4 mt-0.5" />
               <div>
                 Esta acción es <b>irreversible</b>.{" "}
                 {hasRealInventoryImpact
@@ -153,12 +153,8 @@ const PurchaseOrderDropdownDialogs = ({
       ========================= */}
 
       {isPaying && (
-        <Dialog
-          open={openApprove}
-          onOpenChange={setOpenApprove}
-        >
+        <Dialog open={openApprove} onOpenChange={setOpenApprove}>
           <DialogContent className={dialogClass}>
-
             <DialogHeader
               className="
                 shrink-0
@@ -171,7 +167,6 @@ const PurchaseOrderDropdownDialogs = ({
               "
             >
               <div className="flex items-start gap-4">
-
                 <div
                   className="
                     flex items-center justify-center
@@ -203,14 +198,14 @@ const PurchaseOrderDropdownDialogs = ({
                       text-muted-foreground
                     "
                   >
-                    Ingrese los datos de pago, costos e impuestos
-                    para la orden de compra{" "}
+                    Ingrese los datos de pago, costos e impuestos para la orden
+                    de compra{" "}
                     <span className="font-medium text-foreground">
                       {po.order_number}
-                    </span>.
+                    </span>
+                    .
                   </DialogDescription>
                 </div>
-
               </div>
             </DialogHeader>
 
@@ -218,12 +213,9 @@ const PurchaseOrderDropdownDialogs = ({
               <PayPurchaseOrderForm
                 po={po}
                 isAeronautical={isAeronautical}
-                onClose={() =>
-                  setOpenApprove(false)
-                }
+                onClose={() => setOpenApprove(false)}
               />
             </div>
-
           </DialogContent>
         </Dialog>
       )}
@@ -233,12 +225,8 @@ const PurchaseOrderDropdownDialogs = ({
       ========================= */}
 
       {isCompleting && (
-        <Dialog
-          open={openApprove}
-          onOpenChange={setOpenApprove}
-        >
+        <Dialog open={openApprove} onOpenChange={setOpenApprove}>
           <DialogContent className={dialogClass}>
-
             <DialogHeader
               className="
                 shrink-0
@@ -251,7 +239,6 @@ const PurchaseOrderDropdownDialogs = ({
               "
             >
               <div className="flex items-start gap-4">
-
                 <div
                   className="
                     flex items-center justify-center
@@ -283,14 +270,13 @@ const PurchaseOrderDropdownDialogs = ({
                       text-muted-foreground
                     "
                   >
-                    Revise y confirme la información de la orden
-                    de compra{" "}
+                    Revise y confirme la información de la orden de compra{" "}
                     <span className="font-medium text-foreground">
                       {po.order_number}
-                    </span>.
+                    </span>
+                    .
                   </DialogDescription>
                 </div>
-
               </div>
             </DialogHeader>
 
@@ -298,17 +284,14 @@ const PurchaseOrderDropdownDialogs = ({
               <CompleteOrderForm
                 po={po}
                 isAeronautical={isAeronautical}
-                onClose={() =>
-                  setOpenApprove(false)
-                }
+                onClose={() => setOpenApprove(false)}
               />
             </div>
-
           </DialogContent>
         </Dialog>
       )}
     </>
-  )
+  );
 }
 
 export default PurchaseOrderDropdownDialogs

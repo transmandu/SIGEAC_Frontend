@@ -504,7 +504,7 @@ export default function UploadModal({
                       ? "¡Archivo listo!"
                       : "Haz clic o arrastra un archivo"}
                 </p>
-                <p className="text-[10px] text-slate-400 truncate max-w-[200px] font-bold uppercase tracking-tighter">
+                <p className="text-[10px] text-slate-400 truncate max-w-50 font-bold uppercase tracking-tighter">
                   {file ? file.name : "PDF o Excel (Max 10MB)"}
                 </p>
               </div>

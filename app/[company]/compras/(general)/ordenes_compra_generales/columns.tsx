@@ -1,53 +1,64 @@
-'use client'
+"use client";
 
 import { type AppColumnDef } from "@/lib/table";
-import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
-import { Badge } from "@/components/ui/badge"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { useAuth } from "@/contexts/AuthContext"
-import { cn } from "@/lib/utils"
-import type { PurchaseOrder } from "@/types/purchase"
-import { format } from "date-fns"
-import { es } from "date-fns/locale"
-import Link from "next/link"
-import PurchaseOrderDropdownActions from "@/components/dropdowns/mantenimiento/compras/PurchaseOrderDropdownActions"
-import { Loader2 } from "lucide-react"
-import { useMemo, useState } from "react"
-import { toast } from "sonner"
-import { useRegisterGeneralArticlesDelivery } from "@/actions/mantenimiento/compras/ordenes_compras/actions"
-import RegisterGeneralArticlesDeliveryDialog from "./_components/RegisterGeneralArticlesDeliveryDialog"
-import PreviewPanelIcon from "@/components/misc/PreviewPanelIcon"
+import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
+import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { useAuth } from "@/contexts/AuthContext";
+import { cn } from "@/lib/utils";
+import type { PurchaseOrder } from "@/types/purchase";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import Link from "next/link";
+import PurchaseOrderDropdownActions from "@/components/dropdowns/mantenimiento/compras/PurchaseOrderDropdownActions";
+import { Loader2 } from "lucide-react";
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
+import { useRegisterGeneralArticlesDelivery } from "@/actions/mantenimiento/compras/ordenes_compras/actions";
+import RegisterGeneralArticlesDeliveryDialog from "./_components/RegisterGeneralArticlesDeliveryDialog";
+import PreviewPanelIcon from "@/components/misc/PreviewPanelIcon";
 
 const ArticlesCountAction = ({
   po,
   company,
 }: {
-  po: PurchaseOrder
-  company?: string
+  po: PurchaseOrder;
+  company?: string;
 }) => {
-  const [open, setOpen] = useState(false)
-  const { registerGeneralArticlesDelivery } = useRegisterGeneralArticlesDelivery()
-  const { user } = useAuth()
+  const [open, setOpen] = useState(false);
+  const { registerGeneralArticlesDelivery } =
+    useRegisterGeneralArticlesDelivery();
+  const { user } = useAuth();
 
   const canRegister = useMemo(
-    () => (user?.roles ?? []).some((r) => r.name === "ASISTENTE_COMPRAS" || r.name === "SUPERUSER"),
-    [user?.roles]
-  )
+    () =>
+      (user?.roles ?? []).some(
+        (r) => r.name === "ASISTENTE_COMPRAS" || r.name === "SUPERUSER",
+      ),
+    [user?.roles],
+  );
 
   const count =
     (po.article_purchase_order?.length ?? 0) +
-    (po.general_article_purchase_order?.length ?? 0)
+    (po.general_article_purchase_order?.length ?? 0);
 
-  const isEmpty = count === 0
-  const generalArticles = po.general_article_purchase_order ?? []
+  const isEmpty = count === 0;
+  const generalArticles = po.general_article_purchase_order ?? [];
   // Elegible si nunca se registró entrega o si la entrada fue rechazada por
   // almacén y debe volver a entregarse (ver RegisterGeneralArticlesDeliveryDialog).
   const pendingGeneralArticles = generalArticles.filter(
-    (item) => !item.general_article_intake || item.general_article_intake.status === 'REJECTED'
-  )
-  const hasGeneralArticles = generalArticles.length > 0
-  const hasPendingDelivery = pendingGeneralArticles.length > 0
-  const canRegisterDelivery = hasGeneralArticles && !!company && canRegister
+    (item) =>
+      !item.general_article_intake ||
+      item.general_article_intake.status === "REJECTED",
+  );
+  const hasGeneralArticles = generalArticles.length > 0;
+  const hasPendingDelivery = pendingGeneralArticles.length > 0;
+  const canRegisterDelivery = hasGeneralArticles && !!company && canRegister;
 
   const badge = (
     <div
@@ -64,7 +75,9 @@ const ArticlesCountAction = ({
           border-slate-200/60 dark:border-slate-700/50
           text-slate-600 dark:text-slate-300
         `,
-        canRegisterDelivery && hasPendingDelivery && "cursor-pointer hover:bg-emerald-50 hover:border-emerald-300/60 dark:hover:bg-emerald-950/30 dark:hover:border-emerald-700/50"
+        canRegisterDelivery &&
+          hasPendingDelivery &&
+          "cursor-pointer hover:bg-emerald-50 hover:border-emerald-300/60 dark:hover:bg-emerald-950/30 dark:hover:border-emerald-700/50",
       )}
     >
       {hasPendingDelivery && !registerGeneralArticlesDelivery.isPending && (
@@ -74,9 +87,7 @@ const ArticlesCountAction = ({
       {registerGeneralArticlesDelivery.isPending ? (
         <Loader2 className="size-3 animate-spin" />
       ) : (
-        <span className="font-medium">
-          {count}
-        </span>
+        <span className="font-medium">{count}</span>
       )}
 
       <span className="ml-1 text-muted-foreground">
@@ -84,30 +95,29 @@ const ArticlesCountAction = ({
       </span>
 
       {isEmpty && (
-        <span className="ml-1 text-[10px] text-muted-foreground/70">
-          vacío
-        </span>
+        <span className="ml-1 text-[10px] text-muted-foreground/70">vacío</span>
       )}
     </div>
-  )
+  );
 
   if (!canRegisterDelivery) {
-    return badge
+    return badge;
   }
 
   const handleTriggerClick = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    if (registerGeneralArticlesDelivery.isPending) return
+    e.stopPropagation();
+    if (registerGeneralArticlesDelivery.isPending) return;
 
     if (!hasPendingDelivery) {
       toast.info("Ya se registró la entrega", {
-        description: "Todos los artículos de esta orden de compra ya fueron entregados.",
-      })
-      return
+        description:
+          "Todos los artículos de esta orden de compra ya fueron entregados.",
+      });
+      return;
     }
 
-    setOpen(true)
-  }
+    setOpen(true);
+  };
 
   return (
     <>
@@ -133,6 +143,7 @@ const ArticlesCountAction = ({
 
       {company && (
         <RegisterGeneralArticlesDeliveryDialog
+          key={open ? "open" : "closed"}
           po={po}
           company={company}
           open={open}
@@ -140,21 +151,20 @@ const ArticlesCountAction = ({
         />
       )}
     </>
-  )
-}
+  );
+};
 
 const PO_STATUS_LABELS: Record<string, string> = {
-  PENDING: 'PENDIENTE',
-  PAID: 'PAGADA',
-  COMPLETED: 'COMPLETADA',
-}
+  PENDING: "PENDIENTE",
+  PAID: "PAGADA",
+  COMPLETED: "COMPLETADA",
+};
 
 export const getColumns = (
   selectedCompany?: { slug: string },
   onPreview?: (po: PurchaseOrder) => void,
-  selectedPreviewId?: number | null
+  selectedPreviewId?: number | null,
 ): AppColumnDef<PurchaseOrder>[] => [
-
   {
     accessorKey: "order_number",
     size: 210,
@@ -194,10 +204,13 @@ export const getColumns = (
     size: 40,
     header: () => null,
     cell: ({ row }) => {
-      const isActive = selectedPreviewId === row.original.id
+      const isActive = selectedPreviewId === row.original.id;
 
       return (
-        <div className="flex justify-center px-0" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="flex justify-center px-0"
+          onClick={(e) => e.stopPropagation()}
+        >
           <TooltipProvider delayDuration={120}>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -205,20 +218,24 @@ export const getColumns = (
                   type="button"
                   onClick={() => onPreview?.(row.original)}
                   className={cn(
-                    'flex items-center justify-center rounded-md p-1 transition-all duration-200',
+                    "flex items-center justify-center rounded-md p-1 transition-all duration-200",
                     isActive
-                      ? 'text-blue-600 dark:text-blue-400 drop-shadow-[0_0_3px_rgba(37,99,235,0.35)] dark:drop-shadow-[0_0_3px_rgba(96,165,250,0.4)]'
-                      : 'text-muted-foreground hover:text-blue-600 dark:hover:text-blue-400 hover:drop-shadow-[0_0_3px_rgba(37,99,235,0.3)] dark:hover:drop-shadow-[0_0_3px_rgba(96,165,250,0.35)]'
+                      ? "text-blue-600 dark:text-blue-400 drop-shadow-[0_0_3px_rgba(37,99,235,0.35)] dark:drop-shadow-[0_0_3px_rgba(96,165,250,0.4)]"
+                      : "text-muted-foreground hover:text-blue-600 dark:hover:text-blue-400 hover:drop-shadow-[0_0_3px_rgba(37,99,235,0.3)] dark:hover:drop-shadow-[0_0_3px_rgba(96,165,250,0.35)]",
                   )}
                 >
                   <PreviewPanelIcon active={isActive} className="size-4" />
                 </button>
               </TooltipTrigger>
-              <TooltipContent>{isActive ? 'Cerrar vista previa' : 'Vista previa de la orden de compra'}</TooltipContent>
+              <TooltipContent>
+                {isActive
+                  ? "Cerrar vista previa"
+                  : "Vista previa de la orden de compra"}
+              </TooltipContent>
             </Tooltip>
           </TooltipProvider>
         </div>
-      )
+      );
     },
     enableSorting: false,
     enableHiding: false,
@@ -245,9 +262,7 @@ export const getColumns = (
           onClick={(e) => e.stopPropagation()}
           className="text-sm text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-400 hover:underline underline-offset-4 decoration-1"
         >
-            
           {row.original.quote_order?.quote_number ?? "—"}
-
         </Link>
       </div>
     ),
@@ -268,23 +283,23 @@ export const getColumns = (
     },
 
     cell: ({ row }) => {
-      const name = row.original.retailer?.name
+      const name = row.original.retailer?.name;
 
       if (!name) {
         return (
           <div className="flex justify-center w-full">
             <span className="text-sm text-muted-foreground">N/A</span>
           </div>
-        )
+        );
       }
 
       return (
         <div className="flex justify-center w-full min-w-0">
-          <span className="block w-full max-w-[220px] whitespace-normal wrap-break-word text-center text-sm font-medium text-slate-700 dark:text-slate-200">
+          <span className="block w-full max-w-55 whitespace-normal wrap-break-word text-center text-sm font-medium text-slate-700 dark:text-slate-200">
             {name}
           </span>
         </div>
-      )
+      );
     },
   },
 
@@ -330,10 +345,10 @@ export const getColumns = (
     },
 
     cell: ({ row }) => {
-      const status = row.original.status
+      const status = row.original.status;
 
-      const completed = status === "COMPLETED"
-      const paid = status === "PAID"
+      const completed = status === "COMPLETED";
+      const paid = status === "PAID";
 
       return (
         <div className="flex justify-center w-full">
@@ -351,19 +366,21 @@ export const getColumns = (
                 cursor-default
               `,
 
-              paid && `border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300`,
+              paid &&
+                `border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300`,
 
-              completed && `border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300`,
+              completed &&
+                `border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300`,
 
               !paid &&
                 !completed &&
-                `border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300`
+                `border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300`,
             )}
           >
             {PO_STATUS_LABELS[status] ?? status}
           </Badge>
         </div>
-      )
+      );
     },
   },
 
@@ -382,8 +399,14 @@ export const getColumns = (
     },
 
     cell: ({ row }) => (
-      <div className="flex justify-center w-full" onClick={(e) => e.stopPropagation()}>
-        <ArticlesCountAction po={row.original} company={selectedCompany?.slug} />
+      <div
+        className="flex justify-center w-full"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <ArticlesCountAction
+          po={row.original}
+          company={selectedCompany?.slug}
+        />
       </div>
     ),
   },
@@ -408,4 +431,4 @@ export const getColumns = (
       </div>
     ),
   },
-]
+];

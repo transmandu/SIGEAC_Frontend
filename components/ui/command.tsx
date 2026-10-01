@@ -1,13 +1,13 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { type DialogProps } from "@radix-ui/react-dialog"
-import { Command as CommandPrimitive, useCommandState } from "cmdk"
-import { useComposedRefs } from "@radix-ui/react-compose-refs"
-import { Search } from "lucide-react"
+import * as React from "react";
+import { type DialogProps } from "@radix-ui/react-dialog";
+import { Command as CommandPrimitive, useCommandState } from "cmdk";
+import { useComposedRefs } from "@radix-ui/react-compose-refs";
+import { Search } from "lucide-react";
 
-import { cn } from "@/lib/utils"
-import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { cn } from "@/lib/utils";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 const Command = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive>,
@@ -17,12 +17,12 @@ const Command = React.forwardRef<
     ref={ref}
     className={cn(
       "flex h-full w-full flex-col overflow-hidden rounded-md bg-popover text-popover-foreground",
-      className
+      className,
     )}
     {...props}
   />
-))
-Command.displayName = CommandPrimitive.displayName
+));
+Command.displayName = CommandPrimitive.displayName;
 
 interface CommandDialogProps extends DialogProps {}
 
@@ -35,8 +35,8 @@ const CommandDialog = ({ children, ...props }: CommandDialogProps) => {
         </Command>
       </DialogContent>
     </Dialog>
-  )
-}
+  );
+};
 
 const CommandInput = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Input>,
@@ -48,22 +48,22 @@ const CommandInput = React.forwardRef<
       ref={ref}
       className={cn(
         "flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50",
-        className
+        className,
       )}
       {...props}
     />
   </div>
-))
+));
 
-CommandInput.displayName = CommandPrimitive.Input.displayName
+CommandInput.displayName = CommandPrimitive.Input.displayName;
 
 const CommandList = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.List>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.List>
 >(({ className, onWheel, ...props }, ref) => {
-  const listRef = React.useRef<HTMLDivElement>(null)
-  const composedRef = useComposedRefs(ref, listRef)
-  const search = useCommandState((state) => state.search)
+  const listRef = React.useRef<HTMLDivElement>(null);
+  const composedRef = useComposedRefs(ref, listRef);
+  const search = useCommandState((state) => state.search);
 
   // cmdk oculta los items que no casan pero no toca el scroll, y solo hace
   // scrollIntoView cuando cambia el item seleccionado: si el primer resultado
@@ -71,27 +71,27 @@ const CommandList = React.forwardRef<
   // resultados quedan arriba, fuera de la vista. En layout effect para correr
   // antes de ese scrollIntoView y no pisarlo cuando sí ocurre.
   React.useLayoutEffect(() => {
-    listRef.current?.scrollTo({ top: 0 })
-  }, [search])
+    listRef.current?.scrollTo({ top: 0 });
+  }, [search]);
 
   return (
     <CommandPrimitive.List
       ref={composedRef}
-      className={cn("max-h-[300px] overflow-y-auto overflow-x-hidden", className)}
+      className={cn("max-h-75 overflow-y-auto overflow-x-hidden", className)}
       onWheel={(e) => {
         // Popovers/comboboxes portal outside the Dialog's DOM subtree, so the
         // Dialog's scroll-lock (react-remove-scroll) doesn't recognize this list
         // as scrollable and cancels the wheel event. Stop it here so native
         // scrolling reaches this list before the document-level lock sees it.
-        e.stopPropagation()
-        onWheel?.(e)
+        e.stopPropagation();
+        onWheel?.(e);
       }}
       {...props}
     />
-  )
-})
+  );
+});
 
-CommandList.displayName = CommandPrimitive.List.displayName
+CommandList.displayName = CommandPrimitive.List.displayName;
 
 const CommandEmpty = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Empty>,
@@ -102,9 +102,9 @@ const CommandEmpty = React.forwardRef<
     className="py-6 text-center text-sm"
     {...props}
   />
-))
+));
 
-CommandEmpty.displayName = CommandPrimitive.Empty.displayName
+CommandEmpty.displayName = CommandPrimitive.Empty.displayName;
 
 const CommandGroup = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Group>,
@@ -114,13 +114,13 @@ const CommandGroup = React.forwardRef<
     ref={ref}
     className={cn(
       "overflow-hidden p-1 text-foreground **:[[cmdk-group-heading]]:px-2 **:[[cmdk-group-heading]]:py-1.5 **:[[cmdk-group-heading]]:text-xs **:[[cmdk-group-heading]]:font-medium **:[[cmdk-group-heading]]:text-muted-foreground",
-      className
+      className,
     )}
     {...props}
   />
-))
+));
 
-CommandGroup.displayName = CommandPrimitive.Group.displayName
+CommandGroup.displayName = CommandPrimitive.Group.displayName;
 
 const CommandSeparator = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Separator>,
@@ -131,8 +131,8 @@ const CommandSeparator = React.forwardRef<
     className={cn("-mx-1 h-px bg-border", className)}
     {...props}
   />
-))
-CommandSeparator.displayName = CommandPrimitive.Separator.displayName
+));
+CommandSeparator.displayName = CommandPrimitive.Separator.displayName;
 
 const CommandItem = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Item>,
@@ -142,13 +142,13 @@ const CommandItem = React.forwardRef<
     ref={ref}
     className={cn(
       "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-hidden aria-selected:bg-accent aria-selected:text-accent-foreground data-[disabled='true']:pointer-events-none data-[disabled='true']:opacity-50",
-      className
+      className,
     )}
     {...props}
   />
-))
+));
 
-CommandItem.displayName = CommandPrimitive.Item.displayName
+CommandItem.displayName = CommandPrimitive.Item.displayName;
 
 const CommandShortcut = ({
   className,
@@ -158,13 +158,13 @@ const CommandShortcut = ({
     <span
       className={cn(
         "ml-auto text-xs tracking-widest text-muted-foreground",
-        className
+        className,
       )}
       {...props}
     />
-  )
-}
-CommandShortcut.displayName = "CommandShortcut"
+  );
+};
+CommandShortcut.displayName = "CommandShortcut";
 
 export {
   Command,
@@ -176,4 +176,4 @@ export {
   CommandItem,
   CommandShortcut,
   CommandSeparator,
-}
+};

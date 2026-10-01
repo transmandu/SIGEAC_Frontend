@@ -1,7 +1,13 @@
-'use client'
-import { useCreateNoRutine } from '@/actions/mantenimiento/planificacion/ordenes_trabajo/no_rutinarios/actions'
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+"use client";
+import { useCreateNoRutine } from "@/actions/mantenimiento/planificacion/ordenes_trabajo/no_rutinarios/actions";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -9,57 +15,71 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Separator } from "@/components/ui/separator"
-import { zodResolver } from "@/lib/zod-resolver"
-import { ChevronRight, Plus, Trash } from 'lucide-react'
-import { useState } from 'react'
-import { useForm } from "react-hook-form"
-import { z } from "zod"
-import { Badge } from '@/components/ui/badge'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { Switch } from '@/components/ui/switch'
-import { Textarea } from '@/components/ui/textarea'
-import { useCompanyStore } from "@/stores/CompanyStore"
-import { useParams } from 'next/navigation'
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import { zodResolver } from "@/lib/zod-resolver";
+import { ChevronRight, Plus, Trash } from "lucide-react";
+import { useState } from "react";
+import { useForm, useWatch } from "react-hook-form";
+import { z } from "zod";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { useParams } from "next/navigation";
 
 // Esquemas de validación
 const nonRoutineSchema = z.object({
   ata: z.string().min(1, "ATA es requerido"),
   description: z.string().min(1, "Descripción es requerida"),
   action: z.string().min(1, "Acción es requerida").optional(),
-  inspector_responsable: z.string().min(1, "Inspector responsable es requerido"),
+  inspector_responsable: z
+    .string()
+    .min(1, "Inspector responsable es requerido"),
   needs_task: z.boolean().default(false),
-})
+});
 
 const taskSchema = z.object({
   description_task: z.string().min(1, "Descripción es requerida"),
   ata: z.string().min(1, "ATA es requerido"),
   origin_manual: z.string().min(1, "Manual de origen es requerido"),
-  task_items: z.array(z.object({
-    article_part_number: z.string().min(1, "Número de parte es requerido"),
-    article_serial: z.string().optional(),
-    article_alt_part_number: z.string().optional()
-  })).optional()
-})
+  task_items: z
+    .array(
+      z.object({
+        article_part_number: z.string().min(1, "Número de parte es requerido"),
+        article_serial: z.string().optional(),
+        article_alt_part_number: z.string().optional(),
+      }),
+    )
+    .optional(),
+});
 
 type FormValues = {
-  nonRoutine: z.infer<typeof nonRoutineSchema>
-  tasks?: z.infer<typeof taskSchema>[]
-}
+  nonRoutine: z.infer<typeof nonRoutineSchema>;
+  tasks?: z.infer<typeof taskSchema>[];
+};
 
-const CreateNoRutineForm = ({ id, onClose }: { id: string, onClose: () => void }) => {
-  const [step, setStep] = useState(1)
-  const { createNoRutine } = useCreateNoRutine()
-  const { selectedCompany } = useCompanyStore()
-  const params = useParams()
+const CreateNoRutineForm = ({
+  id,
+  onClose,
+}: {
+  id: string;
+  onClose: () => void;
+}) => {
+  const [step, setStep] = useState(1);
+  const { createNoRutine } = useCreateNoRutine();
+  const { selectedCompany } = useCompanyStore();
+  const params = useParams();
 
   const form = useForm<FormValues>({
-    resolver: zodResolver(z.object({
-      nonRoutine: nonRoutineSchema,
-      tasks: z.array(taskSchema).optional()
-    })),
+    resolver: zodResolver(
+      z.object({
+        nonRoutine: nonRoutineSchema,
+        tasks: z.array(taskSchema).optional(),
+      }),
+    ),
     defaultValues: {
       nonRoutine: {
         ata: "",
@@ -67,78 +87,97 @@ const CreateNoRutineForm = ({ id, onClose }: { id: string, onClose: () => void }
         action: "",
         inspector_responsable: "",
         needs_task: false,
-      }
-    }
-  })
+      },
+    },
+  });
 
-  const needsTask = form.watch('nonRoutine.needs_task')
+  const needsTask = useWatch({
+    control: form.control,
+    name: "nonRoutine.needs_task",
+  });
+
+  // addTask/removeTask y los helpers de artículos mutan con setValue, que no
+  // re-renderiza por sí solo: observar el arreglo mantiene la lista al día.
+  const tasks = useWatch({ control: form.control, name: "tasks" });
 
   const nextStep = async () => {
     if (step === 1) {
-      const valid = await form.trigger('nonRoutine')
-      if (!valid) return
+      const valid = await form.trigger("nonRoutine");
+      if (!valid) return;
     }
-    setStep(step + 1)
-  }
+    setStep(step + 1);
+  };
 
-  const prevStep = () => setStep(step > 1 ? step - 1 : 1)
+  const prevStep = () => setStep(step > 1 ? step - 1 : 1);
 
   const onSubmit = async (data: FormValues) => {
     try {
       const payload = {
         ...data.nonRoutine,
         work_order_task_id: id,
-        tasks: data.nonRoutine.needs_task ? data.tasks : undefined
-      }
+        tasks: data.nonRoutine.needs_task ? data.tasks : undefined,
+      };
       await createNoRutine.mutateAsync({
         data: payload,
         company: selectedCompany!.slug,
-        order_number: params.order_number as string
-      })
+        order_number: params.order_number as string,
+      });
     } catch (error) {
-      console.error(error)
+      console.error(error);
     } finally {
-      onClose()
+      onClose();
     }
-  }
+  };
 
   const addTask = () => {
-    const tasks = form.getValues('tasks') || []
-    form.setValue('tasks', [
+    const tasks = form.getValues("tasks") || [];
+    form.setValue("tasks", [
       ...tasks,
       {
-        description_task: '',
-        ata: '',
-        origin_manual: '',
-        task_items: []
-      }
-    ])
-  }
+        description_task: "",
+        ata: "",
+        origin_manual: "",
+        task_items: [],
+      },
+    ]);
+  };
 
   const removeTask = (index: number) => {
-    const tasks = form.getValues('tasks') || []
-    form.setValue('tasks', tasks.filter((_, i) => i !== index))
-  }
+    const tasks = form.getValues("tasks") || [];
+    form.setValue(
+      "tasks",
+      tasks.filter((_, i) => i !== index),
+    );
+  };
 
   const addItemToTask = (taskIndex: number) => {
-    const tasks = form.getValues('tasks') || []
-    const taskItems = tasks[taskIndex]?.task_items || []
+    const tasks = form.getValues("tasks") || [];
+    const taskItems = tasks[taskIndex]?.task_items || [];
 
-    const updatedTasks = [...tasks]
+    const updatedTasks = [...tasks];
     updatedTasks[taskIndex] = {
       ...updatedTasks[taskIndex],
-      task_items: [...taskItems, { article_part_number: '', article_serial: '', article_alt_part_number: '' }]
-    }
+      task_items: [
+        ...taskItems,
+        {
+          article_part_number: "",
+          article_serial: "",
+          article_alt_part_number: "",
+        },
+      ],
+    };
 
-    form.setValue('tasks', updatedTasks)
-  }
+    form.setValue("tasks", updatedTasks);
+  };
 
   const removeItemFromTask = (taskIndex: number, itemIndex: number) => {
-    const tasks = form.getValues('tasks') || []
-    const updatedTasks = [...tasks]
-    updatedTasks[taskIndex].task_items = updatedTasks[taskIndex].task_items?.filter((_, i) => i !== itemIndex)
-    form.setValue('tasks', updatedTasks)
-  }
+    const tasks = form.getValues("tasks") || [];
+    const updatedTasks = [...tasks];
+    updatedTasks[taskIndex].task_items = updatedTasks[
+      taskIndex
+    ].task_items?.filter((_, i) => i !== itemIndex);
+    form.setValue("tasks", updatedTasks);
+  };
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -166,7 +205,10 @@ const CreateNoRutineForm = ({ id, onClose }: { id: string, onClose: () => void }
                       name="nonRoutine.ata"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Código ATA <span className="text-destructive">*</span></FormLabel>
+                          <FormLabel>
+                            Código ATA{" "}
+                            <span className="text-destructive">*</span>
+                          </FormLabel>
                           <FormControl>
                             <Input placeholder="Ej: 25-10-00" {...field} />
                           </FormControl>
@@ -180,9 +222,15 @@ const CreateNoRutineForm = ({ id, onClose }: { id: string, onClose: () => void }
                       name="nonRoutine.inspector_responsable"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Inspector Responsable <span className="text-destructive">*</span></FormLabel>
+                          <FormLabel>
+                            Inspector Responsable{" "}
+                            <span className="text-destructive">*</span>
+                          </FormLabel>
                           <FormControl>
-                            <Input placeholder="Nombre del inspector" {...field} />
+                            <Input
+                              placeholder="Nombre del inspector"
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -195,11 +243,14 @@ const CreateNoRutineForm = ({ id, onClose }: { id: string, onClose: () => void }
                     name="nonRoutine.description"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Descripción <span className="text-destructive">*</span></FormLabel>
+                        <FormLabel>
+                          Descripción{" "}
+                          <span className="text-destructive">*</span>
+                        </FormLabel>
                         <FormControl>
                           <Textarea
                             placeholder="Describa el problema encontrado..."
-                            className="min-h-[100px]"
+                            className="min-h-25"
                             {...field}
                           />
                         </FormControl>
@@ -217,7 +268,7 @@ const CreateNoRutineForm = ({ id, onClose }: { id: string, onClose: () => void }
                         <FormControl>
                           <Textarea
                             placeholder="Describa las acciones tomadas o requeridas..."
-                            className="min-h-[100px]"
+                            className="min-h-25"
                             {...field}
                           />
                         </FormControl>
@@ -270,10 +321,13 @@ const CreateNoRutineForm = ({ id, onClose }: { id: string, onClose: () => void }
                   </div>
 
                   <div className="space-y-4">
-                    <ScrollArea className='max-h-[500px] overflow-y-auto'>
+                    <ScrollArea className="max-h-125 overflow-y-auto">
                       <div className="flex flex-col gap-4">
-                        {form.watch('tasks')?.map((_, index) => (
-                          <div key={index} className="space-y-4 border p-4 rounded-lg">
+                        {tasks?.map((_, index) => (
+                          <div
+                            key={index}
+                            className="space-y-4 border p-4 rounded-lg"
+                          >
                             <div className="flex justify-between items-center">
                               <Badge variant="outline">Tarea {index + 1}</Badge>
                               <Button
@@ -293,7 +347,10 @@ const CreateNoRutineForm = ({ id, onClose }: { id: string, onClose: () => void }
                                 <FormItem>
                                   <FormLabel>Descripción*</FormLabel>
                                   <FormControl>
-                                    <Input placeholder="Descripción de la tarea" {...field} />
+                                    <Input
+                                      placeholder="Descripción de la tarea"
+                                      {...field}
+                                    />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
@@ -308,7 +365,10 @@ const CreateNoRutineForm = ({ id, onClose }: { id: string, onClose: () => void }
                                   <FormItem>
                                     <FormLabel>Código ATA*</FormLabel>
                                     <FormControl>
-                                      <Input placeholder="Ej: 25-10-00" {...field} />
+                                      <Input
+                                        placeholder="Ej: 25-10-00"
+                                        {...field}
+                                      />
                                     </FormControl>
                                     <FormMessage />
                                   </FormItem>
@@ -322,7 +382,10 @@ const CreateNoRutineForm = ({ id, onClose }: { id: string, onClose: () => void }
                                   <FormItem>
                                     <FormLabel>Manual de Origen*</FormLabel>
                                     <FormControl>
-                                      <Input placeholder="Manual de referencia" {...field} />
+                                      <Input
+                                        placeholder="Manual de referencia"
+                                        {...field}
+                                      />
                                     </FormControl>
                                     <FormMessage />
                                   </FormItem>
@@ -340,11 +403,16 @@ const CreateNoRutineForm = ({ id, onClose }: { id: string, onClose: () => void }
               {/* Paso 3: Artículos por tarea */}
               {step === 3 && needsTask && (
                 <div className="space-y-6">
-                  {form.watch('tasks')?.map((task, taskIndex) => (
-                    <div key={taskIndex} className="space-y-4 border p-4 rounded-lg">
+                  {tasks?.map((task, taskIndex) => (
+                    <div
+                      key={taskIndex}
+                      className="space-y-4 border p-4 rounded-lg"
+                    >
                       <div className="flex items-center gap-2">
                         <Badge variant="outline">Tarea {taskIndex + 1}</Badge>
-                        <p className="text-sm font-medium">{task.description_task}</p>
+                        <p className="text-sm font-medium">
+                          {task.description_task}
+                        </p>
                       </div>
 
                       <div className="space-y-2">
@@ -362,7 +430,10 @@ const CreateNoRutineForm = ({ id, onClose }: { id: string, onClose: () => void }
                         </div>
 
                         {task.task_items?.map((_, itemIndex) => (
-                          <div key={itemIndex} className="grid grid-cols-1 md:grid-cols-3 gap-2 items-end">
+                          <div
+                            key={itemIndex}
+                            className="grid grid-cols-1 md:grid-cols-3 gap-2 items-end"
+                          >
                             <FormField
                               control={form.control}
                               name={`tasks.${taskIndex}.task_items.${itemIndex}.article_part_number`}
@@ -370,7 +441,10 @@ const CreateNoRutineForm = ({ id, onClose }: { id: string, onClose: () => void }
                                 <FormItem>
                                   <FormLabel>N° Parte*</FormLabel>
                                   <FormControl>
-                                    <Input placeholder="Número de parte" {...field} />
+                                    <Input
+                                      placeholder="Número de parte"
+                                      {...field}
+                                    />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
@@ -384,7 +458,10 @@ const CreateNoRutineForm = ({ id, onClose }: { id: string, onClose: () => void }
                                 <FormItem>
                                   <FormLabel>Serial</FormLabel>
                                   <FormControl>
-                                    <Input placeholder="Número de serie" {...field} />
+                                    <Input
+                                      placeholder="Número de serie"
+                                      {...field}
+                                    />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
@@ -398,7 +475,10 @@ const CreateNoRutineForm = ({ id, onClose }: { id: string, onClose: () => void }
                                 <FormItem>
                                   <FormLabel>Parte Alterno</FormLabel>
                                   <FormControl>
-                                    <Input placeholder="Parte alternativo" {...field} />
+                                    <Input
+                                      placeholder="Parte alternativo"
+                                      {...field}
+                                    />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
@@ -409,8 +489,10 @@ const CreateNoRutineForm = ({ id, onClose }: { id: string, onClose: () => void }
                               type="button"
                               variant="outline"
                               size="icon"
-                              className="mb-[5px]"
-                              onClick={() => removeItemFromTask(taskIndex, itemIndex)}
+                              className="mb-1.25"
+                              onClick={() =>
+                                removeItemFromTask(taskIndex, itemIndex)
+                              }
                             >
                               <Trash className="h-4 w-4" />
                             </Button>
@@ -424,22 +506,21 @@ const CreateNoRutineForm = ({ id, onClose }: { id: string, onClose: () => void }
 
               {/* Navegación entre pasos */}
               <div className="flex justify-end pt-4">
-                {
-                  form.watch('nonRoutine.needs_task') === false && (
-                    <Button type='submit' disabled={createNoRutine.isPending}>Crear No Rutinario</Button>
-                  )
-                }
+                {needsTask === false && (
+                  <Button type="submit" disabled={createNoRutine.isPending}>
+                    Crear No Rutinario
+                  </Button>
+                )}
                 {step < (needsTask ? 3 : 1) && (
-                  <Button
-                    type="button"
-                    onClick={nextStep}
-                  >
+                  <Button type="button" onClick={nextStep}>
                     Siguiente
                     <ChevronRight className="h-4 w-4 ml-2" />
                   </Button>
                 )}
                 {step === 3 && (
-                  <Button type='submit' disabled={createNoRutine.isPending}>Crear No Rutinario</Button>
+                  <Button type="submit" disabled={createNoRutine.isPending}>
+                    Crear No Rutinario
+                  </Button>
                 )}
               </div>
             </form>
@@ -447,7 +528,7 @@ const CreateNoRutineForm = ({ id, onClose }: { id: string, onClose: () => void }
         </CardContent>
       </Card>
     </div>
-  )
-}
+  );
+};
 
-export default CreateNoRutineForm
+export default CreateNoRutineForm;
