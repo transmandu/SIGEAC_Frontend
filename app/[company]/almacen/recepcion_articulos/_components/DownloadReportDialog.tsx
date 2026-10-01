@@ -66,6 +66,8 @@ type DownloadReportDialogProps = {
   dateFieldOptions?: DateFieldOption[];
   /** Filtro de estado opcional (ej: Pendiente/Confirmada/Todas) */
   statusOptions?: StatusOption[];
+  /** Filtro por quién compró el artículo. */
+  sourceOptions?: StatusOption[];
   triggerVariant?: "outline" | "default" | "secondary";
 };
 
@@ -78,6 +80,7 @@ export function DownloadReportDialog({
   fileNamePrefix,
   dateFieldOptions,
   statusOptions,
+  sourceOptions,
   triggerVariant = "outline",
 }: DownloadReportDialogProps) {
   const { selectedCompany, selectedStation } = useCompanyStore();
@@ -94,6 +97,9 @@ export function DownloadReportDialog({
   const [status, setStatus] = useState<string>(
     statusOptions?.[0]?.value ?? "ALL",
   );
+  const [source, setSource] = useState<string>(
+    sourceOptions?.[0]?.value ?? "ALL",
+  );
   const [loading, setLoading] = useState(false);
 
   const handleDownload = async () => {
@@ -107,6 +113,7 @@ export function DownloadReportDialog({
       if (dateTo) params.set("date_to", format(dateTo, "yyyy-MM-dd"));
       if (dateFieldOptions && dateField) params.set("date_field", dateField);
       if (statusOptions && status !== "ALL") params.set("status", status);
+      if (sourceOptions && source !== "ALL") params.set("source", source);
 
       const resolvedEndpoint = requiresLocation
         ? endpoint.replace("{location_id}", selectedStation)
@@ -187,6 +194,24 @@ export function DownloadReportDialog({
                 </SelectTrigger>
                 <SelectContent>
                   {statusOptions.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {sourceOptions && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Procedencia</label>
+              <Select value={source} onValueChange={setSource}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {sourceOptions.map((opt) => (
                     <SelectItem key={opt.value} value={opt.value}>
                       {opt.label}
                     </SelectItem>

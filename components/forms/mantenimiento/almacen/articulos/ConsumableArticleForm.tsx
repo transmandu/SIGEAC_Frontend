@@ -59,36 +59,44 @@ import {
 } from "./sections/IdentificationSection";
 import { DestinationChecks } from "./sections/DestinationChecks";
 import { WarehouseDetailsSection } from "./sections/WarehouseDetailsSection";
-import type { ArticleFormProps } from "./types";
+import {
+  ARTICLE_SOURCES,
+  requireSourceJustification,
+  sourceLabel,
+  type ArticleFormProps,
+} from "./types";
 import { useArticleForm, useReportFormState } from "./useArticleForm";
 
-const formSchema = z.object({
-  part_number: z
-    .string({ message: "Debe ingresar un número de parte." })
-    .min(2, "El número de parte debe contener al menos 2 caracteres."),
-  lot_number: z.string().optional(),
-  alternative_part_number: z.array(z.string().min(2)).optional(),
-  description: z.string().optional(),
-  zone: z.string().optional(),
-  manufacturer_id: z.string().optional(),
-  condition_id: z.string().optional(),
-  batch_id: z.string().min(1, "Seleccione una descripción"),
-  quantity: z.coerce
-    .number({ message: "Debe ingresar una cantidad." })
-    .min(0, "No puede ser negativo."),
-  // Sin `min_quantity`: el nivel que alerta pertenece al renglón, no al lote.
-  primary_unit_id: z.number().optional(),
-  image: z.instanceof(File).optional(),
-  has_documentation: z.boolean().optional(),
-  destination_unknown: z.boolean().optional(),
-  goes_to_inventory: z.boolean().optional(),
-  purchase_order_number: z.string().optional(),
+const formSchema = z
+  .object({
+    part_number: z
+      .string({ message: "Debe ingresar un número de parte." })
+      .min(2, "El número de parte debe contener al menos 2 caracteres."),
+    lot_number: z.string().optional(),
+    alternative_part_number: z.array(z.string().min(2)).optional(),
+    description: z.string().optional(),
+    zone: z.string().optional(),
+    manufacturer_id: z.string().optional(),
+    condition_id: z.string().optional(),
+    batch_id: z.string().min(1, "Seleccione una descripción"),
+    quantity: z.coerce
+      .number({ message: "Debe ingresar una cantidad." })
+      .min(0, "No puede ser negativo."),
+    // Sin `min_quantity`: el nivel que alerta pertenece al renglón, no al lote.
+    primary_unit_id: z.number().optional(),
+    image: z.instanceof(File).optional(),
+    has_documentation: z.boolean().optional(),
+    destination_unknown: z.boolean().optional(),
+    goes_to_inventory: z.boolean().optional(),
+    purchase_order_number: z.string().optional(),
 
-  sender: z.string().optional(),
-  origin: z.string().optional(),
-  destination: z.string().optional(),
-  justification: z.string().optional(),
-});
+    source: z.enum(ARTICLE_SOURCES).optional(),
+    sender: z.string().optional(),
+    origin: z.string().optional(),
+    destination: z.string().optional(),
+    justification: z.string().optional(),
+  })
+  .superRefine(requireSourceJustification);
 
 type FormValues = z.infer<typeof formSchema>;
 
@@ -204,6 +212,7 @@ export default function ConsumableArticleForm({
       destination_unknown: false,
       goes_to_inventory: false,
       purchase_order_number: initialData?.purchase_order_number ?? "",
+      source: (initialData as any)?.article_detail?.source ?? undefined,
       sender: (initialData as any)?.article_detail?.sender ?? "",
       origin: (initialData as any)?.article_detail?.origin ?? "",
       destination: (initialData as any)?.article_detail?.destination ?? "",
@@ -298,6 +307,7 @@ export default function ConsumableArticleForm({
   const partNumber = useWatch({ control: form.control, name: "part_number" });
   const batchId = useWatch({ control: form.control, name: "batch_id" });
   const imageFile = useWatch({ control: form.control, name: "image" });
+  const source = useWatch({ control: form.control, name: "source" });
 
   const canSave = canSaveWith(
     form.formState.isDirty,
@@ -407,6 +417,7 @@ export default function ConsumableArticleForm({
       {
         title: "Detalles de almacén",
         fields: [
+          { label: "Procedencia", value: sourceLabel(values.source) },
           { label: "Remitente", value: values.sender },
           { label: "Origen", value: values.origin },
           { label: "Destino", value: values.destination },
@@ -690,6 +701,8 @@ export default function ConsumableArticleForm({
           onReceptionDateChange={setReceptionDate}
           isEditing={isEditing}
           disabled={busy}
+          source={source}
+          hasSystemOrder={!!initialData?.purchase_order_id}
         />
 
         <ArticleDetailsSection

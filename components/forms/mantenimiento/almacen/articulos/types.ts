@@ -1,4 +1,40 @@
+import { z, type RefinementCtx } from "zod";
+
 import type { Article, ArticleDimension, Batch, Convertion } from "@/types";
+
+/**
+ * Quién compró el artículo. Dos valores a propósito: la pregunta que el almacén
+ * responde con certeza al registrar es binaria. El caso concreto detrás de
+ * `OTHER` —sacado de una aeronave, de un tercero en custodia— se escribe en la
+ * justificación.
+ */
+export const ARTICLE_SOURCES = ["COMPANY_PURCHASE", "OTHER"] as const;
+
+export const sourceLabel = (source?: string) =>
+  ({
+    COMPANY_PURCHASE: "Compra de la empresa",
+    OTHER: "Otra procedencia",
+  })[source ?? ""] ?? "Sin declarar";
+
+/**
+ * Exige la justificación cuando el artículo no lo compró la empresa: es el
+ * único lugar donde queda escrito de dónde vino.
+ *
+ * Vive aquí porque las cuatro categorías comparten la regla, y el backend la
+ * valida igual (`required_if:source,OTHER`).
+ */
+export const requireSourceJustification = (
+  values: { source?: string; justification?: string },
+  ctx: RefinementCtx,
+) => {
+  if (values.source === "OTHER" && !values.justification?.trim()) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["justification"],
+      message: "Indica de dónde viene el artículo si no lo compró la empresa.",
+    });
+  }
+};
 
 /**
  * Destino del artículo recién recepcionado, elegido con casillas del propio
