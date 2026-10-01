@@ -1,3 +1,7 @@
+## v4.40.0 — 2026-10-01
+
+- feat: enhance article forms with source selection and justification v… (#310)
+
 ## v4.39.0 — 2026-10-01
 
 - feat: new button copy p/n (#309)
