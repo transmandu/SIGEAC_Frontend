@@ -189,9 +189,24 @@ export interface Requisition {
   third_party?: ThirdParty | null;
   quotes?: RequisitionQuote[];
   purchase_order_summary?: RequisitionPurchaseOrderSummary | null;
+  my_quote_draft?: MyQuoteDraftSummary | null;
   type: RequisitionType;
   priority?: PurchasePriority | string;
   observation?: string | null;
+}
+
+/**
+ * Borrador de cotización que el usuario actual tiene abierto en esta
+ * requisición, para señalarlo en el listado. Solo el propio: un borrador es
+ * privado de quien lo creó hasta emitirse.
+ */
+export interface MyQuoteDraftSummary {
+  id: number;
+  total: number | string | null;
+  updated_at?: string | null;
+  lines_total: number;
+  lines_priced: number;
+  lines_pending: number;
 }
 
 // ── My Requisitions (list view) ────────────────────────────────────────────

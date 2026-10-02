@@ -1,10 +1,16 @@
-import type { Location, Retailer, Unit, Vendor } from '@/types';
+import type { Location, Retailer, Unit, Vendor } from "@/types";
 
 // ── Article-level status on requisition articles ───────────────────────────
-export type RequisitionArticleStatus = 'PENDING' | 'APPROVED' | 'PARTIAL' | 'REJECTED';
+export type RequisitionArticleStatus =
+  "PENDING" | "APPROVED" | "PARTIAL" | "REJECTED";
 
 // ── Quote-level status ─────────────────────────────────────────────────────
-export type QuoteStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+/**
+ * DRAFT es un borrador: todavía no es una cotización. No tiene correlativo, no
+ * se compara, no notifica y no genera orden de compra; solo lo ve su creador.
+ * Al emitirse pasa a PENDING y deja de ser borrador para siempre.
+ */
+export type QuoteStatus = "DRAFT" | "PENDING" | "APPROVED" | "REJECTED";
 
 // ── Nested requisition article snapshot inside a quote article ─────────────
 export interface ArticleRequisitionOrderRef {
@@ -35,6 +41,20 @@ export interface GeneralArticleRequisitionOrderRef {
 // ── Quote article (standard — batch/aeronautical) ──────────────────────────
 export interface ArticleQuoteOrder {
   id: number;
+  /**
+   * Artículo de la requisición que esta línea cotiza. Llega como string en las
+   * respuestas crudas (bigint de SQL Server) y es la identidad con la que se
+   * emparejan las líneas: la posición en la lista no sirve, porque el
+   * formulario las agrupa por lote y el backend las crea en orden de
+   * requisición.
+   */
+  article_requisition_order_id?: number | string | null;
+  /**
+   * Justificación y número de parte alterno que solo se escriben al artículo de
+   * la requisición al emitir: un borrador descartado no debe dejar rastro.
+   */
+  deferred_justification?: string | null;
+  deferred_alt_part_number?: string | null;
   quantity: number;
   unit_price: string | number;
   total: string | number;
@@ -54,6 +74,10 @@ export interface ArticleQuoteOrder {
 // ── Quote article (general) ────────────────────────────────────────────────
 export interface GeneralArticleQuoteOrder {
   id: number;
+  /** Ver la nota de `article_requisition_order_id` en ArticleQuoteOrder. */
+  general_article_requisition_order_id?: number | string | null;
+  /** Se escribe al artículo de la requisición solo al emitir. */
+  deferred_justification?: string | null;
   quantity: number;
   unit_price: string | number;
   total: string | number;
@@ -74,15 +98,29 @@ export interface GeneralArticleQuoteOrder {
 // ── Quote response (list & detail) ────────────────────────────────────────
 export interface Quote {
   id: number;
-  quote_number: string;
+  /** null mientras es un borrador: el correlativo se asigna al emitir. */
+  quote_number: string | null;
   status: QuoteStatus;
   observation?: string | null;
   quote_date: string;
   total: number | null;
   created_by: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  /** Cuándo y quién emitió la cotización; null mientras es borrador. */
+  issued_at?: string | null;
+  issued_by?: string | null;
   vendor: Vendor | null;
   /** Quote-level comercio / lugar de compra — set for quotes from a general requisition, mirrors `vendor` for aeronautical ones. */
   retailer: Retailer | null;
+  /**
+   * Claves planas de la cabecera. Las devuelven las respuestas crudas (las de
+   * borrador), y son lo que el formulario necesita para retomar la sede, el
+   * proveedor/comercio y la fecha al reabrir un borrador.
+   */
+  location_id?: number | string | null;
+  vendor_id?: number | string | null;
+  retailer_id?: number | string | null;
   requisition_order: {
     id: number;
     order_number: string;
@@ -162,6 +200,69 @@ export interface CreateQuoteData {
   general_articles?: CreateQuoteGeneralArticleData[];
 }
 
+// ── Quote draft payloads ───────────────────────────────────────────────────
+// Los precios llegan por partes (se pregunta artículo por artículo), así que
+// una cotización de varios ítems rara vez se registra de una sentada. El
+// borrador es donde se acumulan esas respuestas: no tiene correlativo, no se
+// compara, no notifica y no genera orden de compra. Al emitirse pasa a PENDING
+// y deja de ser borrador para siempre.
+
+export interface OpenQuoteDraftData {
+  requisition_order_id: number;
+  quote_date?: string;
+}
+
+/**
+ * Línea de borrador. A diferencia de CreateQuoteArticleData, acepta precio y
+ * cantidad vacíos: guardar a medias es la razón de ser del borrador.
+ */
+export interface SaveQuoteDraftArticleData {
+  id: number;
+  is_not_quoted?: boolean;
+  quantity?: number | null;
+  unit_price?: number | null;
+  total?: number | null;
+  unit_id?: number | null;
+  vendor_id?: number | null;
+  location_id?: number | null;
+  condition_id?: number | null;
+  reference?: string | null;
+  lead_time?: string | null;
+  quote_justification?: string | null;
+  justification?: string | null;
+  alt_part_number?: string | null;
+}
+
+export interface SaveQuoteDraftGeneralArticleData {
+  id: number;
+  is_not_quoted?: boolean;
+  quantity?: number | null;
+  unit_price?: number | null;
+  total?: number | null;
+  unit_id?: number | null;
+  retailer_id?: number | null;
+  location_id?: number | null;
+  brand_model?: string | null;
+  reference?: string | null;
+  lead_time?: string | null;
+  quote_justification?: string | null;
+  justification?: string | null;
+}
+
+export interface SaveQuoteDraftData {
+  quote_date?: string;
+  /**
+   * Cabecera del documento. `location_id` y `requisition_order_id` no se
+   * mandan: mover un borrador de sede o de requisición huerfanaría sus líneas,
+   * y el backend los ignora.
+   */
+  vendor_id?: number | null;
+  retailer_id?: number | null;
+  observation?: string | null;
+  articles?: SaveQuoteDraftArticleData[];
+  general_articles?: SaveQuoteDraftGeneralArticleData[];
+}
+
 // ── Create complementary quote mutation payload ────────────────────────────
 // POST /{company}/quote/{id}/complementary — only for APPROVED general quotes.
 // Each item references an item of the ORIGINAL quote; descriptive/purchase
@@ -182,7 +283,7 @@ export interface CreateComplementaryQuoteData {
 // Only PENDING and REJECTED are allowed — APPROVED is set automatically
 // by the backend when a Purchase Order is created from this quote.
 export interface UpdateQuoteStatusData {
-  status: 'PENDING' | 'REJECTED';
+  status: "PENDING" | "REJECTED";
   observation?: string | null;
 }
 
