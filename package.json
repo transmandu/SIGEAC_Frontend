@@ -1,6 +1,6 @@
 {
   "name": "sigec_frontend",
-  "version": "4.39.0",
+  "version": "4.41.0",
   "packageManager": "pnpm@12.3.4",
   "private": true,
   "engines": {
@@ -11,6 +11,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
+    "typecheck": "tsc -p tsconfig.typecheck.json",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "format:changed": "node scripts/format-changed.mjs"

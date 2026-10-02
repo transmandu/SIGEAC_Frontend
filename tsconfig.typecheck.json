@@ -1,0 +1,9 @@
+{
+  // Type-check del código fuente sin los tipos que genera Next en .next/.
+  // Ese validator.ts se escribe en cada build y queda desfasado al cambiar de
+  // rama (rutas que ya no existen) o truncado si se lee mientras se genera,
+  // produciendo errores que no vienen del código. `next build` lo valida por
+  // su cuenta, así que acá se excluye.
+  "extends": "./tsconfig.json",
+  "exclude": ["node_modules", ".next", "out", "build"]
+}

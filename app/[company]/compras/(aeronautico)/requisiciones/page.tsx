@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { useGetPurchaseRequisitions } from "@/hooks/mantenimiento/compras/useGetPurchaseRequisitions";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { QuoteDraftEditorProvider } from "@/components/dialogs/mantenimiento/compras/QuoteDraftEditorProvider";
 import { getColumns } from "./columns";
 import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
 import { DataTable } from "@/app/[company]/compras/data-table";
@@ -21,7 +22,11 @@ import { PageHeader } from "@/components/layout/PageHeader";
 const RequisitionsPage = () => {
   return (
     <RequisitionSplitView>
-      <RequisitionsPageContent />
+      {/* Provee el editor de borradores que abren el badge de la fila y el
+          dropdown de acciones. */}
+      <QuoteDraftEditorProvider>
+        <RequisitionsPageContent />
+      </QuoteDraftEditorProvider>
     </RequisitionSplitView>
   );
 };
