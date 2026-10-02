@@ -171,6 +171,9 @@ export const useCascadeDeleteRequisition = () => {
       queryClient.invalidateQueries({ queryKey: ['requisition-order'], exact: false })
       queryClient.invalidateQueries({ queryKey: ['quotes'] })
       queryClient.invalidateQueries({ queryKey: ['quote'], exact: false })
+      // El cascade arrastra también los borradores de cotización que colgaban
+      // de la requisición, así que el contador de "Borradores" queda obsoleto.
+      queryClient.invalidateQueries({ queryKey: ['quote-drafts'] })
       queryClient.invalidateQueries({ queryKey: ['purchase-orders'] })
       queryClient.invalidateQueries({ queryKey: ['purchase-order'], exact: false })
       queryClient.invalidateQueries({ queryKey: ['general-article-intakes'], exact: false })

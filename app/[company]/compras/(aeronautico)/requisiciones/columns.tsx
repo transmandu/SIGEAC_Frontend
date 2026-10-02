@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import type { Requisition } from "@/types/purchase";
 import Link from "next/link";
 import { ChevronRight, Loader2 } from "lucide-react";
+import { QuoteDraftBadge } from "@/components/misc/QuoteDraftBadge";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useUpdateRequisitionStatus } from "@/actions/mantenimiento/compras/requisiciones/actions";
@@ -313,10 +314,16 @@ export const getColumns = (
     },
     cell: ({ row }) => (
       <div
-        className="flex justify-center w-full"
+        className="flex flex-col items-center gap-1.5 w-full"
         onClick={(e) => e.stopPropagation()}
       >
         <StatusCell requisition={row.original} />
+
+        {/* El borrador propio se apila bajo el estado: es lo que el comprador
+            dejó a medio hacer sobre esta solicitud. */}
+        {row.original.my_quote_draft && (
+          <QuoteDraftBadge draft={row.original.my_quote_draft} />
+        )}
       </div>
     ),
   },

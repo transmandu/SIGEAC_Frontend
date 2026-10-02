@@ -7,6 +7,8 @@ import { useCompanyStore } from '@/stores/CompanyStore'
 import { getColumns } from './columns'
 import { DataTable } from '@/app/[company]/compras/data-table'
 import QuotesToolBar from './_components/QuotesToolBar'
+import { QuoteDraftsDialog } from '@/components/dialogs/mantenimiento/compras/QuoteDraftsDialog'
+import { QuoteDraftEditorProvider } from '@/components/dialogs/mantenimiento/compras/QuoteDraftEditorProvider'
 import GroupedQuotesTable from './_components/GroupedQuotesTable'
 import { isGeneralQuoteScope } from '@/lib/purchases/quote-scope'
 import QuoteSplitView, { useQuotePreview, useQuotePreviewSelectedId } from '@/components/side-panels/QuoteSplitView'
@@ -16,7 +18,10 @@ import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone"
 const QuotesOrdersPage = () => {
   return (
     <QuoteSplitView>
-      <QuotesOrdersPageContent />
+      {/* Provee el editor que abre el diálogo de borradores. */}
+      <QuoteDraftEditorProvider>
+        <QuotesOrdersPageContent />
+      </QuoteDraftEditorProvider>
     </QuoteSplitView>
   )
 }
@@ -133,12 +138,18 @@ const QuotesOrdersPageContent = () => {
             setOnlyComplementary={setOnlyComplementary}
           />
 
-          <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
-            {filteredQuotes.length}{' '}
-            {filteredQuotes.length === 1
-              ? 'cotización'
-              : 'cotizaciones'}
-          </span>
+          <div className="flex shrink-0 items-center gap-3">
+            {/* Un borrador no es una cotización y no sale en la tabla: esta es
+                la puerta para retomarlo. */}
+            <QuoteDraftsDialog scope="GENERAL" />
+
+            <span className="text-xs text-muted-foreground tabular-nums">
+              {filteredQuotes.length}{' '}
+              {filteredQuotes.length === 1
+                ? 'cotización'
+                : 'cotizaciones'}
+            </span>
+          </div>
         </div>
 
         {groupBy !== 'NONE' ? (

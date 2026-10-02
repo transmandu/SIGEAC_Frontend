@@ -20,6 +20,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { useIsOmac } from "@/hooks/sistema/useIsOmac";
 import { Survey } from "@/types";
 import {
     EyeIcon,
@@ -51,6 +52,11 @@ const SurveySettingDropdownActions = ({
     );
 
     const router = useRouter();
+
+    const { data: isOMAC } = useIsOmac(selectedCompany?.slug);
+    const qrColor = isOMAC ? "#FFC800" : "#1F7FDB";
+    const qrInnerColor = isOMAC ? "#000000" : qrColor;
+    const qrImage = isOMAC ? "/tools.png" : "/aircraft.png";
 
     const handleUpdate = async () => {
         if (!currentSetting) return;
@@ -171,7 +177,11 @@ const SurveySettingDropdownActions = ({
                             <QRGenerator
                                 value={`${process.env.NEXT_PUBLIC_URL}acceso_publico/${selectedCompany?.slug}/sms/encuesta/${surveyData.survey_number}`}
                                 fileName={`encuesta-${surveyData.survey_number}`}
-                                bgColor="#3088FF"
+                                bgColor="#FFF"
+                                outerColor="#000000"
+                                innerColor={qrInnerColor}
+                                moduleColor={qrColor}
+                                imageSrc={qrImage}
                                 showLink={true}
                                 showDownloadButton={true}
                                 size={200}

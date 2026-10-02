@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import {
   AlertOctagon,
   ClipboardX,
+  FileClock,
   FileDown,
   MoreHorizontal,
   Receipt,
@@ -28,6 +29,7 @@ import {
 import DownloadRequisitionPdfDialog from "@/components/dialogs/mantenimiento/compras/DownloadRequisitionPdfDialog";
 import RequisitionDropdownDialogs from "@/components/dialogs/mantenimiento/compras/RequisitionDropdownDialogs";
 import UpdateRequisitionPriorityDialog from "@/components/dialogs/mantenimiento/compras/UpdateRequisitionPriorityDialog";
+import { useOpenQuoteDraftEditor } from "@/components/dialogs/mantenimiento/compras/QuoteDraftEditorProvider";
 
 const iconBase =
   "size-[18px] transition-all duration-200 ease-out group-hover:scale-110";
@@ -111,6 +113,18 @@ const RequisitionDropdownActions = ({
 
   const canQuote =
     canSeeAllOptions && !(req.status === "APPROVED" || isRejected);
+
+  // Borrador propio sin emitir en esta solicitud: cambia la acción de cotizar
+  // por la de continuarlo. Solo lo trae el listado de compras, así que en "mis
+  // solicitudes" queda undefined y el dropdown se comporta como siempre.
+  const openDraftEditor = useOpenQuoteDraftEditor();
+
+  // Sin editor montado (este dropdown también se usa en "mis solicitudes", que
+  // no provee uno) la acción de editar borrador no se ofrece: mejor el botón de
+  // cotizar de siempre que uno que no hace nada al pulsarlo.
+  const ownDraft = openDraftEditor
+    ? ((req as Requisition).my_quote_draft ?? null)
+    : null;
   const canReject =
     canSeeAllOptions && !(isRejected || req.status === "APPROVED");
   const canChangePriorityStatus = !(
@@ -157,7 +171,10 @@ const RequisitionDropdownActions = ({
               animate-in fade-in zoom-in-95 duration-200
             "
           >
-            {/* GENERAR COTIZACIÓN */}
+            {/* GENERAR COTIZACIÓN · o EDITAR BORRADOR si ya hay uno abierto.
+                Son la misma ranura a propósito: con un borrador en curso no se
+                puede empezar otra cotización hasta emitirlo o descartarlo, así
+                que ofrecer ambas acciones a la vez solo invitaría al error. */}
             {canQuote && (
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -168,19 +185,31 @@ const RequisitionDropdownActions = ({
                     <button
                       onClick={() => {
                         setOpenDropdown(false);
+                        if (ownDraft && openDraftEditor) {
+                          openDraftEditor(ownDraft.id);
+                          return;
+                        }
                         setOpenConfirm(true);
                       }}
                       className={`
                         ${itemBase}
-                        text-emerald-600
+                        ${ownDraft ? "text-amber-600" : "text-emerald-600"}
                       `}
                     >
-                      <Receipt className={iconBase} />
+                      {ownDraft ? (
+                        <FileClock className={iconBase} />
+                      ) : (
+                        <Receipt className={iconBase} />
+                      )}
                     </button>
                   </DropdownMenuItem>
                 </TooltipTrigger>
 
-                <TooltipContent>Generar cotización</TooltipContent>
+                <TooltipContent className="max-w-70">
+                  {ownDraft
+                    ? "Editar borrador de cotización. Ya tiene uno abierto en esta solicitud: emítalo o descártelo para poder crear otra cotización."
+                    : "Generar cotización"}
+                </TooltipContent>
               </Tooltip>
             )}
 

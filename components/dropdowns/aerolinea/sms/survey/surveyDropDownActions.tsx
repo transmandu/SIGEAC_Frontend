@@ -17,6 +17,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { useIsOmac } from "@/hooks/sistema/useIsOmac";
 import { Survey } from "@/types";
 import { EyeIcon, Loader2, MoreHorizontal, Trash2, QrCode, Edit } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -33,6 +34,11 @@ const SurveyDropdownActions = ({ surveyData }: { surveyData: Survey }) => {
 
     const { deleteSurvey } = useDeleteSurvey();
     const router = useRouter();
+
+    const { data: isOMAC } = useIsOmac(selectedCompany?.slug);
+    const qrColor = isOMAC ? "#FFC800" : "#1F7FDB";
+    const qrInnerColor = isOMAC ? "#000000" : qrColor;
+    const qrImage = isOMAC ? "/tools.png" : "/aircraft.png";
 
     const handleDelete = async () => {
         const value = {
@@ -160,7 +166,11 @@ const SurveyDropdownActions = ({ surveyData }: { surveyData: Survey }) => {
                             <QRGenerator
                                 value={`${process.env.NEXT_PUBLIC_URL}acceso_publico/${selectedCompany?.slug}/sms/encuesta/${surveyData.survey_number}`}
                                 fileName={`encuesta-${surveyData.survey_number}`}
-                                bgColor="#3088FF"
+                                bgColor="#FFF"
+                                outerColor="#000000"
+                                innerColor={qrInnerColor}
+                                moduleColor={qrColor}
+                                imageSrc={qrImage}
                                 showLink={true}
                                 showDownloadButton={true}
                                 size={200}

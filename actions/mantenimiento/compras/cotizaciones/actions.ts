@@ -1,7 +1,7 @@
 import axiosInstance from "@/lib/axios"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-import type { CreateComplementaryQuoteData, CreateQuoteData, UpdateQuoteStatusData } from "@/types/purchase"
+import type { CreateComplementaryQuoteData, CreateQuoteData, OpenQuoteDraftData, SaveQuoteDraftData, UpdateQuoteStatusData } from "@/types/purchase"
 
 export const useCreateQuote = () => {
   const queryClient = useQueryClient()
@@ -113,6 +113,9 @@ export const useCascadeDeleteQuote = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['quotes'] })
       queryClient.invalidateQueries({ queryKey: ['quote'], exact: false })
+      // Un SUPERUSER puede usar esta vía sobre un borrador atascado, así que el
+      // contador de "Borradores" también queda obsoleto.
+      queryClient.invalidateQueries({ queryKey: ['quote-drafts'] })
       queryClient.invalidateQueries({ queryKey: ['requisitions-orders'] })
       queryClient.invalidateQueries({ queryKey: ['requisition-order'], exact: false })
       queryClient.invalidateQueries({ queryKey: ['purchase-orders'] })
@@ -156,4 +159,125 @@ export const useDeleteQuote = () => {
   })
 
   return { deleteQuote: deleteMutation }
+}
+
+// ── Borradores de cotización ───────────────────────────────────────────────
+// El personal de compras recibe los precios por partes (pregunta artículo por
+// artículo), así que una cotización de varios ítems rara vez se registra de una
+// sentada. El borrador acumula esas respuestas sin ser todavía una cotización:
+// no tiene correlativo, no se compara, no notifica y no genera orden de compra.
+
+/**
+ * Abre el borrador de una requisición, o devuelve el que el usuario ya tenga
+ * abierto para ella (el backend es idempotente: responde 200 en vez de fallar).
+ */
+export const useOpenQuoteDraft = () => {
+  const queryClient = useQueryClient()
+
+  const openDraftMutation = useMutation({
+    mutationFn: async ({ data, company }: { data: OpenQuoteDraftData; company: string }) => {
+      const response = await axiosInstance.post(`/${company}/quote/draft`, data)
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['quote-drafts'] })
+      // Al abrirlo nace el badge de la fila, así que el listado queda obsoleto.
+      queryClient.invalidateQueries({ queryKey: ['requisitions-orders'] })
+      queryClient.invalidateQueries({ queryKey: ['requisition-order'], exact: false })
+    },
+    onError: (error: any) => {
+      toast.error("Oops!", {
+        description: error?.response?.data?.message || "No se pudo abrir el borrador.",
+      })
+    },
+  })
+
+  return { openQuoteDraft: openDraftMutation }
+}
+
+/**
+ * Guarda avance del borrador. No muestra toast de éxito: se llama también en
+ * autoguardado y un toast por cada guardado sería ruido.
+ */
+export const useSaveQuoteDraft = () => {
+  const queryClient = useQueryClient()
+
+  const saveDraftMutation = useMutation({
+    mutationFn: async ({ id, data, company }: { id: number; data: SaveQuoteDraftData; company: string }) => {
+      const response = await axiosInstance.put(`/${company}/quote/draft/${id}`, data)
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['quote-drafts'] })
+      // El badge de la fila muestra el avance (3 de 5 con precio), así que el
+      // listado de requisiciones también queda obsoleto al guardar.
+      queryClient.invalidateQueries({ queryKey: ['requisitions-orders'] })
+      queryClient.invalidateQueries({ queryKey: ['requisition-order'], exact: false })
+    },
+    onError: (error: any) => {
+      toast.error("No se guardó el borrador", {
+        description: error?.response?.data?.message || "Revisa tu conexión: los últimos cambios no se guardaron.",
+      })
+    },
+  })
+
+  return { saveQuoteDraft: saveDraftMutation }
+}
+
+/**
+ * Emite el borrador como cotización. Exige que cada artículo tenga una decisión
+ * explícita (precio, o no cotizado con justificación) y NO tiene vuelta atrás.
+ */
+export const useIssueQuoteDraft = () => {
+  const queryClient = useQueryClient()
+
+  const issueDraftMutation = useMutation({
+    mutationFn: async ({ id, company }: { id: number; company: string }) => {
+      const response = await axiosInstance.post(`/${company}/quote/draft/${id}/issue`)
+      return response.data
+    },
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ['quote-drafts'] })
+      queryClient.invalidateQueries({ queryKey: ['quotes'] })
+      queryClient.invalidateQueries({ queryKey: ['quote'], exact: false })
+      queryClient.invalidateQueries({ queryKey: ['requisitions-orders'] })
+      queryClient.invalidateQueries({ queryKey: ['requisition-order'], exact: false })
+      toast.success("¡Emitida!", {
+        description: data?.message || "La cotización fue emitida y queda pendiente de aprobación.",
+      })
+    },
+    onError: (error: any) => {
+      toast.error("No se pudo emitir", {
+        description: error?.response?.data?.message
+          || "Quedan artículos sin precio y sin marcar como no cotizados.",
+      })
+    },
+  })
+
+  return { issueQuoteDraft: issueDraftMutation }
+}
+
+export const useDeleteQuoteDraft = () => {
+  const queryClient = useQueryClient()
+
+  const deleteDraftMutation = useMutation({
+    mutationFn: async ({ id, company }: { id: number; company: string }) => {
+      await axiosInstance.delete(`/${company}/quote/draft/${id}`)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['quote-drafts'] })
+      queryClient.invalidateQueries({ queryKey: ['requisitions-orders'] })
+      queryClient.invalidateQueries({ queryKey: ['requisition-order'], exact: false })
+      toast.success("Borrador descartado", {
+        description: "No se emitió ninguna cotización: la requisición queda como estaba.",
+      })
+    },
+    onError: (error: any) => {
+      toast.error("Oops!", {
+        description: error?.response?.data?.message || "No se pudo descartar el borrador.",
+      })
+    },
+  })
+
+  return { deleteQuoteDraft: deleteDraftMutation }
 }
