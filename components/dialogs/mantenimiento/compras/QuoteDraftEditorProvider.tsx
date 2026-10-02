@@ -17,7 +17,10 @@ import {
 import LoadingPage from "@/components/misc/LoadingPage";
 import { useGetMyQuoteDrafts } from "@/hooks/mantenimiento/compras/useGetMyQuoteDrafts";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { isGeneralDraft, requisitionFromDraft } from "@/lib/purchases/quote-draft";
+import {
+  isGeneralDraft,
+  requisitionFromDraft,
+} from "@/lib/purchases/quote-draft";
 
 /**
  * Abre el editor de un borrador desde cualquier parte del listado de
@@ -27,11 +30,12 @@ import { isGeneralDraft, requisitionFromDraft } from "@/lib/purchases/quote-draf
  * el borrador completo: el borrador con sus líneas se resuelve aquí, desde la
  * lista de borradores propios que ya está en caché.
  */
-const QuoteDraftEditorContext = createContext<((draftId: number) => void) | null>(
-  null,
-);
+const QuoteDraftEditorContext = createContext<
+  ((draftId: number) => void) | null
+>(null);
 
-export const useOpenQuoteDraftEditor = () => useContext(QuoteDraftEditorContext);
+export const useOpenQuoteDraftEditor = () =>
+  useContext(QuoteDraftEditorContext);
 
 export function QuoteDraftEditorProvider({
   children,

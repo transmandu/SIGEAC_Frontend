@@ -1,262 +1,344 @@
-import axiosInstance from "@/lib/axios"
-import { isAxiosError } from "axios"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
-import type { CreateRequisitionData } from "@/types/purchase"
-import { buildRequisitionFormData, getRequisitionErrorMessage } from "@/lib/purchases/build-requisition-form-data"
+import axiosInstance from "@/lib/axios";
+import { isAxiosError } from "axios";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import type { CreateRequisitionData } from "@/types/purchase";
+import {
+  buildRequisitionFormData,
+  getRequisitionErrorMessage,
+} from "@/lib/purchases/build-requisition-form-data";
 
 export const useCreateRequisition = () => {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   const createMutation = useMutation({
-    mutationFn: async ({ data, company }: { data: CreateRequisitionData, company: string }) => {
-      const formData = buildRequisitionFormData(data)
+    mutationFn: async ({
+      data,
+      company,
+    }: {
+      data: CreateRequisitionData;
+      company: string;
+    }) => {
+      const formData = buildRequisitionFormData(data);
       await axiosInstance.post(`/${company}/requisition-order`, formData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
-        }
-      })
+          "Content-Type": "multipart/form-data",
+        },
+      });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['requisitions-orders'] })
-      queryClient.invalidateQueries({ queryKey: ['requisition-order'], exact: false })
+      queryClient.invalidateQueries({ queryKey: ["requisitions-orders"] });
+      queryClient.invalidateQueries({
+        queryKey: ["requisition-order"],
+        exact: false,
+      });
 
       toast.success("¡Creado!", {
-        description: `La requisicion ha sido creada correctamente.`
-      })
+        description: `La requisicion ha sido creada correctamente.`,
+      });
     },
     onError: (error) => {
-      toast.error('Oops!', {
-        description: getRequisitionErrorMessage(error, 'No se pudo crear la requisicion...')
-      })
-      console.log(error)
+      toast.error("Oops!", {
+        description: getRequisitionErrorMessage(
+          error,
+          "No se pudo crear la requisicion...",
+        ),
+      });
+      console.log(error);
     },
-  })
+  });
   return {
     createRequisition: createMutation,
-  }
-}
+  };
+};
 
 export const useUpdateRequisition = () => {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   const updateMutation = useMutation({
-    mutationFn: async ({ data, id, company }: { id: string | number, data: CreateRequisitionData, company: string }) => {
-      const formData = buildRequisitionFormData(data)
+    mutationFn: async ({
+      data,
+      id,
+      company,
+    }: {
+      id: string | number;
+      data: CreateRequisitionData;
+      company: string;
+    }) => {
+      const formData = buildRequisitionFormData(data);
       // multipart no admite PUT real: se envía POST y Laravel lo reinterpreta con _method.
-      formData.append('_method', 'PUT')
-      await axiosInstance.post(`/${company}/requisition-order/${id}`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        }
-      })
+      formData.append("_method", "PUT");
+      await axiosInstance.post(
+        `/${company}/requisition-order/${id}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        },
+      );
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['requisitions-orders'] })
-      queryClient.invalidateQueries({ queryKey: ['requisition-order'], exact: false })
+      queryClient.invalidateQueries({ queryKey: ["requisitions-orders"] });
+      queryClient.invalidateQueries({
+        queryKey: ["requisition-order"],
+        exact: false,
+      });
       toast.success("¡Actualizada!", {
-        description: `La requisicion ha sido actualizada correctamente.`
-      })
+        description: `La requisicion ha sido actualizada correctamente.`,
+      });
     },
     onError: (error) => {
-      toast.error('Oops!', {
-        description: getRequisitionErrorMessage(error, 'No se pudo actualizar la requisicion...')
-      })
-      console.log(error)
+      toast.error("Oops!", {
+        description: getRequisitionErrorMessage(
+          error,
+          "No se pudo actualizar la requisicion...",
+        ),
+      });
+      console.log(error);
     },
-  })
+  });
   return {
     updateRequisition: updateMutation,
-  }
-}
+  };
+};
 
 /**
  * `acknowledgeInTransit` es el acuse de que el usuario vio qué hay en camino y
  * aun así quiere pedir. Sin él, el backend responde 409 con el detalle en vez
  * de crear: re-pedir se permite, pero nunca a ciegas.
  */
-type CreateRequisitionFromLowStockAlertParams =
-  ({ source: 'general', generalArticleId: number, company: string }
-    // Por renglón (batchId) y no por lote: cada compra del consumible entra con
-    // otro número de lote, así que pedir "más del lote X" no significa nada.
-    | { source: 'consumable', batchId: number, company: string })
-  & { acknowledgeInTransit?: boolean }
+type CreateRequisitionFromLowStockAlertParams = (
+  | { source: "general"; generalArticleId: number; company: string }
+  // Por renglón (batchId) y no por lote: cada compra del consumible entra con
+  // otro número de lote, así que pedir "más del lote X" no significa nada.
+  | { source: "consumable"; batchId: number; company: string }
+) & { acknowledgeInTransit?: boolean };
 
 export const useCreateRequisitionFromLowStockAlert = () => {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   const createMutation = useMutation({
     mutationFn: async (params: CreateRequisitionFromLowStockAlertParams) => {
       const body = {
-        ...(params.source === 'general'
+        ...(params.source === "general"
           ? { general_article_id: params.generalArticleId }
           : { batch_id: params.batchId }),
-        ...(params.acknowledgeInTransit ? { acknowledge_in_transit: true } : {}),
-      }
+        ...(params.acknowledgeInTransit
+          ? { acknowledge_in_transit: true }
+          : {}),
+      };
 
-      await axiosInstance.post(`/${params.company}/requisition-order/from-low-stock-alert`, body)
+      await axiosInstance.post(
+        `/${params.company}/requisition-order/from-low-stock-alert`,
+        body,
+      );
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['requisitions-orders'] })
-      queryClient.invalidateQueries({ queryKey: ['requisition-order'], exact: false })
-      queryClient.invalidateQueries({ queryKey: ['low-stock-general-articles'], exact: false })
-      queryClient.invalidateQueries({ queryKey: ['low-stock-consumable-articles'], exact: false })
+      queryClient.invalidateQueries({ queryKey: ["requisitions-orders"] });
+      queryClient.invalidateQueries({
+        queryKey: ["requisition-order"],
+        exact: false,
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["low-stock-general-articles"],
+        exact: false,
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["low-stock-consumable-articles"],
+        exact: false,
+      });
 
       toast.success("¡Solicitud creada!", {
-        description: "Se generó una solicitud de compra para el artículo."
-      })
+        description: "Se generó una solicitud de compra para el artículo.",
+      });
     },
     onError: (error) => {
       // 409 no es un fallo: es "ya hay algo en camino, confirma antes". Lo
       // maneja quien dispara la mutación mostrando el detalle y reintentando
       // con acknowledgeInTransit, así que aquí no se emite toast de error.
       if (isAxiosError(error) && error.response?.status === 409) {
-        return
+        return;
       }
 
-      toast.error('Oops!', {
-        description: getRequisitionErrorMessage(error, 'No se pudo crear la solicitud de compra...')
-      })
+      toast.error("Oops!", {
+        description: getRequisitionErrorMessage(
+          error,
+          "No se pudo crear la solicitud de compra...",
+        ),
+      });
     },
-  })
+  });
   return {
     createRequisitionFromLowStockAlert: createMutation,
-  }
-}
+  };
+};
 
 export const useDeleteRequisition = () => {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   const deleteMutation = useMutation({
-    mutationFn: async ({ id, company }: { id: number, company: string }) => {
-      await axiosInstance.delete(`/${company}/delete-requisition-order/${id}`)
+    mutationFn: async ({ id, company }: { id: number; company: string }) => {
+      await axiosInstance.delete(`/${company}/delete-requisition-order/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['requisitions-orders'] })
-      queryClient.invalidateQueries({ queryKey: ['requisition-order'], exact: false })
+      queryClient.invalidateQueries({ queryKey: ["requisitions-orders"] });
+      queryClient.invalidateQueries({
+        queryKey: ["requisition-order"],
+        exact: false,
+      });
       toast.success("¡Eliminado!", {
-        description: `¡La requisición ha sido eliminada correctamente!`
-      })
+        description: `¡La requisición ha sido eliminada correctamente!`,
+      });
     },
     onError: (e) => {
       // El backend rechaza el borrado con 422 y explica el motivo (p. ej. la
       // solicitud ya paso de RECIBIDA); tragarselo dejaba al usuario sin saber
       // por que no se elimino.
-      const message = isAxiosError(e)
-        ? e.response?.data?.message
-        : undefined
+      const message = isAxiosError(e) ? e.response?.data?.message : undefined;
 
       toast.error("Oops!", {
-        description: message || "¡Hubo un error al eliminar la requisición!"
-      })
+        description: message || "¡Hubo un error al eliminar la requisición!",
+      });
     },
-  })
+  });
 
   return {
     deleteRequisition: deleteMutation,
-  }
-}
+  };
+};
 
 // Solo SUPERUSER. Arrastra toda la cadena aguas abajo (cotizaciones,
 // complementarias y órdenes de compra), revirtiendo el inventario ya afectado.
 export const useCascadeDeleteRequisition = () => {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   const cascadeDeleteMutation = useMutation({
-    mutationFn: async ({ id, company }: { id: number, company: string }) => {
-      await axiosInstance.delete(`/${company}/requisition-order/${id}/cascade`)
+    mutationFn: async ({ id, company }: { id: number; company: string }) => {
+      await axiosInstance.delete(`/${company}/requisition-order/${id}/cascade`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['requisitions-orders'] })
-      queryClient.invalidateQueries({ queryKey: ['requisition-order'], exact: false })
-      queryClient.invalidateQueries({ queryKey: ['quotes'] })
-      queryClient.invalidateQueries({ queryKey: ['quote'], exact: false })
+      queryClient.invalidateQueries({ queryKey: ["requisitions-orders"] });
+      queryClient.invalidateQueries({
+        queryKey: ["requisition-order"],
+        exact: false,
+      });
+      queryClient.invalidateQueries({ queryKey: ["quotes"] });
+      queryClient.invalidateQueries({ queryKey: ["quote"], exact: false });
       // El cascade arrastra también los borradores de cotización que colgaban
       // de la requisición, así que el contador de "Borradores" queda obsoleto.
-      queryClient.invalidateQueries({ queryKey: ['quote-drafts'] })
-      queryClient.invalidateQueries({ queryKey: ['purchase-orders'] })
-      queryClient.invalidateQueries({ queryKey: ['purchase-order'], exact: false })
-      queryClient.invalidateQueries({ queryKey: ['general-article-intakes'], exact: false })
+      queryClient.invalidateQueries({ queryKey: ["quote-drafts"] });
+      queryClient.invalidateQueries({ queryKey: ["purchase-orders"] });
+      queryClient.invalidateQueries({
+        queryKey: ["purchase-order"],
+        exact: false,
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["general-article-intakes"],
+        exact: false,
+      });
       toast.success("¡Eliminada en cascada!", {
-        description: `La requisición y toda su cadena (cotizaciones, órdenes de compra e inventario asociado) fue eliminada.`
-      })
+        description: `La requisición y toda su cadena (cotizaciones, órdenes de compra e inventario asociado) fue eliminada.`,
+      });
     },
     onError: (error: any) => {
       toast.error("Oops!", {
-        description: error?.response?.data?.message || "¡Hubo un error al eliminar en cascada la requisición!"
-      })
+        description:
+          error?.response?.data?.message ||
+          "¡Hubo un error al eliminar en cascada la requisición!",
+      });
     },
-  })
+  });
 
   return {
     cascadeDeleteRequisition: cascadeDeleteMutation,
-  }
-}
+  };
+};
 
 export const useUpdateRequisitionPriority = () => {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   const updatePriorityMutation = useMutation({
-    mutationFn: async ({ id, data, company }: {
-      id: number,
+    mutationFn: async ({
+      id,
+      data,
+      company,
+    }: {
+      id: number;
       data: {
-        priority?: string | null,
-        articles?: { id: number, priority?: string | null }[],
-        general_articles?: { id: number, priority?: string | null }[]
-      },
-      company: string
+        priority?: string | null;
+        articles?: { id: number; priority?: string | null }[];
+        general_articles?: { id: number; priority?: string | null }[];
+      };
+      company: string;
     }) => {
-      await axiosInstance.put(`/${company}/requisition-order-update-priority/${id}`, data)
+      await axiosInstance.put(
+        `/${company}/requisition-order-update-priority/${id}`,
+        data,
+      );
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['requisitions-orders'] })
-      queryClient.invalidateQueries({ queryKey: ['requisition-order'], exact: false })
+      queryClient.invalidateQueries({ queryKey: ["requisitions-orders"] });
+      queryClient.invalidateQueries({
+        queryKey: ["requisition-order"],
+        exact: false,
+      });
       toast.success("¡Actualizada!", {
-        description: `¡La prioridad ha sido actualizada correctamente!`
-      })
+        description: `¡La prioridad ha sido actualizada correctamente!`,
+      });
     },
     onError: (e) => {
       toast.error("Oops!", {
-        description: "¡Hubo un error al actualizar la prioridad!"
-      })
+        description: "¡Hubo un error al actualizar la prioridad!",
+      });
     },
-  })
+  });
 
   return {
     updatePriorityRequisition: updatePriorityMutation,
-  }
-}
+  };
+};
 
 export const useUpdateRequisitionStatus = () => {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   const updateStatusMutation = useMutation({
-    mutationFn: async ({ id, data, company }: {
-      id: number,
+    mutationFn: async ({
+      id,
+      data,
+      company,
+    }: {
+      id: number;
       data: {
-        status: string,
-        updated_by: string,
-        observation?: string | null
-      },
-      company: string
+        status: string;
+        updated_by: string;
+        observation?: string | null;
+      };
+      company: string;
     }) => {
-      await axiosInstance.put(`/${company}/requisition-order-update-status/${id}`, data)
+      await axiosInstance.put(
+        `/${company}/requisition-order-update-status/${id}`,
+        data,
+      );
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['requisitions-orders'] })
-      queryClient.invalidateQueries({ queryKey: ['requisition-order'], exact: false })
+      queryClient.invalidateQueries({ queryKey: ["requisitions-orders"] });
+      queryClient.invalidateQueries({
+        queryKey: ["requisition-order"],
+        exact: false,
+      });
       toast.success("¡Confirmada!", {
-        description: `¡La requisición ha sido confirmada correctamente!`
-      })
+        description: `¡La requisición ha sido confirmada correctamente!`,
+      });
     },
     onError: (e) => {
       toast.error("Oops!", {
-        description: "¡Hubo un error al confirmar la requisición!"
-      })
+        description: "¡Hubo un error al confirmar la requisición!",
+      });
     },
-  })
+  });
 
   return {
     updateStatusRequisition: updateStatusMutation,
-  }
-}
+  };
+};

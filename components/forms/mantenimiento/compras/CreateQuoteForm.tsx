@@ -56,9 +56,7 @@ const FormSchema = z
         // El vacío es válido en el campo: representa "sin respuesta
         // todavía". Que una línea cotizada exija precio > 0 lo impone
         // el superRefine de abajo, y la emisión lo revalida en el backend.
-        unit_price: z
-          .string()
-          .regex(/^(\d+(\.\d{0,2})?)?$/, "Precio inválido"),
+        unit_price: z.string().regex(/^(\d+(\.\d{0,2})?)?$/, "Precio inválido"),
         vendor_id: z.string().optional(),
         location_id: z.string().optional(),
         condition_id: z.string().optional(),
@@ -87,9 +85,7 @@ const FormSchema = z
         // El vacío es válido en el campo: representa "sin respuesta
         // todavía". Que una línea cotizada exija precio > 0 lo impone
         // el superRefine de abajo, y la emisión lo revalida en el backend.
-        unit_price: z
-          .string()
-          .regex(/^(\d+(\.\d{0,2})?)?$/, "Precio inválido"),
+        unit_price: z.string().regex(/^(\d+(\.\d{0,2})?)?$/, "Precio inválido"),
         location_id: z.string().optional(),
         reference: z.string().optional(),
         lead_time_value: z.string().optional(),
@@ -277,18 +273,23 @@ export function CreateQuoteForm({
 
   const transformedArticles = req.batch.flatMap((batch) =>
     batch.batch_articles.map((article: any) => {
-      const saved = article.id ? savedByArticle.get(Number(article.id)) : undefined;
+      const saved = article.id
+        ? savedByArticle.get(Number(article.id))
+        : undefined;
       const lead = splitLeadTime(saved?.lead_time);
 
       return {
         article_requisition_order_id: article.id as number | undefined,
         part_number: article.article_part_number,
         alt_part_number:
-          saved?.deferred_alt_part_number ?? article.article_alt_part_number ?? "",
+          saved?.deferred_alt_part_number ??
+          article.article_alt_part_number ??
+          "",
         original_alt_part_number: article.article_alt_part_number ?? "",
-        quantity: saved && Number(saved.quantity) > 0
-          ? String(Number(saved.quantity))
-          : article.quantity,
+        quantity:
+          saved && Number(saved.quantity) > 0
+            ? String(Number(saved.quantity))
+            : article.quantity,
         original_quantity: article.quantity,
         unit: saved?.unit?.id
           ? String(saved.unit.id)
@@ -301,7 +302,9 @@ export function CreateQuoteForm({
         // creyendo que está completa.
         unit_price: asAmount(saved?.unit_price),
         vendor_id: saved?.vendor?.id ? String(saved.vendor.id) : undefined,
-        location_id: saved?.location?.id ? String(saved.location.id) : undefined,
+        location_id: saved?.location?.id
+          ? String(saved.location.id)
+          : undefined,
         condition_id: saved?.condition?.id
           ? String(saved.condition.id)
           : undefined,
@@ -331,9 +334,10 @@ export function CreateQuoteForm({
         variant_type: article.variant_type ?? "",
         brand_model: saved?.brand_model ?? "",
         original_brand_model: "",
-        quantity: saved && Number(saved.quantity) > 0
-          ? String(Number(saved.quantity))
-          : article.quantity,
+        quantity:
+          saved && Number(saved.quantity) > 0
+            ? String(Number(saved.quantity))
+            : article.quantity,
         original_quantity: article.quantity,
         unit: saved?.unit?.id
           ? String(saved.unit.id)
@@ -342,7 +346,9 @@ export function CreateQuoteForm({
             : undefined,
         original_unit: article.unit ? article.unit.id.toString() : undefined,
         unit_price: asAmount(saved?.unit_price),
-        location_id: saved?.location?.id ? String(saved.location.id) : undefined,
+        location_id: saved?.location?.id
+          ? String(saved.location.id)
+          : undefined,
         reference: saved?.reference ?? "",
         lead_time_value: lead.value,
         lead_time_unit: lead.unit,
@@ -361,9 +367,7 @@ export function CreateQuoteForm({
       general_articles: transformedGeneralArticles,
       // La cabecera también se retoma del borrador: sin esto, reabrirlo obligaba
       // a volver a elegir sede y proveedor, y la fecha guardada se perdía.
-      ...(draft?.location_id
-        ? { location_id: String(draft.location_id) }
-        : {}),
+      ...(draft?.location_id ? { location_id: String(draft.location_id) } : {}),
       ...(draft?.vendor_id ? { vendor_id: String(draft.vendor_id) } : {}),
       ...(draft?.quote_date ? { quote_date: new Date(draft.quote_date) } : {}),
     },
@@ -480,8 +484,9 @@ export function CreateQuoteForm({
               line.article_requisition_order?.id;
             return key ? ([Number(key), line] as const) : null;
           })
-          .filter((entry): entry is readonly [number, ArticleQuoteOrder] =>
-            entry !== null,
+          .filter(
+            (entry): entry is readonly [number, ArticleQuoteOrder] =>
+              entry !== null,
           ),
       );
 
@@ -533,38 +538,38 @@ export function CreateQuoteForm({
         .filter((line): line is SaveQuoteDraftArticleData => line !== null);
 
       const generalPayload = data.general_articles
-          .map((a): SaveQuoteDraftGeneralArticleData | null => {
-            const line = a.general_article_requisition_order_id
-              ? lineByRequisitionGeneral.get(
-                  a.general_article_requisition_order_id,
-                )
-              : undefined;
-            if (!line) return null;
+        .map((a): SaveQuoteDraftGeneralArticleData | null => {
+          const line = a.general_article_requisition_order_id
+            ? lineByRequisitionGeneral.get(
+                a.general_article_requisition_order_id,
+              )
+            : undefined;
+          if (!line) return null;
 
-            return {
-              id: line.id,
-              is_not_quoted: !!a.not_quoted,
-              quantity: a.quantity ? Number(a.quantity) : null,
-              unit_price: a.unit_price ? Number(a.unit_price) : null,
-              total: a.unit_price
-                ? (Number(a.quantity) || 0) * Number(a.unit_price)
+          return {
+            id: line.id,
+            is_not_quoted: !!a.not_quoted,
+            quantity: a.quantity ? Number(a.quantity) : null,
+            unit_price: a.unit_price ? Number(a.unit_price) : null,
+            total: a.unit_price
+              ? (Number(a.quantity) || 0) * Number(a.unit_price)
+              : null,
+            unit_id: a.unit ? Number(a.unit) : null,
+            location_id: a.location_id ? Number(a.location_id) : null,
+            brand_model:
+              a.brand_model && a.brand_model !== a.original_brand_model
+                ? a.brand_model
                 : null,
-              unit_id: a.unit ? Number(a.unit) : null,
-              location_id: a.location_id ? Number(a.location_id) : null,
-              brand_model:
-                a.brand_model && a.brand_model !== a.original_brand_model
-                  ? a.brand_model
-                  : null,
-              reference: a.reference || null,
-              lead_time: a.lead_time_value
-                ? `${a.lead_time_value} ${a.lead_time_unit ?? "día"}`
-                : null,
-              quote_justification: a.quote_justification || null,
-            };
-          })
-          .filter(
-            (line): line is SaveQuoteDraftGeneralArticleData => line !== null,
-          );
+            reference: a.reference || null,
+            lead_time: a.lead_time_value
+              ? `${a.lead_time_value} ${a.lead_time_unit ?? "día"}`
+              : null,
+            quote_justification: a.quote_justification || null,
+          };
+        })
+        .filter(
+          (line): line is SaveQuoteDraftGeneralArticleData => line !== null,
+        );
 
       return {
         quote_date:
@@ -594,7 +599,9 @@ export function CreateQuoteForm({
     // y el schema solo la valida al enviar. Sin esta guarda, .toISOString()
     // sobre undefined reventaría el guardado.
     const quoteDate =
-      data.quote_date instanceof Date ? data.quote_date.toISOString() : undefined;
+      data.quote_date instanceof Date
+        ? data.quote_date.toISOString()
+        : undefined;
 
     let id = draftId;
     // Las líneas recién creadas vienen en la respuesta de apertura: sin ellas no

@@ -165,7 +165,8 @@ export function QuoteDraftsDialog({
                                   className="select-none rounded-md border-amber-500/30 bg-amber-500/10 px-1.5 py-0 text-[9px] font-semibold tracking-wide text-amber-700 dark:text-amber-300"
                                 >
                                   se descarta en{" "}
-                                  {Math.max(0, DRAFT_DISCARD_AFTER_DAYS - idle)} d
+                                  {Math.max(0, DRAFT_DISCARD_AFTER_DAYS - idle)}{" "}
+                                  d
                                 </Badge>
                               )}
                             </div>
@@ -218,9 +219,7 @@ export function QuoteDraftsDialog({
 
       <DiscardQuoteDraftDialog
         orderNumber={discarding?.requisition_order?.order_number}
-        pricedCount={
-          discarding ? quoteDraftProgress(discarding).priced : 0
-        }
+        pricedCount={discarding ? quoteDraftProgress(discarding).priced : 0}
         open={!!discarding}
         onOpenChange={(next) => !next && setDiscarding(null)}
         isPending={deleteQuoteDraft.isPending}

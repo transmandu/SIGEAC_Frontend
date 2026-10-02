@@ -1,19 +1,22 @@
-'use client'
+"use client";
 
-import { useMemo, useState, useDeferredValue } from 'react'
-import { ContentLayout } from '@/components/layout/ContentLayout'
-import { useGetQuotes } from '@/hooks/mantenimiento/compras/useGetQuotes'
-import { useCompanyStore } from '@/stores/CompanyStore'
-import { getColumns } from './columns'
-import { DataTable } from '@/app/[company]/compras/data-table'
-import QuotesToolBar from './_components/QuotesToolBar'
-import { QuoteDraftsDialog } from '@/components/dialogs/mantenimiento/compras/QuoteDraftsDialog'
-import { QuoteDraftEditorProvider } from '@/components/dialogs/mantenimiento/compras/QuoteDraftEditorProvider'
-import GroupedQuotesTable from './_components/GroupedQuotesTable'
-import { isAeronauticalQuoteScope } from '@/lib/purchases/quote-scope'
-import QuoteSplitView, { useQuotePreview, useQuotePreviewSelectedId } from '@/components/side-panels/QuoteSplitView'
+import { useMemo, useState, useDeferredValue } from "react";
+import { ContentLayout } from "@/components/layout/ContentLayout";
+import { useGetQuotes } from "@/hooks/mantenimiento/compras/useGetQuotes";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { getColumns } from "./columns";
+import { DataTable } from "@/app/[company]/compras/data-table";
+import QuotesToolBar from "./_components/QuotesToolBar";
+import { QuoteDraftsDialog } from "@/components/dialogs/mantenimiento/compras/QuoteDraftsDialog";
+import { QuoteDraftEditorProvider } from "@/components/dialogs/mantenimiento/compras/QuoteDraftEditorProvider";
+import GroupedQuotesTable from "./_components/GroupedQuotesTable";
+import { isAeronauticalQuoteScope } from "@/lib/purchases/quote-scope";
+import QuoteSplitView, {
+  useQuotePreview,
+  useQuotePreviewSelectedId,
+} from "@/components/side-panels/QuoteSplitView";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone"
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
 
 const QuotesOrdersPage = () => {
   return (
@@ -23,80 +26,72 @@ const QuotesOrdersPage = () => {
         <QuotesOrdersPageContent />
       </QuoteDraftEditorProvider>
     </QuoteSplitView>
-  )
-}
+  );
+};
 
 const QuotesOrdersPageContent = () => {
-  const { selectedCompany, selectedStation } = useCompanyStore()
-  const timeZone = useCompanyTimezone()
-  const onPreview = useQuotePreview()
-  const selectedPreviewId = useQuotePreviewSelectedId()
+  const { selectedCompany, selectedStation } = useCompanyStore();
+  const timeZone = useCompanyTimezone();
+  const onPreview = useQuotePreview();
+  const selectedPreviewId = useQuotePreviewSelectedId();
 
   const {
     data: quotes,
     isLoading,
     isError,
-  } = useGetQuotes(
-    selectedCompany?.slug ?? null,
-    selectedStation ?? null
-  )
+  } = useGetQuotes(selectedCompany?.slug ?? null, selectedStation ?? null);
 
-  const [search, setSearch] = useState('')
-  const [status, setStatus] = useState('ALL')
-  const [groupBy, setGroupBy] = useState<string>('NONE')
+  const [search, setSearch] = useState("");
+  const [status, setStatus] = useState("ALL");
+  const [groupBy, setGroupBy] = useState<string>("NONE");
 
-  const deferredSearch = useDeferredValue(search)
+  const deferredSearch = useDeferredValue(search);
 
   const filteredQuotes = useMemo(() => {
-    if (!quotes) return []
+    if (!quotes) return [];
 
     // Compras generales no se gestiona en este módulo: las cotizaciones
     // GENERAL no aplican aquí.
-    let filtered = quotes.filter((quote: any) => isAeronauticalQuoteScope(quote))
+    let filtered = quotes.filter((quote: any) =>
+      isAeronauticalQuoteScope(quote),
+    );
 
-    if (status !== 'ALL') {
-      filtered = filtered.filter(
-        (quote: any) => quote.status === status
-      )
+    if (status !== "ALL") {
+      filtered = filtered.filter((quote: any) => quote.status === status);
     }
 
     if (!deferredSearch.trim()) {
-      return filtered
+      return filtered;
     }
 
-    const q = deferredSearch.toLowerCase()
+    const q = deferredSearch.toLowerCase();
 
     return filtered.filter((quote: any) => {
       return (
         quote.quote_number?.toLowerCase?.().includes(q) ||
-        quote.requisition_order?.order_number
-          ?.toLowerCase?.()
-          .includes(q) ||
-        quote.created_by?.username
-          ?.toLowerCase?.()
-          .includes(q) ||
-        quote.quote_date
-          ?.toLowerCase?.()
-          .includes(q) ||
-        quote.vendor?.name
-          ?.toLowerCase?.()
-          .includes(q) ||
-        quote.requisition_order?.justification
-          ?.toLowerCase?.()
-          .includes(q)
-      )
-    })
-  }, [quotes, deferredSearch, status])
+        quote.requisition_order?.order_number?.toLowerCase?.().includes(q) ||
+        quote.created_by?.username?.toLowerCase?.().includes(q) ||
+        quote.quote_date?.toLowerCase?.().includes(q) ||
+        quote.vendor?.name?.toLowerCase?.().includes(q) ||
+        quote.requisition_order?.justification?.toLowerCase?.().includes(q)
+      );
+    });
+  }, [quotes, deferredSearch, status]);
 
   const columns = useMemo(
-    () => getColumns(selectedCompany ?? undefined, onPreview ?? undefined, selectedPreviewId, timeZone),
-    [selectedCompany, onPreview, selectedPreviewId, timeZone]
-  )
+    () =>
+      getColumns(
+        selectedCompany ?? undefined,
+        onPreview ?? undefined,
+        selectedPreviewId,
+        timeZone,
+      ),
+    [selectedCompany, onPreview, selectedPreviewId, timeZone],
+  );
 
   return (
     <ContentLayout title="Cotizaciones de Compra">
       <div className="flex flex-col gap-6">
-
         <PageHeader />
 
         <div className="flex flex-col gap-2 border-b pb-4">
@@ -107,13 +102,15 @@ const QuotesOrdersPageContent = () => {
               </h1>
 
               <p className="text-sm text-muted-foreground">
-                Visualiza y gestiona las cotizaciones generadas dentro del sistema de compras.
+                Visualiza y gestiona las cotizaciones generadas dentro del
+                sistema de compras.
               </p>
             </div>
           </div>
         </div>
 
-        <div className="
+        <div
+          className="
           flex items-center justify-between gap-4
           px-3 py-2
           rounded-xl border
@@ -121,7 +118,8 @@ const QuotesOrdersPageContent = () => {
           dark:bg-slate-800/70 dark:border-slate-700/60
           backdrop-blur-md
           dark:shadow-[0_4px_20px_rgba(0,0,0,0.35)]
-        ">
+        "
+        >
           <QuotesToolBar
             search={search}
             setSearch={setSearch}
@@ -137,15 +135,13 @@ const QuotesOrdersPageContent = () => {
             <QuoteDraftsDialog />
 
             <span className="text-xs text-muted-foreground tabular-nums">
-              {filteredQuotes.length}{' '}
-              {filteredQuotes.length === 1
-                ? 'cotización'
-                : 'cotizaciones'}
+              {filteredQuotes.length}{" "}
+              {filteredQuotes.length === 1 ? "cotización" : "cotizaciones"}
             </span>
           </div>
         </div>
 
-        {groupBy !== 'NONE' ? (
+        {groupBy !== "NONE" ? (
           <GroupedQuotesTable
             data={filteredQuotes}
             groupBy={groupBy as any}
@@ -174,10 +170,9 @@ const QuotesOrdersPageContent = () => {
             </p>
           </div>
         )}
-
       </div>
     </ContentLayout>
-  )
-}
+  );
+};
 
-export default QuotesOrdersPage
+export default QuotesOrdersPage;

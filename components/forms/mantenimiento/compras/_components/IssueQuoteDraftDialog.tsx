@@ -45,7 +45,9 @@ export function IssueQuoteDraftDialog({
   onConfirm: () => void;
   isPending?: boolean;
 }) {
-  const pending = lines.filter((line) => line.total === null && !line.notQuoted);
+  const pending = lines.filter(
+    (line) => line.total === null && !line.notQuoted,
+  );
   const notQuoted = lines.filter((line) => line.notQuoted);
   const quoted = lines.filter((line) => line.total !== null && !line.notQuoted);
 
@@ -64,7 +66,9 @@ export function IssueQuoteDraftDialog({
             ) : (
               <Send className="size-5 text-primary" />
             )}
-            {blocked ? "Faltan artículos por decidir" : "¿Emitir la cotización?"}
+            {blocked
+              ? "Faltan artículos por decidir"
+              : "¿Emitir la cotización?"}
           </AlertDialogTitle>
 
           <AlertDialogDescription className="text-xs">

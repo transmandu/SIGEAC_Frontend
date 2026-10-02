@@ -106,7 +106,9 @@ export function requisitionFromDraft(draft: Quote): QuoteableRequisition {
         unit: article.unit ? { id: article.unit.id } : null,
       };
     })
-    .filter((article): article is NonNullable<typeof article> => article !== null);
+    .filter(
+      (article): article is NonNullable<typeof article> => article !== null,
+    );
 
   return {
     id: draft.requisition_order.id,

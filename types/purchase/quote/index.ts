@@ -1,7 +1,8 @@
-import type { Location, Retailer, Unit, Vendor } from '@/types';
+import type { Location, Retailer, Unit, Vendor } from "@/types";
 
 // ── Article-level status on requisition articles ───────────────────────────
-export type RequisitionArticleStatus = 'PENDING' | 'APPROVED' | 'PARTIAL' | 'REJECTED';
+export type RequisitionArticleStatus =
+  "PENDING" | "APPROVED" | "PARTIAL" | "REJECTED";
 
 // ── Quote-level status ─────────────────────────────────────────────────────
 /**
@@ -9,7 +10,7 @@ export type RequisitionArticleStatus = 'PENDING' | 'APPROVED' | 'PARTIAL' | 'REJ
  * se compara, no notifica y no genera orden de compra; solo lo ve su creador.
  * Al emitirse pasa a PENDING y deja de ser borrador para siempre.
  */
-export type QuoteStatus = 'DRAFT' | 'PENDING' | 'APPROVED' | 'REJECTED';
+export type QuoteStatus = "DRAFT" | "PENDING" | "APPROVED" | "REJECTED";
 
 // ── Nested requisition article snapshot inside a quote article ─────────────
 export interface ArticleRequisitionOrderRef {
@@ -282,7 +283,7 @@ export interface CreateComplementaryQuoteData {
 // Only PENDING and REJECTED are allowed — APPROVED is set automatically
 // by the backend when a Purchase Order is created from this quote.
 export interface UpdateQuoteStatusData {
-  status: 'PENDING' | 'REJECTED';
+  status: "PENDING" | "REJECTED";
   observation?: string | null;
 }
 

@@ -1,6 +1,6 @@
-import axiosInstance from '@/lib/axios';
-import { useQuery } from '@tanstack/react-query';
-import type { Quote } from '@/types/purchase';
+import axiosInstance from "@/lib/axios";
+import { useQuery } from "@tanstack/react-query";
+import type { Quote } from "@/types/purchase";
 
 /**
  * Los borradores de cotización del usuario autenticado, más antiguos primero.

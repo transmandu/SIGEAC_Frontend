@@ -49,9 +49,7 @@ const FormSchema = z
         // El vacío es válido en el campo: representa "sin respuesta
         // todavía". Que una línea cotizada exija precio > 0 lo impone
         // el superRefine de abajo, y la emisión lo revalida en el backend.
-        unit_price: z
-          .string()
-          .regex(/^(\d+(\.\d{0,2})?)?$/, "Precio inválido"),
+        unit_price: z.string().regex(/^(\d+(\.\d{0,2})?)?$/, "Precio inválido"),
         location_id: z.string().optional(),
         reference: z.string().optional(),
         lead_time_value: z.string().optional(),
@@ -170,7 +168,9 @@ export function CreateGeneralQuoteForm({
 
   const transformedGeneralArticles = (req.general_articles ?? []).map(
     (article: any) => {
-      const saved = article.id ? savedByArticle.get(Number(article.id)) : undefined;
+      const saved = article.id
+        ? savedByArticle.get(Number(article.id))
+        : undefined;
       const lead = splitLeadTime(saved?.lead_time);
 
       return {
@@ -179,10 +179,13 @@ export function CreateGeneralQuoteForm({
         variant_type: article.variant_type ?? "",
         brand_model: saved?.brand_model ?? "",
         original_brand_model: "",
-        retailer_id: saved?.retailer?.id ? String(saved.retailer.id) : undefined,
-        quantity: saved && Number(saved.quantity) > 0
-          ? String(Number(saved.quantity))
-          : article.quantity,
+        retailer_id: saved?.retailer?.id
+          ? String(saved.retailer.id)
+          : undefined,
+        quantity:
+          saved && Number(saved.quantity) > 0
+            ? String(Number(saved.quantity))
+            : article.quantity,
         original_quantity: article.quantity,
         unit: saved?.unit?.id
           ? String(saved.unit.id)
@@ -194,7 +197,9 @@ export function CreateGeneralQuoteForm({
         // cero. Confundirlos es lo que lleva a emitir una cotización con huecos
         // creyendo que está completa.
         unit_price: asAmount(saved?.unit_price),
-        location_id: saved?.location?.id ? String(saved.location.id) : undefined,
+        location_id: saved?.location?.id
+          ? String(saved.location.id)
+          : undefined,
         reference: saved?.reference ?? "",
         lead_time_value: lead.value,
         lead_time_unit: lead.unit,
@@ -212,12 +217,8 @@ export function CreateGeneralQuoteForm({
       general_articles: transformedGeneralArticles,
       // La cabecera también se retoma del borrador: sin esto, reabrirlo obligaba
       // a volver a elegir sede y comercio, y la fecha guardada se perdía.
-      ...(draft?.location_id
-        ? { location_id: String(draft.location_id) }
-        : {}),
-      ...(draft?.retailer_id
-        ? { retailer_id: String(draft.retailer_id) }
-        : {}),
+      ...(draft?.location_id ? { location_id: String(draft.location_id) } : {}),
+      ...(draft?.retailer_id ? { retailer_id: String(draft.retailer_id) } : {}),
       ...(draft?.quote_date ? { quote_date: new Date(draft.quote_date) } : {}),
     },
   });
@@ -378,7 +379,9 @@ export function CreateGeneralQuoteForm({
     const data = form.getValues();
     // La fecha puede no estar elegida todavía: guardar un borrador no la exige.
     const quoteDate =
-      data.quote_date instanceof Date ? data.quote_date.toISOString() : undefined;
+      data.quote_date instanceof Date
+        ? data.quote_date.toISOString()
+        : undefined;
 
     let id = draftId;
     let openedDraft: Quote | null = null;
