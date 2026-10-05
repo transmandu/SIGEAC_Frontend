@@ -28,6 +28,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { RegisterComplianceDialog } from "@/components/dialogs/mantenimiento/planificacion/RegisterComplianceDialog";
+import { AddMaintenanceControlItemDialog } from "@/components/dialogs/mantenimiento/planificacion/AddMaintenanceControlItemDialog";
 import { ImportComplianceHistoryDialog } from "@/components/dialogs/mantenimiento/planificacion/ImportComplianceHistoryDialog";
 import { DownloadMaintenanceFormatButton } from "@/components/dialogs/mantenimiento/planificacion/DownloadMaintenanceFormatButton";
 import { useGetMaintenanceControl } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceControl";
@@ -542,6 +543,11 @@ const MaintenanceControlDetailPage = () => {
               remainingPercentage={remainingPercentage}
               hasOverrides={hasPercentageOverrides}
             />
+            <RecordAuditHistory
+              subjectType="maintenance_control"
+              subjectId={control.id}
+              filename={`historial_control_mantenimiento_${control.aircraft?.acronym ?? control.id}`}
+            />
             {!controlRetired && (
               <>
                 <ImportComplianceHistoryDialog
@@ -649,7 +655,21 @@ const MaintenanceControlDetailPage = () => {
           </div>
         </FormSection>
 
-        <FormSection icon={ClipboardList} title="Certificados">
+        <FormSection
+          icon={ClipboardList}
+          title="Certificados"
+          action={
+            !controlRetired && (
+              <AddMaintenanceControlItemDialog
+                controlId={control.id}
+                category="CERTIFICATE"
+                sectionLabel="Certificados"
+                currentHours={Number(control.aircraft?.flight_hours ?? 0)}
+                currentCycles={Number(control.aircraft?.flight_cycles ?? 0)}
+              />
+            )
+          }
+        >
           <MaintenanceItemsTable
             items={certificates}
             aircraft={control.aircraft}
@@ -665,11 +685,22 @@ const MaintenanceControlDetailPage = () => {
           icon={Wrench}
           title="Aeronave"
           action={
-            <DownloadMaintenanceFormatButton
-              url={`/${company}/maintenance-controls/${control.id}/format/aeronave`}
-              filename={`control_mantenimiento_${control.aircraft?.acronym}.pdf`}
-              label="Descargar formato INAC-43-008 de la aeronave"
-            />
+            <div className="flex items-center gap-1">
+              {!controlRetired && (
+                <AddMaintenanceControlItemDialog
+                  controlId={control.id}
+                  category="SERVICE"
+                  sectionLabel="Servicios de Aeronave"
+                  currentHours={Number(control.aircraft?.flight_hours ?? 0)}
+                  currentCycles={Number(control.aircraft?.flight_cycles ?? 0)}
+                />
+              )}
+              <DownloadMaintenanceFormatButton
+                url={`/${company}/maintenance-controls/${control.id}/format/aeronave`}
+                filename={`control_mantenimiento_${control.aircraft?.acronym}.pdf`}
+                label="Descargar formato INAC-43-008 de la aeronave"
+              />
+            </div>
           }
         >
           <MaintenanceItemsTable
@@ -693,11 +724,23 @@ const MaintenanceControlDetailPage = () => {
               icon={Wrench}
               title={part.label}
               action={
-                <DownloadMaintenanceFormatButton
-                  url={`/${company}/maintenance-controls/${control.id}/format/parte/${part.id}`}
-                  filename={`control_mantenimiento_${part.label}.pdf`}
-                  label={`Descargar formato INAC-43-008 de ${part.label}`}
-                />
+                <div className="flex items-center gap-1">
+                  {!controlRetired && (
+                    <AddMaintenanceControlItemDialog
+                      controlId={control.id}
+                      category="SERVICE"
+                      maintenanceControlPartId={part.id}
+                      sectionLabel={part.label}
+                      currentHours={Number(part.aircraft_part?.time_since_new ?? 0)}
+                      currentCycles={Number(part.aircraft_part?.cycles_since_new ?? 0)}
+                    />
+                  )}
+                  <DownloadMaintenanceFormatButton
+                    url={`/${company}/maintenance-controls/${control.id}/format/parte/${part.id}`}
+                    filename={`control_mantenimiento_${part.label}.pdf`}
+                    label={`Descargar formato INAC-43-008 de ${part.label}`}
+                  />
+                </div>
               }
             >
               <MaintenanceItemsTable
@@ -737,12 +780,6 @@ const MaintenanceControlDetailPage = () => {
               retired_at: item.retired_at!,
               retired_by: item.retired_by,
             }))}
-        />
-
-        <RecordAuditHistory
-          subjectType="maintenance_control"
-          subjectId={control.id}
-          filename={`historial_control_mantenimiento_${control.aircraft?.acronym ?? control.id}`}
         />
       </div>
     </ContentLayout>

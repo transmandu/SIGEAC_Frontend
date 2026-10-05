@@ -33,6 +33,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { RegisterDirectiveComplianceDialog } from "@/components/dialogs/mantenimiento/planificacion/RegisterDirectiveComplianceDialog";
+import { AddDirectiveControlItemDialog } from "@/components/dialogs/mantenimiento/planificacion/AddDirectiveControlItemDialog";
 import { useGetDirectiveControl } from "@/hooks/mantenimiento/planificacion/useGetDirectiveControl";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import {
@@ -336,16 +337,23 @@ const DirectiveControlDetailPage = () => {
                 </p>
               )}
             </div>
-            {!controlRetired && (
-              <ActionTriggerButton asChild>
-                <Link
-                  href={`/${company}/planificacion/control_directivas/editar/${control.id}`}
-                >
-                  <SquarePen className="mr-2 size-4" />
-                  Editar
-                </Link>
-              </ActionTriggerButton>
-            )}
+            <div className="flex items-center gap-2">
+              <RecordAuditHistory
+                subjectType="directive_control"
+                subjectId={control.id}
+                filename={`historial_control_directivas_${control.aircraft?.acronym ?? control.id}`}
+              />
+              {!controlRetired && (
+                <ActionTriggerButton asChild>
+                  <Link
+                    href={`/${company}/planificacion/control_directivas/editar/${control.id}`}
+                  >
+                    <SquarePen className="mr-2 size-4" />
+                    Editar
+                  </Link>
+                </ActionTriggerButton>
+              )}
+            </div>
           </div>
 
           <RetiredControlBanner
@@ -439,6 +447,16 @@ const DirectiveControlDetailPage = () => {
             icon={Plane}
             title="Aeronave"
             hint="Directivas que afectan a la aeronave en su conjunto."
+            action={
+              !controlRetired && (
+                <AddDirectiveControlItemDialog
+                  controlId={control.id}
+                  sectionLabel="Aeronave"
+                  currentHours={aircraftHours}
+                  currentCycles={aircraftCycles}
+                />
+              )
+            }
           >
             <DirectivesTable
               items={fuselageItems}
@@ -457,6 +475,17 @@ const DirectiveControlDetailPage = () => {
               icon={Cog}
               title={label}
               hint={`Directivas medidas contra el TSN/CSN de ${label}.`}
+              action={
+                !controlRetired && (
+                  <AddDirectiveControlItemDialog
+                    controlId={control.id}
+                    parentAircraftPartId={partId}
+                    sectionLabel={label}
+                    currentHours={Number(part.time_since_new ?? 0)}
+                    currentCycles={Number(part.cycles_since_new ?? 0)}
+                  />
+                )
+              }
             >
               <DirectivesTable
                 items={filtered.filter(
@@ -485,12 +514,6 @@ const DirectiveControlDetailPage = () => {
                 retired_at: item.retired_at!,
                 retired_by: item.retired_by,
               }))}
-          />
-
-          <RecordAuditHistory
-            subjectType="directive_control"
-            subjectId={control.id}
-            filename={`historial_control_directivas_${control.aircraft?.acronym ?? control.id}`}
           />
         </div>
       </ContentLayout>

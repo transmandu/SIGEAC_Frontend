@@ -132,7 +132,7 @@ function DocumentDisplayDialog({
                   src={documentUrl}
                   width="100%"
                   height="100%"
-                  className="min-h-[500px]"
+                  className="min-h-125"
                   title={`Documento: ${actualFileName}`}
                 />
               </div>

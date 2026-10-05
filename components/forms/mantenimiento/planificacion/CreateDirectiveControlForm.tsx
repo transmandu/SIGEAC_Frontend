@@ -936,6 +936,11 @@ function DirectivePartsSection({ control }: { control: Control<any> }) {
                   {part.typeLabel}
                 </span>
                 <span className="font-medium">{part.name}</span>
+                {part.serial && (
+                  <span className="text-[11px] text-muted-foreground">
+                    S/N {part.serial}
+                  </span>
+                )}
               </span>
             </div>
           );

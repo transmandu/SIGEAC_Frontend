@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { format, startOfDay } from "date-fns";
 import { Download, History, Loader2 } from "lucide-react";
 
@@ -118,31 +118,18 @@ export function MaintenanceControlSnapshotDialog() {
     name: `${control.aircraft?.acronym ?? "?"} — ${control.title}`,
   }));
 
-  // Antes de que existiera el control no hay cumplimientos ni historial que
-  // reconstruir; después de hoy tampoco hay nada que consultar todavía. Ambos
-  // límites al inicio del día: el backend valida contra la FECHA
-  // (before_or_equal:today), así que comparar con la hora exacta recortaba la
-  // selección de hoy por unos milisegundos.
-  const selectedControl = controls?.find((c) => String(c.id) === controlId);
-  const minDate = selectedControl?.created_at
-    ? startOfDay(new Date(selectedControl.created_at))
-    : undefined;
+  // Después de hoy no hay nada que consultar todavía — el backend valida
+  // contra la FECHA (before_or_equal:today), así que el límite va al inicio
+  // del día para no recortar la selección de hoy por unos milisegundos. El
+  // propio DatePickerField impide elegir más allá de maxDate, así que no
+  // hace falta un efecto para corregir `date` después del hecho.
+  //
+  // No hay límite inferior por created_at del control: el snapshot se
+  // reconstruye de vuelos y cumplimientos (que pueden tener fecha anterior a
+  // la creación del control vía importación de histórico), no de cuándo se
+  // creó el registro. Si a la fecha elegida no hay datos, el snapshot
+  // simplemente sale vacío.
   const maxDate = startOfDay(new Date());
-
-  // Si el usuario ya tenía una fecha elegida y cambia de control (o el
-  // control recién cargó su created_at), esa fecha puede quedar fuera del
-  // rango del nuevo control — se reajusta al límite más cercano en vez de
-  // dejar una selección que el backend rechazaría o daría un resultado vacío.
-  useEffect(() => {
-    if (!date) return;
-    const current = startOfDay(date);
-    if (minDate && current < minDate) {
-      setDate(minDate);
-    } else if (current > maxDate) {
-      setDate(maxDate);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [controlId, minDate?.getTime()]);
 
   const dateParam = date ? format(date, "yyyy-MM-dd") : undefined;
   const {
@@ -242,7 +229,6 @@ export function MaintenanceControlSnapshotDialog() {
                 value={date}
                 setValue={(d) => setDate(d ?? undefined)}
                 maxYear={new Date().getFullYear()}
-                minDate={minDate}
                 maxDate={maxDate}
               />
             </div>
@@ -270,7 +256,7 @@ export function MaintenanceControlSnapshotDialog() {
             </div>
           </div>
 
-          <div className="min-h-[200px] flex-1 overflow-y-auto rounded-lg border border-slate-400/40 dark:border-slate-600/40">
+          <div className="min-h-50 flex-1 overflow-y-auto rounded-lg border border-slate-400/40 dark:border-slate-600/40">
             {!controlId ? (
               <p className="p-6 text-center text-sm italic text-muted-foreground">
                 Elija un control de mantenimiento para ver su estado.

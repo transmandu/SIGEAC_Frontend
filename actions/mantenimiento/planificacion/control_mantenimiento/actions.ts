@@ -119,6 +119,49 @@ export const useUpdateMaintenanceControl = () => {
   };
 };
 
+export const useAddMaintenanceControlItem = () => {
+  const queryClient = useQueryClient();
+
+  const addItemMutation = useMutation({
+    mutationFn: async ({
+      company,
+      controlId,
+      data,
+    }: {
+      company: string;
+      controlId: string | number;
+      data: MaintenanceItemData & { category: "CERTIFICATE" | "SERVICE"; maintenance_control_part_id?: number };
+    }) => {
+      const response = await axiosInstance.post(
+        `/${company}/maintenance-controls/${controlId}/items`,
+        data,
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      invalidatePlanificationAudit(queryClient);
+      queryClient.invalidateQueries({
+        queryKey: ["maintenance-controls"],
+        exact: false,
+      });
+      toast.success("¡Agregado!", {
+        description: "El ítem ha sido agregado al control correctamente.",
+      });
+    },
+    onError: (error: any) => {
+      toast.error("Oops!", {
+        description:
+          firstBackendError(error) || "No se pudo agregar el ítem...",
+      });
+      console.log(error);
+    },
+  });
+
+  return {
+    addMaintenanceControlItem: addItemMutation,
+  };
+};
+
 export const useLinkPendingWorkOrder = () => {
   const queryClient = useQueryClient();
 

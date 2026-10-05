@@ -444,14 +444,17 @@ export const FUSELAGE = "__fuselage__";
 
 /**
  * `label` es el texto de una línea que usan los selects de conjunto padre;
- * `typeLabel` y `name` son las mismas partes por separado, para las tarjetas
- * de selección de dos líneas (tipo arriba, identidad abajo).
+ * `typeLabel`, `name` y `serial` son las mismas partes por separado, para las
+ * tarjetas de selección de dos líneas (tipo arriba, identidad + serial
+ * abajo) — dos partes del mismo tipo y modelo ("Motor 1", "Motor 2") solo se
+ * distinguen por su serial.
  */
 export type ParentOption = {
   id: string;
   label: string;
   typeLabel: string;
   name: string;
+  serial?: string;
 };
 
 /**
@@ -483,6 +486,7 @@ export function useParentOptions(aircraftId?: string): ParentOption[] {
           label: `${typeLabel}${part.serial ? ` - ${part.serial}` : ""}`,
           typeLabel,
           name: part.part_name || part.part_number,
+          serial: part.serial || undefined,
         };
       }),
     ];

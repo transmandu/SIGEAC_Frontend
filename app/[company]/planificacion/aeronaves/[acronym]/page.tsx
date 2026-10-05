@@ -233,6 +233,11 @@ export default function AircraftDetailsPage() {
                       </span>
                     </CardDescription>
                   </div>
+                  <RecordAuditHistory
+                    subjectType="aircraft"
+                    subjectId={Number(aircraft.id)}
+                    filename={`historial_aeronave_${aircraft.acronym}`}
+                  />
                 </div>
               </CardHeader>
               <CardContent>
@@ -275,7 +280,7 @@ export default function AircraftDetailsPage() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <ScrollArea className="h-[500px] pr-4">
+                    <ScrollArea className="h-125 pr-4">
                       {aircraft.aircraft_parts?.length ? (
                         <Accordion type="multiple" className="w-full">
                           {aircraft.aircraft_parts.map((root, idx) => (
@@ -340,12 +345,6 @@ export default function AircraftDetailsPage() {
                 </Card>
               </div>
             </div>
-
-            <RecordAuditHistory
-              subjectType="aircraft"
-              subjectId={Number(aircraft.id)}
-              filename={`historial_aeronave_${aircraft.acronym}`}
-            />
           </div>
         )}
       </TooltipProvider>
