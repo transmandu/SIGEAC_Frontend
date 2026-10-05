@@ -61,6 +61,9 @@ import { RecordAuditHistory } from "@/components/planificacion/auditoria/RecordA
 import { RetiredControlBanner } from "@/components/planificacion/controles/RetiredControlBanner";
 import { RetiredItemsSection } from "@/components/planificacion/controles/RetiredItemsSection";
 import { RetireRecordButton } from "@/components/planificacion/controles/RetireRecordButton";
+import { useLinkComponentPendingWorkOrder } from "@/actions/mantenimiento/planificacion/control_componentes/actions";
+import { WorkOrderCell } from "@/components/planificacion/controles/WorkOrderCell";
+import { AddToQueueButton } from "@/components/planificacion/cola/AddToQueueButton";
 import {
   AlertTriangle,
   Clock,
@@ -69,7 +72,6 @@ import {
   Plane,
   Search,
   SquarePen,
-  Wrench,
 } from "lucide-react";
 
 function InfoItem({
@@ -197,28 +199,27 @@ const UNIT_SHORT: Record<string, string> = {
 };
 
 /**
- * Mismo ciclo que el Control de Mantenimiento: crítico/vencido sin OT →
- * crear OT (queda atada al componente); OT abierta → bloqueado; si no,
- * registrar cumplimiento (con la OT pendiente precargada si la hubo).
+ * Mismo ciclo que el Control de Mantenimiento: mandar el componente a la cola
+ * de cumplimientos —siempre disponible, desde donde se crea la OT de todo lo
+ * marcado (ver ComplianceQueueButton)— y registrar su cumplimiento, que es propio
+ * de cada componente (acción, lecturas, proveedor).
+ *
+ * Con una OT abierta se muestra su número y el cumplimiento queda bloqueado
+ * hasta que se cierre, pero encolar sigue permitido: el componente puede entrar
+ * en una segunda orden o en un formato.
  */
 function PrimaryItemAction({
   item,
-  status,
-  company,
-  controlId,
   aircraftId,
-  aircraftAcronym,
   parentHours,
   parentCycles,
+  company,
 }: {
   item: ComponentControlItem;
-  status: ItemStatus;
-  company: string;
-  controlId: string | number;
   aircraftId: number | string;
-  aircraftAcronym?: string;
   parentHours: number;
   parentCycles: number;
+  company: string;
 }) {
   if (!item.id) return null;
 
@@ -226,68 +227,42 @@ function PrimaryItemAction({
   const isBlockedByWorkOrder =
     !!pendingWorkOrder && pendingWorkOrder.status !== "CLOSED";
 
-  if (isBlockedByWorkOrder) {
-    return (
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Link
-            href={`/${company}/planificacion/ordenes_trabajo/${pendingWorkOrder!.order_number}`}
-            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground hover:underline"
-          >
-            <Clock className="size-3.5 shrink-0" />
-            <span className="truncate">{pendingWorkOrder!.order_number}</span>
-          </Link>
-        </TooltipTrigger>
-        <TooltipContent>
-          Bloqueado hasta que se cierre la Orden de Trabajo{" "}
-          {pendingWorkOrder!.order_number}.
-        </TooltipContent>
-      </Tooltip>
-    );
-  }
-
-  const needsWorkOrder =
-    (status === "CRITICAL" || status === "OVERDUE") && !pendingWorkOrder;
-
-  if (needsWorkOrder) {
-    const params = new URLSearchParams({
-      aircraft_id: String(aircraftId),
-      component_control_item_id: String(item.id),
-      component_control_id: String(controlId),
-      task_description: `${item.description} (P/N ${item.part_number}, S/N ${item.serial})${aircraftAcronym ? ` — ${aircraftAcronym}` : ""}: ${COMPONENT_ACTION_LABELS[item.action].toLowerCase()} por vencimiento del Control de Componentes.`,
-    });
-
-    return (
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Link
-            href={`/${company}/planificacion/ordenes_trabajo/nueva_orden_trabajo?${params.toString()}`}
-          >
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7 text-orange-600 hover:text-orange-700"
-            >
-              <Wrench className="size-4" />
-              <span className="sr-only">Crear Orden de Trabajo</span>
-            </Button>
-          </Link>
-        </TooltipTrigger>
-        <TooltipContent>Crear Orden de Trabajo</TooltipContent>
-      </Tooltip>
-    );
-  }
-
   return (
-    <RegisterComponentComplianceDialog
-      itemId={item.id}
-      itemName={`${item.description} — P/N ${item.part_number} · S/N ${item.serial}`}
-      aircraftId={aircraftId}
-      defaultAction={item.action}
-      defaultHours={parentHours}
-      defaultCycles={parentCycles}
-      pendingWorkOrder={pendingWorkOrder ?? null}
-    />
+    <>
+      <AddToQueueButton
+        type="component_control_item"
+        itemId={item.id}
+        subject={`componente «${item.description} · S/N ${item.serial}»`}
+      />
+
+      {isBlockedByWorkOrder ? (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Link
+              href={`/${company}/planificacion/ordenes_trabajo/${pendingWorkOrder!.order_number}`}
+              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground hover:underline"
+            >
+              <Clock className="size-3.5 shrink-0" />
+              <span className="truncate">{pendingWorkOrder!.order_number}</span>
+            </Link>
+          </TooltipTrigger>
+          <TooltipContent>
+            Bloqueado hasta que se cierre la Orden de Trabajo{" "}
+            {pendingWorkOrder!.order_number}.
+          </TooltipContent>
+        </Tooltip>
+      ) : (
+        <RegisterComponentComplianceDialog
+          itemId={item.id}
+          itemName={`${item.description} — P/N ${item.part_number} · S/N ${item.serial}`}
+          aircraftId={aircraftId}
+          defaultAction={item.action}
+          defaultHours={parentHours}
+          defaultCycles={parentCycles}
+          pendingWorkOrder={pendingWorkOrder ?? null}
+        />
+      )}
+    </>
   );
 }
 
@@ -300,7 +275,7 @@ function ItemActionCell({
   if (!props.item.id || controlRetired) return null;
 
   return (
-    <div className="flex items-center justify-end gap-0.5">
+    <div className="flex flex-col items-end gap-0.5">
       <PrimaryItemAction {...props} />
       <RetireRecordButton
         recordType="component_control_item"
@@ -319,7 +294,7 @@ const COL = {
   remaining: "w-[150px]",
   estimate: "w-[115px]",
   provider: "w-[140px]",
-  workOrder: "w-[110px]",
+  workOrder: "w-[150px]",
   actions: "w-[80px]",
 };
 
@@ -329,9 +304,7 @@ function ComponentsTable({
   parentCycles,
   emptyLabel,
   company,
-  controlId,
   aircraftId,
-  aircraftAcronym,
   controlRemainingPercentage,
   controlRetired,
 }: {
@@ -340,12 +313,14 @@ function ComponentsTable({
   parentCycles: number;
   emptyLabel: string;
   company: string;
-  controlId: string | number;
   aircraftId: number | string;
-  aircraftAcronym?: string;
   controlRemainingPercentage: number;
   controlRetired: boolean;
 }) {
+  const { selectedCompany } = useCompanyStore();
+  const { linkComponentPendingWorkOrder } = useLinkComponentPendingWorkOrder();
+  const selectedCompanySlug = selectedCompany?.slug;
+
   if (!items.length) {
     return <p className="text-sm italic text-muted-foreground">{emptyLabel}</p>;
   }
@@ -388,7 +363,7 @@ function ComponentsTable({
             <TableHead
               className={cn(COL.workOrder, "bg-muted/40 font-semibold")}
             >
-              OT en curso
+              Orden de Trabajo
             </TableHead>
             <TableHead className={cn(COL.actions, "bg-muted/40")} />
           </TableRow>
@@ -398,8 +373,6 @@ function ComponentsTable({
             const computed = computeMaintenanceItem(item);
             const meta = STATUS_META[computed.status];
             const pending = item.pending_work_order;
-            const lastWorkOrder =
-              item.latest_compliance?.work_order?.order_number;
             return (
               <TableRow
                 key={item.id}
@@ -451,14 +424,6 @@ function ComponentsTable({
                     <span className="block truncate text-xs text-muted-foreground">
                       Padre: {computed.appliedSub}
                     </span>
-                  )}
-                  {lastWorkOrder && (
-                    <Link
-                      href={`/${company}/planificacion/ordenes_trabajo/${lastWorkOrder}`}
-                      className="block truncate text-xs text-primary hover:underline"
-                    >
-                      {lastWorkOrder}
-                    </Link>
                   )}
                 </TableCell>
                 <TableCell className={cn(COL.since, "truncate")}>
@@ -542,25 +507,28 @@ function ComponentsTable({
                   <TruncatedText>{computed.providerName}</TruncatedText>
                 </TableCell>
                 <TableCell className={COL.workOrder}>
-                  {pending && pending.status !== "CLOSED" ? (
-                    <Link
-                      href={`/${company}/planificacion/ordenes_trabajo/${pending.order_number}`}
-                      className="truncate text-primary hover:underline"
-                    >
-                      {pending.order_number}
-                    </Link>
-                  ) : (
-                    <span className="text-muted-foreground">—</span>
-                  )}
+                  <WorkOrderCell
+                    company={company}
+                    aircraftId={aircraftId}
+                    subject={`componente «${item.description} · S/N ${item.serial}»`}
+                    taskDescription={`${COMPONENT_ACTION_LABELS[item.action]} — ${item.description} (P/N ${item.part_number}, S/N ${item.serial})`}
+                    previous={item.latest_compliance?.work_order}
+                    current={pending}
+                    readOnly={controlRetired || !item.id}
+                    onWorkOrderCreated={(workOrder) =>
+                      linkComponentPendingWorkOrder.mutateAsync({
+                        company: selectedCompanySlug!,
+                        itemId: item.id!,
+                        workOrderId: workOrder.id,
+                      })
+                    }
+                  />
                 </TableCell>
                 <TableCell className={COL.actions}>
                   <ItemActionCell
                     item={item}
-                    status={computed.status}
                     company={company}
-                    controlId={controlId}
                     aircraftId={aircraftId}
-                    aircraftAcronym={aircraftAcronym}
                     parentHours={parentHours}
                     parentCycles={parentCycles}
                     controlRetired={controlRetired}
@@ -842,9 +810,7 @@ const ComponentControlDetailPage = () => {
             parentCycles={aircraftCycles}
             emptyLabel="Ningún componente del fuselaje coincide con el filtro."
             company={company}
-            controlId={control.id}
             aircraftId={control.aircraft.id}
-            aircraftAcronym={control.aircraft?.acronym}
             controlRemainingPercentage={remainingPercentage}
             controlRetired={controlRetired}
           />
@@ -865,9 +831,7 @@ const ComponentControlDetailPage = () => {
               parentCycles={Number(part.cycles_since_new ?? 0)}
               emptyLabel="Ningún componente de esta parte coincide con el filtro."
               company={company}
-              controlId={control.id}
               aircraftId={control.aircraft.id}
-              aircraftAcronym={control.aircraft?.acronym}
               controlRemainingPercentage={remainingPercentage}
               controlRetired={controlRetired}
             />

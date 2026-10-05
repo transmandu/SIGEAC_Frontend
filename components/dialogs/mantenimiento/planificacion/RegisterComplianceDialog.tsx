@@ -26,7 +26,6 @@ import {
 } from "@/components/ui/form";
 import { DatePickerField } from "@/components/ui/DatePickerField";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import {
   Tooltip,
   TooltipContent,
@@ -35,8 +34,8 @@ import {
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useGetMaintenanceProviders } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceProviders";
-import { useGetWorkOrdersByAircraft } from "@/hooks/mantenimiento/planificacion/useGetWorkOrdersByAircraft";
 import { useCreateMaintenanceCompliance } from "@/actions/mantenimiento/planificacion/cumplimientos/actions";
+import { WorkOrderField } from "@/components/forms/mantenimiento/planificacion/WorkOrderField";
 import {
   SearchableSelect,
   fieldClass,
@@ -106,8 +105,6 @@ export function RegisterComplianceDialog({
   const { selectedCompany } = useCompanyStore();
   const { data: providers, isLoading: isLoadingProviders } =
     useGetMaintenanceProviders(selectedCompany?.slug);
-  const { data: workOrders, isLoading: isLoadingWorkOrders } =
-    useGetWorkOrdersByAircraft(selectedCompany?.slug, aircraftId);
   const { createMaintenanceCompliance } = useCreateMaintenanceCompliance();
 
   const form = useForm<FormValues>({
@@ -155,7 +152,7 @@ export function RegisterComplianceDialog({
         <TooltipContent>Registrar cumplimiento</TooltipContent>
       </Tooltip>
 
-      <DialogContent className="sm:max-w-[480px]">
+      <DialogContent className="sm:max-w-120">
         <DialogHeader>
           <DialogTitle>Registrar Cumplimiento</DialogTitle>
           <DialogDescription>{itemName}</DialogDescription>
@@ -243,45 +240,14 @@ export function RegisterComplianceDialog({
               control={form.control}
               name="work_order_id"
               render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormLabel className={labelClass}>
-                    Orden de Trabajo{" "}
-                    <span className="text-muted-foreground text-xs">
-                      (Opcional)
-                    </span>
-                  </FormLabel>
-                  {pendingWorkOrder && (
-                    <p className="text-xs text-muted-foreground">
-                      Precargada la OT {pendingWorkOrder.order_number}, abierta
-                      para resolver este ítem.
-                    </p>
-                  )}
-                  <SearchableSelect
-                    options={(workOrders ?? []).map((wo) => ({
-                      ...wo,
-                      name: wo.order_number,
-                    }))}
-                    value={field.value}
-                    loading={isLoadingWorkOrders}
-                    placeholder={
-                      workOrders?.length
-                        ? "Seleccione..."
-                        : "Esta aeronave no tiene Órdenes de Trabajo"
-                    }
-                    searchPlaceholder="Buscar orden de trabajo..."
-                    emptyLabel="No se encontró ninguna orden de trabajo."
-                    onSelect={(wo) => field.onChange(String(wo.id))}
-                    renderLabel={(wo) => (
-                      <span className="flex items-center gap-2">
-                        {wo.order_number}
-                        <Badge variant="outline" className="text-[10px]">
-                          {wo.status}
-                        </Badge>
-                      </span>
-                    )}
-                  />
-                  <FormMessage />
-                </FormItem>
+                <WorkOrderField
+                  value={field.value}
+                  onChange={field.onChange}
+                  aircraftId={aircraftId}
+                  subject={itemName}
+                  taskDescription={itemName}
+                  pendingWorkOrder={pendingWorkOrder}
+                />
               )}
             />
 

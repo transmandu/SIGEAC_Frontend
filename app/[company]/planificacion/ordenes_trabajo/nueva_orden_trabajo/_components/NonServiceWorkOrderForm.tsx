@@ -1,5 +1,6 @@
 "use client";
 
+import { useAttachWorkOrderToQueue } from "@/actions/mantenimiento/planificacion/cola_cumplimientos/actions";
 import { useLinkPendingWorkOrder } from "@/actions/mantenimiento/planificacion/control_mantenimiento/actions";
 import { useLinkComponentPendingWorkOrder } from "@/actions/mantenimiento/planificacion/control_componentes/actions";
 import { useLinkAvionicsPendingWorkOrder } from "@/actions/mantenimiento/planificacion/control_avionica/actions";
@@ -110,7 +111,32 @@ interface TaskInProgress {
   task_items: TaskItem[];
 }
 
-const NonServiceWorkOrderForm = () => {
+export interface NonServiceWorkOrderFormProps {
+  /**
+   * Embebido en un diálogo (ver CreateControlWorkOrderDialog): la aeronave y la
+   * tarea llegan por props en vez de por query params, no se navega al
+   * terminar, y el llamador decide qué hacer con la orden creada.
+   *
+   * Sin estas props el componente se comporta igual que siempre: lee los query
+   * params de su propia página y redirige al guardar.
+   */
+  embedded?: boolean;
+  aircraftId?: string;
+  taskDescription?: string;
+  onCreated?: (workOrder: {
+    id: number;
+    order_number: string;
+  }) => void | Promise<void>;
+  onCancel?: () => void;
+}
+
+const NonServiceWorkOrderForm = ({
+  embedded = false,
+  aircraftId: aircraftIdProp,
+  taskDescription: taskDescriptionProp,
+  onCreated,
+  onCancel,
+}: NonServiceWorkOrderFormProps = {}) => {
   const searchParams = useSearchParams();
   // Presentes cuando la orden se crea desde un ítem de Control de Mantenimiento
   // en estado crítico (ver [id]/page.tsx): al terminar, la OT se ata a ese
@@ -132,14 +158,27 @@ const NonServiceWorkOrderForm = () => {
     searchParams.get("directive_control_item_id") || undefined;
   const directiveControlId =
     searchParams.get("directive_control_id") || undefined;
+  // La orden viene de la bandeja de trabajo: al crearla se ata a los ítems que
+  // el usuario seleccionó ahí (no a toda la bandeja, que puede tener de varias
+  // aeronaves), y esos salen de la bandeja.
+  const fromControlQueue = searchParams.get("from_control_queue") === "1";
+  const queueEntryIds = (searchParams.get("queue_entry_ids") ?? "")
+    .split(",")
+    .map((id) => Number(id))
+    .filter((id) => Number.isFinite(id) && id > 0);
   const linkedControlItemId =
     maintenanceControlItemId ??
     componentControlItemId ??
     avionicsControlTaskId ??
     directiveControlItemId;
-  const prefillAircraftId = searchParams.get("aircraft_id") || undefined;
+  // Embebido la aeronave la fija el ítem que abrió el diálogo; en la página,
+  // el ítem o la cola que originaron la orden. En los tres casos cambiarla
+  // dejaría el vínculo apuntando a otra máquina y el backend lo rechaza.
+  const aircraftLocked = embedded || !!linkedControlItemId || fromControlQueue;
+  const prefillAircraftId =
+    aircraftIdProp ?? searchParams.get("aircraft_id") ?? undefined;
   const prefillTaskDescription =
-    searchParams.get("task_description") || undefined;
+    taskDescriptionProp ?? searchParams.get("task_description") ?? undefined;
 
   const [selectedAircraft, setSelectedAircraft] = useState<string>("");
   const [tasks, setTasks] = useState<TaskInProgress[]>([]);
@@ -151,6 +190,7 @@ const NonServiceWorkOrderForm = () => {
   const { linkComponentPendingWorkOrder } = useLinkComponentPendingWorkOrder();
   const { linkAvionicsPendingWorkOrder } = useLinkAvionicsPendingWorkOrder();
   const { linkDirectivePendingWorkOrder } = useLinkDirectivePendingWorkOrder();
+  const { attachWorkOrderToQueue } = useAttachWorkOrderToQueue();
   const {
     data: aircrafts,
     isLoading: isAircraftsLoading,
@@ -358,6 +398,34 @@ const NonServiceWorkOrderForm = () => {
       company: selectedCompany!.slug,
     });
 
+    // Embebido en un diálogo: el llamador ata la orden a lo que corresponda
+    // (el ítem del control, el campo del cumplimiento) y cierra. Acá no se
+    // navega: la pantalla de atrás es la que el usuario estaba usando.
+    if (embedded) {
+      if (response?.work_order?.id) {
+        // La orden YA está creada. Si atarla falla, reenviar el formulario
+        // crearía una segunda orden idéntica, así que el formulario se limpia
+        // igual y el error lo informa la mutación del vínculo: lo que queda
+        // pendiente es asociar esa orden, no volver a crearla.
+        try {
+          await onCreated?.({
+            id: response.work_order.id,
+            order_number: response.work_order.order_number,
+          });
+        } finally {
+          form.reset();
+          setTasks([]);
+        }
+
+        return;
+      }
+
+      form.reset();
+      setTasks([]);
+
+      return;
+    }
+
     if (maintenanceControlItemId && response?.work_order?.id) {
       await linkPendingWorkOrder.mutateAsync({
         company: selectedCompany!.slug,
@@ -390,8 +458,28 @@ const NonServiceWorkOrderForm = () => {
       });
     }
 
+    // Un solo llamado ata la orden a los ítems seleccionados en la bandeja; los
+    // que no pudo atar quedan ahí con su motivo (lo informa la mutación).
+    if (fromControlQueue && queueEntryIds.length && response?.work_order?.id) {
+      await attachWorkOrderToQueue.mutateAsync({
+        company: selectedCompany!.slug,
+        workOrderId: response.work_order.id,
+        entryIds: queueEntryIds,
+      });
+    }
+
     form.reset();
     setTasks([]);
+
+    // Desde la bandeja se vuelve a la orden recién creada: es donde el usuario
+    // sigue trabajando (cargar tareas, registrar los cumplimientos), y de la
+    // bandeja ya salió lo que se ató.
+    if (fromControlQueue && response?.work_order?.order_number) {
+      router.push(
+        `/${selectedCompany!.slug}/planificacion/ordenes_trabajo/${response.work_order.order_number}`,
+      );
+      return;
+    }
 
     router.push(
       maintenanceControlId
@@ -421,7 +509,10 @@ const NonServiceWorkOrderForm = () => {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Crear Orden de Trabajo</h1>
+      {/* En el diálogo el título lo pone su propia cabecera. */}
+      {!embedded && (
+        <h1 className="text-2xl font-bold">Crear Orden de Trabajo</h1>
+      )}
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -434,11 +525,12 @@ const NonServiceWorkOrderForm = () => {
                   <FormItem className="flex flex-col space-y-3 mt-1.5">
                     <FormLabel>Aeronave</FormLabel>
 
-                    {linkedControlItemId ? (
-                      // Al guardar, la OT se ata a ese ítem de Control de
-                      // Mantenimiento o de Componentes: cambiar de aeronave
-                      // acá dejaría el vínculo apuntando a otra máquina, y el
-                      // backend lo rechaza cuando la orden ya está creada.
+                    {aircraftLocked ? (
+                      // Al guardar, la OT se ata al ítem de control que la
+                      // originó —o a todo lo que haya en la cola de
+                      // cumplimientos—: cambiar de aeronave acá dejaría el
+                      // vínculo apuntando a otra máquina, y el backend lo
+                      // rechaza cuando la orden ya está creada.
                       <div className="flex h-10 items-center rounded-md border border-input bg-muted/40 px-3 text-sm">
                         {aircrafts?.find(
                           (aircraft) => aircraft.id.toString() === field.value,
@@ -823,7 +915,11 @@ const NonServiceWorkOrderForm = () => {
 
           {/* Botones de acción */}
           <div className="flex justify-end space-x-2">
-            <Button type="button" variant="outline">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => (embedded ? onCancel?.() : router.back())}
+            >
               Cancelar
             </Button>
             <Button disabled={createWorkOrder.isPending} type="submit">

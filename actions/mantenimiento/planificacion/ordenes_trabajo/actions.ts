@@ -27,6 +27,13 @@ interface CreateWOData {
   work_order_task?: {
     description_task: string;
     ata: string;
+    maintenance_catalog_task_id?: number | null;
+    origin_manual?: string | null;
+    material?: string | null;
+    task_items?: {
+      part_number?: string;
+      alternate_part_number?: string;
+    }[];
   }[];
 }
 

@@ -47,10 +47,12 @@ import { RecordAuditHistory } from "@/components/planificacion/auditoria/RecordA
 import { RetiredControlBanner } from "@/components/planificacion/controles/RetiredControlBanner";
 import { RetiredItemsSection } from "@/components/planificacion/controles/RetiredItemsSection";
 import { RetireRecordButton } from "@/components/planificacion/controles/RetireRecordButton";
+import { useLinkPendingWorkOrder } from "@/actions/mantenimiento/planificacion/control_mantenimiento/actions";
+import { WorkOrderCell } from "@/components/planificacion/controles/WorkOrderCell";
+import { AddToQueueButton } from "@/components/planificacion/cola/AddToQueueButton";
 import {
   AlertTriangle,
   ClipboardList,
-  ClipboardCheck,
   Clock,
   Info,
   SquarePen,
@@ -172,7 +174,7 @@ const COL = {
   remaining: "w-[150px]",
   estimate: "w-[120px]",
   provider: "w-[150px]",
-  workOrder: "w-[130px]",
+  workOrder: "w-[150px]",
   actions: "w-[100px]",
 };
 
@@ -185,33 +187,28 @@ function TruncatedText({ children }: { children: string }) {
       <TooltipTrigger asChild>
         <span className="block truncate">{children}</span>
       </TooltipTrigger>
-      <TooltipContent side="top" className="max-w-xs wrap-break-words">
+      <TooltipContent side="top" className="max-w-xs wrap-break-word">
         {children}
       </TooltipContent>
     </Tooltip>
   );
 }
 
-// Un ítem crítico/vencido sugiere abrir una Orden de Trabajo, pero no obliga:
-// registrar el cumplimiento siempre está disponible. Si ya hay una OT abierta
-// atendiéndolo, el diálogo de cumplimiento la trae precargada.
+// La acción por fila ahora es mandar el ítem a la cola de cumplimientos: la OT
+// se crea desde ahí, para una sola orden que atienda varios cumplimientos (ver
+// ComplianceQueueButton). Registrar el cumplimiento sigue disponible por fila,
+// porque cada uno exige sus propias lecturas y proveedor.
 function ItemActionCell({
   item,
-  status,
   company,
-  controlId,
   aircraftId,
-  aircraftAcronym,
   defaultHours,
   defaultCycles,
   controlRetired,
 }: {
   item: MaintenanceControlItem;
-  status: ItemStatus;
   company: string;
-  controlId: string | number;
   aircraftId: number | string;
-  aircraftAcronym?: string;
   defaultHours: number;
   defaultCycles: number;
   controlRetired: boolean;
@@ -221,18 +218,12 @@ function ItemActionCell({
   const pendingWorkOrder = item.pending_work_order;
   const hasOpenWorkOrder =
     !!pendingWorkOrder && pendingWorkOrder.status !== "CLOSED";
-  const isCritical = status === "CRITICAL" || status === "OVERDUE";
-
-  const newWorkOrderParams = new URLSearchParams({
-    aircraft_id: String(aircraftId),
-    maintenance_control_item_id: String(item.id),
-    maintenance_control_id: String(controlId),
-    task_description: `${item.name}${aircraftAcronym ? ` — ${aircraftAcronym}` : ""}: servicio en estado crítico del Control de Mantenimiento.`,
-  });
 
   return (
-    <div className="flex items-center justify-end gap-0.5">
-      {hasOpenWorkOrder ? (
+    <div className="flex flex-col items-end gap-0.5">
+      {/* Informativo, no excluyente: tener una OT abierta no impide volver a
+          encolar el ítem — puede entrar en una segunda orden, o en un formato. */}
+      {hasOpenWorkOrder && (
         <Tooltip>
           <TooltipTrigger asChild>
             <Link
@@ -250,27 +241,13 @@ function ItemActionCell({
             ítem.
           </TooltipContent>
         </Tooltip>
-      ) : (
-        isCritical && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Link
-                href={`/${company}/planificacion/ordenes_trabajo/nueva_orden_trabajo?${newWorkOrderParams.toString()}`}
-              >
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7 text-orange-600 hover:text-orange-700"
-                >
-                  <Wrench className="size-4" />
-                  <span className="sr-only">Crear Orden de Trabajo</span>
-                </Button>
-              </Link>
-            </TooltipTrigger>
-            <TooltipContent>Crear Orden de Trabajo</TooltipContent>
-          </Tooltip>
-        )
       )}
+
+      <AddToQueueButton
+        type="maintenance_control_item"
+        itemId={item.id}
+        subject={`ítem «${item.name}»`}
+      />
 
       <RegisterComplianceDialog
         itemId={item.id}
@@ -294,9 +271,7 @@ function MaintenanceItemsTable({
   aircraft,
   emptyLabel,
   company,
-  controlId,
   realAircraftId,
-  realAircraftAcronym,
   controlRemainingPercentage,
   controlRetired,
 }: {
@@ -304,12 +279,14 @@ function MaintenanceItemsTable({
   aircraft: { flight_hours: number | string; flight_cycles: number | string };
   emptyLabel: string;
   company: string;
-  controlId: string | number;
   realAircraftId: number | string;
-  realAircraftAcronym?: string;
   controlRemainingPercentage: number;
   controlRetired: boolean;
 }) {
+  const { selectedCompany } = useCompanyStore();
+  const { linkPendingWorkOrder } = useLinkPendingWorkOrder();
+  const selectedCompanySlug = selectedCompany?.slug;
+
   if (!items.length) {
     return <p className="text-sm italic text-muted-foreground">{emptyLabel}</p>;
   }
@@ -349,7 +326,7 @@ function MaintenanceItemsTable({
             <TableHead
               className={cn(COL.workOrder, "bg-muted/40 font-semibold")}
             >
-              N° OT
+              Orden de Trabajo
             </TableHead>
             <TableHead className={cn(COL.actions, "bg-muted/40")} />
           </TableRow>
@@ -450,25 +427,28 @@ function MaintenanceItemsTable({
                   <TruncatedText>{computed.providerName}</TruncatedText>
                 </TableCell>
                 <TableCell className={COL.workOrder}>
-                  {item.latest_compliance?.work_order?.order_number ? (
-                    <Link
-                      href={`/${company}/planificacion/ordenes_trabajo/${item.latest_compliance.work_order.order_number}`}
-                      className="truncate text-primary hover:underline"
-                    >
-                      {item.latest_compliance.work_order.order_number}
-                    </Link>
-                  ) : (
-                    <span className="text-muted-foreground">—</span>
-                  )}
+                  <WorkOrderCell
+                    company={company}
+                    aircraftId={realAircraftId}
+                    subject={`ítem «${item.name}»`}
+                    taskDescription={item.name}
+                    previous={item.latest_compliance?.work_order}
+                    current={item.pending_work_order}
+                    readOnly={controlRetired || !item.id}
+                    onWorkOrderCreated={(workOrder) =>
+                      linkPendingWorkOrder.mutateAsync({
+                        company: selectedCompanySlug!,
+                        itemId: item.id!,
+                        workOrderId: workOrder.id,
+                      })
+                    }
+                  />
                 </TableCell>
                 <TableCell className={COL.actions}>
                   <ItemActionCell
                     item={item}
-                    status={computed.status}
                     company={company}
-                    controlId={controlId}
                     aircraftId={realAircraftId}
-                    aircraftAcronym={realAircraftAcronym}
                     defaultHours={Number(aircraft.flight_hours ?? 0)}
                     defaultCycles={Number(aircraft.flight_cycles ?? 0)}
                     controlRetired={controlRetired}
@@ -675,9 +655,7 @@ const MaintenanceControlDetailPage = () => {
             aircraft={control.aircraft}
             emptyLabel="Este control no tiene certificados registrados."
             company={company}
-            controlId={control.id}
             realAircraftId={control.aircraft.id}
-            realAircraftAcronym={control.aircraft?.acronym}
             controlRemainingPercentage={remainingPercentage}
             controlRetired={controlRetired}
           />
@@ -699,9 +677,7 @@ const MaintenanceControlDetailPage = () => {
             aircraft={control.aircraft}
             emptyLabel="Este control no tiene servicios de aeronave registrados."
             company={company}
-            controlId={control.id}
             realAircraftId={control.aircraft.id}
-            realAircraftAcronym={control.aircraft?.acronym}
             controlRemainingPercentage={remainingPercentage}
             controlRetired={controlRetired}
           />
@@ -739,9 +715,7 @@ const MaintenanceControlDetailPage = () => {
                 }}
                 emptyLabel="Esta parte no tiene servicios registrados."
                 company={company}
-                controlId={control.id}
                 realAircraftId={control.aircraft.id}
-                realAircraftAcronym={control.aircraft?.acronym}
                 controlRemainingPercentage={remainingPercentage}
                 controlRetired={controlRetired}
               />

@@ -11,6 +11,7 @@ import { OnlineUsersProvider } from "@/contexts/OnlineUsersContext";
 import { PageTitleProvider } from "@/contexts/PageTitleContext";
 import CriticalAlertsButton from "./CriticalAlertsButton";
 import BirthdayConfetti from "./BirthdayConfetti";
+import { ComplianceQueueButton } from "@/components/planificacion/cola/ComplianceQueueButton";
 
 export default function DashboardLayout({
   children,
@@ -47,6 +48,10 @@ export default function DashboardLayout({
           </footer>
 
           <CriticalAlertsButton />
+          {/* Global, no por pantalla: la cola se arma navegando entre los
+              cuatro controles, así que tiene que seguir visible al cambiar de
+              página. Se oculta sola cuando está vacía. */}
+          <ComplianceQueueButton />
           <BirthdayConfetti />
         </PageTitleProvider>
       </CustomTourProvider>

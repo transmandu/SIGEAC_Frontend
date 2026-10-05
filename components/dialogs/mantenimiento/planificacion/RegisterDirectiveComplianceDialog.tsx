@@ -28,7 +28,6 @@ import {
 import { DatePickerField } from "@/components/ui/DatePickerField";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import {
   Tooltip,
   TooltipContent,
@@ -37,8 +36,8 @@ import {
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useGetMaintenanceProviders } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceProviders";
-import { useGetWorkOrdersByAircraft } from "@/hooks/mantenimiento/planificacion/useGetWorkOrdersByAircraft";
 import { useCreateDirectiveCompliance } from "@/actions/mantenimiento/planificacion/control_directivas/actions";
+import { WorkOrderField } from "@/components/forms/mantenimiento/planificacion/WorkOrderField";
 import {
   SearchableSelect,
   fieldClass,
@@ -110,8 +109,6 @@ export function RegisterDirectiveComplianceDialog({
   const { selectedCompany } = useCompanyStore();
   const { data: providers, isLoading: isLoadingProviders } =
     useGetMaintenanceProviders(selectedCompany?.slug);
-  const { data: workOrders, isLoading: isLoadingWorkOrders } =
-    useGetWorkOrdersByAircraft(selectedCompany?.slug, aircraftId);
   const { createDirectiveCompliance } = useCreateDirectiveCompliance();
 
   const form = useForm<FormValues>({
@@ -159,7 +156,7 @@ export function RegisterDirectiveComplianceDialog({
         <TooltipContent>Registrar cumplimiento</TooltipContent>
       </Tooltip>
 
-      <DialogContent className="sm:max-w-[520px]">
+      <DialogContent className="sm:max-w-130">
         <DialogHeader>
           <DialogTitle>Registrar Cumplimiento</DialogTitle>
           <DialogDescription>{itemName}</DialogDescription>
@@ -250,43 +247,15 @@ export function RegisterDirectiveComplianceDialog({
               control={form.control}
               name="work_order_id"
               render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormLabel className={labelClass}>
-                    Orden de Trabajo{" "}
-                    <span className="text-xs text-muted-foreground">
-                      (Opcional)
-                    </span>
-                  </FormLabel>
-                  <SearchableSelect
-                    options={(workOrders ?? []).map((wo) => ({
-                      ...wo,
-                      name: wo.order_number,
-                    }))}
-                    value={field.value}
-                    loading={isLoadingWorkOrders}
-                    placeholder={
-                      workOrders?.length
-                        ? "Seleccione..."
-                        : "Esta aeronave no tiene Órdenes de Trabajo"
-                    }
-                    searchPlaceholder="Buscar orden de trabajo..."
-                    emptyLabel="No se encontró ninguna orden de trabajo."
-                    onSelect={(wo) => field.onChange(String(wo.id))}
-                    renderLabel={(wo) => (
-                      <span className="flex items-center gap-2">
-                        {wo.order_number}
-                        <Badge variant="outline" className="text-[10px]">
-                          {wo.status}
-                        </Badge>
-                      </span>
-                    )}
-                  />
-                  <FormDescription className={hintClass}>
-                    Vacío si el trabajo lo hizo un taller externo sin orden
-                    propia.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
+                <WorkOrderField
+                  value={field.value}
+                  onChange={field.onChange}
+                  aircraftId={aircraftId}
+                  subject={itemName}
+                  taskDescription={itemName}
+                  pendingWorkOrder={pendingWorkOrder}
+                  hint="Vacío si el trabajo lo hizo un taller externo sin orden propia."
+                />
               )}
             />
 

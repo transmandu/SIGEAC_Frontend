@@ -54,6 +54,9 @@ import {
   type RetiredRow,
 } from "@/components/planificacion/controles/RetiredItemsSection";
 import { RetireRecordButton } from "@/components/planificacion/controles/RetireRecordButton";
+import { useLinkAvionicsPendingWorkOrder } from "@/actions/mantenimiento/planificacion/control_avionica/actions";
+import { WorkOrderCell } from "@/components/planificacion/controles/WorkOrderCell";
+import { AddToQueueButton } from "@/components/planificacion/cola/AddToQueueButton";
 import {
   AlertTriangle,
   Clock,
@@ -61,7 +64,6 @@ import {
   Radio,
   Search,
   SquarePen,
-  Wrench,
 } from "lucide-react";
 
 function InfoItem({
@@ -102,21 +104,15 @@ function TruncatedText({ children }: { children: string }) {
 function PrimaryTaskAction({
   item,
   task,
-  status,
   company,
-  controlId,
   aircraftId,
-  aircraftAcronym,
   aircraftHours,
   aircraftCycles,
 }: {
   item: AvionicsControlItem;
   task: AvionicsControlTask;
-  status: ItemStatus;
   company: string;
-  controlId: string | number;
   aircraftId: number | string;
-  aircraftAcronym?: string;
   aircraftHours: number;
   aircraftCycles: number;
 }) {
@@ -126,64 +122,43 @@ function PrimaryTaskAction({
   const isBlockedByWorkOrder =
     !!pendingWorkOrder && pendingWorkOrder.status !== "CLOSED";
 
-  if (isBlockedByWorkOrder) {
-    return (
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Link
-            href={`/${company}/planificacion/ordenes_trabajo/${pendingWorkOrder!.order_number}`}
-            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground hover:underline"
-          >
-            <Clock className="size-3.5 shrink-0" />
-            <span className="truncate">{pendingWorkOrder!.order_number}</span>
-          </Link>
-        </TooltipTrigger>
-        <TooltipContent>
-          Bloqueado hasta que se cierre la Orden de Trabajo{" "}
-          {pendingWorkOrder!.order_number}.
-        </TooltipContent>
-      </Tooltip>
-    );
-  }
-
-  if ((status === "CRITICAL" || status === "OVERDUE") && !pendingWorkOrder) {
-    const params = new URLSearchParams({
-      aircraft_id: String(aircraftId),
-      avionics_control_task_id: String(task.id),
-      avionics_control_id: String(controlId),
-      task_description: `${item.description}${item.position ? ` ${item.position}` : ""} (P/N ${item.part_number}, S/N ${item.serial})${aircraftAcronym ? ` — ${aircraftAcronym}` : ""}: ${AVIONICS_ACTION_LABELS[task.action].toLowerCase()} por vencimiento del Control de Aviónica.`,
-    });
-
-    return (
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Link
-            href={`/${company}/planificacion/ordenes_trabajo/nueva_orden_trabajo?${params.toString()}`}
-          >
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7 text-orange-600 hover:text-orange-700"
-            >
-              <Wrench className="size-4" />
-              <span className="sr-only">Crear Orden de Trabajo</span>
-            </Button>
-          </Link>
-        </TooltipTrigger>
-        <TooltipContent>Crear Orden de Trabajo</TooltipContent>
-      </Tooltip>
-    );
-  }
+  const taskName = `${AVIONICS_ACTION_LABELS[task.action]} — ${item.description}${item.position ? ` ${item.position}` : ""} · S/N ${item.serial}`;
 
   return (
-    <RegisterAvionicsComplianceDialog
-      taskId={task.id}
-      taskName={`${AVIONICS_ACTION_LABELS[task.action]} — ${item.description}${item.position ? ` ${item.position}` : ""} · S/N ${item.serial}`}
-      aircraftId={aircraftId}
-      defaultHours={aircraftHours}
-      defaultCycles={aircraftCycles}
-      pendingWorkOrder={pendingWorkOrder ?? null}
-    />
+    <>
+      <AddToQueueButton
+        type="avionics_control_task"
+        itemId={task.id}
+        subject={`tarea «${taskName}»`}
+      />
+
+      {isBlockedByWorkOrder ? (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Link
+              href={`/${company}/planificacion/ordenes_trabajo/${pendingWorkOrder!.order_number}`}
+              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground hover:underline"
+            >
+              <Clock className="size-3.5 shrink-0" />
+              <span className="truncate">{pendingWorkOrder!.order_number}</span>
+            </Link>
+          </TooltipTrigger>
+          <TooltipContent>
+            Bloqueado hasta que se cierre la Orden de Trabajo{" "}
+            {pendingWorkOrder!.order_number}.
+          </TooltipContent>
+        </Tooltip>
+      ) : (
+        <RegisterAvionicsComplianceDialog
+          taskId={task.id}
+          taskName={taskName}
+          aircraftId={aircraftId}
+          defaultHours={aircraftHours}
+          defaultCycles={aircraftCycles}
+          pendingWorkOrder={pendingWorkOrder ?? null}
+        />
+      )}
+    </>
   );
 }
 
@@ -196,7 +171,7 @@ function TaskActionCell({
   if (!props.task.id || controlRetired) return null;
 
   return (
-    <div className="flex items-center justify-end gap-0.5">
+    <div className="flex flex-col items-end gap-0.5">
       <PrimaryTaskAction {...props} />
       <RetireRecordButton
         recordType="avionics_control_task"
@@ -214,7 +189,7 @@ const COL = {
   next: "w-[115px]",
   remaining: "w-[150px]",
   provider: "w-[140px]",
-  workOrder: "w-[110px]",
+  workOrder: "w-[150px]",
   actions: "w-[80px]",
 };
 
@@ -226,6 +201,8 @@ const AvionicsControlDetailPage = () => {
     isLoading,
     isError,
   } = useGetAvionicsControl(selectedCompany?.slug, id);
+  const { linkAvionicsPendingWorkOrder } = useLinkAvionicsPendingWorkOrder();
+  const selectedCompanySlug = selectedCompany?.slug;
 
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
@@ -459,7 +436,7 @@ const AvionicsControlDetailPage = () => {
                     <TableHead
                       className={cn(COL.workOrder, "bg-muted/40 font-semibold")}
                     >
-                      OT en curso
+                      Orden de Trabajo
                     </TableHead>
                     <TableHead className={cn(COL.actions, "bg-muted/40")} />
                   </TableRow>
@@ -475,8 +452,6 @@ const AvionicsControlDetailPage = () => {
                           ? STATUS_META[computed.status]
                           : null;
                         const pending = task.pending_work_order;
-                        const lastWorkOrder =
-                          task.latest_compliance?.work_order?.order_number;
                         return (
                           <TableRow
                             key={task.id ?? t}
@@ -554,14 +529,6 @@ const AvionicsControlDetailPage = () => {
                                   <span className="block truncate">
                                     {computed.applied}
                                   </span>
-                                  {lastWorkOrder && (
-                                    <Link
-                                      href={`/${company}/planificacion/ordenes_trabajo/${lastWorkOrder}`}
-                                      className="block truncate text-xs text-primary hover:underline"
-                                    >
-                                      {lastWorkOrder}
-                                    </Link>
-                                  )}
                                 </TableCell>
                                 <TableCell className={cn(COL.next, "truncate")}>
                                   <span className="block truncate">
@@ -631,44 +598,51 @@ const AvionicsControlDetailPage = () => {
                                     {computed.providerName}
                                   </TruncatedText>
                                 </TableCell>
-                                <TableCell className={COL.workOrder}>
-                                  {pending && pending.status !== "CLOSED" ? (
-                                    <Link
-                                      href={`/${company}/planificacion/ordenes_trabajo/${pending.order_number}`}
-                                      className="truncate text-primary hover:underline"
-                                    >
-                                      {pending.order_number}
-                                    </Link>
-                                  ) : (
-                                    <span className="text-muted-foreground">
-                                      —
-                                    </span>
-                                  )}
-                                </TableCell>
-                                <TableCell className={COL.actions}>
-                                  <TaskActionCell
-                                    item={item}
-                                    task={task}
-                                    status={computed.status}
-                                    company={company}
-                                    controlId={control.id}
-                                    aircraftId={control.aircraft.id}
-                                    aircraftAcronym={control.aircraft?.acronym}
-                                    aircraftHours={aircraftHours}
-                                    aircraftCycles={aircraftCycles}
-                                    controlRetired={controlRetired}
-                                  />
-                                </TableCell>
                               </>
                             ) : (
+                              // 5 columnas de plazo (límite, aplicada, próximo,
+                              // remanente, proveedor). Las de OT y acciones
+                              // quedan fuera: una tarea por condición no tiene
+                              // plazo, pero se cumple y se certifica igual, así
+                              // que también lleva su orden de trabajo y puede
+                              // mandarse a la cola.
                               <TableCell
-                                colSpan={7}
+                                colSpan={5}
                                 className="text-sm text-muted-foreground"
                               >
                                 Sin plazo — se verifica en tierra en cada
                                 inspección y se certifica en el 43-005.
                               </TableCell>
                             )}
+                            <TableCell className={COL.workOrder}>
+                              <WorkOrderCell
+                                company={company}
+                                aircraftId={control.aircraft.id}
+                                subject={`tarea «${AVIONICS_ACTION_LABELS[task.action]} — ${item.description} · S/N ${item.serial}»`}
+                                taskDescription={`${AVIONICS_ACTION_LABELS[task.action]} — ${item.description}${item.position ? ` ${item.position}` : ""} (P/N ${item.part_number}, S/N ${item.serial})`}
+                                previous={task.latest_compliance?.work_order}
+                                current={pending}
+                                readOnly={controlRetired || !task.id}
+                                onWorkOrderCreated={(workOrder) =>
+                                  linkAvionicsPendingWorkOrder.mutateAsync({
+                                    company: selectedCompanySlug!,
+                                    taskId: task.id!,
+                                    workOrderId: workOrder.id,
+                                  })
+                                }
+                              />
+                            </TableCell>
+                            <TableCell className={COL.actions}>
+                              <TaskActionCell
+                                item={item}
+                                task={task}
+                                company={company}
+                                aircraftId={control.aircraft.id}
+                                aircraftHours={aircraftHours}
+                                aircraftCycles={aircraftCycles}
+                                controlRetired={controlRetired}
+                              />
+                            </TableCell>
                           </TableRow>
                         );
                       })}

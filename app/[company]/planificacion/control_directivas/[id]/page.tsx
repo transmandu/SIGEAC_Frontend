@@ -59,6 +59,9 @@ import { RecordAuditHistory } from "@/components/planificacion/auditoria/RecordA
 import { RetiredControlBanner } from "@/components/planificacion/controles/RetiredControlBanner";
 import { RetiredItemsSection } from "@/components/planificacion/controles/RetiredItemsSection";
 import { RetireRecordButton } from "@/components/planificacion/controles/RetireRecordButton";
+import { useLinkDirectivePendingWorkOrder } from "@/actions/mantenimiento/planificacion/control_directivas/actions";
+import { WorkOrderCell } from "@/components/planificacion/controles/WorkOrderCell";
+import { AddToQueueButton } from "@/components/planificacion/cola/AddToQueueButton";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -69,7 +72,6 @@ import {
   Search,
   ShieldAlert,
   SquarePen,
-  Wrench,
 } from "lucide-react";
 
 function InfoItem({
@@ -110,23 +112,20 @@ function TruncatedText({ children }: { children: string }) {
  * Mismo ciclo que los otros controles. Una AD aplicable sin plazo también
  * puede registrar cumplimiento (el backend solo exige que sea aplicable y no
  * esté cerrada).
+ *
+ * Una AD de única vez ya cumplida no ofrece nada: no hay cumplimiento que
+ * registrar ni trabajo que ordenar, así que tampoco se encola.
  */
 function PrimaryItemAction({
   item,
-  status,
   company,
-  controlId,
   aircraftId,
-  aircraftAcronym,
   currentHours,
   currentCycles,
 }: {
   item: DirectiveControlItem;
-  status: ItemStatus | null;
   company: string;
-  controlId: string | number;
   aircraftId: number | string;
-  aircraftAcronym?: string;
   currentHours: number;
   currentCycles: number;
 }) {
@@ -136,65 +135,42 @@ function PrimaryItemAction({
   const isBlockedByWorkOrder =
     !!pendingWorkOrder && pendingWorkOrder.status !== "CLOSED";
 
-  if (isBlockedByWorkOrder) {
-    return (
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Link
-            href={`/${company}/planificacion/ordenes_trabajo/${pendingWorkOrder!.order_number}`}
-            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground hover:underline"
-          >
-            <Clock className="size-3.5 shrink-0" />
-            <span className="truncate">{pendingWorkOrder!.order_number}</span>
-          </Link>
-        </TooltipTrigger>
-        <TooltipContent>
-          Bloqueado hasta que se cierre la Orden de Trabajo{" "}
-          {pendingWorkOrder!.order_number}.
-        </TooltipContent>
-      </Tooltip>
-    );
-  }
-
-  if ((status === "CRITICAL" || status === "OVERDUE") && !pendingWorkOrder) {
-    const params = new URLSearchParams({
-      aircraft_id: String(aircraftId),
-      directive_control_item_id: String(item.id),
-      directive_control_id: String(controlId),
-      task_description: `AD ${item.ad_number}${item.revision ? ` ${item.revision}` : ""} (${DIRECTIVE_AUTHORITY_LABELS[item.authority]})${aircraftAcronym ? ` — ${aircraftAcronym}` : ""}: ${item.description}${item.compliance_method ? `. Método: ${item.compliance_method}` : ""}.`,
-    });
-
-    return (
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Link
-            href={`/${company}/planificacion/ordenes_trabajo/nueva_orden_trabajo?${params.toString()}`}
-          >
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7 text-orange-600 hover:text-orange-700"
-            >
-              <Wrench className="size-4" />
-              <span className="sr-only">Crear Orden de Trabajo</span>
-            </Button>
-          </Link>
-        </TooltipTrigger>
-        <TooltipContent>Crear Orden de Trabajo</TooltipContent>
-      </Tooltip>
-    );
-  }
-
   return (
-    <RegisterDirectiveComplianceDialog
-      itemId={item.id}
-      itemName={`AD ${item.ad_number} — ${item.description}`}
-      defaultMethod={item.compliance_method}
-      aircraftId={aircraftId}
-      defaultHours={currentHours}
-      defaultCycles={currentCycles}
-      pendingWorkOrder={pendingWorkOrder ?? null}
-    />
+    <>
+      <AddToQueueButton
+        type="directive_control_item"
+        itemId={item.id}
+        subject={`AD «${item.ad_number}»`}
+      />
+
+      {isBlockedByWorkOrder ? (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Link
+              href={`/${company}/planificacion/ordenes_trabajo/${pendingWorkOrder!.order_number}`}
+              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground hover:underline"
+            >
+              <Clock className="size-3.5 shrink-0" />
+              <span className="truncate">{pendingWorkOrder!.order_number}</span>
+            </Link>
+          </TooltipTrigger>
+          <TooltipContent>
+            Bloqueado hasta que se cierre la Orden de Trabajo{" "}
+            {pendingWorkOrder!.order_number}.
+          </TooltipContent>
+        </Tooltip>
+      ) : (
+        <RegisterDirectiveComplianceDialog
+          itemId={item.id}
+          itemName={`AD ${item.ad_number} — ${item.description}`}
+          defaultMethod={item.compliance_method}
+          aircraftId={aircraftId}
+          defaultHours={currentHours}
+          defaultCycles={currentCycles}
+          pendingWorkOrder={pendingWorkOrder ?? null}
+        />
+      )}
+    </>
   );
 }
 
@@ -208,7 +184,7 @@ function ItemActionCell({
   if (!props.item.id || controlRetired) return null;
 
   return (
-    <div className="flex items-center justify-end gap-0.5">
+    <div className="flex flex-col items-end gap-0.5">
       <PrimaryItemAction {...props} />
       <RetireRecordButton
         recordType="directive_control_item"
@@ -227,7 +203,7 @@ const COL = {
   next: "w-[115px]",
   remaining: "w-[150px]",
   provider: "w-[140px]",
-  workOrder: "w-[110px]",
+  workOrder: "w-[150px]",
   actions: "w-[80px]",
 };
 
@@ -525,6 +501,10 @@ function DirectivesTable({
   currentCycles: number;
   remainingPercentage: number;
 }) {
+  const { selectedCompany } = useCompanyStore();
+  const { linkDirectivePendingWorkOrder } = useLinkDirectivePendingWorkOrder();
+  const selectedCompanySlug = selectedCompany?.slug;
+
   if (!items.length) {
     return <p className="text-sm italic text-muted-foreground">{emptyLabel}</p>;
   }
@@ -562,7 +542,7 @@ function DirectivesTable({
             <TableHead
               className={cn(COL.workOrder, "bg-muted/40 font-semibold")}
             >
-              OT en curso
+              Orden de Trabajo
             </TableHead>
             <TableHead className={cn(COL.actions, "bg-muted/40")} />
           </TableRow>
@@ -575,7 +555,6 @@ function DirectivesTable({
             const meta = computed ? STATUS_META[computed.status] : null;
             const pending = item.pending_work_order;
             const lastCompliance = item.latest_compliance;
-            const lastWorkOrder = lastCompliance?.work_order?.order_number;
 
             return (
               <TableRow
@@ -632,14 +611,6 @@ function DirectivesTable({
                         <span className="block truncate text-xs italic text-muted-foreground">
                           Fecha de referencia
                         </span>
-                      )}
-                      {lastWorkOrder && (
-                        <Link
-                          href={`/${company}/planificacion/ordenes_trabajo/${lastWorkOrder}`}
-                          className="block truncate text-xs text-primary hover:underline"
-                        >
-                          {lastWorkOrder}
-                        </Link>
                       )}
                     </TableCell>
                     <TableCell className={cn(COL.next, "truncate")}>
@@ -711,14 +682,6 @@ function DirectivesTable({
                       <span className="block truncate">
                         {formatDate(item.complied_at)}
                       </span>
-                      {lastWorkOrder && (
-                        <Link
-                          href={`/${company}/planificacion/ordenes_trabajo/${lastWorkOrder}`}
-                          className="block truncate text-xs text-primary hover:underline"
-                        >
-                          {lastWorkOrder}
-                        </Link>
-                      )}
                     </TableCell>
                     <TableCell colSpan={2} className="text-sm">
                       <span className="inline-flex items-center gap-1.5 font-semibold text-emerald-600 dark:text-emerald-400">
@@ -748,25 +711,32 @@ function DirectivesTable({
                 )}
 
                 <TableCell className={COL.workOrder}>
-                  {pending && pending.status !== "CLOSED" ? (
-                    <Link
-                      href={`/${company}/planificacion/ordenes_trabajo/${pending.order_number}`}
-                      className="truncate text-primary hover:underline"
-                    >
-                      {pending.order_number}
-                    </Link>
-                  ) : (
-                    <span className="text-muted-foreground">—</span>
-                  )}
+                  <WorkOrderCell
+                    company={company}
+                    aircraftId={control.aircraft.id}
+                    subject={`AD «${item.ad_number}»`}
+                    taskDescription={`AD ${item.ad_number}${item.revision ? ` ${item.revision}` : ""} (${DIRECTIVE_AUTHORITY_LABELS[item.authority]}): ${item.description}${item.compliance_method ? `. Método: ${item.compliance_method}` : ""}`}
+                    previous={lastCompliance?.work_order}
+                    current={pending}
+                    // Una AD de única vez ya cumplida no vuelve a necesitar
+                    // orden: solo queda su historia.
+                    readOnly={
+                      !!control.retired_at || !item.id || !!item.complied_at
+                    }
+                    onWorkOrderCreated={(workOrder) =>
+                      linkDirectivePendingWorkOrder.mutateAsync({
+                        company: selectedCompanySlug!,
+                        itemId: item.id!,
+                        workOrderId: workOrder.id,
+                      })
+                    }
+                  />
                 </TableCell>
                 <TableCell className={COL.actions}>
                   <ItemActionCell
                     item={item}
-                    status={computed?.status ?? null}
                     company={company}
-                    controlId={control.id}
                     aircraftId={control.aircraft.id}
-                    aircraftAcronym={control.aircraft?.acronym}
                     currentHours={currentHours}
                     currentCycles={currentCycles}
                     controlRetired={!!control.retired_at}

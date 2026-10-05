@@ -12,6 +12,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useCanRetireControlRecord } from "@/hooks/mantenimiento/planificacion/useCanRetireControlRecord";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Archive, ArchiveRestore } from "lucide-react";
 import { useState } from "react";
@@ -31,6 +32,12 @@ export function RetireRecordButton({
   const [open, setOpen] = useState(false);
   const { selectedCompany } = useCompanyStore();
   const { retireControlRecord } = useRetireControlRecord();
+  const canRetire = useCanRetireControlRecord();
+
+  // Se oculta en vez de deshabilitarse: una acción de jefatura que el usuario
+  // nunca va a poder usar es ruido en una celda de acciones, no información.
+  // Las celdas que lo contienen son flex, así que se reacomodan solas.
+  if (!canRetire) return null;
 
   return (
     <>
@@ -82,6 +89,10 @@ export function RestoreRecordButton({
   const [open, setOpen] = useState(false);
   const { selectedCompany } = useCompanyStore();
   const { restoreControlRecord } = useRestoreControlRecord();
+  const canRetire = useCanRetireControlRecord();
+
+  // Quien no puede dar de baja tampoco reactiva: es la misma decisión.
+  if (!canRetire) return null;
 
   return (
     <>

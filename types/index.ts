@@ -602,6 +602,75 @@ export type MaintenanceControlSnapshot = {
   items: MaintenanceControlSnapshotItem[];
 };
 
+// ─── Bandeja de trabajo ─────────────────────────────────────────────────────
+// Transversal a los cuatro controles: lo que el usuario fue marcando en
+// Mantenimiento, Componentes, Aviónica y Directivas, de cualquier aeronave,
+// para resolverlo después. Acumula libre; se valida al emitir.
+
+/** Los mismos nombres que usa el backend (ControlQueueEntry::TYPES). */
+export type ControlQueueType =
+  | "maintenance_control_item"
+  | "component_control_item"
+  | "avionics_control_task"
+  | "directive_control_item";
+
+/**
+ * A qué conjunto de la aeronave pertenece el ítem, que es lo que decide en qué
+ * hoja del formato entra: los certificados van en la suya, los servicios de la
+ * aeronave en la de aeronave, y cada motor/hélice en la propia.
+ */
+export type ControlQueueGroupKind = "CERTIFICATE" | "AIRCRAFT" | "PART";
+
+export type ControlQueueEntry = {
+  id: number;
+  type: ControlQueueType;
+  item_id: number;
+  aircraft_id: number;
+  aircraft_acronym?: string | null;
+  /** Solo en entradas cuyo ítem se eliminó después de entrar a la bandeja. */
+  missing?: boolean;
+  group_kind?: ControlQueueGroupKind;
+  /** Identifica el conjunto concreto: dos motores son dos grupos distintos. */
+  group_key?: string;
+  group_label?: string;
+  part_type?: string | null;
+  /** Serial de la parte, suelto: la etiqueta se rearma sin parsear `group_label`. */
+  part_serial?: string | null;
+  control_id?: number | null;
+  control_title?: string | null;
+  label?: string;
+  /** Acción del ítem (componentes/aviónica); se traduce en el frontend. */
+  action?: ComponentAction | AvionicsAction | null;
+  /** Null cuando el ítem no tiene estado calculable (por condición, AD de única vez cumplida). */
+  computed?: MaintenanceControlItemComputed | null;
+  retired_at?: string | null;
+  pending_work_order?: {
+    id: number;
+    order_number: string;
+    status: string;
+  } | null;
+  note?: string | null;
+  queued_at?: string;
+};
+
+export type ControlQueue = {
+  entries: ControlQueueEntry[];
+};
+
+/** Un formato INAC con filas en lo seleccionado. */
+export type ControlQueueFormat = {
+  format: string;
+  label: string;
+  rows: number;
+};
+
+/** Resultado de atar una OT a la selección: lo que entró y lo que no. */
+export type ControlQueueAttachResult = {
+  work_order: { id: number; order_number: string };
+  attached: { id: number; label?: string }[];
+  skipped: { id: number; label?: string; reason: string }[];
+};
+
 // ─── Control de Componentes (Forma INAC-43-004) ─────────────────────────────
 // Hermano del Control de Mantenimiento: mismo `computed` (el calculador es el
 // mismo), pero cada ítem es un componente físico P/N + S/N.
