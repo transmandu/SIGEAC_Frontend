@@ -1,3 +1,7 @@
+## v4.44.0 — 2026-10-05
+
+- feat: add AddDirectiveControlItemDialog and AddMaintenanceControlItem… (#315)
+
 ## v4.43.0 — 2026-10-05
 
 - feat: restrict access to directive control pages to SUPERUSER role (#313)
