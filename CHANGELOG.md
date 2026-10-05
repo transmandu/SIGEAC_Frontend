@@ -1,3 +1,7 @@
+## v4.43.0 — 2026-10-05
+
+- feat: restrict access to directive control pages to SUPERUSER role (#313)
+
 ## v4.42.0 — 2026-10-05
 
 - feat: implementación de los controles de planificación (#312)
