@@ -633,10 +633,12 @@ const ComponentControlDetailPage = () => {
     .map(([partId, part]) => {
       const type = (part.type ?? "").toUpperCase();
       counters[type] = (counters[type] ?? 0) + 1;
+      const typeLabel = `${partTypeLabel(part.type)} ${counters[type]}`;
       return {
         id: partId,
         part,
-        label: `${partTypeLabel(part.type)} ${counters[type]}${part.serial ? ` - ${part.serial}` : ""}`,
+        typeLabel,
+        label: `${typeLabel}${part.serial ? ` - ${part.serial}` : ""}`,
       };
     });
 
@@ -832,11 +834,22 @@ const ComponentControlDetailPage = () => {
           />
         </FormSection>
 
-        {parents.map(({ id: partId, part, label }) => (
+        {parents.map(({ id: partId, part, label, typeLabel }) => (
           <FormSection
             key={partId}
             icon={Cog}
-            title={label}
+            title={
+              <>
+                {typeLabel}
+                {part.serial && (
+                  <>
+                    {" "}
+                    <span className="text-muted-foreground">S/N:</span>{" "}
+                    {part.serial}
+                  </>
+                )}
+              </>
+            }
             hint={`Componentes medidos contra el TSN/CSN de ${label}.`}
             action={
               !controlRetired && (

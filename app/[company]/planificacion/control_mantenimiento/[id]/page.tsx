@@ -508,17 +508,23 @@ const MaintenanceControlDetailPage = () => {
     (i) => i.category === "SERVICE" && !i.maintenance_control_part_id,
   );
 
-  // "Motor 1 - <serial>", "Motor 2 - <serial>"...: numerado por orden de
-  // aparición dentro de su propio tipo, no por el número de parte (que no
-  // dice nada al usuario) — igual con Hélice, Turbina, APU.
+  // "Motor 1 S/N: <serial>", "Motor 2 S/N: <serial>"...: numerado por orden
+  // de aparición dentro de su propio tipo, no por el número de parte (que no
+  // dice nada al usuario) — igual con Hélice, Turbina, APU. `label` es texto
+  // plano (nombre de archivo, tooltip); `typeLabel` + `serial` separados
+  // armar el título con "S/N:" en gris, para no confundir el serial con un
+  // modelo que ya trae guiones propios (ej. TPE331-12UHR-701H).
   const partTypeCounters: Record<string, number> = {};
   const parts = (control.parts ?? []).map((part) => {
     const type = (part.aircraft_part?.type ?? "").toUpperCase();
     partTypeCounters[type] = (partTypeCounters[type] ?? 0) + 1;
     const serial = part.aircraft_part?.serial;
+    const typeLabel = `${partTypeLabel(part.aircraft_part?.type)} ${partTypeCounters[type]}`;
     return {
       ...part,
-      label: `${partTypeLabel(part.aircraft_part?.type)} ${partTypeCounters[type]}${serial ? ` - ${serial}` : ""}`,
+      typeLabel,
+      serial,
+      label: `${typeLabel}${serial ? ` - ${serial}` : ""}`,
     };
   });
 
@@ -722,7 +728,18 @@ const MaintenanceControlDetailPage = () => {
             <FormSection
               key={part.id}
               icon={Wrench}
-              title={part.label}
+              title={
+                <>
+                  {part.typeLabel}
+                  {part.serial && (
+                    <>
+                      {" "}
+                      <span className="text-muted-foreground">S/N:</span>{" "}
+                      {part.serial}
+                    </>
+                  )}
+                </>
+              }
               action={
                 <div className="flex items-center gap-1">
                   {!controlRetired && (

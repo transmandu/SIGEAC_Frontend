@@ -892,11 +892,13 @@ function PartsSection({ control }: { control: Control<any> }) {
                   {partTypeLabel(part.type)}
                 </span>
                 <span className="font-medium">
+                  <span className="text-muted-foreground">Modelo:</span>{" "}
                   {part.part_name || part.part_number}
                 </span>
                 {part.serial && (
-                  <span className="text-[11px] text-muted-foreground">
-                    S/N {part.serial}
+                  <span className="text-[11px]">
+                    <span className="text-muted-foreground">S/N:</span>{" "}
+                    {part.serial}
                   </span>
                 )}
               </span>
