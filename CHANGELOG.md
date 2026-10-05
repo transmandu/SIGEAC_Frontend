@@ -1,3 +1,7 @@
+## v4.42.0 — 2026-10-05
+
+- feat: implementación de los controles de planificación (#312)
+
 ## v4.41.0 — 2026-10-02
 
 - feat: add quote draft functionality (#311)
