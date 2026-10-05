@@ -1,35 +1,35 @@
-import { useDeleteWorkOrder } from "@/actions/mantenimiento/planificacion/ordenes_trabajo/actions"
-import EditWorkOrderForm from "@/components/forms/mantenimiento/planificacion/ordenes_trabajo/EditWorkOrderForm"
+import { useDeleteWorkOrder } from "@/actions/mantenimiento/planificacion/ordenes_trabajo/actions";
+import EditWorkOrderForm from "@/components/forms/mantenimiento/planificacion/ordenes_trabajo/EditWorkOrderForm";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu"
-import { WorkOrder } from "@/types"
-import { Edit, Loader2, MoreHorizontal, Trash2 } from "lucide-react"
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { useCompanyStore } from "@/stores/CompanyStore"
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { WorkOrder } from "@/types";
+import { Edit, MoreHorizontal, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { ReasonConfirmDialog } from "@/components/dialogs/mantenimiento/planificacion/ReasonConfirmDialog";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
-const WorkOrderDropdownActions = ({ work_order }: { work_order: WorkOrder }) => {
+const WorkOrderDropdownActions = ({
+  work_order,
+}: {
+  work_order: WorkOrder;
+}) => {
+  const [openDelete, setOpenDelete] = useState<boolean>(false);
+  const [openEdit, setOpenEdit] = useState<boolean>(false);
 
-  const [openDelete, setOpenDelete] = useState<boolean>(false)
-  const [openEdit, setOpenEdit] = useState<boolean>(false)
-
-  const { deleteWorkOrder } = useDeleteWorkOrder()
-  const { selectedCompany } = useCompanyStore()
-
-  const handleDelete = async (id: string) => {
-    try {
-      await deleteWorkOrder.mutateAsync({id, company: selectedCompany!.slug});
-    } catch (error) {
-      console.log(error)
-    } finally {
-      setOpenDelete(false);
-    }
-  }
+  const { deleteWorkOrder } = useDeleteWorkOrder();
+  const { selectedCompany } = useCompanyStore();
 
   return (
     <>
@@ -40,7 +40,10 @@ const WorkOrderDropdownActions = ({ work_order }: { work_order: WorkOrder }) => 
             <MoreHorizontal className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="center" className="flex flex-col gap-2 justify-center">
+        <DropdownMenuContent
+          align="center"
+          className="flex flex-col gap-2 justify-center"
+        >
           {/* Opción Editar */}
           <DropdownMenuItem
             onClick={() => setOpenEdit(true)}
@@ -55,7 +58,7 @@ const WorkOrderDropdownActions = ({ work_order }: { work_order: WorkOrder }) => 
             onClick={() => setOpenDelete(true)}
             className="cursor-pointer"
           >
-            <Trash2 className='size-5 text-red-500' />
+            <Trash2 className="size-5 text-red-500" />
             <p className="pl-2">Eliminar</p>
           </DropdownMenuItem>
         </DropdownMenuContent>
@@ -69,7 +72,8 @@ const WorkOrderDropdownActions = ({ work_order }: { work_order: WorkOrder }) => 
               Editar Orden de Trabajo — {work_order.order_number}
             </DialogTitle>
             <DialogDescription className="text-center">
-              Modifique los campos que desea actualizar y presione &quot;Guardar Cambios&quot;.
+              Modifique los campos que desea actualizar y presione &quot;Guardar
+              Cambios&quot;.
             </DialogDescription>
           </DialogHeader>
           <EditWorkOrderForm
@@ -79,24 +83,23 @@ const WorkOrderDropdownActions = ({ work_order }: { work_order: WorkOrder }) => 
         </DialogContent>
       </Dialog>
 
-      {/* Dialog para Eliminar */}
-      <Dialog open={openDelete} onOpenChange={setOpenDelete}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="text-center">¿Seguro que desea eliminar esta Ord. de Trabajo?</DialogTitle>
-            <DialogDescription className="text-center p-2 mb-0 pb-0">
-              Esta acción es irreversible y estaría eliminando por completo la orden de trabajo.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="flex flex-col gap-2 md:gap-0">
-            <Button className="bg-rose-400 hover:bg-white hover:text-black hover:border hover:border-black" onClick={() => setOpenDelete(false)} type="submit">Cancelar</Button>
-            <Button disabled={deleteWorkOrder.isPending} className="hover:bg-white hover:text-black hover:border hover:border-black transition-all" onClick={() => handleDelete(work_order.id.toString())}>{deleteWorkOrder.isPending ? <Loader2 className="size-4 animate-spin" /> : <p>Confirmar</p>}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ReasonConfirmDialog
+        open={openDelete}
+        onOpenChange={setOpenDelete}
+        title={`Eliminar la orden ${work_order.order_number}`}
+        description="Se borra la orden con sus tareas, no rutinarias e inspección preliminar. Si respalda cumplimientos registrados en un control, no puede eliminarse."
+        confirmLabel="Eliminar"
+        destructive
+        onConfirm={(reason) =>
+          deleteWorkOrder.mutateAsync({
+            id: work_order.id,
+            company: selectedCompany!.slug,
+            reason,
+          })
+        }
+      />
     </>
+  );
+};
 
-  )
-}
-
-export default WorkOrderDropdownActions
+export default WorkOrderDropdownActions;

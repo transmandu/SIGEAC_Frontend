@@ -3,13 +3,10 @@
 import axiosInstance, { isAuthEndpoint } from "@/lib/axios";
 import { createCookie, deleteCookie, hasAuthCookie } from "@/lib/cookie";
 import { resetEcho } from "@/lib/echo";
+import { setPostLoginRedirect } from "@/lib/postLoginRedirect";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { User } from "@/types";
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createContext,
   ReactNode,
@@ -75,10 +72,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setTokenChecked(true);
   }, []);
 
-  const {
-    data: user = null,
-    isLoading: userLoading,
-  } = useQuery<User | null>({
+  const { data: user = null, isLoading: userLoading } = useQuery<User | null>({
     queryKey: AUTH_USER_QUERY_KEY,
     queryFn: async () => {
       const { data } = await axiosInstance.get<User>("/user");
@@ -121,6 +115,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // coincidieran en una empresa.
       localStorage.removeItem("company-station-history");
 
+      // Un destino pendiente de la sesión que termina no es de la siguiente.
+      setPostLoginRedirect(null);
+
+      // El usuario se anula ANTES de navegar. removeQueries() vacía la caché,
+      // pero la query queda deshabilitada (hasToken=false) y sigue entregando su
+      // último dato: AuthRedirect veía sesión viva al aterrizar en /login y
+      // rebotaba a /inicio, en bucle con el 401 que originó este logout.
+      queryClient.setQueryData(AUTH_USER_QUERY_KEY, null);
       queryClient.removeQueries();
 
       router.replace("/login");
@@ -164,7 +166,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const interceptor = axiosInstance.interceptors.response.use(
       (response) => response,
       (error) => {
-        if (error.response?.status !== 401 || isAuthEndpoint(error.config?.url)) {
+        if (
+          error.response?.status !== 401 ||
+          isAuthEndpoint(error.config?.url)
+        ) {
           return Promise.reject(error);
         }
 
@@ -179,7 +184,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
 
         return Promise.reject(error);
-      }
+      },
     );
 
     return () => {
@@ -194,7 +199,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     mutationFn: async (credentials: { login: string; password: string }) => {
       const response = await axiosInstance.post<LoginResponse>(
         "/login",
-        credentials
+        credentials,
       );
 
       const token = response.headers["authorization"];
@@ -274,7 +279,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       loginMutation,
       logout,
       clearLoggingOut,
-    ]
+    ],
   );
 
   return (

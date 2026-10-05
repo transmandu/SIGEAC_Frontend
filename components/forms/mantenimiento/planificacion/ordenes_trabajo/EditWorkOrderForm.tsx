@@ -1,6 +1,10 @@
 "use client";
 
 import {
+  ConfirmedReason,
+  ReasonConfirmDialog,
+} from "@/components/dialogs/mantenimiento/planificacion/ReasonConfirmDialog";
+import {
   useUpdateWorkOrder,
   useUpdateWorkOrderTask,
   useAddWorkOrderTask,
@@ -26,16 +30,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCompanyStore } from "@/stores/CompanyStore";
@@ -130,7 +124,7 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
     })),
   );
 
-  // ─── Estado para el AlertDialog de confirmación de borrado ───────────────
+  // ─── Tarea a eliminar (se confirma con motivo) ───────────────────────────
   const [taskToDelete, setTaskToDelete] = useState<EditableTask | null>(null);
 
   // ─── Estado para auto-upload de documento ───────────────────────────────
@@ -196,20 +190,14 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
   };
 
   // ─── Confirmar eliminación de tarea existente ────────────────────────────
-  const confirmDeleteTask = async () => {
+  const confirmDeleteTask = async (reason: ConfirmedReason) => {
     if (!taskToDelete || !taskToDelete.id || !selectedCompany) return;
-    try {
-      await deleteWorkOrderTask.mutateAsync({
-        id: taskToDelete.id,
-        company: selectedCompany.slug,
-      });
-      // Quitarla del estado local también
-      setTasks((prev) => prev.filter((t) => t.tempId !== taskToDelete.tempId));
-    } catch (error) {
-      console.error("[EditWorkOrderForm] Error al eliminar tarea:", error);
-    } finally {
-      setTaskToDelete(null);
-    }
+    await deleteWorkOrderTask.mutateAsync({
+      id: taskToDelete.id,
+      company: selectedCompany.slug,
+      reason,
+    });
+    setTasks((prev) => prev.filter((t) => t.tempId !== taskToDelete.tempId));
   };
 
   // ─── Auto-upload del documento ──────────────────────────────────────────
@@ -337,38 +325,17 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
   // ─── Render ──────────────────────────────────────────────────────────────
   return (
     <>
-      {/* AlertDialog de confirmación para eliminar tarea existente */}
-      <AlertDialog
+      <ReasonConfirmDialog
         open={!!taskToDelete}
         onOpenChange={(open) => {
           if (!open) setTaskToDelete(null);
         }}
-      >
-        <AlertDialogContent aria-describedby="delete-task-description">
-          <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar esta tarea?</AlertDialogTitle>
-            <AlertDialogDescription id="delete-task-description">
-              Esta acción es <strong>irreversible</strong>. Se eliminarán la
-              tarea y todos sus ítems asociados de la orden de trabajo.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleteWorkOrderTask.isPending}>
-              Cancelar
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmDeleteTask}
-              disabled={deleteWorkOrderTask.isPending}
-              className="bg-red-500 hover:bg-red-600 text-white"
-            >
-              {deleteWorkOrderTask.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              ) : null}
-              Sí, eliminar
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        title="Eliminar la tarea"
+        description="Se eliminan la tarea y todos sus ítems de la orden de trabajo."
+        confirmLabel="Eliminar"
+        destructive
+        onConfirm={confirmDeleteTask}
+      />
 
       <div className="space-y-6">
         {/* Encabezado con info estática */}

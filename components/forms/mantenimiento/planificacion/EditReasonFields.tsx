@@ -28,6 +28,7 @@ interface EditReasonFieldsProps {
   error?: string;
   disabled?: boolean;
   className?: string;
+  label?: string;
 }
 
 // Controlado y sin depender de react-hook-form: EditWorkOrderForm guarda las
@@ -38,6 +39,7 @@ export function EditReasonFields({
   error,
   disabled,
   className,
+  label = "Motivo de la edición",
 }: EditReasonFieldsProps) {
   return (
     <div
@@ -47,9 +49,7 @@ export function EditReasonFields({
       )}
     >
       <div className="space-y-1.5">
-        <Label className={cn(error && "text-destructive")}>
-          Motivo de la edición
-        </Label>
+        <Label className={cn(error && "text-destructive")}>{label}</Label>
         <Select
           value={value.edit_reason}
           onValueChange={(reason) =>
@@ -77,7 +77,7 @@ export function EditReasonFields({
           {error ??
             (value.edit_reason
               ? EDIT_REASON_HINTS[value.edit_reason]
-              : "Queda en la auditoría de ediciones de Planificación.")}
+              : "Queda en la auditoría de Planificación.")}
         </p>
       </div>
       <div className="space-y-1.5">
@@ -109,4 +109,17 @@ export function editReasonErrorFrom(error: unknown): string | undefined {
   )?.response?.data?.errors;
 
   return errors?.edit_reason?.[0];
+}
+
+/** Primer mensaje del backend, sea del campo que sea ("tiene cumplimientos: debe darse de baja"). */
+export function backendMessageFrom(error: unknown): string | undefined {
+  const data = (
+    error as {
+      response?: {
+        data?: { errors?: Record<string, string[]>; message?: string };
+      };
+    }
+  )?.response?.data;
+
+  return Object.values(data?.errors ?? {}).flat()[0] ?? data?.message;
 }

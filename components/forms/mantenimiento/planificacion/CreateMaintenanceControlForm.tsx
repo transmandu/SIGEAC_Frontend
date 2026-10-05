@@ -1,0 +1,1379 @@
+"use client";
+
+import {
+  EditReasonFields,
+  EditReasonValue,
+  editReasonErrorFrom,
+} from "@/components/forms/mantenimiento/planificacion/EditReasonFields";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useForm,
+  useFieldArray,
+  useWatch,
+  useFormContext,
+  Control,
+} from "react-hook-form";
+import { zodResolver } from "@/lib/zod-resolver";
+import { z } from "zod";
+import { format, parseISO } from "date-fns";
+import {
+  Check,
+  ClipboardList,
+  FileCheck2,
+  Loader2,
+  Plane,
+  Plus,
+  Puzzle,
+  Wrench,
+  X,
+} from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { useRouter } from "next/navigation";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { cn } from "@/lib/utils";
+
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { useGetMaintenanceAircrafts } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts";
+import { useGetMaintenanceControls } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceControls";
+import {
+  useCreateMaintenanceControl,
+  useUpdateMaintenanceControl,
+} from "@/actions/mantenimiento/planificacion/control_mantenimiento/actions";
+import { CreateMaintenanceProviderDialog } from "@/components/dialogs/mantenimiento/planificacion/CreateMaintenanceProviderDialog";
+import { CatalogServicePicker } from "@/components/misc/CatalogServicePicker";
+import { MaintenanceAircraftPart, MaintenanceControl } from "@/types";
+import { partTypeLabel, partTypeRank } from "@/lib/maintenancePartTypes";
+import {
+  FormSection,
+  fieldClass,
+  hintClass,
+  labelClass,
+  selectTriggerClass,
+} from "./_theme";
+import {
+  AircraftSelect,
+  CatalogManualField,
+  CompactDateField,
+  NumericInput,
+  ProviderSelect,
+  useSuggestedControlTitle,
+} from "./_shared";
+
+const countingMethodEnum = z.enum(["HOURS", "CYCLES", "DAYS"]);
+
+// "" (input vacío) debe leerse como "no puesto todavía", no como 0 —
+// si no, el chequeo de "obligatorio en horas/ciclos" de más abajo nunca
+// dispara porque z.coerce.number() ya convirtió "" en 0.
+const optionalNumeric = z.preprocess(
+  (val) => (val === "" || val === undefined || val === null ? undefined : val),
+  z.coerce.number().min(0).optional(),
+);
+
+// Vacío = hereda el porcentaje general del control, no 0%.
+const optionalPercentage = z.preprocess(
+  (val) => (val === "" || val === undefined || val === null ? undefined : val),
+  z.coerce
+    .number()
+    .min(0, "Debe ser ≥ 0")
+    .max(100, "Debe ser ≤ 100")
+    .optional(),
+);
+
+// Un intervalo de vencimiento (unidad + límite + lectura inicial). N por
+// ítem, máximo uno por unidad ("lo que ocurra primero", ej. 6000 Hrs Ó 1825
+// Días — hasta 3, ver MaintenanceControlItemInterval en el backend).
+const intervalSchema = z.object({
+  id: z.number().optional(),
+  counting_method: countingMethodEnum,
+  limit_value: z.coerce.number().positive("Debe ser mayor a 0"),
+  // Obligatoria solo cuando la unidad no es días (ver superRefine de abajo),
+  // porque "próximo" en horas/ciclos se calcula desde acá, no de la fecha.
+  initial_value: optionalNumeric,
+});
+
+const baseItemSchema = z.object({
+  // Presente solo al editar; permite al backend actualizar el mismo
+  // registro en vez de recrearlo, para no perder su historial de
+  // cumplimientos. Las filas nuevas (creadas en el formulario) no lo llevan.
+  id: z.number().optional(),
+  // Servicio/certificado de origen en el catálogo de mantenimiento, si se
+  // eligió con el selector en vez de escribirlo a mano.
+  maintenance_catalog_service_id: z.number().optional(),
+  name: z.string().min(1, "Requerido"),
+  first_applied_date: z.date({ error: "Seleccione una fecha" }),
+  intervals: z.array(intervalSchema).min(1, "Agregue al menos un intervalo"),
+  remaining_percentage: optionalPercentage,
+});
+
+// Los certificados son documentos a bordo: algunos sí llevan una entidad
+// aeronáutica responsable y otros no, así que "Realizado por" siempre se
+// muestra pero es opcional. Los servicios (de aeronave y de parte) siempre
+// lo requieren.
+const certificateSchema = baseItemSchema.extend({
+  maintenance_provider_id: z.string().optional(),
+});
+
+const itemSchema = baseItemSchema.extend({
+  maintenance_provider_id: z.string().min(1, "Seleccione quién lo realiza"),
+});
+
+const partServiceSchema = itemSchema.extend({
+  aircraft_part_id: z.string(),
+});
+
+const formSchema = z
+  .object({
+    aircraft_id: z.string().min(1, "Seleccione una aeronave"),
+    title: z.string().min(1, "Ingrese un título"),
+    description: z.string().optional(),
+    has_reference_manual: z.boolean().default(false),
+    reference_manual: z.string().optional(),
+    // Manual del catálogo que llenó reference_manual, si se eligió uno en vez
+    // de tipearlo a mano; el catálogo ayuda a llenar, nunca obliga.
+    maintenance_catalog_manual_id: z.number().optional(),
+    remaining_percentage: z.coerce
+      .number()
+      .min(0, "Debe ser ≥ 0")
+      .max(100, "Debe ser ≤ 100"),
+    certificates: z.array(certificateSchema).default([]),
+    services: z.array(itemSchema).default([]),
+    selected_part_ids: z.array(z.string()).default([]),
+    part_services: z.array(partServiceSchema).default([]),
+  })
+  .superRefine((vals, ctx) => {
+    if (vals.has_reference_manual && !vals.reference_manual?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Indique el manual de referencia",
+        path: ["reference_manual"],
+      });
+    }
+
+    vals.selected_part_ids.forEach((partId) => {
+      const hasService = vals.part_services.some(
+        (s) => s.aircraft_part_id === partId,
+      );
+      if (!hasService) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Agregue al menos un servicio para cada parte seleccionada",
+          path: ["part_services"],
+        });
+      }
+    });
+
+    const requireInitialReading = (
+      items: {
+        intervals: { counting_method: string; initial_value?: number }[];
+      }[],
+      basePath: (string | number)[],
+    ) => {
+      items.forEach((item, index) => {
+        const seenMethods = new Set<string>();
+
+        item.intervals.forEach((interval, intervalIndex) => {
+          if (
+            interval.counting_method !== "DAYS" &&
+            interval.initial_value === undefined
+          ) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message:
+                "Indique las horas/ciclos que tenía la aeronave en la primera aplicación",
+              path: [
+                ...basePath,
+                index,
+                "intervals",
+                intervalIndex,
+                "initial_value",
+              ],
+            });
+          }
+
+          if (seenMethods.has(interval.counting_method)) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: "No puede repetir la misma unidad en dos intervalos",
+              path: [
+                ...basePath,
+                index,
+                "intervals",
+                intervalIndex,
+                "counting_method",
+              ],
+            });
+          }
+          seenMethods.add(interval.counting_method);
+        });
+      });
+    };
+
+    requireInitialReading(vals.certificates, ["certificates"]);
+    requireInitialReading(vals.services, ["services"]);
+    requireInitialReading(vals.part_services, ["part_services"]);
+  });
+
+type FormValues = z.infer<typeof formSchema>;
+
+// Nace con la primera unidad que no esté ya usada en el ítem — nunca "HOURS"
+// a ciegas, que ya estaría tomado si el intervalo anterior también la usa.
+const emptyInterval = (usedMethods: string[] = []) => ({
+  counting_method: (ALL_COUNTING_METHODS.find(
+    (m) => !usedMethods.includes(m),
+  ) ?? "HOURS") as "HOURS" | "CYCLES" | "DAYS",
+  limit_value: undefined as unknown as number,
+});
+
+const emptyCertificate = () => ({
+  name: "",
+  first_applied_date: undefined as unknown as Date,
+  intervals: [emptyInterval()],
+  maintenance_provider_id: "",
+});
+
+const emptyServiceItem = () => ({
+  ...emptyCertificate(),
+  maintenance_provider_id: "",
+});
+
+// Fila única: el rótulo de cada campo lo pone el encabezado de la lista
+// (ItemRowsHeader), así que acá adentro no vuelve a repetirse.
+// La última columna pasó de un botón (quitar fila) a dos (límite secundario +
+// quitar fila): 32px alcanzaba para uno solo.
+const ITEM_ROW_GRID =
+  "grid grid-cols-[minmax(200px,1fr)_92px_84px_96px_120px_88px_190px_64px] items-start gap-2";
+
+const ITEM_ROW_LABELS = [
+  "Nombre",
+  "Unidad",
+  "Límite",
+  "Lectura Inicial",
+  "1ra Fecha",
+  "% Alerta",
+  "Realizado Por",
+];
+
+function ItemRowsHeader() {
+  return (
+    <div className={cn(ITEM_ROW_GRID, "px-1")}>
+      {ITEM_ROW_LABELS.map((label) => (
+        <span
+          key={label}
+          className="truncate text-[11px] font-medium uppercase tracking-wide text-muted-foreground/70"
+        >
+          {label}
+        </span>
+      ))}
+      <span />
+    </div>
+  );
+}
+
+/** Celda "no aplica": mantiene el alto y el ancho de un campo real, para que
+ * la fila no salte al cambiar de unidad de conteo. Sin rótulo propio: lo da
+ * el encabezado de la lista. */
+function CompactPlaceholder() {
+  return (
+    <div
+      className={cn(
+        fieldClass,
+        "flex items-center justify-center text-sm text-muted-foreground/40 shadow-none",
+      )}
+    >
+      —
+    </div>
+  );
+}
+
+const ALL_COUNTING_METHODS = ["HOURS", "CYCLES", "DAYS"] as const;
+const COUNTING_METHOD_LABEL: Record<string, string> = {
+  HOURS: "Horas",
+  CYCLES: "Ciclos",
+  DAYS: "Días",
+};
+
+/**
+ * Una fila de intervalo dentro de un ítem. La primera (index 0) comparte fila
+ * con nombre/fecha/proveedor/acciones del ítem — las demás ("lo que ocurra
+ * primero") son su propia fila compacta debajo, con Unidad/Límite/Lectura
+ * inicial y un botón para quitar SOLO ese intervalo.
+ */
+function IntervalFields({
+  control,
+  namePrefix,
+  usedMethods,
+}: {
+  control: Control<any>;
+  namePrefix: string;
+  usedMethods: string[];
+}) {
+  const countingMethod = useWatch({
+    control,
+    name: `${namePrefix}.counting_method`,
+  });
+  const needsInitialReading = countingMethod && countingMethod !== "DAYS";
+  const availableMethods = ALL_COUNTING_METHODS.filter(
+    (unit) => unit === countingMethod || !usedMethods.includes(unit),
+  );
+
+  return (
+    <>
+      <FormField
+        control={control}
+        name={`${namePrefix}.counting_method`}
+        render={({ field }) => (
+          <FormItem className="space-y-0">
+            <Select
+              onValueChange={field.onChange}
+              value={field.value || undefined}
+            >
+              <FormControl>
+                <SelectTrigger className={selectTriggerClass}>
+                  <SelectValue placeholder="Unidad" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                {availableMethods.map((unit) => (
+                  <SelectItem key={unit} value={unit}>
+                    {COUNTING_METHOD_LABEL[unit]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={control}
+        name={`${namePrefix}.limit_value`}
+        render={({ field }) => (
+          <FormItem className="space-y-0">
+            <FormControl>
+              <NumericInput
+                placeholder="0"
+                className={fieldClass}
+                value={field.value}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+                name={field.name}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      {needsInitialReading ? (
+        <FormField
+          control={control}
+          name={`${namePrefix}.initial_value`}
+          render={({ field }) => (
+            <FormItem className="space-y-0">
+              <FormControl>
+                <NumericInput
+                  placeholder="0"
+                  className={fieldClass}
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  name={field.name}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      ) : (
+        <CompactPlaceholder />
+      )}
+    </>
+  );
+}
+
+function ItemRow({
+  control,
+  namePrefix,
+  category,
+  onRemove,
+}: {
+  control: Control<any>;
+  namePrefix: string;
+  category: "CERTIFICATE" | "SERVICE";
+  onRemove: () => void;
+}) {
+  const { setValue } = useFormContext<FormValues>();
+  const aircraftId = useWatch({ control, name: "aircraft_id" });
+  const manualId = useWatch({ control, name: "maintenance_catalog_manual_id" });
+  const manualName = useWatch({ control, name: "reference_manual" });
+  const name = useWatch({ control, name: `${namePrefix}.name` });
+  const controlPercentage = useWatch({ control, name: "remaining_percentage" });
+
+  const {
+    fields: intervalFields,
+    append: appendInterval,
+    remove: removeInterval,
+    replace: replaceIntervals,
+  } = useFieldArray({
+    control,
+    name: `${namePrefix}.intervals`,
+  });
+  const intervals = useWatch({ control, name: `${namePrefix}.intervals` }) as {
+    counting_method: string;
+    initial_value?: number;
+  }[];
+  const usedMethods = (intervals ?? [])
+    .map((i) => i.counting_method)
+    .filter(Boolean);
+  const canAddInterval = intervalFields.length < ALL_COUNTING_METHODS.length;
+
+  // La X de cada fila siempre quita SOLO ese intervalo — salvo que sea el
+  // único que le queda al ítem, ahí no puede dejarlo sin ningún límite y la
+  // X pasa a quitar el ítem completo (nombre, fecha, proveedor, todo).
+  const removeIntervalRow = (index: number) => {
+    if (intervalFields.length === 1) {
+      onRemove();
+      return;
+    }
+    removeInterval(index);
+  };
+
+  return (
+    <div className="space-y-1.5">
+      <div className={ITEM_ROW_GRID}>
+        <div className="flex items-center gap-1">
+          <FormField
+            control={control}
+            name={`${namePrefix}.name`}
+            render={({ field }) => (
+              <FormItem className="w-full space-y-0">
+                <FormControl>
+                  <Input
+                    placeholder="EJ: Certificado de Aeronavegabilidad"
+                    className={fieldClass}
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <CatalogServicePicker
+            aircraftId={aircraftId}
+            category={category}
+            manualId={manualId}
+            manualName={manualName}
+            onSelectService={(service) => {
+              setValue(`${namePrefix}.name` as any, service.name, {
+                shouldValidate: true,
+              });
+              setValue(
+                `${namePrefix}.maintenance_catalog_service_id` as any,
+                service.id,
+              );
+              if (service.intervals?.length) {
+                // El catálogo aporta la periodicidad (unidad + límite), nunca
+                // la lectura inicial: esa es de ESTE ítem en ESTA aeronave. Se
+                // conserva la que el usuario ya hubiera cargado para la misma
+                // unidad, en vez de borrarla y dejar el formulario inválido.
+                const previousByMethod = new Map(
+                  (intervals ?? []).map((interval) => [
+                    interval.counting_method,
+                    interval.initial_value,
+                  ]),
+                );
+
+                // replaceIntervals (no setValue): el array lo gobierna
+                // useFieldArray, y escribirlo por fuera deja sus filas
+                // desincronizadas del valor real del formulario.
+                replaceIntervals(
+                  service.intervals.map((interval) => ({
+                    counting_method: interval.counting_method,
+                    limit_value: interval.interval_value,
+                    initial_value: previousByMethod.get(
+                      interval.counting_method,
+                    ),
+                  })),
+                );
+              }
+            }}
+          />
+        </div>
+
+        <IntervalFields
+          control={control}
+          namePrefix={`${namePrefix}.intervals.0`}
+          usedMethods={usedMethods}
+        />
+
+        <CompactDateField
+          control={control}
+          name={`${namePrefix}.first_applied_date`}
+        />
+
+        <FormField
+          control={control}
+          name={`${namePrefix}.remaining_percentage`}
+          render={({ field }) => (
+            <FormItem className="w-full space-y-0">
+              <FormControl>
+                <div className="relative">
+                  <NumericInput
+                    className={cn(fieldClass, "pr-6")}
+                    placeholder={
+                      controlPercentage != null ? String(controlPercentage) : ""
+                    }
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    name={field.name}
+                  />
+                  <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+                    %
+                  </span>
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <ProviderSelect
+          control={control}
+          name={`${namePrefix}.maintenance_provider_id`}
+        />
+
+        <div className="flex items-center">
+          <TooltipProvider disableHoverableContent>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  disabled={!canAddInterval}
+                  onClick={() => appendInterval(emptyInterval(usedMethods))}
+                  aria-label="Agregar intervalo"
+                  className="size-8 shrink-0 text-muted-foreground/70 disabled:opacity-30"
+                >
+                  <Plus className="size-3.5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {canAddInterval
+                  ? 'Agregar intervalo ("lo que ocurra primero")'
+                  : "Ya tiene un intervalo por cada unidad"}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={() => removeIntervalRow(0)}
+            aria-label={
+              intervalFields.length === 1
+                ? name
+                  ? `Quitar ${name}`
+                  : "Quitar fila"
+                : "Quitar este intervalo"
+            }
+            className="h-11 w-8 shrink-0 text-muted-foreground/70 hover:text-destructive"
+          >
+            <X className="size-3.5" />
+          </Button>
+        </div>
+      </div>
+
+      {intervalFields.length > 1 && (
+        <div className={cn(ITEM_ROW_GRID, "items-stretch gap-y-1.5")}>
+          {/* Una sola vez, centrado entre todas las filas extra (grid-row:
+              span sobre la misma columna de Nombre) — no es de ninguna fila
+              en particular, es la relación entre el intervalo principal y
+              todos estos. El pr-9 (no pr-1) hace que termine al ras del
+              borde derecho del INPUT de nombre, no de toda la celda: el
+              botón del picker de catálogo (size-8 + gap-1 = 36px) sigue
+              después de ese borde. */}
+          <p
+            className="flex items-center justify-end pr-9 text-right text-xs italic text-muted-foreground"
+            style={{ gridRow: `span ${intervalFields.length - 1}` }}
+          >
+            Ó (lo que ocurra primero)
+          </p>
+
+          {intervalFields.slice(1).map((field, i) => {
+            const index = i + 1;
+            return (
+              <Fragment key={field.id}>
+                <IntervalFields
+                  control={control}
+                  namePrefix={`${namePrefix}.intervals.${index}`}
+                  usedMethods={usedMethods}
+                />
+
+                {/* Fecha y Realizado Por son del ítem completo (un solo
+                    cumplimiento resetea todos los intervalos a la vez), no
+                    se repiten por fila. */}
+                <div className="col-span-2" />
+                <div className="flex items-center justify-end">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeIntervalRow(index)}
+                    aria-label="Quitar este intervalo"
+                    className="h-11 w-8 shrink-0 text-muted-foreground/70 hover:text-destructive"
+                  >
+                    <X className="size-3.5" />
+                  </Button>
+                </div>
+              </Fragment>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MaintenanceItemRows({
+  control,
+  name,
+  category,
+  emptyLabel,
+  createEmptyRow,
+}: {
+  control: Control<any>;
+  name: string;
+  category: "CERTIFICATE" | "SERVICE";
+  emptyLabel: string;
+  createEmptyRow: () => Record<string, unknown>;
+}) {
+  const { fields, append, remove } = useFieldArray({ control, name });
+
+  return (
+    <div className="space-y-3 overflow-x-auto p-1">
+      {fields.length > 0 && <ItemRowsHeader />}
+      <div className="space-y-2 [&>div]:min-w-225">
+        {fields.map((field, index) => (
+          <ItemRow
+            key={field.id}
+            control={control}
+            namePrefix={`${name}.${index}`}
+            category={category}
+            onRemove={() => remove(index)}
+          />
+        ))}
+      </div>
+      {fields.length === 0 && (
+        <p className={cn(hintClass, "italic")}>{emptyLabel}</p>
+      )}
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={() => append(createEmptyRow())}
+        className="gap-1.5 border-dashed text-muted-foreground hover:border-blue-400/40 hover:text-primary"
+      >
+        <Plus className="size-3.5" />
+        Agregar fila
+      </Button>
+    </div>
+  );
+}
+
+function PartServiceRows({
+  control,
+  rows,
+  onAdd,
+  onRemove,
+  emptyLabel,
+}: {
+  control: Control<any>;
+  rows: { id: string; index: number }[];
+  onAdd: () => void;
+  onRemove: (index: number) => void;
+  emptyLabel: string;
+}) {
+  return (
+    <div className="space-y-3 overflow-x-auto p-1">
+      {rows.length > 0 && <ItemRowsHeader />}
+      <div className="space-y-2 [&>div]:min-w-225">
+        {rows.map(({ id, index }) => (
+          <ItemRow
+            key={id}
+            control={control}
+            namePrefix={`part_services.${index}`}
+            category="SERVICE"
+            onRemove={() => onRemove(index)}
+          />
+        ))}
+      </div>
+      {rows.length === 0 && (
+        <p className={cn(hintClass, "italic")}>{emptyLabel}</p>
+      )}
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={onAdd}
+        className="gap-1.5 border-dashed text-muted-foreground hover:border-blue-400/40 hover:text-primary"
+      >
+        <Plus className="size-3.5" />
+        Agregar fila
+      </Button>
+    </div>
+  );
+}
+
+function PartsSection({ control }: { control: Control<any> }) {
+  const { setValue } = useFormContext<FormValues>();
+  const { selectedCompany } = useCompanyStore();
+  const { data: aircrafts, isLoading } = useGetMaintenanceAircrafts(
+    selectedCompany?.slug,
+  );
+  const { fields, append, remove, replace } = useFieldArray({
+    control,
+    name: "part_services",
+  });
+
+  const aircraftId = useWatch({ control, name: "aircraft_id" }) as string;
+  const selectedPartIds =
+    (useWatch({ control, name: "selected_part_ids" }) as string[]) ?? [];
+
+  // Las partes de una aeronave se obtienen de sus asignaciones activas
+  // (aircraft_assignments), no de un campo aircraft_id en aircraft_parts.
+  // Se ordenan siempre: motor, turbina, hélice, apu, otros.
+  const availableParts = useMemo(() => {
+    const selectedAircraft = aircrafts?.find(
+      (a) => String(a.id) === aircraftId,
+    );
+    return (selectedAircraft?.aircraft_assignments ?? [])
+      .map((assignment) => assignment.aircraft_part)
+      .filter((part): part is MaintenanceAircraftPart => !!part?.id)
+      .sort((a, b) => {
+        const rankDiff = partTypeRank(a.type) - partTypeRank(b.type);
+        if (rankDiff !== 0) return rankDiff;
+        return (a.part_name || a.part_number || "").localeCompare(
+          b.part_name || b.part_number || "",
+        );
+      });
+  }, [aircrafts, aircraftId]);
+
+  // Al cambiar de aeronave, la selección de partes ya no aplica. Se usa
+  // replace() del propio useFieldArray de "part_services" (no form.setValue
+  // directo) para no desincronizar su estado interno.
+  const previousAircraftId = useRef(aircraftId);
+  useEffect(() => {
+    if (previousAircraftId.current !== aircraftId) {
+      previousAircraftId.current = aircraftId;
+      setValue("selected_part_ids", []);
+      replace([]);
+    }
+    // replace/setValue no son estables en RHF; el efecto debe correr solo al
+    // cambiar de aeronave.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aircraftId]);
+
+  // La key de cada fila sale del id estable de RHF, no del índice: remove()
+  // reindexa fields y una key posicional remonta los Popover/Select de Radix.
+  const rowsForPart = (partId: string) =>
+    fields
+      .map((field: any, index) => ({
+        id: field.id as string,
+        partId: field.aircraft_part_id,
+        index,
+      }))
+      .filter((row) => row.partId === partId);
+
+  const togglePart = (part: MaintenanceAircraftPart) => {
+    const partId = String(part.id);
+    if (selectedPartIds.includes(partId)) {
+      setValue(
+        "selected_part_ids",
+        selectedPartIds.filter((id) => id !== partId),
+      );
+      const indices = rowsForPart(partId).map((row) => row.index);
+      if (indices.length) remove(indices);
+    } else {
+      // Solo marca la parte como seleccionada; la primera fila de servicio
+      // se agrega con el botón "Agregar fila" (mismo flujo que certificados/
+      // servicios), para no montar un Select nuevo en el mismo click que
+      // cambia la selección.
+      setValue("selected_part_ids", [...selectedPartIds, partId]);
+    }
+  };
+
+  if (!aircraftId) {
+    return (
+      <p className={cn(hintClass, "italic")}>
+        Seleccione primero una aeronave.
+      </p>
+    );
+  }
+
+  if (isLoading) {
+    return <Loader2 className="size-4 animate-spin text-muted-foreground" />;
+  }
+
+  if (!availableParts.length) {
+    return (
+      <p className={cn(hintClass, "italic")}>
+        Esta aeronave no tiene partes asignadas.
+      </p>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap gap-2">
+        {availableParts.map((part) => {
+          const checked = selectedPartIds.includes(String(part.id));
+          return (
+            <div
+              key={part.id}
+              role="checkbox"
+              aria-checked={checked}
+              tabIndex={0}
+              onClick={() => togglePart(part)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  togglePart(part);
+                }
+              }}
+              className={cn(
+                "flex cursor-pointer select-none items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-all duration-200",
+                checked
+                  ? "border-blue-400/40 bg-primary/10 shadow-sm shadow-blue-500/10"
+                  : "border-slate-400/50 bg-linear-to-br from-background/70 to-background/40 backdrop-blur-md hover:border-blue-400/30 hover:shadow-sm hover:shadow-blue-500/10 dark:border-slate-600/50",
+              )}
+            >
+              <span
+                className={cn(
+                  "flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border transition-colors",
+                  checked
+                    ? "border-primary bg-primary text-white"
+                    : "border-muted-foreground/40",
+                )}
+              >
+                {checked && <Check className="h-3 w-3" />}
+              </span>
+              <span className="flex flex-col leading-tight">
+                <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                  {partTypeLabel(part.type)}
+                </span>
+                <span className="font-medium">
+                  {part.part_name || part.part_number}
+                </span>
+              </span>
+            </div>
+          );
+        })}
+      </div>
+
+      {availableParts
+        .filter((part) => selectedPartIds.includes(String(part.id)))
+        .map((part) => {
+          const partId = String(part.id);
+          return (
+            <FormSection
+              key={part.id}
+              icon={Wrench}
+              title={part.part_name || part.part_number}
+              action={
+                <Badge variant="outline">{partTypeLabel(part.type)}</Badge>
+              }
+            >
+              <PartServiceRows
+                control={control}
+                rows={rowsForPart(partId)}
+                onAdd={() =>
+                  append({ ...emptyServiceItem(), aircraft_part_id: partId })
+                }
+                onRemove={(index) => remove(index)}
+                emptyLabel="Agregue al menos un servicio para esta parte."
+              />
+            </FormSection>
+          );
+        })}
+    </div>
+  );
+}
+
+/**
+ * Elige un manual del catálogo y llena reference_manual con su nombre (sigue
+ * editable a mano después) — el catálogo ayuda a llenar, nunca reemplaza el
+ * texto libre, porque no todo manual real está cargado ahí todavía.
+ */
+function mapToFormCertificate(
+  item: NonNullable<MaintenanceControl["items"]>[number],
+) {
+  return {
+    id: item.id,
+    name: item.name,
+    // parseISO (no `new Date`): un string "yyyy-MM-dd" con `new Date` se
+    // interpreta como medianoche UTC y en Venezuela (UTC-4) cae al día
+    // anterior; parseISO lo toma en hora local.
+    first_applied_date: parseISO(item.first_applied_date),
+    intervals: item.intervals.map((interval) => ({
+      id: interval.id,
+      counting_method: interval.counting_method,
+      limit_value: Number(interval.limit_value),
+      initial_value:
+        interval.initial_value !== null && interval.initial_value !== undefined
+          ? Number(interval.initial_value)
+          : undefined,
+    })),
+    remaining_percentage:
+      item.remaining_percentage !== null &&
+      item.remaining_percentage !== undefined
+        ? Number(item.remaining_percentage)
+        : undefined,
+    maintenance_provider_id: item.maintenance_provider_id
+      ? String(item.maintenance_provider_id)
+      : "",
+  };
+}
+
+function mapToFormService(
+  item: NonNullable<MaintenanceControl["items"]>[number],
+) {
+  return {
+    ...mapToFormCertificate(item),
+    maintenance_provider_id: item.maintenance_provider_id
+      ? String(item.maintenance_provider_id)
+      : "",
+  };
+}
+
+const emptyFormValues: FormValues = {
+  aircraft_id: "",
+  title: "",
+  description: "",
+  has_reference_manual: false,
+  reference_manual: "",
+  maintenance_catalog_manual_id: undefined,
+  remaining_percentage: 10,
+  certificates: [],
+  services: [],
+  selected_part_ids: [],
+  part_services: [],
+};
+
+function buildDefaultValues(initialData?: MaintenanceControl): FormValues {
+  if (!initialData) return emptyFormValues;
+
+  const items = (initialData.items ?? []).filter((i) => !i.retired_at);
+  const parts = initialData.parts ?? [];
+
+  return {
+    aircraft_id: String(initialData.aircraft_id),
+    title: initialData.title,
+    description: initialData.description ?? "",
+    has_reference_manual: initialData.has_reference_manual,
+    reference_manual: initialData.reference_manual ?? "",
+    maintenance_catalog_manual_id: initialData.maintenance_catalog_manual_id
+      ? Number(initialData.maintenance_catalog_manual_id)
+      : undefined,
+    remaining_percentage: Number(initialData.remaining_percentage),
+    certificates: items
+      .filter((i) => i.category === "CERTIFICATE")
+      .map(mapToFormCertificate),
+    services: items
+      .filter((i) => i.category === "SERVICE" && !i.maintenance_control_part_id)
+      .map(mapToFormService),
+    selected_part_ids: parts.map((p) => String(p.aircraft_part_id)),
+    part_services: items
+      .filter((i) => i.maintenance_control_part_id)
+      .map((i) => {
+        // String(...) en ambos lados: el id puede llegar como number o
+        // string según el campo, y === estricto entre tipos distintos
+        // nunca matchea (por eso las partes se veían sin servicios).
+        const part = parts.find(
+          (p) => String(p.id) === String(i.maintenance_control_part_id),
+        );
+        return {
+          ...mapToFormService(i),
+          aircraft_part_id: part ? String(part.aircraft_part_id) : "",
+        };
+      }),
+  };
+}
+
+export default function CreateMaintenanceControlForm({
+  initialData,
+}: {
+  initialData?: MaintenanceControl;
+}) {
+  const router = useRouter();
+  const { selectedCompany } = useCompanyStore();
+  const isEditing = !!initialData;
+  const [reason, setReason] = useState<EditReasonValue>({});
+  const [reasonError, setReasonError] = useState<string>();
+  const { createMaintenanceControl } = useCreateMaintenanceControl();
+  const { updateMaintenanceControl } = useUpdateMaintenanceControl();
+  const { data: maintenanceControls } = useGetMaintenanceControls(
+    selectedCompany?.slug,
+    true,
+  );
+
+  // Una aeronave solo puede tener un control; se excluyen del selector las
+  // que ya tienen uno, salvo la del control que se está editando.
+  const excludeAircraftIds = useMemo(
+    () =>
+      (maintenanceControls ?? [])
+        .filter((c) => c.id !== initialData?.id)
+        .map((c) => String(c.aircraft_id)),
+    [maintenanceControls, initialData?.id],
+  );
+
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: buildDefaultValues(initialData),
+  });
+  // Leído en render: react-hook-form solo rastrea lo que se suscribe aquí.
+  const { isDirty } = form.formState;
+
+  // Los subcomponentes de este archivo reciben `Control<any>` porque atienden
+  // campos de varias formas; desde react-hook-form 7.87 el genérico es
+  // invariante y el Control concreto ya no entra sin ensancharlo aquí.
+  const control = form.control as unknown as Control<any>;
+
+  const hasReferenceManual = useWatch({
+    control,
+    name: "has_reference_manual",
+  });
+  const aircraftId = useWatch({ control, name: "aircraft_id" });
+
+  useSuggestedControlTitle(form, "Mantenimiento");
+
+  const onSubmit = async (values: FormValues) => {
+    const toBaseItem = (item: z.infer<typeof certificateSchema>) => ({
+      id: item.id,
+      maintenance_catalog_service_id: item.maintenance_catalog_service_id,
+      name: item.name,
+      first_applied_date: format(item.first_applied_date, "yyyy-MM-dd"),
+      remaining_percentage: item.remaining_percentage ?? null,
+      intervals: item.intervals.map((interval) => ({
+        counting_method: interval.counting_method,
+        limit_value: interval.limit_value,
+        initial_value: interval.initial_value,
+      })),
+      // En certificados es opcional (puede quedar sin elegir); los
+      // servicios lo sobreescriben más abajo con el suyo, que es obligatorio.
+      maintenance_provider_id: item.maintenance_provider_id || undefined,
+    });
+
+    const toServiceItem = (item: z.infer<typeof itemSchema>) => ({
+      ...toBaseItem(item),
+      maintenance_provider_id: item.maintenance_provider_id,
+    });
+
+    const payload = {
+      aircraft_id: values.aircraft_id,
+      title: values.title,
+      description: values.description,
+      has_reference_manual: values.has_reference_manual ?? false,
+      reference_manual: values.reference_manual,
+      maintenance_catalog_manual_id: values.maintenance_catalog_manual_id,
+      remaining_percentage: values.remaining_percentage,
+      certificates: values.certificates.map(toBaseItem),
+      services: values.services.map(toServiceItem),
+      parts: values.selected_part_ids.map((partId) => ({
+        aircraft_part_id: partId,
+        services: values.part_services
+          .filter((service) => service.aircraft_part_id === partId)
+          .map(toServiceItem),
+      })),
+    };
+
+    if (isEditing) {
+      if (isDirty && !reason.edit_reason) {
+        setReasonError("Indique el motivo de la corrección.");
+        return;
+      }
+
+      try {
+        await updateMaintenanceControl.mutateAsync({
+          id: initialData.id,
+          company: selectedCompany!.slug,
+          data: { ...payload, ...reason },
+        });
+      } catch (error) {
+        setReasonError(editReasonErrorFrom(error));
+        return;
+      }
+    } else {
+      await createMaintenanceControl.mutateAsync({
+        company: selectedCompany!.slug,
+        data: payload,
+      });
+    }
+
+    router.push(
+      `/${selectedCompany!.slug}/planificacion/control_mantenimiento`,
+    );
+  };
+
+  const isPending =
+    createMaintenanceControl.isPending || updateMaintenanceControl.isPending;
+
+  return (
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        onKeyDown={(e) => {
+          // Enter dentro de un <input> envía el formulario nativamente
+          // (equivalente a click en el botón submit); con tantos campos de
+          // texto en el flujo, eso generaba un envío prematuro accidental.
+          if (
+            e.key === "Enter" &&
+            (e.target as HTMLElement).tagName !== "TEXTAREA"
+          ) {
+            e.preventDefault();
+          }
+        }}
+        className="flex flex-col gap-6"
+      >
+        <FormSection
+          icon={ClipboardList}
+          title="Datos Básicos"
+          hint="Aeronave, título y a partir de qué remanente se avisa."
+          action={<CreateMaintenanceProviderDialog />}
+        >
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-[minmax(150px,190px)_2fr_minmax(96px,140px)]">
+            <AircraftSelect
+              control={control}
+              name="aircraft_id"
+              excludeIds={excludeAircraftIds}
+              hint="Solo se listan las que aún no tienen un control de mantenimiento."
+            />
+            <FormField
+              control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel className={labelClass}>Título</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="EJ: Control de Mantenimiento YV2272"
+                      className={fieldClass}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="remaining_percentage"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel className={labelClass}>% Remanente</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <NumericInput
+                        className={cn(fieldClass, "pr-7")}
+                        value={field.value}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                        name={field.name}
+                      />
+                      <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                        %
+                      </span>
+                    </div>
+                  </FormControl>
+                  <FormDescription className={hintClass}>
+                    Remanente para alertar.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem className="w-full md:col-span-3">
+                  <FormLabel className={labelClass}>
+                    Descripción{" "}
+                    <span className="text-muted-foreground text-xs">
+                      (Opcional)
+                    </span>
+                  </FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="..."
+                      className={cn(fieldClass, "h-auto resize-none py-2")}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="has_reference_manual"
+              render={({ field }) => (
+                <FormItem
+                  className={cn(
+                    fieldClass,
+                    "h-auto shadow-none md:col-span-3 flex flex-row items-start space-x-3 space-y-0 p-4 hover:shadow-none",
+                  )}
+                >
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel className={labelClass}>
+                      ¿Tiene manual de referencia?
+                    </FormLabel>
+                    <FormDescription className={hintClass}>
+                      Indique si este control se basa en un manual específico.
+                    </FormDescription>
+                  </div>
+                </FormItem>
+              )}
+            />
+            {hasReferenceManual && (
+              <div className="grid grid-cols-1 gap-4 md:col-span-3 md:grid-cols-2">
+                <CatalogManualField control={control} aircraftId={aircraftId} />
+                <FormField
+                  control={form.control}
+                  name="reference_manual"
+                  render={({ field }) => (
+                    <FormItem className="w-full">
+                      <FormLabel className={labelClass}>
+                        Manual de Referencia
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="EJ: MAINTENANCE SCHEDULE REV. 5 DEL 15/MAY/2016"
+                          className={fieldClass}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
+          </div>
+        </FormSection>
+
+        {aircraftId ? (
+          <>
+            <FormSection
+              icon={FileCheck2}
+              title="Certificados"
+              hint="Documentos a bordo de la aeronave: aeronavegabilidad, seguro, radio, ELT..."
+            >
+              <MaintenanceItemRows
+                control={control}
+                name="certificates"
+                category="CERTIFICATE"
+                emptyLabel="Agregue los certificados de la aeronave."
+                createEmptyRow={emptyCertificate}
+              />
+            </FormSection>
+
+            <FormSection
+              icon={Wrench}
+              title="Aeronave"
+              hint="Inspecciones periódicas de la aeronave como conjunto."
+            >
+              <MaintenanceItemRows
+                control={control}
+                name="services"
+                category="SERVICE"
+                emptyLabel="Agregue los servicios de la aeronave."
+                createEmptyRow={emptyServiceItem}
+              />
+            </FormSection>
+
+            <FormSection
+              icon={Puzzle}
+              title="Partes de la Aeronave"
+              hint="Motores, turbinas y hélices con servicios propios."
+            >
+              <PartsSection control={control} />
+            </FormSection>
+          </>
+        ) : (
+          <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-slate-400/50 bg-muted/20 p-8 text-center dark:border-slate-600/50">
+            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted/60 text-muted-foreground">
+              <Plane className="h-5 w-5" />
+            </span>
+            <p className="text-sm font-medium text-muted-foreground">
+              Seleccione una aeronave para continuar
+            </p>
+            <p className={hintClass}>
+              Ahí se cargan sus certificados, servicios y partes.
+            </p>
+          </div>
+        )}
+
+        {isEditing && (
+          <EditReasonFields
+            value={reason}
+            onChange={(value) => {
+              setReason(value);
+              setReasonError(undefined);
+            }}
+            error={reasonError}
+          />
+        )}
+
+        <Button
+          className="h-11 gap-2 self-end rounded-lg bg-linear-to-br from-primary to-primary/85 px-6 text-primary-foreground shadow-sm transition-all duration-200 hover:shadow-md hover:shadow-blue-500/25 disabled:opacity-70"
+          disabled={isPending}
+          type="submit"
+        >
+          {isPending ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <p>
+              {isEditing ? "Guardar Cambios" : "Crear Control de Mantenimiento"}
+            </p>
+          )}
+        </Button>
+      </form>
+    </Form>
+  );
+}

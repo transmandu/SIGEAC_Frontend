@@ -11,6 +11,7 @@ import { useGetUserLocationsByCompanyId } from "@/hooks/sistema/usuario/useGetUs
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { User } from "@/types";
 
+import { resolveLandingPath } from "@/lib/postLoginRedirect";
 import CompanySelect from "@/components/selects/CompanySelect";
 import PlaneCheckMorph from "@/components/misc/PlaneCheckMorph";
 import { Button } from "@/components/ui/button";
@@ -163,6 +164,8 @@ const CompanyBootstrap = () => {
           setIsRedirecting(true);
           saveHistory(selectedCompany.id, selectedStation);
 
+          const target = `/${selectedCompany.slug}/dashboard`;
+
           if (
             typeof window !== "undefined" &&
             "requestAnimationFrame" in window
@@ -207,6 +210,8 @@ const CompanyBootstrap = () => {
           setSelectedStation(station);
           saveHistory(company.id, station);
           setIsRedirecting(true);
+
+          const target = `/${company.slug}/dashboard`;
 
           if (
             typeof window !== "undefined" &&
@@ -257,7 +262,23 @@ const CompanyBootstrap = () => {
       router.replace(redirectTarget);
     }, 1000);
 
-    return () => window.clearTimeout(timeout);
+    // Si la navegación no prospera —un 401 la interrumpe y la sesión vuelve a
+    // /inicio— navigatingRef se quedaba en true: cortocircuitaba el bootstrap y
+    // dejaba el loading para siempre, sin poder elegir empresa. Soltarlo permite
+    // que el efecto vuelva a resolver desde cero. Solo actúa si seguimos en
+    // /inicio: aterrizar en el destino desmonta esto y el cleanup lo cancela.
+    const escape = window.setTimeout(() => {
+      if (window.location.pathname !== "/inicio") return;
+
+      navigatingRef.current = false;
+      setRedirectTarget(null);
+      setIsRedirecting(false);
+    }, 6000);
+
+    return () => {
+      window.clearTimeout(timeout);
+      window.clearTimeout(escape);
+    };
   }, [redirectTarget, router]);
 
   const shouldShowFullPageLoading =

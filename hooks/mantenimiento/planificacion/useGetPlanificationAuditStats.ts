@@ -1,23 +1,20 @@
 import axiosInstance from "@/lib/axios";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import type {
-  AuditTypeFilter,
+  PlanificationAuditFilters,
   PlanificationAuditStats,
 } from "@/types/planification/audit";
 import { QueryClient, keepPreviousData, useQuery } from "@tanstack/react-query";
+import { auditParams } from "./useGetPlanificationAuditLogs";
 
-// Toda edición de vuelos u órdenes deja un log: la auditoría debe verlo sin
-// esperar a que venza su staleTime.
+// Toda escritura de Planificación deja una entrada: la auditoría debe verla
+// sin esperar a que venza su staleTime.
 export const invalidatePlanificationAudit = (queryClient: QueryClient) => {
   queryClient.invalidateQueries({ queryKey: ["planification-audit-logs"] });
   queryClient.invalidateQueries({ queryKey: ["planification-audit-stats"] });
 };
 
-interface StatsFilters {
-  from?: string;
-  to?: string;
-  type?: AuditTypeFilter;
-}
+type StatsFilters = Omit<PlanificationAuditFilters, "page" | "per_page">;
 
 const fetchPlanificationAuditStats = async (
   company: string | undefined,
@@ -25,9 +22,7 @@ const fetchPlanificationAuditStats = async (
 ): Promise<PlanificationAuditStats> => {
   const { data } = await axiosInstance.get(
     `/${company}/planification-audit-logs/stats`,
-    {
-      params: filters,
-    },
+    { params: auditParams(filters) },
   );
 
   return data;

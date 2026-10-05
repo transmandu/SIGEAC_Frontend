@@ -65,7 +65,7 @@ export function CollapseMenuButton({
   }
 
   const triggerClassName = cn(
-    "group relative h-11 w-full justify-start overflow-hidden rounded-xl border px-3 text-[13px] transition-all duration-200",
+    "group relative h-11 w-full justify-start overflow-hidden rounded-xl border pl-2 pr-2 text-[13px] transition-all duration-200",
     "border-transparent bg-transparent text-muted-foreground hover:border-border/70 hover:bg-muted/40 hover:text-foreground",
     (active || isSubmenuActive) &&
       "border-border/80 bg-muted/60 text-foreground shadow-xs shadow-black/5",
@@ -175,7 +175,7 @@ export function CollapseMenuButton({
               <Button
                 variant="ghost"
                 className={cn(
-                  "group h-11 w-full justify-start rounded-xl border border-transparent bg-transparent px-3 text-muted-foreground transition-all duration-200",
+                  "group h-11 w-full justify-start rounded-xl border border-transparent bg-transparent pl-2 pr-2 text-muted-foreground transition-all duration-200",
                   "hover:border-border/70 hover:bg-muted/40 hover:text-foreground",
                   (active || isSubmenuActive) &&
                     "border-border/80 bg-muted/60 text-foreground shadow-xs shadow-black/5",

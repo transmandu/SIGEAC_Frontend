@@ -1,5 +1,6 @@
 import type { Group, MenuContext } from "@/lib/menus/types";
 import {
+  CalendarRange,
   CircleDollarSign,
   ClipboardList,
   PackageSearch,
@@ -36,6 +37,14 @@ export function buildGeneralGroup({
   return {
     groupLabel: "General",
     menus: [
+      {
+        href: `/${currentCompany?.slug}/general/calendario`,
+        label: "Calendario de Eventos",
+        active: pathname === `/${currentCompany?.slug}/general/calendario`,
+        icon: CalendarRange,
+        roles: [],
+        submenus: [],
+      },
       {
         href: `/${currentCompany?.slug}/general/cursos`,
         label: "Cursos",

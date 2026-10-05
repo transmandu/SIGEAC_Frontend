@@ -1,5 +1,10 @@
 "use client";
 
+import { useAttachWorkOrderToQueue } from "@/actions/mantenimiento/planificacion/cola_cumplimientos/actions";
+import { useLinkPendingWorkOrder } from "@/actions/mantenimiento/planificacion/control_mantenimiento/actions";
+import { useLinkComponentPendingWorkOrder } from "@/actions/mantenimiento/planificacion/control_componentes/actions";
+import { useLinkAvionicsPendingWorkOrder } from "@/actions/mantenimiento/planificacion/control_avionica/actions";
+import { useLinkDirectivePendingWorkOrder } from "@/actions/mantenimiento/planificacion/control_directivas/actions";
 import { useCreateWorkOrder } from "@/actions/mantenimiento/planificacion/ordenes_trabajo/actions";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -37,6 +42,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useGetMaintenanceAircrafts } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts";
+import { CatalogServicePicker } from "@/components/misc/CatalogServicePicker";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { zodResolver } from "@/lib/zod-resolver";
@@ -51,7 +57,7 @@ import {
   PlusCircle,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
@@ -101,18 +107,90 @@ interface TaskInProgress {
   ata: string;
   task_number: string;
   origin_manual: string;
+  maintenance_catalog_task_id: string;
   task_items: TaskItem[];
 }
 
-const NonServiceWorkOrderForm = () => {
+export interface NonServiceWorkOrderFormProps {
+  /**
+   * Embebido en un diálogo (ver CreateControlWorkOrderDialog): la aeronave y la
+   * tarea llegan por props en vez de por query params, no se navega al
+   * terminar, y el llamador decide qué hacer con la orden creada.
+   *
+   * Sin estas props el componente se comporta igual que siempre: lee los query
+   * params de su propia página y redirige al guardar.
+   */
+  embedded?: boolean;
+  aircraftId?: string;
+  taskDescription?: string;
+  onCreated?: (workOrder: {
+    id: number;
+    order_number: string;
+  }) => void | Promise<void>;
+  onCancel?: () => void;
+}
+
+const NonServiceWorkOrderForm = ({
+  embedded = false,
+  aircraftId: aircraftIdProp,
+  taskDescription: taskDescriptionProp,
+  onCreated,
+  onCancel,
+}: NonServiceWorkOrderFormProps = {}) => {
   const searchParams = useSearchParams();
-  const eventId = searchParams.get("eventId") || undefined;
+  // Presentes cuando la orden se crea desde un ítem de Control de Mantenimiento
+  // en estado crítico (ver [id]/page.tsx): al terminar, la OT se ata a ese
+  // ítem y se vuelve a su página de control en vez de al listado general.
+  const maintenanceControlItemId =
+    searchParams.get("maintenance_control_item_id") || undefined;
+  const maintenanceControlId =
+    searchParams.get("maintenance_control_id") || undefined;
+  // Mismo flujo desde un componente del Control de Componentes.
+  const componentControlItemId =
+    searchParams.get("component_control_item_id") || undefined;
+  const componentControlId =
+    searchParams.get("component_control_id") || undefined;
+  const avionicsControlTaskId =
+    searchParams.get("avionics_control_task_id") || undefined;
+  const avionicsControlId =
+    searchParams.get("avionics_control_id") || undefined;
+  const directiveControlItemId =
+    searchParams.get("directive_control_item_id") || undefined;
+  const directiveControlId =
+    searchParams.get("directive_control_id") || undefined;
+  // La orden viene de la bandeja de trabajo: al crearla se ata a los ítems que
+  // el usuario seleccionó ahí (no a toda la bandeja, que puede tener de varias
+  // aeronaves), y esos salen de la bandeja.
+  const fromControlQueue = searchParams.get("from_control_queue") === "1";
+  const queueEntryIds = (searchParams.get("queue_entry_ids") ?? "")
+    .split(",")
+    .map((id) => Number(id))
+    .filter((id) => Number.isFinite(id) && id > 0);
+  const linkedControlItemId =
+    maintenanceControlItemId ??
+    componentControlItemId ??
+    avionicsControlTaskId ??
+    directiveControlItemId;
+  // Embebido la aeronave la fija el ítem que abrió el diálogo; en la página,
+  // el ítem o la cola que originaron la orden. En los tres casos cambiarla
+  // dejaría el vínculo apuntando a otra máquina y el backend lo rechaza.
+  const aircraftLocked = embedded || !!linkedControlItemId || fromControlQueue;
+  const prefillAircraftId =
+    aircraftIdProp ?? searchParams.get("aircraft_id") ?? undefined;
+  const prefillTaskDescription =
+    taskDescriptionProp ?? searchParams.get("task_description") ?? undefined;
 
   const [selectedAircraft, setSelectedAircraft] = useState<string>("");
   const [tasks, setTasks] = useState<TaskInProgress[]>([]);
+  const prefillApplied = useRef(false);
 
   const { selectedStation, selectedCompany } = useCompanyStore();
   const { createWorkOrder } = useCreateWorkOrder();
+  const { linkPendingWorkOrder } = useLinkPendingWorkOrder();
+  const { linkComponentPendingWorkOrder } = useLinkComponentPendingWorkOrder();
+  const { linkAvionicsPendingWorkOrder } = useLinkAvionicsPendingWorkOrder();
+  const { linkDirectivePendingWorkOrder } = useLinkDirectivePendingWorkOrder();
+  const { attachWorkOrderToQueue } = useAttachWorkOrderToQueue();
   const {
     data: aircrafts,
     isLoading: isAircraftsLoading,
@@ -138,6 +216,38 @@ const NonServiceWorkOrderForm = () => {
     }
   }, [selectedStation, form]);
 
+  useEffect(() => {
+    if (prefillApplied.current || !aircrafts) return;
+
+    if (prefillAircraftId) {
+      const aircraft = aircrafts.find(
+        (a) => a.id.toString() === prefillAircraftId,
+      );
+      if (aircraft) {
+        form.setValue("aircraft_id", aircraft.id.toString());
+        form.setValue("authorizing", aircraft.client.authorizing);
+        setSelectedAircraft(aircraft.manufacturer.id.toString());
+      }
+    }
+
+    if (prefillTaskDescription) {
+      setTasks([
+        {
+          id: crypto.randomUUID(),
+          material: "",
+          description_task: prefillTaskDescription,
+          ata: "",
+          task_number: "",
+          origin_manual: "",
+          maintenance_catalog_task_id: "",
+          task_items: [],
+        },
+      ]);
+    }
+
+    prefillApplied.current = true;
+  }, [aircrafts, prefillAircraftId, prefillTaskDescription, form]);
+
   const addEmptyTask = () => {
     setTasks((prev) => [
       ...prev,
@@ -148,6 +258,7 @@ const NonServiceWorkOrderForm = () => {
         ata: "",
         task_number: "",
         origin_manual: "",
+        maintenance_catalog_task_id: "",
         task_items: [],
       },
     ]);
@@ -161,6 +272,37 @@ const NonServiceWorkOrderForm = () => {
   ) => {
     setTasks((prev) =>
       prev.map((t) => (t.id === id ? { ...t, [field]: value } : t)),
+    );
+  };
+
+  // El picker rellena varios campos a la vez (descripción/ata/manual de
+  // origen/id del catálogo) — updateTask solo cambia uno, así que esto evita
+  // 4 renders/set encadenados por selección.
+  const applyTaskFromCatalog = (
+    id: string,
+    fields: {
+      description_task: string;
+      ata: string;
+      origin_manual: string;
+      maintenance_catalog_task_id: string;
+      materialAppend?: string;
+    },
+  ) => {
+    setTasks((prev) =>
+      prev.map((t) =>
+        t.id === id
+          ? {
+              ...t,
+              description_task: fields.description_task,
+              ata: fields.ata,
+              origin_manual: fields.origin_manual,
+              maintenance_catalog_task_id: fields.maintenance_catalog_task_id,
+              material: fields.materialAppend
+                ? [t.material, fields.materialAppend].filter(Boolean).join("\n")
+                : t.material,
+            }
+          : t,
+      ),
     );
   };
 
@@ -234,6 +376,16 @@ const NonServiceWorkOrderForm = () => {
       date: format(data.date, "yyyy-MM-dd"),
       client_id: selectedAircraftData?.client.id,
       client_name: selectedAircraftData?.client.name,
+      // tasks (el estado, no data.work_order_task) trae origin_manual y
+      // maintenance_catalog_task_id como string vacío por defecto — el
+      // backend espera null, no "", para una FK opcional.
+      work_order_task: tasks.map((task) => ({
+        ...task,
+        maintenance_catalog_task_id: task.maintenance_catalog_task_id
+          ? Number(task.maintenance_catalog_task_id)
+          : null,
+        origin_manual: task.origin_manual || null,
+      })),
     };
 
     console.log(
@@ -241,15 +393,105 @@ const NonServiceWorkOrderForm = () => {
       formattedData,
     );
 
-    await createWorkOrder.mutateAsync({
+    const response = await createWorkOrder.mutateAsync({
       data: formattedData,
       company: selectedCompany!.slug,
-      eventId,
     });
+
+    // Embebido en un diálogo: el llamador ata la orden a lo que corresponda
+    // (el ítem del control, el campo del cumplimiento) y cierra. Acá no se
+    // navega: la pantalla de atrás es la que el usuario estaba usando.
+    if (embedded) {
+      if (response?.work_order?.id) {
+        // La orden YA está creada. Si atarla falla, reenviar el formulario
+        // crearía una segunda orden idéntica, así que el formulario se limpia
+        // igual y el error lo informa la mutación del vínculo: lo que queda
+        // pendiente es asociar esa orden, no volver a crearla.
+        try {
+          await onCreated?.({
+            id: response.work_order.id,
+            order_number: response.work_order.order_number,
+          });
+        } finally {
+          form.reset();
+          setTasks([]);
+        }
+
+        return;
+      }
+
+      form.reset();
+      setTasks([]);
+
+      return;
+    }
+
+    if (maintenanceControlItemId && response?.work_order?.id) {
+      await linkPendingWorkOrder.mutateAsync({
+        company: selectedCompany!.slug,
+        itemId: maintenanceControlItemId,
+        workOrderId: response.work_order.id,
+      });
+    }
+
+    if (componentControlItemId && response?.work_order?.id) {
+      await linkComponentPendingWorkOrder.mutateAsync({
+        company: selectedCompany!.slug,
+        itemId: componentControlItemId,
+        workOrderId: response.work_order.id,
+      });
+    }
+
+    if (avionicsControlTaskId && response?.work_order?.id) {
+      await linkAvionicsPendingWorkOrder.mutateAsync({
+        company: selectedCompany!.slug,
+        taskId: avionicsControlTaskId,
+        workOrderId: response.work_order.id,
+      });
+    }
+
+    if (directiveControlItemId && response?.work_order?.id) {
+      await linkDirectivePendingWorkOrder.mutateAsync({
+        company: selectedCompany!.slug,
+        itemId: directiveControlItemId,
+        workOrderId: response.work_order.id,
+      });
+    }
+
+    // Un solo llamado ata la orden a los ítems seleccionados en la bandeja; los
+    // que no pudo atar quedan ahí con su motivo (lo informa la mutación).
+    if (fromControlQueue && queueEntryIds.length && response?.work_order?.id) {
+      await attachWorkOrderToQueue.mutateAsync({
+        company: selectedCompany!.slug,
+        workOrderId: response.work_order.id,
+        entryIds: queueEntryIds,
+      });
+    }
 
     form.reset();
     setTasks([]);
-    router.push(`/${selectedCompany!.slug}/planificacion/ordenes_trabajo`);
+
+    // Desde la bandeja se vuelve a la orden recién creada: es donde el usuario
+    // sigue trabajando (cargar tareas, registrar los cumplimientos), y de la
+    // bandeja ya salió lo que se ató.
+    if (fromControlQueue && response?.work_order?.order_number) {
+      router.push(
+        `/${selectedCompany!.slug}/planificacion/ordenes_trabajo/${response.work_order.order_number}`,
+      );
+      return;
+    }
+
+    router.push(
+      maintenanceControlId
+        ? `/${selectedCompany!.slug}/planificacion/control_mantenimiento/${maintenanceControlId}`
+        : componentControlId
+          ? `/${selectedCompany!.slug}/planificacion/control_componentes/${componentControlId}`
+          : avionicsControlId
+            ? `/${selectedCompany!.slug}/planificacion/control_avionica/${avionicsControlId}`
+            : directiveControlId
+              ? `/${selectedCompany!.slug}/planificacion/control_directivas/${directiveControlId}`
+              : `/${selectedCompany!.slug}/planificacion/ordenes_trabajo`,
+    );
   };
 
   const selectedAircraftId = useWatch({
@@ -267,7 +509,10 @@ const NonServiceWorkOrderForm = () => {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Crear Orden de Trabajo</h1>
+      {/* En el diálogo el título lo pone su propia cabecera. */}
+      {!embedded && (
+        <h1 className="text-2xl font-bold">Crear Orden de Trabajo</h1>
+      )}
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -280,80 +525,98 @@ const NonServiceWorkOrderForm = () => {
                   <FormItem className="flex flex-col space-y-3 mt-1.5">
                     <FormLabel>Aeronave</FormLabel>
 
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            disabled={isAircraftsLoading || isAircraftsError}
-                            variant="outline"
-                            role="combobox"
-                            className={cn(
-                              "justify-between",
-                              !field.value && "text-muted-foreground",
-                            )}
-                          >
-                            {isAircraftsLoading && (
-                              <Loader2 className="size-4 animate-spin mr-2" />
-                            )}
+                    {aircraftLocked ? (
+                      // Al guardar, la OT se ata al ítem de control que la
+                      // originó —o a todo lo que haya en la cola de
+                      // cumplimientos—: cambiar de aeronave acá dejaría el
+                      // vínculo apuntando a otra máquina, y el backend lo
+                      // rechaza cuando la orden ya está creada.
+                      <div className="flex h-10 items-center rounded-md border border-input bg-muted/40 px-3 text-sm">
+                        {aircrafts?.find(
+                          (aircraft) => aircraft.id.toString() === field.value,
+                        )?.acronym ?? (
+                          <Loader2 className="size-4 animate-spin" />
+                        )}
+                      </div>
+                    ) : (
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              disabled={isAircraftsLoading || isAircraftsError}
+                              variant="outline"
+                              role="combobox"
+                              className={cn(
+                                "justify-between",
+                                !field.value && "text-muted-foreground",
+                              )}
+                            >
+                              {isAircraftsLoading && (
+                                <Loader2 className="size-4 animate-spin mr-2" />
+                              )}
 
-                            {field.value
-                              ? aircrafts?.find(
-                                  (aircraft) =>
-                                    `${aircraft.id.toString()}` === field.value,
-                                )?.acronym
-                              : "Elige la aeronave..."}
-
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-
-                      <PopoverContent className="p-0">
-                        <Command>
-                          <CommandInput placeholder="Busque una aeronave..." />
-                          <CommandList>
-                            <CommandEmpty className="text-xs p-2 text-center">
-                              No se ha encontrado ninguna aeronave.
-                            </CommandEmpty>
-                            <CommandGroup>
-                              {aircrafts?.map((aircraft) => (
-                                <CommandItem
-                                  value={`${aircraft.id}`}
-                                  key={aircraft.id}
-                                  onSelect={() => {
-                                    form.setValue(
-                                      "aircraft_id",
-                                      aircraft.id.toString(),
-                                    );
-                                    form.setValue(
-                                      "authorizing",
-                                      aircraft.client.authorizing,
-                                    );
-                                    setSelectedAircraft(
-                                      aircraft.manufacturer.id.toString(),
-                                    );
-                                  }}
-                                >
-                                  <Check
-                                    className={cn(
-                                      "mr-2 h-4 w-4",
+                              {field.value
+                                ? aircrafts?.find(
+                                    (aircraft) =>
                                       `${aircraft.id.toString()}` ===
-                                        field.value
-                                        ? "opacity-100"
-                                        : "opacity-0",
-                                    )}
-                                  />
-                                  <p>{aircraft.acronym}</p>
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
+                                      field.value,
+                                  )?.acronym
+                                : "Elige la aeronave..."}
+
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+
+                        <PopoverContent className="p-0">
+                          <Command>
+                            <CommandInput placeholder="Busque una aeronave..." />
+                            <CommandList>
+                              <CommandEmpty className="text-xs p-2 text-center">
+                                No se ha encontrado ninguna aeronave.
+                              </CommandEmpty>
+                              <CommandGroup>
+                                {aircrafts?.map((aircraft) => (
+                                  <CommandItem
+                                    value={`${aircraft.id}`}
+                                    key={aircraft.id}
+                                    onSelect={() => {
+                                      form.setValue(
+                                        "aircraft_id",
+                                        aircraft.id.toString(),
+                                      );
+                                      form.setValue(
+                                        "authorizing",
+                                        aircraft.client.authorizing,
+                                      );
+                                      setSelectedAircraft(
+                                        aircraft.manufacturer.id.toString(),
+                                      );
+                                    }}
+                                  >
+                                    <Check
+                                      className={cn(
+                                        "mr-2 h-4 w-4",
+                                        `${aircraft.id.toString()}` ===
+                                          field.value
+                                          ? "opacity-100"
+                                          : "opacity-0",
+                                      )}
+                                    />
+                                    <p>{aircraft.acronym}</p>
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                    )}
 
                     <FormDescription className="text-xs">
-                      Aeronave que recibirá el servicio.
+                      {linkedControlItemId
+                        ? "Fijada por el ítem de control que origina esta orden."
+                        : "Aeronave que recibirá el servicio."}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -556,6 +819,36 @@ const NonServiceWorkOrderForm = () => {
                     <div key={task.id} className="p-4 border rounded-lg mb-2">
                       <div className="flex gap-2 justify-between items-center">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-2 w-full">
+                          <div className="flex items-center justify-between md:col-span-3">
+                            <span className="text-xs text-muted-foreground">
+                              {task.origin_manual
+                                ? `Origen: ${task.origin_manual}`
+                                : "Tarea manual"}
+                            </span>
+                            <CatalogServicePicker
+                              aircraftId={form.watch("aircraft_id")}
+                              onSelectTask={(catalogTask, service) => {
+                                const requirementsText =
+                                  catalogTask.requirements
+                                    .map(
+                                      (r) =>
+                                        `${r.description}${r.part_number ? ` (${r.part_number})` : ""}`,
+                                    )
+                                    .join("\n");
+                                applyTaskFromCatalog(task.id, {
+                                  description_task: catalogTask.description,
+                                  ata: catalogTask.ata ?? "",
+                                  origin_manual:
+                                    service.manual?.name ?? service.name,
+                                  maintenance_catalog_task_id: String(
+                                    catalogTask.id,
+                                  ),
+                                  materialAppend: requirementsText || undefined,
+                                });
+                              }}
+                            />
+                          </div>
+
                           {/* ATA Code */}
                           <FormItem>
                             <FormLabel>Código ATA</FormLabel>
@@ -622,7 +915,11 @@ const NonServiceWorkOrderForm = () => {
 
           {/* Botones de acción */}
           <div className="flex justify-end space-x-2">
-            <Button type="button" variant="outline">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => (embedded ? onCancel?.() : router.back())}
+            >
               Cancelar
             </Button>
             <Button disabled={createWorkOrder.isPending} type="submit">

@@ -1,34 +1,39 @@
-"use client"
+"use client";
 
 import { type AppColumnDef } from "@/lib/table";
-import { MoreHorizontal, SquarePen, Trash2 } from "lucide-react"
+import { MoreHorizontal, SquarePen, Trash2 } from "lucide-react";
 
-import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
-import { Button } from "@/components/ui/button"
+import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu"
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
-import { Checkbox } from "@/components/ui/checkbox"
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip"
-import Link from "next/link"
-import { MaintenanceAircraft } from "@/types"
-import MaintenanceAircraftDropdownActions from "@/components/dropdowns/mantenimiento/ordenes_trabajo/MaintenanceAircraftDropdownActions"
+} from "@/components/ui/tooltip";
+import Link from "next/link";
+import { MaintenanceAircraft } from "@/types";
+import MaintenanceAircraftDropdownActions from "@/components/dropdowns/mantenimiento/ordenes_trabajo/MaintenanceAircraftDropdownActions";
 
 const fmtNumber = (n: any) => {
-    if (n === null || n === undefined) return "0"
-    const num = Number(n)
-    return isNaN(num) ? "0" : num.toLocaleString('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 3 })
-}
+  if (n === null || n === undefined) return "0";
+  const num = Number(n);
+  return isNaN(num)
+    ? "0"
+    : num.toLocaleString("es-ES", {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 3,
+      });
+};
 
 export const columns: AppColumnDef<MaintenanceAircraft>[] = [
   {
@@ -59,8 +64,13 @@ export const columns: AppColumnDef<MaintenanceAircraft>[] = [
       <DataTableColumnHeader filter column={column} title="Matricula" />
     ),
     cell: ({ row }) => (
-      <Link href={`/estelar/planificacion/aeronaves`} className="flex justify-center font-bold italic">{row.original.acronym}</Link>
-    )
+      <Link
+        href={`/estelar/planificacion/aeronaves`}
+        className="flex justify-center font-bold italic"
+      >
+        {row.original.acronym}
+      </Link>
+    ),
   },
   {
     accessorKey: "manufacturer.name",
@@ -68,8 +78,10 @@ export const columns: AppColumnDef<MaintenanceAircraft>[] = [
       <DataTableColumnHeader filter column={column} title="Fabricante" />
     ),
     cell: ({ row }) => (
-      <p className="flex justify-center font-medium">{row.original.manufacturer.name}</p>
-    )
+      <p className="flex justify-center font-medium">
+        {row.original.manufacturer.name}
+      </p>
+    ),
   },
   {
     accessorKey: "client.name",
@@ -77,8 +89,10 @@ export const columns: AppColumnDef<MaintenanceAircraft>[] = [
       <DataTableColumnHeader filter column={column} title="Cliente" />
     ),
     cell: ({ row }) => (
-      <p className="flex justify-center text-muted-foreground italic">{row.original.client.name}</p>
-    )
+      <p className="flex justify-center text-muted-foreground italic">
+        {row.original.client.name}
+      </p>
+    ),
   },
   {
     accessorKey: "flight_hours",
@@ -86,8 +100,10 @@ export const columns: AppColumnDef<MaintenanceAircraft>[] = [
       <DataTableColumnHeader column={column} title="Horas de Vuelo" />
     ),
     cell: ({ row }) => (
-      <p className="flex justify-center font-semibold">{fmtNumber(row.original.flight_hours)} hrs.</p>
-    )
+      <p className="flex justify-center font-semibold">
+        {fmtNumber(row.original.flight_hours)} hrs.
+      </p>
+    ),
   },
   {
     accessorKey: "flight_cycles",
@@ -95,8 +111,10 @@ export const columns: AppColumnDef<MaintenanceAircraft>[] = [
       <DataTableColumnHeader column={column} title="Ciclos de Vuelo" />
     ),
     cell: ({ row }) => (
-      <p className="flex justify-center font-semibold">{fmtNumber(row.original.flight_cycles)} cyc.</p>
-    )
+      <p className="flex justify-center font-semibold">
+        {fmtNumber(row.original.flight_cycles)} cyc.
+      </p>
+    ),
   },
   {
     accessorKey: "location",
@@ -104,8 +122,10 @@ export const columns: AppColumnDef<MaintenanceAircraft>[] = [
       <DataTableColumnHeader column={column} title="Ubicación" />
     ),
     cell: ({ row }) => (
-      <p className="flex justify-center text-muted-foreground italic">{row.original.location.address}</p>
-    )
+      <p className="flex justify-center text-muted-foreground italic">
+        {row.original.location.address}
+      </p>
+    ),
   },
   {
     accessorKey: "comments",
@@ -113,16 +133,16 @@ export const columns: AppColumnDef<MaintenanceAircraft>[] = [
       <DataTableColumnHeader column={column} title="Comentarios" />
     ),
     cell: ({ row }) => (
-      <p className="flex justify-center text-muted-foreground text-center">{row.original.comments}</p>
-    )
+      <p className="flex justify-center text-muted-foreground text-center">
+        {row.original.comments}
+      </p>
+    ),
   },
   {
     id: "actions",
     cell: ({ row }) => {
-      const item = row.original
-      return (
-        <MaintenanceAircraftDropdownActions id={item.id} />
-      )
+      const item = row.original;
+      return <MaintenanceAircraftDropdownActions acronym={item.acronym} />;
     },
   },
-]
+];

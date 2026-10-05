@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  EditReasonFields,
+  EditReasonValue,
+  editReasonErrorFrom,
+} from "@/components/forms/mantenimiento/planificacion/EditReasonFields";
 import { useGetMaintenanceAircraftByAcronym } from "@/hooks/mantenimiento/planificacion/useGetMaitenanceAircraftByAcronym";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Button } from "@/components/ui/button";
@@ -187,6 +192,8 @@ export default function EditAircraftPage({
   const [partsData, setPartsData] = useState<PartsData>({ parts: [] });
   const [isInitialized, setIsInitialized] = useState(false);
   const { updateMaintenanceAircraft } = useUpdateMaintenanceAircraft();
+  const [reason, setReason] = useState<EditReasonValue>({});
+  const [reasonError, setReasonError] = useState<string>();
   const { selectedCompany } = useCompanyStore();
   const router = useRouter();
 
@@ -418,12 +425,14 @@ export default function EditAircraftPage({
             type: "MAINTENANCE",
           },
           parts: transformedParts,
+          ...reason,
         },
         company: selectedCompany!.slug,
       });
 
       router.push(`/${selectedCompany?.slug}/planificacion/aeronaves`);
     } catch (error) {
+      setReasonError(editReasonErrorFrom(error));
       console.error(error);
     }
   };
@@ -454,7 +463,6 @@ export default function EditAircraftPage({
             <ArrowLeft className="h-4 w-4 mr-2" />
             Volver a Aeronaves
           </Button>
-          image.png
         </div>
       </ContentLayout>
     );
@@ -634,6 +642,16 @@ export default function EditAircraftPage({
                     </CardContent>
                   </Card>
                 </div>
+
+                {/* El backend lo exige solo si cambió un dato ya cargado (horas, ciclos, matrícula, TSN de una parte...). */}
+                <EditReasonFields
+                  value={reason}
+                  onChange={(value) => {
+                    setReason(value);
+                    setReasonError(undefined);
+                  }}
+                  error={reasonError}
+                />
 
                 <div className="flex justify-between items-center gap-x-4 pt-4 border-t">
                   <Button type="button" variant="outline" onClick={handleBack}>
