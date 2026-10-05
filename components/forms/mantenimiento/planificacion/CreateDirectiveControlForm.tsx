@@ -833,7 +833,6 @@ function DirectiveCard({
           </Button>
         )}
       </div>
-
     </div>
   );
 }
