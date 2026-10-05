@@ -129,6 +129,48 @@ export const useUpdateComponentControl = () => {
   return { updateComponentControl: updateMutation };
 };
 
+export const useAddComponentControlItem = () => {
+  const queryClient = useQueryClient();
+
+  const addItemMutation = useMutation({
+    mutationFn: async ({
+      company,
+      controlId,
+      data,
+    }: {
+      company: string;
+      controlId: string | number;
+      data: ComponentItemData;
+    }) => {
+      const response = await axiosInstance.post(
+        `/${company}/component-controls/${controlId}/items`,
+        data,
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      invalidatePlanificationAudit(queryClient);
+      queryClient.invalidateQueries({ queryKey: ["component-controls"] });
+      queryClient.invalidateQueries({
+        queryKey: ["component-control"],
+        exact: false,
+      });
+      toast.success("¡Agregado!", {
+        description: "El componente ha sido agregado al control correctamente.",
+      });
+    },
+    onError: (error: any) => {
+      toast.error("Oops!", {
+        description:
+          firstBackendError(error) || "No se pudo agregar el componente...",
+      });
+      console.log(error);
+    },
+  });
+
+  return { addComponentControlItem: addItemMutation };
+};
+
 export const useDeleteComponentControl = () => {
   const queryClient = useQueryClient();
 

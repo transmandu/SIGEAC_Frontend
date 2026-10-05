@@ -32,6 +32,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { RegisterAvionicsComplianceDialog } from "@/components/dialogs/mantenimiento/planificacion/RegisterAvionicsComplianceDialog";
+import { AddAvionicsControlItemDialog } from "@/components/dialogs/mantenimiento/planificacion/AddAvionicsControlItemDialog";
 import { useGetAvionicsControl } from "@/hooks/mantenimiento/planificacion/useGetAvionicsControl";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import {
@@ -294,16 +295,23 @@ const AvionicsControlDetailPage = () => {
               </p>
             )}
           </div>
-          {!controlRetired && (
-            <ActionTriggerButton asChild>
-              <Link
-                href={`/${company}/planificacion/control_avionica/editar/${control.id}`}
-              >
-                <SquarePen className="mr-2 size-4" />
-                Editar
-              </Link>
-            </ActionTriggerButton>
-          )}
+          <div className="flex items-center gap-2">
+            <RecordAuditHistory
+              subjectType="avionics_control"
+              subjectId={control.id}
+              filename={`historial_control_avionica_${control.aircraft?.acronym ?? control.id}`}
+            />
+            {!controlRetired && (
+              <ActionTriggerButton asChild>
+                <Link
+                  href={`/${company}/planificacion/control_avionica/editar/${control.id}`}
+                >
+                  <SquarePen className="mr-2 size-4" />
+                  Editar
+                </Link>
+              </ActionTriggerButton>
+            )}
+          </div>
         </div>
 
         <RetiredControlBanner
@@ -390,6 +398,11 @@ const AvionicsControlDetailPage = () => {
           icon={Radio}
           title="Equipos de Aviónica"
           hint="Una fila por tarea; los equipos por condición no tienen plazo, solo se listan y se verifican."
+          action={
+            !controlRetired && (
+              <AddAvionicsControlItemDialog controlId={control.id} />
+            )
+          }
         >
           {!filtered.length ? (
             <p className="text-sm italic text-muted-foreground">
@@ -685,12 +698,6 @@ const AvionicsControlDetailPage = () => {
                 retired_by: task.retired_by,
               }));
           })}
-        />
-
-        <RecordAuditHistory
-          subjectType="avionics_control"
-          subjectId={control.id}
-          filename={`historial_control_avionica_${control.aircraft?.acronym ?? control.id}`}
         />
       </div>
     </ContentLayout>

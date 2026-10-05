@@ -894,6 +894,11 @@ function PartsSection({ control }: { control: Control<any> }) {
                 <span className="font-medium">
                   {part.part_name || part.part_number}
                 </span>
+                {part.serial && (
+                  <span className="text-[11px] text-muted-foreground">
+                    S/N {part.serial}
+                  </span>
+                )}
               </span>
             </div>
           );
@@ -908,7 +913,7 @@ function PartsSection({ control }: { control: Control<any> }) {
             <FormSection
               key={part.id}
               icon={Wrench}
-              title={part.part_name || part.part_number}
+              title={`${part.part_name || part.part_number}${part.serial ? ` - ${part.serial}` : ""}`}
               action={
                 <Badge variant="outline">{partTypeLabel(part.type)}</Badge>
               }

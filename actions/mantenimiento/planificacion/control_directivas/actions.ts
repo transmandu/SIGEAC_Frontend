@@ -125,6 +125,47 @@ export const useUpdateDirectiveControl = () => {
   return { updateDirectiveControl: updateMutation };
 };
 
+export const useAddDirectiveControlItem = () => {
+  const queryClient = useQueryClient();
+
+  const addItemMutation = useMutation({
+    mutationFn: async ({
+      company,
+      controlId,
+      data,
+    }: {
+      company: string;
+      controlId: string | number;
+      data: DirectiveItemData;
+    }) => {
+      const response = await axiosInstance.post(
+        `/${company}/directive-controls/${controlId}/items`,
+        data,
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      invalidatePlanificationAudit(queryClient);
+      queryClient.invalidateQueries({ queryKey: ["directive-controls"] });
+      queryClient.invalidateQueries({
+        queryKey: ["directive-control"],
+        exact: false,
+      });
+      toast.success("¡Agregada!", {
+        description: "La AD ha sido agregada al control correctamente.",
+      });
+    },
+    onError: (error: any) => {
+      toast.error("Oops!", {
+        description: firstBackendError(error) || "No se pudo agregar la AD...",
+      });
+      console.log(error);
+    },
+  });
+
+  return { addDirectiveControlItem: addItemMutation };
+};
+
 export const useDeleteDirectiveControl = () => {
   const queryClient = useQueryClient();
 

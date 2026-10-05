@@ -37,6 +37,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { RegisterComponentComplianceDialog } from "@/components/dialogs/mantenimiento/planificacion/RegisterComponentComplianceDialog";
+import { AddComponentControlItemDialog } from "@/components/dialogs/mantenimiento/planificacion/AddComponentControlItemDialog";
 import { useGetComponentControl } from "@/hooks/mantenimiento/planificacion/useGetComponentControl";
 import { useGetAircraftDailyAverage } from "@/hooks/mantenimiento/planificacion/useGetAircraftDailyAverage";
 import { useCompanyStore } from "@/stores/CompanyStore";
@@ -664,6 +665,11 @@ const ComponentControlDetailPage = () => {
               remainingPercentage={remainingPercentage}
               hasOverrides={hasPercentageOverrides}
             />
+            <RecordAuditHistory
+              subjectType="component_control"
+              subjectId={control.id}
+              filename={`historial_control_componentes_${control.aircraft?.acronym ?? control.id}`}
+            />
             {!controlRetired && (
               <ActionTriggerButton asChild>
                 <Link
@@ -803,6 +809,16 @@ const ComponentControlDetailPage = () => {
           icon={Plane}
           title="Fuselaje"
           hint="Componentes medidos contra las horas/ciclos de la aeronave."
+          action={
+            !controlRetired && (
+              <AddComponentControlItemDialog
+                controlId={control.id}
+                sectionLabel="Fuselaje"
+                currentHours={aircraftHours}
+                currentCycles={aircraftCycles}
+              />
+            )
+          }
         >
           <ComponentsTable
             items={fuselageItems}
@@ -822,6 +838,17 @@ const ComponentControlDetailPage = () => {
             icon={Cog}
             title={label}
             hint={`Componentes medidos contra el TSN/CSN de ${label}.`}
+            action={
+              !controlRetired && (
+                <AddComponentControlItemDialog
+                  controlId={control.id}
+                  parentAircraftPartId={partId}
+                  sectionLabel={label}
+                  currentHours={Number(part.time_since_new ?? 0)}
+                  currentCycles={Number(part.cycles_since_new ?? 0)}
+                />
+              )
+            }
           >
             <ComponentsTable
               items={filtered.filter(
@@ -851,12 +878,6 @@ const ComponentControlDetailPage = () => {
               retired_at: item.retired_at!,
               retired_by: item.retired_by,
             }))}
-        />
-
-        <RecordAuditHistory
-          subjectType="component_control"
-          subjectId={control.id}
-          filename={`historial_control_componentes_${control.aircraft?.acronym ?? control.id}`}
         />
       </div>
     </ContentLayout>

@@ -746,7 +746,6 @@ const NonServiceWorkOrderForm = ({
                       <Input
                         {...field}
                         disabled
-                        defaultValue={"Ing. Francisco Montilla"}
                         className="disabled:opacity-65"
                       />
                     </FormControl>
@@ -768,7 +767,6 @@ const NonServiceWorkOrderForm = ({
                       <Input
                         {...field}
                         disabled
-                        defaultValue={"José Flores"}
                         className="disabled:opacity-65"
                       />
                     </FormControl>

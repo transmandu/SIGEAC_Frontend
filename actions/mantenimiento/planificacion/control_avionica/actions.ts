@@ -126,6 +126,47 @@ export const useUpdateAvionicsControl = () => {
   return { updateAvionicsControl: updateMutation };
 };
 
+export const useAddAvionicsControlItem = () => {
+  const queryClient = useQueryClient();
+
+  const addItemMutation = useMutation({
+    mutationFn: async ({
+      company,
+      controlId,
+      data,
+    }: {
+      company: string;
+      controlId: string | number;
+      data: AvionicsItemData;
+    }) => {
+      const response = await axiosInstance.post(
+        `/${company}/avionics-controls/${controlId}/items`,
+        data,
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      invalidatePlanificationAudit(queryClient);
+      queryClient.invalidateQueries({ queryKey: ["avionics-controls"] });
+      queryClient.invalidateQueries({
+        queryKey: ["avionics-control"],
+        exact: false,
+      });
+      toast.success("¡Agregado!", {
+        description: "El equipo ha sido agregado al control correctamente.",
+      });
+    },
+    onError: (error: any) => {
+      toast.error("Oops!", {
+        description: firstBackendError(error) || "No se pudo agregar el equipo...",
+      });
+      console.log(error);
+    },
+  });
+
+  return { addAvionicsControlItem: addItemMutation };
+};
+
 export const useDeleteAvionicsControl = () => {
   const queryClient = useQueryClient();
 
