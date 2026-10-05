@@ -177,7 +177,7 @@ export function buildPlanificationGroup({
         ),
         icon: ShieldAlert,
         requiresOmac: true,
-        roles: ["ANALISTA_PLANIFICACION", "JEFE_PLANIFICACION", "SUPERUSER"],
+        roles: ["SUPERUSER"],
         submenus: [
           {
             href: `/${currentCompany?.slug}/planificacion/control_directivas`,

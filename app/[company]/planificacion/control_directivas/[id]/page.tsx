@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
+import ProtectedLayout from "@/components/layout/ProtectedLayout";
 import LoadingPage from "@/components/misc/LoadingPage";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -252,20 +253,27 @@ const DirectiveControlDetailPage = () => {
     });
   }, [items, authority, status, search]);
 
-  if (isLoading) return <LoadingPage />;
+  if (isLoading)
+    return (
+      <ProtectedLayout roles={["SUPERUSER"]}>
+        <LoadingPage />
+      </ProtectedLayout>
+    );
 
   if (isError || !control) {
     return (
-      <ContentLayout title="Control de Directivas">
-        <PageHeader className="mb-6" />
-        <Alert variant="destructive">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>
-            No se pudo cargar el control de directivas.
-          </AlertDescription>
-        </Alert>
-      </ContentLayout>
+      <ProtectedLayout roles={["SUPERUSER"]}>
+        <ContentLayout title="Control de Directivas">
+          <PageHeader className="mb-6" />
+          <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>
+              No se pudo cargar el control de directivas.
+            </AlertDescription>
+          </Alert>
+        </ContentLayout>
+      </ProtectedLayout>
     );
   }
 
@@ -312,175 +320,181 @@ const DirectiveControlDetailPage = () => {
   const compliedCount = items.filter((i) => i.complied_at).length;
 
   return (
-    <ContentLayout title={control.title}>
-      <div className="flex flex-col gap-6">
-        <PageHeader currentLabel={control.title} />
+    <ProtectedLayout roles={["SUPERUSER"]}>
+      <ContentLayout title={control.title}>
+        <div className="flex flex-col gap-6">
+          <PageHeader currentLabel={control.title} />
 
-        <div className="flex flex-col gap-2 border-b pb-4 sm:flex-row sm:items-end sm:justify-between">
-          <div className="flex flex-col">
-            <h1 className="text-3xl font-semibold tracking-tight">
-              {control.title}
-            </h1>
-            {control.description && (
-              <p className="text-sm text-muted-foreground">
-                {control.description}
-              </p>
+          <div className="flex flex-col gap-2 border-b pb-4 sm:flex-row sm:items-end sm:justify-between">
+            <div className="flex flex-col">
+              <h1 className="text-3xl font-semibold tracking-tight">
+                {control.title}
+              </h1>
+              {control.description && (
+                <p className="text-sm text-muted-foreground">
+                  {control.description}
+                </p>
+              )}
+            </div>
+            {!controlRetired && (
+              <ActionTriggerButton asChild>
+                <Link
+                  href={`/${company}/planificacion/control_directivas/editar/${control.id}`}
+                >
+                  <SquarePen className="mr-2 size-4" />
+                  Editar
+                </Link>
+              </ActionTriggerButton>
             )}
           </div>
-          {!controlRetired && (
-            <ActionTriggerButton asChild>
-              <Link
-                href={`/${company}/planificacion/control_directivas/editar/${control.id}`}
-              >
-                <SquarePen className="mr-2 size-4" />
-                Editar
-              </Link>
-            </ActionTriggerButton>
-          )}
-        </div>
 
-        <RetiredControlBanner
-          control={control}
-          recordType="directive_control"
-          noun="control de directivas"
-        />
-
-        <FormSection icon={Info} title="Información General">
-          <div className="grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3 md:grid-cols-6">
-            <InfoItem label="Matrícula" value={control.aircraft?.acronym} />
-            <InfoItem
-              label="Marca"
-              value={control.aircraft?.manufacturer?.name}
-            />
-            <InfoItem label="Modelo" value={control.aircraft?.model} />
-            <InfoItem label="Serial" value={control.aircraft?.serial} />
-            <InfoItem
-              label="Horas Totales"
-              value={`${fmtNumber(aircraftHours)} hrs`}
-            />
-            <InfoItem
-              label="Ciclos Totales"
-              value={fmtNumber(aircraftCycles)}
-            />
-            <InfoItem
-              label="% Remanente para Alerta"
-              value={`${remainingPercentage}%${hasPercentageOverrides ? " (general)" : ""}`}
-            />
-            <InfoItem
-              label="Manual de Referencia"
-              value={
-                control.has_reference_manual
-                  ? (control.reference_manual ?? undefined)
-                  : undefined
-              }
-            />
-            <InfoItem label="AD cargadas" value={items.length} />
-            <InfoItem label="Con plazo activo" value={withDeadlineCount} />
-            <InfoItem label="Recurrentes" value={recurrentCount} />
-            <InfoItem label="Cumplidas (única vez)" value={compliedCount} />
-          </div>
-        </FormSection>
-
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <div className="relative w-full sm:w-72">
-            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar por N° de AD o asunto..."
-              className="h-10 pl-9 text-sm"
-            />
-          </div>
-          <Select value={authority} onValueChange={setAuthority}>
-            <SelectTrigger className={cn(selectTriggerClass, "w-full sm:w-40")}>
-              <SelectValue placeholder="Autoridad" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Toda autoridad</SelectItem>
-              {Object.entries(DIRECTIVE_AUTHORITY_LABELS).map(
-                ([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                ),
-              )}
-            </SelectContent>
-          </Select>
-          <Select value={status} onValueChange={setStatus}>
-            <SelectTrigger className={cn(selectTriggerClass, "w-full sm:w-48")}>
-              <SelectValue placeholder="Estado" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos los estados</SelectItem>
-              <SelectItem value="COMPLIED">Cumplidas</SelectItem>
-              {(Object.keys(STATUS_META) as ItemStatus[]).map((s) => (
-                <SelectItem key={s} value={s}>
-                  {STATUS_META[s].label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <FormSection
-          icon={Plane}
-          title="Aeronave"
-          hint="Directivas que afectan a la aeronave en su conjunto."
-        >
-          <DirectivesTable
-            items={fuselageItems}
-            emptyLabel="Ninguna directiva de la aeronave coincide con el filtro."
-            company={company}
+          <RetiredControlBanner
             control={control}
-            currentHours={aircraftHours}
-            currentCycles={aircraftCycles}
-            remainingPercentage={remainingPercentage}
+            recordType="directive_control"
+            noun="control de directivas"
           />
-        </FormSection>
 
-        {parents.map(({ id: partId, part, label }) => (
+          <FormSection icon={Info} title="Información General">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3 md:grid-cols-6">
+              <InfoItem label="Matrícula" value={control.aircraft?.acronym} />
+              <InfoItem
+                label="Marca"
+                value={control.aircraft?.manufacturer?.name}
+              />
+              <InfoItem label="Modelo" value={control.aircraft?.model} />
+              <InfoItem label="Serial" value={control.aircraft?.serial} />
+              <InfoItem
+                label="Horas Totales"
+                value={`${fmtNumber(aircraftHours)} hrs`}
+              />
+              <InfoItem
+                label="Ciclos Totales"
+                value={fmtNumber(aircraftCycles)}
+              />
+              <InfoItem
+                label="% Remanente para Alerta"
+                value={`${remainingPercentage}%${hasPercentageOverrides ? " (general)" : ""}`}
+              />
+              <InfoItem
+                label="Manual de Referencia"
+                value={
+                  control.has_reference_manual
+                    ? (control.reference_manual ?? undefined)
+                    : undefined
+                }
+              />
+              <InfoItem label="AD cargadas" value={items.length} />
+              <InfoItem label="Con plazo activo" value={withDeadlineCount} />
+              <InfoItem label="Recurrentes" value={recurrentCount} />
+              <InfoItem label="Cumplidas (única vez)" value={compliedCount} />
+            </div>
+          </FormSection>
+
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="relative w-full sm:w-72">
+              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Buscar por N° de AD o asunto..."
+                className="h-10 pl-9 text-sm"
+              />
+            </div>
+            <Select value={authority} onValueChange={setAuthority}>
+              <SelectTrigger
+                className={cn(selectTriggerClass, "w-full sm:w-40")}
+              >
+                <SelectValue placeholder="Autoridad" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Toda autoridad</SelectItem>
+                {Object.entries(DIRECTIVE_AUTHORITY_LABELS).map(
+                  ([value, label]) => (
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
+                  ),
+                )}
+              </SelectContent>
+            </Select>
+            <Select value={status} onValueChange={setStatus}>
+              <SelectTrigger
+                className={cn(selectTriggerClass, "w-full sm:w-48")}
+              >
+                <SelectValue placeholder="Estado" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos los estados</SelectItem>
+                <SelectItem value="COMPLIED">Cumplidas</SelectItem>
+                {(Object.keys(STATUS_META) as ItemStatus[]).map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {STATUS_META[s].label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           <FormSection
-            key={partId}
-            icon={Cog}
-            title={label}
-            hint={`Directivas medidas contra el TSN/CSN de ${label}.`}
+            icon={Plane}
+            title="Aeronave"
+            hint="Directivas que afectan a la aeronave en su conjunto."
           >
             <DirectivesTable
-              items={filtered.filter(
-                (i) => String(i.parent_aircraft_part_id) === partId,
-              )}
-              emptyLabel="Ninguna directiva de este conjunto coincide con el filtro."
+              items={fuselageItems}
+              emptyLabel="Ninguna directiva de la aeronave coincide con el filtro."
               company={company}
               control={control}
-              currentHours={Number(part.time_since_new ?? 0)}
-              currentCycles={Number(part.cycles_since_new ?? 0)}
+              currentHours={aircraftHours}
+              currentCycles={aircraftCycles}
               remainingPercentage={remainingPercentage}
             />
           </FormSection>
-        ))}
 
-        <RetiredItemsSection
-          canRestore={!controlRetired}
-          rows={(control.items ?? [])
-            .filter((item) => item.retired_at && item.id)
-            .map((item) => ({
-              id: item.id!,
-              recordType: "directive_control_item" as const,
-              label: `AD ${item.ad_number}${item.revision ? ` ${item.revision}` : ""}`,
-              detail: item.description,
-              subject: `AD «${item.ad_number}»`,
-              retired_at: item.retired_at!,
-              retired_by: item.retired_by,
-            }))}
-        />
+          {parents.map(({ id: partId, part, label }) => (
+            <FormSection
+              key={partId}
+              icon={Cog}
+              title={label}
+              hint={`Directivas medidas contra el TSN/CSN de ${label}.`}
+            >
+              <DirectivesTable
+                items={filtered.filter(
+                  (i) => String(i.parent_aircraft_part_id) === partId,
+                )}
+                emptyLabel="Ninguna directiva de este conjunto coincide con el filtro."
+                company={company}
+                control={control}
+                currentHours={Number(part.time_since_new ?? 0)}
+                currentCycles={Number(part.cycles_since_new ?? 0)}
+                remainingPercentage={remainingPercentage}
+              />
+            </FormSection>
+          ))}
 
-        <RecordAuditHistory
-          subjectType="directive_control"
-          subjectId={control.id}
-          filename={`historial_control_directivas_${control.aircraft?.acronym ?? control.id}`}
-        />
-      </div>
-    </ContentLayout>
+          <RetiredItemsSection
+            canRestore={!controlRetired}
+            rows={(control.items ?? [])
+              .filter((item) => item.retired_at && item.id)
+              .map((item) => ({
+                id: item.id!,
+                recordType: "directive_control_item" as const,
+                label: `AD ${item.ad_number}${item.revision ? ` ${item.revision}` : ""}`,
+                detail: item.description,
+                subject: `AD «${item.ad_number}»`,
+                retired_at: item.retired_at!,
+                retired_by: item.retired_by,
+              }))}
+          />
+
+          <RecordAuditHistory
+            subjectType="directive_control"
+            subjectId={control.id}
+            filename={`historial_control_directivas_${control.aircraft?.acronym ?? control.id}`}
+          />
+        </div>
+      </ContentLayout>
+    </ProtectedLayout>
   );
 };
 
