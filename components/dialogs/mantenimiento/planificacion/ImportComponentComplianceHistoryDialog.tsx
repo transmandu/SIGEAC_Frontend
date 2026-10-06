@@ -51,8 +51,14 @@ const FORMAT_COLUMNS = [
     header: "Fecha",
     hint: "dd/mm/aaaa. Debe ser anterior a la primera aplicación del componente.",
   },
-  { header: "Horas", hint: "Lectura del padre (aeronave/motor/hélice) en el evento." },
-  { header: "Ciclos", hint: "Lectura del padre (aeronave/motor/hélice) en el evento." },
+  {
+    header: "Horas",
+    hint: "Lectura del padre (aeronave/motor/hélice) en el evento.",
+  },
+  {
+    header: "Ciclos",
+    hint: "Lectura del padre (aeronave/motor/hélice) en el evento.",
+  },
   { header: "Accion", hint: "OVERHAUL, CHECK o TEST." },
   {
     header: "Horas Consumidas",
@@ -154,7 +160,8 @@ export function ImportComponentComplianceHistoryDialog({
 
           <div>
             <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Componentes disponibles en este control (descripción · P/N · S/N · posición)
+              Componentes disponibles en este control (descripción · P/N · S/N ·
+              posición)
             </p>
             <ScrollArea className="h-28 rounded-lg border p-2">
               <div className="flex flex-wrap gap-1.5">

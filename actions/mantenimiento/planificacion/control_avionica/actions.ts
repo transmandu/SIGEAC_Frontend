@@ -158,7 +158,8 @@ export const useAddAvionicsControlItem = () => {
     },
     onError: (error: any) => {
       toast.error("Oops!", {
-        description: firstBackendError(error) || "No se pudo agregar el equipo...",
+        description:
+          firstBackendError(error) || "No se pudo agregar el equipo...",
       });
       console.log(error);
     },

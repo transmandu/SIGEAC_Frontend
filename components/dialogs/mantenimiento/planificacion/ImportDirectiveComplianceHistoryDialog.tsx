@@ -47,8 +47,14 @@ const FORMAT_COLUMNS = [
     header: "Fecha",
     hint: "dd/mm/aaaa. Debe ser anterior a la primera aplicación de la AD (si la tiene).",
   },
-  { header: "Horas", hint: "Lectura del conjunto (aeronave/motor/hélice) en el evento." },
-  { header: "Ciclos", hint: "Lectura del conjunto (aeronave/motor/hélice) en el evento." },
+  {
+    header: "Horas",
+    hint: "Lectura del conjunto (aeronave/motor/hélice) en el evento.",
+  },
+  {
+    header: "Ciclos",
+    hint: "Lectura del conjunto (aeronave/motor/hélice) en el evento.",
+  },
   { header: "Metodo", hint: "Opcional. Método de cumplimiento, texto libre." },
   {
     header: "N° OT",
@@ -115,8 +121,8 @@ export function ImportDirectiveComplianceHistoryDialog({
             Carga cumplimientos de <strong>antes</strong> de usar este sistema,
             solo para tener con qué comparar en las estadísticas. No reemplazan
             ni afectan el cálculo de Aplicada/Próximo/Remanente vigente. Una
-            fila con la misma AD y fecha de un cumplimiento ya cargado se
-            omite sola, así que reimportar el mismo archivo es seguro.
+            fila con la misma AD y fecha de un cumplimiento ya cargado se omite
+            sola, así que reimportar el mismo archivo es seguro.
           </DialogDescription>
         </DialogHeader>
 

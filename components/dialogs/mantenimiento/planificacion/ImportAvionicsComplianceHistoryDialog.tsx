@@ -159,7 +159,8 @@ export function ImportAvionicsComplianceHistoryDialog({
 
           <div>
             <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Tareas programadas disponibles en este control (descripción · P/N · S/N · posición · acción)
+              Tareas programadas disponibles en este control (descripción · P/N
+              · S/N · posición · acción)
             </p>
             <ScrollArea className="h-28 rounded-lg border p-2">
               <div className="flex flex-wrap gap-1.5">
