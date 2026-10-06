@@ -1,3 +1,8 @@
+## v4.49.0 — 2026-10-06
+
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- feat: add service toolbar for filtering and searching in ManualsPage
+
 ## v4.48.0 — 2026-10-06
 
 - feat: add HorizontalScroller component for native horizontal scrolling
