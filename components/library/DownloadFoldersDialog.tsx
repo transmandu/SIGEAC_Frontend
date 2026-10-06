@@ -8,12 +8,14 @@ import {
   Folder,
   FolderOpen,
   FolderTree as FolderTreeIcon,
+  KeyRound,
   Loader2,
   Minus,
   PackageCheck,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { DepartmentFolderGroup } from "@/components/library/FolderTree";
 import type { Document, FolderNode } from "@/lib/libraryService";
@@ -68,6 +70,49 @@ const formatBytes = (bytes: number): string => {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+};
+
+/**
+ * Aviso de qué quedó fuera del ZIP.
+ *
+ * El backend separa "no te dejo bajarlo" (sin permiso) de "el archivo no está
+ * en el servidor" (no disponible): son problemas distintos y con soluciones
+ * distintas. Antes el aviso lo traducía todo a "sin permisos", que es mentira
+ * cuando simplemente falta el fichero.
+ */
+const buildSkipNotice = (
+  total: number,
+  permissions: number,
+  unavailable: number,
+): { message: string; description?: string } => {
+  const partes: string[] = [];
+  if (permissions > 0) partes.push(`${permissions} sin permisos`);
+  if (unavailable > 0) partes.push(`${unavailable} no disponibles`);
+
+  const mensaje = `${total} archivo${total === 1 ? "" : "s"} en el ZIP${
+    partes.length > 0 ? `, ${partes.join(" y ")}` : ""
+  }`;
+
+  const detalles: string[] = [];
+  if (permissions > 0) {
+    detalles.push("Pide a un administrador que te los comparta.");
+  }
+  if (unavailable > 0) {
+    detalles.push(
+      "Sus archivos no están en el servidor: avisa a un administrador.",
+    );
+  }
+
+  return { message: mensaje, description: detalles.join(" ") };
+};
+
+/** Lee una cabecera numérica; no numérica o ausente cuenta como 0. */
+const readCountHeader = (
+  headers: Record<string, unknown>,
+  name: string,
+): number => {
+  const value = Number(headers[name]);
+  return Number.isFinite(value) ? value : 0;
 };
 
 interface DownloadFoldersDialogProps {
@@ -152,8 +197,15 @@ export default function DownloadFoldersDialog({
 }: DownloadFoldersDialogProps) {
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
-  const [phase, setPhase] = useState<"idle" | "downloading" | "saving">("idle");
+  const [phase, setPhase] = useState<
+    "idle" | "confirm" | "downloading" | "saving"
+  >("idle");
   const [progress, setProgress] = useState({ received: 0, total: 0 });
+  // Reconfirmación de contraseña antes de exportar la biblioteca. No se guarda
+  // en localStorage ni en un ref de sesión: se limpia al cerrar el diálogo.
+  const [password, setPassword] = useState("");
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
   const abortRef = useRef<AbortController | null>(null);
   const requestedDepartments = useRef<Set<number>>(new Set());
   const wasOpen = useRef(false);
@@ -181,6 +233,8 @@ export default function DownloadFoldersDialog({
       setSelected({});
       setCollapsed({});
       setProgress({ received: 0, total: 0 });
+      setPassword("");
+      setPasswordError(null);
     }
     wasOpen.current = open;
   }, [open]);
@@ -322,7 +376,9 @@ export default function DownloadFoldersDialog({
     return { documents: [...byDocumentId.values()] };
   }, [selectedKeys, nodes, documentsInFolder]);
 
-  const isBusy = phase !== "idle";
+  // "confirm" no es una fase ocupada: ahí el usuario teclea su contraseña,
+  // así que los botones de cancelar y la entrada deben seguir activos.
+  const isBusy = phase === "downloading" || phase === "saving";
 
   /**
    * Con una sola petición no hay pasos que contar, así que la barra muestra los
@@ -338,9 +394,38 @@ export default function DownloadFoldersDialog({
     abortRef.current?.abort();
   };
 
+  /**
+   * El botón de descarga en dos pasos: primero se pide la contraseña del
+   * usuario (el backend también la exige), y solo con ella confirmada se hace
+   * la petición. Así una contraseña mal escrita no dispara el armado del ZIP.
+   */
+  const handleStart = () => {
+    if (plan.documents.length === 0) {
+      toast.error("Las carpetas seleccionadas no contienen documentos");
+      return;
+    }
+    setPasswordError(null);
+    setPhase("confirm");
+    // El diálogo acaba de cambiar de fase: se espera un frame para enfocar.
+    window.requestAnimationFrame(() => passwordRef.current?.focus());
+  };
+
+  const handleBackToSelection = () => {
+    if (isBusy) return;
+    setPassword("");
+    setPasswordError(null);
+    setPhase("idle");
+  };
+
   const handleDownload = async () => {
     if (plan.documents.length === 0) {
       toast.error("Las carpetas seleccionadas no contienen documentos");
+      return;
+    }
+
+    if (!password) {
+      setPasswordError("Introduce tu contraseña para continuar");
+      passwordRef.current?.focus();
       return;
     }
 
@@ -348,6 +433,10 @@ export default function DownloadFoldersDialog({
     abortRef.current = controller;
     setPhase("downloading");
     setProgress({ received: 0, total: 0 });
+    setPasswordError(null);
+    // Si la clave falla se vuelve a la fase de confirmación para poder
+    // reintentar sin perder la selección de carpetas.
+    let retypePassword = false;
 
     try {
       // Una sola petición con TODAS las carpetas: el backend arma el ZIP y lo
@@ -356,6 +445,7 @@ export default function DownloadFoldersDialog({
       const response = await axiosInstance.post<Blob>(
         `/${company}/library/folders/download-zip`,
         {
+          password,
           folders: selectedKeys.map((key) => ({
             department_id: nodes[key].departmentId,
             folder_path: nodes[key].path,
@@ -386,13 +476,27 @@ export default function DownloadFoldersDialog({
         : plan.documents.length;
 
       if (skipped > 0) {
-        toast.warning(
-          `${total} archivo${total === 1 ? "" : "s"} en el ZIP, ${skipped} sin permisos`,
-          {
-            description:
-              "Pide a un administrador que te los comparta para poder descargarlos.",
-          },
+        const headers = response.headers as Record<string, unknown>;
+        let permissions = readCountHeader(
+          headers,
+          "x-library-zip-skipped-permissions",
         );
+        let unavailable = readCountHeader(
+          headers,
+          "x-library-zip-skipped-unavailable",
+        );
+
+        // Si el servidor no mandó el desglose (versión anterior), no se
+        // atribuye la culpa a los permisos sin saberlo: se cuentan todos
+        // como no disponibles, que es lo único que se puede afirmar.
+        if (permissions + unavailable === 0) {
+          unavailable = skipped;
+        }
+
+        const aviso = buildSkipNotice(total, permissions, unavailable);
+        toast.warning(aviso.message, {
+          description: aviso.description,
+        });
       } else {
         toast.success(
           `${total} archivo${total === 1 ? "" : "s"} en ${selectedKeys.length} carpeta${selectedKeys.length === 1 ? "" : "s"}`,
@@ -402,6 +506,26 @@ export default function DownloadFoldersDialog({
     } catch (error) {
       if (isAbortError(error)) {
         toast.info("Descarga cancelada");
+      } else if (
+        (error as { response?: { status?: number } })?.response?.status === 403
+      ) {
+        // Contraseña errada (el backend responde 403 y no 401 para no matar
+        // la sesión vía el interceptor de AuthContext).
+        retypePassword = true;
+        setPassword("");
+        setPasswordError(
+          (await messageFromError(error)) ?? "La contraseña es incorrecta",
+        );
+        window.requestAnimationFrame(() => passwordRef.current?.focus());
+      } else if (
+        (error as { response?: { status?: number } })?.response?.status === 429
+      ) {
+        // Demasiados intentos: se vuelve a la selección para que espere.
+        console.error("Límite de intentos alcanzado:", error);
+        toast.error(
+          (await messageFromError(error)) ??
+            "Demasiados intentos. Espera un momento y vuelve a probar",
+        );
       } else {
         console.error("Error al descargar el ZIP:", error);
         toast.error(
@@ -411,13 +535,21 @@ export default function DownloadFoldersDialog({
       }
     } finally {
       abortRef.current = null;
-      setPhase("idle");
+      setPhase(retypePassword ? "confirm" : "idle");
     }
   };
 
   const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) return;
     // Durante el armado no se cierra: pulsar fuera perdería todo el trabajo.
-    if (!nextOpen && !isBusy) onClose();
+    if (isBusy) return;
+    // En la fase de contraseña, Esc o un clic fuera vuelve a la selección en
+    // vez de cerrar, para no perder lo que ya se marcó.
+    if (phase === "confirm") {
+      handleBackToSelection();
+      return;
+    }
+    onClose();
   };
 
   const renderRow = (key: string) => {
@@ -570,6 +702,58 @@ export default function DownloadFoldersDialog({
             </span>
           </div>
 
+          {phase === "confirm" && (
+            <div className="space-y-2 rounded-xl border border-amber-200 dark:border-amber-900/50 bg-amber-50/60 dark:bg-amber-900/10 p-3">
+              <div className="flex items-center gap-2">
+                <KeyRound className="h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
+                <p className="text-[9px] font-black uppercase tracking-widest text-amber-700 dark:text-amber-300">
+                  Confirma tu contraseña
+                </p>
+              </div>
+              <p className="text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
+                Se exportarán {plan.documents.length} documento
+                {plan.documents.length === 1 ? "" : "s"} de{" "}
+                {selectedKeys.length} carpeta
+                {selectedKeys.length === 1 ? "" : "s"}. Escribe tu contraseña de
+                usuario para continuar.
+              </p>
+              <Input
+                ref={passwordRef}
+                type="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(event) => {
+                  setPassword(event.target.value);
+                  if (passwordError) setPasswordError(null);
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    void handleDownload();
+                  }
+                }}
+                placeholder="Contraseña"
+                aria-invalid={passwordError ? true : undefined}
+                aria-describedby={
+                  passwordError ? "library-export-password-error" : undefined
+                }
+                className={`h-9 text-[13px] ${
+                  passwordError
+                    ? "border-red-500 focus-visible:ring-red-500"
+                    : ""
+                }`}
+              />
+              {passwordError && (
+                <p
+                  id="library-export-password-error"
+                  role="alert"
+                  className="text-[11px] font-bold text-red-600 dark:text-red-400"
+                >
+                  {passwordError}
+                </p>
+              )}
+            </div>
+          )}
           {isBusy && (
             <div className="space-y-2 rounded-xl border border-blue-100 dark:border-blue-900/40 bg-blue-50/50 dark:bg-blue-900/10 p-3">
               {/* La barra solo aparece si se conoce el tamaño total: la
@@ -593,35 +777,58 @@ export default function DownloadFoldersDialog({
           )}
 
           <div className="flex gap-3 pt-4 border-t border-slate-200 dark:border-gray-700">
-            <button
-              type="button"
-              onClick={isBusy ? handleCancel : onClose}
-              className="flex-1 px-4 py-3 text-[10px] font-black text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 uppercase tracking-widest transition-colors"
-            >
-              {isBusy ? "CANCELAR" : "CERRAR"}
-            </button>
-            <button
-              type="button"
-              onClick={handleDownload}
-              disabled={isBusy || plan.documents.length === 0}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 text-[10px] font-black text-white bg-blue-600 rounded-xl hover:bg-blue-700 disabled:opacity-50 shadow-lg shadow-blue-500/20 uppercase tracking-widest transition-all"
-            >
-              {isBusy ? (
-                <>
-                  {phase === "saving" ? (
-                    <PackageCheck className="h-3 w-3" />
+            {phase === "confirm" ? (
+              <>
+                <button
+                  type="button"
+                  onClick={handleBackToSelection}
+                  className="flex-1 px-4 py-3 text-[10px] font-black text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 uppercase tracking-widest transition-colors"
+                >
+                  ATRÁS
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void handleDownload()}
+                  disabled={isBusy}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 text-[10px] font-black text-white bg-blue-600 rounded-xl hover:bg-blue-700 disabled:opacity-50 shadow-lg shadow-blue-500/20 uppercase tracking-widest transition-all"
+                >
+                  <KeyRound className="h-3 w-3" />
+                  CONFIRMAR Y DESCARGAR
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={isBusy ? handleCancel : onClose}
+                  className="flex-1 px-4 py-3 text-[10px] font-black text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 uppercase tracking-widest transition-colors"
+                >
+                  {isBusy ? "CANCELAR" : "CERRAR"}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleStart}
+                  disabled={isBusy || plan.documents.length === 0}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 text-[10px] font-black text-white bg-blue-600 rounded-xl hover:bg-blue-700 disabled:opacity-50 shadow-lg shadow-blue-500/20 uppercase tracking-widest transition-all"
+                >
+                  {isBusy ? (
+                    <>
+                      {phase === "saving" ? (
+                        <PackageCheck className="h-3 w-3" />
+                      ) : (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      )}
+                      DESCARGANDO...
+                    </>
                   ) : (
-                    <Loader2 className="h-3 w-3 animate-spin" />
+                    <>
+                      <Minus className="h-3 w-3 rotate-90" />
+                      DESCARGAR ZIP
+                    </>
                   )}
-                  DESCARGANDO...
-                </>
-              ) : (
-                <>
-                  <Minus className="h-3 w-3 rotate-90" />
-                  DESCARGAR ZIP
-                </>
-              )}
-            </button>
+                </button>
+              </>
+            )}
           </div>
         </div>
       </DialogContent>
