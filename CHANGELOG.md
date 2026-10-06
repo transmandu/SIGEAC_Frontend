@@ -1,3 +1,7 @@
+## v4.46.0 — 2026-10-06
+
+- feat: add import compliance history functionality for avionics, compo… (#317)
+
 ## v4.45.0 — 2026-10-06
 
 - ci:add GitHub Action to create ClickUp task on push to main (#316)
