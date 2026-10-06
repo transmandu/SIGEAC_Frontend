@@ -25,22 +25,39 @@ import {
 } from "lucide-react";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import {
-  ImportComplianceHistoryResult,
-  useImportMaintenanceComplianceHistory,
-} from "@/actions/mantenimiento/planificacion/cumplimientos/actions";
-import { MaintenanceControlItem } from "@/types";
+  ImportAvionicsComplianceHistoryResult,
+  useImportAvionicsComplianceHistory,
+} from "@/actions/mantenimiento/planificacion/control_avionica/actions";
+import { AVIONICS_ACTION_LABELS } from "@/lib/avionicsControlLabels";
+import { AvionicsControlItem } from "@/types";
 
 const FORMAT_COLUMNS = [
   {
-    header: "Certificado o Servicio",
-    hint: "Debe coincidir EXACTO con uno de los nombres de abajo.",
+    header: "Descripcion",
+    hint: "Debe coincidir EXACTO con la descripción de uno de los equipos de abajo.",
+  },
+  {
+    header: "Numero de Parte",
+    hint: "Debe coincidir EXACTO con el P/N del equipo.",
+  },
+  {
+    header: "Serial",
+    hint: "Debe coincidir EXACTO con el S/N del equipo.",
+  },
+  {
+    header: "Posicion",
+    hint: "Debe coincidir EXACTO con la posición del equipo (vacío si no tiene).",
+  },
+  {
+    header: "Accion",
+    hint: "Debe coincidir con una de las tareas programadas de ese equipo (ver abajo). Las tareas por condición no aplican.",
   },
   {
     header: "Fecha",
-    hint: "dd/mm/aaaa. Debe ser anterior a la primera aplicación del ítem.",
+    hint: "dd/mm/aaaa. Debe ser anterior a la primera aplicación de la tarea.",
   },
-  { header: "Horas", hint: "Opcional si el ítem no se cuenta en horas." },
-  { header: "Ciclos", hint: "Opcional si el ítem no se cuenta en ciclos." },
+  { header: "Horas", hint: "Lectura de la aeronave en el evento." },
+  { header: "Ciclos", hint: "Lectura de la aeronave en el evento." },
   {
     header: "N° OT",
     hint: "Opcional. Si coincide con una Orden de Trabajo existente de esta aeronave, se vincula.",
@@ -49,26 +66,26 @@ const FORMAT_COLUMNS = [
   { header: "Observaciones", hint: "Opcional." },
 ];
 
-interface ImportComplianceHistoryDialogProps {
+interface ImportAvionicsComplianceHistoryDialogProps {
   controlId: string | number;
-  items: MaintenanceControlItem[];
+  items: AvionicsControlItem[];
 }
 
-export function ImportComplianceHistoryDialog({
+export function ImportAvionicsComplianceHistoryDialog({
   controlId,
   items,
-}: ImportComplianceHistoryDialogProps) {
+}: ImportAvionicsComplianceHistoryDialogProps) {
   const [open, setOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
-  const [result, setResult] = useState<ImportComplianceHistoryResult | null>(
-    null,
-  );
+  const [result, setResult] =
+    useState<ImportAvionicsComplianceHistoryResult | null>(null);
   const { selectedCompany } = useCompanyStore();
-  const { importComplianceHistory } = useImportMaintenanceComplianceHistory();
+  const { importAvionicsComplianceHistory } =
+    useImportAvionicsComplianceHistory();
 
   const handleSubmit = async () => {
     if (!file) return;
-    const data = await importComplianceHistory.mutateAsync({
+    const data = await importAvionicsComplianceHistory.mutateAsync({
       file,
       controlId,
       company: selectedCompany!.slug,
@@ -77,11 +94,20 @@ export function ImportComplianceHistoryDialog({
     setFile(null);
   };
 
+  const scheduledTasks = items.flatMap((item) =>
+    item.tasks
+      .filter((task) => !task.is_on_condition)
+      .map((task) => ({
+        key: `${item.id}-${task.id}`,
+        label: `${item.description} · ${item.part_number} · ${item.serial}${item.position ? ` · ${item.position}` : ""} · ${AVIONICS_ACTION_LABELS[task.action]}`,
+      })),
+  );
+
   return (
     <Dialog
       open={open}
       onOpenChange={(next) => {
-        if (importComplianceHistory.isPending) return;
+        if (importAvionicsComplianceHistory.isPending) return;
         setOpen(next);
         if (!next) {
           setFile(null);
@@ -106,7 +132,7 @@ export function ImportComplianceHistoryDialog({
             Carga cumplimientos de <strong>antes</strong> de usar este sistema,
             solo para tener con qué comparar en las estadísticas. No reemplazan
             ni afectan el cálculo de Aplicada/Próximo/Remanente vigente. Una
-            fila con el mismo ítem y fecha de un cumplimiento ya cargado se
+            fila con la misma tarea y fecha de un cumplimiento ya cargado se
             omite sola, así que reimportar el mismo archivo es seguro.
           </DialogDescription>
         </DialogHeader>
@@ -133,17 +159,17 @@ export function ImportComplianceHistoryDialog({
 
           <div>
             <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Nombres exactos disponibles en este control
+              Tareas programadas disponibles en este control (descripción · P/N · S/N · posición · acción)
             </p>
             <ScrollArea className="h-28 rounded-lg border p-2">
               <div className="flex flex-wrap gap-1.5">
-                {items.map((item) => (
+                {scheduledTasks.map((task) => (
                   <Badge
-                    key={item.id}
+                    key={task.key}
                     variant="outline"
                     className="font-normal"
                   >
-                    {item.name}
+                    {task.label}
                   </Badge>
                 ))}
               </div>
@@ -151,11 +177,11 @@ export function ImportComplianceHistoryDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="compliance-history-file">
+            <Label htmlFor="avionics-compliance-history-file">
               Archivo (.xlsx, .xls o .csv)
             </Label>
             <Input
-              id="compliance-history-file"
+              id="avionics-compliance-history-file"
               type="file"
               accept=".xlsx,.xls,.csv"
               onChange={(event) => setFile(event.target.files?.[0] ?? null)}
@@ -193,15 +219,15 @@ export function ImportComplianceHistoryDialog({
           <Button
             variant="outline"
             onClick={() => setOpen(false)}
-            disabled={importComplianceHistory.isPending}
+            disabled={importAvionicsComplianceHistory.isPending}
           >
             Cerrar
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={!file || importComplianceHistory.isPending}
+            disabled={!file || importAvionicsComplianceHistory.isPending}
           >
-            {importComplianceHistory.isPending ? (
+            {importAvionicsComplianceHistory.isPending ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
               "Importar"

@@ -25,22 +25,31 @@ import {
 } from "lucide-react";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import {
-  ImportComplianceHistoryResult,
-  useImportMaintenanceComplianceHistory,
-} from "@/actions/mantenimiento/planificacion/cumplimientos/actions";
-import { MaintenanceControlItem } from "@/types";
+  ImportDirectiveComplianceHistoryResult,
+  useImportDirectiveComplianceHistory,
+} from "@/actions/mantenimiento/planificacion/control_directivas/actions";
+import { DirectiveControlItem } from "@/types";
 
 const FORMAT_COLUMNS = [
   {
-    header: "Certificado o Servicio",
-    hint: "Debe coincidir EXACTO con uno de los nombres de abajo.",
+    header: "N_AD",
+    hint: "Debe coincidir EXACTO con el N° AD de una de las directivas de abajo.",
+  },
+  {
+    header: "Autoridad",
+    hint: "Debe coincidir EXACTO: INAC, FAA, EASA u OTHER.",
+  },
+  {
+    header: "Revision",
+    hint: "Opcional, pero debe coincidir EXACTO si la AD tiene una.",
   },
   {
     header: "Fecha",
-    hint: "dd/mm/aaaa. Debe ser anterior a la primera aplicación del ítem.",
+    hint: "dd/mm/aaaa. Debe ser anterior a la primera aplicación de la AD (si la tiene).",
   },
-  { header: "Horas", hint: "Opcional si el ítem no se cuenta en horas." },
-  { header: "Ciclos", hint: "Opcional si el ítem no se cuenta en ciclos." },
+  { header: "Horas", hint: "Lectura del conjunto (aeronave/motor/hélice) en el evento." },
+  { header: "Ciclos", hint: "Lectura del conjunto (aeronave/motor/hélice) en el evento." },
+  { header: "Metodo", hint: "Opcional. Método de cumplimiento, texto libre." },
   {
     header: "N° OT",
     hint: "Opcional. Si coincide con una Orden de Trabajo existente de esta aeronave, se vincula.",
@@ -49,26 +58,26 @@ const FORMAT_COLUMNS = [
   { header: "Observaciones", hint: "Opcional." },
 ];
 
-interface ImportComplianceHistoryDialogProps {
+interface ImportDirectiveComplianceHistoryDialogProps {
   controlId: string | number;
-  items: MaintenanceControlItem[];
+  items: DirectiveControlItem[];
 }
 
-export function ImportComplianceHistoryDialog({
+export function ImportDirectiveComplianceHistoryDialog({
   controlId,
   items,
-}: ImportComplianceHistoryDialogProps) {
+}: ImportDirectiveComplianceHistoryDialogProps) {
   const [open, setOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
-  const [result, setResult] = useState<ImportComplianceHistoryResult | null>(
-    null,
-  );
+  const [result, setResult] =
+    useState<ImportDirectiveComplianceHistoryResult | null>(null);
   const { selectedCompany } = useCompanyStore();
-  const { importComplianceHistory } = useImportMaintenanceComplianceHistory();
+  const { importDirectiveComplianceHistory } =
+    useImportDirectiveComplianceHistory();
 
   const handleSubmit = async () => {
     if (!file) return;
-    const data = await importComplianceHistory.mutateAsync({
+    const data = await importDirectiveComplianceHistory.mutateAsync({
       file,
       controlId,
       company: selectedCompany!.slug,
@@ -81,7 +90,7 @@ export function ImportComplianceHistoryDialog({
     <Dialog
       open={open}
       onOpenChange={(next) => {
-        if (importComplianceHistory.isPending) return;
+        if (importDirectiveComplianceHistory.isPending) return;
         setOpen(next);
         if (!next) {
           setFile(null);
@@ -106,7 +115,7 @@ export function ImportComplianceHistoryDialog({
             Carga cumplimientos de <strong>antes</strong> de usar este sistema,
             solo para tener con qué comparar en las estadísticas. No reemplazan
             ni afectan el cálculo de Aplicada/Próximo/Remanente vigente. Una
-            fila con el mismo ítem y fecha de un cumplimiento ya cargado se
+            fila con la misma AD y fecha de un cumplimiento ya cargado se
             omite sola, así que reimportar el mismo archivo es seguro.
           </DialogDescription>
         </DialogHeader>
@@ -133,7 +142,7 @@ export function ImportComplianceHistoryDialog({
 
           <div>
             <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Nombres exactos disponibles en este control
+              AD disponibles en este control (N° AD · autoridad · revisión)
             </p>
             <ScrollArea className="h-28 rounded-lg border p-2">
               <div className="flex flex-wrap gap-1.5">
@@ -143,7 +152,8 @@ export function ImportComplianceHistoryDialog({
                     variant="outline"
                     className="font-normal"
                   >
-                    {item.name}
+                    {item.ad_number} · {item.authority}
+                    {item.revision ? ` · Rev. ${item.revision}` : ""}
                   </Badge>
                 ))}
               </div>
@@ -151,11 +161,11 @@ export function ImportComplianceHistoryDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="compliance-history-file">
+            <Label htmlFor="directive-compliance-history-file">
               Archivo (.xlsx, .xls o .csv)
             </Label>
             <Input
-              id="compliance-history-file"
+              id="directive-compliance-history-file"
               type="file"
               accept=".xlsx,.xls,.csv"
               onChange={(event) => setFile(event.target.files?.[0] ?? null)}
@@ -193,15 +203,15 @@ export function ImportComplianceHistoryDialog({
           <Button
             variant="outline"
             onClick={() => setOpen(false)}
-            disabled={importComplianceHistory.isPending}
+            disabled={importDirectiveComplianceHistory.isPending}
           >
             Cerrar
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={!file || importComplianceHistory.isPending}
+            disabled={!file || importDirectiveComplianceHistory.isPending}
           >
-            {importComplianceHistory.isPending ? (
+            {importDirectiveComplianceHistory.isPending ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
               "Importar"

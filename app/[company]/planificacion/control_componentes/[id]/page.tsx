@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/tooltip";
 import { RegisterComponentComplianceDialog } from "@/components/dialogs/mantenimiento/planificacion/RegisterComponentComplianceDialog";
 import { AddComponentControlItemDialog } from "@/components/dialogs/mantenimiento/planificacion/AddComponentControlItemDialog";
+import { ImportComponentComplianceHistoryDialog } from "@/components/dialogs/mantenimiento/planificacion/ImportComponentComplianceHistoryDialog";
 import { useGetComponentControl } from "@/hooks/mantenimiento/planificacion/useGetComponentControl";
 import { useGetAircraftDailyAverage } from "@/hooks/mantenimiento/planificacion/useGetAircraftDailyAverage";
 import { useCompanyStore } from "@/stores/CompanyStore";
@@ -673,14 +674,20 @@ const ComponentControlDetailPage = () => {
               filename={`historial_control_componentes_${control.aircraft?.acronym ?? control.id}`}
             />
             {!controlRetired && (
-              <ActionTriggerButton asChild>
-                <Link
-                  href={`/${company}/planificacion/control_componentes/editar/${control.id}`}
-                >
-                  <SquarePen className="mr-2 size-4" />
-                  Editar
-                </Link>
-              </ActionTriggerButton>
+              <>
+                <ImportComponentComplianceHistoryDialog
+                  controlId={control.id}
+                  items={activeItems}
+                />
+                <ActionTriggerButton asChild>
+                  <Link
+                    href={`/${company}/planificacion/control_componentes/editar/${control.id}`}
+                  >
+                    <SquarePen className="mr-2 size-4" />
+                    Editar
+                  </Link>
+                </ActionTriggerButton>
+              </>
             )}
           </div>
         </div>

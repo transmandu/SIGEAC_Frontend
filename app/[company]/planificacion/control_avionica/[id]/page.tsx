@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/tooltip";
 import { RegisterAvionicsComplianceDialog } from "@/components/dialogs/mantenimiento/planificacion/RegisterAvionicsComplianceDialog";
 import { AddAvionicsControlItemDialog } from "@/components/dialogs/mantenimiento/planificacion/AddAvionicsControlItemDialog";
+import { ImportAvionicsComplianceHistoryDialog } from "@/components/dialogs/mantenimiento/planificacion/ImportAvionicsComplianceHistoryDialog";
 import { useGetAvionicsControl } from "@/hooks/mantenimiento/planificacion/useGetAvionicsControl";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import {
@@ -302,14 +303,20 @@ const AvionicsControlDetailPage = () => {
               filename={`historial_control_avionica_${control.aircraft?.acronym ?? control.id}`}
             />
             {!controlRetired && (
-              <ActionTriggerButton asChild>
-                <Link
-                  href={`/${company}/planificacion/control_avionica/editar/${control.id}`}
-                >
-                  <SquarePen className="mr-2 size-4" />
-                  Editar
-                </Link>
-              </ActionTriggerButton>
+              <>
+                <ImportAvionicsComplianceHistoryDialog
+                  controlId={control.id}
+                  items={activeItems}
+                />
+                <ActionTriggerButton asChild>
+                  <Link
+                    href={`/${company}/planificacion/control_avionica/editar/${control.id}`}
+                  >
+                    <SquarePen className="mr-2 size-4" />
+                    Editar
+                  </Link>
+                </ActionTriggerButton>
+              </>
             )}
           </div>
         </div>

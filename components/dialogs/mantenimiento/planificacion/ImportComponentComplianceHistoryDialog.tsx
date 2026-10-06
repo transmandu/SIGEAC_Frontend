@@ -25,22 +25,43 @@ import {
 } from "lucide-react";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import {
-  ImportComplianceHistoryResult,
-  useImportMaintenanceComplianceHistory,
-} from "@/actions/mantenimiento/planificacion/cumplimientos/actions";
-import { MaintenanceControlItem } from "@/types";
+  ImportComponentComplianceHistoryResult,
+  useImportComponentComplianceHistory,
+} from "@/actions/mantenimiento/planificacion/control_componentes/actions";
+import { ComponentControlItem } from "@/types";
 
 const FORMAT_COLUMNS = [
   {
-    header: "Certificado o Servicio",
-    hint: "Debe coincidir EXACTO con uno de los nombres de abajo.",
+    header: "Descripcion",
+    hint: "Debe coincidir EXACTO con la descripción de uno de los componentes de abajo.",
+  },
+  {
+    header: "Numero de Parte",
+    hint: "Debe coincidir EXACTO con el P/N del componente.",
+  },
+  {
+    header: "Serial",
+    hint: "Debe coincidir EXACTO con el S/N del componente.",
+  },
+  {
+    header: "Posicion",
+    hint: "Debe coincidir EXACTO con la posición del componente (vacío si no tiene).",
   },
   {
     header: "Fecha",
-    hint: "dd/mm/aaaa. Debe ser anterior a la primera aplicación del ítem.",
+    hint: "dd/mm/aaaa. Debe ser anterior a la primera aplicación del componente.",
   },
-  { header: "Horas", hint: "Opcional si el ítem no se cuenta en horas." },
-  { header: "Ciclos", hint: "Opcional si el ítem no se cuenta en ciclos." },
+  { header: "Horas", hint: "Lectura del padre (aeronave/motor/hélice) en el evento." },
+  { header: "Ciclos", hint: "Lectura del padre (aeronave/motor/hélice) en el evento." },
+  { header: "Accion", hint: "OVERHAUL, CHECK o TEST." },
+  {
+    header: "Horas Consumidas",
+    hint: "Opcional. Se ignora si la acción es OVERHAUL (queda en 0).",
+  },
+  {
+    header: "Ciclos Consumidos",
+    hint: "Opcional. Se ignora si la acción es OVERHAUL (queda en 0).",
+  },
   {
     header: "N° OT",
     hint: "Opcional. Si coincide con una Orden de Trabajo existente de esta aeronave, se vincula.",
@@ -49,26 +70,26 @@ const FORMAT_COLUMNS = [
   { header: "Observaciones", hint: "Opcional." },
 ];
 
-interface ImportComplianceHistoryDialogProps {
+interface ImportComponentComplianceHistoryDialogProps {
   controlId: string | number;
-  items: MaintenanceControlItem[];
+  items: ComponentControlItem[];
 }
 
-export function ImportComplianceHistoryDialog({
+export function ImportComponentComplianceHistoryDialog({
   controlId,
   items,
-}: ImportComplianceHistoryDialogProps) {
+}: ImportComponentComplianceHistoryDialogProps) {
   const [open, setOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
-  const [result, setResult] = useState<ImportComplianceHistoryResult | null>(
-    null,
-  );
+  const [result, setResult] =
+    useState<ImportComponentComplianceHistoryResult | null>(null);
   const { selectedCompany } = useCompanyStore();
-  const { importComplianceHistory } = useImportMaintenanceComplianceHistory();
+  const { importComponentComplianceHistory } =
+    useImportComponentComplianceHistory();
 
   const handleSubmit = async () => {
     if (!file) return;
-    const data = await importComplianceHistory.mutateAsync({
+    const data = await importComponentComplianceHistory.mutateAsync({
       file,
       controlId,
       company: selectedCompany!.slug,
@@ -81,7 +102,7 @@ export function ImportComplianceHistoryDialog({
     <Dialog
       open={open}
       onOpenChange={(next) => {
-        if (importComplianceHistory.isPending) return;
+        if (importComponentComplianceHistory.isPending) return;
         setOpen(next);
         if (!next) {
           setFile(null);
@@ -106,8 +127,8 @@ export function ImportComplianceHistoryDialog({
             Carga cumplimientos de <strong>antes</strong> de usar este sistema,
             solo para tener con qué comparar en las estadísticas. No reemplazan
             ni afectan el cálculo de Aplicada/Próximo/Remanente vigente. Una
-            fila con el mismo ítem y fecha de un cumplimiento ya cargado se
-            omite sola, así que reimportar el mismo archivo es seguro.
+            fila con el mismo componente y fecha de un cumplimiento ya cargado
+            se omite sola, así que reimportar el mismo archivo es seguro.
           </DialogDescription>
         </DialogHeader>
 
@@ -133,7 +154,7 @@ export function ImportComplianceHistoryDialog({
 
           <div>
             <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Nombres exactos disponibles en este control
+              Componentes disponibles en este control (descripción · P/N · S/N · posición)
             </p>
             <ScrollArea className="h-28 rounded-lg border p-2">
               <div className="flex flex-wrap gap-1.5">
@@ -143,7 +164,8 @@ export function ImportComplianceHistoryDialog({
                     variant="outline"
                     className="font-normal"
                   >
-                    {item.name}
+                    {item.description} · {item.part_number} · {item.serial}
+                    {item.position ? ` · ${item.position}` : ""}
                   </Badge>
                 ))}
               </div>
@@ -151,11 +173,11 @@ export function ImportComplianceHistoryDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="compliance-history-file">
+            <Label htmlFor="component-compliance-history-file">
               Archivo (.xlsx, .xls o .csv)
             </Label>
             <Input
-              id="compliance-history-file"
+              id="component-compliance-history-file"
               type="file"
               accept=".xlsx,.xls,.csv"
               onChange={(event) => setFile(event.target.files?.[0] ?? null)}
@@ -193,15 +215,15 @@ export function ImportComplianceHistoryDialog({
           <Button
             variant="outline"
             onClick={() => setOpen(false)}
-            disabled={importComplianceHistory.isPending}
+            disabled={importComponentComplianceHistory.isPending}
           >
             Cerrar
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={!file || importComplianceHistory.isPending}
+            disabled={!file || importComponentComplianceHistory.isPending}
           >
-            {importComplianceHistory.isPending ? (
+            {importComponentComplianceHistory.isPending ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
               "Importar"
