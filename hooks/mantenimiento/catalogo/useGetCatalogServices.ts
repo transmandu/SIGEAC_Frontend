@@ -12,6 +12,8 @@ type Filters = {
   status?: CatalogStatus;
   /** Manual de referencia del control (cabecera): acota el catálogo mostrado. */
   manualId?: number | string;
+  /** Solo los servicios huérfanos de manual. */
+  withoutManual?: boolean;
   /** Agrega tasks.requirements — lo pide el picker para buscar por ATA/N° de parte. */
   withTasks?: boolean;
   /**
@@ -32,6 +34,7 @@ const fetchCatalogServices = async (
       category: filters.category,
       status: filters.status,
       manual_id: filters.manualId,
+      without_manual: filters.withoutManual ? 1 : undefined,
       with_tasks: filters.withTasks ? 1 : undefined,
     },
   });
@@ -52,6 +55,7 @@ export const useGetCatalogServices = (
       filters.category ?? null,
       filters.status ?? null,
       filters.manualId ?? null,
+      filters.withoutManual ?? null,
       filters.withTasks ?? null,
     ],
     queryFn: () => fetchCatalogServices(company, filters),

@@ -45,9 +45,9 @@ function TruncatedText({ children }: { children: string }) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <span className="block max-w-[220px] truncate">{children}</span>
+        <span className="block max-w-55 truncate">{children}</span>
       </TooltipTrigger>
-      <TooltipContent side="top" className="max-w-xs break-words">
+      <TooltipContent side="top" className="max-w-xs wrap-break-words">
         {children}
       </TooltipContent>
     </Tooltip>
@@ -172,7 +172,7 @@ const HistorialCumplimientosPage = () => {
                     return (
                       <TableRow
                         key={compliance.id}
-                        className="transition-colors hover:bg-primary/[0.03]"
+                        className="transition-colors hover:bg-primary/3"
                       >
                         <TableCell className="font-medium">
                           {item?.maintenance_control?.aircraft?.acronym ?? "—"}

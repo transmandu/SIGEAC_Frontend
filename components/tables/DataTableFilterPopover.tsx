@@ -81,7 +81,7 @@ export function DataTableFilterPopover<TData extends RowData>({
             "relative h-10 rounded-md px-4 border-border bg-background",
             "text-foreground font-medium shadow-sm transition-all duration-200",
             "hover:bg-transparent hover:border-primary/40 hover:text-primary hover:shadow-md",
-            "hover:-translate-y-[1px] active:translate-y-0 active:shadow-sm",
+            "hover:-translate-y-px active:translate-y-0 active:shadow-sm",
             "focus-visible:ring-2 focus-visible:ring-primary/20",
             active > 0 && "border-primary/40 text-primary",
             className,
@@ -103,10 +103,10 @@ export function DataTableFilterPopover<TData extends RowData>({
         </Button>
       </PopoverTrigger>
 
-      <PopoverContent className="w-[19rem] p-0" align="center">
+      <PopoverContent className="w-76 p-0" align="center">
         <Command>
           <CommandInput placeholder="Buscar opción..." />
-          <CommandList className="max-h-[22rem]">
+          <CommandList className="max-h-88">
             <CommandEmpty>Sin coincidencias.</CommandEmpty>
 
             {groups.map((group, index) => {
@@ -138,11 +138,11 @@ export function DataTableFilterPopover<TData extends RowData>({
                             <CheckIcon className="size-4" aria-hidden="true" />
                           </div>
                           <div className="flex flex-1 flex-col">
-                            <span className="whitespace-normal break-words">
+                            <span className="whitespace-normal wrap-break-words">
                               {option.label}
                             </span>
                             {option.description && (
-                              <span className="whitespace-normal break-words text-xs text-muted-foreground">
+                              <span className="whitespace-normal wrap-break-words text-xs text-muted-foreground">
                                 {option.description}
                               </span>
                             )}
