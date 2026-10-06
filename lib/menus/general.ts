@@ -7,6 +7,7 @@ import {
   Presentation,
   ShieldCheck,
   BookCheck,
+  BookOpen,
 } from "lucide-react";
 
 export function buildGeneralGroup({
@@ -149,6 +150,28 @@ export function buildGeneralGroup({
           "JEFE_MANTENIMIENTO",
           "ENGINEERING",
         ],
+        submenus: [],
+      },
+      {
+        href: `/${currentCompany?.slug}/general/manuales`,
+        label: "Manuales de Mtto.",
+        active: pathname.includes(`/${currentCompany?.slug}/general/manuales`),
+        icon: BookOpen,
+        moduleValue: [
+          "planification",
+          "engineering",
+          "quality_control",
+          "maintenance",
+        ],
+        roles: [
+          "SUPERUSER",
+          "ENGINEERING",
+          "JEFE_PLANIFICACION",
+          "ANALISTA_PLANIFICACION",
+          "JEFE_CONTROL_CALIDAD",
+          "JEFE_MANTENIMIENTO",
+        ],
+        requiresOmac: true,
         submenus: [],
       },
       {
