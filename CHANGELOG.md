@@ -1,3 +1,10 @@
+## v4.45.0 — 2026-10-06
+
+- ci:add GitHub Action to create ClickUp task on push to main (#316)
+- feat: enhance part labeling with type and serial number formatting across multiple components
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- feat: restrict download button visibility to SUPERUSER role
+
 ## v4.44.0 — 2026-10-05
 
 - feat: add AddDirectiveControlItemDialog and AddMaintenanceControlItem… (#315)
