@@ -1,3 +1,7 @@
+## v4.47.1 — 2026-10-06
+
+- refactor: remove catalog manuals and services pages, components, and … (#319)
+
 ## v4.47.0 — 2026-10-06
 
 - feat: download library (#318)
