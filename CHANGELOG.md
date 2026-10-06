@@ -1,3 +1,7 @@
+## v4.48.0 — 2026-10-06
+
+- feat: add HorizontalScroller component for native horizontal scrolling
+
 ## v4.47.1 — 2026-10-06
 
 - refactor: remove catalog manuals and services pages, components, and … (#319)
