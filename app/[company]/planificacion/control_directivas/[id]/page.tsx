@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/tooltip";
 import { RegisterDirectiveComplianceDialog } from "@/components/dialogs/mantenimiento/planificacion/RegisterDirectiveComplianceDialog";
 import { AddDirectiveControlItemDialog } from "@/components/dialogs/mantenimiento/planificacion/AddDirectiveControlItemDialog";
+import { ImportDirectiveComplianceHistoryDialog } from "@/components/dialogs/mantenimiento/planificacion/ImportDirectiveComplianceHistoryDialog";
 import { useGetDirectiveControl } from "@/hooks/mantenimiento/planificacion/useGetDirectiveControl";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import {
@@ -346,14 +347,20 @@ const DirectiveControlDetailPage = () => {
                 filename={`historial_control_directivas_${control.aircraft?.acronym ?? control.id}`}
               />
               {!controlRetired && (
-                <ActionTriggerButton asChild>
-                  <Link
-                    href={`/${company}/planificacion/control_directivas/editar/${control.id}`}
-                  >
-                    <SquarePen className="mr-2 size-4" />
-                    Editar
-                  </Link>
-                </ActionTriggerButton>
+                <>
+                  <ImportDirectiveComplianceHistoryDialog
+                    controlId={control.id}
+                    items={items}
+                  />
+                  <ActionTriggerButton asChild>
+                    <Link
+                      href={`/${company}/planificacion/control_directivas/editar/${control.id}`}
+                    >
+                      <SquarePen className="mr-2 size-4" />
+                      Editar
+                    </Link>
+                  </ActionTriggerButton>
+                </>
               )}
             </div>
           </div>
