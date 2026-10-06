@@ -23,6 +23,7 @@ import {
   Filter,
   ArrowRightLeft,
   ChevronRight,
+  Download,
 } from "lucide-react";
 import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment";
 import DocumentTable from "./DocumentTable";
@@ -38,6 +39,7 @@ import DeleteFolderDialog from "@/components/library/DeleteFolderDialog";
 import ShareRequestsPanel from "@/components/library/ShareRequestsPanel";
 import DashboardModal from "@/components/library/DashboardModal";
 import MoveDocumentsDialog from "@/components/library/MoveDocumentsDialog";
+import DownloadFoldersDialog from "@/components/library/DownloadFoldersDialog";
 import libraryService, { FolderNode, Document } from "@/lib/libraryService";
 import axiosInstance from "@/lib/axios";
 import { toast } from "sonner";
@@ -130,6 +132,7 @@ const BibliotecaPage = () => {
   );
   const [shareRequestsOpen, setShareRequestsOpen] = useState(false);
   const [dashboardOpen, setDashboardOpen] = useState(false);
+  const [downloadFoldersOpen, setDownloadFoldersOpen] = useState(false);
 
   const [createFolderOpen, setCreateFolderOpen] = useState(false);
   const [renameTarget, setRenameTarget] = useState<{
@@ -757,6 +760,20 @@ const BibliotecaPage = () => {
                     )}
                   </>
                 )}
+
+                {/* Fuera del bloque canManage a propósito: descargar no es
+                    gestionar. El backend valida documento por documento con
+                    LibraryService::canDownloadDocument y los que no pasan se
+                    omiten del ZIP avisando en el resumen. */}
+                <Button
+                  onClick={() => setDownloadFoldersOpen(true)}
+                  variant="outline"
+                  size="sm"
+                  className="w-fit flex items-center gap-1.5 rounded-xl border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-white font-bold text-[10px] uppercase tracking-widest px-5 h-10 shadow-xs transition-all active:scale-95"
+                >
+                  <Download className="h-4 w-4" />
+                  Descargar Carpetas
+                </Button>
               </div>
 
               {/* BUSCADOR CON POPOVER DE FILTROS */}
@@ -1186,6 +1203,16 @@ const BibliotecaPage = () => {
         open={dashboardOpen}
         onClose={() => setDashboardOpen(false)}
         company={companySlug}
+      />
+
+      <DownloadFoldersDialog
+        open={downloadFoldersOpen}
+        onClose={() => setDownloadFoldersOpen(false)}
+        company={companySlug}
+        departmentFolders={departmentFolders}
+        documentsByDepartment={groupedDocuments}
+        onLoadFolders={handleToggleDept}
+        loadingDepartmentIds={loadingDeptIds}
       />
 
       <MoveDocumentsDialog
