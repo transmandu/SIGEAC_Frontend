@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import {
   BookOpen,
   CalendarDays,
@@ -85,6 +85,8 @@ interface ManualPanelProps {
   aircraftAcronym: string | null;
   /** Con búsqueda o filtros de servicio activos: los ids que coinciden. */
   matchedIds: Set<number> | null;
+  /** Búsqueda y filtros de servicios: van en el encabezado de su lista. */
+  toolbar: ReactNode;
   canManage: boolean;
   isSuperuser: boolean;
   onSelectManual: (id: number) => void;
@@ -110,6 +112,7 @@ export function ManualPanel({
   aircraftId,
   aircraftAcronym,
   matchedIds,
+  toolbar,
   canManage,
   isSuperuser,
   onSelectManual,
@@ -161,6 +164,24 @@ export function ManualPanel({
       >
         {isLoading ? (
           <Loader2 className="size-6 animate-spin text-muted-foreground" />
+        ) : matchedIds !== null ? (
+          // Con filtros activos y sin ningún manual que coincida, la barra no
+          // puede desaparecer: sin ella no habría cómo cambiar la búsqueda.
+          <div className="flex flex-col items-center gap-3 text-center">
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              {toolbar}
+            </div>
+            <p className="text-sm font-medium text-muted-foreground">
+              Ningún servicio coincide con los filtros activos.
+            </p>
+            <button
+              type="button"
+              onClick={onClearFilters}
+              className="text-xs font-medium text-primary hover:underline"
+            >
+              Limpiar filtros
+            </button>
+          </div>
         ) : (
           <div className="flex flex-col items-center gap-2 text-center">
             <span className="flex size-11 items-center justify-center rounded-xl bg-muted/60 text-muted-foreground">
@@ -355,15 +376,18 @@ export function ManualPanel({
               </p>
             )}
           </div>
-          {canManage && (!manual || manual.status === "ACTIVE") && (
-            <ActionTriggerButton
-              type="button"
-              onClick={() => setOverlay({ kind: "service-new" })}
-            >
-              <Plus className="mr-2 size-4" />
-              Agregar Servicio
-            </ActionTriggerButton>
-          )}
+          <div className="flex flex-wrap items-center gap-2">
+            {toolbar}
+            {canManage && (!manual || manual.status === "ACTIVE") && (
+              <ActionTriggerButton
+                type="button"
+                onClick={() => setOverlay({ kind: "service-new" })}
+              >
+                <Plus className="mr-2 size-4" />
+                Agregar Servicio
+              </ActionTriggerButton>
+            )}
+          </div>
         </div>
 
         {services.length === 0 ? (
