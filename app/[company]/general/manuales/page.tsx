@@ -8,7 +8,6 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 import { ManualDialog } from "@/components/dialogs/mantenimiento/catalogo/ManualDialog";
 import { DataTableSearchInput } from "@/components/tables/DataTableSearchInput";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { useIsSuperuser } from "@/hooks/helpers/useIsSuperuser";
 import { useGetMaintenanceAircrafts } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts";
 import { useCanManageCatalog } from "@/hooks/mantenimiento/catalogo/useCanManageCatalog";
@@ -28,6 +27,7 @@ import {
   type ServiceFilters,
 } from "./_components/catalog-filters";
 import { FilterMenu } from "./_components/FilterMenu";
+import { HorizontalScroller } from "./_components/HorizontalScroller";
 import {
   ManualList,
   NO_MANUAL_ID,
@@ -209,7 +209,7 @@ const ManualsPage = () => {
               {/* Una sola fila: si no caben, se desplaza en horizontal. El
                   w-max evita que el contenido se parta; el padding inferior
                   deja sitio a la barra sin pisar los badges. */}
-              <ScrollArea className="min-w-0 flex-1">
+              <HorizontalScroller className="min-w-0 flex-1">
                 <div className="flex w-max items-center gap-2 p-1 pb-3">
                   {[{ id: null, acronym: "Todas" }, ...sortedAircrafts].map(
                     (aircraft) => {
@@ -238,8 +238,7 @@ const ManualsPage = () => {
                     },
                   )}
                 </div>
-                <ScrollBar orientation="horizontal" />
-              </ScrollArea>
+              </HorizontalScroller>
             </div>
           )}
 
