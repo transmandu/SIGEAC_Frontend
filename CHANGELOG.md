@@ -1,3 +1,7 @@
+## v4.53.0 — 2026-10-07
+
+- feat: update tooltip content wrapping and improve layout in DataTable… (#323)
+
 ## v4.52.0 — 2026-10-07
 
 - feat: add new file order in library module (#322)
