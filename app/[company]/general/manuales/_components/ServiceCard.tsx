@@ -27,6 +27,7 @@ import {
 import { cn } from "@/lib/utils";
 import type { CatalogService, CatalogTask } from "@/types/maintenanceCatalog";
 import { formatIntervals } from "./catalog-format";
+import { IncompleteBadge } from "./IncompleteBadge";
 import { ItemActions } from "./ItemActions";
 
 const MAX_AIRCRAFT_BADGES = 4;
@@ -115,6 +116,7 @@ export function ServiceCard({
                     {STATUS_LABELS.SUPERSEDED}
                   </Badge>
                 )}
+                <IncompleteBadge service={service} />
               </span>
 
               {/* Solo lo primordial: el resto (código, descripción, requisitos,

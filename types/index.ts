@@ -955,6 +955,8 @@ export type MaintenanceControlItem = Retirable & {
   maintenance_control_part_id?: number | null;
   maintenance_provider_id?: number | string | null;
   maintenance_provider?: MaintenanceProvider;
+  /** Entrada del catálogo; todo ítem la tiene (si se cargó a mano, nace sin manual). */
+  maintenance_catalog_service_id?: number | null;
   // OT abierta para resolver el estado crítico. No bloquea el cumplimiento:
   // se usa para precargarla al registrarlo y se limpia sola al hacerlo.
   pending_work_order_id?: number | string | null;

@@ -44,6 +44,7 @@ import type {
   CatalogTask,
 } from "@/types/maintenanceCatalog";
 import { formatIntervals } from "./catalog-format";
+import { IncompleteBadge } from "./IncompleteBadge";
 
 const divider = "border-slate-400/30 dark:border-slate-600/30";
 
@@ -378,6 +379,7 @@ export function ServiceDetailsDialog({
           ) : (
             <Badge variant="secondary">Sin manual asignado</Badge>
           )}
+          <IncompleteBadge service={service} />
         </>
       }
       footer={
