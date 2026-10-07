@@ -1,3 +1,7 @@
+## v4.54.0 — 2026-10-07
+
+- feat: update grid column styles for responsive layout in PartNumberGroupDialog
+
 ## v4.53.0 — 2026-10-07
 
 - feat: update tooltip content wrapping and improve layout in DataTable… (#323)
