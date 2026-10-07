@@ -192,8 +192,8 @@ export function PartNumberGroupDialog({
    * Bajé el ancho de descripción para que no absorba todo.
    */
   const gridCols = showQuantity
-    ? "grid-cols-[130px_200px_170px_150px_110px_130px_120px_56px] sm:grid-cols-[130px_200px_170px_150px_110px_130px_120px_140px]"
-    : "grid-cols-[130px_200px_170px_150px_130px_120px_56px] sm:grid-cols-[130px_200px_170px_150px_130px_120px_140px]";
+    ? "grid-cols-[minmax(130px,1fr)_minmax(200px,2fr)_minmax(170px,1fr)_minmax(150px,1fr)_minmax(110px,1fr)_minmax(130px,1fr)_minmax(120px,1fr)_56px] sm:grid-cols-[minmax(130px,1fr)_minmax(200px,2fr)_minmax(170px,1fr)_minmax(150px,1fr)_minmax(110px,1fr)_minmax(130px,1fr)_minmax(120px,1fr)_140px]"
+    : "grid-cols-[minmax(130px,1fr)_minmax(200px,2fr)_minmax(170px,1fr)_minmax(150px,1fr)_minmax(130px,1fr)_minmax(120px,1fr)_56px] sm:grid-cols-[minmax(130px,1fr)_minmax(200px,2fr)_minmax(170px,1fr)_minmax(150px,1fr)_minmax(130px,1fr)_minmax(120px,1fr)_140px]";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
