@@ -138,11 +138,11 @@ export function DataTableFilterPopover<TData extends RowData>({
                             <CheckIcon className="size-4" aria-hidden="true" />
                           </div>
                           <div className="flex flex-1 flex-col">
-                            <span className="whitespace-normal wrap-break-words">
+                            <span className="whitespace-normal wrap-break-word">
                               {option.label}
                             </span>
                             {option.description && (
-                              <span className="whitespace-normal wrap-break-words text-xs text-muted-foreground">
+                              <span className="whitespace-normal wrap-break-word text-xs text-muted-foreground">
                                 {option.description}
                               </span>
                             )}

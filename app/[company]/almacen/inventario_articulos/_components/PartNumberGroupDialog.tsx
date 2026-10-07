@@ -11,6 +11,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
@@ -18,6 +24,7 @@ import {
   FileText,
   History,
   Loader2,
+  MoreVertical,
   Pencil,
   Search,
   Trash2,
@@ -185,12 +192,12 @@ export function PartNumberGroupDialog({
    * Bajé el ancho de descripción para que no absorba todo.
    */
   const gridCols = showQuantity
-    ? "grid-cols-[150px_260px_120px_140px_120px_160px_160px_64px]"
-    : "grid-cols-[150px_260px_120px_140px_160px_160px_64px]";
+    ? "grid-cols-[130px_200px_170px_150px_110px_130px_120px_56px] sm:grid-cols-[130px_200px_170px_150px_110px_130px_120px_140px]"
+    : "grid-cols-[130px_200px_170px_150px_130px_120px_56px] sm:grid-cols-[130px_200px_170px_150px_130px_120px_140px]";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="p-0 overflow-hidden w-[min(1200px,96vw)] sm:max-w-none flex flex-col max-h-[85vh]">
+      <DialogContent className="p-0 overflow-hidden w-[min(1200px,96vw)] sm:max-w-none flex flex-col max-h-[85vh] bg-background">
         <DialogHeader className="px-6 py-5 border-b">
           <div className="w-full space-y-3">
             <DialogTitle className="leading-tight text-3xl flex justify-center w-full">
@@ -215,7 +222,7 @@ export function PartNumberGroupDialog({
 
             {count > 0 && (
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
                 <Input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
@@ -228,12 +235,12 @@ export function PartNumberGroupDialog({
                     onClick={() => setQuery("")}
                     className={cn(
                       "absolute right-2 top-1/2 -translate-y-1/2",
-                      "h-7 w-7 inline-flex items-center justify-center rounded-md",
+                      "size-7 inline-flex items-center justify-center rounded-md",
                       "text-muted-foreground hover:text-foreground hover:bg-muted",
                     )}
                     aria-label="Limpiar búsqueda"
                   >
-                    <X className="h-4 w-4" />
+                    <X className="size-4" />
                   </button>
                 )}
               </div>
@@ -242,12 +249,14 @@ export function PartNumberGroupDialog({
         </DialogHeader>
 
         {/* BODY */}
-        <div className="px-6 py-4 flex-1 min-h-0">
+        <div className="px-0 sm:px-6 py-4 flex-1 min-h-0 overflow-y-auto">
           {!count ? (
-            <p className="text-sm text-muted-foreground">Sin datos.</p>
+            <p className="px-6 sm:px-0 text-sm text-muted-foreground">Sin datos.</p>
           ) : (
             <>
-              <Separator className="mb-4" />
+              <div className="px-6 sm:px-0 mb-4">
+                <Separator />
+              </div>
 
               {!shown ? (
                 <div className="py-10 text-center">
@@ -261,12 +270,14 @@ export function PartNumberGroupDialog({
                  * ✅ Scroll nativo (X e Y) en un solo contenedor.
                  * Esto hace que SIEMPRE aparezca el scroll horizontal cuando haga falta.
                  */
-                <div className="h-full max-h-[55vh] overflow-x-auto overflow-y-auto pr-2">
+                <div className="overflow-x-auto overscroll-x-contain">
                   {/* Fuerza overflow horizontal real */}
                   <div
                     className={cn(
-                      "rounded-md border overflow-hidden",
-                      showQuantity ? "min-w-275" : "min-w-245",
+                      "rounded-md border",
+                      showQuantity
+                        ? "min-w-267 sm:min-w-6xl"
+                        : "min-w-239.5 sm:min-w-260.5",
                     )}
                   >
                     {/* Header tabla */}
@@ -274,7 +285,7 @@ export function PartNumberGroupDialog({
                       className={cn(
                         "grid",
                         gridCols,
-                        "bg-muted/40 text-xs font-semibold text-muted-foreground",
+                        "rounded-t-md bg-muted/40 text-xs font-semibold text-muted-foreground",
                       )}
                     >
                       <div className="px-3 py-2">Serial / Lote</div>
@@ -286,7 +297,9 @@ export function PartNumberGroupDialog({
                       )}
                       <div className="px-3 py-2 text-center">Ubicación</div>
                       <div className="px-3 py-2 text-center">Vencimiento</div>
-                      <div className="px-3 py-2 text-center">Acciones.</div>
+                      <div className="sticky right-0 z-10 border-l bg-background px-3 py-2 text-center before:pointer-events-none before:absolute before:inset-0 before:-z-10 before:bg-muted/40">
+                        <span className="relative max-sm:sr-only">Acciones</span>
+                      </div>
                     </div>
 
                     <div className="divide-y">
@@ -294,6 +307,12 @@ export function PartNumberGroupDialog({
                         const serialOrLot = r.serial || r.lot_number || "N/A";
                         const desc = r.batch_name || "Sin descripción";
                         const shelf = formatShelf(r);
+                        const canModify = canModifyArticle(r.status, isSuperUser);
+                        const canDelete =
+                          canModify &&
+                          (isSuperUser ||
+                            roles.includes("JEFE_ALMACEN") ||
+                            roles.includes("JEFE_MANTENIMIENTO"));
 
                         return (
                           <div
@@ -301,14 +320,14 @@ export function PartNumberGroupDialog({
                             className={cn(
                               "grid",
                               gridCols,
-                              "items-center hover:bg-muted/30",
+                              "group items-center hover:bg-muted/30 [&>div]:min-w-0",
                             )}
                           >
-                            <div className="px-3 py-2 text-sm font-medium truncate">
+                            <div className="px-3 py-2 text-sm font-medium break-all">
                               {serialOrLot}
                             </div>
 
-                            <div className="px-3 py-2 text-sm text-muted-foreground truncate">
+                            <div className="px-3 py-2 text-sm text-muted-foreground wrap-break-words">
                               {desc}
                             </div>
 
@@ -323,7 +342,7 @@ export function PartNumberGroupDialog({
                                   );
 
                                 return (
-                                  <div className="inline-flex flex-col items-center">
+                                  <div className="inline-flex max-w-full flex-col items-center wrap-break-words">
                                     <span className="text-base font-medium">
                                       {c.es}
                                     </span>
@@ -401,7 +420,8 @@ export function PartNumberGroupDialog({
                             </div>
 
                             {/* Acciones (solo icono) */}
-                            <div className="px-3 py-2 flex justify-center">
+                            <div className="sticky right-0 z-10 flex flex-wrap self-stretch items-center justify-center border-l bg-background px-2 py-2 before:pointer-events-none before:absolute before:inset-0 before:-z-10 before:bg-muted/30 before:opacity-0 group-hover:before:opacity-100">
+                              <div className="hidden sm:flex flex-wrap items-center justify-center">
                               {r.has_documentation && (
                                 <Tooltip>
                                   <TooltipTrigger asChild>
@@ -409,11 +429,11 @@ export function PartNumberGroupDialog({
                                       type="button"
                                       variant="ghost"
                                       size="icon"
-                                      className="h-8 w-8 p-2"
+                                      className="size-8 p-2"
                                       onClick={() => setDocumentsArticle(r)}
                                       aria-label="Ver documentación"
                                     >
-                                      <FileText className="h-4 w-4" />
+                                      <FileText className="size-4" />
                                     </Button>
                                   </TooltipTrigger>
                                   <TooltipContent>
@@ -428,11 +448,11 @@ export function PartNumberGroupDialog({
                                     type="button"
                                     variant="ghost"
                                     size="icon"
-                                    className="h-8 w-8 p-2"
+                                    className="size-8 p-2"
                                     onClick={() => setHistoryArticleId(r.id)}
                                     aria-label="Historial de estados"
                                   >
-                                    <History className="h-4 w-4" />
+                                    <History className="size-4" />
                                   </Button>
                                 </TooltipTrigger>
                                 <TooltipContent>
@@ -440,18 +460,18 @@ export function PartNumberGroupDialog({
                                 </TooltipContent>
                               </Tooltip>
 
-                              {canModifyArticle(r.status, isSuperUser) && (
+                              {canModify && (
                                 <Tooltip>
                                   <TooltipTrigger asChild>
                                     <Button
                                       type="button"
                                       variant="ghost"
                                       size="icon"
-                                      className="h-8 w-8 p-2"
+                                      className="size-8 p-2"
                                       onClick={() => goEdit(r.id)}
                                       aria-label="Editar artículo"
                                     >
-                                      <Pencil className="h-4 w-4" />
+                                      <Pencil className="size-4" />
                                     </Button>
                                   </TooltipTrigger>
                                   <TooltipContent>
@@ -471,14 +491,14 @@ export function PartNumberGroupDialog({
                                         disabled={deleteArticle.isPending}
                                         variant="ghost"
                                         size="icon"
-                                        className="h-8 w-8 p-2"
+                                        className="size-8 p-2"
                                         onClick={() => {
                                           setArticleIdToDelete(r.id);
                                           setOpenDeleteArt(true);
                                         }}
                                         aria-label="Eliminar artículo"
                                       >
-                                        <Trash2 className="h-5 w-5 text-red-500" />
+                                        <Trash2 className="size-5 text-red-500" />
                                       </Button>
                                     </TooltipTrigger>
                                     <TooltipContent>
@@ -486,6 +506,58 @@ export function PartNumberGroupDialog({
                                     </TooltipContent>
                                   </Tooltip>
                                 )}
+                              </div>
+
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="size-8 sm:hidden"
+                                    aria-label="Acciones"
+                                  >
+                                    <MoreVertical className="size-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  {r.has_documentation && (
+                                    <DropdownMenuItem
+                                      onSelect={() => setDocumentsArticle(r)}
+                                    >
+                                      <FileText className="mr-2 size-4" />
+                                      Ver documentación
+                                    </DropdownMenuItem>
+                                  )}
+                                  <DropdownMenuItem
+                                    onSelect={() => setHistoryArticleId(r.id)}
+                                  >
+                                    <History className="mr-2 size-4" />
+                                    Historial de estados
+                                  </DropdownMenuItem>
+                                  {canModify && (
+                                    <DropdownMenuItem
+                                      onSelect={() => goEdit(r.id)}
+                                    >
+                                      <Pencil className="mr-2 size-4" />
+                                      Editar artículo
+                                    </DropdownMenuItem>
+                                  )}
+                                  {canDelete && (
+                                    <DropdownMenuItem
+                                      disabled={deleteArticle.isPending}
+                                      className="text-red-500 focus:text-red-500"
+                                      onSelect={() => {
+                                        setArticleIdToDelete(r.id);
+                                        setOpenDeleteArt(true);
+                                      }}
+                                    >
+                                      <Trash2 className="mr-2 size-4" />
+                                      Eliminar artículo
+                                    </DropdownMenuItem>
+                                  )}
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                             </div>
                           </div>
                         );
@@ -550,7 +622,7 @@ export function PartNumberGroupDialog({
           </DialogContent>
         </Dialog>
         {/* FOOTER */}
-        <DialogFooter className="px-6 py-4 border-t shrink-0">
+        <DialogFooter className="px-6 py-4 border-t shrink-0 bg-background">
           <DialogClose asChild>
             <Button variant="outline" className="w-full sm:w-auto">
               Cerrar
