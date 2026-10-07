@@ -415,6 +415,8 @@ const BibliotecaPage = () => {
       });
     }
 
+    // El orden lo define el backend (LibraryDocument::compareCorrelative):
+    // filtrar no lo altera, así que se devuelve tal cual.
     return docs;
   }, [
     currentDeptDocs,
