@@ -7,9 +7,15 @@ import {
   DirectiveComplianceType,
   MaintenanceCountingMethod,
 } from "@/types";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
+// Un ítem cargado a mano crea además su entrada en el catálogo (sin manual,
+// incompleta): hay que refrescar el catálogo, no solo el control.
+const invalidateCatalog = (queryClient: QueryClient) => {
+  queryClient.invalidateQueries({ queryKey: ["maintenance-catalog-services"] });
+  queryClient.invalidateQueries({ queryKey: ["maintenance-catalog-manuals"] });
+};
 const firstBackendError = (error: any): string | undefined => {
   const errors = error?.response?.data?.errors;
   const firstMessage = errors && Object.values(errors).flat()[0];
@@ -67,6 +73,7 @@ export const useCreateDirectiveControl = () => {
     onSuccess: () => {
       invalidatePlanificationAudit(queryClient);
       queryClient.invalidateQueries({ queryKey: ["directive-controls"] });
+      invalidateCatalog(queryClient);
       toast.success("¡Creado!", {
         description:
           "El control de directivas ha sido registrado correctamente.",
@@ -107,6 +114,7 @@ export const useUpdateDirectiveControl = () => {
         queryKey: ["directive-control"],
         exact: false,
       });
+      invalidateCatalog(queryClient);
       toast.success("¡Actualizado!", {
         description:
           "El control de directivas ha sido actualizado correctamente.",
@@ -151,6 +159,7 @@ export const useAddDirectiveControlItem = () => {
         queryKey: ["directive-control"],
         exact: false,
       });
+      invalidateCatalog(queryClient);
       toast.success("¡Agregada!", {
         description: "La AD ha sido agregada al control correctamente.",
       });
