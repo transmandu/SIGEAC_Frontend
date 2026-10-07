@@ -948,7 +948,8 @@ function mapToFormCertificate(
     id: item.id,
     // Se reenvía al guardar: sin esto, editar el control desvinculaba cada
     // ítem de su entrada de catálogo.
-    maintenance_catalog_service_id: item.maintenance_catalog_service_id ?? undefined,
+    maintenance_catalog_service_id:
+      item.maintenance_catalog_service_id ?? undefined,
     name: item.name,
     // parseISO (no `new Date`): un string "yyyy-MM-dd" con `new Date` se
     // interpreta como medianoche UTC y en Venezuela (UTC-4) cae al día

@@ -3,7 +3,11 @@ import type { EditReasonValue } from "@/components/forms/mantenimiento/planifica
 import { invalidatePlanificationAudit } from "@/hooks/mantenimiento/planificacion/useGetPlanificationAuditStats";
 import axiosInstance from "@/lib/axios";
 import { MaintenanceControlItemInterval } from "@/types";
-import { useMutation, useQueryClient, type QueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQueryClient,
+  type QueryClient,
+} from "@tanstack/react-query";
 import { toast } from "sonner";
 
 // Un ítem cargado a mano crea además su entrada en el catálogo (sin manual,
@@ -138,7 +142,10 @@ export const useAddMaintenanceControlItem = () => {
     }: {
       company: string;
       controlId: string | number;
-      data: MaintenanceItemData & { category: "CERTIFICATE" | "SERVICE"; maintenance_control_part_id?: number };
+      data: MaintenanceItemData & {
+        category: "CERTIFICATE" | "SERVICE";
+        maintenance_control_part_id?: number;
+      };
     }) => {
       const response = await axiosInstance.post(
         `/${company}/maintenance-controls/${controlId}/items`,

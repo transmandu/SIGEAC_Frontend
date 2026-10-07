@@ -7,7 +7,11 @@ import {
   DirectiveComplianceType,
   MaintenanceCountingMethod,
 } from "@/types";
-import { useMutation, useQueryClient, type QueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQueryClient,
+  type QueryClient,
+} from "@tanstack/react-query";
 import { toast } from "sonner";
 
 // Un ítem cargado a mano crea además su entrada en el catálogo (sin manual,
