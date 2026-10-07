@@ -47,7 +47,7 @@ function TruncatedText({ children }: { children: string }) {
       <TooltipTrigger asChild>
         <span className="block max-w-55 truncate">{children}</span>
       </TooltipTrigger>
-      <TooltipContent side="top" className="max-w-xs wrap-break-words">
+      <TooltipContent side="top" className="max-w-xs wrap-break-word">
         {children}
       </TooltipContent>
     </Tooltip>
