@@ -251,7 +251,9 @@ export function PartNumberGroupDialog({
         {/* BODY */}
         <div className="px-0 sm:px-6 py-4 flex-1 min-h-0 overflow-y-auto">
           {!count ? (
-            <p className="px-6 sm:px-0 text-sm text-muted-foreground">Sin datos.</p>
+            <p className="px-6 sm:px-0 text-sm text-muted-foreground">
+              Sin datos.
+            </p>
           ) : (
             <>
               <div className="px-6 sm:px-0 mb-4">
@@ -298,7 +300,9 @@ export function PartNumberGroupDialog({
                       <div className="px-3 py-2 text-center">Ubicación</div>
                       <div className="px-3 py-2 text-center">Vencimiento</div>
                       <div className="sticky right-0 z-10 border-l bg-background px-3 py-2 text-center before:pointer-events-none before:absolute before:inset-0 before:-z-10 before:bg-muted/40">
-                        <span className="relative max-sm:sr-only">Acciones</span>
+                        <span className="relative max-sm:sr-only">
+                          Acciones
+                        </span>
                       </div>
                     </div>
 
@@ -307,7 +311,10 @@ export function PartNumberGroupDialog({
                         const serialOrLot = r.serial || r.lot_number || "N/A";
                         const desc = r.batch_name || "Sin descripción";
                         const shelf = formatShelf(r);
-                        const canModify = canModifyArticle(r.status, isSuperUser);
+                        const canModify = canModifyArticle(
+                          r.status,
+                          isSuperUser,
+                        );
                         const canDelete =
                           canModify &&
                           (isSuperUser ||
@@ -422,90 +429,90 @@ export function PartNumberGroupDialog({
                             {/* Acciones (solo icono) */}
                             <div className="sticky right-0 z-10 flex flex-wrap self-stretch items-center justify-center border-l bg-background px-2 py-2 before:pointer-events-none before:absolute before:inset-0 before:-z-10 before:bg-muted/30 before:opacity-0 group-hover:before:opacity-100">
                               <div className="hidden sm:flex flex-wrap items-center justify-center">
-                              {r.has_documentation && (
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Button
-                                      type="button"
-                                      variant="ghost"
-                                      size="icon"
-                                      className="size-8 p-2"
-                                      onClick={() => setDocumentsArticle(r)}
-                                      aria-label="Ver documentación"
-                                    >
-                                      <FileText className="size-4" />
-                                    </Button>
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    Ver documentación
-                                  </TooltipContent>
-                                </Tooltip>
-                              )}
-
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon"
-                                    className="size-8 p-2"
-                                    onClick={() => setHistoryArticleId(r.id)}
-                                    aria-label="Historial de estados"
-                                  >
-                                    <History className="size-4" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  Historial de estados
-                                </TooltipContent>
-                              </Tooltip>
-
-                              {canModify && (
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Button
-                                      type="button"
-                                      variant="ghost"
-                                      size="icon"
-                                      className="size-8 p-2"
-                                      onClick={() => goEdit(r.id)}
-                                      aria-label="Editar artículo"
-                                    >
-                                      <Pencil className="size-4" />
-                                    </Button>
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    Editar artículo
-                                  </TooltipContent>
-                                </Tooltip>
-                              )}
-
-                              {canModifyArticle(r.status, isSuperUser) &&
-                                (isSuperUser ||
-                                  roles.includes("JEFE_ALMACEN") ||
-                                  roles.includes("JEFE_MANTENIMIENTO")) && (
+                                {r.has_documentation && (
                                   <Tooltip>
                                     <TooltipTrigger asChild>
                                       <Button
                                         type="button"
-                                        disabled={deleteArticle.isPending}
                                         variant="ghost"
                                         size="icon"
                                         className="size-8 p-2"
-                                        onClick={() => {
-                                          setArticleIdToDelete(r.id);
-                                          setOpenDeleteArt(true);
-                                        }}
-                                        aria-label="Eliminar artículo"
+                                        onClick={() => setDocumentsArticle(r)}
+                                        aria-label="Ver documentación"
                                       >
-                                        <Trash2 className="size-5 text-red-500" />
+                                        <FileText className="size-4" />
                                       </Button>
                                     </TooltipTrigger>
                                     <TooltipContent>
-                                      Eliminar artículo
+                                      Ver documentación
                                     </TooltipContent>
                                   </Tooltip>
                                 )}
+
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="icon"
+                                      className="size-8 p-2"
+                                      onClick={() => setHistoryArticleId(r.id)}
+                                      aria-label="Historial de estados"
+                                    >
+                                      <History className="size-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    Historial de estados
+                                  </TooltipContent>
+                                </Tooltip>
+
+                                {canModify && (
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        className="size-8 p-2"
+                                        onClick={() => goEdit(r.id)}
+                                        aria-label="Editar artículo"
+                                      >
+                                        <Pencil className="size-4" />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      Editar artículo
+                                    </TooltipContent>
+                                  </Tooltip>
+                                )}
+
+                                {canModifyArticle(r.status, isSuperUser) &&
+                                  (isSuperUser ||
+                                    roles.includes("JEFE_ALMACEN") ||
+                                    roles.includes("JEFE_MANTENIMIENTO")) && (
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          type="button"
+                                          disabled={deleteArticle.isPending}
+                                          variant="ghost"
+                                          size="icon"
+                                          className="size-8 p-2"
+                                          onClick={() => {
+                                            setArticleIdToDelete(r.id);
+                                            setOpenDeleteArt(true);
+                                          }}
+                                          aria-label="Eliminar artículo"
+                                        >
+                                          <Trash2 className="size-5 text-red-500" />
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        Eliminar artículo
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  )}
                               </div>
 
                               <DropdownMenu>
