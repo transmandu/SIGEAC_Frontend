@@ -1,3 +1,7 @@
+## v4.50.0 — 2026-10-07
+
+- feat: add IncompleteBadge component and update catalog invalidation l… (#321)
+
 ## v4.49.0 — 2026-10-06
 
 - Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
