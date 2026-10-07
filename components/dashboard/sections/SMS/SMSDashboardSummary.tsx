@@ -1,11 +1,9 @@
 "use client";
 
+import BarChartComponent from "@/components/charts/BarChartComponent";
+import MultipleBarChartComponent from "@/components/charts/MultipleBarChartComponent";
 import SimpleLineChart from "@/components/charts/SimpleLineChart";
 import { Message } from "@/components/misc/Message";
-import SimpleNotificationBell from "@/components/misc/SimpleNotificationBell";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 import {
   Card,
   CardContent,
@@ -13,16 +11,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useGetNewReports } from "@/hooks/sms/useGetNewReports";
 import { useGetReportsNumberByMonth } from "@/hooks/sms/useGetReportsByMonth";
 import { useGetSMSTraining } from "@/hooks/sms/useGetSMSTraining";
 import { useGetTotalReportsStatsByYear } from "@/hooks/sms/useGetTotalReportsStatsByYear";
 import { dateFormat } from "@/lib/utils";
 import { format, startOfYear } from "date-fns";
-import { BarChart3, Loader2, ShieldCheck, Users, BellRing } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { BarChart3, Loader2, Users } from "lucide-react";
 import { TrainingStatusBadge } from "@/components/sms/TrainingStatusBadge";
 
 interface DashboardSummaryProps {
@@ -63,33 +57,28 @@ function TintedCard({
 export default function DashboardSummary({
   companySlug,
 }: DashboardSummaryProps) {
-  const router = useRouter();
   const blueTone = "37,99,235";
 
-  const {
-    data: barChartData,
-    isLoading: isLoadingBarChart,
-    isError: isErrorBarChart,
-  } = useGetTotalReportsStatsByYear(
-    format(startOfYear(new Date()), "yyyy-MM-dd"),
-    format(new Date(), "yyyy-MM-dd"),
-    companySlug,
-  );
-
-  const {
-    data: newReports,
-    isLoading: isLoadingNewReports,
-    isError: isErrorNewReports,
-  } = useGetNewReports(companySlug);
+  // Por defecto: año en curso (igual que el resto de estadísticas del dashboard)
+  const from = format(startOfYear(new Date()), "yyyy-MM-dd");
+  const to = format(new Date(), "yyyy-MM-dd");
 
   const {
     data: reportsNumberByMonth,
     isLoading: isLoadingReportsNumberByMonth,
     isError: isErrorReportsNumberByMonth,
-  } = useGetReportsNumberByMonth(
-    companySlug,
-    format(startOfYear(new Date()), "yyyy-MM-dd"),
-    format(new Date(), "yyyy-MM-dd"),
+  } = useGetReportsNumberByMonth(companySlug, from, to);
+
+  // Reportes abiertos vs cerrados del año en curso
+  const {
+    data: barChartData,
+    isLoading: isLoadingBarChart,
+    isError: isErrorBarChart,
+  } = useGetTotalReportsStatsByYear(from, to, companySlug);
+
+  const totalReports = reportsNumberByMonth?.reduce(
+    (acc, item) => acc + Number(item.value ?? 0),
+    0,
   );
 
   const {
@@ -231,126 +220,100 @@ export default function DashboardSummary({
         </TintedCard>
       </div>
 
-      {/* ================= ACTION + REPORTS ================= */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* BUTTON CARD */}
-        <TintedCard
-          tone={blueTone}
-          className="p-6 flex flex-col lg:col-span-4 h-full"
-        >
-          <CardHeader className="text-center space-y-2 py-5 flex flex-col justify-start">
-            <div className="flex justify-center mb-1">
+      {/* ================= REPORTS SUMMARY ================= */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* TOTAL REPORTS */}
+        <TintedCard tone={blueTone} className="p-3 relative">
+          <CardHeader className="text-center space-y-2 py-3 flex flex-col justify-start">
+            <div className="flex justify-center">
               <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600">
-                <ShieldCheck className="h-5 w-5" />
+                <BarChart3 className="h-5 w-5" />
               </div>
             </div>
 
             <CardTitle className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">
-              Reportes SMS
+              Total de Reportes
             </CardTitle>
 
             <CardDescription className="mx-auto max-w-md text-sm leading-relaxed text-slate-500 dark:text-slate-400">
-              Acceso directo a la revisión y gestión de reportes SMS.
+              Número total de reportes registrados durante el año en curso.
             </CardDescription>
+
+            <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+              {isLoadingReportsNumberByMonth ? (
+                <Loader2 className="h-6 w-6 animate-spin mx-auto" />
+              ) : (
+                (totalReports ?? 0).toLocaleString("es-ES")
+              )}
+            </p>
           </CardHeader>
 
-          <CardContent className="flex justify-center pt-2 pb-1">
-            <ActionTriggerButton
-              onClick={() => router.push(`/${companySlug}/sms/reportes`)}
-              className="px-6 min-w-45"
-            >
-              Ver Reportes
-            </ActionTriggerButton>
+          <CardContent className="flex justify-center pb-4">
+            {isLoadingReportsNumberByMonth ? (
+              <div className="flex justify-center py-6">
+                <Loader2 className="animate-spin" />
+              </div>
+            ) : isErrorReportsNumberByMonth ? (
+              <Message
+                title="Error"
+                description="No se pudieron cargar los datos"
+              />
+            ) : reportsNumberByMonth && reportsNumberByMonth.length > 0 ? (
+              <MultipleBarChartComponent
+                data={reportsNumberByMonth}
+                title=""
+                height={280}
+              />
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                No hay datos para mostrar.
+              </p>
+            )}
           </CardContent>
         </TintedCard>
 
-        <TintedCard tone={blueTone} className="p-3 lg:col-span-8 relative">
-          <div className="absolute top-3 right-3 flex items-center gap-2">
-            <div className="scale-90 opacity-80 hover:opacity-100 transition">
-              <SimpleNotificationBell
-                count={
-                  (newReports?.voluntary?.length ?? 0) +
-                  (newReports?.obligatory?.length ?? 0)
-                }
-              />
-            </div>
-          </div>
-
-          <CardHeader className="text-center space-y-2 py-3 min-h-23 flex flex-col justify-start">
+        {/* OPEN VS CLOSED */}
+        <TintedCard tone={blueTone} className="p-3 relative">
+          <CardHeader className="text-center space-y-2 py-3 flex flex-col justify-start">
             <div className="flex justify-center">
               <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600">
-                <BellRing className="h-5 w-5" />
+                <BarChart3 className="h-5 w-5" />
               </div>
             </div>
 
             <CardTitle className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">
-              Nuevos Reportes
+              Reportes Abiertos vs Cerrados
             </CardTitle>
 
             <CardDescription className="mx-auto max-w-md text-sm leading-relaxed text-slate-500 dark:text-slate-400">
-              Últimos reportes registrados en el sistema (voluntarios y
-              obligatorios).
+              Comparativa de reportes abiertos y cerrados registrados durante el
+              año en curso.
             </CardDescription>
           </CardHeader>
 
-          <CardContent className="space-y-3 max-h-85 overflow-auto">
-            {/* ================= EMPTY STATE ================= */}
-            {!newReports?.voluntary?.length &&
-            !newReports?.obligatory?.length ? (
-              <div className="flex flex-col items-center justify-center py-10 text-center space-y-2">
-                <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                  No hay reportes nuevos
-                </p>
-
-                <p className="text-xs text-slate-500 dark:text-slate-400 max-w-65">
-                  Cuando se registren nuevos reportes voluntarios u obligatorios
-                  aparecerán aquí.
-                </p>
+          <CardContent className="flex justify-center pb-4">
+            {isLoadingBarChart ? (
+              <div className="flex justify-center py-6">
+                <Loader2 className="animate-spin" />
               </div>
+            ) : isErrorBarChart ? (
+              <Message
+                title="Error"
+                description="No se pudieron cargar los datos"
+              />
+            ) : barChartData ? (
+              <BarChartComponent
+                data={barChartData}
+                title=""
+                bar_first_name="Abiertos"
+                bar_second_name="Cerrados"
+                showValueLabels
+                height={300}
+              />
             ) : (
-              <>
-                {/* VOLUNTARIOS */}
-                {newReports?.voluntary?.map((r) => (
-                  <div
-                    key={r.id}
-                    className="rounded-xl border bg-background/60 p-3 text-sm space-y-1"
-                  >
-                    <div>Fecha: {dateFormat(r.report_date, "yyyy-MM-dd")}</div>
-                    <div>Lugar: {r.danger_location}</div>
-
-                    <Badge className="bg-green-500">VOLUNTARIO</Badge>
-
-                    <Link
-                      href={`/${companySlug}/sms/reportes/reportes_voluntarios/${r.id}`}
-                    >
-                      <Button variant="outline" className="w-full mt-2">
-                        Ver detalles
-                      </Button>
-                    </Link>
-                  </div>
-                ))}
-
-                {/* OBLIGATORIOS */}
-                {newReports?.obligatory?.map((r) => (
-                  <div
-                    key={r.id}
-                    className="rounded-xl border bg-background/60 p-3 text-sm space-y-1"
-                  >
-                    <div>Fecha: {dateFormat(r.report_date, "yyyy-MM-dd")}</div>
-                    <div>Aeronave: {r.aircraft?.acronym ?? "N/A"}</div>
-
-                    <Badge className="bg-red-500">OBLIGATORIO</Badge>
-
-                    <Link
-                      href={`/${companySlug}/sms/reportes/reportes_obligatorios/${r.id}`}
-                    >
-                      <Button variant="outline" className="w-full mt-2">
-                        Ver detalles
-                      </Button>
-                    </Link>
-                  </div>
-                ))}
-              </>
+              <p className="text-sm text-muted-foreground">
+                No hay datos para mostrar.
+              </p>
             )}
           </CardContent>
         </TintedCard>
