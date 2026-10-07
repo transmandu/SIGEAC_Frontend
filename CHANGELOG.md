@@ -1,3 +1,7 @@
+## v4.51.0 — 2026-10-07
+
+- feat: add new chart to sms dashboard (#320)
+
 ## v4.50.0 — 2026-10-07
 
 - feat: add IncompleteBadge component and update catalog invalidation l… (#321)
