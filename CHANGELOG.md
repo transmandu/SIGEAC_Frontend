@@ -1,3 +1,7 @@
+## v4.52.0 — 2026-10-07
+
+- feat: add new file order in library module (#322)
+
 ## v4.51.0 — 2026-10-07
 
 - feat: add new chart to sms dashboard (#320)
