@@ -25,7 +25,7 @@ export const fetchAttendanceList = async ({
   activityNumber: string;
 }): Promise<AttendanceData[]> => {
   const { data } = await axiosInstance.get(
-    `/${company}/sms/activities/${activityNumber}/attendance-list`
+    `/${company}/sms/activities/${activityNumber}/attendance-list`,
   );
   return data;
 };

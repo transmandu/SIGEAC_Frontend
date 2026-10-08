@@ -122,10 +122,7 @@ const SMSActivityDropDownActions = ({
           </Button>
         </DropdownMenuTrigger>
 
-        <DropdownMenuContent
-          align="center"
-          className="flex flex-row gap-2 p-2"
-        >
+        <DropdownMenuContent align="center" className="flex flex-row gap-2 p-2">
           <TooltipProvider>
             {smsActivity.status !== "CERRADO" && (
               <Tooltip>
@@ -160,7 +157,7 @@ const SMSActivityDropDownActions = ({
                 <DropdownMenuItem
                   onClick={() => {
                     router.push(
-                      `/${selectedCompany?.slug}/sms/promocion/actividades/${smsActivity.activity_number}`
+                      `/${selectedCompany?.slug}/sms/promocion/actividades/${smsActivity.activity_number}`,
                     );
                   }}
                 >
@@ -346,16 +343,13 @@ const SMSActivityDropDownActions = ({
               ¿Desea reabrir la actividad?
             </DialogTitle>
             <DialogDescription className="text-center p-2 mb-0 pb-0">
-              Al reabrirla, podrás volver a editar la información, gestionar la asistencia y
-              agregar personas.
+              Al reabrirla, podrás volver a editar la información, gestionar la
+              asistencia y agregar personas.
             </DialogDescription>
           </DialogHeader>
 
           <DialogFooter className="flex flex-col-reverse gap-2 md:gap-0">
-            <Button
-              variant="outline"
-              onClick={() => setOpenReopen(false)}
-            >
+            <Button variant="outline" onClick={() => setOpenReopen(false)}>
               Cancelar
             </Button>
 

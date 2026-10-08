@@ -15,7 +15,14 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { MeetingMinutes } from "@/types";
-import { ClipboardPen, Download, Eye, Loader2, MoreHorizontal, Trash2 } from "lucide-react";
+import {
+  ClipboardPen,
+  Download,
+  Eye,
+  Loader2,
+  MoreHorizontal,
+  Trash2,
+} from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -90,7 +97,10 @@ const MeetingMinuteDropDownActions = ({
           </Button>
         </DropdownMenuTrigger>
 
-        <DropdownMenuContent align="center" className="flex gap-2 justify-center">
+        <DropdownMenuContent
+          align="center"
+          className="flex gap-2 justify-center"
+        >
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -106,7 +116,9 @@ const MeetingMinuteDropDownActions = ({
               <TooltipTrigger asChild>
                 <DropdownMenuItem
                   onClick={() =>
-                    router.push(`/${company}/sms/promocion/minutas_reunion/${meetingMinute.id}`)
+                    router.push(
+                      `/${company}/sms/promocion/minutas_reunion/${meetingMinute.id}`,
+                    )
                   }
                 >
                   <Eye className="size-5" />
