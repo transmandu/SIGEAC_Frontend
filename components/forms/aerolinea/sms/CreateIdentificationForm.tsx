@@ -38,7 +38,7 @@ import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { DangerIdentification } from "@/types";
 import { Separator } from "@radix-ui/react-select";
-import { addDays, format } from "date-fns";
+import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarIcon, Loader2, Plus, X } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -156,7 +156,33 @@ export default function CreateDangerIdentificationForm({
         initialData?.information_source?.id.toString() || "",
       current_defenses: initialData?.current_defenses || "",
       risk_management_start_date: initialData?.risk_management_start_date
-        ? addDays(new Date(initialData.risk_management_start_date), 1)
+        ? (() => {
+            const s = String(initialData.risk_management_start_date).trim();
+
+            // YYYY-MM-DD puro -> fecha local sin interpretación UTC
+            if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+              const [y, m, d] = s.split("-").map(Number);
+              return new Date(y, m - 1, d);
+            }
+
+            // ISO con Z a medianoche -> tratar como fecha local
+            if (/^\d{4}-\d{2}-\d{2}T00:00:00(\.000)?Z$/.test(s)) {
+              const [datePart] = s.split("T");
+              const [y, m, d] = datePart.split("-").map(Number);
+              return new Date(y, m - 1, d);
+            }
+
+            // Cualquier otro formato ISO -> tomar solo la parte de fecha
+            if (s.includes("T")) {
+              const [datePart] = s.split("T");
+              if (/^\d{4}-\d{2}-\d{2}$/.test(datePart)) {
+                const [y, m, d] = datePart.split("-").map(Number);
+                return new Date(y, m - 1, d);
+              }
+            }
+
+            return new Date(s);
+          })()
         : new Date(),
       consequence_to_evaluate: initialData?.consequence_to_evaluate || "",
       danger_area: initialData?.danger_area || "",
@@ -301,11 +327,21 @@ export default function CreateDangerIdentificationForm({
 
   const onSubmit = async (data: FormSchemaType) => {
     try {
+      const payload: Omit<FormSchemaType, "risk_management_start_date"> & {
+        risk_management_start_date: string;
+      } = {
+        ...data,
+        risk_management_start_date: format(
+          data.risk_management_start_date,
+          "yyyy-MM-dd"
+        ),
+      };
+
       if (initialData && isEditing) {
         await updateDangerIdentification.mutateAsync({
           company: selectedCompany!.slug,
           id: initialData.id.toString(),
-          data,
+          data: payload as any,
         });
         onClose?.();
       } else {
@@ -313,7 +349,7 @@ export default function CreateDangerIdentificationForm({
           company: selectedCompany!.slug,
           id, // id del reporte padre
           reportType,
-          data,
+          data: payload as any,
         });
 
         const newId = response.danger_identification_id;
