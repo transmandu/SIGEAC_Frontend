@@ -1,3 +1,7 @@
+## v4.55.1 — 2026-10-08
+
+- fix: danger identification date (#325)
+
 ## v4.55.0 — 2026-10-08
 
 - feat: get docs from library (#324)
