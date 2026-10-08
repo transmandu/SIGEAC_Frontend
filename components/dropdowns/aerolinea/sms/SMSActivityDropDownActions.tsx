@@ -18,6 +18,7 @@ import {
 import { SMSActivity } from "@/types";
 import {
   ClipboardPen,
+  Download,
   EyeIcon,
   Link,
   Loader2,
@@ -44,6 +45,9 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { startOfDay } from "date-fns";
 import { AddSMSActivityAttendanceForm } from "@/components/forms/aerolinea/sms/AddSMSActivityAttendanceForm";
 import { LinkBulletinToActivityForm } from "@/components/forms/aerolinea/sms/LinkBulletinToActivityForm";
+import { DownloadOptionDialog } from "@/components/dialogs/shared/DownloadOptionDialog";
+import { fetchAttendanceList } from "@/hooks/sms/useGetActivityAttendanceList";
+import { generateMinutaPDF } from "@/utils/generateMinutaPDF";
 
 const SMSActivityDropDownActions = ({
   smsActivity,
@@ -57,6 +61,7 @@ const SMSActivityDropDownActions = ({
   const [closeActivity, setCloseActivity] = useState(false);
   const [openReopen, setOpenReopen] = useState(false); // Estado para reabrir
   const [openLink, setOpenLink] = useState(false); // Estado para vincular boletín
+  const [openDownloadChoice, setOpenDownloadChoice] = useState<boolean>(false);
 
   const { deleteSMSActivity } = useDeleteSMSActivity();
   const { closeSMSActivity } = useCloseSMSActivity();
@@ -83,6 +88,28 @@ const SMSActivityDropDownActions = ({
   const handleReopenActivity = async () => {
     await openSMSActivity.mutateAsync(smsActivity.id.toString());
     setOpenReopen(false);
+  };
+
+  const handleTemplateDownload = async () => {
+    let attendeesCount = 0;
+    try {
+      const attendanceList = await fetchAttendanceList({
+        company: selectedCompany?.slug,
+        activityNumber: smsActivity.activity_number,
+      });
+      attendeesCount = attendanceList?.length ?? 0;
+    } catch {
+      attendeesCount = 0;
+    }
+    await generateMinutaPDF(smsActivity, attendeesCount);
+  };
+
+  const handleDownload = () => {
+    if (smsActivity.library_document_id) {
+      setOpenDownloadChoice(true);
+      return;
+    }
+    void handleTemplateDownload();
   };
 
   return (
@@ -141,6 +168,15 @@ const SMSActivityDropDownActions = ({
                 </DropdownMenuItem>
               </TooltipTrigger>
               <TooltipContent>Ver</TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuItem onClick={handleDownload}>
+                  <Download className="size-4" />
+                </DropdownMenuItem>
+              </TooltipTrigger>
+              <TooltipContent>Descargar</TooltipContent>
             </Tooltip>
 
             {smsActivity.status === "CERRADO" && (
@@ -352,6 +388,19 @@ const SMSActivityDropDownActions = ({
           </DialogHeader>
         </DialogContent>
       </Dialog>
+
+      <DownloadOptionDialog
+        open={openDownloadChoice}
+        onOpenChange={setOpenDownloadChoice}
+        company={selectedCompany?.slug}
+        libraryDocumentId={smsActivity.library_document_id}
+        documentLabel={`actividad_${smsActivity.activity_number}`}
+        onTemplate={() => void handleTemplateDownload()}
+        templateTitle="Plantilla (minuta)"
+        templateDescription="Minuta de la actividad generada por el sistema con los datos de la actividad."
+        documentTitle="Documento asociado"
+        documentDescription="Archivo de la biblioteca digital asociado a esta actividad."
+      />
     </>
   );
 };

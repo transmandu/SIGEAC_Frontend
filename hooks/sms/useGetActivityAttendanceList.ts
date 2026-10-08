@@ -17,7 +17,7 @@ interface AttendanceData {
   employee: EmployeeData | null;
 }
 
-const fetchAttendanceList = async ({
+export const fetchAttendanceList = async ({
   company,
   activityNumber,
 }: {

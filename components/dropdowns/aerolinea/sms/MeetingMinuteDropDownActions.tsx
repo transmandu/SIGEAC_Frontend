@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/dialog";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { CreateMeetingMinuteForm } from "@/components/forms/general/CreateMeetingMinuteForm";
+import { DownloadOptionDialog } from "@/components/dialogs/shared/DownloadOptionDialog";
 
 const MeetingMinuteDropDownActions = ({
   meetingMinute,
@@ -41,6 +42,7 @@ const MeetingMinuteDropDownActions = ({
 
   const [openDelete, setOpenDelete] = useState<boolean>(false);
   const [openEdit, setOpenEdit] = useState<boolean>(false);
+  const [openDownloadChoice, setOpenDownloadChoice] = useState<boolean>(false);
 
   const { deleteMeetingMinute } = useDeleteMeetingMinute();
   const { downloadMeetingMinutePdf } = useDownloadMeetingMinutePdf();
@@ -70,6 +72,14 @@ const MeetingMinuteDropDownActions = ({
     }
   };
 
+  const handleDownload = () => {
+    if (meetingMinute.library_document_id) {
+      setOpenDownloadChoice(true);
+      return;
+    }
+    void handleDownloadPdf();
+  };
+
   return (
     <>
       <DropdownMenu>
@@ -84,7 +94,7 @@ const MeetingMinuteDropDownActions = ({
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <DropdownMenuItem onClick={handleDownloadPdf}>
+                <DropdownMenuItem onClick={handleDownload}>
                   <Download className="size-5" />
                 </DropdownMenuItem>
               </TooltipTrigger>
@@ -183,6 +193,20 @@ const MeetingMinuteDropDownActions = ({
           />
         </DialogContent>
       </Dialog>
+
+      <DownloadOptionDialog
+        open={openDownloadChoice}
+        onOpenChange={setOpenDownloadChoice}
+        company={selectedCompany?.slug}
+        libraryDocumentId={meetingMinute.library_document_id}
+        documentLabel={`minuta_${meetingMinute.minute_number ?? meetingMinute.id}`}
+        onTemplate={() => void handleDownloadPdf()}
+        templatePending={downloadMeetingMinutePdf.isPending}
+        templateTitle="Plantilla (PDF)"
+        templateDescription="PDF de la minuta de reunión generado por el sistema."
+        documentTitle="Documento asociado"
+        documentDescription="Archivo de la biblioteca digital asociado a esta minuta."
+      />
     </>
   );
 };
