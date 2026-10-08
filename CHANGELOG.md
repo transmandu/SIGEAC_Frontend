@@ -1,3 +1,7 @@
+## v4.55.0 — 2026-10-08
+
+- feat: get docs from library (#324)
+
 ## v4.54.0 — 2026-10-07
 
 - feat: update grid column styles for responsive layout in PartNumberGroupDialog
