@@ -64,14 +64,17 @@ const FormSchema = z.object({
   description: z
     .string()
     .min(3, { message: "La descripcion debe tener al menos 3 caracteres" })
-    .max(1000, { message: "La descripcion no debe exceder los 2000 caracteres" }),
+    .max(1000, {
+      message: "La descripcion no debe exceder los 2000 caracteres",
+    }),
   possible_consequences: z
     .string()
     .min(1, {
       message: "Agregue al menos una consecuencia",
     })
     .max(2000, {
-      message: "Las posibles consecuencias no deben exceder los 2000 caracteres",
+      message:
+        "Las posibles consecuencias no deben exceder los 2000 caracteres",
     }),
   consequence_to_evaluate: z
     .string()
@@ -213,13 +216,13 @@ export default function CreateDangerIdentificationForm({
       setDefenses(
         isNA(initialData.current_defenses)
           ? []
-          : splitAndFilter(initialData.current_defenses)
+          : splitAndFilter(initialData.current_defenses),
       );
       setConsequences(splitAndFilter(initialData.possible_consequences));
       setAnalyses(
         isNA(initialData.root_cause_analysis)
           ? []
-          : splitAndFilter(initialData.root_cause_analysis)
+          : splitAndFilter(initialData.root_cause_analysis),
       );
     }
   }, [initialData]);
@@ -333,7 +336,7 @@ export default function CreateDangerIdentificationForm({
         ...data,
         risk_management_start_date: format(
           data.risk_management_start_date,
-          "yyyy-MM-dd"
+          "yyyy-MM-dd",
         ),
       };
 
@@ -359,13 +362,12 @@ export default function CreateDangerIdentificationForm({
         }
 
         router.push(
-          `/${selectedCompany?.slug}/sms/gestion_reportes/peligros_identificados/${response.danger_identification_id}`
+          `/${selectedCompany?.slug}/sms/gestion_reportes/peligros_identificados/${response.danger_identification_id}`,
         );
       }
     } catch (error) {
       console.error("Error al enviar el formulario:", error);
     }
-
   };
 
   return (
@@ -406,7 +408,7 @@ export default function CreateDangerIdentificationForm({
                         variant={"outline"}
                         className={cn(
                           "w-full pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
+                          !field.value && "text-muted-foreground",
                         )}
                       >
                         {field.value
@@ -483,7 +485,9 @@ export default function CreateDangerIdentificationForm({
               <Checkbox
                 id="no-defenses"
                 checked={noDefenses}
-                onCheckedChange={(checked) => toggleNoDefenses(checked === true)}
+                onCheckedChange={(checked) =>
+                  toggleNoDefenses(checked === true)
+                }
               />
               <label
                 htmlFor="no-defenses"
@@ -702,7 +706,9 @@ export default function CreateDangerIdentificationForm({
               <Checkbox
                 id="no-analyses"
                 checked={noAnalyses}
-                onCheckedChange={(checked) => toggleNoAnalyses(checked === true)}
+                onCheckedChange={(checked) =>
+                  toggleNoAnalyses(checked === true)
+                }
               />
               <label
                 htmlFor="no-analyses"
@@ -766,7 +772,10 @@ export default function CreateDangerIdentificationForm({
             <FormItem>
               <FormLabel>Causa Raíz</FormLabel>
               <FormControl>
-                <Textarea placeholder="Describa la causa raíz identificada" {...field} />
+                <Textarea
+                  placeholder="Describa la causa raíz identificada"
+                  {...field}
+                />
               </FormControl>
               <FormMessage className="text-xs" />
             </FormItem>
@@ -781,8 +790,15 @@ export default function CreateDangerIdentificationForm({
         </div>
 
         {/* --- BOTÓN ENVIAR --- */}
-        <Button type="submit" disabled={createDangerIdentification.isPending || updateDangerIdentification.isPending}>
-          {createDangerIdentification.isPending || updateDangerIdentification.isPending ? (
+        <Button
+          type="submit"
+          disabled={
+            createDangerIdentification.isPending ||
+            updateDangerIdentification.isPending
+          }
+        >
+          {createDangerIdentification.isPending ||
+          updateDangerIdentification.isPending ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           ) : null}
           {isEditing ? "Actualizar" : "Enviar"}
