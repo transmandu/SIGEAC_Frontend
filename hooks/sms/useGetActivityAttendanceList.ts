@@ -17,7 +17,7 @@ interface AttendanceData {
   employee: EmployeeData | null;
 }
 
-const fetchAttendanceList = async ({
+export const fetchAttendanceList = async ({
   company,
   activityNumber,
 }: {
@@ -25,7 +25,7 @@ const fetchAttendanceList = async ({
   activityNumber: string;
 }): Promise<AttendanceData[]> => {
   const { data } = await axiosInstance.get(
-    `/${company}/sms/activities/${activityNumber}/attendance-list`
+    `/${company}/sms/activities/${activityNumber}/attendance-list`,
   );
   return data;
 };

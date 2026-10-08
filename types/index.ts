@@ -1579,6 +1579,7 @@ export type ObligatoryReport = {
   imageUrl?: string;
   documentUrl?: string;
   close_date?: string;
+  library_document_id?: number | null;
 };
 
 export type VoluntaryReport = {
@@ -1603,6 +1604,7 @@ export type VoluntaryReport = {
   imageUrl?: string;
   documentUrl?: string;
   close_date?: string;
+  library_document_id?: number | null;
 };
 
 export type DangerIdentification = {

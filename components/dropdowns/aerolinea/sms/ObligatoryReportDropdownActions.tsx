@@ -1,5 +1,6 @@
 import { useDeleteObligatoryReport } from "@/actions/sms/reporte_obligatorio/actions";
 import { PdfEndpointPreviewDialog } from "@/components/dialogs/shared/PdfEndpointPreviewDialog";
+import { DownloadOptionDialog } from "@/components/dialogs/shared/DownloadOptionDialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,6 +18,7 @@ import {
   CheckCheck,
   ClipboardPen,
   ClipboardPenLine,
+  Download,
   EyeIcon,
   FileText,
   Loader2,
@@ -53,6 +55,7 @@ const ObligatoryReportDropdownActions = ({
   const [openAccept, setOpenAccept] = useState<boolean>(false);
   const [openFormatPdf, setOpenFormatPdf] = useState<boolean>(false);
   const [openManagementPdf, setOpenManagementPdf] = useState<boolean>(false);
+  const [openDownloadChoice, setOpenDownloadChoice] = useState<boolean>(false);
 
   const router = useRouter();
 
@@ -76,6 +79,14 @@ const ObligatoryReportDropdownActions = ({
     await deleteObligatoryReport.mutateAsync(value);
     setOpenDelete(false);
   };
+  const handleDownload = () => {
+    if (obligatoryReport.library_document_id) {
+      setOpenDownloadChoice(true);
+      return;
+    }
+    setOpenFormatPdf(true);
+  };
+
   return (
     <>
       <DropdownMenu>
@@ -154,6 +165,17 @@ const ObligatoryReportDropdownActions = ({
             {obligatoryReport && formatPdfEndpoint && (
               <Tooltip>
                 <TooltipTrigger asChild>
+                  <DropdownMenuItem onSelect={handleDownload}>
+                    <Download className="size-4" />
+                  </DropdownMenuItem>
+                </TooltipTrigger>
+                <TooltipContent>Descargar</TooltipContent>
+              </Tooltip>
+            )}
+
+            {obligatoryReport && formatPdfEndpoint && (
+              <Tooltip>
+                <TooltipTrigger asChild>
                   <DropdownMenuItem onSelect={() => setOpenFormatPdf(true)}>
                     <PrinterCheck className="size-4" />
                   </DropdownMenuItem>
@@ -197,6 +219,19 @@ const ObligatoryReportDropdownActions = ({
           description="Revisa el reporte de gestión antes de descargarlo."
         />
       )}
+
+      <DownloadOptionDialog
+        open={openDownloadChoice}
+        onOpenChange={setOpenDownloadChoice}
+        company={selectedCompany?.slug}
+        libraryDocumentId={obligatoryReport.library_document_id}
+        documentLabel={`reporte_obligatorio_${obligatoryReport.id}`}
+        onTemplate={() => setOpenFormatPdf(true)}
+        templateTitle="Plantilla (formato)"
+        templateDescription="Formato del reporte obligatorio con los datos vacíos para diligenciar."
+        documentTitle="Documento asociado"
+        documentDescription="Archivo de la biblioteca digital asociado a este reporte."
+      />
 
       <Dialog open={openDelete} onOpenChange={setOpenDelete}>
         <DialogContent>
