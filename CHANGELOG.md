@@ -1,3 +1,7 @@
+## v4.57.0 — 2026-10-09
+
+- feat: chart from sms dashboard removed (#328)
+
 ## v4.56.0 — 2026-10-09
 
 - feat: drop-causa-raiz-from-identification-form (#326)
