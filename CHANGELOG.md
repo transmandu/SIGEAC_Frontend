@@ -1,3 +1,7 @@
+## v4.56.0 — 2026-10-09
+
+- feat: drop-causa-raiz-from-identification-form (#326)
+
 ## v4.55.1 — 2026-10-08
 
 - fix: danger identification date (#325)
