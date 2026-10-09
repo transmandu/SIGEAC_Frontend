@@ -1,7 +1,6 @@
 "use client";
 
 import BarChartComponent from "@/components/charts/BarChartComponent";
-import MultipleBarChartComponent from "@/components/charts/MultipleBarChartComponent";
 import SimpleLineChart from "@/components/charts/SimpleLineChart";
 import { Message } from "@/components/misc/Message";
 import {
@@ -92,7 +91,7 @@ export default function DashboardSummary({
       {/* ================= TOP GRID ================= */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* LINE CHART */}
-        <TintedCard tone={blueTone} className="p-2 h-90 flex flex-col">
+        <TintedCard tone={blueTone} className="p-2 min-h-90 flex flex-col">
           <CardHeader className="text-center space-y-1 py-2">
             <div className="flex justify-center">
               <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600">
@@ -108,6 +107,19 @@ export default function DashboardSummary({
               Evolución mensual de reportes de seguridad operacional durante el
               año en curso.
             </CardDescription>
+
+            <div className="flex justify-center pt-1">
+              <span className="inline-flex items-baseline gap-1.5 rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 text-xs font-medium text-blue-600 dark:text-blue-400">
+                Total de reportes:
+                {isLoadingReportsNumberByMonth ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <span className="text-sm font-bold">
+                    {(totalReports ?? 0).toLocaleString("es-ES")}
+                  </span>
+                )}
+              </span>
+            </div>
           </CardHeader>
 
           <CardContent className="px-4 pb-3 flex-1">
@@ -136,7 +148,7 @@ export default function DashboardSummary({
         </TintedCard>
 
         {/* TRAINING */}
-        <TintedCard tone={blueTone} className="p-3 h-90 flex flex-col">
+        <TintedCard tone={blueTone} className="p-3 min-h-90 flex flex-col">
           <CardHeader className="text-center space-y-1 py-2">
             <div className="flex justify-center">
               <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600">
@@ -222,58 +234,8 @@ export default function DashboardSummary({
 
       {/* ================= REPORTS SUMMARY ================= */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* TOTAL REPORTS */}
-        <TintedCard tone={blueTone} className="p-3 relative">
-          <CardHeader className="text-center space-y-2 py-3 flex flex-col justify-start">
-            <div className="flex justify-center">
-              <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600">
-                <BarChart3 className="h-5 w-5" />
-              </div>
-            </div>
-
-            <CardTitle className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">
-              Total de Reportes
-            </CardTitle>
-
-            <CardDescription className="mx-auto max-w-md text-sm leading-relaxed text-slate-500 dark:text-slate-400">
-              Número total de reportes registrados durante el año en curso.
-            </CardDescription>
-
-            <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-              {isLoadingReportsNumberByMonth ? (
-                <Loader2 className="h-6 w-6 animate-spin mx-auto" />
-              ) : (
-                (totalReports ?? 0).toLocaleString("es-ES")
-              )}
-            </p>
-          </CardHeader>
-
-          <CardContent className="flex justify-center pb-4">
-            {isLoadingReportsNumberByMonth ? (
-              <div className="flex justify-center py-6">
-                <Loader2 className="animate-spin" />
-              </div>
-            ) : isErrorReportsNumberByMonth ? (
-              <Message
-                title="Error"
-                description="No se pudieron cargar los datos"
-              />
-            ) : reportsNumberByMonth && reportsNumberByMonth.length > 0 ? (
-              <MultipleBarChartComponent
-                data={reportsNumberByMonth}
-                title=""
-                height={280}
-              />
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                No hay datos para mostrar.
-              </p>
-            )}
-          </CardContent>
-        </TintedCard>
-
         {/* OPEN VS CLOSED */}
-        <TintedCard tone={blueTone} className="p-3 relative">
+        <TintedCard tone={blueTone} className="p-3 relative lg:col-span-2">
           <CardHeader className="text-center space-y-2 py-3 flex flex-col justify-start">
             <div className="flex justify-center">
               <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600">
