@@ -42,7 +42,13 @@ const COMPANY_MODULE_TO_ERROR_REPORT_MODULE: Record<string, string> = {
  * Módulos que siempre deben poder reportarse: no están gateados por ningún
  * módulo de empresa (ver grupos sin `moduleValue` en `lib/menus/general.ts`).
  */
-const ALWAYS_AVAILABLE_ERROR_REPORT_MODULES = ["GENERAL", "AJUSTES", "PERFIL", "SISTEMA", "OTRO"];
+const ALWAYS_AVAILABLE_ERROR_REPORT_MODULES = [
+  "GENERAL",
+  "AJUSTES",
+  "PERFIL",
+  "SISTEMA",
+  "OTRO",
+];
 
 /**
  * Filtra `ERROR_REPORT_MODULES` a los módulos habilitados para la empresa
@@ -51,30 +57,38 @@ const ALWAYS_AVAILABLE_ERROR_REPORT_MODULES = ["GENERAL", "AJUSTES", "PERFIL", "
  * empresa no tiene módulos cargados, se devuelve la lista completa para no
  * bloquear el formulario.
  */
-export function getAvailableErrorReportModules(companyModules?: { value: string }[]) {
-  if (!companyModules || companyModules.length === 0) {
+export function getAvailableErrorReportModules(
+  companyModules?: { value: string }[],
+) {
+  // Guarda defensiva: si el store o la API devuelve un objeto `{}` en lugar
+  // de un arreglo `[]`, el .map() siguiente lanzaría "e.map is not a function".
+  if (!Array.isArray(companyModules) || companyModules.length === 0) {
     return ERROR_REPORT_MODULES;
   }
 
   const allowedValues = new Set(
     companyModules
       .map((module) => COMPANY_MODULE_TO_ERROR_REPORT_MODULE[module.value])
-      .filter((value): value is string => Boolean(value))
+      .filter((value): value is string => Boolean(value)),
   );
 
   return ERROR_REPORT_MODULES.filter(
     (option) =>
       allowedValues.has(option.value) ||
-      ALWAYS_AVAILABLE_ERROR_REPORT_MODULES.includes(option.value)
+      ALWAYS_AVAILABLE_ERROR_REPORT_MODULES.includes(option.value),
   );
 }
 
 /** Deduce el módulo por defecto de un usuario a partir del nombre de sus roles (p. ej. "JEFE_ALMACEN" -> "ALMACEN"). */
-export function getDefaultErrorReportModule(roles?: { name: string }[]): string | undefined {
-  const roleNames = roles?.map((role) => role.name) ?? [];
+export function getDefaultErrorReportModule(
+  roles?: { name: string }[],
+): string | undefined {
+  // Guarda defensiva: roles puede llegar como objeto en sesiones antiguas de localStorage.
+  const roleNames = Array.isArray(roles) ? roles.map((role) => role.name) : [];
   if (roleNames.length === 0) return undefined;
 
-  const hasKeyword = (keyword: string) => roleNames.some((name) => name.includes(keyword));
+  const hasKeyword = (keyword: string) =>
+    roleNames.some((name) => name.includes(keyword));
 
   const orderedKeywords = [
     "SMS",
@@ -91,5 +105,6 @@ export function getDefaultErrorReportModule(roles?: { name: string }[]): string 
   const matchedKeyword = orderedKeywords.find(hasKeyword);
   if (!matchedKeyword) return undefined;
 
-  return ERROR_REPORT_MODULES.find((module) => module.value === matchedKeyword)?.value;
+  return ERROR_REPORT_MODULES.find((module) => module.value === matchedKeyword)
+    ?.value;
 }
