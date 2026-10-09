@@ -317,7 +317,9 @@ export default function ErrorReportDiagnosisDialog({
   }, [open, report]);
 
   const canEdit = report.status === "OPEN" || report.status === "IN_PROGRESS";
-  const diagnosticSteps = Array.isArray(report.diagnostic_steps) ? report.diagnostic_steps : [];
+  const diagnosticSteps = Array.isArray(report.diagnostic_steps)
+    ? report.diagnostic_steps
+    : [];
   const moduleLabel =
     ERROR_REPORT_MODULES.find((m) => m.value === report.module)?.label ??
     report.module;
