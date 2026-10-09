@@ -15,7 +15,6 @@ interface DangerIdentificationData {
     possible_consequences: string;
     consequence_to_evaluate: string;
     root_cause_analysis: string;
-    root_cause?: string | null;
     information_source_id: string;
   };
 }
@@ -33,7 +32,6 @@ interface UpdateDangerIdentification {
     possible_consequences: string;
     consequence_to_evaluate: string;
     root_cause_analysis: string;
-    root_cause?: string | null;
     information_source_id: number | string;
   };
 }
@@ -54,12 +52,14 @@ export const useCreateDangerIdentification = () => {
           headers: {
             "Content-Type": "multipart/form-data",
           },
-        }
+        },
       );
       return response.data;
     },
-    onSuccess: (_,data) => {
-      queryClient.invalidateQueries({ queryKey: ["danger-identifications", data.company] });
+    onSuccess: (_, data) => {
+      queryClient.invalidateQueries({
+        queryKey: ["danger-identifications", data.company],
+      });
       queryClient.invalidateQueries({ queryKey: ["voluntary-reports"] });
       queryClient.invalidateQueries({ queryKey: ["voluntary-report"] });
       queryClient.invalidateQueries({ queryKey: ["analysis"] });
@@ -90,11 +90,13 @@ export const useDeleteDangerIdentification = () => {
       id: string;
     }) => {
       await axiosInstance.delete(
-        `/${company}/sms/danger-identifications/${id}`
+        `/${company}/sms/danger-identifications/${id}`,
       );
     },
-    onSuccess: (_,data) => {
-      queryClient.invalidateQueries({ queryKey: ["danger-identifications", data.company] });
+    onSuccess: (_, data) => {
+      queryClient.invalidateQueries({
+        queryKey: ["danger-identifications", data.company],
+      });
       queryClient.invalidateQueries({ queryKey: ["voluntary-reports"] });
       queryClient.invalidateQueries({
         queryKey: ["danger-identification-by-id"],
@@ -123,11 +125,13 @@ export const useUpdateDangerIdentification = () => {
     mutationFn: async ({ company, data, id }: UpdateDangerIdentification) => {
       await axiosInstance.patch(
         `/${company}/sms/danger-identifications/${id}`,
-        data
+        data,
       );
     },
-    onSuccess: (_,data) => {
-      queryClient.invalidateQueries({ queryKey: ["danger-identifications", data.company] });
+    onSuccess: (_, data) => {
+      queryClient.invalidateQueries({
+        queryKey: ["danger-identifications", data.company],
+      });
       queryClient.invalidateQueries({ queryKey: ["danger-identification"] });
       toast.success("¡Actualizado!", {
         description: `La identificacion de peligro ha sido actualizada correctamente.`,
