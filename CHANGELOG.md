@@ -1,3 +1,9 @@
+## v4.57.1 — 2026-10-09
+
+- Merge pull request #327 from transmandu/fix/array-guard-map-not-a-function
+- style: formato automatico (prettier)
+- fix: guard Array.isArray before .map() on roles, permissions, modules and images
+
 ## v4.57.0 — 2026-10-09
 
 - feat: chart from sms dashboard removed (#328)
