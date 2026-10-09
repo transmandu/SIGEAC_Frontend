@@ -52,7 +52,9 @@ const ALWAYS_AVAILABLE_ERROR_REPORT_MODULES = ["GENERAL", "AJUSTES", "PERFIL", "
  * bloquear el formulario.
  */
 export function getAvailableErrorReportModules(companyModules?: { value: string }[]) {
-  if (!companyModules || companyModules.length === 0) {
+  // Guarda defensiva: si el store o la API devuelve un objeto `{}` en lugar
+  // de un arreglo `[]`, el .map() siguiente lanzaría "e.map is not a function".
+  if (!Array.isArray(companyModules) || companyModules.length === 0) {
     return ERROR_REPORT_MODULES;
   }
 
@@ -71,7 +73,8 @@ export function getAvailableErrorReportModules(companyModules?: { value: string 
 
 /** Deduce el módulo por defecto de un usuario a partir del nombre de sus roles (p. ej. "JEFE_ALMACEN" -> "ALMACEN"). */
 export function getDefaultErrorReportModule(roles?: { name: string }[]): string | undefined {
-  const roleNames = roles?.map((role) => role.name) ?? [];
+  // Guarda defensiva: roles puede llegar como objeto en sesiones antiguas de localStorage.
+  const roleNames = Array.isArray(roles) ? roles.map((role) => role.name) : [];
   if (roleNames.length === 0) return undefined;
 
   const hasKeyword = (keyword: string) => roleNames.some((name) => name.includes(keyword));

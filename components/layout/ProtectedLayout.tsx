@@ -26,10 +26,16 @@ const ProtectedLayout = ({ children, roles, permissions, requiresOmac }: Protect
 
   useEffect(() => {
     if (!loading && user) {
-      const userRoles = user.roles?.map(role => role.name) || [];
-      const userPermissions = user.roles?.flatMap(role =>
-        role.permissions.map(permission => permission.name)
-      ) || [];
+      const userRoles = Array.isArray(user.roles)
+        ? user.roles.map(role => role.name)
+        : [];
+      const userPermissions = Array.isArray(user.roles)
+        ? user.roles.flatMap(role =>
+            Array.isArray(role.permissions)
+              ? role.permissions.map(permission => permission.name)
+              : []
+          )
+        : [];
 
       if (roles && !roles.some(role => userRoles.includes(role))) {
         router.push('/not-authorized');
@@ -52,10 +58,16 @@ const ProtectedLayout = ({ children, roles, permissions, requiresOmac }: Protect
   if (!user) return null;
 
   // Verificación final para asegurarnos que no redirigimos por error
-  const finalUserRoles = user.roles?.map(role => role.name) || [];
-  const finalUserPermissions = user.roles?.flatMap(role =>
-    role.permissions.map(permission => permission.name)
-  ) || [];
+  const finalUserRoles = Array.isArray(user.roles)
+    ? user.roles.map(role => role.name)
+    : [];
+  const finalUserPermissions = Array.isArray(user.roles)
+    ? user.roles.flatMap(role =>
+        Array.isArray(role.permissions)
+          ? role.permissions.map(permission => permission.name)
+          : []
+      )
+    : [];
 
   if (roles && !roles.some(role => finalUserRoles.includes(role))) {
     return null;
