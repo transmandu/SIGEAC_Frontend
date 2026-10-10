@@ -27,7 +27,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { RegisterComplianceDialog } from "@/components/dialogs/mantenimiento/planificacion/RegisterComplianceDialog";
+import { CloseComplianceDialog } from "@/components/dialogs/mantenimiento/planificacion/CloseComplianceDialog";
+import { StartComplianceDialog } from "@/components/dialogs/mantenimiento/planificacion/StartComplianceDialog";
 import { AddMaintenanceControlItemDialog } from "@/components/dialogs/mantenimiento/planificacion/AddMaintenanceControlItemDialog";
 import { ImportComplianceHistoryDialog } from "@/components/dialogs/mantenimiento/planificacion/ImportComplianceHistoryDialog";
 import { DownloadMaintenanceFormatButton } from "@/components/dialogs/mantenimiento/planificacion/DownloadMaintenanceFormatButton";
@@ -42,7 +43,7 @@ import {
 } from "@/lib/maintenanceControlCalc";
 import { partTypeLabel } from "@/lib/maintenancePartTypes";
 import { FormSection } from "@/components/forms/mantenimiento/planificacion/_theme";
-import { MaintenanceControlItem } from "@/types";
+import { MaintenanceAircraftPart, MaintenanceControlItem } from "@/types";
 import { cn } from "@/lib/utils";
 import { RecordAuditHistory } from "@/components/planificacion/auditoria/RecordAuditHistory";
 import { RetiredControlBanner } from "@/components/planificacion/controles/RetiredControlBanner";
@@ -122,6 +123,7 @@ function StatusLegend({
     WARNING: "Remanente dentro del doble del margen configurado.",
     CRITICAL: "Remanente dentro del margen configurado.",
     OVERDUE: "Ya superó la fecha, horas o ciclos límite.",
+    NONE: "No tiene un cumplimiento vigente: inicie uno para que corra su reloj.",
   };
 
   return (
@@ -216,9 +218,13 @@ function ItemActionCell({
 }) {
   if (!item.id || controlRetired) return null;
 
-  const pendingWorkOrder = item.pending_work_order;
+  const current = item.current_compliance;
+  const pendingWorkOrder = current?.work_order;
   const hasOpenWorkOrder =
     !!pendingWorkOrder && pendingWorkOrder.status !== "CLOSED";
+  const workOrderDescription =
+    item.declared_description?.trim() || item.description;
+  const units = item.intervals.map((interval) => interval.counting_method);
 
   return (
     <div className="flex flex-col items-end gap-0.5">
@@ -247,21 +253,40 @@ function ItemActionCell({
       <AddToQueueButton
         type="maintenance_control_item"
         itemId={item.id}
-        subject={`ítem «${item.name}»`}
+        subject={`ítem «${item.description}»`}
       />
 
-      <RegisterComplianceDialog
-        itemId={item.id}
-        itemName={item.name}
-        aircraftId={aircraftId}
-        defaultHours={defaultHours}
-        defaultCycles={defaultCycles}
-        pendingWorkOrder={hasOpenWorkOrder ? pendingWorkOrder : null}
-      />
+      {current ? (
+        <CloseComplianceDialog
+          kind="maintenance"
+          complianceId={current.id}
+          subjectName={item.description}
+          workOrderDescription={workOrderDescription}
+          aircraftId={aircraftId}
+          units={units}
+          appliedDate={current.applied_date}
+          defaultHours={defaultHours}
+          defaultCycles={defaultCycles}
+          currentProviderId={current.maintenance_provider_id}
+          currentWorkOrder={pendingWorkOrder ?? null}
+        />
+      ) : (
+        <StartComplianceDialog
+          kind="maintenance"
+          subjectId={item.id}
+          subjectName={item.description}
+          workOrderDescription={workOrderDescription}
+          aircraftId={aircraftId}
+          units={units}
+          defaultHours={defaultHours}
+          defaultCycles={defaultCycles}
+          defaultProviderId={item.maintenance_provider_id}
+        />
+      )}
       <RetireRecordButton
         recordType="maintenance_control_item"
         recordId={item.id}
-        subject={`ítem «${item.name}»`}
+        subject={`ítem «${item.description}»`}
       />
     </div>
   );
@@ -342,7 +367,7 @@ function MaintenanceItemsTable({
                 className={cn(meta.row, "transition-colors hover:bg-primary/3")}
               >
                 <TableCell className="font-medium">
-                  <TruncatedText>{item.name}</TruncatedText>
+                  <TruncatedText>{item.description}</TruncatedText>
                 </TableCell>
                 <TableCell className={cn(COL.frequency, "truncate")}>
                   <span className="block truncate">{computed.frequency}</span>
@@ -431,11 +456,16 @@ function MaintenanceItemsTable({
                   <WorkOrderCell
                     company={company}
                     aircraftId={realAircraftId}
-                    subject={`ítem «${item.name}»`}
-                    taskDescription={item.name}
-                    previous={item.latest_compliance?.work_order}
-                    current={item.pending_work_order}
-                    readOnly={controlRetired || !item.id}
+                    subject={`ítem «${item.description}»`}
+                    taskDescription={
+                      item.declared_description?.trim() || item.description
+                    }
+                    previous={item.last_completed_compliance?.work_order}
+                    current={item.current_compliance?.work_order}
+                    // Sin cumplimiento vigente no hay a quién atar una orden.
+                    readOnly={
+                      controlRetired || !item.id || !item.current_compliance
+                    }
                     onWorkOrderCreated={(workOrder) =>
                       linkPendingWorkOrder.mutateAsync({
                         company: selectedCompanySlug!,
@@ -503,9 +533,9 @@ const MaintenanceControlDetailPage = () => {
       item.remaining_percentage !== null &&
       item.remaining_percentage !== undefined,
   );
-  const certificates = items.filter((i) => i.category === "CERTIFICATE");
+  const certificates = items.filter((i) => i.item_type === "CERTIFICATE");
   const aircraftServices = items.filter(
-    (i) => i.category === "SERVICE" && !i.maintenance_control_part_id,
+    (i) => i.item_type === "SERVICE" && !i.aircraft_part_id,
   );
 
   // "Motor 1 S/N: <serial>", "Motor 2 S/N: <serial>"...: numerado por orden
@@ -515,13 +545,20 @@ const MaintenanceControlDetailPage = () => {
   // armar el título con "S/N:" en gris, para no confundir el serial con un
   // modelo que ya trae guiones propios (ej. TPE331-12UHR-701H).
   const partTypeCounters: Record<string, number> = {};
-  const parts = (control.parts ?? []).map((part) => {
-    const type = (part.aircraft_part?.type ?? "").toUpperCase();
+  const partsById = new Map<string, MaintenanceAircraftPart>();
+  items.forEach((item) => {
+    if (item.aircraft_part_id && item.aircraft_part) {
+      partsById.set(String(item.aircraft_part_id), item.aircraft_part);
+    }
+  });
+  const parts = Array.from(partsById.values()).map((aircraftPart) => {
+    const type = (aircraftPart.type ?? "").toUpperCase();
     partTypeCounters[type] = (partTypeCounters[type] ?? 0) + 1;
-    const serial = part.aircraft_part?.serial;
-    const typeLabel = `${partTypeLabel(part.aircraft_part?.type)} ${partTypeCounters[type]}`;
+    const serial = aircraftPart.serial;
+    const typeLabel = `${partTypeLabel(aircraftPart.type)} ${partTypeCounters[type]}`;
     return {
-      ...part,
+      id: aircraftPart.id,
+      aircraft_part: aircraftPart,
       typeLabel,
       serial,
       label: `${typeLabel}${serial ? ` - ${serial}` : ""}`,
@@ -668,7 +705,7 @@ const MaintenanceControlDetailPage = () => {
             !controlRetired && (
               <AddMaintenanceControlItemDialog
                 controlId={control.id}
-                category="CERTIFICATE"
+                itemType="CERTIFICATE"
                 sectionLabel="Certificados"
                 currentHours={Number(control.aircraft?.flight_hours ?? 0)}
                 currentCycles={Number(control.aircraft?.flight_cycles ?? 0)}
@@ -695,7 +732,7 @@ const MaintenanceControlDetailPage = () => {
               {!controlRetired && (
                 <AddMaintenanceControlItemDialog
                   controlId={control.id}
-                  category="SERVICE"
+                  itemType="SERVICE"
                   sectionLabel="Servicios de Aeronave"
                   currentHours={Number(control.aircraft?.flight_hours ?? 0)}
                   currentCycles={Number(control.aircraft?.flight_cycles ?? 0)}
@@ -722,7 +759,7 @@ const MaintenanceControlDetailPage = () => {
 
         {parts.map((part) => {
           const partItems = items.filter(
-            (i) => String(i.maintenance_control_part_id) === String(part.id),
+            (i) => String(i.aircraft_part_id) === String(part.id),
           );
           return (
             <FormSection
@@ -745,11 +782,15 @@ const MaintenanceControlDetailPage = () => {
                   {!controlRetired && (
                     <AddMaintenanceControlItemDialog
                       controlId={control.id}
-                      category="SERVICE"
-                      maintenanceControlPartId={part.id}
+                      itemType="SERVICE"
+                      aircraftPartId={part.id}
                       sectionLabel={part.label}
-                      currentHours={Number(part.aircraft_part?.time_since_new ?? 0)}
-                      currentCycles={Number(part.aircraft_part?.cycles_since_new ?? 0)}
+                      currentHours={Number(
+                        part.aircraft_part?.time_since_new ?? 0,
+                      )}
+                      currentCycles={Number(
+                        part.aircraft_part?.cycles_since_new ?? 0,
+                      )}
                     />
                   )}
                   <DownloadMaintenanceFormatButton
@@ -790,10 +831,10 @@ const MaintenanceControlDetailPage = () => {
             .map((item) => ({
               id: item.id!,
               recordType: "maintenance_control_item" as const,
-              label: item.name,
+              label: item.description,
               detail:
-                item.category === "CERTIFICATE" ? "Certificado" : "Servicio",
-              subject: `ítem «${item.name}»`,
+                item.item_type === "CERTIFICATE" ? "Certificado" : "Servicio",
+              subject: `ítem «${item.description}»`,
               retired_at: item.retired_at!,
               retired_by: item.retired_by,
             }))}

@@ -36,6 +36,8 @@ interface WorkOrderFieldProps {
   pendingWorkOrder?: { id: number | string; order_number: string } | null;
   /** Aclaración propia del control, bajo el campo. */
   hint?: string;
+  /** false cuando la orden es obligatoria (cerrar un cumplimiento). */
+  optional?: boolean;
 }
 
 /**
@@ -59,6 +61,7 @@ export function WorkOrderField({
   taskDescription,
   pendingWorkOrder,
   hint,
+  optional = true,
 }: WorkOrderFieldProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const { selectedCompany } = useCompanyStore();
@@ -79,8 +82,10 @@ export function WorkOrderField({
     <>
       <FormItem className="w-full">
         <FormLabel className={labelClass}>
-          Orden de Trabajo{" "}
-          <span className="text-xs text-muted-foreground">(Opcional)</span>
+          Orden de Trabajo
+          {optional && (
+            <span className="text-xs text-muted-foreground"> (Opcional)</span>
+          )}
         </FormLabel>
 
         {pendingWorkOrder && (

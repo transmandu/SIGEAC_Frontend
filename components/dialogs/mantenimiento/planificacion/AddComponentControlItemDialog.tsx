@@ -8,7 +8,9 @@ import { format } from "date-fns";
 import { Loader2, Plus, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import { CONTROL_ITEM_FLAGS } from "@/lib/controlItemFlags";
+import { ControlItemFlagsField } from "@/components/forms/mantenimiento/planificacion/ControlItemFlagsField";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -41,10 +43,7 @@ import {
 import { DatePickerField } from "@/components/ui/DatePickerField";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import {
-  useAddComponentControlItem,
-  useCreateComponentCompliance,
-} from "@/actions/mantenimiento/planificacion/control_componentes/actions";
+import { useAddComponentControlItem } from "@/actions/mantenimiento/planificacion/control_componentes/actions";
 import {
   FormSection,
   fieldClass,
@@ -74,7 +73,11 @@ const optionalNumeric = z.preprocess(
 
 const optionalPercentage = z.preprocess(
   (val) => (val === "" || val === undefined || val === null ? undefined : val),
-  z.coerce.number().min(0, "Debe ser ≥ 0").max(100, "Debe ser ≤ 100").optional(),
+  z.coerce
+    .number()
+    .min(0, "Debe ser ≥ 0")
+    .max(100, "Debe ser ≤ 100")
+    .optional(),
 );
 
 const intervalSchema = z.object({
@@ -88,28 +91,27 @@ const intervalSchema = z.object({
 const formSchema = z
   .object({
     maintenance_provider_id: z.string().min(1, "Seleccione quién lo realiza"),
-    is_hazardous: z.boolean().default(false),
+    flags: z.array(z.enum(CONTROL_ITEM_FLAGS)).default([]),
     description: z.string().min(1, "Requerido"),
+    declared_description: z.string().optional(),
     part_number: z.string().min(1, "Requerido"),
     serial: z.string().min(1, "Requerido"),
     position: z.string().optional(),
     action: z.enum(["OVERHAUL", "CHECK", "TEST"]),
     reference_document: z.string().optional(),
-    first_applied_date: z.date({ error: "Seleccione una fecha" }),
+    applied_date: z.date({ error: "Seleccione una fecha" }),
     remaining_percentage: optionalPercentage,
     intervals: z.array(intervalSchema).min(1, "Agregue al menos un intervalo"),
-    register_compliance: z.boolean().default(false),
-    compliance_date: z.date().optional(),
-    hours_reading: optionalNumeric,
-    cycles_reading: optionalNumeric,
     consumed_hours: optionalNumeric,
     consumed_cycles: optionalNumeric,
-    compliance_notes: z.string().optional(),
   })
   .superRefine((vals, ctx) => {
     const seenMethods = new Set<string>();
     vals.intervals.forEach((interval, index) => {
-      if (interval.counting_method !== "DAYS" && interval.initial_value === undefined) {
+      if (
+        interval.counting_method !== "DAYS" &&
+        interval.initial_value === undefined
+      ) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: "Indique las horas/ciclos del padre en ese evento",
@@ -125,21 +127,14 @@ const formSchema = z
       }
       seenMethods.add(interval.counting_method);
     });
-
-    if (vals.register_compliance && !vals.compliance_date) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Seleccione la fecha de cumplimiento",
-        path: ["compliance_date"],
-      });
-    }
   });
 
 type FormValues = z.infer<typeof formSchema>;
 
 const emptyInterval = (usedMethods: string[] = []) => ({
-  counting_method: (ALL_COUNTING_METHODS.find((m) => !usedMethods.includes(m)) ??
-    "HOURS") as "HOURS" | "CYCLES" | "DAYS",
+  counting_method: (ALL_COUNTING_METHODS.find(
+    (m) => !usedMethods.includes(m),
+  ) ?? "HOURS") as "HOURS" | "CYCLES" | "DAYS",
   limit_kind: "HARD_TIME" as "HARD_TIME" | "LIFE_LIMIT",
   limit_value: undefined as unknown as number,
 });
@@ -157,7 +152,10 @@ function IntervalRow({
   onRemove: () => void;
   canRemove: boolean;
 }) {
-  const countingMethod = useWatch({ control, name: `intervals.${index}.counting_method` });
+  const countingMethod = useWatch({
+    control,
+    name: `intervals.${index}.counting_method`,
+  });
   const needsInitialReading = countingMethod && countingMethod !== "DAYS";
   const availableMethods = ALL_COUNTING_METHODS.filter(
     (unit) => unit === countingMethod || !usedMethods.includes(unit),
@@ -200,11 +198,13 @@ function IntervalRow({
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                {Object.entries(COMPONENT_LIMIT_KIND_LABELS).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                ))}
+                {Object.entries(COMPONENT_LIMIT_KIND_LABELS).map(
+                  ([value, label]) => (
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
+                  ),
+                )}
               </SelectContent>
             </Select>
             <FormMessage />
@@ -270,7 +270,7 @@ function IntervalRow({
 interface AddComponentControlItemDialogProps {
   controlId: number | string;
   /** Fijo a la sección: `undefined` = Fuselaje (nivel aeronave). */
-  parentAircraftPartId?: number | string;
+  aircraftPartId?: number | string;
   /** Nombre de la sección, para el tooltip del botón. */
   sectionLabel: string;
   currentHours: number;
@@ -281,14 +281,12 @@ interface AddComponentControlItemDialogProps {
  * "Añadir Ítem" — alta de un componente suelto sobre un control de
  * componentes YA EXISTENTE, sin pasar por Editar. Vive como icon-button
  * dentro de la sección a la que pertenece (Fuselaje o la de cada parte): el
- * conjunto queda fijo por esa sección, no se elige en el formulario. El
- * cumplimiento inicial es opcional: si se marca, se encadenan dos
- * peticiones (crear ítem, luego su cumplimiento); si la segunda falla, el
- * ítem ya quedó creado.
+ * conjunto queda fijo por esa sección, no se elige en el formulario. La
+ * fecha y lecturas de aplicación inician su cumplimiento vigente.
  */
 export function AddComponentControlItemDialog({
   controlId,
-  parentAircraftPartId,
+  aircraftPartId,
   sectionLabel,
   currentHours,
   currentCycles,
@@ -296,35 +294,29 @@ export function AddComponentControlItemDialog({
   const [open, setOpen] = useState(false);
   const { selectedCompany } = useCompanyStore();
   const { addComponentControlItem } = useAddComponentControlItem();
-  const { createComponentCompliance } = useCreateComponentCompliance();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       maintenance_provider_id: "",
-      is_hazardous: false,
+      flags: [],
       description: "",
+      declared_description: "",
       part_number: "",
       serial: "",
       position: "",
       action: "OVERHAUL",
       reference_document: "",
-      first_applied_date: undefined,
+      applied_date: undefined,
       remaining_percentage: undefined,
       intervals: [emptyInterval()],
-      register_compliance: false,
-      compliance_date: new Date(),
-      hours_reading: currentHours || undefined,
-      cycles_reading: currentCycles || undefined,
       consumed_hours: 0,
       consumed_cycles: 0,
-      compliance_notes: "",
     },
   });
 
   const { control } = form;
   const action = useWatch({ control, name: "action" });
-  const registerCompliance = useWatch({ control, name: "register_compliance" });
   const keepsConsumed = action !== "OVERHAUL";
   const {
     fields: intervalFields,
@@ -332,7 +324,9 @@ export function AddComponentControlItemDialog({
     remove: removeInterval,
   } = useFieldArray({ control, name: "intervals" });
   const intervals = useWatch({ control, name: "intervals" });
-  const usedMethods = (intervals ?? []).map((i) => i.counting_method).filter(Boolean);
+  const usedMethods = (intervals ?? [])
+    .map((i) => i.counting_method)
+    .filter(Boolean);
   const canAddInterval = intervalFields.length < ALL_COUNTING_METHODS.length;
 
   const resetAndClose = () => {
@@ -341,51 +335,36 @@ export function AddComponentControlItemDialog({
   };
 
   const onSubmit = async (values: FormValues) => {
-    const item = await addComponentControlItem.mutateAsync({
+    await addComponentControlItem.mutateAsync({
       company: selectedCompany!.slug,
       controlId,
       data: {
-        parent_aircraft_part_id: parentAircraftPartId
-          ? Number(parentAircraftPartId)
-          : null,
+        aircraft_part_id: aircraftPartId ? Number(aircraftPartId) : null,
         maintenance_provider_id: values.maintenance_provider_id,
-        is_hazardous: values.is_hazardous,
+        flags: values.flags,
         description: values.description,
+        declared_description: values.declared_description?.trim() || undefined,
         part_number: values.part_number,
         serial: values.serial,
         position: values.position || undefined,
         action: values.action,
         reference_document: values.reference_document || undefined,
-        first_applied_date: format(values.first_applied_date, "yyyy-MM-dd"),
+        applied_date: format(values.applied_date, "yyyy-MM-dd"),
         remaining_percentage: values.remaining_percentage ?? null,
         intervals: values.intervals,
       },
     });
 
-    if (values.register_compliance && item?.id) {
-      await createComponentCompliance.mutateAsync({
-        company: selectedCompany!.slug,
-        data: {
-          component_control_item_id: item.id,
-          maintenance_provider_id: values.maintenance_provider_id,
-          compliance_date: format(values.compliance_date!, "yyyy-MM-dd"),
-          hours_reading: values.hours_reading ?? 0,
-          cycles_reading: values.cycles_reading ?? 0,
-          action: values.action,
-          consumed_hours: keepsConsumed ? values.consumed_hours : 0,
-          consumed_cycles: keepsConsumed ? values.consumed_cycles : 0,
-          notes: values.compliance_notes || undefined,
-        },
-      });
-    }
-
     resetAndClose();
   };
 
-  const isPending = addComponentControlItem.isPending || createComponentCompliance.isPending;
+  const isPending = addComponentControlItem.isPending;
 
   return (
-    <Dialog open={open} onOpenChange={(next) => (next ? setOpen(true) : resetAndClose())}>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => (next ? setOpen(true) : resetAndClose())}
+    >
       <Tooltip>
         <TooltipTrigger asChild>
           <DialogTrigger asChild>
@@ -411,7 +390,10 @@ export function AddComponentControlItemDialog({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="flex flex-col gap-4"
+          >
             <FormField
               control={control}
               name="description"
@@ -419,7 +401,31 @@ export function AddComponentControlItemDialog({
                 <FormItem className="w-full">
                   <FormLabel className={labelClass}>Descripción</FormLabel>
                   <FormControl>
-                    <Input placeholder="EJ: Bomba Hidráulica" className={fieldClass} {...field} />
+                    <Input
+                      placeholder="EJ: Bomba Hidráulica"
+                      className={fieldClass}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={control}
+              name="declared_description"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel className={labelClass}>
+                    Descripción en formatos (Opcional)
+                  </FormLabel>
+                  <FormControl>
+                    <Textarea
+                      rows={2}
+                      placeholder="Cómo se redacta en la OT y los formatos INAC. Si se deja vacía se usa la descripción."
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -459,7 +465,10 @@ export function AddComponentControlItemDialog({
                 render={({ field }) => (
                   <FormItem className="w-full">
                     <FormLabel className={labelClass}>
-                      Posición <span className="text-muted-foreground text-xs">(Opc.)</span>
+                      Posición{" "}
+                      <span className="text-muted-foreground text-xs">
+                        (Opc.)
+                      </span>
                     </FormLabel>
                     <FormControl>
                       <Input className={fieldClass} {...field} />
@@ -484,11 +493,13 @@ export function AddComponentControlItemDialog({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {Object.entries(COMPONENT_ACTION_LABELS).map(([value, label]) => (
-                          <SelectItem key={value} value={value}>
-                            {label}
-                          </SelectItem>
-                        ))}
+                        {Object.entries(COMPONENT_ACTION_LABELS).map(
+                          ([value, label]) => (
+                            <SelectItem key={value} value={value}>
+                              {label}
+                            </SelectItem>
+                          ),
+                        )}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -507,7 +518,7 @@ export function AddComponentControlItemDialog({
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={control}
-                name="first_applied_date"
+                name="applied_date"
                 render={({ field }) => (
                   <FormItem className="w-full">
                     <DatePickerField
@@ -527,7 +538,10 @@ export function AddComponentControlItemDialog({
                 render={({ field }) => (
                   <FormItem className="w-full">
                     <FormLabel className={labelClass}>
-                      % Alerta <span className="text-muted-foreground text-xs">(Opc.)</span>
+                      % Alerta{" "}
+                      <span className="text-muted-foreground text-xs">
+                        (Opc.)
+                      </span>
                     </FormLabel>
                     <FormControl>
                       <NumericInput
@@ -544,19 +558,9 @@ export function AddComponentControlItemDialog({
               />
             </div>
 
-            <FormField
-              control={control}
-              name="is_hazardous"
-              render={({ field }) => (
-                <FormItem className="flex items-center gap-2 space-y-0">
-                  <FormControl>
-                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                  </FormControl>
-                  <FormLabel className="cursor-pointer font-normal">
-                    Es un material peligroso
-                  </FormLabel>
-                </FormItem>
-              )}
+            <ControlItemFlagsField
+              control={control as unknown as Control<any>}
+              name="flags"
             />
 
             <FormSection title="Límites de Vencimiento">
@@ -579,139 +583,22 @@ export function AddComponentControlItemDialog({
                     className="w-fit gap-1.5"
                     onClick={() => appendInterval(emptyInterval(usedMethods))}
                   >
-                    <Plus className="size-3.5" />
-                    Ó este otro límite
+                    <Plus className="size-3.5" />Ó este otro límite
                   </Button>
                 )}
               </div>
             </FormSection>
-
-            <FormField
-              control={control}
-              name="register_compliance"
-              render={({ field }) => (
-                <FormItem className="flex items-center gap-2 space-y-0">
-                  <FormControl>
-                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                  </FormControl>
-                  <FormLabel className="cursor-pointer font-normal">
-                    Ya tiene un cumplimiento registrado — cargarlo ahora
-                  </FormLabel>
-                </FormItem>
-              )}
-            />
-
-            {registerCompliance && (
-              <FormSection title="Cumplimiento Inicial">
-                <div className="flex flex-col gap-4">
-                  <FormField
-                    control={control}
-                    name="compliance_date"
-                    render={({ field }) => (
-                      <FormItem className="w-full">
-                        <DatePickerField
-                          label="Fecha de Cumplimiento"
-                          value={field.value}
-                          setValue={(date) => field.onChange(date ?? undefined)}
-                          maxDate={new Date()}
-                          required
-                        />
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={control}
-                      name="hours_reading"
-                      render={({ field }) => (
-                        <FormItem className="w-full">
-                          <FormLabel className={labelClass}>Horas del Padre</FormLabel>
-                          <FormControl>
-                            <NumericInput
-                              className={fieldClass}
-                              value={field.value}
-                              onChange={field.onChange}
-                              onBlur={field.onBlur}
-                              name={field.name}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={control}
-                      name="cycles_reading"
-                      render={({ field }) => (
-                        <FormItem className="w-full">
-                          <FormLabel className={labelClass}>Ciclos del Padre</FormLabel>
-                          <FormControl>
-                            <NumericInput
-                              className={fieldClass}
-                              value={field.value}
-                              onChange={field.onChange}
-                              onBlur={field.onBlur}
-                              name={field.name}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  {keepsConsumed && (
-                    <div className="grid grid-cols-2 gap-4">
-                      <FormField
-                        control={control}
-                        name="consumed_hours"
-                        render={({ field }) => (
-                          <FormItem className="w-full">
-                            <FormLabel className={labelClass}>Horas que Conserva</FormLabel>
-                            <FormControl>
-                              <NumericInput
-                                className={fieldClass}
-                                value={field.value}
-                                onChange={field.onChange}
-                                onBlur={field.onBlur}
-                                name={field.name}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={control}
-                        name="consumed_cycles"
-                        render={({ field }) => (
-                          <FormItem className="w-full">
-                            <FormLabel className={labelClass}>Ciclos que Conserva</FormLabel>
-                            <FormControl>
-                              <NumericInput
-                                className={fieldClass}
-                                value={field.value}
-                                onChange={field.onChange}
-                                onBlur={field.onBlur}
-                                name={field.name}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  )}
-                </div>
-              </FormSection>
-            )}
 
             <Button
               className="h-11 gap-2 rounded-lg bg-linear-to-br from-primary to-primary/85 text-primary-foreground shadow-sm transition-all duration-200 hover:shadow-md hover:shadow-blue-500/25 disabled:opacity-70"
               disabled={isPending}
               type="submit"
             >
-              {isPending ? <Loader2 className="size-4 animate-spin" /> : <p>Añadir Ítem</p>}
+              {isPending ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <p>Añadir Ítem</p>
+              )}
             </Button>
           </form>
         </Form>

@@ -439,7 +439,7 @@ export function CatalogManualField({
   );
 }
 
-/** Valor centinela del select de conjunto: "Fuselaje" = la aeronave misma (parent_aircraft_part_id null). */
+/** Valor centinela del select de conjunto: "Fuselaje" = la aeronave misma (aircraft_part_id null). */
 export const FUSELAGE = "__fuselage__";
 
 /**

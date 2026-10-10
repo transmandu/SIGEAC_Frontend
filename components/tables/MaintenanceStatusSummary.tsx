@@ -5,7 +5,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { STATUS_META, type ItemStatus } from "@/lib/maintenanceControlCalc";
+import { STATUS_META } from "@/lib/maintenanceControlCalc";
+import type { MaintenanceItemStatus } from "@/types";
 import { MinusCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -14,7 +15,7 @@ import { cn } from "@/lib/utils";
  * franja más urgente que tenga ítems. El desglose completo va en el tooltip.
  */
 
-export type StatusCounts = Record<ItemStatus, number>;
+export type StatusCounts = Record<MaintenanceItemStatus, number>;
 
 export const emptyStatusCounts = (): StatusCounts => ({
   OK: 0,
@@ -24,7 +25,12 @@ export const emptyStatusCounts = (): StatusCounts => ({
 });
 
 /** De más urgente a menos: la primera franja con ítems es la que manda el chip. */
-const SEVERITY_ORDER: ItemStatus[] = ["OVERDUE", "CRITICAL", "WARNING", "OK"];
+const SEVERITY_ORDER: MaintenanceItemStatus[] = [
+  "OVERDUE",
+  "CRITICAL",
+  "WARNING",
+  "OK",
+];
 
 const itemsLabel = (count: number) =>
   count === 1 ? "1 ítem" : `${count} ítems`;

@@ -54,7 +54,7 @@ const FORMAT_COLUMNS = [
   },
   {
     header: "Fecha",
-    hint: "dd/mm/aaaa. Debe ser anterior a la primera aplicación de la tarea.",
+    hint: "dd/mm/aaaa. Debe ser anterior al inicio del cumplimiento vigente de la tarea.",
   },
   { header: "Horas", hint: "Lectura de la aeronave en el evento." },
   { header: "Ciclos", hint: "Lectura de la aeronave en el evento." },

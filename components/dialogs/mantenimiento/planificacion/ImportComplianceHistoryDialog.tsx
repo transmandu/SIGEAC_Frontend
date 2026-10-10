@@ -37,7 +37,7 @@ const FORMAT_COLUMNS = [
   },
   {
     header: "Fecha",
-    hint: "dd/mm/aaaa. Debe ser anterior a la primera aplicación del ítem.",
+    hint: "dd/mm/aaaa. Debe ser anterior al inicio del cumplimiento vigente del ítem.",
   },
   { header: "Horas", hint: "Opcional si el ítem no se cuenta en horas." },
   { header: "Ciclos", hint: "Opcional si el ítem no se cuenta en ciclos." },
@@ -143,7 +143,7 @@ export function ImportComplianceHistoryDialog({
                     variant="outline"
                     className="font-normal"
                   >
-                    {item.name}
+                    {item.description}
                   </Badge>
                 ))}
               </div>

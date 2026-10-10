@@ -31,6 +31,7 @@ import { useGetMaintenanceAircrafts } from "@/hooks/mantenimiento/planificacion/
 import { useGetMaintenanceControls } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceControls";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { fmtNumber } from "@/lib/maintenanceControlCalc";
+import type { MaintenanceCompliance } from "@/types";
 import {
   FormSection,
   labelClass,
@@ -40,6 +41,32 @@ import { Filter, History } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+
+/** "Manual — Rev. X — dd/MM/yyyy", armado con lo congelado al iniciar el cumplimiento. */
+function manualLabel(compliance: MaintenanceCompliance) {
+  return [
+    compliance.catalog_manual?.name,
+    compliance.manual_revision ? `Rev. ${compliance.manual_revision}` : null,
+    compliance.manual_effective_date
+      ? format(parseISO(compliance.manual_effective_date), "dd/MM/yyyy")
+      : null,
+  ]
+    .filter(Boolean)
+    .join(" — ");
+}
+
+/** Lectura al iniciar y, si el cumplimiento ya cerró, la de fin: "100 → 150". */
+function readingRange(
+  start?: number | string | null,
+  end?: number | string | null,
+) {
+  if (start === null || start === undefined) return "—";
+  const from = fmtNumber(Number(start));
+
+  return end === null || end === undefined
+    ? from
+    : `${from} → ${fmtNumber(Number(end))}`;
+}
 
 function TruncatedText({ children }: { children: string }) {
   return (
@@ -143,7 +170,13 @@ const HistorialCumplimientosPage = () => {
                       Parte
                     </TableHead>
                     <TableHead className="bg-muted/40 font-semibold">
-                      Fecha
+                      Estado
+                    </TableHead>
+                    <TableHead className="bg-muted/40 font-semibold">
+                      Inicio
+                    </TableHead>
+                    <TableHead className="bg-muted/40 font-semibold">
+                      Fin
                     </TableHead>
                     <TableHead className="bg-muted/40 font-semibold">
                       Manual / Rev.
@@ -168,7 +201,7 @@ const HistorialCumplimientosPage = () => {
                 <TableBody>
                   {compliances.map((compliance) => {
                     const item = compliance.maintenance_control_item;
-                    const part = item?.maintenance_control_part?.aircraft_part;
+                    const part = item?.aircraft_part;
                     return (
                       <TableRow
                         key={compliance.id}
@@ -179,23 +212,9 @@ const HistorialCumplimientosPage = () => {
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1.5">
-                            <TruncatedText>{item?.name ?? "—"}</TruncatedText>
-                            {compliance.is_historical && (
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Badge
-                                    variant="outline"
-                                    className="shrink-0 text-[10px] text-muted-foreground"
-                                  >
-                                    Histórico
-                                  </Badge>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  Cargado desde antes de usar el sistema — solo
-                                  cuenta para las estadísticas.
-                                </TooltipContent>
-                              </Tooltip>
-                            )}
+                            <TruncatedText>
+                              {item?.description ?? "—"}
+                            </TruncatedText>
                           </div>
                         </TableCell>
                         <TableCell>
@@ -210,26 +229,59 @@ const HistorialCumplimientosPage = () => {
                           )}
                         </TableCell>
                         <TableCell>
+                          <Badge
+                            variant="outline"
+                            className={
+                              compliance.status === "CURRENT"
+                                ? "border-emerald-500/40 text-emerald-700 dark:text-emerald-400"
+                                : "text-muted-foreground"
+                            }
+                          >
+                            {compliance.status === "CURRENT"
+                              ? "Vigente"
+                              : "Cumplido"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
                           {format(
-                            parseISO(compliance.compliance_date),
+                            parseISO(compliance.applied_date),
                             "dd/MM/yyyy",
-                            { locale: es },
+                            {
+                              locale: es,
+                            },
                           )}
                         </TableCell>
                         <TableCell>
-                          {compliance.manual_revision_label ? (
+                          {compliance.completed_date ? (
+                            format(
+                              parseISO(compliance.completed_date),
+                              "dd/MM/yyyy",
+                              { locale: es },
+                            )
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {manualLabel(compliance) ? (
                             <TruncatedText>
-                              {compliance.manual_revision_label}
+                              {manualLabel(compliance)}
                             </TruncatedText>
                           ) : (
                             <span className="text-muted-foreground">—</span>
                           )}
                         </TableCell>
                         <TableCell>
-                          {fmtNumber(Number(compliance.hours_reading))}
+                          {readingRange(
+                            compliance.applied_hours,
+                            compliance.completed_hours,
+                          )}
                         </TableCell>
                         <TableCell>
-                          {fmtNumber(Number(compliance.cycles_reading))}
+                          {readingRange(
+                            compliance.applied_cycles,
+                            compliance.completed_cycles,
+                          )}
                         </TableCell>
                         <TableCell>
                           <TruncatedText>

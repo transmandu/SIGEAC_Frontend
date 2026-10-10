@@ -69,6 +69,11 @@ import {
   DirectiveControl,
 } from "@/types";
 import {
+  appliedDateOf,
+  appliedReadingOf,
+  consumedAtStartOf,
+} from "@/lib/complianceFormMapping";
+import {
   DIRECTIVE_AUTHORITY_LABELS,
   DIRECTIVE_COMPLIANCE_TYPE_LABELS,
 } from "@/lib/directiveControlLabels";
@@ -137,11 +142,13 @@ const itemSchema = z.object({
   authority: authorityEnum,
   revision: z.string().optional(),
   description: z.string().min(1, "Requerido"),
+  // Redacción para la OT y los formatos INAC; vacía = se usa `description`.
+  declared_description: z.string().optional(),
   reference_document: z.string().optional(),
   compliance_method: z.string().optional(),
   compliance_type: complianceTypeEnum,
   maintenance_provider_id: z.string().optional(),
-  first_applied_date: z.date().optional(),
+  applied_date: z.date().optional(),
   remaining_percentage: optionalPercentage,
   intervals: z.array(intervalSchema).default([]),
 });
@@ -192,13 +199,16 @@ const formSchema = z
     ) => {
       items.forEach((item, index) => {
         const path = [basePath, index];
+        // Una AD existente sin cumplimiento vigente no trae aplicación: se
+        // deja como está y no se le exige lo que solo pide iniciar uno.
+        const unchanged = item.id !== undefined && !item.applied_date;
 
         const isRecurrent = item.compliance_type === "RECURRENT";
-        if (isRecurrent && !item.first_applied_date) {
+        if (!unchanged && isRecurrent && !item.applied_date) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: "Indique la fecha del último cumplimiento",
-            path: [...path, "first_applied_date"],
+            path: [...path, "applied_date"],
           });
         }
         if (isRecurrent && item.intervals.length === 0) {
@@ -209,21 +219,23 @@ const formSchema = z
           });
         }
         if (
+          !unchanged &&
           !isRecurrent &&
           item.intervals.length > 0 &&
-          !item.first_applied_date
+          !item.applied_date
         ) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message:
               "Indique la fecha del último cumplimiento desde la que corre el límite",
-            path: [...path, "first_applied_date"],
+            path: [...path, "applied_date"],
           });
         }
 
         const seen = new Set<string>();
         item.intervals.forEach((interval, i) => {
           if (
+            !unchanged &&
             interval.counting_method !== "DAYS" &&
             interval.initial_value === undefined
           ) {
@@ -265,11 +277,12 @@ const emptyItem = () => ({
   authority: "FAA",
   revision: "",
   description: "",
+  declared_description: "",
   reference_document: "",
   compliance_method: "",
   compliance_type: "ONE_TIME",
   maintenance_provider_id: "",
-  first_applied_date: undefined as unknown as Date,
+  applied_date: undefined as unknown as Date,
   remaining_percentage: undefined as number | undefined,
   intervals: [] as ReturnType<typeof emptyInterval>[],
 });
@@ -713,6 +726,14 @@ function DirectiveCard({
         />
       </div>
 
+      <TextField
+        control={control}
+        name={`${namePrefix}.declared_description`}
+        label="Descripción en formatos"
+        placeholder="Cómo se redacta en la OT y los formatos INAC. Si se deja vacía se usa la descripción."
+        optional
+      />
+
       {/* Qué exige la AD y cómo se cumple, con quién la hizo y cuándo. */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,2fr)_minmax(0,1.4fr)_minmax(0,1.2fr)_minmax(0,1.1fr)_minmax(0,150px)]">
         <TextField
@@ -763,7 +784,7 @@ function DirectiveCard({
           </FormLabel>
           <CompactDateField
             control={control}
-            name={`${namePrefix}.first_applied_date`}
+            name={`${namePrefix}.applied_date`}
           />
         </FormItem>
       </div>
@@ -1002,15 +1023,14 @@ function mapToFormItem(item: NonNullable<DirectiveControl["items"]>[number]) {
     authority: item.authority,
     revision: item.revision ?? "",
     description: item.description,
+    declared_description: item.declared_description ?? "",
     reference_document: item.reference_document ?? "",
     compliance_method: item.compliance_method ?? "",
     compliance_type: item.compliance_type,
     maintenance_provider_id: item.maintenance_provider_id
       ? String(item.maintenance_provider_id)
       : "",
-    first_applied_date: item.first_applied_date
-      ? parseISO(item.first_applied_date)
-      : undefined,
+    applied_date: appliedDateOf(item.current_compliance),
     remaining_percentage:
       item.remaining_percentage !== null &&
       item.remaining_percentage !== undefined
@@ -1020,10 +1040,10 @@ function mapToFormItem(item: NonNullable<DirectiveControl["items"]>[number]) {
       id: interval.id,
       counting_method: interval.counting_method,
       limit_value: Number(interval.limit_value),
-      initial_value:
-        interval.initial_value != null
-          ? Number(interval.initial_value)
-          : undefined,
+      initial_value: appliedReadingOf(
+        item.current_compliance,
+        interval.counting_method,
+      ),
     })),
   };
 }
@@ -1045,7 +1065,7 @@ function buildDefaultValues(initialData?: DirectiveControl): FormValues {
   if (!initialData) return emptyFormValues;
 
   const all = (initialData.items ?? []).filter((i) => !i.retired_at);
-  const partItems = all.filter((i) => i.parent_aircraft_part_id);
+  const partItems = all.filter((i) => i.aircraft_part_id);
 
   return {
     aircraft_id: String(initialData.aircraft_id),
@@ -1057,13 +1077,13 @@ function buildDefaultValues(initialData?: DirectiveControl): FormValues {
       ? Number(initialData.maintenance_catalog_manual_id)
       : undefined,
     remaining_percentage: Number(initialData.remaining_percentage),
-    items: all.filter((i) => !i.parent_aircraft_part_id).map(mapToFormItem),
+    items: all.filter((i) => !i.aircraft_part_id).map(mapToFormItem),
     selected_part_ids: Array.from(
-      new Set(partItems.map((i) => String(i.parent_aircraft_part_id))),
+      new Set(partItems.map((i) => String(i.aircraft_part_id))),
     ),
     part_items: partItems.map((item) => ({
       ...mapToFormItem(item),
-      aircraft_part_id: String(item.parent_aircraft_part_id),
+      aircraft_part_id: String(item.aircraft_part_id),
     })),
   };
 }
@@ -1134,19 +1154,20 @@ export default function CreateDirectiveControlForm({
       items: allItems.map((item) => ({
         id: item.id,
         maintenance_catalog_service_id: item.maintenance_catalog_service_id,
-        parent_aircraft_part_id: item.aircraft_part_id
+        aircraft_part_id: item.aircraft_part_id
           ? Number(item.aircraft_part_id)
           : null,
         ad_number: item.ad_number,
         authority: item.authority as DirectiveAuthority,
         revision: item.revision || undefined,
         description: item.description,
+        declared_description: item.declared_description?.trim() || undefined,
         reference_document: item.reference_document || undefined,
         compliance_method: item.compliance_method || undefined,
         compliance_type: item.compliance_type as DirectiveComplianceType,
         maintenance_provider_id: item.maintenance_provider_id || undefined,
-        first_applied_date: item.first_applied_date
-          ? format(item.first_applied_date, "yyyy-MM-dd")
+        applied_date: item.applied_date
+          ? format(item.applied_date, "yyyy-MM-dd")
           : undefined,
         remaining_percentage: item.remaining_percentage ?? null,
         intervals: item.intervals.map((interval) => ({
