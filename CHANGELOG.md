@@ -1,3 +1,7 @@
+## v4.57.2 — 2026-10-10
+
+- refactor: logic control planification remake (#329)
+
 ## v4.57.1 — 2026-10-09
 
 - Merge pull request #327 from transmandu/fix/array-guard-map-not-a-function
