@@ -41,6 +41,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { useGetControlQueue } from "@/hooks/mantenimiento/planificacion/useGetControlQueue";
 import { useGetMaintenanceAircrafts } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts";
 import { CatalogServicePicker } from "@/components/misc/CatalogServicePicker";
 import { cn } from "@/lib/utils";
@@ -200,6 +201,13 @@ const NonServiceWorkOrderForm = ({
 
   const router = useRouter();
 
+  // Desde la bandeja, las tareas de la orden son los ítems que se marcaron ahí:
+  // llegan solo sus ids por la URL, así que se leen de la bandeja.
+  const { data: controlQueue, isLoading: isQueueLoading } = useGetControlQueue(
+    fromControlQueue ? selectedCompany?.slug : undefined,
+    prefillAircraftId,
+  );
+
   const form = useForm<ManualWorkOrderFormValues>({
     resolver: zodResolver(manualWorkOrderSchema),
     defaultValues: {
@@ -219,6 +227,7 @@ const NonServiceWorkOrderForm = ({
 
   useEffect(() => {
     if (prefillApplied.current || !aircrafts) return;
+    if (fromControlQueue && !controlQueue) return;
 
     if (prefillAircraftId) {
       const aircraft = aircrafts.find(
@@ -231,7 +240,26 @@ const NonServiceWorkOrderForm = ({
       }
     }
 
-    if (prefillTaskDescription) {
+    const queuedEntries = fromControlQueue
+      ? (controlQueue?.entries ?? []).filter((entry) =>
+          queueEntryIds.includes(entry.id),
+        )
+      : [];
+
+    if (queuedEntries.length) {
+      setTasks(
+        queuedEntries.map((entry) => ({
+          id: crypto.randomUUID(),
+          material: "",
+          description_task: entry.label ?? "",
+          ata: "",
+          task_number: "",
+          origin_manual: "",
+          maintenance_catalog_task_id: "",
+          task_items: [],
+        })),
+      );
+    } else if (prefillTaskDescription) {
       setTasks([
         {
           id: crypto.randomUUID(),
@@ -247,7 +275,16 @@ const NonServiceWorkOrderForm = ({
     }
 
     prefillApplied.current = true;
-  }, [aircrafts, prefillAircraftId, prefillTaskDescription, form]);
+    // queueEntryIds se rearma en cada render; su contenido viene de la URL.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    aircrafts,
+    controlQueue,
+    fromControlQueue,
+    prefillAircraftId,
+    prefillTaskDescription,
+    form,
+  ]);
 
   const addEmptyTask = () => {
     setTasks((prev) => [
@@ -824,6 +861,13 @@ const NonServiceWorkOrderForm = ({
                 <PlusCircle className="h-4 w-4" />
                 Agregar Item
               </Button>
+
+              {fromControlQueue && isQueueLoading && (
+                <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="size-4 animate-spin" />
+                  Cargando los ítems seleccionados...
+                </p>
+              )}
 
               <ScrollArea
                 className={cn("flex", tasks.length > 1 ? "h-137.5" : "")}
