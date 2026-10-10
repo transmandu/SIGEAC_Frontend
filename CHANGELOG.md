@@ -1,3 +1,7 @@
+## v4.58.0 — 2026-10-10
+
+- feat: add base unit change functionality for general articles and consumables
+
 ## v4.57.4 — 2026-10-10
 
 - Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
