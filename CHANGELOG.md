@@ -1,3 +1,8 @@
+## v4.57.4 — 2026-10-10
+
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- fix: enhance form handling by adding dirty field tracking and application state management
+
 ## v4.57.3 — 2026-10-10
 
 - fix: improve form validation feedback and error handling in multiple forms
