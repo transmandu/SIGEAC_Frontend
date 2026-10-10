@@ -34,7 +34,11 @@ export function DataTableColumnHeader<TData extends RowData, TValue>({
     <div className={cn("flex flex-col items-center justify-center", className)}>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="sm" className="-ml-3 h-8 data-[state=open]:bg-accent">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="-ml-3 h-8 data-[state=open]:bg-accent"
+          >
             <span>{title}</span>
             {column.getIsSorted() === "desc" ? (
               <ArrowDownIcon className="ml-2 h-4 w-4" />
@@ -66,9 +70,9 @@ export function DataTableColumnHeader<TData extends RowData, TValue>({
           placeholder={`Busq. - ${title.toLowerCase()}...`}
           value={(column?.getFilterValue() as string) ?? ""}
           onChange={(event) => column?.setFilterValue(event.target.value)}
-          className="h-7 mb-2 text-xs text-muted-foreground w-[150px]"
+          className="h-7 mb-2 text-xs text-muted-foreground w-37.5"
         />
       )}
     </div>
-  )
+  );
 }

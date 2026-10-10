@@ -174,10 +174,10 @@ const COL = {
   frequency: "w-[110px]",
   applied: "w-[120px]",
   next: "w-[120px]",
-  remaining: "w-[150px]",
+  remaining: "w-37.5",
   estimate: "w-[120px]",
-  provider: "w-[150px]",
-  workOrder: "w-[150px]",
+  provider: "w-37.5",
+  workOrder: "w-37.5",
   actions: "w-[100px]",
 };
 

@@ -294,10 +294,10 @@ const COL = {
   applied: "w-[125px]",
   since: "w-[110px]",
   next: "w-[120px]",
-  remaining: "w-[150px]",
+  remaining: "w-37.5",
   estimate: "w-[115px]",
   provider: "w-[140px]",
-  workOrder: "w-[150px]",
+  workOrder: "w-37.5",
   actions: "w-[80px]",
 };
 

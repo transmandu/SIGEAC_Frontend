@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { DatePickerField } from "@/components/ui/DatePickerField";
 import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits";
 import { useGetConditions } from "@/hooks/general/condiciones/useGetConditions";
+import { useGetArticleUnitConversions } from "@/hooks/mantenimiento/almacen/articulos/useArticleUnitConversions";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import type { Unit } from "@/types";
 
@@ -27,6 +28,13 @@ import {
   ArticleDetailsSection,
   savedImageUrl,
 } from "@/components/forms/mantenimiento/almacen/_components/ArticleDetailsSection";
+import {
+  BaseUnitChangeNotice,
+  EMPTY_BASE_UNIT_CHANGE,
+  baseUnitChangePayload,
+  isBaseUnitChangeReady,
+  type BaseUnitChangeValue,
+} from "@/components/forms/mantenimiento/almacen/BaseUnitChangeNotice";
 import {
   ConsumableConversionsField,
   type ConsumableConversionInput,
@@ -183,7 +191,31 @@ export default function ConsumableArticleForm({
     [],
   );
   const [dimension, setDimension] = useState<DimensionDraft>(EMPTY_DIMENSION);
+
+  // Al editar hay que partir de las equivalencias ya guardadas: el backend
+  // trata la lista enviada como el conjunto completo y borra las que falten,
+  // así que arrancar vacío y agregar una sola eliminaría el resto.
+  const { data: existingConversions } = useGetArticleUnitConversions(
+    "consumables",
+    isEditing ? (initialData?.id ?? null) : null,
+    selectedCompany?.slug,
+  );
+
+  useEffect(() => {
+    if (!existingConversions) return;
+
+    setConversions(
+      existingConversions.conversions.map((row) => ({
+        unit_id: Number(row.unit.id),
+        direction: "base_per_unit" as const,
+        value: row.base_per_unit,
+      })),
+    );
+  }, [existingConversions]);
   const [baseUnit, setBaseUnit] = useState<Unit | null>(null);
+  const [unitChange, setUnitChange] = useState<BaseUnitChangeValue>(
+    EMPTY_BASE_UNIT_CHANGE,
+  );
 
   const [preview, setPreview] = useState<FormValues | null>(null);
 
@@ -234,6 +266,18 @@ export default function ConsumableArticleForm({
 
     setBaseUnit(units.find((unit) => `${unit.id}` === `${unitId}`) ?? null);
   }, [initialData, units]);
+
+  const originalUnit = useMemo(
+    () =>
+      units?.find(
+        (unit) => `${unit.id}` === `${initialData?.consumable?.primary_unit_id}`,
+      ),
+    [initialData, units],
+  );
+  const unitChanged =
+    !!isEditing && !!baseUnit && !!originalUnit && baseUnit.id !== originalUnit.id;
+  const hasDimensionProfile = !!isEditing && !!initialData?.consumable?.dimension;
+  const unitChangeBlocked = unitChanged && !isBaseUnitChangeReady(unitChange);
 
   const initialDatesRef = useMemo(
     () => ({
@@ -311,7 +355,7 @@ export default function ConsumableArticleForm({
 
   const canSave = canSaveWith(
     form.formState.isDirty,
-    !!partNumber && !!batchId,
+    !!partNumber && !!batchId && !unitChangeBlocked,
   );
   useReportFormState(reportState, canSave);
 
@@ -340,7 +384,13 @@ export default function ConsumableArticleForm({
         shelf_life: apiDate(shelfLifeDate),
         reception_date: receptionApiDate(receptionDate),
         primary_unit_id: baseUnit?.id,
-        conversions: conversions.length > 0 ? conversions : undefined,
+        ...(unitChanged ? baseUnitChangePayload(unitChange) : {}),
+        // Con cambio de base el backend reorienta las equivalencias ya
+        // guardadas; las del estado siguen escritas contra la unidad anterior.
+        conversions:
+          conversions.length > 0 && (!unitChanged || unitChange.relabel)
+            ? conversions
+            : undefined,
         // Solo activa el modo dimensional; un consumible ya dimensionado
         // conserva sus medidas y el backend ignora el reenvío.
         dimension:
@@ -571,9 +621,7 @@ export default function ConsumableArticleForm({
                 options={units?.map((unit) => ({ ...unit, name: unit.label }))}
                 value={baseUnit ? `${baseUnit.id}` : undefined}
                 loading={unitsLoading}
-                // La unidad base define las equivalencias ya
-                // declaradas: cambiarla después las invalidaría.
-                disabled={busy || isEditing}
+                disabled={busy || hasDimensionProfile}
                 placeholder="Seleccione unidad..."
                 searchPlaceholder="Buscar unidad..."
                 emptyLabel="No hay unidades disponibles."
@@ -585,9 +633,27 @@ export default function ConsumableArticleForm({
                 }}
               />
               <FormDescription className={hintClass}>
-                En qué se cuenta: LITROS, GALONES, UNIDADES…
+                {hasDimensionProfile
+                  ? "Se mide por dimensiones: su unidad base no se puede cambiar."
+                  : "En qué se cuenta: LITROS, GALONES, UNIDADES…"}
               </FormDescription>
             </FormItem>
+
+            {unitChanged && originalUnit && baseUnit && (
+              <BaseUnitChangeNotice
+                className="md:col-span-2"
+                oldLabel={originalUnit.label}
+                newLabel={baseUnit.label}
+                registeredOldPerNew={
+                  existingConversions?.conversions.find(
+                    (row) => Number(row.unit.id) === Number(baseUnit.id),
+                  )?.base_per_unit
+                }
+                value={unitChange}
+                onChange={setUnitChange}
+                disabled={busy}
+              />
+            )}
 
             <FormField
               control={form.control}
@@ -634,7 +700,7 @@ export default function ConsumableArticleForm({
               baseUnitId={baseUnit?.id ? Number(baseUnit.id) : undefined}
               value={conversions}
               onChange={setConversions}
-              disabled={busy}
+              disabled={busy || (unitChanged && !unitChange.relabel)}
             />
           </FormSection>
 

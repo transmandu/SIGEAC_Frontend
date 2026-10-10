@@ -107,10 +107,16 @@ export function DataTableColumnHeaderAct<TData extends RowData, TValue>({
     }
 
     return (
-      <div className={cn("flex flex-col items-center justify-center", className)}>
+      <div
+        className={cn("flex flex-col items-center justify-center", className)}
+      >
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm" className="-ml-3 h-8 data-[state=open]:bg-accent">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="-ml-3 h-8 data-[state=open]:bg-accent"
+            >
               <span>{title}</span>
               {column.getIsSorted() === "desc" ? (
                 <ArrowDownIcon className="ml-2 h-4 w-4" />
@@ -138,16 +144,18 @@ export function DataTableColumnHeaderAct<TData extends RowData, TValue>({
           </DropdownMenuContent>
         </DropdownMenu>
         {filter && (
-          <div className="relative w-[150px]">
+          <div className="relative w-37.5">
             <Input
               placeholder={`Busq. - ${title.toLowerCase()}...`}
               value={localFilterValue}
               onChange={(event) => handleFilterChange(event.target.value)}
               className="h-7 mb-2 text-xs text-muted-foreground w-full pr-7"
             />
-            {isDate && <Calendar className="absolute right-2 top-1.5 h-4 w-4 text-muted-foreground" />}
+            {isDate && (
+              <Calendar className="absolute right-2 top-1.5 h-4 w-4 text-muted-foreground" />
+            )}
           </div>
         )}
       </div>
-    )
+    );
   }

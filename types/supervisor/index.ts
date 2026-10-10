@@ -153,6 +153,10 @@ export type MergeRequest = {
     /** Ediciones del historial de costo a aplicar junto con la fusión. */
     cost_changes?: CostChangeEdits;
     intake_units?: IntakeUnitEdits;
+    /** Al cambiar la unidad base: unidades nuevas por 1 de la anterior. */
+    unit_change?: { direction: ConversionDirection; value: number };
+    /** El cambio de unidad solo corrige una etiqueta: no convierte el historial. */
+    relabel_unit?: boolean;
 };
 
 // ── Edición ──────────────────────────────────────────────────────────────────
@@ -176,6 +180,10 @@ export type BulkEditRow = {
     maximum_quantity?: number | null;
     quantity?: number;
     primary_unit_id?: number;
+    /** Equivalencia anterior↔nueva; obligatoria si cambia primary_unit_id. */
+    unit_change?: { direction: ConversionDirection; value: number };
+    /** El cambio de unidad solo corrige una etiqueta. */
+    relabel_unit?: boolean;
 };
 
 export type BulkEditRequest = {

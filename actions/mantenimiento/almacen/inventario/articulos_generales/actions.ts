@@ -75,18 +75,26 @@ export const useUpdateGeneralArticle = () => {
             image,
             conversions,
             dimension,
+            unit_change,
+            relabel_unit,
         }: {
             id: string | number;
             articleData: updateArticleData;
             image?: File | null;
             conversions?: ArticleConversionInput[];
             dimension?: ArticleDimensionInput;
+            /** Al cambiar la unidad base: equivalencia entre la anterior y la nueva. */
+            unit_change?: { direction: string; value: number };
+            /** Cambio de unidad que solo corrige una etiqueta mal puesta. */
+            relabel_unit?: boolean;
         }) => {
             if (!image) {
                 const { data } = await axiosInstance.patch(
                     `/${selectedCompany?.slug}/general-articles/${id}`,
                     {
                         articleData,
+                        ...(unit_change ? { unit_change } : {}),
+                        ...(relabel_unit ? { relabel_unit } : {}),
                         ...(conversions ? { conversions } : {}),
                         ...(dimension ? { dimension } : {}),
                     }
@@ -103,6 +111,12 @@ export const useUpdateGeneralArticle = () => {
                 if (value === undefined || value === null) return;
                 formData.append(`articleData[${key}]`, String(value));
             });
+
+            if (unit_change) {
+                formData.append("unit_change[direction]", unit_change.direction);
+                formData.append("unit_change[value]", String(unit_change.value));
+            }
+            if (relabel_unit) formData.append("relabel_unit", "1");
 
             // multipart no anida objetos: cada conversión viaja con índice.
             conversions?.forEach((row, index) => {

@@ -205,9 +205,9 @@ const COL = {
   limit: "w-[110px]",
   applied: "w-[125px]",
   next: "w-[115px]",
-  remaining: "w-[150px]",
+  remaining: "w-37.5",
   provider: "w-[140px]",
-  workOrder: "w-[150px]",
+  workOrder: "w-37.5",
   actions: "w-[80px]",
 };
 
