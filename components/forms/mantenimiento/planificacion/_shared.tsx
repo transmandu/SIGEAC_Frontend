@@ -497,7 +497,10 @@ export function useParentOptions(aircraftId?: string): ParentOption[] {
 
 type FirstError = { path: string; message: string };
 
-function firstFieldError(node: unknown, path: string[] = []): FirstError | null {
+function firstFieldError(
+  node: unknown,
+  path: string[] = [],
+): FirstError | null {
   if (!node || typeof node !== "object") return null;
   const { message } = node as { message?: unknown };
   if (typeof message === "string" && message && path.length) {
@@ -535,4 +538,55 @@ export function notifyInvalidForm<T extends Record<string, any>>(
       }
     }
   };
+}
+
+const APPLICATION_KEYS = [
+  "applied_date",
+  "maintenance_provider_id",
+  "action",
+  "initial_value",
+  "consumed_at_event",
+];
+
+/**
+ * Si el usuario tocó algo de la APLICACIÓN vigente de un ítem existente
+ * (fecha, quién la hizo, acción, lecturas). `dirty` es su rama de
+ * `formState.dirtyFields`. Si no la tocó, el envío no la lleva y el backend
+ * deja intacto el cumplimiento que ya tenía, en vez de reescribirlo con lo
+ * mismo (o de exigir lecturas que ese cumplimiento nunca guardó).
+ */
+export function applicationEdited(dirty: unknown): boolean {
+  if (!dirty || typeof dirty !== "object") return false;
+  return Object.entries(dirty).some(([key, value]) =>
+    APPLICATION_KEYS.includes(key)
+      ? value === true || applicationEdited(value)
+      : applicationEdited(value),
+  );
+}
+
+/**
+ * Quita del envío la aplicación de un ítem existente que el usuario no tocó
+ * (ver applicationEdited). Lo nuevo y lo editado viaja completo.
+ */
+export function withoutUnchangedApplication<
+  T extends {
+    id?: number;
+    applied_date?: string;
+    intervals?: { initial_value?: number }[];
+  },
+>(item: T, dirty: unknown): T {
+  if (item.id === undefined || applicationEdited(dirty)) return item;
+  return {
+    ...item,
+    applied_date: undefined,
+    intervals: item.intervals?.map((interval) => ({
+      ...interval,
+      initial_value: undefined,
+    })),
+  };
+}
+
+/** Rama `index` de una lista de `dirtyFields` (que son arrays de objetos). */
+export function dirtyAt(list: unknown, index: number): unknown {
+  return Array.isArray(list) ? list[index] : undefined;
 }

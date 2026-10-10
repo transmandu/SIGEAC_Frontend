@@ -85,7 +85,9 @@ import {
   ProviderSelect,
   RemainingPercentageField,
   useSuggestedControlTitle,
+  dirtyAt,
   notifyInvalidForm,
+  withoutUnchangedApplication,
 } from "./_shared";
 
 const ALL_COUNTING_METHODS = ["HOURS", "CYCLES", "DAYS"] as const;
@@ -204,7 +206,7 @@ const formSchema = z
         const seen = new Set<string>();
         task.intervals.forEach((interval, i) => {
           if (
-            !unchanged &&
+            task.id === undefined &&
             interval.counting_method !== "DAYS" &&
             interval.initial_value === undefined
           ) {
@@ -962,7 +964,7 @@ export default function CreateAvionicsControlForm({
     defaultValues: buildDefaultValues(initialData),
   });
   // Leído en render: react-hook-form solo rastrea lo que se suscribe aquí.
-  const { isDirty } = form.formState;
+  const { isDirty, dirtyFields } = form.formState;
 
   // Mismo cast que los otros formularios de control (react-hook-form 7.87).
   const control = form.control as unknown as Control<any>;
@@ -986,7 +988,7 @@ export default function CreateAvionicsControlForm({
       reference_manual: values.reference_manual,
       maintenance_catalog_manual_id: values.maintenance_catalog_manual_id,
       remaining_percentage: values.remaining_percentage,
-      items: values.items.map((item) => ({
+      items: values.items.map((item, itemIndex) => ({
         id: item.id,
         flags: item.flags ?? [],
         description: item.description,
@@ -995,28 +997,38 @@ export default function CreateAvionicsControlForm({
         serial: item.serial,
         position: item.position || undefined,
         reference_document: item.reference_document || undefined,
-        tasks: item.tasks.map((task) => ({
-          id: task.id,
-          action: task.action as AvionicsAction,
-          is_on_condition: task.is_on_condition ?? false,
-          // Quién la hizo y cuándo se envían siempre: una tarea por condición
-          // igual se cumple y deja registro. Lo que no tiene es plazo, y por
-          // eso el % de alerta y los intervalos sí quedan vacíos.
-          maintenance_provider_id: task.maintenance_provider_id || undefined,
-          applied_date: task.applied_date
-            ? format(task.applied_date, "yyyy-MM-dd")
-            : undefined,
-          remaining_percentage: task.is_on_condition
-            ? null
-            : (task.remaining_percentage ?? null),
-          intervals: task.is_on_condition
-            ? []
-            : task.intervals.map((interval) => ({
-                counting_method: interval.counting_method,
-                limit_value: interval.limit_value,
-                initial_value: interval.initial_value,
-              })),
-        })),
+        tasks: item.tasks.map((task, taskIndex) =>
+          withoutUnchangedApplication(
+            {
+              id: task.id,
+              action: task.action as AvionicsAction,
+              is_on_condition: task.is_on_condition ?? false,
+              // Quién la hizo y cuándo se envían siempre: una tarea por condición
+              // igual se cumple y deja registro. Lo que no tiene es plazo, y por
+              // eso el % de alerta y los intervalos sí quedan vacíos.
+              maintenance_provider_id:
+                task.maintenance_provider_id || undefined,
+              applied_date: task.applied_date
+                ? format(task.applied_date, "yyyy-MM-dd")
+                : undefined,
+              remaining_percentage: task.is_on_condition
+                ? null
+                : (task.remaining_percentage ?? null),
+              intervals: task.is_on_condition
+                ? []
+                : task.intervals.map((interval) => ({
+                    counting_method: interval.counting_method,
+                    limit_value: interval.limit_value,
+                    initial_value: interval.initial_value,
+                  })),
+            },
+            dirtyAt(
+              (dirtyAt(dirtyFields.items, itemIndex) as { tasks?: unknown })
+                ?.tasks,
+              taskIndex,
+            ),
+          ),
+        ),
       })),
     };
 
@@ -1251,7 +1263,7 @@ export default function CreateAvionicsControlForm({
 
         <Button
           className="h-11 gap-2 self-end rounded-lg bg-linear-to-br from-primary to-primary/85 px-6 text-primary-foreground shadow-sm transition-all duration-200 hover:shadow-md hover:shadow-blue-500/25 disabled:opacity-70"
-          disabled={isPending}
+          disabled={isPending || (isEditing && !isDirty)}
           type="submit"
         >
           {isPending ? (

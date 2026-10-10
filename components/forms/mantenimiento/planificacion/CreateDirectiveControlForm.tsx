@@ -94,7 +94,9 @@ import {
   RemainingPercentageField,
   useParentOptions,
   useSuggestedControlTitle,
+  dirtyAt,
   notifyInvalidForm,
+  withoutUnchangedApplication,
 } from "./_shared";
 
 const ALL_COUNTING_METHODS = ["HOURS", "CYCLES", "DAYS"] as const;
@@ -203,6 +205,8 @@ const formSchema = z
         // Una AD existente sin cumplimiento vigente no trae aplicación: se
         // deja como está y no se le exige lo que solo pide iniciar uno.
         const unchanged = item.id !== undefined && !item.applied_date;
+        // Un existente con fecha conserva las lecturas que ya tiene guardadas.
+        const existing = item.id !== undefined;
 
         const isRecurrent = item.compliance_type === "RECURRENT";
         if (!unchanged && isRecurrent && !item.applied_date) {
@@ -236,7 +240,7 @@ const formSchema = z
         const seen = new Set<string>();
         item.intervals.forEach((interval, i) => {
           if (
-            !unchanged &&
+            !existing &&
             interval.counting_method !== "DAYS" &&
             interval.initial_value === undefined
           ) {
@@ -1018,8 +1022,10 @@ function DirectivePartsSection({ control }: { control: Control<any> }) {
 function mapToFormItem(item: NonNullable<DirectiveControl["items"]>[number]) {
   return {
     id: item.id,
-    maintenance_catalog_service_id:
-      item.maintenance_catalog_service_id ?? undefined,
+    // La API lo devuelve como texto; el esquema espera número.
+    maintenance_catalog_service_id: item.maintenance_catalog_service_id
+      ? Number(item.maintenance_catalog_service_id)
+      : undefined,
     ad_number: item.ad_number,
     authority: item.authority,
     revision: item.revision ?? "",
@@ -1119,7 +1125,7 @@ export default function CreateDirectiveControlForm({
     defaultValues: buildDefaultValues(initialData),
   });
   // Leído en render: react-hook-form solo rastrea lo que se suscribe aquí.
-  const { isDirty } = form.formState;
+  const { isDirty, dirtyFields } = form.formState;
 
   // Mismo cast que los otros formularios de control (react-hook-form 7.87).
   const control = form.control as unknown as Control<any>;
@@ -1137,11 +1143,15 @@ export default function CreateDirectiveControlForm({
     // El backend recibe una sola lista; el conjunto afectado sale de en qué
     // sección se cargó la AD.
     const allItems = [
-      ...values.items.map((item) => ({
+      ...values.items.map((item, i) => ({
         ...item,
         aircraft_part_id: null as string | null,
+        dirty: dirtyAt(dirtyFields.items, i),
       })),
-      ...values.part_items,
+      ...values.part_items.map((item, i) => ({
+        ...item,
+        dirty: dirtyAt(dirtyFields.part_items, i),
+      })),
     ];
 
     const payload = {
@@ -1152,31 +1162,37 @@ export default function CreateDirectiveControlForm({
       reference_manual: values.reference_manual,
       maintenance_catalog_manual_id: values.maintenance_catalog_manual_id,
       remaining_percentage: values.remaining_percentage,
-      items: allItems.map((item) => ({
-        id: item.id,
-        maintenance_catalog_service_id: item.maintenance_catalog_service_id,
-        aircraft_part_id: item.aircraft_part_id
-          ? Number(item.aircraft_part_id)
-          : null,
-        ad_number: item.ad_number,
-        authority: item.authority as DirectiveAuthority,
-        revision: item.revision || undefined,
-        description: item.description,
-        declared_description: item.declared_description?.trim() || undefined,
-        reference_document: item.reference_document || undefined,
-        compliance_method: item.compliance_method || undefined,
-        compliance_type: item.compliance_type as DirectiveComplianceType,
-        maintenance_provider_id: item.maintenance_provider_id || undefined,
-        applied_date: item.applied_date
-          ? format(item.applied_date, "yyyy-MM-dd")
-          : undefined,
-        remaining_percentage: item.remaining_percentage ?? null,
-        intervals: item.intervals.map((interval) => ({
-          counting_method: interval.counting_method,
-          limit_value: interval.limit_value,
-          initial_value: interval.initial_value,
-        })),
-      })),
+      items: allItems.map(({ dirty, ...item }) =>
+        withoutUnchangedApplication(
+          {
+            id: item.id,
+            maintenance_catalog_service_id: item.maintenance_catalog_service_id,
+            aircraft_part_id: item.aircraft_part_id
+              ? Number(item.aircraft_part_id)
+              : null,
+            ad_number: item.ad_number,
+            authority: item.authority as DirectiveAuthority,
+            revision: item.revision || undefined,
+            description: item.description,
+            declared_description:
+              item.declared_description?.trim() || undefined,
+            reference_document: item.reference_document || undefined,
+            compliance_method: item.compliance_method || undefined,
+            compliance_type: item.compliance_type as DirectiveComplianceType,
+            maintenance_provider_id: item.maintenance_provider_id || undefined,
+            applied_date: item.applied_date
+              ? format(item.applied_date, "yyyy-MM-dd")
+              : undefined,
+            remaining_percentage: item.remaining_percentage ?? null,
+            intervals: item.intervals.map((interval) => ({
+              counting_method: interval.counting_method,
+              limit_value: interval.limit_value,
+              initial_value: interval.initial_value,
+            })),
+          },
+          dirty,
+        ),
+      ),
     };
 
     if (isEditing) {
@@ -1422,7 +1438,7 @@ export default function CreateDirectiveControlForm({
 
         <Button
           className="h-11 gap-2 self-end rounded-lg bg-linear-to-br from-primary to-primary/85 px-6 text-primary-foreground shadow-sm transition-all duration-200 hover:shadow-md hover:shadow-blue-500/25 disabled:opacity-70"
-          disabled={isPending}
+          disabled={isPending || (isEditing && !isDirty)}
           type="submit"
         >
           {isPending ? (

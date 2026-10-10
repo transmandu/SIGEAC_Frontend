@@ -91,7 +91,9 @@ import {
   RemainingPercentageField,
   useParentOptions,
   useSuggestedControlTitle,
+  dirtyAt,
   notifyInvalidForm,
+  withoutUnchangedApplication,
 } from "./_shared";
 
 const ALL_COUNTING_METHODS = ["HOURS", "CYCLES", "DAYS"] as const;
@@ -199,7 +201,8 @@ const formSchema = z
       basePath: string,
     ) => {
       items.forEach((item, index) => {
-        if (item.id !== undefined && !item.applied_date) return;
+        const existing = item.id !== undefined;
+        if (existing && !item.applied_date) return;
 
         if (!item.applied_date) {
           ctx.addIssue({
@@ -212,6 +215,7 @@ const formSchema = z
         const seen = new Set<string>();
         item.intervals.forEach((interval, i) => {
           if (
+            !existing &&
             interval.counting_method !== "DAYS" &&
             interval.initial_value === undefined
           ) {
@@ -1025,7 +1029,7 @@ export default function CreateComponentControlForm({
     defaultValues: buildDefaultValues(initialData),
   });
   // Leído en render: react-hook-form solo rastrea lo que se suscribe aquí.
-  const { isDirty } = form.formState;
+  const { isDirty, dirtyFields } = form.formState;
 
   // Mismo cast que CreateMaintenanceControlForm: desde react-hook-form 7.87
   // el genérico no es asignable a Control<any> con arrays anidados.
@@ -1045,11 +1049,15 @@ export default function CreateComponentControlForm({
     // El backend recibe una sola lista; el conjunto al que pertenece cada
     // componente sale de en qué sección se cargó.
     const allItems = [
-      ...values.items.map((item) => ({
+      ...values.items.map((item, i) => ({
         ...item,
         aircraft_part_id: null as string | null,
+        dirty: dirtyAt(dirtyFields.items, i),
       })),
-      ...values.part_items,
+      ...values.part_items.map((item, i) => ({
+        ...item,
+        dirty: dirtyAt(dirtyFields.part_items, i),
+      })),
     ];
 
     const payload = {
@@ -1060,32 +1068,38 @@ export default function CreateComponentControlForm({
       reference_manual: values.reference_manual,
       maintenance_catalog_manual_id: values.maintenance_catalog_manual_id,
       remaining_percentage: values.remaining_percentage,
-      items: allItems.map((item) => ({
-        id: item.id,
-        aircraft_part_id: item.aircraft_part_id
-          ? Number(item.aircraft_part_id)
-          : null,
-        maintenance_provider_id: item.maintenance_provider_id,
-        flags: item.flags ?? [],
-        description: item.description,
-        declared_description: item.declared_description?.trim() || undefined,
-        part_number: item.part_number,
-        serial: item.serial,
-        position: item.position || undefined,
-        action: item.action as ComponentAction,
-        reference_document: item.reference_document || undefined,
-        applied_date: item.applied_date
-          ? format(item.applied_date, "yyyy-MM-dd")
-          : undefined,
-        remaining_percentage: item.remaining_percentage ?? null,
-        intervals: item.intervals.map((interval) => ({
-          counting_method: interval.counting_method,
-          limit_kind: interval.limit_kind as "HARD_TIME" | "LIFE_LIMIT",
-          limit_value: interval.limit_value,
-          initial_value: interval.initial_value,
-          consumed_at_event: interval.consumed_at_event ?? 0,
-        })),
-      })),
+      items: allItems.map(({ dirty, ...item }) =>
+        withoutUnchangedApplication(
+          {
+            id: item.id,
+            aircraft_part_id: item.aircraft_part_id
+              ? Number(item.aircraft_part_id)
+              : null,
+            maintenance_provider_id: item.maintenance_provider_id,
+            flags: item.flags ?? [],
+            description: item.description,
+            declared_description:
+              item.declared_description?.trim() || undefined,
+            part_number: item.part_number,
+            serial: item.serial,
+            position: item.position || undefined,
+            action: item.action as ComponentAction,
+            reference_document: item.reference_document || undefined,
+            applied_date: item.applied_date
+              ? format(item.applied_date, "yyyy-MM-dd")
+              : undefined,
+            remaining_percentage: item.remaining_percentage ?? null,
+            intervals: item.intervals.map((interval) => ({
+              counting_method: interval.counting_method,
+              limit_kind: interval.limit_kind as "HARD_TIME" | "LIFE_LIMIT",
+              limit_value: interval.limit_value,
+              initial_value: interval.initial_value,
+              consumed_at_event: interval.consumed_at_event ?? 0,
+            })),
+          },
+          dirty,
+        ),
+      ),
     };
 
     if (isEditing) {
@@ -1336,7 +1350,7 @@ export default function CreateComponentControlForm({
 
         <Button
           className="h-11 gap-2 self-end rounded-lg bg-linear-to-br from-primary to-primary/85 px-6 text-primary-foreground shadow-sm transition-all duration-200 hover:shadow-md hover:shadow-blue-500/25 disabled:opacity-70"
-          disabled={isPending}
+          disabled={isPending || (isEditing && !isDirty)}
           type="submit"
         >
           {isPending ? (

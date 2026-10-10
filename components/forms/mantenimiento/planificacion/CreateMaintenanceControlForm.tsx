@@ -88,7 +88,9 @@ import {
   NumericInput,
   ProviderSelect,
   useSuggestedControlTitle,
+  dirtyAt,
   notifyInvalidForm,
+  withoutUnchangedApplication,
 } from "./_shared";
 
 const countingMethodEnum = z.enum(["HOURS", "CYCLES", "DAYS"]);
@@ -207,7 +209,10 @@ const formSchema = z
       basePath: (string | number)[],
     ) => {
       items.forEach((item, index) => {
-        if (item.id !== undefined && !item.applied_date) return;
+        // Un ítem existente conserva su aplicación vigente: sin fecha no se
+        // toca, y con fecha no se le exigen lecturas que ya están guardadas.
+        const existing = item.id !== undefined;
+        if (existing && !item.applied_date) return;
 
         if (!item.applied_date) {
           ctx.addIssue({
@@ -221,6 +226,7 @@ const formSchema = z
 
         item.intervals.forEach((interval, intervalIndex) => {
           if (
+            !existing &&
             interval.counting_method !== "DAYS" &&
             interval.initial_value === undefined
           ) {
@@ -995,8 +1001,10 @@ function mapToFormCertificate(
     id: item.id,
     // Se reenvía al guardar: sin esto, editar el control desvinculaba cada
     // ítem de su entrada de catálogo.
-    maintenance_catalog_service_id:
-      item.maintenance_catalog_service_id ?? undefined,
+    // La API lo devuelve como texto; el esquema espera número.
+    maintenance_catalog_service_id: item.maintenance_catalog_service_id
+      ? Number(item.maintenance_catalog_service_id)
+      : undefined,
     description: item.description,
     declared_description: item.declared_description ?? "",
     // parseISO (no `new Date`): un string "yyyy-MM-dd" con `new Date` se
@@ -1114,7 +1122,7 @@ export default function CreateMaintenanceControlForm({
     defaultValues: buildDefaultValues(initialData),
   });
   // Leído en render: react-hook-form solo rastrea lo que se suscribe aquí.
-  const { isDirty } = form.formState;
+  const { isDirty, dirtyFields } = form.formState;
 
   // Los subcomponentes de este archivo reciben `Control<any>` porque atienden
   // campos de varias formas; desde react-hook-form 7.87 el genérico es
@@ -1162,13 +1170,30 @@ export default function CreateMaintenanceControlForm({
       reference_manual: values.reference_manual,
       maintenance_catalog_manual_id: values.maintenance_catalog_manual_id,
       remaining_percentage: values.remaining_percentage,
-      certificates: values.certificates.map(toBaseItem),
-      services: values.services.map(toServiceItem),
+      certificates: values.certificates.map((item, i) =>
+        withoutUnchangedApplication(
+          toBaseItem(item),
+          dirtyAt(dirtyFields.certificates, i),
+        ),
+      ),
+      services: values.services.map((item, i) =>
+        withoutUnchangedApplication(
+          toServiceItem(item),
+          dirtyAt(dirtyFields.services, i),
+        ),
+      ),
       parts: values.selected_part_ids.map((partId) => ({
         aircraft_part_id: partId,
-        services: values.part_services
-          .filter((service) => service.aircraft_part_id === partId)
-          .map(toServiceItem),
+        services: values.part_services.flatMap((service, i) =>
+          service.aircraft_part_id === partId
+            ? [
+                withoutUnchangedApplication(
+                  toServiceItem(service),
+                  dirtyAt(dirtyFields.part_services, i),
+                ),
+              ]
+            : [],
+        ),
       })),
     };
 
@@ -1418,7 +1443,7 @@ export default function CreateMaintenanceControlForm({
 
         <Button
           className="h-11 gap-2 self-end rounded-lg bg-linear-to-br from-primary to-primary/85 px-6 text-primary-foreground shadow-sm transition-all duration-200 hover:shadow-md hover:shadow-blue-500/25 disabled:opacity-70"
-          disabled={isPending}
+          disabled={isPending || (isEditing && !isDirty)}
           type="submit"
         >
           {isPending ? (
