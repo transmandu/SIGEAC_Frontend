@@ -271,10 +271,8 @@ interface AddComponentControlItemDialogProps {
  * "Añadir Ítem" — alta de un componente suelto sobre un control de
  * componentes YA EXISTENTE, sin pasar por Editar. Vive como icon-button
  * dentro de la sección a la que pertenece (Fuselaje o la de cada parte): el
- * conjunto queda fijo por esa sección, no se elige en el formulario. El
- * cumplimiento inicial es opcional: si se marca, se encadenan dos
- * peticiones (crear ítem, luego su cumplimiento); si la segunda falla, el
- * ítem ya quedó creado.
+ * conjunto queda fijo por esa sección, no se elige en el formulario. La
+ * fecha y lecturas de aplicación inician su cumplimiento vigente.
  */
 export function AddComponentControlItemDialog({
   controlId,
@@ -325,7 +323,7 @@ export function AddComponentControlItemDialog({
   };
 
   const onSubmit = async (values: FormValues) => {
-    const item = await addComponentControlItem.mutateAsync({
+    await addComponentControlItem.mutateAsync({
       company: selectedCompany!.slug,
       controlId,
       data: {

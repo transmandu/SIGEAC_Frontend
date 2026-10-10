@@ -627,7 +627,7 @@ const AvionicsControlDetailPage = () => {
                                 company={company}
                                 aircraftId={control.aircraft.id}
                                 subject={`tarea «${AVIONICS_ACTION_LABELS[task.action]} — ${item.description} · S/N ${item.serial}»`}
-                                taskDescription={`${AVIONICS_ACTION_LABELS[task.action]} — ${item.description}${item.position ? ` ${item.position}` : ""} (P/N ${item.part_number}, S/N ${item.serial})`}
+                                taskDescription={`${AVIONICS_ACTION_LABELS[task.action]} — ${item.declared_description?.trim() || item.description}${item.position ? ` ${item.position}` : ""} (P/N ${item.part_number}, S/N ${item.serial})`}
                                 previous={task.last_completed_compliance?.work_order}
                                 current={pending}
                                 readOnly={

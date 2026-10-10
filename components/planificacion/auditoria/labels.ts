@@ -292,7 +292,12 @@ const VALUE_LABELS: Record<string, Record<string, string>> = {
     AUDIT_RECORD_PDF: "Historial de auditoría (PDF)",
   },
   aircraft_hours_mode: { auto: "Las del sistema", manual: "Escritas a mano" },
-  item_type: { CERTIFICATE: "Certificado", SERVICE: "Servicio" },
+  item_type: {
+    CERTIFICATE: "Certificado",
+    SERVICE: "Servicio",
+    component_control_item: "Componente",
+    avionics_control_item: "Equipo de aviónica",
+  },
   flag: { HAZARDOUS: "Mercancía peligrosa", EMERGENCY_EQUIPMENT: "Equipo de emergencia" },
   is_hazardous: YES_NO,
   is_on_condition: YES_NO,
@@ -334,6 +339,7 @@ export const formatAuditValue = (
 export const STRUCTURAL_FIELDS = new Set([
   "maintenance_control_id",
   "maintenance_control_part_id",
+  "item_id",
   "maintenance_control_item_id",
   "component_control_id",
   "component_control_item_id",

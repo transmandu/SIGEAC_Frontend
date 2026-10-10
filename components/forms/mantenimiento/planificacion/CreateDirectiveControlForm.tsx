@@ -199,9 +199,12 @@ const formSchema = z
     ) => {
       items.forEach((item, index) => {
         const path = [basePath, index];
+        // Una AD existente sin cumplimiento vigente no trae aplicación: se
+        // deja como está y no se le exige lo que solo pide iniciar uno.
+        const unchanged = item.id !== undefined && !item.applied_date;
 
         const isRecurrent = item.compliance_type === "RECURRENT";
-        if (isRecurrent && !item.applied_date) {
+        if (!unchanged && isRecurrent && !item.applied_date) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: "Indique la fecha del último cumplimiento",
@@ -216,6 +219,7 @@ const formSchema = z
           });
         }
         if (
+          !unchanged &&
           !isRecurrent &&
           item.intervals.length > 0 &&
           !item.applied_date
@@ -231,6 +235,7 @@ const formSchema = z
         const seen = new Set<string>();
         item.intervals.forEach((interval, i) => {
           if (
+            !unchanged &&
             interval.counting_method !== "DAYS" &&
             interval.initial_value === undefined
           ) {

@@ -430,9 +430,9 @@ interface AddAvionicsControlItemDialogProps {
 
 /**
  * "Añadir Ítem" — alta de un equipo (con sus tareas) sobre un control de
- * aviónica YA EXISTENTE, sin pasar por Editar. Sin cumplimiento inicial: el
- * cumplimiento es por TAREA, no por equipo, y se registra después desde el
- * detalle con el flujo normal una vez creado.
+ * aviónica YA EXISTENTE, sin pasar por Editar. El cumplimiento es por TAREA,
+ * no por equipo: la fecha y lecturas de cada tarea programada inician su
+ * cumplimiento vigente.
  */
 export function AddAvionicsControlItemDialog({
   controlId,

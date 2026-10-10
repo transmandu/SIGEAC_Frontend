@@ -760,7 +760,9 @@ function DirectivesTable({
                     colSpan={5}
                     className="text-sm text-muted-foreground"
                   >
-                    Sin cumplimiento vigente — inícielo para que corra el plazo.
+                    {item.current_compliance
+                      ? "Sin plazo definido — ciérrelo cuando se ejecute."
+                      : "Sin cumplimiento vigente — inícielo para que corra el plazo."}
                   </TableCell>
                 )}
 
@@ -769,7 +771,7 @@ function DirectivesTable({
                     company={company}
                     aircraftId={control.aircraft.id}
                     subject={`AD «${item.ad_number}»`}
-                    taskDescription={`AD ${item.ad_number}${item.revision ? ` ${item.revision}` : ""} (${DIRECTIVE_AUTHORITY_LABELS[item.authority]}): ${item.description}${item.compliance_method ? `. Método: ${item.compliance_method}` : ""}`}
+                    taskDescription={`AD ${item.ad_number}${item.revision ? ` ${item.revision}` : ""} (${DIRECTIVE_AUTHORITY_LABELS[item.authority]}): ${item.declared_description?.trim() || item.description}${item.compliance_method ? `. Método: ${item.compliance_method}` : ""}`}
                     previous={lastCompliance?.work_order}
                     current={pending}
                     // Una AD de única vez ya cumplida no vuelve a necesitar

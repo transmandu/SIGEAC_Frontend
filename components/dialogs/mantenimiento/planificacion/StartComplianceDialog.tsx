@@ -97,7 +97,15 @@ export function StartComplianceDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(value) => {
+        // Al abrir se vuelve a armar desde lo vigente: el contador y el
+        // proveedor pudieron cambiar desde que se montó el diálogo.
+        if (value) form.reset(defaults());
+        setOpen(value);
+      }}
+    >
       <Tooltip>
         <TooltipTrigger asChild>
           <DialogTrigger asChild>

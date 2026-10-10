@@ -223,8 +223,10 @@ export function CloseComplianceDialog({
     <Dialog
       open={open}
       onOpenChange={(value) => {
+        // Al abrir y al cerrar se rearma desde lo vigente: la OT atada y el
+        // contador pudieron cambiar desde que se montó el diálogo.
+        reset();
         setOpen(value);
-        if (!value) reset();
       }}
     >
       <Tooltip>
@@ -354,25 +356,23 @@ export function CloseComplianceDialog({
                   control={closeForm.control}
                   name="work_order_id"
                   render={({ field }) => (
-                    <>
-                      <WorkOrderField
-                        value={field.value}
-                        onChange={field.onChange}
-                        aircraftId={aircraftId}
-                        subject={subjectName}
-                        taskDescription={workOrderDescription ?? subjectName}
-                        pendingWorkOrder={
-                          currentWorkOrder?.id
-                            ? {
-                                id: currentWorkOrder.id,
-                                order_number: currentWorkOrder.order_number,
-                              }
-                            : null
-                        }
-                        hint="Obligatoria: un cumplimiento no se cierra sin la Orden de Trabajo que lo culminó."
-                      />
-                      <FormMessage />
-                    </>
+                    <WorkOrderField
+                      value={field.value}
+                      onChange={field.onChange}
+                      aircraftId={aircraftId}
+                      subject={subjectName}
+                      taskDescription={workOrderDescription ?? subjectName}
+                      pendingWorkOrder={
+                        currentWorkOrder?.id
+                          ? {
+                              id: currentWorkOrder.id,
+                              order_number: currentWorkOrder.order_number,
+                            }
+                          : null
+                      }
+                      hint="Obligatoria: un cumplimiento no se cierra sin la Orden de Trabajo que lo culminó."
+                      optional={false}
+                    />
                   )}
                 />
 

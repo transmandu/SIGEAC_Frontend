@@ -49,7 +49,7 @@ const FORMAT_COLUMNS = [
   },
   {
     header: "Fecha",
-    hint: "dd/mm/aaaa. Debe ser anterior a la primera aplicación del componente.",
+    hint: "dd/mm/aaaa. Debe ser anterior al inicio del cumplimiento vigente del componente.",
   },
   {
     header: "Horas",

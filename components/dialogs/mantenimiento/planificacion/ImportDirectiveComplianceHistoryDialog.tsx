@@ -45,7 +45,7 @@ const FORMAT_COLUMNS = [
   },
   {
     header: "Fecha",
-    hint: "dd/mm/aaaa. Debe ser anterior a la primera aplicación de la AD (si la tiene).",
+    hint: "dd/mm/aaaa. Debe ser anterior al inicio del cumplimiento vigente de la AD (si lo tiene).",
   },
   {
     header: "Horas",

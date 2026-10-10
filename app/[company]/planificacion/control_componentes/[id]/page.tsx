@@ -504,7 +504,7 @@ function ComponentsTable({
                     company={company}
                     aircraftId={aircraftId}
                     subject={`componente «${item.description} · S/N ${item.serial}»`}
-                    taskDescription={`${COMPONENT_ACTION_LABELS[item.action]} — ${item.description} (P/N ${item.part_number}, S/N ${item.serial})`}
+                    taskDescription={`${COMPONENT_ACTION_LABELS[item.action]} — ${item.declared_description?.trim() || item.description} (P/N ${item.part_number}, S/N ${item.serial})`}
                     previous={item.last_completed_compliance?.work_order}
                     current={pending}
                     readOnly={

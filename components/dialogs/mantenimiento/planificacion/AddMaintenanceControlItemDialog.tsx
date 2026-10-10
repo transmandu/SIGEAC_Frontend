@@ -91,7 +91,7 @@ const formSchema = z
       if (interval.counting_method !== "DAYS" && interval.initial_value === undefined) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: "Indique las horas/ciclos que tenía la aeronave en la primera aplicación",
+          message: "Indique las horas/ciclos que tenía la aeronave en la fecha de aplicación",
           path: ["intervals", index, "initial_value"],
         });
       }
@@ -104,7 +104,6 @@ const formSchema = z
       }
       seenMethods.add(interval.counting_method);
     });
-
   });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -232,9 +231,7 @@ interface AddMaintenanceControlItemDialogProps {
  * demás ítems). Vive como icon-button dentro de la sección a la que
  * pertenece (Certificados, Servicios de Aeronave, o la de cada parte): la
  * categoría y el conjunto quedan fijos por esa sección, no se eligen en el
- * formulario. El cumplimiento inicial es opcional: si se marca, se envían
- * dos peticiones encadenadas (crear ítem, luego su cumplimiento); si la
- * segunda falla, el ítem ya quedó creado y se avisa por separado.
+ * formulario. La fecha y lecturas de aplicación inician su cumplimiento vigente.
  */
 export function AddMaintenanceControlItemDialog({
   controlId,
@@ -283,7 +280,7 @@ export function AddMaintenanceControlItemDialog({
       return;
     }
 
-    const item = await addMaintenanceControlItem.mutateAsync({
+    await addMaintenanceControlItem.mutateAsync({
       company: selectedCompany!.slug,
       controlId,
       data: {
@@ -301,8 +298,7 @@ export function AddMaintenanceControlItemDialog({
     resetAndClose();
   };
 
-  const isPending =
-    addMaintenanceControlItem.isPending;
+  const isPending = addMaintenanceControlItem.isPending;
 
   const triggerLabel = itemType === "CERTIFICATE" ? "certificado" : "servicio";
 

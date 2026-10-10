@@ -266,9 +266,8 @@ interface AddDirectiveControlItemDialogProps {
  * "Añadir Ítem" — alta de una AD suelta sobre un control de directivas YA
  * EXISTENTE, sin pasar por Editar. Vive como icon-button dentro de la
  * sección a la que pertenece (Aeronave o la de cada parte): el conjunto
- * queda fijo por esa sección, no se elige en el formulario. El cumplimiento
- * inicial es opcional: si se marca, se encadenan dos peticiones (crear AD,
- * luego su cumplimiento).
+ * queda fijo por esa sección, no se elige en el formulario. La fecha de
+ * referencia y lecturas inician su cumplimiento vigente.
  */
 export function AddDirectiveControlItemDialog({
   controlId,
@@ -317,7 +316,7 @@ export function AddDirectiveControlItemDialog({
   };
 
   const onSubmit = async (values: FormValues) => {
-    const item = await addDirectiveControlItem.mutateAsync({
+    await addDirectiveControlItem.mutateAsync({
       company: selectedCompany!.slug,
       controlId,
       data: {

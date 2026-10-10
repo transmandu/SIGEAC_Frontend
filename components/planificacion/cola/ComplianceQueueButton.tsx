@@ -296,6 +296,11 @@ function EntryRow({
               Dado de baja
             </Badge>
           )}
+          {entry.has_current_compliance === false && !entry.retired_at && (
+            <Badge variant="outline" className="text-[9px]">
+              Sin cumplimiento vigente
+            </Badge>
+          )}
           {computed && status && (
             <span className="flex items-center gap-1">
               <span

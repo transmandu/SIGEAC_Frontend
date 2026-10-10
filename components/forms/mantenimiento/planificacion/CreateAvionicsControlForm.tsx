@@ -173,15 +173,18 @@ const formSchema = z
       item.tasks.forEach((task, t) => {
         if (task.is_on_condition) return;
         const path = ["items", index, "tasks", t];
+        // Una tarea existente sin cumplimiento vigente no trae aplicación: se
+        // deja como está y no se le exige lo que solo pide iniciar uno.
+        const unchanged = task.id !== undefined && !task.applied_date;
 
-        if (!task.applied_date) {
+        if (!unchanged && !task.applied_date) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: "Indique la fecha del último evento",
             path: [...path, "applied_date"],
           });
         }
-        if (!task.maintenance_provider_id) {
+        if (!unchanged && !task.maintenance_provider_id) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: "Indique quién la realizó",
@@ -200,6 +203,7 @@ const formSchema = z
         const seen = new Set<string>();
         task.intervals.forEach((interval, i) => {
           if (
+            !unchanged &&
             interval.counting_method !== "DAYS" &&
             interval.initial_value === undefined
           ) {

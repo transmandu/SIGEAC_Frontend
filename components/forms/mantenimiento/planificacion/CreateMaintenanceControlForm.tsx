@@ -226,7 +226,7 @@ const formSchema = z
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
               message:
-                "Indique las horas/ciclos que tenía la aeronave en la primera aplicación",
+                "Indique las horas/ciclos que tenía la aeronave en la fecha de aplicación",
               path: [
                 ...basePath,
                 index,
