@@ -88,6 +88,7 @@ import {
   NumericInput,
   ProviderSelect,
   useSuggestedControlTitle,
+  notifyInvalidForm,
 } from "./_shared";
 
 const countingMethodEnum = z.enum(["HOURS", "CYCLES", "DAYS"]);
@@ -1205,7 +1206,7 @@ export default function CreateMaintenanceControlForm({
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit(onSubmit)}
+        onSubmit={form.handleSubmit(onSubmit, notifyInvalidForm(form))}
         onKeyDown={(e) => {
           // Enter dentro de un <input> envía el formulario nativamente
           // (equivalente a click en el botón submit); con tantos campos de

@@ -58,7 +58,8 @@ import {
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useForm, useWatch } from "react-hook-form";
+import { FieldErrors, useForm, useWatch } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 
 const manualWorkOrderSchema = z.object({
@@ -78,7 +79,7 @@ const manualWorkOrderSchema = z.object({
         description_task: z
           .string()
           .min(1, "La descripción de la tarea es obligatoria"),
-        ata: z.string().min(1, "Código ATA requerido"),
+        ata: z.string().optional(),
         material: z.string().nullable().optional(),
         task_items: z
           .array(
@@ -366,6 +367,21 @@ const NonServiceWorkOrderForm = ({
     form.setValue("work_order_task", tasks, { shouldValidate: true });
   }, [tasks, form]);
 
+  // Los campos de las tareas viven en estado local, no en <FormField>, así que
+  // sus errores de validación no tienen dónde pintarse solos: sin esto el botón
+  // "no hacía nada" cuando faltaba, p. ej., el código ATA de una tarea.
+  const onInvalid = (errors: FieldErrors<ManualWorkOrderFormValues>) => {
+    console.warn("[NonServiceWorkOrderForm] Validación fallida:", errors);
+    const taskErrors = errors.work_order_task;
+    const message =
+      (Array.isArray(taskErrors)
+        ? "Revise los campos obligatorios de las tareas (descripción)."
+        : taskErrors?.message) ??
+      Object.values(errors).find((e) => e?.message)?.message ??
+      "Revise los campos obligatorios.";
+    toast.error("Faltan datos", { description: String(message) });
+  };
+
   const onSubmit = async (data: ManualWorkOrderFormValues) => {
     const selectedAircraftData = aircrafts?.find(
       (aircraft) => aircraft.id.toString() === data.aircraft_id,
@@ -515,7 +531,7 @@ const NonServiceWorkOrderForm = ({
       )}
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(onSubmit, onInvalid)} className="space-y-6">
           <div className="flex gap-6 items-center justify-center w-full">
             <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-2">
               <FormField
@@ -813,7 +829,13 @@ const NonServiceWorkOrderForm = ({
                 className={cn("flex", tasks.length > 1 ? "h-137.5" : "")}
               >
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  {tasks.map((task) => (
+                  {tasks.map((task, taskIndex) => {
+                    const taskErrors = Array.isArray(
+                      form.formState.errors.work_order_task,
+                    )
+                      ? form.formState.errors.work_order_task[taskIndex]
+                      : undefined;
+                    return (
                     <div key={task.id} className="p-4 border rounded-lg mb-2">
                       <div className="flex gap-2 justify-between items-center">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-2 w-full">
@@ -849,7 +871,7 @@ const NonServiceWorkOrderForm = ({
 
                           {/* ATA Code */}
                           <FormItem>
-                            <FormLabel>Código ATA</FormLabel>
+                            <FormLabel>Código ATA (opcional)</FormLabel>
                             <Input
                               value={task.ata}
                               onChange={(e) =>
@@ -857,7 +879,11 @@ const NonServiceWorkOrderForm = ({
                               }
                               placeholder="Ej: 25"
                             />
-                            <FormMessage />
+                            {taskErrors?.ata && (
+                              <p className="text-sm font-medium text-destructive">
+                                {taskErrors.ata.message}
+                              </p>
+                            )}
                           </FormItem>
 
                           {/* Task Description (full width) */}
@@ -874,7 +900,11 @@ const NonServiceWorkOrderForm = ({
                               }
                               placeholder="Describa la tarea..."
                             />
-                            <FormMessage />
+                            {taskErrors?.description_task && (
+                              <p className="text-sm font-medium text-destructive">
+                                {taskErrors.description_task.message}
+                              </p>
+                            )}
                           </FormItem>
 
                           {/* Materials (full width) */}
@@ -887,7 +917,7 @@ const NonServiceWorkOrderForm = ({
                               }
                               placeholder="Materiales requeridos.."
                             />
-                            <FormMessage />
+                            
                           </FormItem>
 
                           {/* Si quieres luego manejar task_items, aquí puedes reactivar el UI
@@ -905,9 +935,15 @@ const NonServiceWorkOrderForm = ({
                         </Button>
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </ScrollArea>
+              {form.formState.errors.work_order_task?.message && (
+                <p className="text-sm font-medium text-destructive">
+                  {form.formState.errors.work_order_task.message}
+                </p>
+              )}
             </div>
           </div>
 

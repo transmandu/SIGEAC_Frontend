@@ -94,6 +94,7 @@ import {
   RemainingPercentageField,
   useParentOptions,
   useSuggestedControlTitle,
+  notifyInvalidForm,
 } from "./_shared";
 
 const ALL_COUNTING_METHODS = ["HOURS", "CYCLES", "DAYS"] as const;
@@ -1210,7 +1211,7 @@ export default function CreateDirectiveControlForm({
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit(onSubmit)}
+        onSubmit={form.handleSubmit(onSubmit, notifyInvalidForm(form))}
         onKeyDown={(e) => {
           if (
             e.key === "Enter" &&

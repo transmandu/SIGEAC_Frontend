@@ -3,11 +3,13 @@
 import { useEffect, useMemo, useRef } from "react";
 import {
   Control,
+  FieldErrors,
   UseFormReturn,
   useFormContext,
   useWatch,
 } from "react-hook-form";
 import { format } from "date-fns";
+import { toast } from "sonner";
 import { Calendar as CalendarIcon, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -491,4 +493,46 @@ export function useParentOptions(aircraftId?: string): ParentOption[] {
       }),
     ];
   }, [aircrafts, aircraftId]);
+}
+
+type FirstError = { path: string; message: string };
+
+function firstFieldError(node: unknown, path: string[] = []): FirstError | null {
+  if (!node || typeof node !== "object") return null;
+  const { message } = node as { message?: unknown };
+  if (typeof message === "string" && message && path.length) {
+    return { path: path.join("."), message };
+  }
+  for (const [key, child] of Object.entries(node)) {
+    if (key === "ref" || key === "message" || key === "type") continue;
+    const found = firstFieldError(child, [...path, key]);
+    if (found) return found;
+  }
+  return null;
+}
+
+/**
+ * Segundo argumento de `form.handleSubmit` en los formularios de control.
+ * Son largos y con secciones de filas: un campo inválido suele quedar fuera de
+ * pantalla, y sin esto "Guardar" parecía no hacer nada. Avisa, dice dónde y
+ * lleva el foco al primer campo con error.
+ */
+export function notifyInvalidForm<T extends Record<string, any>>(
+  form: UseFormReturn<T>,
+) {
+  return (errors: FieldErrors<T>) => {
+    console.warn("[Formulario de control] Validación fallida:", errors);
+    const first = firstFieldError(errors);
+    toast.error("Faltan datos o hay valores inválidos", {
+      description: first?.message ?? "Revise los campos marcados en rojo.",
+    });
+    if (first) {
+      try {
+        form.setFocus(first.path as never);
+      } catch {
+        // El campo no tiene un ref enfocable (selector, fecha): el mensaje del
+        // toast y el texto en rojo bajo el campo bastan.
+      }
+    }
+  };
 }

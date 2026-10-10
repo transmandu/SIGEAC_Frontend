@@ -721,6 +721,12 @@ export function ComplianceQueueButton() {
               Seleccionó ítems de {selectedAircraftIds.length} aeronaves. Una
               orden de trabajo y un formato son de una sola matrícula.
             </p>
+          ) : attachable.length === 0 ? (
+            <p className="flex items-start gap-1.5 rounded-md bg-amber-500/10 p-2 text-xs text-amber-700 dark:text-amber-400">
+              <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
+              Los ítems seleccionados ya tienen una orden abierta, están
+              retirados o faltan: no hay nada que atar a una orden nueva.
+            </p>
           ) : (
             <p className="flex items-center gap-1.5 rounded-md bg-background p-2 text-xs text-muted-foreground">
               <Check className="size-3.5 shrink-0 text-emerald-600" />
@@ -729,8 +735,8 @@ export function ComplianceQueueButton() {
             </p>
           )}
 
-          <Button asChild className="w-full" disabled={!canCreateWorkOrder}>
-            {canCreateWorkOrder ? (
+          {canCreateWorkOrder ? (
+            <Button asChild className="w-full">
               <Link
                 href={`/${company}/planificacion/ordenes_trabajo/nueva_orden_trabajo?${newWorkOrderParams.toString()}`}
                 onClick={() => setOpen(false)}
@@ -738,13 +744,15 @@ export function ComplianceQueueButton() {
                 <Wrench className="mr-2 size-4" />
                 Crear Orden de Trabajo ({attachable.length})
               </Link>
-            ) : (
-              <span>
-                <Wrench className="mr-2 size-4" />
-                Crear Orden de Trabajo
-              </span>
-            )}
-          </Button>
+            </Button>
+          ) : (
+            // Un <Button> real: con asChild el `disabled` caía sobre un <span>
+            // y no se veía deshabilitado ni dejaba de responder al clic.
+            <Button type="button" className="w-full" disabled>
+              <Wrench className="mr-2 size-4" />
+              Crear Orden de Trabajo
+            </Button>
+          )}
 
           <QueueFormatsMenu company={company} entryIds={selected} />
 
