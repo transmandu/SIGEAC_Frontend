@@ -488,35 +488,48 @@ export type MaintenanceProvider = {
   name: string;
 };
 
-export type MaintenanceCompliance = {
+export type ComplianceStatus = "CURRENT" | "COMPLETED";
+
+/**
+ * Un período de cumplimiento, igual en los cuatro controles: nace VIGENTE al
+ * iniciarse y pasa a CUMPLIDO al cerrarse con su fecha, lecturas de fin y la
+ * OT que lo culminó. Un ítem tiene a lo sumo uno vigente; sin él no hay reloj.
+ */
+export type ControlComplianceBase = {
   id: number;
-  maintenance_control_item_id: number;
-  maintenance_control_item?: MaintenanceControlItem;
-  maintenance_provider_id: number | string;
-  maintenance_provider?: MaintenanceProvider;
-  work_order_id: number | string;
-  work_order?: WorkOrder;
-  // Manual del catálogo vigente al momento de este cumplimiento — congelado
-  // al crearlo, no cambia si el manual se renombra o se revisa después.
+  status: ComplianceStatus;
+  maintenance_provider_id?: number | string | null;
+  maintenance_provider?: MaintenanceProvider | null;
+  applied_date: string;
+  applied_hours?: number | string | null;
+  applied_cycles?: number | string | null;
+  completed_date?: string | null;
+  completed_hours?: number | string | null;
+  completed_cycles?: number | string | null;
+  work_order_id?: number | string | null;
+  work_order?: WorkOrder | null;
+  // Manual del catálogo vigente al iniciarse el cumplimiento, congelado:
+  // no cambia si el manual se renombra o se revisa después.
   maintenance_catalog_manual_id?: number | string | null;
-  manual_revision_label?: string | null;
+  manual_revision?: string | null;
+  manual_effective_date?: string | null;
   catalog_manual?: CatalogManual | null;
-  compliance_date: string;
-  hours_reading: number | string;
-  cycles_reading: number | string;
   notes?: string | null;
-  is_historical?: boolean;
   registered_by?: string;
   created_at?: string;
 };
 
+export type MaintenanceCompliance = ControlComplianceBase & {
+  maintenance_control_item_id: number;
+  maintenance_control_item?: MaintenanceControlItem;
+};
+
 /**
- * Un intervalo de vencimiento del ítem (unidad + límite + lectura inicial).
- * N por ítem, máximo uno por unidad ("lo que ocurra primero", ej. 6000 Hrs
- * Ó 1825 Días — hasta 3, ver MaintenanceControlItemInterval en el backend).
- * initial_value es la lectura de horas/ciclos que tenía la aeronave/parte en
- * la fecha de primera aplicación (first_applied_date, compartida por todos
- * los intervalos del ítem); null cuando counting_method es DAYS.
+ * Un intervalo de vencimiento del ítem (unidad + límite). N por ítem, máximo
+ * uno por unidad ("lo que ocurra primero", ej. 6000 Hrs Ó 1825 Días — hasta
+ * 3). `initial_value` solo viaja al guardar el ítem: es la lectura de esa
+ * unidad en la aplicación (`applied_date`) y el backend la guarda en el
+ * cumplimiento vigente, no en el intervalo.
  */
 export type MaintenanceControlItemInterval = {
   id?: number;
@@ -568,12 +581,14 @@ export type MaintenanceControlItemComputed = {
  */
 export type MaintenanceControlSnapshotItem = {
   id: number;
-  category: "CERTIFICATE" | "SERVICE";
-  name: string;
+  item_type: "CERTIFICATE" | "SERVICE";
+  description: string;
+  declared_description?: string | null;
   /** Parte de la que cuelga el servicio; null si es de la aeronave como conjunto. */
-  maintenance_control_part_id: number | null;
+  aircraft_part_id: number | null;
   part_label: string | null;
-  computed: MaintenanceControlItemComputed;
+  /** null = a esa fecha el ítem no tenía cumplimiento vigente. */
+  computed: MaintenanceControlItemComputed | null;
 };
 
 /** Identificación de una parte a la fecha consultada (TSN/CSN reconstruidos). */
@@ -651,6 +666,8 @@ export type ControlQueueEntry = {
   } | null;
   note?: string | null;
   queued_at?: string;
+  /** false = el ítem no tiene cumplimiento vigente y no admite OT. */
+  has_current_compliance?: boolean;
 };
 
 export type ControlQueue = {
@@ -692,27 +709,15 @@ export type ComponentControlItemInterval = {
   consumed_at_event?: number | string | null;
 };
 
-export type ComponentCompliance = {
-  id: number;
+export type ComponentCompliance = ControlComplianceBase & {
   component_control_item_id: number;
   component_control_item?: ComponentControlItem;
-  maintenance_provider_id: number | string;
-  maintenance_provider?: MaintenanceProvider;
-  work_order_id: number | string | null;
-  work_order?: WorkOrder;
-  compliance_date: string;
-  hours_reading: number | string;
-  cycles_reading: number | string;
+  /** Qué se le hizo al componente en este período. */
   action: ComponentAction;
+  /** Lo que el componente traía consumido al iniciarse (0 tras un overhaul). */
   consumed_hours: number | string;
   consumed_cycles: number | string;
-  is_historical?: boolean;
-  maintenance_catalog_manual_id?: number | string | null;
-  manual_revision_label?: string | null;
-  catalog_manual?: CatalogManual | null;
-  notes?: string | null;
-  registered_by?: string;
-  created_at?: string;
+  consumed_days?: number | string;
 };
 
 /** Lo que tiene cumplimientos no se elimina: se da de baja y queda fuera del cálculo. */
@@ -721,36 +726,34 @@ export type Retirable = {
   retired_by?: string | null;
 };
 
+/** Banderas de un ítem de control; los códigos los define el backend (ControlItemFlag). */
+export type ControlItemFlag = "HAZARDOUS" | "EMERGENCY_EQUIPMENT";
+
 export type ComponentControlItem = Retirable & {
   id?: number;
   component_control_id?: number;
   /** Motor/hélice del que cuelga; null = fuselaje. */
-  parent_aircraft_part_id?: number | string | null;
-  parent_aircraft_part?: MaintenanceAircraftPart | null;
-  /** La sub-parte física del árbol, si está registrada. */
   aircraft_part_id?: number | string | null;
   aircraft_part?: MaintenanceAircraftPart | null;
   maintenance_provider_id?: number | string | null;
   maintenance_provider?: MaintenanceProvider;
   maintenance_catalog_service_id?: number | null;
-  pending_work_order_id?: number | string | null;
-  pending_work_order?: WorkOrder | null;
-  is_hazardous: boolean;
+  flags: ControlItemFlag[];
   description: string;
+  /** Redacción para formatos (OT, INAC...); si falta se usa `description`. */
+  declared_description?: string | null;
   part_number: string;
   serial: string;
   position?: string | null;
   action: ComponentAction;
   reference_document?: string | null;
-  first_applied_date: string;
   /** Null = hereda el `remaining_percentage` del control. */
   remaining_percentage?: number | string | null;
-  status: "ACTIVE" | "REMOVED";
-  removed_date?: string | null;
-  removal_notes?: string | null;
   intervals: ComponentControlItemInterval[];
-  computed?: MaintenanceControlItemComputed;
-  latest_compliance?: ComponentCompliance | null;
+  /** null = sin cumplimiento vigente: no hay reloj que calcular. */
+  computed?: MaintenanceControlItemComputed | null;
+  current_compliance?: ComponentCompliance | null;
+  last_completed_compliance?: ComponentCompliance | null;
 };
 
 export type ComponentControl = Retirable & {
@@ -791,24 +794,9 @@ export type AvionicsControlTaskInterval = {
   initial_value?: number | string | null;
 };
 
-export type AvionicsCompliance = {
-  id: number;
+export type AvionicsCompliance = ControlComplianceBase & {
   avionics_control_task_id: number;
   task?: AvionicsControlTask;
-  maintenance_provider_id: number | string;
-  maintenance_provider?: MaintenanceProvider;
-  work_order_id: number | string | null;
-  work_order?: WorkOrder;
-  compliance_date: string;
-  hours_reading: number | string;
-  cycles_reading: number | string;
-  is_historical?: boolean;
-  maintenance_catalog_manual_id?: number | string | null;
-  manual_revision_label?: string | null;
-  catalog_manual?: CatalogManual | null;
-  notes?: string | null;
-  registered_by?: string;
-  created_at?: string;
 };
 
 export type AvionicsControlTask = Retirable & {
@@ -816,33 +804,31 @@ export type AvionicsControlTask = Retirable & {
   avionics_control_item_id?: number;
   maintenance_provider_id?: number | string | null;
   maintenance_provider?: MaintenanceProvider | null;
-  pending_work_order_id?: number | string | null;
-  pending_work_order?: WorkOrder | null;
   action: AvionicsAction;
   is_on_condition: boolean;
-  first_applied_date?: string | null;
   /** Null = hereda el `remaining_percentage` del control. */
   remaining_percentage?: number | string | null;
   intervals: AvionicsControlTaskInterval[];
-  /** null cuando la tarea es por condición. */
+  /** null cuando la tarea es por condición o no tiene cumplimiento vigente. */
   computed?: MaintenanceControlItemComputed | null;
-  latest_compliance?: AvionicsCompliance | null;
+  current_compliance?: AvionicsCompliance | null;
+  last_completed_compliance?: AvionicsCompliance | null;
 };
 
 export type AvionicsControlItem = Retirable & {
   id?: number;
   avionics_control_id?: number;
   aircraft_part_id?: number | string | null;
+  aircraft_part?: MaintenanceAircraftPart | null;
   maintenance_catalog_service_id?: number | null;
-  is_hazardous: boolean;
+  flags: ControlItemFlag[];
   description: string;
+  /** Redacción para formatos (OT, INAC...); si falta se usa `description`. */
+  declared_description?: string | null;
   part_number: string;
   serial: string;
   position?: string | null;
   reference_document?: string | null;
-  status: "ACTIVE" | "REMOVED";
-  removed_date?: string | null;
-  removal_notes?: string | null;
   tasks: AvionicsControlTask[];
   /** Peor estado entre sus tareas programadas; null si todas son por condición. */
   status_computed?: MaintenanceItemStatus | null;
@@ -881,53 +867,38 @@ export type DirectiveControlItemInterval = {
   initial_value?: number | string | null;
 };
 
-export type DirectiveCompliance = {
-  id: number;
+export type DirectiveCompliance = ControlComplianceBase & {
   directive_control_item_id: number;
   directive_control_item?: DirectiveControlItem;
-  maintenance_provider_id: number | string;
-  maintenance_provider?: MaintenanceProvider;
-  work_order_id: number | string | null;
-  work_order?: WorkOrder;
-  compliance_date: string;
-  hours_reading: number | string;
-  cycles_reading: number | string;
   compliance_method?: string | null;
-  is_historical?: boolean;
-  maintenance_catalog_manual_id?: number | string | null;
-  manual_revision_label?: string | null;
-  catalog_manual?: CatalogManual | null;
-  notes?: string | null;
-  registered_by?: string;
-  created_at?: string;
 };
 
 export type DirectiveControlItem = Retirable & {
   id?: number;
   directive_control_id?: number;
-  parent_aircraft_part_id?: number | string | null;
-  parent_aircraft_part?: MaintenanceAircraftPart | null;
+  aircraft_part_id?: number | string | null;
+  aircraft_part?: MaintenanceAircraftPart | null;
   maintenance_provider_id?: number | string | null;
   maintenance_provider?: MaintenanceProvider | null;
-  pending_work_order_id?: number | string | null;
-  pending_work_order?: WorkOrder | null;
   maintenance_catalog_service_id?: number | null;
   ad_number: string;
   authority: DirectiveAuthority;
   revision?: string | null;
   description: string;
+  /** Redacción para formatos (OT, INAC...); si falta se usa `description`. */
+  declared_description?: string | null;
   reference_document?: string | null;
   compliance_method?: string | null;
   compliance_type: DirectiveComplianceType;
-  first_applied_date?: string | null;
   /** Null = hereda el `remaining_percentage` del control. */
   remaining_percentage?: number | string | null;
   intervals: DirectiveControlItemInterval[];
-  /** null = sin reloj: ya cumplida (única vez) o sin plazo. */
+  /** null = sin reloj: ya cumplida (única vez), sin cumplimiento vigente o sin plazo. */
   computed?: MaintenanceControlItemComputed | null;
-  /** Fecha de cumplimiento cuando es de única vez y ya se cumplió. */
+  /** Fecha de fin cuando es de única vez y ya se cumplió. */
   complied_at?: string | null;
-  latest_compliance?: DirectiveCompliance | null;
+  current_compliance?: DirectiveCompliance | null;
+  last_completed_compliance?: DirectiveCompliance | null;
 };
 
 export type DirectiveControl = Retirable & {
@@ -952,33 +923,25 @@ export type DirectiveControl = Retirable & {
 export type MaintenanceControlItem = Retirable & {
   id?: number;
   maintenance_control_id?: number;
-  maintenance_control_part_id?: number | null;
+  /** Parte (motor/hélice...) a la que aplica; null = la aeronave. */
+  aircraft_part_id?: number | null;
+  aircraft_part?: MaintenanceAircraftPart | null;
   maintenance_provider_id?: number | string | null;
   maintenance_provider?: MaintenanceProvider;
   /** Entrada del catálogo; todo ítem la tiene (si se cargó a mano, nace sin manual). */
   maintenance_catalog_service_id?: number | null;
-  // OT abierta para resolver el estado crítico. No bloquea el cumplimiento:
-  // se usa para precargarla al registrarlo y se limpia sola al hacerlo.
-  pending_work_order_id?: number | string | null;
-  pending_work_order?: WorkOrder | null;
-  category: "CERTIFICATE" | "SERVICE";
-  name: string;
-  first_applied_date: string;
+  item_type: "CERTIFICATE" | "SERVICE";
+  description: string;
+  /** Redacción para formatos (OT, INAC...); si falta se usa `description`. */
+  declared_description?: string | null;
   /** Null = hereda el `remaining_percentage` del control. */
   remaining_percentage?: number | string | null;
   intervals: MaintenanceControlItemInterval[];
-  computed?: MaintenanceControlItemComputed;
-  latest_compliance?: MaintenanceCompliance | null;
+  /** null = sin cumplimiento vigente: no hay reloj que calcular. */
+  computed?: MaintenanceControlItemComputed | null;
+  current_compliance?: MaintenanceCompliance | null;
+  last_completed_compliance?: MaintenanceCompliance | null;
   maintenance_control?: MaintenanceControl;
-  maintenance_control_part?: MaintenanceControlPart;
-};
-
-export type MaintenanceControlPart = {
-  id?: number;
-  maintenance_control_id?: number;
-  aircraft_part_id: number | string;
-  aircraft_part?: MaintenanceAircraftPart;
-  items?: MaintenanceControlItem[];
 };
 
 export type MaintenanceControl = Retirable & {
@@ -994,8 +957,6 @@ export type MaintenanceControl = Retirable & {
   remaining_percentage: number | string;
   certificates_count?: number;
   services_count?: number;
-  parts_count?: number;
-  parts?: MaintenanceControlPart[];
   items?: MaintenanceControlItem[];
   registered_by?: string;
   updated_by?: string;

@@ -68,6 +68,11 @@ import {
 import { CreateMaintenanceProviderDialog } from "@/components/dialogs/mantenimiento/planificacion/CreateMaintenanceProviderDialog";
 import { CatalogServicePicker } from "@/components/misc/CatalogServicePicker";
 import { MaintenanceAircraftPart, MaintenanceControl } from "@/types";
+import {
+  appliedDateOf,
+  appliedReadingOf,
+  consumedAtStartOf,
+} from "@/lib/complianceFormMapping";
 import { partTypeLabel, partTypeRank } from "@/lib/maintenancePartTypes";
 import {
   FormSection,
@@ -125,8 +130,12 @@ const baseItemSchema = z.object({
   // Servicio/certificado de origen en el catálogo de mantenimiento, si se
   // eligió con el selector en vez de escribirlo a mano.
   maintenance_catalog_service_id: z.number().optional(),
-  name: z.string().min(1, "Requerido"),
-  first_applied_date: z.date({ error: "Seleccione una fecha" }),
+  description: z.string().min(1, "Requerido"),
+  // Redacción para la OT y los formatos INAC; vacía = se usa `description`.
+  declared_description: z.string().optional(),
+  // Opcional solo para un ítem existente sin cumplimiento vigente (se deja
+  // como está); en una fila nueva lo exige el superRefine de abajo.
+  applied_date: z.date().optional(),
   intervals: z.array(intervalSchema).min(1, "Agregue al menos un intervalo"),
   remaining_percentage: optionalPercentage,
 });
@@ -190,11 +199,23 @@ const formSchema = z
 
     const requireInitialReading = (
       items: {
+        id?: number;
+        applied_date?: Date;
         intervals: { counting_method: string; initial_value?: number }[];
       }[],
       basePath: (string | number)[],
     ) => {
       items.forEach((item, index) => {
+        if (item.id !== undefined && !item.applied_date) return;
+
+        if (!item.applied_date) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Seleccione una fecha",
+            path: [...basePath, index, "applied_date"],
+          });
+        }
+
         const seenMethods = new Set<string>();
 
         item.intervals.forEach((interval, intervalIndex) => {
@@ -251,8 +272,9 @@ const emptyInterval = (usedMethods: string[] = []) => ({
 });
 
 const emptyCertificate = () => ({
-  name: "",
-  first_applied_date: undefined as unknown as Date,
+  description: "",
+  declared_description: "",
+  applied_date: undefined as unknown as Date,
   intervals: [emptyInterval()],
   maintenance_provider_id: "",
 });
@@ -270,7 +292,7 @@ const ITEM_ROW_GRID =
   "grid grid-cols-[minmax(200px,1fr)_92px_84px_96px_120px_88px_190px_64px] items-start gap-2";
 
 const ITEM_ROW_LABELS = [
-  "Nombre",
+  "Descripción",
   "Unidad",
   "Límite",
   "Lectura Inicial",
@@ -433,7 +455,7 @@ function ItemRow({
   const aircraftId = useWatch({ control, name: "aircraft_id" });
   const manualId = useWatch({ control, name: "maintenance_catalog_manual_id" });
   const manualName = useWatch({ control, name: "reference_manual" });
-  const name = useWatch({ control, name: `${namePrefix}.name` });
+  const name = useWatch({ control, name: `${namePrefix}.description` });
   const controlPercentage = useWatch({ control, name: "remaining_percentage" });
 
   const {
@@ -471,7 +493,7 @@ function ItemRow({
         <div className="flex items-center gap-1">
           <FormField
             control={control}
-            name={`${namePrefix}.name`}
+            name={`${namePrefix}.description`}
             render={({ field }) => (
               <FormItem className="w-full space-y-0">
                 <FormControl>
@@ -491,9 +513,15 @@ function ItemRow({
             manualId={manualId}
             manualName={manualName}
             onSelectService={(service) => {
-              setValue(`${namePrefix}.name` as any, service.name, {
+              setValue(`${namePrefix}.description` as any, service.name, {
                 shouldValidate: true,
               });
+              if (service.description) {
+                setValue(
+                  `${namePrefix}.declared_description` as any,
+                  service.description,
+                );
+              }
               setValue(
                 `${namePrefix}.maintenance_catalog_service_id` as any,
                 service.id,
@@ -535,7 +563,7 @@ function ItemRow({
 
         <CompactDateField
           control={control}
-          name={`${namePrefix}.first_applied_date`}
+          name={`${namePrefix}.applied_date`}
         />
 
         <FormField
@@ -613,10 +641,28 @@ function ItemRow({
         </div>
       </div>
 
+      <FormField
+        control={control}
+        name={`${namePrefix}.declared_description`}
+        render={({ field }) => (
+          <FormItem className="space-y-0">
+            <FormControl>
+              <Input
+                placeholder="Descripción en formatos (opcional): cómo se redacta en la OT y los formatos INAC"
+                className={fieldClass}
+                {...field}
+                value={field.value ?? ""}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
       {intervalFields.length > 1 && (
         <div className={cn(ITEM_ROW_GRID, "items-stretch gap-y-1.5")}>
           {/* Una sola vez, centrado entre todas las filas extra (grid-row:
-              span sobre la misma columna de Nombre) — no es de ninguna fila
+              span sobre la misma columna de Descripción) — no es de ninguna fila
               en particular, es la relación entre el intervalo principal y
               todos estos. El pr-9 (no pr-1) hace que termine al ras del
               borde derecho del INPUT de nombre, no de toda la celda: el
@@ -950,19 +996,20 @@ function mapToFormCertificate(
     // ítem de su entrada de catálogo.
     maintenance_catalog_service_id:
       item.maintenance_catalog_service_id ?? undefined,
-    name: item.name,
+    description: item.description,
+    declared_description: item.declared_description ?? "",
     // parseISO (no `new Date`): un string "yyyy-MM-dd" con `new Date` se
     // interpreta como medianoche UTC y en Venezuela (UTC-4) cae al día
     // anterior; parseISO lo toma en hora local.
-    first_applied_date: parseISO(item.first_applied_date),
+    applied_date: appliedDateOf(item.current_compliance),
     intervals: item.intervals.map((interval) => ({
       id: interval.id,
       counting_method: interval.counting_method,
       limit_value: Number(interval.limit_value),
-      initial_value:
-        interval.initial_value !== null && interval.initial_value !== undefined
-          ? Number(interval.initial_value)
-          : undefined,
+      initial_value: appliedReadingOf(
+        item.current_compliance,
+        interval.counting_method,
+      ),
     })),
     remaining_percentage:
       item.remaining_percentage !== null &&
@@ -1004,7 +1051,9 @@ function buildDefaultValues(initialData?: MaintenanceControl): FormValues {
   if (!initialData) return emptyFormValues;
 
   const items = (initialData.items ?? []).filter((i) => !i.retired_at);
-  const parts = initialData.parts ?? [];
+  const partIds = Array.from(
+    new Set(items.map((i) => i.aircraft_part_id).filter(Boolean)),
+  ).map(String);
 
   return {
     aircraft_id: String(initialData.aircraft_id),
@@ -1017,26 +1066,18 @@ function buildDefaultValues(initialData?: MaintenanceControl): FormValues {
       : undefined,
     remaining_percentage: Number(initialData.remaining_percentage),
     certificates: items
-      .filter((i) => i.category === "CERTIFICATE")
+      .filter((i) => i.item_type === "CERTIFICATE")
       .map(mapToFormCertificate),
     services: items
-      .filter((i) => i.category === "SERVICE" && !i.maintenance_control_part_id)
+      .filter((i) => i.item_type === "SERVICE" && !i.aircraft_part_id)
       .map(mapToFormService),
-    selected_part_ids: parts.map((p) => String(p.aircraft_part_id)),
+    selected_part_ids: partIds,
     part_services: items
-      .filter((i) => i.maintenance_control_part_id)
-      .map((i) => {
-        // String(...) en ambos lados: el id puede llegar como number o
-        // string según el campo, y === estricto entre tipos distintos
-        // nunca matchea (por eso las partes se veían sin servicios).
-        const part = parts.find(
-          (p) => String(p.id) === String(i.maintenance_control_part_id),
-        );
-        return {
-          ...mapToFormService(i),
-          aircraft_part_id: part ? String(part.aircraft_part_id) : "",
-        };
-      }),
+      .filter((i) => i.aircraft_part_id)
+      .map((i) => ({
+        ...mapToFormService(i),
+        aircraft_part_id: String(i.aircraft_part_id),
+      })),
   };
 }
 
@@ -1091,8 +1132,11 @@ export default function CreateMaintenanceControlForm({
     const toBaseItem = (item: z.infer<typeof certificateSchema>) => ({
       id: item.id,
       maintenance_catalog_service_id: item.maintenance_catalog_service_id,
-      name: item.name,
-      first_applied_date: format(item.first_applied_date, "yyyy-MM-dd"),
+      description: item.description,
+      declared_description: item.declared_description?.trim() || undefined,
+      applied_date: item.applied_date
+        ? format(item.applied_date, "yyyy-MM-dd")
+        : undefined,
       remaining_percentage: item.remaining_percentage ?? null,
       intervals: item.intervals.map((interval) => ({
         counting_method: interval.counting_method,

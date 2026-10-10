@@ -8,7 +8,8 @@ import {
 } from "@/types";
 
 // Reexport: varios consumidores ya importan el tipo de estado desde acá.
-export type ItemStatus = MaintenanceItemStatus;
+// NONE = el ítem no tiene cumplimiento vigente: sin reloj, no hay estado que afirmar.
+export type ItemStatus = MaintenanceItemStatus | "NONE";
 
 /**
  * Las mismas 4 franjas en todos lados que muestran estado de un ítem (tabla
@@ -42,6 +43,12 @@ export const STATUS_META: Record<
     dot: "bg-red-600",
     text: "text-red-700 dark:text-red-400",
     row: "bg-red-600/[0.04]",
+  },
+  NONE: {
+    label: "Sin cumplimiento vigente",
+    dot: "bg-slate-400",
+    text: "text-muted-foreground",
+    row: "",
   },
 };
 
@@ -167,7 +174,7 @@ function formatInterval(
  */
 type ComputableItem = {
   computed?: MaintenanceControlItemComputed | null;
-  latest_compliance?: {
+  current_compliance?: {
     maintenance_provider?: MaintenanceProvider | null;
   } | null;
   maintenance_provider?: MaintenanceProvider | null;
@@ -177,20 +184,20 @@ export function computeMaintenanceItem(
   item: ComputableItem,
 ): ComputedMaintenanceItem {
   const computed = item.computed;
-  const latest = item.latest_compliance;
+  const current = item.current_compliance;
 
-  // Defensivo: computed siempre debería venir del backend (index/show ya lo
-  // adjuntan); sin él no hay con qué calcular nada.
+  // Sin cumplimiento vigente el backend no calcula nada (computed null): el
+  // ítem no tiene reloj hasta que se inicie uno.
   if (!computed) {
     return {
       frequency: "—",
       applied: "—",
       next: "—",
-      remaining: "—",
+      remaining: "Sin cumplimiento vigente",
       estimate: "—",
-      status: "OK",
+      status: "NONE",
       providerName:
-        latest?.maintenance_provider?.name ??
+        current?.maintenance_provider?.name ??
         item.maintenance_provider?.name ??
         "—",
       extras: [],

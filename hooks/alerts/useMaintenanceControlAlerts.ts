@@ -53,10 +53,10 @@ function buildMaintenanceWarningMeta(
       ? Math.min(Math.max((limitValue - remainingValue) / limitValue, 0), 1)
       : 0;
 
-  const part = item.maintenance_control_part?.aircraft_part;
+  const part = item.aircraft_part;
 
   return {
-    category: item.category,
+    category: item.item_type,
     scope: part ? "part" : "aircraft",
     partLabel: part?.part_name,
     unit: interval.counting_method,
@@ -134,8 +134,7 @@ export const useMaintenanceControlAlerts = () => {
         )
           continue;
 
-        const partLabel =
-          item.maintenance_control_part?.aircraft_part?.part_name;
+        const partLabel = item.aircraft_part?.part_name;
 
         if (computed.status === "WARNING") {
           result.push({
@@ -149,7 +148,7 @@ export const useMaintenanceControlAlerts = () => {
             weight: 40,
             // El plazo corre igual aunque se oculte el aviso.
             isDismissable: false,
-            title: item.name,
+            title: item.description,
             label: [aircraft.acronym, partLabel].filter(Boolean).join(" · "),
             severity: "warning",
             href: companySlug
@@ -175,8 +174,8 @@ export const useMaintenanceControlAlerts = () => {
           isDismissable: false,
           title:
             computed.status === "OVERDUE"
-              ? `Vencido: ${item.name}`
-              : `Por vencer: ${item.name}`,
+              ? `Vencido: ${item.description}`
+              : `Por vencer: ${item.description}`,
           label: [aircraft.acronym, partLabel].filter(Boolean).join(" · "),
           description: `Frecuencia: ${computed.frequency} · Remanente: ${computed.remaining}`,
           severity: computed.status === "OVERDUE" ? "critical" : "warning",

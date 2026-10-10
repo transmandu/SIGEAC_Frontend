@@ -5,6 +5,7 @@ import axiosInstance from "@/lib/axios";
 import {
   ComponentAction,
   ComponentLimitKind,
+  ControlItemFlag,
   MaintenanceCountingMethod,
 } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -28,18 +29,18 @@ export interface ComponentIntervalData {
 
 export interface ComponentItemData {
   id?: number;
-  parent_aircraft_part_id?: number | null;
   aircraft_part_id?: number | null;
   maintenance_catalog_service_id?: number | null;
   maintenance_provider_id: string;
-  is_hazardous: boolean;
+  flags: ControlItemFlag[];
   description: string;
+  declared_description?: string;
   part_number: string;
   serial: string;
   position?: string;
   action: ComponentAction;
   reference_document?: string;
-  first_applied_date: string;
+  applied_date?: string;
   remaining_percentage?: number | null;
   intervals: ComponentIntervalData[];
 }
@@ -215,7 +216,7 @@ export const useLinkComponentPendingWorkOrder = () => {
       workOrderId: string | number;
     }) => {
       await axiosInstance.patch(
-        `/${company}/component-control-items/${itemId}/pending-work-order`,
+        `/${company}/component-control-items/${itemId}/work-order`,
         {
           work_order_id: workOrderId,
         },
@@ -244,62 +245,6 @@ export const useLinkComponentPendingWorkOrder = () => {
   });
 
   return { linkComponentPendingWorkOrder: linkMutation };
-};
-
-export interface CreateComponentComplianceData {
-  component_control_item_id: number;
-  maintenance_provider_id: string;
-  work_order_id?: string;
-  compliance_date: string;
-  hours_reading: number;
-  cycles_reading: number;
-  action: ComponentAction;
-  consumed_hours?: number;
-  consumed_cycles?: number;
-  notes?: string;
-}
-
-export const useCreateComponentCompliance = () => {
-  const queryClient = useQueryClient();
-
-  const createMutation = useMutation({
-    mutationFn: async ({
-      data,
-      company,
-    }: {
-      data: CreateComponentComplianceData;
-      company: string;
-    }) => {
-      await axiosInstance.post(`/${company}/component-compliances`, data);
-    },
-    onSuccess: () => {
-      invalidatePlanificationAudit(queryClient);
-      queryClient.invalidateQueries({
-        queryKey: ["component-control"],
-        exact: false,
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["component-controls"],
-        exact: false,
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["component-compliances"],
-        exact: false,
-      });
-      toast.success("¡Registrado!", {
-        description: "El cumplimiento del componente quedó registrado.",
-      });
-    },
-    onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          firstBackendError(error) || "No se pudo registrar el cumplimiento...",
-      });
-      console.log(error);
-    },
-  });
-
-  return { createComponentCompliance: createMutation };
 };
 
 export interface ImportComponentComplianceHistorySkippedRow {

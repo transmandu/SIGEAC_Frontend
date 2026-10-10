@@ -35,17 +35,18 @@ export interface DirectiveIntervalData {
 
 export interface DirectiveItemData {
   id?: number;
-  parent_aircraft_part_id?: number | null;
+  aircraft_part_id?: number | null;
   maintenance_provider_id?: string;
   maintenance_catalog_service_id?: number | null;
   ad_number: string;
   authority: DirectiveAuthority;
   revision?: string;
   description: string;
+  declared_description?: string;
   reference_document?: string;
   compliance_method?: string;
   compliance_type: DirectiveComplianceType;
-  first_applied_date?: string;
+  applied_date?: string;
   remaining_percentage?: number | null;
   intervals: DirectiveIntervalData[];
 }
@@ -223,7 +224,7 @@ export const useLinkDirectivePendingWorkOrder = () => {
       workOrderId: string | number;
     }) => {
       await axiosInstance.patch(
-        `/${company}/directive-control-items/${itemId}/pending-work-order`,
+        `/${company}/directive-control-items/${itemId}/work-order`,
         {
           work_order_id: workOrderId,
         },
@@ -251,60 +252,6 @@ export const useLinkDirectivePendingWorkOrder = () => {
   });
 
   return { linkDirectivePendingWorkOrder: linkMutation };
-};
-
-export interface CreateDirectiveComplianceData {
-  directive_control_item_id: number;
-  maintenance_provider_id: string;
-  work_order_id?: string;
-  compliance_date: string;
-  hours_reading: number;
-  cycles_reading: number;
-  compliance_method?: string;
-  notes?: string;
-}
-
-export const useCreateDirectiveCompliance = () => {
-  const queryClient = useQueryClient();
-
-  const createMutation = useMutation({
-    mutationFn: async ({
-      data,
-      company,
-    }: {
-      data: CreateDirectiveComplianceData;
-      company: string;
-    }) => {
-      await axiosInstance.post(`/${company}/directive-compliances`, data);
-    },
-    onSuccess: () => {
-      invalidatePlanificationAudit(queryClient);
-      queryClient.invalidateQueries({
-        queryKey: ["directive-control"],
-        exact: false,
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["directive-controls"],
-        exact: false,
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["directive-compliances"],
-        exact: false,
-      });
-      toast.success("¡Registrado!", {
-        description: "El cumplimiento de la AD quedó registrado.",
-      });
-    },
-    onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          firstBackendError(error) || "No se pudo registrar el cumplimiento...",
-      });
-      console.log(error);
-    },
-  });
-
-  return { createDirectiveCompliance: createMutation };
 };
 
 export interface ImportDirectiveComplianceHistorySkippedRow {

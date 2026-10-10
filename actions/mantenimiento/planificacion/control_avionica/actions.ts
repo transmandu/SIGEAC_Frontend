@@ -2,7 +2,11 @@ import type { ConfirmedReason } from "@/components/dialogs/mantenimiento/planifi
 import type { EditReasonValue } from "@/components/forms/mantenimiento/planificacion/EditReasonFields";
 import { invalidatePlanificationAudit } from "@/hooks/mantenimiento/planificacion/useGetPlanificationAuditStats";
 import axiosInstance from "@/lib/axios";
-import { AvionicsAction, MaintenanceCountingMethod } from "@/types";
+import {
+  AvionicsAction,
+  ControlItemFlag,
+  MaintenanceCountingMethod,
+} from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -24,7 +28,7 @@ export interface AvionicsTaskData {
   action: AvionicsAction;
   is_on_condition: boolean;
   maintenance_provider_id?: string;
-  first_applied_date?: string;
+  applied_date?: string;
   remaining_percentage?: number | null;
   intervals: AvionicsIntervalData[];
 }
@@ -33,8 +37,9 @@ export interface AvionicsItemData {
   id?: number;
   aircraft_part_id?: number | null;
   maintenance_catalog_service_id?: number | null;
-  is_hazardous: boolean;
+  flags: ControlItemFlag[];
   description: string;
+  declared_description?: string;
   part_number: string;
   serial: string;
   position?: string;
@@ -211,7 +216,7 @@ export const useLinkAvionicsPendingWorkOrder = () => {
       workOrderId: string | number;
     }) => {
       await axiosInstance.patch(
-        `/${company}/avionics-control-tasks/${taskId}/pending-work-order`,
+        `/${company}/avionics-control-tasks/${taskId}/work-order`,
         {
           work_order_id: workOrderId,
         },
@@ -239,59 +244,6 @@ export const useLinkAvionicsPendingWorkOrder = () => {
   });
 
   return { linkAvionicsPendingWorkOrder: linkMutation };
-};
-
-export interface CreateAvionicsComplianceData {
-  avionics_control_task_id: number;
-  maintenance_provider_id: string;
-  work_order_id?: string;
-  compliance_date: string;
-  hours_reading: number;
-  cycles_reading: number;
-  notes?: string;
-}
-
-export const useCreateAvionicsCompliance = () => {
-  const queryClient = useQueryClient();
-
-  const createMutation = useMutation({
-    mutationFn: async ({
-      data,
-      company,
-    }: {
-      data: CreateAvionicsComplianceData;
-      company: string;
-    }) => {
-      await axiosInstance.post(`/${company}/avionics-compliances`, data);
-    },
-    onSuccess: () => {
-      invalidatePlanificationAudit(queryClient);
-      queryClient.invalidateQueries({
-        queryKey: ["avionics-control"],
-        exact: false,
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["avionics-controls"],
-        exact: false,
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["avionics-compliances"],
-        exact: false,
-      });
-      toast.success("¡Registrado!", {
-        description: "El cumplimiento de la tarea quedó registrado.",
-      });
-    },
-    onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          firstBackendError(error) || "No se pudo registrar el cumplimiento...",
-      });
-      console.log(error);
-    },
-  });
-
-  return { createAvionicsCompliance: createMutation };
 };
 
 export interface ImportAvionicsComplianceHistorySkippedRow {

@@ -15,10 +15,9 @@ import {
 } from "react-hook-form";
 import { zodResolver } from "@/lib/zod-resolver";
 import { z } from "zod";
-import { format, parseISO } from "date-fns";
+import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import {
-  AlertTriangle,
   ClipboardList,
   HelpCircle,
   Loader2,
@@ -62,7 +61,14 @@ import {
   useUpdateAvionicsControl,
 } from "@/actions/mantenimiento/planificacion/control_avionica/actions";
 import { CreateMaintenanceProviderDialog } from "@/components/dialogs/mantenimiento/planificacion/CreateMaintenanceProviderDialog";
-import { AvionicsAction, AvionicsControl } from "@/types";
+import { AvionicsAction, AvionicsControl, ControlItemFlag } from "@/types";
+import { CONTROL_ITEM_FLAGS } from "@/lib/controlItemFlags";
+import {
+  appliedDateOf,
+  appliedReadingOf,
+  consumedAtStartOf,
+} from "@/lib/complianceFormMapping";
+import { ControlItemFlagsField } from "./ControlItemFlagsField";
 import { AVIONICS_ACTION_LABELS } from "@/lib/avionicsControlLabels";
 import {
   FormSection,
@@ -122,15 +128,17 @@ const taskSchema = z.object({
   action: actionEnum,
   is_on_condition: z.boolean().default(false),
   maintenance_provider_id: z.string().optional(),
-  first_applied_date: z.date().optional(),
+  applied_date: z.date().optional(),
   remaining_percentage: optionalPercentage,
   intervals: z.array(intervalSchema).default([]),
 });
 
 const itemSchema = z.object({
   id: z.number().optional(),
-  is_hazardous: z.boolean().default(false),
+  flags: z.array(z.enum(CONTROL_ITEM_FLAGS)).default([]),
   description: z.string().min(1, "Requerido"),
+  // Redacción para la OT y los formatos INAC; vacía = se usa `description`.
+  declared_description: z.string().optional(),
   part_number: z.string().min(1, "Requerido"),
   serial: z.string().min(1, "Requerido"),
   position: z.string().optional(),
@@ -166,11 +174,11 @@ const formSchema = z
         if (task.is_on_condition) return;
         const path = ["items", index, "tasks", t];
 
-        if (!task.first_applied_date) {
+        if (!task.applied_date) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: "Indique la fecha del último evento",
-            path: [...path, "first_applied_date"],
+            path: [...path, "applied_date"],
           });
         }
         if (!task.maintenance_provider_id) {
@@ -231,14 +239,15 @@ const emptyTask = (controlPercentage?: number | string) => ({
   action: "FUNCTIONAL_CHECK",
   is_on_condition: true,
   maintenance_provider_id: "",
-  first_applied_date: undefined as unknown as Date,
+  applied_date: undefined as unknown as Date,
   remaining_percentage: controlPercentage as number | undefined,
   intervals: [] as ReturnType<typeof emptyInterval>[],
 });
 
 const emptyItem = (controlPercentage?: number | string) => ({
-  is_hazardous: false,
+  flags: [] as ControlItemFlag[],
   description: "",
+  declared_description: "",
   part_number: "",
   serial: "",
   position: "",
@@ -603,7 +612,7 @@ function TaskCard({
           </FieldLabel>
           <CompactDateField
             control={control}
-            name={`${namePrefix}.first_applied_date`}
+            name={`${namePrefix}.applied_date`}
           />
         </FormItem>
         {/* Va al final de la fila porque es lo que decide si abajo aparecen
@@ -784,9 +793,16 @@ function DeviceCard({
         />
       </div>
 
-      {/* Los tres opcionales del equipo juntos: dónde está montado, de qué
-          documento sale y si es mercancía peligrosa. */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,90px)_minmax(0,1fr)_auto]">
+      <TextField
+        control={control}
+        name={`${namePrefix}.declared_description`}
+        label="Descripción en formatos"
+        placeholder="Cómo se redacta en la OT y los formatos INAC. Si se deja vacía se usa la descripción."
+        optional
+      />
+
+      {/* Dónde está montado y de qué documento sale. */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,90px)_minmax(0,1fr)]">
         <TextField
           control={control}
           name={`${namePrefix}.position`}
@@ -801,30 +817,9 @@ function DeviceCard({
           placeholder="EJ: AMM 3200/355 / RAV 135"
           optional
         />
-        <FormField
-          control={control}
-          name={`${namePrefix}.is_hazardous`}
-          render={({ field }) => (
-            <FormItem className="space-y-1">
-              <span className={cn(labelClass, "hidden lg:block")} aria-hidden>
-                &nbsp;
-              </span>
-              <label className="flex h-11 w-fit cursor-pointer select-none items-center gap-2 text-sm">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <span className="flex items-center gap-1 whitespace-nowrap">
-                  <AlertTriangle className="size-3.5 text-amber-500" />
-                  Mercancía peligrosa
-                </span>
-              </label>
-            </FormItem>
-          )}
-        />
       </div>
+
+      <ControlItemFlagsField control={control} name={`${namePrefix}.flags`} />
 
       <div className="space-y-2 border-t border-slate-400/25 pt-3 dark:border-slate-600/25">
         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -867,8 +862,9 @@ function DeviceCard({
 function mapToFormItem(item: NonNullable<AvionicsControl["items"]>[number]) {
   return {
     id: item.id,
-    is_hazardous: item.is_hazardous,
+    flags: item.flags ?? [],
     description: item.description,
+    declared_description: item.declared_description ?? "",
     part_number: item.part_number,
     serial: item.serial,
     position: item.position ?? "",
@@ -882,9 +878,7 @@ function mapToFormItem(item: NonNullable<AvionicsControl["items"]>[number]) {
         maintenance_provider_id: task.maintenance_provider_id
           ? String(task.maintenance_provider_id)
           : "",
-        first_applied_date: task.first_applied_date
-          ? parseISO(task.first_applied_date)
-          : undefined,
+        applied_date: appliedDateOf(task.current_compliance),
         remaining_percentage:
           task.remaining_percentage !== null &&
           task.remaining_percentage !== undefined
@@ -894,10 +888,10 @@ function mapToFormItem(item: NonNullable<AvionicsControl["items"]>[number]) {
           id: interval.id,
           counting_method: interval.counting_method,
           limit_value: Number(interval.limit_value),
-          initial_value:
-            interval.initial_value != null
-              ? Number(interval.initial_value)
-              : undefined,
+          initial_value: appliedReadingOf(
+            task.current_compliance,
+            interval.counting_method,
+          ),
         })),
       })),
   };
@@ -928,7 +922,7 @@ function buildDefaultValues(initialData?: AvionicsControl): FormValues {
       : undefined,
     remaining_percentage: Number(initialData.remaining_percentage),
     items: (initialData.items ?? [])
-      .filter((i) => i.status === "ACTIVE" && !i.retired_at)
+      .filter((i) => !i.retired_at)
       .map(mapToFormItem),
   };
 }
@@ -989,8 +983,9 @@ export default function CreateAvionicsControlForm({
       remaining_percentage: values.remaining_percentage,
       items: values.items.map((item) => ({
         id: item.id,
-        is_hazardous: item.is_hazardous ?? false,
+        flags: item.flags ?? [],
         description: item.description,
+        declared_description: item.declared_description?.trim() || undefined,
         part_number: item.part_number,
         serial: item.serial,
         position: item.position || undefined,
@@ -1003,8 +998,8 @@ export default function CreateAvionicsControlForm({
           // igual se cumple y deja registro. Lo que no tiene es plazo, y por
           // eso el % de alerta y los intervalos sí quedan vacíos.
           maintenance_provider_id: task.maintenance_provider_id || undefined,
-          first_applied_date: task.first_applied_date
-            ? format(task.first_applied_date, "yyyy-MM-dd")
+          applied_date: task.applied_date
+            ? format(task.applied_date, "yyyy-MM-dd")
             : undefined,
           remaining_percentage: task.is_on_condition
             ? null

@@ -4,11 +4,10 @@ import { useState } from "react";
 import { useForm, useFieldArray, useWatch, Control } from "react-hook-form";
 import { zodResolver } from "@/lib/zod-resolver";
 import { z } from "zod";
-import { format, startOfDay } from "date-fns";
+import { format } from "date-fns";
 import { Loader2, Plus, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -26,6 +25,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -42,7 +42,6 @@ import { DatePickerField } from "@/components/ui/DatePickerField";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useAddMaintenanceControlItem } from "@/actions/mantenimiento/planificacion/control_mantenimiento/actions";
-import { useCreateMaintenanceCompliance } from "@/actions/mantenimiento/planificacion/cumplimientos/actions";
 import {
   FormSection,
   fieldClass,
@@ -79,16 +78,12 @@ const intervalSchema = z.object({
 
 const formSchema = z
   .object({
-    name: z.string().min(1, "Requerido"),
-    first_applied_date: z.date({ error: "Seleccione una fecha" }),
+    description: z.string().min(1, "Requerido"),
+    declared_description: z.string().optional(),
+    applied_date: z.date({ error: "Seleccione una fecha" }),
     remaining_percentage: optionalPercentage,
     maintenance_provider_id: z.string().optional(),
     intervals: z.array(intervalSchema).min(1, "Agregue al menos un intervalo"),
-    register_compliance: z.boolean().default(false),
-    compliance_date: z.date().optional(),
-    hours_reading: optionalNumeric,
-    cycles_reading: optionalNumeric,
-    compliance_notes: z.string().optional(),
   })
   .superRefine((vals, ctx) => {
     const seenMethods = new Set<string>();
@@ -110,22 +105,6 @@ const formSchema = z
       seenMethods.add(interval.counting_method);
     });
 
-    if (vals.register_compliance) {
-      if (!vals.compliance_date) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "Seleccione la fecha de cumplimiento",
-          path: ["compliance_date"],
-        });
-      }
-      if (!vals.maintenance_provider_id) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "Seleccione quién lo realizó",
-          path: ["maintenance_provider_id"],
-        });
-      }
-    }
   });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -238,9 +217,9 @@ function IntervalRow({
 
 interface AddMaintenanceControlItemDialogProps {
   controlId: number | string;
-  category: "CERTIFICATE" | "SERVICE";
+  itemType: "CERTIFICATE" | "SERVICE";
   /** Fijo a la sección: `undefined` = nivel aeronave (Certificados/Servicios de Aeronave). */
-  maintenanceControlPartId?: number | string;
+  aircraftPartId?: number | string;
   /** Nombre de la sección, para el tooltip del botón ("Añadir a Certificados"). */
   sectionLabel: string;
   currentHours: number;
@@ -259,8 +238,8 @@ interface AddMaintenanceControlItemDialogProps {
  */
 export function AddMaintenanceControlItemDialog({
   controlId,
-  category,
-  maintenanceControlPartId,
+  itemType,
+  aircraftPartId,
   sectionLabel,
   currentHours,
   currentCycles,
@@ -268,26 +247,20 @@ export function AddMaintenanceControlItemDialog({
   const [open, setOpen] = useState(false);
   const { selectedCompany } = useCompanyStore();
   const { addMaintenanceControlItem } = useAddMaintenanceControlItem();
-  const { createMaintenanceCompliance } = useCreateMaintenanceCompliance();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
-      first_applied_date: undefined,
+      description: "",
+      declared_description: "",
+      applied_date: undefined,
       remaining_percentage: undefined,
       maintenance_provider_id: "",
       intervals: [emptyInterval()],
-      register_compliance: false,
-      compliance_date: new Date(),
-      hours_reading: currentHours || undefined,
-      cycles_reading: currentCycles || undefined,
-      compliance_notes: "",
     },
   });
 
   const { control } = form;
-  const registerCompliance = useWatch({ control, name: "register_compliance" });
   const {
     fields: intervalFields,
     append: appendInterval,
@@ -303,7 +276,7 @@ export function AddMaintenanceControlItemDialog({
   };
 
   const onSubmit = async (values: FormValues) => {
-    if (category === "SERVICE" && !values.maintenance_provider_id) {
+    if (itemType === "SERVICE" && !values.maintenance_provider_id) {
       form.setError("maintenance_provider_id", {
         message: "Seleccione quién lo realiza",
       });
@@ -314,39 +287,24 @@ export function AddMaintenanceControlItemDialog({
       company: selectedCompany!.slug,
       controlId,
       data: {
-        category,
-        maintenance_control_part_id: maintenanceControlPartId
-          ? Number(maintenanceControlPartId)
-          : undefined,
-        name: values.name,
-        first_applied_date: format(values.first_applied_date, "yyyy-MM-dd"),
+        item_type: itemType,
+        aircraft_part_id: aircraftPartId ? Number(aircraftPartId) : undefined,
+        description: values.description,
+        declared_description: values.declared_description?.trim() || undefined,
+        applied_date: format(values.applied_date, "yyyy-MM-dd"),
         remaining_percentage: values.remaining_percentage ?? null,
         maintenance_provider_id: values.maintenance_provider_id || undefined,
         intervals: values.intervals,
       },
     });
 
-    if (values.register_compliance && item?.id) {
-      await createMaintenanceCompliance.mutateAsync({
-        company: selectedCompany!.slug,
-        data: {
-          maintenance_control_item_id: item.id,
-          maintenance_provider_id: values.maintenance_provider_id!,
-          compliance_date: format(values.compliance_date!, "yyyy-MM-dd"),
-          hours_reading: values.hours_reading ?? 0,
-          cycles_reading: values.cycles_reading ?? 0,
-          notes: values.compliance_notes || undefined,
-        },
-      });
-    }
-
     resetAndClose();
   };
 
   const isPending =
-    addMaintenanceControlItem.isPending || createMaintenanceCompliance.isPending;
+    addMaintenanceControlItem.isPending;
 
-  const triggerLabel = category === "CERTIFICATE" ? "certificado" : "servicio";
+  const triggerLabel = itemType === "CERTIFICATE" ? "certificado" : "servicio";
 
   return (
     <Dialog open={open} onOpenChange={(next) => (next ? setOpen(true) : resetAndClose())}>
@@ -371,7 +329,7 @@ export function AddMaintenanceControlItemDialog({
       <DialogContent className="flex max-h-[85vh] flex-col overflow-y-auto sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>
-            Añadir {category === "CERTIFICATE" ? "Certificado" : "Servicio"}
+            Añadir {itemType === "CERTIFICATE" ? "Certificado" : "Servicio"}
           </DialogTitle>
           <DialogDescription>{sectionLabel}</DialogDescription>
         </DialogHeader>
@@ -380,10 +338,10 @@ export function AddMaintenanceControlItemDialog({
           <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
             <FormField
               control={control}
-              name="name"
+              name="description"
               render={({ field }) => (
                 <FormItem className="w-full">
-                  <FormLabel className={labelClass}>Nombre</FormLabel>
+                  <FormLabel className={labelClass}>Descripción</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="EJ: Certificado de Aeronavegabilidad"
@@ -396,10 +354,30 @@ export function AddMaintenanceControlItemDialog({
               )}
             />
 
+            <FormField
+              control={control}
+              name="declared_description"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel className={labelClass}>
+                    Descripción en formatos (Opcional)
+                  </FormLabel>
+                  <FormControl>
+                    <Textarea
+                      rows={2}
+                      placeholder="Cómo se redacta en la OT y los formatos INAC. Si se deja vacía se usa la descripción."
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={control}
-                name="first_applied_date"
+                name="applied_date"
                 render={({ field }) => (
                   <FormItem className="w-full">
                     <DatePickerField
@@ -415,7 +393,7 @@ export function AddMaintenanceControlItemDialog({
               />
               <FormItem className="w-full space-y-2">
                 <FormLabel className={labelClass}>
-                  Realizado Por {category === "SERVICE" ? "" : "(Opcional)"}
+                  Realizado Por {itemType === "SERVICE" ? "" : "(Opcional)"}
                 </FormLabel>
                 <ProviderSelect
                   control={control as Control<any>}
@@ -472,84 +450,6 @@ export function AddMaintenanceControlItemDialog({
                 )}
               </div>
             </FormSection>
-
-            <FormField
-              control={control}
-              name="register_compliance"
-              render={({ field }) => (
-                <FormItem className="flex items-center gap-2 space-y-0">
-                  <FormControl>
-                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                  </FormControl>
-                  <FormLabel className="cursor-pointer font-normal">
-                    Ya tiene un cumplimiento registrado — cargarlo ahora
-                  </FormLabel>
-                </FormItem>
-              )}
-            />
-
-            {registerCompliance && (
-              <FormSection title="Cumplimiento Inicial">
-                <div className="flex flex-col gap-4">
-                  <FormField
-                    control={control}
-                    name="compliance_date"
-                    render={({ field }) => (
-                      <FormItem className="w-full">
-                        <DatePickerField
-                          label="Fecha de Cumplimiento"
-                          value={field.value}
-                          setValue={(date) => field.onChange(date ?? undefined)}
-                          maxDate={new Date()}
-                          required
-                        />
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={control}
-                      name="hours_reading"
-                      render={({ field }) => (
-                        <FormItem className="w-full">
-                          <FormLabel className={labelClass}>Horas</FormLabel>
-                          <FormControl>
-                            <NumericInput
-                              className={fieldClass}
-                              value={field.value}
-                              onChange={field.onChange}
-                              onBlur={field.onBlur}
-                              name={field.name}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={control}
-                      name="cycles_reading"
-                      render={({ field }) => (
-                        <FormItem className="w-full">
-                          <FormLabel className={labelClass}>Ciclos</FormLabel>
-                          <FormControl>
-                            <NumericInput
-                              className={fieldClass}
-                              value={field.value}
-                              onChange={field.onChange}
-                              onBlur={field.onBlur}
-                              name={field.name}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
-              </FormSection>
-            )}
 
             <Button
               className="h-11 gap-2 rounded-lg bg-linear-to-br from-primary to-primary/85 text-primary-foreground shadow-sm transition-all duration-200 hover:shadow-md hover:shadow-blue-500/25 disabled:opacity-70"

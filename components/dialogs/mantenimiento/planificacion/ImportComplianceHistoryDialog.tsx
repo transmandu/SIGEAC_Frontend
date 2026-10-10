@@ -143,7 +143,7 @@ export function ImportComplianceHistoryDialog({
                     variant="outline"
                     className="font-normal"
                   >
-                    {item.name}
+                    {item.description}
                   </Badge>
                 ))}
               </div>

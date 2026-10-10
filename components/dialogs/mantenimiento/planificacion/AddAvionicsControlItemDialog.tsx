@@ -9,6 +9,9 @@ import { Loader2, Plus, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { CONTROL_ITEM_FLAGS } from "@/lib/controlItemFlags";
+import { ControlItemFlagsField } from "@/components/forms/mantenimiento/planificacion/ControlItemFlagsField";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -88,18 +91,18 @@ const taskSchema = z
     ]),
     is_on_condition: z.boolean().default(false),
     maintenance_provider_id: z.string().optional(),
-    first_applied_date: z.date().optional(),
+    applied_date: z.date().optional(),
     remaining_percentage: optionalPercentage,
     intervals: z.array(intervalSchema).default([]),
   })
   .superRefine((vals, ctx) => {
     if (vals.is_on_condition) return;
 
-    if (!vals.first_applied_date) {
+    if (!vals.applied_date) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "Indique la fecha del último evento",
-        path: ["first_applied_date"],
+        path: ["applied_date"],
       });
     }
     if (!vals.maintenance_provider_id) {
@@ -139,10 +142,11 @@ const taskSchema = z
 
 const formSchema = z.object({
   description: z.string().min(1, "Requerido"),
+  declared_description: z.string().optional(),
   part_number: z.string().min(1, "Requerido"),
   serial: z.string().min(1, "Requerido"),
   position: z.string().optional(),
-  is_hazardous: z.boolean().default(false),
+  flags: z.array(z.enum(CONTROL_ITEM_FLAGS)).default([]),
   reference_document: z.string().optional(),
   tasks: z.array(taskSchema).min(1, "Agregue al menos una tarea"),
 });
@@ -159,7 +163,7 @@ const emptyTask = () => ({
   action: "FUNCTIONAL_CHECK" as const,
   is_on_condition: false,
   maintenance_provider_id: "",
-  first_applied_date: undefined,
+  applied_date: undefined,
   intervals: [emptyInterval()],
 });
 
@@ -344,7 +348,7 @@ function TaskRow({
           <div className="grid grid-cols-2 gap-4">
             <FormField
               control={control}
-              name={`${namePrefix}.first_applied_date`}
+              name={`${namePrefix}.applied_date`}
               render={({ field }) => (
                 <FormItem className="w-full">
                   <DatePickerField
@@ -441,10 +445,11 @@ export function AddAvionicsControlItemDialog({
     resolver: zodResolver(formSchema),
     defaultValues: {
       description: "",
+      declared_description: "",
       part_number: "",
       serial: "",
       position: "",
-      is_hazardous: false,
+      flags: [],
       reference_document: "",
       tasks: [emptyTask()],
     },
@@ -468,10 +473,11 @@ export function AddAvionicsControlItemDialog({
       controlId,
       data: {
         description: values.description,
+        declared_description: values.declared_description?.trim() || undefined,
         part_number: values.part_number,
         serial: values.serial,
         position: values.position || undefined,
-        is_hazardous: values.is_hazardous,
+        flags: values.flags,
         reference_document: values.reference_document || undefined,
         tasks: values.tasks.map((task) => ({
           action: task.action,
@@ -479,10 +485,10 @@ export function AddAvionicsControlItemDialog({
           maintenance_provider_id: task.is_on_condition
             ? undefined
             : task.maintenance_provider_id,
-          first_applied_date: task.is_on_condition
+          applied_date: task.is_on_condition
             ? undefined
-            : task.first_applied_date
-              ? format(task.first_applied_date, "yyyy-MM-dd")
+            : task.applied_date
+              ? format(task.applied_date, "yyyy-MM-dd")
               : undefined,
           remaining_percentage: task.is_on_condition
             ? null
@@ -539,6 +545,26 @@ export function AddAvionicsControlItemDialog({
               )}
             />
 
+            <FormField
+              control={control}
+              name="declared_description"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel className={labelClass}>
+                    Descripción en formatos (Opcional)
+                  </FormLabel>
+                  <FormControl>
+                    <Textarea
+                      rows={2}
+                      placeholder="Cómo se redacta en la OT y los formatos INAC. Si se deja vacía se usa la descripción."
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <div className="grid grid-cols-3 gap-4">
               <FormField
                 control={control}
@@ -583,20 +609,7 @@ export function AddAvionicsControlItemDialog({
               />
             </div>
 
-            <FormField
-              control={control}
-              name="is_hazardous"
-              render={({ field }) => (
-                <FormItem className="flex items-center gap-2 space-y-0">
-                  <FormControl>
-                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                  </FormControl>
-                  <FormLabel className="cursor-pointer font-normal">
-                    Es un material peligroso
-                  </FormLabel>
-                </FormItem>
-              )}
-            />
+            <ControlItemFlagsField control={control as unknown as Control<any>} name="flags" />
 
             <FormSection title="Tareas">
               <div className="flex flex-col gap-3">

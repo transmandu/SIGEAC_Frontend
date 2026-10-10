@@ -33,8 +33,9 @@ const firstBackendError = (error: any): string | undefined => {
 interface MaintenanceItemData {
   id?: number;
   maintenance_catalog_service_id?: number;
-  name: string;
-  first_applied_date: string;
+  description: string;
+  declared_description?: string;
+  applied_date?: string;
   remaining_percentage?: number | null;
   intervals: MaintenanceControlItemInterval[];
   maintenance_provider_id?: string;
@@ -143,8 +144,8 @@ export const useAddMaintenanceControlItem = () => {
       company: string;
       controlId: string | number;
       data: MaintenanceItemData & {
-        category: "CERTIFICATE" | "SERVICE";
-        maintenance_control_part_id?: number;
+        item_type: "CERTIFICATE" | "SERVICE";
+        aircraft_part_id?: number;
       };
     }) => {
       const response = await axiosInstance.post(
@@ -192,7 +193,7 @@ export const useLinkPendingWorkOrder = () => {
       workOrderId: string | number;
     }) => {
       await axiosInstance.patch(
-        `/${company}/maintenance-control-items/${itemId}/pending-work-order`,
+        `/${company}/maintenance-control-items/${itemId}/work-order`,
         {
           work_order_id: workOrderId,
         },
