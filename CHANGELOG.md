@@ -1,3 +1,7 @@
+## v4.57.3 — 2026-10-10
+
+- fix: improve form validation feedback and error handling in multiple forms
+
 ## v4.57.2 — 2026-10-10
 
 - refactor: logic control planification remake (#329)
