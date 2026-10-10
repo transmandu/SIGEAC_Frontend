@@ -15,7 +15,14 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { MeetingMinutes } from "@/types";
-import { ClipboardPen, Download, Eye, Loader2, MoreHorizontal, Trash2 } from "lucide-react";
+import {
+  ClipboardPen,
+  Download,
+  Eye,
+  Loader2,
+  MoreHorizontal,
+  Trash2,
+} from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -29,6 +36,7 @@ import {
 } from "@/components/ui/dialog";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { CreateMeetingMinuteForm } from "@/components/forms/general/CreateMeetingMinuteForm";
+import { DownloadOptionDialog } from "@/components/dialogs/shared/DownloadOptionDialog";
 
 const MeetingMinuteDropDownActions = ({
   meetingMinute,
@@ -41,6 +49,7 @@ const MeetingMinuteDropDownActions = ({
 
   const [openDelete, setOpenDelete] = useState<boolean>(false);
   const [openEdit, setOpenEdit] = useState<boolean>(false);
+  const [openDownloadChoice, setOpenDownloadChoice] = useState<boolean>(false);
 
   const { deleteMeetingMinute } = useDeleteMeetingMinute();
   const { downloadMeetingMinutePdf } = useDownloadMeetingMinutePdf();
@@ -70,6 +79,14 @@ const MeetingMinuteDropDownActions = ({
     }
   };
 
+  const handleDownload = () => {
+    if (meetingMinute.library_document_id) {
+      setOpenDownloadChoice(true);
+      return;
+    }
+    void handleDownloadPdf();
+  };
+
   return (
     <>
       <DropdownMenu>
@@ -80,11 +97,14 @@ const MeetingMinuteDropDownActions = ({
           </Button>
         </DropdownMenuTrigger>
 
-        <DropdownMenuContent align="center" className="flex gap-2 justify-center">
+        <DropdownMenuContent
+          align="center"
+          className="flex gap-2 justify-center"
+        >
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <DropdownMenuItem onClick={handleDownloadPdf}>
+                <DropdownMenuItem onClick={handleDownload}>
                   <Download className="size-5" />
                 </DropdownMenuItem>
               </TooltipTrigger>
@@ -96,7 +116,9 @@ const MeetingMinuteDropDownActions = ({
               <TooltipTrigger asChild>
                 <DropdownMenuItem
                   onClick={() =>
-                    router.push(`/${company}/sms/promocion/minutas_reunion/${meetingMinute.id}`)
+                    router.push(
+                      `/${company}/sms/promocion/minutas_reunion/${meetingMinute.id}`,
+                    )
                   }
                 >
                   <Eye className="size-5" />
@@ -183,6 +205,20 @@ const MeetingMinuteDropDownActions = ({
           />
         </DialogContent>
       </Dialog>
+
+      <DownloadOptionDialog
+        open={openDownloadChoice}
+        onOpenChange={setOpenDownloadChoice}
+        company={selectedCompany?.slug}
+        libraryDocumentId={meetingMinute.library_document_id}
+        documentLabel={`minuta_${meetingMinute.minute_number ?? meetingMinute.id}`}
+        onTemplate={() => void handleDownloadPdf()}
+        templatePending={downloadMeetingMinutePdf.isPending}
+        templateTitle="Plantilla (PDF)"
+        templateDescription="PDF de la minuta de reunión generado por el sistema."
+        documentTitle="Documento asociado"
+        documentDescription="Archivo de la biblioteca digital asociado a esta minuta."
+      />
     </>
   );
 };

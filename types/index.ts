@@ -1540,6 +1540,7 @@ export type ObligatoryReport = {
   imageUrl?: string;
   documentUrl?: string;
   close_date?: string;
+  library_document_id?: number | null;
 };
 
 export type VoluntaryReport = {
@@ -1564,6 +1565,7 @@ export type VoluntaryReport = {
   imageUrl?: string;
   documentUrl?: string;
   close_date?: string;
+  library_document_id?: number | null;
 };
 
 export type DangerIdentification = {
@@ -1576,7 +1578,6 @@ export type DangerIdentification = {
   possible_consequences: string;
   consequence_to_evaluate: string;
   root_cause_analysis: string;
-  root_cause: string | null;
   information_source: InformationSource;
   risk_management_start_date: Date;
   analysis: Analysis;
@@ -1635,7 +1636,6 @@ export type MitigationTable = {
   consequence_to_evaluate: string;
   danger_type: string;
   root_cause_analysis: string;
-  root_cause: string | null;
   information_source_id: number;
   information_source: InformationSource;
   analysis: Analysis;

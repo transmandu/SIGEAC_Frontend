@@ -2,6 +2,7 @@ import { useDeleteVoluntaryReport } from "@/actions/sms/reporte_voluntario/actio
 import { AcceptVoluntaryReport } from "@/components/forms/aerolinea/sms/AcceptVoluntaryForm";
 import { CreateVoluntaryReportForm } from "@/components/forms/aerolinea/sms/CreateVoluntaryReportForm";
 import { PdfEndpointPreviewDialog } from "@/components/dialogs/shared/PdfEndpointPreviewDialog";
+import { DownloadOptionDialog } from "@/components/dialogs/shared/DownloadOptionDialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,6 +21,7 @@ import {
   CheckCheck,
   ClipboardPen,
   ClipboardPenLine,
+  Download,
   EyeIcon,
   FileText,
   Loader2,
@@ -51,6 +53,7 @@ const VoluntaryReportDropdownActions = ({
   const [openDelete, setOpenDelete] = useState<boolean>(false);
   const [openFormatPdf, setOpenFormatPdf] = useState<boolean>(false);
   const [openManagementPdf, setOpenManagementPdf] = useState<boolean>(false);
+  const [openDownloadChoice, setOpenDownloadChoice] = useState<boolean>(false);
   const { deleteVoluntaryReport } = useDeleteVoluntaryReport();
   const router = useRouter();
 
@@ -71,6 +74,14 @@ const VoluntaryReportDropdownActions = ({
     };
     await deleteVoluntaryReport.mutateAsync(value);
     setOpenDelete(false);
+  };
+
+  const handleDownload = () => {
+    if (voluntaryReport.library_document_id) {
+      setOpenDownloadChoice(true);
+      return;
+    }
+    setOpenFormatPdf(true);
   };
 
   const handleCreateIdentification = () => {
@@ -157,6 +168,17 @@ const VoluntaryReportDropdownActions = ({
             {voluntaryReport && formatPdfEndpoint && (
               <Tooltip>
                 <TooltipTrigger asChild>
+                  <DropdownMenuItem onSelect={handleDownload}>
+                    <Download className="size-4" />
+                  </DropdownMenuItem>
+                </TooltipTrigger>
+                <TooltipContent>Descargar</TooltipContent>
+              </Tooltip>
+            )}
+
+            {voluntaryReport && formatPdfEndpoint && (
+              <Tooltip>
+                <TooltipTrigger asChild>
                   <DropdownMenuItem onSelect={() => setOpenFormatPdf(true)}>
                     <PrinterCheck className="size-4" />
                   </DropdownMenuItem>
@@ -200,6 +222,19 @@ const VoluntaryReportDropdownActions = ({
           description="Revisa el reporte de gestión antes de descargarlo."
         />
       )}
+
+      <DownloadOptionDialog
+        open={openDownloadChoice}
+        onOpenChange={setOpenDownloadChoice}
+        company={selectedCompany?.slug}
+        libraryDocumentId={voluntaryReport.library_document_id}
+        documentLabel={`reporte_voluntario_${voluntaryReport.id}`}
+        onTemplate={() => setOpenFormatPdf(true)}
+        templateTitle="Plantilla (formato)"
+        templateDescription="Formato del reporte voluntario con los datos vacíos para diligenciar."
+        documentTitle="Documento asociado"
+        documentDescription="Archivo de la biblioteca digital asociado a este reporte."
+      />
 
       {/* Delete dialog */}
       <Dialog open={openDelete} onOpenChange={setOpenDelete}>

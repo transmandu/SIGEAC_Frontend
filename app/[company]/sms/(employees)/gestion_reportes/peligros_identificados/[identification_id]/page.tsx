@@ -18,7 +18,6 @@ import { AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
-
 const ShowDangerIdentification = () => {
   const { identification_id } = useParams<{ identification_id: string }>();
   const { selectedCompany } = useCompanyStore();
@@ -179,16 +178,21 @@ const ShowDangerIdentification = () => {
                   </span>
                   <div className="space-y-2">
                     <div className="flex items-baseline gap-2">
-                      <span className="text-xs text-muted-foreground">Nombre:</span>
+                      <span className="text-xs text-muted-foreground">
+                        Nombre:
+                      </span>
                       <span className="text-sm text-foreground">
                         {dangerIdentification.information_source.name}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-muted-foreground">Método:</span>
+                      <span className="text-xs text-muted-foreground">
+                        Método:
+                      </span>
                       <Badge
                         className={`text-xs font-medium px-2 py-0.5 ${
-                          dangerIdentification.information_source.type === "PROACTIVO"
+                          dangerIdentification.information_source.type ===
+                          "PROACTIVO"
                             ? "bg-green-100 text-green-700 border-green-200 dark:bg-green-950/50 dark:text-green-400 dark:border-green-800"
                             : "bg-red-100 text-red-700 border-red-200 dark:bg-red-950/50 dark:text-red-400 dark:border-red-800"
                         }`}
@@ -262,26 +266,8 @@ const ShowDangerIdentification = () => {
               )}
             </div>
 
-            {/* Causa raíz + Análisis 5 Porqués */}
-            <div
-              className="border border-border/60 rounded-lg overflow-hidden"
-              data-tour="peligros-detalle-causa-raiz"
-            >
-              <div className="px-4 py-3 border-b border-border/60 bg-muted/30">
-                <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
-                  Causa Raíz
-                </span>
-              </div>
-              <div className="px-4 py-3">
-                <p className="text-sm text-foreground leading-relaxed">
-                  {dangerIdentification.root_cause || "N/A"}
-                </p>
-              </div>
-            </div>
-
-            <div
-              className="border border-border/60 rounded-lg overflow-hidden"
-            >
+            {/* Análisis 5 Porqués */}
+            <div className="border border-border/60 rounded-lg overflow-hidden">
               <div className="px-4 py-3 border-b border-border/60 bg-muted/30">
                 <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
                   Análisis de Causa Raíz — 5 Porqués
@@ -300,7 +286,9 @@ const ShowDangerIdentification = () => {
                       </span>
                       <div className="flex-1 min-w-0">
                         <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70 block mb-0.5">
-                          {index === 0 ? "¿Por qué sucedió?" : `¿Por qué #${index}?`}
+                          {index === 0
+                            ? "¿Por qué sucedió?"
+                            : `¿Por qué #${index}?`}
                         </span>
                         <p className="text-sm text-foreground">
                           {analysis.trim()}

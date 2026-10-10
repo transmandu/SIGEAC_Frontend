@@ -1,3 +1,25 @@
+## v4.57.1 — 2026-10-09
+
+- Merge pull request #327 from transmandu/fix/array-guard-map-not-a-function
+- style: formato automatico (prettier)
+- fix: guard Array.isArray before .map() on roles, permissions, modules and images
+
+## v4.57.0 — 2026-10-09
+
+- feat: chart from sms dashboard removed (#328)
+
+## v4.56.0 — 2026-10-09
+
+- feat: drop-causa-raiz-from-identification-form (#326)
+
+## v4.55.1 — 2026-10-08
+
+- fix: danger identification date (#325)
+
+## v4.55.0 — 2026-10-08
+
+- feat: get docs from library (#324)
+
 ## v4.54.0 — 2026-10-07
 
 - feat: update grid column styles for responsive layout in PartNumberGroupDialog
