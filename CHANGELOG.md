@@ -1,3 +1,7 @@
+## v4.59.0 — 2026-10-10
+
+- feat: integrate control queue data into NonServiceWorkOrderForm for task pre-filling
+
 ## v4.58.0 — 2026-10-10
 
 - feat: add base unit change functionality for general articles and consumables
