@@ -41,9 +41,7 @@ import {
 import { DatePickerField } from "@/components/ui/DatePickerField";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import {
-  useAddDirectiveControlItem,
-} from "@/actions/mantenimiento/planificacion/control_directivas/actions";
+import { useAddDirectiveControlItem } from "@/actions/mantenimiento/planificacion/control_directivas/actions";
 import {
   FormSection,
   fieldClass,
@@ -73,7 +71,11 @@ const optionalNumeric = z.preprocess(
 
 const optionalPercentage = z.preprocess(
   (val) => (val === "" || val === undefined || val === null ? undefined : val),
-  z.coerce.number().min(0, "Debe ser ≥ 0").max(100, "Debe ser ≤ 100").optional(),
+  z.coerce
+    .number()
+    .min(0, "Debe ser ≥ 0")
+    .max(100, "Debe ser ≤ 100")
+    .optional(),
 );
 
 const intervalSchema = z.object({
@@ -102,20 +104,26 @@ const formSchema = z
       if (!vals.applied_date) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: "Una AD recurrente necesita la fecha de su último cumplimiento",
+          message:
+            "Una AD recurrente necesita la fecha de su último cumplimiento",
           path: ["applied_date"],
         });
       }
       if (!vals.intervals.length) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: "Una AD recurrente necesita al menos un límite de recurrencia",
+          message:
+            "Una AD recurrente necesita al menos un límite de recurrencia",
           path: ["intervals"],
         });
       }
     }
 
-    if (vals.compliance_type === "ONE_TIME" && vals.intervals.length && !vals.applied_date) {
+    if (
+      vals.compliance_type === "ONE_TIME" &&
+      vals.intervals.length &&
+      !vals.applied_date
+    ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "Indique la fecha desde la que corre el límite de la AD",
@@ -125,7 +133,10 @@ const formSchema = z
 
     const seenMethods = new Set<string>();
     vals.intervals.forEach((interval, index) => {
-      if (interval.counting_method !== "DAYS" && interval.initial_value === undefined) {
+      if (
+        interval.counting_method !== "DAYS" &&
+        interval.initial_value === undefined
+      ) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: "Indique las horas/ciclos del conjunto al cumplir la AD",
@@ -141,14 +152,14 @@ const formSchema = z
       }
       seenMethods.add(interval.counting_method);
     });
-
   });
 
 type FormValues = z.infer<typeof formSchema>;
 
 const emptyInterval = (usedMethods: string[] = []) => ({
-  counting_method: (ALL_COUNTING_METHODS.find((m) => !usedMethods.includes(m)) ??
-    "HOURS") as "HOURS" | "CYCLES" | "DAYS",
+  counting_method: (ALL_COUNTING_METHODS.find(
+    (m) => !usedMethods.includes(m),
+  ) ?? "HOURS") as "HOURS" | "CYCLES" | "DAYS",
   limit_value: undefined as unknown as number,
 });
 
@@ -165,7 +176,10 @@ function IntervalRow({
   onRemove: () => void;
   canRemove: boolean;
 }) {
-  const countingMethod = useWatch({ control, name: `intervals.${index}.counting_method` });
+  const countingMethod = useWatch({
+    control,
+    name: `intervals.${index}.counting_method`,
+  });
   const needsInitialReading = countingMethod && countingMethod !== "DAYS";
   const availableMethods = ALL_COUNTING_METHODS.filter(
     (unit) => unit === countingMethod || !usedMethods.includes(unit),
@@ -307,7 +321,9 @@ export function AddDirectiveControlItemDialog({
     remove: removeInterval,
   } = useFieldArray({ control, name: "intervals" });
   const intervals = useWatch({ control, name: "intervals" });
-  const usedMethods = (intervals ?? []).map((i) => i.counting_method).filter(Boolean);
+  const usedMethods = (intervals ?? [])
+    .map((i) => i.counting_method)
+    .filter(Boolean);
   const canAddInterval = intervalFields.length < ALL_COUNTING_METHODS.length;
 
   const resetAndClose = () => {
@@ -320,9 +336,7 @@ export function AddDirectiveControlItemDialog({
       company: selectedCompany!.slug,
       controlId,
       data: {
-        aircraft_part_id: aircraftPartId
-          ? Number(aircraftPartId)
-          : null,
+        aircraft_part_id: aircraftPartId ? Number(aircraftPartId) : null,
         maintenance_provider_id: values.maintenance_provider_id || undefined,
         ad_number: values.ad_number,
         authority: values.authority,
@@ -346,7 +360,10 @@ export function AddDirectiveControlItemDialog({
   const isPending = addDirectiveControlItem.isPending;
 
   return (
-    <Dialog open={open} onOpenChange={(next) => (next ? setOpen(true) : resetAndClose())}>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => (next ? setOpen(true) : resetAndClose())}
+    >
       <Tooltip>
         <TooltipTrigger asChild>
           <DialogTrigger asChild>
@@ -372,7 +389,10 @@ export function AddDirectiveControlItemDialog({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="flex flex-col gap-4"
+          >
             <div className="grid grid-cols-3 gap-4">
               <FormField
                 control={control}
@@ -400,11 +420,13 @@ export function AddDirectiveControlItemDialog({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {Object.entries(DIRECTIVE_AUTHORITY_LABELS).map(([value, label]) => (
-                          <SelectItem key={value} value={value}>
-                            {label}
-                          </SelectItem>
-                        ))}
+                        {Object.entries(DIRECTIVE_AUTHORITY_LABELS).map(
+                          ([value, label]) => (
+                            <SelectItem key={value} value={value}>
+                              {label}
+                            </SelectItem>
+                          ),
+                        )}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -417,7 +439,10 @@ export function AddDirectiveControlItemDialog({
                 render={({ field }) => (
                   <FormItem className="w-full">
                     <FormLabel className={labelClass}>
-                      Revisión <span className="text-muted-foreground text-xs">(Opc.)</span>
+                      Revisión{" "}
+                      <span className="text-muted-foreground text-xs">
+                        (Opc.)
+                      </span>
                     </FormLabel>
                     <FormControl>
                       <Input className={fieldClass} {...field} />
@@ -471,7 +496,9 @@ export function AddDirectiveControlItemDialog({
               name="compliance_type"
               render={({ field }) => (
                 <FormItem className="w-full">
-                  <FormLabel className={labelClass}>Tipo de Cumplimiento</FormLabel>
+                  <FormLabel className={labelClass}>
+                    Tipo de Cumplimiento
+                  </FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger className={selectTriggerClass}>
@@ -501,7 +528,9 @@ export function AddDirectiveControlItemDialog({
                   <FormItem className="w-full">
                     <FormLabel className={labelClass}>
                       Doc. de Referencia{" "}
-                      <span className="text-muted-foreground text-xs">(Opc.)</span>
+                      <span className="text-muted-foreground text-xs">
+                        (Opc.)
+                      </span>
                     </FormLabel>
                     <FormControl>
                       <Input className={fieldClass} {...field} />
@@ -516,7 +545,10 @@ export function AddDirectiveControlItemDialog({
                 render={({ field }) => (
                   <FormItem className="w-full">
                     <FormLabel className={labelClass}>
-                      Método <span className="text-muted-foreground text-xs">(Opc.)</span>
+                      Método{" "}
+                      <span className="text-muted-foreground text-xs">
+                        (Opc.)
+                      </span>
                     </FormLabel>
                     <FormControl>
                       <Input className={fieldClass} {...field} />
@@ -534,7 +566,11 @@ export function AddDirectiveControlItemDialog({
                 render={({ field }) => (
                   <FormItem className="w-full">
                     <DatePickerField
-                      label={isRecurrent ? "Último Cumplimiento" : "Fecha de Referencia"}
+                      label={
+                        isRecurrent
+                          ? "Último Cumplimiento"
+                          : "Fecha de Referencia"
+                      }
                       value={field.value}
                       setValue={(date) => field.onChange(date ?? undefined)}
                       maxDate={new Date()}
@@ -550,7 +586,10 @@ export function AddDirectiveControlItemDialog({
                 render={({ field }) => (
                   <FormItem className="w-full">
                     <FormLabel className={labelClass}>
-                      % Alerta <span className="text-muted-foreground text-xs">(Opc.)</span>
+                      % Alerta{" "}
+                      <span className="text-muted-foreground text-xs">
+                        (Opc.)
+                      </span>
                     </FormLabel>
                     <FormControl>
                       <NumericInput
@@ -568,7 +607,9 @@ export function AddDirectiveControlItemDialog({
             </div>
 
             <FormSection
-              title={isRecurrent ? "Límites de Recurrencia" : "Límite (Opcional)"}
+              title={
+                isRecurrent ? "Límites de Recurrencia" : "Límite (Opcional)"
+              }
             >
               <div className="flex flex-col gap-2">
                 {intervalFields.map((field, index) => (
@@ -589,8 +630,7 @@ export function AddDirectiveControlItemDialog({
                     className="w-fit gap-1.5"
                     onClick={() => appendInterval(emptyInterval(usedMethods))}
                   >
-                    <Plus className="size-3.5" />
-                    Ó este otro límite
+                    <Plus className="size-3.5" />Ó este otro límite
                   </Button>
                 )}
                 {!intervalFields.length && (
@@ -610,7 +650,8 @@ export function AddDirectiveControlItemDialog({
 
             <FormItem className="w-full space-y-2">
               <FormLabel className={labelClass}>
-                Realizado Por <span className="text-muted-foreground text-xs">(Opc.)</span>
+                Realizado Por{" "}
+                <span className="text-muted-foreground text-xs">(Opc.)</span>
               </FormLabel>
               <ProviderSelect
                 control={control as Control<any>}
@@ -623,7 +664,11 @@ export function AddDirectiveControlItemDialog({
               disabled={isPending}
               type="submit"
             >
-              {isPending ? <Loader2 className="size-4 animate-spin" /> : <p>Añadir Ítem</p>}
+              {isPending ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <p>Añadir Ítem</p>
+              )}
             </Button>
           </form>
         </Form>

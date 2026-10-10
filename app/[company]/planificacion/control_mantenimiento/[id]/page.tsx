@@ -785,8 +785,12 @@ const MaintenanceControlDetailPage = () => {
                       itemType="SERVICE"
                       aircraftPartId={part.id}
                       sectionLabel={part.label}
-                      currentHours={Number(part.aircraft_part?.time_since_new ?? 0)}
-                      currentCycles={Number(part.aircraft_part?.cycles_since_new ?? 0)}
+                      currentHours={Number(
+                        part.aircraft_part?.time_since_new ?? 0,
+                      )}
+                      currentCycles={Number(
+                        part.aircraft_part?.cycles_since_new ?? 0,
+                      )}
                     />
                   )}
                   <DownloadMaintenanceFormatButton

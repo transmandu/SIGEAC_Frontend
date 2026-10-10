@@ -556,8 +556,7 @@ const ComponentControlDetailPage = () => {
   const [onlyHazardous, setOnlyHazardous] = useState(false);
 
   const activeItems = useMemo(
-    () =>
-      (control?.items ?? []).filter((i) => !i.retired_at),
+    () => (control?.items ?? []).filter((i) => !i.retired_at),
     [control],
   );
 

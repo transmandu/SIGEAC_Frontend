@@ -298,7 +298,10 @@ const VALUE_LABELS: Record<string, Record<string, string>> = {
     component_control_item: "Componente",
     avionics_control_item: "Equipo de aviónica",
   },
-  flag: { HAZARDOUS: "Mercancía peligrosa", EMERGENCY_EQUIPMENT: "Equipo de emergencia" },
+  flag: {
+    HAZARDOUS: "Mercancía peligrosa",
+    EMERGENCY_EQUIPMENT: "Equipo de emergencia",
+  },
   is_hazardous: YES_NO,
   is_on_condition: YES_NO,
   is_historical: YES_NO,

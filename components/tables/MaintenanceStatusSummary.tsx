@@ -25,7 +25,12 @@ export const emptyStatusCounts = (): StatusCounts => ({
 });
 
 /** De más urgente a menos: la primera franja con ítems es la que manda el chip. */
-const SEVERITY_ORDER: MaintenanceItemStatus[] = ["OVERDUE", "CRITICAL", "WARNING", "OK"];
+const SEVERITY_ORDER: MaintenanceItemStatus[] = [
+  "OVERDUE",
+  "CRITICAL",
+  "WARNING",
+  "OK",
+];
 
 const itemsLabel = (count: number) =>
   count === 1 ? "1 ítem" : `${count} ítems`;

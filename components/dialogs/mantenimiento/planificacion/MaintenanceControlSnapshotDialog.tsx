@@ -85,9 +85,7 @@ function groupSnapshotItems(items: MaintenanceControlSnapshotItem[]) {
     ),
   );
   partIds.forEach((partId) => {
-    const partItems = items.filter(
-      (i) => i.aircraft_part_id === partId,
-    );
+    const partItems = items.filter((i) => i.aircraft_part_id === partId);
     groups.push({
       key: `part-${partId}`,
       title: partItems[0]?.part_label || "Parte",

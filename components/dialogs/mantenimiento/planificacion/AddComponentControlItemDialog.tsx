@@ -43,9 +43,7 @@ import {
 import { DatePickerField } from "@/components/ui/DatePickerField";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import {
-  useAddComponentControlItem,
-} from "@/actions/mantenimiento/planificacion/control_componentes/actions";
+import { useAddComponentControlItem } from "@/actions/mantenimiento/planificacion/control_componentes/actions";
 import {
   FormSection,
   fieldClass,
@@ -75,7 +73,11 @@ const optionalNumeric = z.preprocess(
 
 const optionalPercentage = z.preprocess(
   (val) => (val === "" || val === undefined || val === null ? undefined : val),
-  z.coerce.number().min(0, "Debe ser ≥ 0").max(100, "Debe ser ≤ 100").optional(),
+  z.coerce
+    .number()
+    .min(0, "Debe ser ≥ 0")
+    .max(100, "Debe ser ≤ 100")
+    .optional(),
 );
 
 const intervalSchema = z.object({
@@ -106,7 +108,10 @@ const formSchema = z
   .superRefine((vals, ctx) => {
     const seenMethods = new Set<string>();
     vals.intervals.forEach((interval, index) => {
-      if (interval.counting_method !== "DAYS" && interval.initial_value === undefined) {
+      if (
+        interval.counting_method !== "DAYS" &&
+        interval.initial_value === undefined
+      ) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: "Indique las horas/ciclos del padre en ese evento",
@@ -122,14 +127,14 @@ const formSchema = z
       }
       seenMethods.add(interval.counting_method);
     });
-
   });
 
 type FormValues = z.infer<typeof formSchema>;
 
 const emptyInterval = (usedMethods: string[] = []) => ({
-  counting_method: (ALL_COUNTING_METHODS.find((m) => !usedMethods.includes(m)) ??
-    "HOURS") as "HOURS" | "CYCLES" | "DAYS",
+  counting_method: (ALL_COUNTING_METHODS.find(
+    (m) => !usedMethods.includes(m),
+  ) ?? "HOURS") as "HOURS" | "CYCLES" | "DAYS",
   limit_kind: "HARD_TIME" as "HARD_TIME" | "LIFE_LIMIT",
   limit_value: undefined as unknown as number,
 });
@@ -147,7 +152,10 @@ function IntervalRow({
   onRemove: () => void;
   canRemove: boolean;
 }) {
-  const countingMethod = useWatch({ control, name: `intervals.${index}.counting_method` });
+  const countingMethod = useWatch({
+    control,
+    name: `intervals.${index}.counting_method`,
+  });
   const needsInitialReading = countingMethod && countingMethod !== "DAYS";
   const availableMethods = ALL_COUNTING_METHODS.filter(
     (unit) => unit === countingMethod || !usedMethods.includes(unit),
@@ -190,11 +198,13 @@ function IntervalRow({
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                {Object.entries(COMPONENT_LIMIT_KIND_LABELS).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                ))}
+                {Object.entries(COMPONENT_LIMIT_KIND_LABELS).map(
+                  ([value, label]) => (
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
+                  ),
+                )}
               </SelectContent>
             </Select>
             <FormMessage />
@@ -314,7 +324,9 @@ export function AddComponentControlItemDialog({
     remove: removeInterval,
   } = useFieldArray({ control, name: "intervals" });
   const intervals = useWatch({ control, name: "intervals" });
-  const usedMethods = (intervals ?? []).map((i) => i.counting_method).filter(Boolean);
+  const usedMethods = (intervals ?? [])
+    .map((i) => i.counting_method)
+    .filter(Boolean);
   const canAddInterval = intervalFields.length < ALL_COUNTING_METHODS.length;
 
   const resetAndClose = () => {
@@ -327,9 +339,7 @@ export function AddComponentControlItemDialog({
       company: selectedCompany!.slug,
       controlId,
       data: {
-        aircraft_part_id: aircraftPartId
-          ? Number(aircraftPartId)
-          : null,
+        aircraft_part_id: aircraftPartId ? Number(aircraftPartId) : null,
         maintenance_provider_id: values.maintenance_provider_id,
         flags: values.flags,
         description: values.description,
@@ -351,7 +361,10 @@ export function AddComponentControlItemDialog({
   const isPending = addComponentControlItem.isPending;
 
   return (
-    <Dialog open={open} onOpenChange={(next) => (next ? setOpen(true) : resetAndClose())}>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => (next ? setOpen(true) : resetAndClose())}
+    >
       <Tooltip>
         <TooltipTrigger asChild>
           <DialogTrigger asChild>
@@ -377,7 +390,10 @@ export function AddComponentControlItemDialog({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="flex flex-col gap-4"
+          >
             <FormField
               control={control}
               name="description"
@@ -385,7 +401,11 @@ export function AddComponentControlItemDialog({
                 <FormItem className="w-full">
                   <FormLabel className={labelClass}>Descripción</FormLabel>
                   <FormControl>
-                    <Input placeholder="EJ: Bomba Hidráulica" className={fieldClass} {...field} />
+                    <Input
+                      placeholder="EJ: Bomba Hidráulica"
+                      className={fieldClass}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -445,7 +465,10 @@ export function AddComponentControlItemDialog({
                 render={({ field }) => (
                   <FormItem className="w-full">
                     <FormLabel className={labelClass}>
-                      Posición <span className="text-muted-foreground text-xs">(Opc.)</span>
+                      Posición{" "}
+                      <span className="text-muted-foreground text-xs">
+                        (Opc.)
+                      </span>
                     </FormLabel>
                     <FormControl>
                       <Input className={fieldClass} {...field} />
@@ -470,11 +493,13 @@ export function AddComponentControlItemDialog({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {Object.entries(COMPONENT_ACTION_LABELS).map(([value, label]) => (
-                          <SelectItem key={value} value={value}>
-                            {label}
-                          </SelectItem>
-                        ))}
+                        {Object.entries(COMPONENT_ACTION_LABELS).map(
+                          ([value, label]) => (
+                            <SelectItem key={value} value={value}>
+                              {label}
+                            </SelectItem>
+                          ),
+                        )}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -513,7 +538,10 @@ export function AddComponentControlItemDialog({
                 render={({ field }) => (
                   <FormItem className="w-full">
                     <FormLabel className={labelClass}>
-                      % Alerta <span className="text-muted-foreground text-xs">(Opc.)</span>
+                      % Alerta{" "}
+                      <span className="text-muted-foreground text-xs">
+                        (Opc.)
+                      </span>
                     </FormLabel>
                     <FormControl>
                       <NumericInput
@@ -530,7 +558,10 @@ export function AddComponentControlItemDialog({
               />
             </div>
 
-            <ControlItemFlagsField control={control as unknown as Control<any>} name="flags" />
+            <ControlItemFlagsField
+              control={control as unknown as Control<any>}
+              name="flags"
+            />
 
             <FormSection title="Límites de Vencimiento">
               <div className="flex flex-col gap-2">
@@ -552,8 +583,7 @@ export function AddComponentControlItemDialog({
                     className="w-fit gap-1.5"
                     onClick={() => appendInterval(emptyInterval(usedMethods))}
                   >
-                    <Plus className="size-3.5" />
-                    Ó este otro límite
+                    <Plus className="size-3.5" />Ó este otro límite
                   </Button>
                 )}
               </div>
@@ -564,7 +594,11 @@ export function AddComponentControlItemDialog({
               disabled={isPending}
               type="submit"
             >
-              {isPending ? <Loader2 className="size-4 animate-spin" /> : <p>Añadir Ítem</p>}
+              {isPending ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <p>Añadir Ítem</p>
+              )}
             </Button>
           </form>
         </Form>

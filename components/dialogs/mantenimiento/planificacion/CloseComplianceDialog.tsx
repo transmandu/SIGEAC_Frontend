@@ -244,7 +244,9 @@ export function CloseComplianceDialog({
       <DialogContent className="flex max-h-[85vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-130">
         <DialogHeader className="shrink-0 px-6 pt-6 pb-4">
           <DialogTitle>
-            {step === "close" ? "Cerrar Cumplimiento" : "Siguiente Cumplimiento"}
+            {step === "close"
+              ? "Cerrar Cumplimiento"
+              : "Siguiente Cumplimiento"}
           </DialogTitle>
           <DialogDescription>
             {subjectName}
@@ -335,7 +337,9 @@ export function CloseComplianceDialog({
                   name="maintenance_provider_id"
                   render={({ field }) => (
                     <FormItem className="w-full">
-                      <FormLabel className={labelClass}>Realizado Por</FormLabel>
+                      <FormLabel className={labelClass}>
+                        Realizado Por
+                      </FormLabel>
                       <SearchableSelect
                         options={providers ?? []}
                         value={field.value}
@@ -410,7 +414,11 @@ export function CloseComplianceDialog({
                   {isPending ? (
                     <Loader2 className="size-4 animate-spin" />
                   ) : (
-                    <p>{canStartNext ? "Confirmar y Continuar" : "Cerrar Cumplimiento"}</p>
+                    <p>
+                      {canStartNext
+                        ? "Confirmar y Continuar"
+                        : "Cerrar Cumplimiento"}
+                    </p>
                   )}
                 </Button>
               </div>
@@ -418,12 +426,17 @@ export function CloseComplianceDialog({
           </Form>
         ) : (
           <Form {...nextForm}>
-            <form onSubmit={confirmNext} className="flex min-h-0 flex-1 flex-col">
+            <form
+              onSubmit={confirmNext}
+              className="flex min-h-0 flex-1 flex-col"
+            >
               <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-6 py-1">
                 <label className="flex cursor-pointer select-none items-start gap-2 text-sm">
                   <Checkbox
                     checked={startNext}
-                    onCheckedChange={(checked) => setStartNext(checked === true)}
+                    onCheckedChange={(checked) =>
+                      setStartNext(checked === true)
+                    }
                     className="mt-0.5"
                   />
                   <span>

@@ -67,7 +67,11 @@ const optionalNumeric = z.preprocess(
 
 const optionalPercentage = z.preprocess(
   (val) => (val === "" || val === undefined || val === null ? undefined : val),
-  z.coerce.number().min(0, "Debe ser ≥ 0").max(100, "Debe ser ≤ 100").optional(),
+  z.coerce
+    .number()
+    .min(0, "Debe ser ≥ 0")
+    .max(100, "Debe ser ≤ 100")
+    .optional(),
 );
 
 const intervalSchema = z.object({
@@ -88,10 +92,14 @@ const formSchema = z
   .superRefine((vals, ctx) => {
     const seenMethods = new Set<string>();
     vals.intervals.forEach((interval, index) => {
-      if (interval.counting_method !== "DAYS" && interval.initial_value === undefined) {
+      if (
+        interval.counting_method !== "DAYS" &&
+        interval.initial_value === undefined
+      ) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: "Indique las horas/ciclos que tenía la aeronave en la fecha de aplicación",
+          message:
+            "Indique las horas/ciclos que tenía la aeronave en la fecha de aplicación",
           path: ["intervals", index, "initial_value"],
         });
       }
@@ -109,8 +117,9 @@ const formSchema = z
 type FormValues = z.infer<typeof formSchema>;
 
 const emptyInterval = (usedMethods: string[] = []) => ({
-  counting_method: (ALL_COUNTING_METHODS.find((m) => !usedMethods.includes(m)) ??
-    "HOURS") as "HOURS" | "CYCLES" | "DAYS",
+  counting_method: (ALL_COUNTING_METHODS.find(
+    (m) => !usedMethods.includes(m),
+  ) ?? "HOURS") as "HOURS" | "CYCLES" | "DAYS",
   limit_value: undefined as unknown as number,
 });
 
@@ -127,7 +136,10 @@ function IntervalRow({
   onRemove: () => void;
   canRemove: boolean;
 }) {
-  const countingMethod = useWatch({ control, name: `intervals.${index}.counting_method` });
+  const countingMethod = useWatch({
+    control,
+    name: `intervals.${index}.counting_method`,
+  });
   const needsInitialReading = countingMethod && countingMethod !== "DAYS";
   const availableMethods = ALL_COUNTING_METHODS.filter(
     (unit) => unit === countingMethod || !usedMethods.includes(unit),
@@ -264,7 +276,9 @@ export function AddMaintenanceControlItemDialog({
     remove: removeInterval,
   } = useFieldArray({ control, name: "intervals" });
   const intervals = useWatch({ control, name: "intervals" });
-  const usedMethods = (intervals ?? []).map((i) => i.counting_method).filter(Boolean);
+  const usedMethods = (intervals ?? [])
+    .map((i) => i.counting_method)
+    .filter(Boolean);
   const canAddInterval = intervalFields.length < ALL_COUNTING_METHODS.length;
 
   const resetAndClose = () => {
@@ -303,7 +317,10 @@ export function AddMaintenanceControlItemDialog({
   const triggerLabel = itemType === "CERTIFICATE" ? "certificado" : "servicio";
 
   return (
-    <Dialog open={open} onOpenChange={(next) => (next ? setOpen(true) : resetAndClose())}>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => (next ? setOpen(true) : resetAndClose())}
+    >
       <Tooltip>
         <TooltipTrigger asChild>
           <DialogTrigger asChild>
@@ -319,7 +336,9 @@ export function AddMaintenanceControlItemDialog({
             </Button>
           </DialogTrigger>
         </TooltipTrigger>
-        <TooltipContent>Añadir {triggerLabel} a {sectionLabel}</TooltipContent>
+        <TooltipContent>
+          Añadir {triggerLabel} a {sectionLabel}
+        </TooltipContent>
       </Tooltip>
 
       <DialogContent className="flex max-h-[85vh] flex-col overflow-y-auto sm:max-w-xl">
@@ -331,7 +350,10 @@ export function AddMaintenanceControlItemDialog({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="flex flex-col gap-4"
+          >
             <FormField
               control={control}
               name="description"
@@ -404,7 +426,10 @@ export function AddMaintenanceControlItemDialog({
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel className={labelClass}>
-                    % Alerta <span className="text-muted-foreground text-xs">(Opcional, hereda el del control)</span>
+                    % Alerta{" "}
+                    <span className="text-muted-foreground text-xs">
+                      (Opcional, hereda el del control)
+                    </span>
                   </FormLabel>
                   <FormControl>
                     <NumericInput
@@ -440,8 +465,7 @@ export function AddMaintenanceControlItemDialog({
                     className="w-fit gap-1.5"
                     onClick={() => appendInterval(emptyInterval(usedMethods))}
                   >
-                    <Plus className="size-3.5" />
-                    Ó este otro límite
+                    <Plus className="size-3.5" />Ó este otro límite
                   </Button>
                 )}
               </div>

@@ -61,13 +61,7 @@ import { RetireRecordButton } from "@/components/planificacion/controles/RetireR
 import { useLinkAvionicsPendingWorkOrder } from "@/actions/mantenimiento/planificacion/control_avionica/actions";
 import { WorkOrderCell } from "@/components/planificacion/controles/WorkOrderCell";
 import { AddToQueueButton } from "@/components/planificacion/cola/AddToQueueButton";
-import {
-  AlertTriangle,
-  Info,
-  Radio,
-  Search,
-  SquarePen,
-} from "lucide-react";
+import { AlertTriangle, Info, Radio, Search, SquarePen } from "lucide-react";
 
 function InfoItem({
   label,
@@ -628,7 +622,9 @@ const AvionicsControlDetailPage = () => {
                                 aircraftId={control.aircraft.id}
                                 subject={`tarea «${AVIONICS_ACTION_LABELS[task.action]} — ${item.description} · S/N ${item.serial}»`}
                                 taskDescription={`${AVIONICS_ACTION_LABELS[task.action]} — ${item.declared_description?.trim() || item.description}${item.position ? ` ${item.position}` : ""} (P/N ${item.part_number}, S/N ${item.serial})`}
-                                previous={task.last_completed_compliance?.work_order}
+                                previous={
+                                  task.last_completed_compliance?.work_order
+                                }
                                 current={pending}
                                 readOnly={
                                   controlRetired ||

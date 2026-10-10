@@ -212,7 +212,9 @@ const HistorialCumplimientosPage = () => {
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1.5">
-                            <TruncatedText>{item?.description ?? "—"}</TruncatedText>
+                            <TruncatedText>
+                              {item?.description ?? "—"}
+                            </TruncatedText>
                           </div>
                         </TableCell>
                         <TableCell>
@@ -241,9 +243,13 @@ const HistorialCumplimientosPage = () => {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          {format(parseISO(compliance.applied_date), "dd/MM/yyyy", {
-                            locale: es,
-                          })}
+                          {format(
+                            parseISO(compliance.applied_date),
+                            "dd/MM/yyyy",
+                            {
+                              locale: es,
+                            },
+                          )}
                         </TableCell>
                         <TableCell>
                           {compliance.completed_date ? (
@@ -258,7 +264,9 @@ const HistorialCumplimientosPage = () => {
                         </TableCell>
                         <TableCell>
                           {manualLabel(compliance) ? (
-                            <TruncatedText>{manualLabel(compliance)}</TruncatedText>
+                            <TruncatedText>
+                              {manualLabel(compliance)}
+                            </TruncatedText>
                           ) : (
                             <span className="text-muted-foreground">—</span>
                           )}

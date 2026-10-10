@@ -105,7 +105,9 @@ export const startDefaults = (defaults: {
   applied_date: defaults.date ?? new Date(),
   applied_hours: defaults.hours ?? undefined,
   applied_cycles: defaults.cycles ?? undefined,
-  maintenance_provider_id: defaults.providerId ? String(defaults.providerId) : "",
+  maintenance_provider_id: defaults.providerId
+    ? String(defaults.providerId)
+    : "",
   work_order_id: "",
   notes: "",
   action: defaults.action,
@@ -203,9 +205,7 @@ export function ComplianceStartFields({
               name="applied_hours"
               render={({ field }) => (
                 <FormItem className="w-full">
-                  <FormLabel className={labelClass}>
-                    Horas al iniciar
-                  </FormLabel>
+                  <FormLabel className={labelClass}>Horas al iniciar</FormLabel>
                   <FormControl>
                     <NumericInput
                       className={fieldClass}

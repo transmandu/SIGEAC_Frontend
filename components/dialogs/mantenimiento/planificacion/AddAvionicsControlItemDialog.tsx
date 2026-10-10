@@ -71,7 +71,11 @@ const optionalNumeric = z.preprocess(
 
 const optionalPercentage = z.preprocess(
   (val) => (val === "" || val === undefined || val === null ? undefined : val),
-  z.coerce.number().min(0, "Debe ser ≥ 0").max(100, "Debe ser ≤ 100").optional(),
+  z.coerce
+    .number()
+    .min(0, "Debe ser ≥ 0")
+    .max(100, "Debe ser ≤ 100")
+    .optional(),
 );
 
 const intervalSchema = z.object({
@@ -122,7 +126,10 @@ const taskSchema = z
 
     const seenMethods = new Set<string>();
     vals.intervals.forEach((interval, index) => {
-      if (interval.counting_method !== "DAYS" && interval.initial_value === undefined) {
+      if (
+        interval.counting_method !== "DAYS" &&
+        interval.initial_value === undefined
+      ) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: "Indique las horas/ciclos de la aeronave en ese evento",
@@ -154,8 +161,9 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 const emptyInterval = (usedMethods: string[] = []) => ({
-  counting_method: (ALL_COUNTING_METHODS.find((m) => !usedMethods.includes(m)) ??
-    "HOURS") as "HOURS" | "CYCLES" | "DAYS",
+  counting_method: (ALL_COUNTING_METHODS.find(
+    (m) => !usedMethods.includes(m),
+  ) ?? "HOURS") as "HOURS" | "CYCLES" | "DAYS",
   limit_value: undefined as unknown as number,
 });
 
@@ -183,7 +191,10 @@ function TaskIntervalRow({
   canRemove: boolean;
 }) {
   const namePrefix = `tasks.${taskIndex}.intervals.${intervalIndex}` as const;
-  const countingMethod = useWatch({ control, name: `${namePrefix}.counting_method` });
+  const countingMethod = useWatch({
+    control,
+    name: `${namePrefix}.counting_method`,
+  });
   const needsInitialReading = countingMethod && countingMethod !== "DAYS";
   const availableMethods = ALL_COUNTING_METHODS.filter(
     (unit) => unit === countingMethod || !usedMethods.includes(unit),
@@ -282,14 +293,19 @@ function TaskRow({
   canRemove: boolean;
 }) {
   const namePrefix = `tasks.${index}` as const;
-  const isOnCondition = useWatch({ control, name: `${namePrefix}.is_on_condition` });
+  const isOnCondition = useWatch({
+    control,
+    name: `${namePrefix}.is_on_condition`,
+  });
   const {
     fields: intervalFields,
     append: appendInterval,
     remove: removeInterval,
   } = useFieldArray({ control, name: `${namePrefix}.intervals` });
   const intervals = useWatch({ control, name: `${namePrefix}.intervals` });
-  const usedMethods = (intervals ?? []).map((i) => i.counting_method).filter(Boolean);
+  const usedMethods = (intervals ?? [])
+    .map((i) => i.counting_method)
+    .filter(Boolean);
   const canAddInterval = intervalFields.length < ALL_COUNTING_METHODS.length;
 
   return (
@@ -307,11 +323,13 @@ function TaskRow({
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {Object.entries(AVIONICS_ACTION_LABELS).map(([value, label]) => (
-                    <SelectItem key={value} value={value}>
-                      {label}
-                    </SelectItem>
-                  ))}
+                  {Object.entries(AVIONICS_ACTION_LABELS).map(
+                    ([value, label]) => (
+                      <SelectItem key={value} value={value}>
+                        {label}
+                      </SelectItem>
+                    ),
+                  )}
                 </SelectContent>
               </Select>
               <FormMessage />
@@ -336,9 +354,14 @@ function TaskRow({
         render={({ field }) => (
           <FormItem className="flex items-center gap-2 space-y-0">
             <FormControl>
-              <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+              <Checkbox
+                checked={field.value}
+                onCheckedChange={field.onChange}
+              />
             </FormControl>
-            <FormLabel className="cursor-pointer font-normal">Por condición (sin plazo)</FormLabel>
+            <FormLabel className="cursor-pointer font-normal">
+              Por condición (sin plazo)
+            </FormLabel>
           </FormItem>
         )}
       />
@@ -377,7 +400,8 @@ function TaskRow({
             render={({ field }) => (
               <FormItem className="w-full">
                 <FormLabel className={labelClass}>
-                  % Alerta <span className="text-muted-foreground text-xs">(Opc.)</span>
+                  % Alerta{" "}
+                  <span className="text-muted-foreground text-xs">(Opc.)</span>
                 </FormLabel>
                 <FormControl>
                   <NumericInput
@@ -413,8 +437,7 @@ function TaskRow({
                 className="w-fit gap-1.5"
                 onClick={() => appendInterval(emptyInterval(usedMethods))}
               >
-                <Plus className="size-3.5" />
-                Ó este otro límite
+                <Plus className="size-3.5" />Ó este otro límite
               </Button>
             )}
           </div>
@@ -492,7 +515,7 @@ export function AddAvionicsControlItemDialog({
               : undefined,
           remaining_percentage: task.is_on_condition
             ? null
-            : task.remaining_percentage ?? null,
+            : (task.remaining_percentage ?? null),
           intervals: task.is_on_condition ? [] : task.intervals,
         })),
       },
@@ -502,7 +525,10 @@ export function AddAvionicsControlItemDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={(next) => (next ? setOpen(true) : resetAndClose())}>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => (next ? setOpen(true) : resetAndClose())}
+    >
       <Tooltip>
         <TooltipTrigger asChild>
           <DialogTrigger asChild>
@@ -525,12 +551,16 @@ export function AddAvionicsControlItemDialog({
         <DialogHeader>
           <DialogTitle>Añadir Equipo</DialogTitle>
           <DialogDescription>
-            Registra un equipo nuevo (con sus tareas) en este control sin tocar los demás.
+            Registra un equipo nuevo (con sus tareas) en este control sin tocar
+            los demás.
           </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="flex flex-col gap-4"
+          >
             <FormField
               control={control}
               name="description"
@@ -538,7 +568,11 @@ export function AddAvionicsControlItemDialog({
                 <FormItem className="w-full">
                   <FormLabel className={labelClass}>Descripción</FormLabel>
                   <FormControl>
-                    <Input placeholder="EJ: Transpondedor" className={fieldClass} {...field} />
+                    <Input
+                      placeholder="EJ: Transpondedor"
+                      className={fieldClass}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -598,7 +632,10 @@ export function AddAvionicsControlItemDialog({
                 render={({ field }) => (
                   <FormItem className="w-full">
                     <FormLabel className={labelClass}>
-                      Posición <span className="text-muted-foreground text-xs">(Opc.)</span>
+                      Posición{" "}
+                      <span className="text-muted-foreground text-xs">
+                        (Opc.)
+                      </span>
                     </FormLabel>
                     <FormControl>
                       <Input className={fieldClass} {...field} />
@@ -609,7 +646,10 @@ export function AddAvionicsControlItemDialog({
               />
             </div>
 
-            <ControlItemFlagsField control={control as unknown as Control<any>} name="flags" />
+            <ControlItemFlagsField
+              control={control as unknown as Control<any>}
+              name="flags"
+            />
 
             <FormSection title="Tareas">
               <div className="flex flex-col gap-3">

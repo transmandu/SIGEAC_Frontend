@@ -10,10 +10,7 @@ import { toast } from "sonner";
  * OT que lo culminó (opcionalmente iniciando el siguiente en el mismo paso).
  */
 export type ComplianceKind =
-  | "maintenance"
-  | "component"
-  | "avionics"
-  | "directive";
+  "maintenance" | "component" | "avionics" | "directive";
 
 const KINDS: Record<
   ComplianceKind,
@@ -116,10 +113,10 @@ export const useStartCompliance = (kind: ComplianceKind) => {
       company: string;
       data: StartComplianceData;
     }) => {
-      const { data } = await axiosInstance.post(
-        `/${company}/${config.path}`,
-        { [config.subjectKey]: subjectId, ...fields },
-      );
+      const { data } = await axiosInstance.post(`/${company}/${config.path}`, {
+        [config.subjectKey]: subjectId,
+        ...fields,
+      });
       return data;
     },
     onSuccess: () => {

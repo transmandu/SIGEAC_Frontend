@@ -28,7 +28,11 @@ const FLAG_BADGE: Record<
 };
 
 /** Una insignia por bandera del ítem; sin banderas no pinta nada. */
-export function ControlItemFlagBadges({ flags }: { flags?: ControlItemFlag[] }) {
+export function ControlItemFlagBadges({
+  flags,
+}: {
+  flags?: ControlItemFlag[];
+}) {
   return (
     <>
       {(flags ?? []).map((flag) => {

@@ -946,7 +946,8 @@ function mapToFormItem(item: NonNullable<ComponentControl["items"]>[number]) {
         interval.counting_method,
       ),
       consumed_at_event:
-        consumedAtStartOf(item.current_compliance, interval.counting_method) ?? 0,
+        consumedAtStartOf(item.current_compliance, interval.counting_method) ??
+        0,
     })),
   };
 }
