@@ -1,3 +1,7 @@
+## v4.61.0 — 2026-10-11
+
+- feat: add status filter to requisitions and update UI components (#331)
+
 ## v4.60.0 — 2026-10-11
 
 - feat: restrict management actions to users with appropriate roles in … (#330)
