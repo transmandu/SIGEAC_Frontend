@@ -1,3 +1,7 @@
+## v4.60.0 — 2026-10-11
+
+- feat: restrict management actions to users with appropriate roles in … (#330)
+
 ## v4.59.0 — 2026-10-10
 
 - feat: integrate control queue data into NonServiceWorkOrderForm for task pre-filling
