@@ -22,6 +22,7 @@ import { useGetFuelSummary } from "@/hooks/mantenimiento/almacen/combustible/use
 import { useGetFuelVehicles } from "@/hooks/mantenimiento/almacen/combustible/useGetFuelVehicles";
 import {
   FUEL_ALLOWED_ROLES,
+  FUEL_MANAGE_ROLES,
   FUEL_MOVEMENT_LABELS,
   FUEL_TYPES,
   formatLiters,
@@ -99,6 +100,7 @@ export default function FuelWarehousePage() {
 
   const userRoles = user?.roles?.map((role) => role.name) ?? [];
   const canAccess = FUEL_ALLOWED_ROLES.some((role) => userRoles.includes(role));
+  const canManage = FUEL_MANAGE_ROLES.some((role) => userRoles.includes(role));
   const isSuperUser = userRoles.includes("SUPERUSER");
 
   const hasActiveFilters =
@@ -246,7 +248,7 @@ export default function FuelWarehousePage() {
               </p>
             </div>
           </div>
-          <CreateFuelVehicleDialog company={company} />
+          {canManage && <CreateFuelVehicleDialog company={company} />}
         </div>
 
         {summaryError ? (
@@ -260,102 +262,106 @@ export default function FuelWarehousePage() {
           onViewVehicles={() => setActiveFuelTab("vehicles")}
         />
 
-        {/* --- Acciones rapidas agrupadas por flujo: entradas -> despachos -> consumo --- */}
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-3 sm:divide-x sm:divide-border">
-          <div className="space-y-2 sm:pr-6">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-              Entradas
-            </p>
-            <div className="space-y-1.5">
-              <FuelMovementDialog
-                company={company}
-                type="warehouse_initial_balance"
-                summary={summary}
-                vehicles={fuelVehicles}
-                icon={Droplets}
-                iconClassName="text-emerald-600"
-                variant="outline"
-                className="w-full border-border/70 border-l-4 border-l-emerald-500 hover:border-emerald-600/40 hover:border-l-emerald-500 hover:bg-emerald-600/5"
-              />
-              <FuelMovementDialog
-                company={company}
-                type="external_refuel"
-                summary={summary}
-                vehicles={fuelVehicles}
-                icon={Fuel}
-                iconClassName="text-emerald-600"
-                variant="outline"
-                className="w-full border-border/70 border-l-4 border-l-emerald-500 hover:border-emerald-600/40 hover:border-l-emerald-500 hover:bg-emerald-600/5"
-              />
-              <FuelMovementDialog
-                company={company}
-                type="warehouse_unload"
-                summary={summary}
-                vehicles={fuelVehicles}
-                icon={ArrowDownToLine}
-                iconClassName="text-emerald-600"
-                variant="outline"
-                className="w-full border-border/70 border-l-4 border-l-emerald-500 hover:border-emerald-600/40 hover:border-l-emerald-500 hover:bg-emerald-600/5"
-              />
-            </div>
-          </div>
+        {canManage && (
+          <>
+            {/* --- Acciones rapidas agrupadas por flujo: entradas -> despachos -> consumo --- */}
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-3 sm:divide-x sm:divide-border">
+              <div className="space-y-2 sm:pr-6">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  Entradas
+                </p>
+                <div className="space-y-1.5">
+                  <FuelMovementDialog
+                    company={company}
+                    type="warehouse_initial_balance"
+                    summary={summary}
+                    vehicles={fuelVehicles}
+                    icon={Droplets}
+                    iconClassName="text-emerald-600"
+                    variant="outline"
+                    className="w-full border-border/70 border-l-4 border-l-emerald-500 hover:border-emerald-600/40 hover:border-l-emerald-500 hover:bg-emerald-600/5"
+                  />
+                  <FuelMovementDialog
+                    company={company}
+                    type="external_refuel"
+                    summary={summary}
+                    vehicles={fuelVehicles}
+                    icon={Fuel}
+                    iconClassName="text-emerald-600"
+                    variant="outline"
+                    className="w-full border-border/70 border-l-4 border-l-emerald-500 hover:border-emerald-600/40 hover:border-l-emerald-500 hover:bg-emerald-600/5"
+                  />
+                  <FuelMovementDialog
+                    company={company}
+                    type="warehouse_unload"
+                    summary={summary}
+                    vehicles={fuelVehicles}
+                    icon={ArrowDownToLine}
+                    iconClassName="text-emerald-600"
+                    variant="outline"
+                    className="w-full border-border/70 border-l-4 border-l-emerald-500 hover:border-emerald-600/40 hover:border-l-emerald-500 hover:bg-emerald-600/5"
+                  />
+                </div>
+              </div>
 
-          <div className="space-y-2 sm:px-6">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-              Despachos
-            </p>
-            <div className="space-y-1.5">
-              <FuelMovementDialog
-                company={company}
-                type="warehouse_dispatch_vehicle"
-                summary={summary}
-                vehicles={fuelVehicles}
-                icon={Truck}
-                iconClassName="text-sky-600"
-                variant="outline"
-                className="w-full border-border/70 border-l-4 border-l-sky-500 hover:border-sky-600/40 hover:border-l-sky-500 hover:bg-sky-600/5"
-              />
-              <FuelMovementDialog
-                company={company}
-                type="warehouse_dispatch_third_party"
-                summary={summary}
-                vehicles={fuelVehicles}
-                icon={ArrowUpFromLine}
-                iconClassName="text-sky-600"
-                variant="outline"
-                className="w-full border-border/70 border-l-4 border-l-sky-500 hover:border-sky-600/40 hover:border-l-sky-500 hover:bg-sky-600/5"
-              />
-            </div>
-          </div>
+              <div className="space-y-2 sm:px-6">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  Despachos
+                </p>
+                <div className="space-y-1.5">
+                  <FuelMovementDialog
+                    company={company}
+                    type="warehouse_dispatch_vehicle"
+                    summary={summary}
+                    vehicles={fuelVehicles}
+                    icon={Truck}
+                    iconClassName="text-sky-600"
+                    variant="outline"
+                    className="w-full border-border/70 border-l-4 border-l-sky-500 hover:border-sky-600/40 hover:border-l-sky-500 hover:bg-sky-600/5"
+                  />
+                  <FuelMovementDialog
+                    company={company}
+                    type="warehouse_dispatch_third_party"
+                    summary={summary}
+                    vehicles={fuelVehicles}
+                    icon={ArrowUpFromLine}
+                    iconClassName="text-sky-600"
+                    variant="outline"
+                    className="w-full border-border/70 border-l-4 border-l-sky-500 hover:border-sky-600/40 hover:border-l-sky-500 hover:bg-sky-600/5"
+                  />
+                </div>
+              </div>
 
-          <div className="space-y-2 sm:pl-6">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-              Consumo
-            </p>
-            <div className="space-y-1.5">
-              <FuelMovementDialog
-                company={company}
-                type="vehicle_daily_consumption"
-                summary={summary}
-                vehicles={fuelVehicles}
-                icon={CalendarMinus}
-                iconClassName="text-amber-600"
-                variant="outline"
-                className="w-full border-border/70 border-l-4 border-l-amber-500 hover:border-amber-600/40 hover:border-l-amber-500 hover:bg-amber-600/5"
-              />
-              <FuelMovementDialog
-                company={company}
-                type="vehicle_trip"
-                summary={summary}
-                vehicles={fuelVehicles}
-                icon={Route}
-                iconClassName="text-amber-600"
-                variant="outline"
-                className="w-full border-border/70 border-l-4 border-l-amber-500 hover:border-amber-600/40 hover:border-l-amber-500 hover:bg-amber-600/5"
-              />
+              <div className="space-y-2 sm:pl-6">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  Consumo
+                </p>
+                <div className="space-y-1.5">
+                  <FuelMovementDialog
+                    company={company}
+                    type="vehicle_daily_consumption"
+                    summary={summary}
+                    vehicles={fuelVehicles}
+                    icon={CalendarMinus}
+                    iconClassName="text-amber-600"
+                    variant="outline"
+                    className="w-full border-border/70 border-l-4 border-l-amber-500 hover:border-amber-600/40 hover:border-l-amber-500 hover:bg-amber-600/5"
+                  />
+                  <FuelMovementDialog
+                    company={company}
+                    type="vehicle_trip"
+                    summary={summary}
+                    vehicles={fuelVehicles}
+                    icon={Route}
+                    iconClassName="text-amber-600"
+                    variant="outline"
+                    className="w-full border-border/70 border-l-4 border-l-amber-500 hover:border-amber-600/40 hover:border-l-amber-500 hover:bg-amber-600/5"
+                  />
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
+          </>
+        )}
 
         {/* --- Tabs con datos --- */}
         <Tabs
@@ -562,6 +568,7 @@ export default function FuelWarehousePage() {
                   company={company}
                   movements={fuelMovements}
                   vehicles={fuelVehicles}
+                  canManage={canManage}
                   isSuperUser={isSuperUser}
                 />
                 {movementsPagination && movementsPagination.last_page > 1 && (
@@ -616,6 +623,7 @@ export default function FuelWarehousePage() {
             <FuelVehiclesTable
               company={company}
               vehicles={fuelVehicles}
+              canManage={canManage}
               isSuperUser={isSuperUser}
             />
           </TabsContent>
