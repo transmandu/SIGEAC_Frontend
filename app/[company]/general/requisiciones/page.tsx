@@ -118,7 +118,11 @@ const RequisitionsPage = () => {
                     <motion.span
                       layoutId="requisition-type-pill"
                       className="absolute inset-0 rounded-md border border-border bg-background shadow-sm"
-                      transition={{ type: "spring", stiffness: 500, damping: 36 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 500,
+                        damping: 36,
+                      }}
                     />
                   )}
                   <span className="relative">
@@ -151,7 +155,11 @@ const RequisitionsPage = () => {
                     <motion.span
                       layoutId="requisition-status-pill"
                       className="absolute inset-0 rounded-full border border-border bg-background shadow-sm"
-                      transition={{ type: "spring", stiffness: 500, damping: 36 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 500,
+                        damping: 36,
+                      }}
                     />
                   )}
                   <span
