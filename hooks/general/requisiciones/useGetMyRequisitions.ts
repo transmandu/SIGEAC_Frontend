@@ -20,6 +20,15 @@ export interface MyRequisitionCounts {
 
 export type MyRequisitionTypeFilter = "ALL" | RequisitionType;
 
+export type MyRequisitionStatusFilter =
+  | "ALL"
+  | "CREATED"
+  | "RECEIVED"
+  | "IN_PROGRESS"
+  | "QUOTED"
+  | "APPROVED"
+  | "REJECTED";
+
 const EMPTY_COUNTS: MyRequisitionCounts = {
   all: 0,
   aeronautical: 0,
@@ -44,6 +53,8 @@ export const useGetMyRequisitions = () => {
   const debouncedSearch = useDebounce(search, 350);
   const [typeFilter, setTypeFilterState] =
     useState<MyRequisitionTypeFilter>("ALL");
+  const [statusFilter, setStatusFilterState] =
+    useState<MyRequisitionStatusFilter>("ALL");
   const [pageSize, setPageSizeState] = useState(15);
   const [cursorStack, setCursorStack] = useState<(string | null)[]>([null]);
   const cursor = cursorStack[cursorStack.length - 1];
@@ -52,6 +63,7 @@ export const useGetMyRequisitions = () => {
 
   const enabled = !!selectedCompany && !!selectedStation;
   const type = typeFilter === "ALL" ? undefined : typeFilter;
+  const status = statusFilter === "ALL" ? undefined : statusFilter;
   const searchParam = debouncedSearch || undefined;
 
   const query = useQuery<CursorPage>({
@@ -61,6 +73,7 @@ export const useGetMyRequisitions = () => {
       selectedCompany?.slug,
       selectedStation,
       typeFilter,
+      statusFilter,
       cursor,
       debouncedSearch,
       pageSize,
@@ -71,6 +84,7 @@ export const useGetMyRequisitions = () => {
         {
           params: {
             type,
+            status,
             cursor: cursor ?? undefined,
             search: searchParam,
             per_page: pageSize,
@@ -92,11 +106,12 @@ export const useGetMyRequisitions = () => {
       selectedCompany?.slug,
       selectedStation,
       debouncedSearch,
+      statusFilter,
     ],
     queryFn: async () => {
       const { data } = await axios.get(
         `/${selectedCompany?.slug}/${selectedStation}/my-requisition-orders/counts`,
-        { params: { search: searchParam } },
+        { params: { search: searchParam, status } },
       );
       return data;
     },
@@ -133,6 +148,11 @@ export const useGetMyRequisitions = () => {
     typeFilter,
     setTypeFilter: (value: MyRequisitionTypeFilter) => {
       setTypeFilterState(value);
+      resetPaging();
+    },
+    statusFilter,
+    setStatusFilter: (value: MyRequisitionStatusFilter) => {
+      setStatusFilterState(value);
       resetPaging();
     },
     pageSize,
