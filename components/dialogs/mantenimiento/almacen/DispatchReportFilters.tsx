@@ -194,7 +194,7 @@ export function DispatchReportFilters({
         label: "Departamento",
         value:
           departments?.find((d) => String(d.id) === String(departmentId))
-            ?.name ?? departmentId,
+            ?.full_name ?? departmentId,
       },
 
     !isPlanificacionOnlyFilters &&
@@ -664,13 +664,13 @@ export function DispatchReportFilters({
                       <SelectItem value="all">Todos</SelectItem>
                       {(departments ?? [])
                         .filter((d) =>
-                          d.name
+                          (d.full_name ?? d.name)
                             .toLowerCase()
                             .includes(departmentSearch.toLowerCase()),
                         )
                         .map((d) => (
                           <SelectItem key={d.id} value={d.id.toString()}>
-                            {d.name}
+                            {d.full_name ?? d.name}
                           </SelectItem>
                         ))}
                     </SelectContent>

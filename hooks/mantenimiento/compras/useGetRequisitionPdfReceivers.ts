@@ -13,6 +13,7 @@ export interface RequisitionPdfReceiver {
   department?: {
     id: number;
     name: string;
+    full_name: string;
     acronym: string;
   } | null;
   job_title?: {

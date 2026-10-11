@@ -9,7 +9,7 @@ import {
 } from "@tanstack/react-table";
 import { appTableFeatures, type AppColumnDef, type AppRow } from "@/lib/table";
 
-import { useState } from "react"
+import { Fragment, useState } from "react"
 import { cn } from "@/lib/utils"
 
 import { Button } from "@/components/ui/button"
@@ -119,9 +119,8 @@ export function DataTable<TData extends RowData>({
                 const isExpanded = expandedRowId === row.id
 
                 return (
-                  <>
+                  <Fragment key={row.id}>
                     <TableRow
-                      key={row.id}
                       className={cn(
                         "cursor-pointer transition-colors hover:bg-muted/30",
                         isExpanded && "bg-muted/50 border-l-4"
@@ -149,7 +148,7 @@ export function DataTable<TData extends RowData>({
                         </TableCell>
                       </TableRow>
                     )}
-                  </>
+                  </Fragment>
                 )
               })
             ) : (

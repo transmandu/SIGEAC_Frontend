@@ -63,7 +63,7 @@ export function EmployeeExpandedRow({ employee }: Props) {
 
         <Item label="Cargo" value={employee.job_title?.name} />
 
-        <Item label="Departamento" value={employee.department?.name} />
+        <Item label="Departamento" value={employee.department?.full_name} />
 
         <Item label="Usuario" value={employee.user?.username} />
       </div>

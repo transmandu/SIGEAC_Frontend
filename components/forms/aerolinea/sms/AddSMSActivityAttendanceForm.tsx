@@ -122,7 +122,7 @@ export function AddSMSActivityAttendanceForm({
         first_name: string;
         last_name: string;
         job_title?: { name: string };
-        department?: { name: string };
+        department?: { name: string; full_name?: string };
         employee_type?: "local" | "authorized";
         authorized_employee_id?: number | null;
         from_company_db?: string;
@@ -134,7 +134,7 @@ export function AddSMSActivityAttendanceForm({
         first_name: e.first_name ?? "",
         last_name: e.last_name ?? "",
         job_title: e.job_title?.name ?? "",
-        department: e.department?.name ?? "",
+        department: e.department?.full_name ?? e.department?.name ?? "",
         isSelected: wasEnrolled,
         wasEnrolled,
         employee_type: (e.employee_type as "local" | "authorized") ?? "local",

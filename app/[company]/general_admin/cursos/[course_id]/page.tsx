@@ -70,7 +70,7 @@ const ShowCourse = () => {
                       Departamento:
                     </p>
                     <p className="text-gray-700 dark:text-gray-300">
-                      {course.department?.name || "N/A"}
+                      {course.department?.full_name || "N/A"}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">

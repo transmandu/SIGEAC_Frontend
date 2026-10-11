@@ -94,7 +94,10 @@ export default function UploadModal({
             axiosInstance.get(`/${company}/library/departments-list`),
             axiosInstance.get(`/${company}/library/categories-list`),
           ]);
-          let availableDepts = deptsRes.data;
+          let availableDepts = deptsRes.data.map((d: any) => ({
+            ...d,
+            name: d.full_name ?? d.name,
+          }));
           if (!isSuperUser && userDeptId) {
             availableDepts = availableDepts.filter(
               (d: any) => Number(d.id) === Number(userDeptId),

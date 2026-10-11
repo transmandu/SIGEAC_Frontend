@@ -136,10 +136,10 @@ const GeneralArticleCard = ({
       key: "department",
       icon: Building2,
       label: "Departamento",
-      value: article.department.acronym ?? article.department.name,
+      value: article.department.acronym ?? article.department.full_name,
       tooltip: article.department.acronym
-        ? `Departamento: ${article.department.name}`
-        : `Departamento: ${article.department.name} (sin acrónimo)`,
+        ? `Departamento: ${article.department.full_name}`
+        : `Departamento: ${article.department.full_name} (sin acrónimo)`,
     },
     article.third_party && {
       key: "third_party",

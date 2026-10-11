@@ -89,7 +89,7 @@ export default function DownloadRequisitionPdfDialog({
   const receiversByDepartment = useMemo(() => {
     const groups = new Map<string, RequisitionPdfReceiver[]>()
     for (const receiver of receivers ?? []) {
-      const department = receiver.department?.name ?? 'Sin departamento'
+      const department = receiver.department?.full_name ?? 'Sin departamento'
       groups.set(department, [...(groups.get(department) ?? []), receiver])
     }
     return Array.from(groups.entries())
@@ -196,11 +196,11 @@ export default function DownloadRequisitionPdfDialog({
                       {myEmployee.first_name} {myEmployee.last_name}
                     </p>
                     {(myEmployee.job_title?.name ||
-                      myEmployee.department?.name) && (
+                      myEmployee.department?.full_name) && (
                       <p className="text-xs text-muted-foreground">
                         {[
                           myEmployee.job_title?.name,
-                          myEmployee.department?.name,
+                          myEmployee.department?.full_name,
                         ]
                           .filter(Boolean)
                           .join(" — ")}

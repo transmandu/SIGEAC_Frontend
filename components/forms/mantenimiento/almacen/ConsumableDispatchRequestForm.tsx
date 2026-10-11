@@ -460,7 +460,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                         )}
                         {allDepartments?.map((d) => (
                           <SelectItem key={d.id} value={d.id.toString()}>
-                            {d.name}
+                            {d.full_name}
                           </SelectItem>
                         ))}
                       </SelectContent>

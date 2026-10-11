@@ -1,5 +1,6 @@
 "use client";
 
+import { flattenDepartments } from "@/lib/departments";
 import { useState, useMemo } from "react";
 import { format } from "date-fns";
 import { Department } from "@/types";
@@ -109,13 +110,8 @@ export function AdministrationDispatchReportDialog({
     useGetDispatchWorkOrders(selectedCompany?.slug);
 
   const { data: departments, isLoading: isLoadingDepartments } =
-    useGetDepartments(selectedCompany?.slug);
+    useGetDepartments(selectedCompany?.slug, { includeInactive: true });
 
-  const flattenDepartments = (departments: Department[]): Department[] =>
-    departments.flatMap((department) => [
-      department,
-      ...flattenDepartments(department.descendants ?? []),
-    ]);
 
   const allDepartments = departments ? flattenDepartments(departments) : [];
 

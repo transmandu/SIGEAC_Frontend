@@ -402,7 +402,7 @@ export function EditChangeRequestForm({
   const { selectedCompany } = useCompanyStore();
   const { updateChangeRequest } = useUpdateChangeRequest();
   const { data: departments, isLoading: isLoadingDepartments } =
-    useGetDepartments(selectedCompany?.slug);
+    useGetDepartments(selectedCompany?.slug, { includeInactive: true });
   const { data: employees, isLoading: isLoadingEmployees } =
     useGetEmployeesByCompany(selectedCompany?.slug);
   const { data: authorizedEmployees, isLoading: isLoadingAuthorizedEmployees } =

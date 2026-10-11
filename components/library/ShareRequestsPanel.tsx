@@ -553,7 +553,7 @@ export default function ShareRequestsPanel({
                       </span>
                       <span className="font-bold text-slate-900 dark:text-white">
                         {selectedDetails.document_department_name ||
-                          selectedDetails.document?.department?.name ||
+                          selectedDetails.document?.department?.full_name ||
                           "N/A"}
                       </span>
                     </div>

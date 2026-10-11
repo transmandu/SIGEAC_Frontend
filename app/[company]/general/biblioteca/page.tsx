@@ -26,6 +26,7 @@ import {
   Download,
 } from "lucide-react";
 import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment";
+import { withDisplayNames } from "@/lib/departments";
 import DocumentTable from "./DocumentTable";
 import UploadModal from "./UploadModal";
 import DocumentViewer from "@/components/library/SecureVisualizer";
@@ -109,7 +110,11 @@ const BibliotecaPage = () => {
     };
   }, [showFilters]);
 
-  const { data: rawDepartments = [] } = useGetDepartments(companySlug);
+  const { data: departmentsData } = useGetDepartments(companySlug, { includeInactive: true });
+  const rawDepartments = useMemo(
+    () => withDisplayNames(departmentsData ?? []),
+    [departmentsData],
+  );
   const [foldersMap, setFoldersMap] = useState<Record<number, FolderNode[]>>(
     {},
   );

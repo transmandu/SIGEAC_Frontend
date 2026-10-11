@@ -41,7 +41,7 @@ const getIntakeDestination = (
   }
   if (intake.department) {
     return {
-      label: intake.department.name,
+      label: intake.department.full_name,
       type: "Departamento",
       Icon: Building2,
     };

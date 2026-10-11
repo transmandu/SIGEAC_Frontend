@@ -1,5 +1,6 @@
 "use client";
 
+import { flattenDepartments } from "@/lib/departments";
 import { useCreateEmployee } from "@/actions/ajustes/empleados/actions";
 import { Button } from "@/components/ui/button";
 import {
@@ -392,11 +393,6 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
     }
   };
 
-  const flattenDepartments = (departments: Department[]): Department[] =>
-    departments.flatMap((department) => [
-      department,
-      ...flattenDepartments(department.descendants ?? []),
-    ]);
 
   const allDepartments = departments ? flattenDepartments(departments) : [];
 
@@ -696,7 +692,7 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
                           <SelectContent>
                             {allDepartments.map((d) => (
                               <SelectItem key={d.id} value={d.id.toString()}>
-                                {d.name}
+                                {d.full_name}
                               </SelectItem>
                             ))}
                           </SelectContent>

@@ -1,4 +1,5 @@
 "use client";
+import { flattenDepartments } from "@/lib/departments";
 import { Button } from "@/components/ui/button";
 import {
   FormField,
@@ -201,11 +202,6 @@ function DestinationFieldsRow({
 
   // Los departamentos llegan como árbol (con `descendants` anidados); se
   // aplanan para poder elegir cualquiera, no solo los de primer nivel.
-  const flattenDepartments = (departments: Department[]): Department[] =>
-    departments.flatMap((department) => [
-      department,
-      ...flattenDepartments(department.descendants ?? []),
-    ]);
 
   const allDepartments = departments ? flattenDepartments(departments) : [];
 
@@ -292,7 +288,7 @@ function DestinationFieldsRow({
               )}
             >
               <span className="truncate">
-                {selectedDepartment ? selectedDepartment.name : "Opcional"}
+                {selectedDepartment ? selectedDepartment.full_name : "Opcional"}
               </span>
               <ChevronsUpDown className="ml-1 h-3 w-3 shrink-0 opacity-50" />
             </Button>
@@ -323,7 +319,7 @@ function DestinationFieldsRow({
                 <CommandGroup>
                   {allDepartments.map((department) => (
                     <CommandItem
-                      value={`${department.id} ${department.name}`}
+                      value={`${department.id} ${department.full_name}`}
                       key={department.id}
                       onSelect={(currentValue: string) => {
                         const id = currentValue.split(" ")[0];
@@ -338,7 +334,7 @@ function DestinationFieldsRow({
                             : "opacity-0",
                         )}
                       />
-                      {department.name}
+                      {department.full_name}
                     </CommandItem>
                   ))}
                 </CommandGroup>

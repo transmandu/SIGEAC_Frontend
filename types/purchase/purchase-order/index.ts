@@ -333,6 +333,7 @@ export interface GeneralArticleIntakeWarehouseRef {
 export interface GeneralArticleIntakeDepartmentRef {
   id: number;
   name: string;
+  full_name: string;
 }
 
 export interface GeneralArticleIntakeThirdPartyRef {

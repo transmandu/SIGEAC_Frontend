@@ -24,7 +24,7 @@ const getDestination = (intake: GeneralArticleIntake) => {
     return { label: intake.warehouse.name, type: 'Almacén', Icon: Warehouse }
   }
   if (intake.department) {
-    return { label: intake.department.name, type: 'Departamento', Icon: Building2 }
+    return { label: intake.department.full_name, type: 'Departamento', Icon: Building2 }
   }
   if (intake.employee) {
     return {

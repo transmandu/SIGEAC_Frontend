@@ -444,7 +444,7 @@ export default function DashboardModal({
   const isSingleDeptView = isDirector && !canViewCharts;
 
   const userDeptName = useMemo(() => {
-    return user?.employee?.[0]?.department?.name ?? null;
+    return user?.employee?.[0]?.department?.full_name ?? null;
   }, [user]);
 
   useEffect(() => {
@@ -486,7 +486,7 @@ export default function DashboardModal({
     const byDept = deptNames.map((dept) => {
       const docs = documents[dept] || [];
       const shared = traceability.filter((t: any) => {
-        const dName = t.department_name || t.document?.department?.name || "";
+        const dName = t.department_name || t.document?.department?.full_name || "";
         return dName.toUpperCase() === dept.toUpperCase();
       });
       const totalAccesses = shared.reduce((sum: number, s: any) => {
@@ -550,7 +550,7 @@ export default function DashboardModal({
     let deptShared = traceability;
     if (userDeptName) {
       deptShared = traceability.filter((t: any) => {
-        const dName = t.department_name || t.document?.department?.name || "";
+        const dName = t.department_name || t.document?.department?.full_name || "";
         return dName.toUpperCase() === userDeptName.toUpperCase();
       });
     }

@@ -407,16 +407,79 @@ export type LibraryFolderNode = {
   children: LibraryFolderNode[];
 };
 
+export type DepartmentType = {
+  id: number;
+  name: string;
+  connector: string | null;
+  level: number;
+  is_active: boolean;
+  departments_count?: number;
+};
+
+export type DepartmentLocation = {
+  id: number;
+  location_id: number;
+  email: string | null;
+  is_active: boolean;
+  location: { id: number; address: string; cod_iata: string } | null;
+};
+
 export type Department = {
   id: number;
   name: string;
-  email: string;
+  full_name: string;
+  description: string | null;
   acronym: string;
+  is_active: boolean;
+  sort_order: number;
+  department_type_id: number | null;
+  department_parent_id: number | null;
   registered_by: string;
   updated_by: string | null;
-  library_folder_tree: LibraryFolderNode[] | null;
-  department_parent_id?: number | null;
-  descendants: Department[];
+  type?: DepartmentType | null;
+  parent?: Pick<Department, "id" | "name" | "full_name" | "acronym"> | null;
+  locations?: DepartmentLocation[];
+  employees_count?: number;
+  descendants?: Department[];
+  children?: Department[];
+};
+
+export type DepartmentMembership = {
+  id: number;
+  employee_id: number;
+  department_id: number;
+  location_id: number;
+  job_title_id: number | null;
+  is_head: boolean;
+  started_at: string;
+  ended_at: string | null;
+  movement_type: "INGRESO" | "REINGRESO" | "TRASLADO" | "CAMBIO_CARGO";
+  reason: string | null;
+  end_type: "TRASLADO" | "CAMBIO_CARGO" | "RETIRO" | null;
+  end_reason: string | null;
+  registered_by: string;
+  employee?: {
+    id: number;
+    first_name: string;
+    middle_name: string | null;
+    last_name: string;
+    second_last_name: string | null;
+    dni: string;
+  };
+  department?: Department;
+  job_title?: { id: number; name: string } | null;
+  location?: { id: number; address: string; cod_iata: string } | null;
+};
+
+export type DepartmentAuditLog = {
+  id: number;
+  department_id: number;
+  action: string;
+  before: Record<string, unknown> | null;
+  after: Record<string, unknown> | null;
+  reason: string | null;
+  performed_by: string;
+  created_at: string;
 };
 
 export type MaintenanceClient = {

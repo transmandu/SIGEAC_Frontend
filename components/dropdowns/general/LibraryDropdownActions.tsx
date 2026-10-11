@@ -111,7 +111,7 @@ export const LibraryDropdownActions = ({
 
   const canDownload = useMemo(() => {
     if (!user || !doc) return false;
-    const docDeptName = doc.department?.name?.toUpperCase() || "";
+    const docDeptName = doc.department?.full_name?.toUpperCase() || "";
     const isSmsDoc =
       docDeptName.includes("SEGURIDAD OPERACIONAL") ||
       docDeptName.includes("SMS");

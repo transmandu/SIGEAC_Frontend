@@ -2,7 +2,7 @@ import axios from "@/lib/axios";
 import { Department } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 
-const fetchDepartments = async ({
+const fetchDepartment = async ({
   company,
   id,
 }: {
@@ -21,8 +21,8 @@ export const useGetDepartmentById = ({
   id: string;
 }) => {
   return useQuery<Department, Error>({
-    queryKey: ["departments", company],
-    queryFn: () => fetchDepartments({ company, id }),
+    queryKey: ["departments", company, "detail", id],
+    queryFn: () => fetchDepartment({ company, id }),
     enabled: !!id && !!company,
   });
 };

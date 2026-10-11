@@ -462,7 +462,7 @@ const GeneralArticleCard = ({ article }: { article: any }) => {
               <div>
                 <p className="text-muted-foreground text-xs">Departamento</p>
                 <p className="font-medium">
-                  {article.department.acronym ?? article.department.name}
+                  {article.department.acronym ?? article.department.full_name}
                 </p>
               </div>
             )}

@@ -172,10 +172,10 @@ export const getColumns = (
           value: work_order,
           icon: ClipboardList,
         },
-        department?.name && {
+        department?.full_name && {
           key: "department",
           label: "Dpto",
-          value: department.acronym || department.name,
+          value: department.acronym || department.full_name,
           icon: Building2,
         },
         third_party?.name && {

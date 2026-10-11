@@ -1,5 +1,6 @@
 "use client";
 
+import { flattenDepartments } from "@/lib/departments";
 import { useUpdateEmployee } from "@/actions/ajustes/empleados/actions";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -52,6 +53,7 @@ type FormValues = z.infer<typeof formSchema>;
 interface Option {
   id: string | number;
   name?: string;
+  full_name?: string;
   address?: string;
 }
 
@@ -73,7 +75,7 @@ export function UpdateEmployeeForm({
   const [step, setStep] = useState<1 | 2>(1);
 
   const { data: locations } = useGetLocationsByCompany(selectedCompany?.slug);
-  const { data: departments } = useGetDepartments(selectedCompany?.slug);
+  const { data: departments } = useGetDepartments(selectedCompany?.slug, { includeInactive: true });
   const { data: jobTitles } = useGetJobTitles(selectedCompany?.slug);
   const { data: users } = useGetUsers();
 
@@ -230,7 +232,7 @@ const buildFormData = (values: FormValues, original: any) => {
   const normalizeOptions = (data?: Option[]) =>
     data?.map((o) => ({
       id: String(o.id),
-      label: o.name ?? o.address ?? "Sin nombre",
+      label: o.full_name ?? o.name ?? o.address ?? "Sin nombre",
     })) ?? [];
     
   type SelectFieldProps = {
@@ -280,11 +282,6 @@ const buildFormData = (values: FormValues, original: any) => {
      RENDER
   ========================= */
 
-  const flattenDepartments = (departments: Department[]): Department[] =>
-    departments.flatMap((department) => [
-      department,
-      ...flattenDepartments(department.descendants ?? []),
-    ]);
 
   const allDepartments = departments
     ? flattenDepartments(departments)
@@ -692,7 +689,12 @@ const buildFormData = (values: FormValues, original: any) => {
                   name="department_id"
                   label="Departamento"
                   placeholder="Sin departamento"
-                  options={normalizeOptions(allDepartments)}
+                  options={normalizeOptions(
+                    allDepartments.filter(
+                      (department) =>
+                        department.is_active || department.id === employee.department_id,
+                    ),
+                  )}
                 />
 
                 <SelectField

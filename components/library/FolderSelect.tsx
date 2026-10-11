@@ -218,6 +218,7 @@ export default function FolderSelect({
 
   const { data: departments, isLoading: loadingDept } = useGetDepartments(
     company ?? undefined,
+    { includeInactive: true },
   );
 
   const smsDepartment = useMemo(

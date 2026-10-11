@@ -196,7 +196,7 @@ export default function RequisitionArticlesPopover({ requisition }: Props) {
             }
 
             const destinations = [
-              article.department?.name,
+              article.department?.full_name,
               article.third_party?.name,
               article.employee &&
                 `${article.employee.first_name} ${article.employee.last_name}`,

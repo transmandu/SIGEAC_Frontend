@@ -495,7 +495,7 @@ export default function GestionDeCambioDetailPage() {
               </h1>
               <p className="text-xs text-muted-foreground mt-0.5">
                 {CHANGE_TYPE_LABELS[changeRequest.change_type]} —{" "}
-                {changeRequest.department?.name}
+                {changeRequest.department?.full_name}
               </p>
             </div>
           </div>
@@ -529,7 +529,7 @@ export default function GestionDeCambioDetailPage() {
               </div>
               <div>
                 <SectionLabel>Departamento</SectionLabel>
-                <FieldValue>{changeRequest.department?.name}</FieldValue>
+                <FieldValue>{changeRequest.department?.full_name}</FieldValue>
               </div>
               <div>
                 <SectionLabel>Temporal</SectionLabel>

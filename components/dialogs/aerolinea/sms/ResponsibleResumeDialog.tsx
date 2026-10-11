@@ -60,7 +60,7 @@ const ResponsibleResumeDialog = ({ id }: { id: string }) => {
               Departamento
             </h3>
             <p className="text-lg font-semibold">
-              {employee?.department ? employee.department.name : "N/A"}
+              {employee?.department ? employee.department.full_name : "N/A"}
             </p>
             <Separator />
           </div>

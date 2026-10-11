@@ -88,7 +88,7 @@ function ResponsibleSelect({
 
   const searchLower = search.toLowerCase();
   const filteredLocal = localEmployees.filter((e) =>
-    `${e.first_name} ${e.last_name} ${e.dni} ${e.department?.name ?? ""}`
+    `${e.first_name} ${e.last_name} ${e.dni} ${e.department?.full_name ?? ""}`
       .toLowerCase()
       .includes(searchLower),
   );
@@ -205,7 +205,7 @@ function ResponsibleSelect({
                         {e.first_name} {e.last_name}
                       </span>
                       <span className="text-xs text-muted-foreground truncate">
-                        {e.job_title?.name} · {e.department?.name}
+                        {e.job_title?.name} · {e.department?.full_name}
                       </span>
                     </div>
                     <span className="font-mono text-xs text-muted-foreground">

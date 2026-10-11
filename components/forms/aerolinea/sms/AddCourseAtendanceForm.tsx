@@ -132,7 +132,7 @@ export function AddCourseAttendanceForm({ onClose, initialData }: FormProps) {
       first_name: string;
       last_name: string;
       job_title?: { name: string } | null;
-      department?: { name: string } | null;
+      department?: { name: string; full_name?: string } | null;
     }): EmployeeSelection => {
       const wasEnrolled = attendedDni.has(employee.dni);
       return {
@@ -140,7 +140,7 @@ export function AddCourseAttendanceForm({ onClose, initialData }: FormProps) {
         first_name: employee.first_name,
         last_name: employee.last_name,
         job_title: employee.job_title?.name ?? "",
-        department: employee.department?.name ?? "",
+        department: employee.department?.full_name ?? employee.department?.name ?? "",
         isSelected: wasEnrolled,
         wasEnrolled,
       };

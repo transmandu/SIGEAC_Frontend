@@ -115,7 +115,9 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
         job_title:
           typeof e.job_title === "string" ? e.job_title : e.job_title.name,
         department:
-          typeof e.department === "string" ? e.department : e.department.name,
+          typeof e.department === "string"
+            ? e.department
+            : (e.department.full_name ?? e.department.name),
         isSelected: wasEnrolled,
         wasEnrolled,
         employee_type: e.employee_type,

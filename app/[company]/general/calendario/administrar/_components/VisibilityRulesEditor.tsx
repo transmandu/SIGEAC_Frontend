@@ -176,9 +176,9 @@ export function VisibilityRulesEditor({
   const describeRule = (rule: CalendarVisibilityRule) => {
     if (rule.grant_type === "ALL") return "Todos los usuarios";
     if (rule.grant_type === "DEPARTMENT")
-      return rule.department?.name ?? `Departamento #${rule.department_id}`;
+      return rule.department?.full_name ?? `Departamento #${rule.department_id}`;
     if (rule.grant_type === "DEPARTMENT_TREE") {
-      return `${rule.department?.name ?? `Departamento #${rule.department_id}`} y su árbol`;
+      return `${rule.department?.full_name ?? `Departamento #${rule.department_id}`} y su árbol`;
     }
     const user = users.find((u) => u.id === rule.user_id);
     return user

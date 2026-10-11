@@ -104,7 +104,7 @@ export const generateMinutaPDF = async (activity: any, attendeesCount: number) =
 
     // DEPARTAMENTO
     write(
-      activity.authorized_by?.department?.name || "",
+      activity.authorized_by?.department?.full_name || "",
       322,
       262,
       8,
@@ -131,7 +131,7 @@ export const generateMinutaPDF = async (activity: any, attendeesCount: number) =
 
     // DEPARTAMENTO
     write(
-      activity.planned_by?.department?.name || "",
+      activity.planned_by?.department?.full_name || "",
       337,
       243,
       8,

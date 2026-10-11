@@ -165,7 +165,7 @@ export const columns: AppColumnDef<DispatchGroupRow>[] = [
   {
     id: "destination",
     meta: { title: "Destino" },
-    accessorFn: (row) => row.aircraft?.acronym ?? row.department?.name ?? "",
+    accessorFn: (row) => row.aircraft?.acronym ?? row.department?.full_name ?? "",
     header: ({ column }) => (
       <DataTableColumnHeader
         column={column}
@@ -177,7 +177,7 @@ export const columns: AppColumnDef<DispatchGroupRow>[] = [
     ),
     cell: ({ row }) => {
       const aircraft = row.original.aircraft?.acronym;
-      const dept = row.original.department?.name;
+      const dept = row.original.department?.full_name;
 
       if (aircraft) {
         return (

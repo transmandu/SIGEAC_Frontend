@@ -299,7 +299,7 @@ const RequisitionPage = () => {
             {data?.department && (
               <MetaItem
                 label="DEPARTAMENTO"
-                value={data.department.name?.toUpperCase()}
+                value={data.department.full_name?.toUpperCase()}
                 icon={Building2}
               />
             )}

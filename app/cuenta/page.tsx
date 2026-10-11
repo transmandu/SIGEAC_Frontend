@@ -130,7 +130,7 @@ const AccountPage = () => {
                   />
                   <ProfileField
                     label="Departamento"
-                    value={employee.department?.name}
+                    value={employee.department?.full_name}
                   />
                   <ProfileField
                     label="Documento"

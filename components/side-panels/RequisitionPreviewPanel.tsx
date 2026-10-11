@@ -265,7 +265,7 @@ export default function RequisitionPreviewPanel({
             {requisition.department && (
               <MetaItem
                 label="DEPARTAMENTO"
-                value={requisition.department.name?.toUpperCase()}
+                value={requisition.department.full_name?.toUpperCase()}
                 icon={Building2}
               />
             )}
@@ -403,7 +403,7 @@ export default function RequisitionPreviewPanel({
                 article.department && {
                   key: "department",
                   label: "Departamento",
-                  value: article.department.acronym ?? article.department.name,
+                  value: article.department.acronym ?? article.department.full_name,
                 },
                 article.third_party && {
                   key: "third_party",

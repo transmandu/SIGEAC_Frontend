@@ -199,10 +199,10 @@ export function AuthorizedEmployeeForm({ onSuccess }: Props) {
                   <span>
                     {emp.first_name} {emp.last_name} – {emp.dni}
                   </span>
-                  {(emp.job_title?.name || emp.department?.name) && (
+                  {(emp.job_title?.name || emp.department?.full_name) && (
                     <span className="text-sm text-muted-foreground">
                       {emp.job_title?.name ?? "–"} –{" "}
-                      {emp.department?.name ?? "–"}
+                      {emp.department?.full_name ?? "–"}
                     </span>
                   )}
                 </div>

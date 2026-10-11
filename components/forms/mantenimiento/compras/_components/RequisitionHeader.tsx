@@ -1,4 +1,5 @@
 "use client";
+import { flattenDepartments } from "@/lib/departments";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -143,11 +144,6 @@ export function RequisitionHeader({
 
   // Los departamentos llegan como árbol (con `descendants` anidados); se
   // aplanan para poder elegir cualquiera, no solo los de primer nivel.
-  const flattenDepartments = (departments: Department[]): Department[] =>
-    departments.flatMap((department) => [
-      department,
-      ...flattenDepartments(department.descendants ?? []),
-    ]);
 
   const allDepartments = departments ? flattenDepartments(departments) : [];
 
@@ -709,7 +705,7 @@ export function RequisitionHeader({
                       >
                         <span className="truncate">
                           {selectedDepartment
-                            ? selectedDepartment.name
+                            ? selectedDepartment.full_name
                             : "Opcional..."}
                         </span>
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -737,7 +733,7 @@ export function RequisitionHeader({
                           <CommandGroup>
                             {allDepartments.map((department) => (
                               <CommandItem
-                                value={`${department.id} ${department.name}`}
+                                value={`${department.id} ${department.full_name}`}
                                 key={department.id}
                                 onSelect={(currentValue: string) => {
                                   const id = currentValue.split(" ")[0];
@@ -752,7 +748,7 @@ export function RequisitionHeader({
                                       : "opacity-0",
                                   )}
                                 />
-                                {department.name}
+                                {department.full_name}
                               </CommandItem>
                             ))}
                           </CommandGroup>

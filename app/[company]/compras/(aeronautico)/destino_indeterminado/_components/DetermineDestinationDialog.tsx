@@ -337,7 +337,7 @@ export function DetermineDestinationDialog({
                                     key={department.id}
                                     value={String(department.id)}
                                   >
-                                    {department.name}
+                                    {department.full_name}
                                   </SelectItem>
                                 ))}
                               </SelectContent>

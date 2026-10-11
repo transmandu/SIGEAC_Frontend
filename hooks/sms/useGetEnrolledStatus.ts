@@ -8,7 +8,7 @@ export interface EnrolledEmployeeData {
   dni: string;
   dni_type?: string;
   job_title: string | { id: string; name: string };
-  department: string | { id: string; name: string };
+  department: string | { id: string; name: string; full_name?: string };
   employee_type: "local" | "authorized";
   authorized_employee_id?: number | null;
   from_company_db?: string;

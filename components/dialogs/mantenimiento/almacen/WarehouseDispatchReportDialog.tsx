@@ -1,5 +1,6 @@
 "use client";
 
+import { flattenDepartments } from "@/lib/departments";
 import { useState } from "react";
 import { format } from "date-fns";
 
@@ -92,13 +93,8 @@ export function WarehouseDispatchReportDialog() {
   );
 
   const { data: departments, isLoading: isLoadingDepartments } =
-    useGetDepartments(selectedCompany?.slug);
+    useGetDepartments(selectedCompany?.slug, { includeInactive: true });
 
-  const flattenDepartments = (departments: Department[]): Department[] =>
-    departments.flatMap((department) => [
-      department,
-      ...flattenDepartments(department.descendants ?? []),
-    ]);
 
   const allDepartments = departments ? flattenDepartments(departments) : [];
 
