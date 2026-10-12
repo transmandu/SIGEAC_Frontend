@@ -11,6 +11,29 @@ export const isImageDocument = (filePath?: string | null): boolean => {
   return !!extension && IMAGE_EXTENSIONS.includes(extension);
 };
 
+export type DocumentSupport = "physical" | "digital" | "both";
+
+/**
+ * Cómo quedó consignado un documento. "physical" es el caso sin archivo: el
+ * documento llegó en papel y nunca se adjuntó al sistema, así que no hay nada
+ * que abrir. No es un error de carga.
+ */
+export const getDocumentSupport = (doc: {
+  file_path?: string | null;
+  is_physical?: boolean;
+}): DocumentSupport => {
+  const hasFile = !!doc.file_path;
+  if (doc.is_physical && hasFile) return "both";
+  if (doc.is_physical || !hasFile) return "physical";
+  return "digital";
+};
+
+export const DOCUMENT_SUPPORT_LABEL: Record<DocumentSupport, string> = {
+  physical: "Recibido en físico (sin archivo digital)",
+  digital: "Archivo digital",
+  both: "Físico y digital",
+};
+
 /** Debe coincidir con `mimes:pdf,jpg,jpeg,png|max:10240` del backend. */
 export const DOCUMENT_MAX_BYTES = 10 * 1024 * 1024;
 const ALLOWED_EXTENSIONS = ["pdf", ...IMAGE_EXTENSIONS];

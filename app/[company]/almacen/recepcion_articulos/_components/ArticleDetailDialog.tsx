@@ -36,6 +36,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { EditTransitArticleDialog } from "@/app/[company]/compras/(aeronautico)/en_transito/_components/EditTransitArticleDialog";
 import SecureFileViewer from "@/components/library/SecureFileViewer";
+import { DocumentSupportBadge } from "@/components/misc/DocumentSupportBadge";
 import axiosInstance from "@/lib/axios";
 import { cn, toAltPartNumbers } from "@/lib/utils";
 import type { TransitArticle } from "@/types/purchase/in-transit";
@@ -478,7 +479,13 @@ export function ArticleDetailDialog({ article }: { article: TransitArticle }) {
                           </p>
                         </div>
 
-                        {req.documents.map((doc, i) => (
+                        {req.documents.map((doc) => (
+                          <DocumentSupportBadge key={`badge-${doc.id}`} doc={doc} />
+                        ))}
+
+                        {req.documents
+                          .filter((doc) => !!doc.file_path)
+                          .map((doc, i, withFile) => (
                           <TooltipProvider key={doc.id}>
                             <Tooltip>
                               <TooltipTrigger asChild>
@@ -492,7 +499,7 @@ export function ArticleDetailDialog({ article }: { article: TransitArticle }) {
                                 </Button>
                               </TooltipTrigger>
                               <TooltipContent side="top">
-                                {req.documents.length > 1
+                                {withFile.length > 1
                                   ? `Ver documento ${i + 1}`
                                   : "Ver documento"}
                               </TooltipContent>
