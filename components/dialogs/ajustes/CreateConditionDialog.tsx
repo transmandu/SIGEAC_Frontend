@@ -11,10 +11,11 @@ import {
 } from "@/components/ui/dialog";
 import { useState } from "react";
 import { CreateConditionForm } from "@/components/forms/ajustes/CreateConditionForm";
+import { Condition } from "@/types";
 import { Plus } from "lucide-react";
 
 interface CreateConditionDialogProps {
-  onSuccess?: (condition: any) => void;
+  onSuccess?: (condition: Condition) => void;
   triggerButton?: React.ReactNode;
 }
 
@@ -28,22 +29,21 @@ export function CreateConditionDialog({
       <DialogTrigger asChild>
         {triggerButton || (
           <Button
-            onClick={() => setOpen(true)}
-            variant={"outline"}
+            variant="outline"
             className="flex items-center justify-center gap-2 h-8 border-dashed"
           >
             <Plus className="h-4 w-4" />
-            Nuevo
+            Nueva Condición
           </Button>
         )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-105">
         <DialogHeader>
           <DialogTitle data-tour="condiciones-dialog-header">
-            Creación de Condicion (Articulo)
+            Creación de Condición
           </DialogTitle>
           <DialogDescription>
-            Cree una condicion para un articulo.
+            Cree una condición para los artículos del almacén.
           </DialogDescription>
         </DialogHeader>
         <CreateConditionForm

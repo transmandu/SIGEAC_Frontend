@@ -12,6 +12,7 @@ interface BalanceParams {
   authorized_employee_id?: string | null;
   third_party_id?: string | null;
   type?: "aeronautical" | "general" | null;
+  condition_id?: string | null;
   from: string;
   to: string;
   format?: "pdf" | "excel";
@@ -45,10 +46,12 @@ export const useGetBalanceAndTotalReport = () => {
             authorized_employee_id: params.authorized_employee_id ?? undefined,
             third_party_id: params.third_party_id ?? undefined,
             type: params.type ?? undefined,
+            condition_id: params.condition_id ?? undefined,
             from: params.from,
             to: params.to,
             part_number: params.part_number ?? undefined,
-            alternative_part_number: params.alternative_part_number ?? undefined,
+            alternative_part_number:
+              params.alternative_part_number ?? undefined,
             description: params.description ?? undefined,
             batch_id: params.batch_id ?? undefined,
             variant_type: params.variant_type ?? undefined,
@@ -65,7 +68,7 @@ export const useGetBalanceAndTotalReport = () => {
 
           throw new Error(
             error.error ||
-              "No se encontraron datos para los filtros seleccionados"
+              "No se encontraron datos para los filtros seleccionados",
           );
         }
 
@@ -77,7 +80,7 @@ export const useGetBalanceAndTotalReport = () => {
 
           throw new Error(
             errorData.error ||
-              "No se encontraron datos para los filtros seleccionados"
+              "No se encontraron datos para los filtros seleccionados",
           );
         }
 
@@ -88,8 +91,7 @@ export const useGetBalanceAndTotalReport = () => {
     onError: (error: any) => {
       toast.error("Oops!", {
         description:
-          error.message ||
-          "Ocurrió un problema al generar el reporte.",
+          error.message || "Ocurrió un problema al generar el reporte.",
       });
     },
   });

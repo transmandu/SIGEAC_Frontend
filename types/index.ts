@@ -273,6 +273,8 @@ export type Condition = {
   id: number;
   name: string;
   description: string;
+  /** Lo que sale en esta condición (p. ej. resguardo) se informa pero no suma al costo. */
+  excluded_from_cost?: boolean;
   registered_by: string;
   updated_by: string;
 };

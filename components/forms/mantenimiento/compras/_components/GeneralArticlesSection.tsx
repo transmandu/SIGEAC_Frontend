@@ -1,4 +1,5 @@
 "use client";
+import { flattenDepartments } from "@/lib/departments";
 import { Button } from "@/components/ui/button";
 import {
   FormField,
@@ -201,12 +202,6 @@ function DestinationFieldsRow({
 
   // Los departamentos llegan como árbol (con `descendants` anidados); se
   // aplanan para poder elegir cualquiera, no solo los de primer nivel.
-  const flattenDepartments = (departments: Department[]): Department[] =>
-    departments.flatMap((department) => [
-      department,
-      ...flattenDepartments(department.descendants ?? []),
-    ]);
-
   const allDepartments = departments ? flattenDepartments(departments) : [];
 
   const selectedDepartment = allDepartments.find(
