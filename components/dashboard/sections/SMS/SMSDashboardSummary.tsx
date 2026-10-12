@@ -91,7 +91,10 @@ export default function DashboardSummary({
       {/* ================= TOP GRID ================= */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* LINE CHART */}
-        <TintedCard tone={blueTone} className="p-2 min-h-90 flex flex-col">
+        <TintedCard
+          tone={blueTone}
+          className="p-2 min-h-90 lg:h-90 flex flex-col"
+        >
           <CardHeader className="text-center space-y-1 py-2">
             <div className="flex justify-center">
               <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600">
@@ -148,7 +151,10 @@ export default function DashboardSummary({
         </TintedCard>
 
         {/* TRAINING */}
-        <TintedCard tone={blueTone} className="p-3 min-h-90 flex flex-col">
+        <TintedCard
+          tone={blueTone}
+          className="p-3 min-h-90 max-h-90 lg:max-h-none lg:h-90 flex flex-col"
+        >
           <CardHeader className="text-center space-y-1 py-2">
             <div className="flex justify-center">
               <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600">
@@ -166,7 +172,7 @@ export default function DashboardSummary({
             </CardDescription>
           </CardHeader>
 
-          <CardContent className="flex-1 overflow-auto pr-1">
+          <CardContent className="flex-1 min-h-0 overflow-y-auto pr-1">
             {isLoadingEmployeeTraining ? (
               <Loader2 className="animate-spin mx-auto" />
             ) : isErrorEmployeeTraining ? (
