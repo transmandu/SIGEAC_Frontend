@@ -1,3 +1,7 @@
+## v4.63.0 — 2026-10-12
+
+- feat: add condition management features (#334)
+
 ## v4.62.0 — 2026-10-12
 
 - feat: implement download and upload functionality for quote documents (#333)
