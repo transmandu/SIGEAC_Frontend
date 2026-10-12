@@ -1,3 +1,7 @@
+## v4.61.1 — 2026-10-12
+
+- fix: infinity trainning employee card (#332)
+
 ## v4.61.0 — 2026-10-11
 
 - feat: add status filter to requisitions and update UI components (#331)
