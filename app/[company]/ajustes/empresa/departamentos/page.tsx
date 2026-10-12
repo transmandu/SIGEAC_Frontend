@@ -20,9 +20,7 @@ const DepartmentPage = () => {
     isError: error,
   } = useGetDepartments(selectedCompany?.slug);
 
-  const tableData = departments
-    ? flattenDepartments(departments)
-    : [];
+  const tableData = departments ? flattenDepartments(departments) : [];
 
   return (
     <ContentLayout title="Departamentos">
@@ -51,12 +49,7 @@ const DepartmentPage = () => {
         </div>
       )}
 
-      {departments && (
-        <DataTable
-          columns={columns}
-          data={tableData}
-        />
-      )}
+      {departments && <DataTable columns={columns} data={tableData} />}
     </ContentLayout>
   );
 };
