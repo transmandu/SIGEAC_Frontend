@@ -1,7 +1,7 @@
-'use client'
+"use client";
 
-import { useRef, useState } from 'react'
-import { toast } from 'sonner'
+import { useRef, useState } from "react";
+import { toast } from "sonner";
 import {
   ExternalLink,
   FileCheck2,
@@ -9,38 +9,38 @@ import {
   Loader2,
   Trash2,
   Upload,
-} from 'lucide-react'
+} from "lucide-react";
 
-import { Button } from '@/components/ui/button'
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
-import { DEFAULT_TIMEZONE, formatInstant } from '@/lib/date'
-import { useCompanyStore } from '@/stores/CompanyStore'
+} from "@/components/ui/dialog";
+import { DEFAULT_TIMEZONE, formatInstant } from "@/lib/date";
+import { useCompanyStore } from "@/stores/CompanyStore";
 import {
   fetchSignedQuoteBlob,
   useDeleteSignedQuote,
   useUploadSignedQuote,
-} from '@/hooks/mantenimiento/compras/useQuoteSignedDocument'
-import type { QuoteSignedDocument } from '@/types/purchase'
+} from "@/hooks/mantenimiento/compras/useQuoteSignedDocument";
+import type { QuoteSignedDocument } from "@/types/purchase";
 
-const ACCEPTED_TYPES = ['application/pdf', 'image/jpeg', 'image/png']
-const MAX_SIZE_BYTES = 10 * 1024 * 1024
+const ACCEPTED_TYPES = ["application/pdf", "image/jpeg", "image/png"];
+const MAX_SIZE_BYTES = 10 * 1024 * 1024;
 
 type Props = {
   quote: {
-    id: number
-    quote_number: string | null
-    signed_document?: QuoteSignedDocument | null
-  }
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  timeZone?: string
-}
+    id: number;
+    quote_number: string | null;
+    signed_document?: QuoteSignedDocument | null;
+  };
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  timeZone?: string;
+};
 
 /**
  * Respaldo físico de la cotización: se imprime el formato, la directiva lo
@@ -53,87 +53,87 @@ export default function SignedQuoteDocumentDialog({
   onOpenChange,
   timeZone = DEFAULT_TIMEZONE,
 }: Props) {
-  const { selectedCompany } = useCompanyStore()
-  const inputRef = useRef<HTMLInputElement>(null)
-  const [file, setFile] = useState<File | null>(null)
-  const [isOpening, setIsOpening] = useState(false)
+  const { selectedCompany } = useCompanyStore();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [file, setFile] = useState<File | null>(null);
+  const [isOpening, setIsOpening] = useState(false);
 
   const handleOpenChange = (next: boolean) => {
-    if (!next) setFile(null)
-    onOpenChange(next)
-  }
+    if (!next) setFile(null);
+    onOpenChange(next);
+  };
 
   const { mutateAsync: upload, isPending: isUploading } =
-    useUploadSignedQuote()
-  const { mutateAsync: remove, isPending: isRemoving } = useDeleteSignedQuote()
+    useUploadSignedQuote();
+  const { mutateAsync: remove, isPending: isRemoving } = useDeleteSignedQuote();
 
-  const current = quote.signed_document
-  const company = selectedCompany?.slug
-  const busy = isUploading || isRemoving
+  const current = quote.signed_document;
+  const company = selectedCompany?.slug;
+  const busy = isUploading || isRemoving;
 
   const handleSelect = (selected: File | undefined) => {
-    if (!selected) return
+    if (!selected) return;
 
     if (!ACCEPTED_TYPES.includes(selected.type)) {
-      toast.error('Solo se admiten archivos PDF, JPG o PNG.')
-      return
+      toast.error("Solo se admiten archivos PDF, JPG o PNG.");
+      return;
     }
 
     if (selected.size > MAX_SIZE_BYTES) {
-      toast.error('El archivo supera el máximo de 10 MB.')
-      return
+      toast.error("El archivo supera el máximo de 10 MB.");
+      return;
     }
 
-    setFile(selected)
-  }
+    setFile(selected);
+  };
 
   const handleUpload = async () => {
-    if (!company || !file || busy) return
+    if (!company || !file || busy) return;
 
     try {
-      await upload({ company, quoteId: quote.id, file })
-      toast.success('Documento firmado guardado')
-      handleOpenChange(false)
+      await upload({ company, quoteId: quote.id, file });
+      toast.success("Documento firmado guardado");
+      handleOpenChange(false);
     } catch (error) {
       toast.error(
         error instanceof Error
           ? error.message
-          : 'No se pudo guardar el documento firmado.'
-      )
+          : "No se pudo guardar el documento firmado.",
+      );
     }
-  }
+  };
 
   const handleRemove = async () => {
-    if (!company || busy) return
+    if (!company || busy) return;
 
     try {
-      await remove({ company, quoteId: quote.id })
-      toast.success('Documento firmado eliminado')
+      await remove({ company, quoteId: quote.id });
+      toast.success("Documento firmado eliminado");
     } catch (error) {
       toast.error(
         error instanceof Error
           ? error.message
-          : 'No se pudo eliminar el documento firmado.'
-      )
+          : "No se pudo eliminar el documento firmado.",
+      );
     }
-  }
+  };
 
   const handleOpen = async () => {
-    if (!company || isOpening) return
+    if (!company || isOpening) return;
 
-    setIsOpening(true)
+    setIsOpening(true);
     try {
-      const blob = await fetchSignedQuoteBlob(company, quote.id)
-      const url = URL.createObjectURL(blob)
-      window.open(url, '_blank', 'noopener')
+      const blob = await fetchSignedQuoteBlob(company, quote.id);
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank", "noopener");
       // La pestaña nueva necesita el blob vivo un momento para cargarlo.
-      setTimeout(() => URL.revokeObjectURL(url), 60_000)
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
     } catch {
-      toast.error('No se pudo abrir el documento firmado.')
+      toast.error("No se pudo abrir el documento firmado.");
     } finally {
-      setIsOpening(false)
+      setIsOpening(false);
     }
-  }
+  };
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -172,14 +172,14 @@ export default function SignedQuoteDocumentDialog({
                   className="truncate text-sm font-medium"
                   title={current.name ?? undefined}
                 >
-                  {current.name ?? 'Documento firmado'}
+                  {current.name ?? "Documento firmado"}
                 </p>
                 <p className="text-xs text-muted-foreground">
                   Cargado
-                  {current.uploaded_by ? ` por ${current.uploaded_by}` : ''}
+                  {current.uploaded_by ? ` por ${current.uploaded_by}` : ""}
                   {current.uploaded_at
-                    ? ` el ${formatInstant(current.uploaded_at, timeZone, 'short')}`
-                    : ''}
+                    ? ` el ${formatInstant(current.uploaded_at, timeZone, "short")}`
+                    : ""}
                 </p>
               </div>
 
@@ -215,17 +215,17 @@ export default function SignedQuoteDocumentDialog({
 
           <div className="space-y-2">
             <label className="text-sm font-medium">
-              {current ? 'Reemplazar por otro archivo' : 'Archivo escaneado'}
+              {current ? "Reemplazar por otro archivo" : "Archivo escaneado"}
             </label>
 
             <input
               ref={inputRef}
               type="file"
-              accept={ACCEPTED_TYPES.join(',')}
+              accept={ACCEPTED_TYPES.join(",")}
               className="hidden"
               onChange={(event) => {
-                handleSelect(event.target.files?.[0])
-                event.target.value = ''
+                handleSelect(event.target.files?.[0]);
+                event.target.value = "";
               }}
             />
 
@@ -270,10 +270,10 @@ export default function SignedQuoteDocumentDialog({
             ) : (
               <Upload className="size-4" />
             )}
-            {isUploading ? 'Guardando...' : current ? 'Reemplazar' : 'Guardar'}
+            {isUploading ? "Guardando..." : current ? "Reemplazar" : "Guardar"}
           </Button>
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

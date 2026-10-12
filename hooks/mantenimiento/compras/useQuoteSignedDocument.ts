@@ -1,13 +1,13 @@
-import axios from '@/lib/axios';
-import { isAxiosError } from 'axios';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import axios from "@/lib/axios";
+import { isAxiosError } from "axios";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 const errorMessage = (error: unknown, fallback: string): string => {
   if (isAxiosError(error)) {
     const data = error.response?.data;
     const firstFileError = data?.errors?.file?.[0];
-    if (typeof firstFileError === 'string') return firstFileError;
-    if (typeof data?.message === 'string') return data.message;
+    if (typeof firstFileError === "string") return firstFileError;
+    if (typeof data?.message === "string") return data.message;
   }
   return fallback;
 };
@@ -23,8 +23,8 @@ const useRefreshQuotes = () => {
 
   return () =>
     Promise.all([
-      queryClient.invalidateQueries({ queryKey: ['quote'] }),
-      queryClient.invalidateQueries({ queryKey: ['quotes'] }),
+      queryClient.invalidateQueries({ queryKey: ["quote"] }),
+      queryClient.invalidateQueries({ queryKey: ["quotes"] }),
     ]);
 };
 
@@ -34,13 +34,13 @@ export const useUploadSignedQuote = () => {
   return useMutation<void, Error, Variables & { file: File }>({
     mutationFn: async ({ company, quoteId, file }) => {
       const body = new FormData();
-      body.append('file', file);
+      body.append("file", file);
 
       try {
         await axios.post(`/${company}/quote/${quoteId}/signed-document`, body);
       } catch (error) {
         throw new Error(
-          errorMessage(error, 'No se pudo guardar el documento firmado.')
+          errorMessage(error, "No se pudo guardar el documento firmado."),
         );
       }
     },
@@ -57,7 +57,7 @@ export const useDeleteSignedQuote = () => {
         await axios.delete(`/${company}/quote/${quoteId}/signed-document`);
       } catch (error) {
         throw new Error(
-          errorMessage(error, 'No se pudo eliminar el documento firmado.')
+          errorMessage(error, "No se pudo eliminar el documento firmado."),
         );
       }
     },
@@ -68,11 +68,11 @@ export const useDeleteSignedQuote = () => {
 /** Descarga el escaneo guardado (el endpoint exige sesión, no sirve un <a href>). */
 export const fetchSignedQuoteBlob = async (
   company: string,
-  quoteId: number
+  quoteId: number,
 ): Promise<Blob> => {
   const { data } = await axios.get(
     `/${company}/quote/${quoteId}/signed-document`,
-    { responseType: 'blob' }
+    { responseType: "blob" },
   );
   return data;
 };

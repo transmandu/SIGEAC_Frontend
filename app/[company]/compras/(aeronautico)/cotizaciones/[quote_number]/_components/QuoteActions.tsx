@@ -1,74 +1,87 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { useAuth } from "@/contexts/AuthContext"
-import { useCompanyStore } from "@/stores/CompanyStore"
-import { Button } from "@/components/ui/button"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { AlertOctagon, ClipboardCheck, ClipboardX, Trash2, FileCheck2, FileDown, FileUp } from "lucide-react"
-import QuoteDropdownDialogs from "@/components/dialogs/mantenimiento/compras/QuoteDropdownDialogs"
-import type { Quote } from "@/types/purchase"
-import DownloadQuotePdfDialog from "@/components/dialogs/mantenimiento/compras/DownloadQuotePdfDialog"
-import SignedQuoteDocumentDialog from "@/components/dialogs/mantenimiento/compras/SignedQuoteDocumentDialog"
-import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone"
-import PurchaseOrderLinkButton from "@/components/dropdowns/mantenimiento/compras/PurchaseOrderLinkButton"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  AlertOctagon,
+  ClipboardCheck,
+  ClipboardX,
+  Trash2,
+  FileCheck2,
+  FileDown,
+  FileUp,
+} from "lucide-react";
+import QuoteDropdownDialogs from "@/components/dialogs/mantenimiento/compras/QuoteDropdownDialogs";
+import type { Quote } from "@/types/purchase";
+import DownloadQuotePdfDialog from "@/components/dialogs/mantenimiento/compras/DownloadQuotePdfDialog";
+import SignedQuoteDocumentDialog from "@/components/dialogs/mantenimiento/compras/SignedQuoteDocumentDialog";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import PurchaseOrderLinkButton from "@/components/dropdowns/mantenimiento/compras/PurchaseOrderLinkButton";
 
 /* =========================
    STYLES
 ========================= */
 
 const iconBase =
-  "size-[20px] transition-all duration-200 ease-out group-hover:scale-110"
+  "size-[20px] transition-all duration-200 ease-out group-hover:scale-110";
 
 const itemBase =
   "group relative flex items-center justify-center size-11 rounded-full transition-all duration-200 " +
   "hover:bg-muted/60 hover:shadow-xs active:scale-95 " +
-  "border border-transparent hover:border-border/40"
+  "border border-transparent hover:border-border/40";
 
 const toolbar =
   "flex items-center gap-1.5 px-2 py-1 rounded-full " +
   "bg-muted/30 border border-border/40 shadow-xs backdrop-blur-md " +
-  "flex-wrap sm:flex-nowrap"
+  "flex-wrap sm:flex-nowrap";
 
 export default function QuoteActions({
   quote,
-  onSuccessUpdate
+  onSuccessUpdate,
 }: {
-  quote: Quote
-  onSuccessUpdate?: () => Promise<any>
+  quote: Quote;
+  onSuccessUpdate?: () => Promise<any>;
 }) {
-  const router = useRouter()
-  const { user } = useAuth()
-  const { selectedCompany } = useCompanyStore()
+  const router = useRouter();
+  const { user } = useAuth();
+  const { selectedCompany } = useCompanyStore();
 
-  const [openApprove, setOpenApprove] = useState(false)
-  const [openReject, setOpenReject] = useState(false)
-  const [openDelete, setOpenDelete] = useState(false)
-  const [openCascadeDelete, setOpenCascadeDelete] = useState(false)
-  const [openPdf, setOpenPdf] = useState(false)
-  const [openSigned, setOpenSigned] = useState(false)
-  const timeZone = useCompanyTimezone()
+  const [openApprove, setOpenApprove] = useState(false);
+  const [openReject, setOpenReject] = useState(false);
+  const [openDelete, setOpenDelete] = useState(false);
+  const [openCascadeDelete, setOpenCascadeDelete] = useState(false);
+  const [openPdf, setOpenPdf] = useState(false);
+  const [openSigned, setOpenSigned] = useState(false);
+  const timeZone = useCompanyTimezone();
 
-  const status = quote.status
+  const status = quote.status;
 
-  const isApproved = status === "APPROVED"
-  const isRejected = status === "REJECTED"
-  const isPending = status === "PENDING"
+  const isApproved = status === "APPROVED";
+  const isRejected = status === "REJECTED";
+  const isPending = status === "PENDING";
 
-  const canAct = isPending
-  const canDelete = !isApproved
-  const isSuperUser = (user?.roles?.map((role) => role.name) || []).includes("SUPERUSER")
+  const canAct = isPending;
+  const canDelete = !isApproved;
+  const isSuperUser = (user?.roles?.map((role) => role.name) || []).includes(
+    "SUPERUSER",
+  );
 
-  const shouldFetchPO =
-    isApproved && !!selectedCompany?.slug && !!quote.id
+  const shouldFetchPO = isApproved && !!selectedCompany?.slug && !!quote.id;
 
-  if (!selectedCompany) return null
+  if (!selectedCompany) return null;
 
   return (
     <TooltipProvider delayDuration={120}>
       <div className={toolbar}>
-
         {/* APPROVE */}
         {canAct && (
           <Tooltip>
@@ -102,7 +115,7 @@ export default function QuoteActions({
             <TooltipContent>Rechazar cotización</TooltipContent>
           </Tooltip>
         )}
-        
+
         {/* FORMATO PARA FIRMA */}
         <Tooltip>
           <TooltipTrigger asChild>
@@ -157,7 +170,7 @@ export default function QuoteActions({
             <TooltipContent>Eliminar cotización</TooltipContent>
           </Tooltip>
         )}
-        
+
         {/* CASCADE DELETE (SUPERUSER) */}
         {isSuperUser && (
           <Tooltip>
@@ -211,12 +224,11 @@ export default function QuoteActions({
           setOpenCascadeDelete={setOpenCascadeDelete}
           onSuccessUpdate={onSuccessUpdate}
           onSuccessDelete={() => {
-            router.push(`/${selectedCompany.slug}/compras/cotizaciones`)
-            router.refresh()
+            router.push(`/${selectedCompany.slug}/compras/cotizaciones`);
+            router.refresh();
           }}
         />
-
       </div>
     </TooltipProvider>
-  )
+  );
 }

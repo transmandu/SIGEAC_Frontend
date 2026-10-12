@@ -1,31 +1,31 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { toast } from 'sonner'
-import { Download, FileText, Loader2 } from 'lucide-react'
+import { useState } from "react";
+import { toast } from "sonner";
+import { Download, FileText, Loader2 } from "lucide-react";
 
-import { Button } from '@/components/ui/button'
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { cn } from '@/lib/utils'
-import { useCompanyStore } from '@/stores/CompanyStore'
-import { useDownloadQuotePdf } from '@/hooks/mantenimiento/compras/useDownloadQuotePdf'
-import { useGetQuoteAuthorizers } from '@/hooks/mantenimiento/compras/useGetQuoteAuthorizers'
+} from "@/components/ui/dialog";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { cn } from "@/lib/utils";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { useDownloadQuotePdf } from "@/hooks/mantenimiento/compras/useDownloadQuotePdf";
+import { useGetQuoteAuthorizers } from "@/hooks/mantenimiento/compras/useGetQuoteAuthorizers";
 
 type Props = {
   quote: {
-    id: number
-    quote_number: string | null
-  }
-  open: boolean
-  onOpenChange: (open: boolean) => void
-}
+    id: number;
+    quote_number: string | null;
+  };
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+};
 
 /**
  * Diálogo de descarga del formato imprimible de la cotización. Pide el alto
@@ -37,48 +37,48 @@ export default function DownloadQuotePdfDialog({
   open,
   onOpenChange,
 }: Props) {
-  const { selectedCompany } = useCompanyStore()
-  const [authorizer, setAuthorizer] = useState('')
+  const { selectedCompany } = useCompanyStore();
+  const [authorizer, setAuthorizer] = useState("");
 
   // Cada descarga debe elegir conscientemente quién firma: no se arrastra la
   // selección anterior.
   const handleOpenChange = (next: boolean) => {
-    if (!next) setAuthorizer('')
-    onOpenChange(next)
-  }
+    if (!next) setAuthorizer("");
+    onOpenChange(next);
+  };
 
   const { data: authorizers, isLoading } = useGetQuoteAuthorizers(
-    open ? selectedCompany?.slug : undefined
-  )
-  const { mutateAsync: downloadPdf, isPending } = useDownloadQuotePdf()
+    open ? selectedCompany?.slug : undefined,
+  );
+  const { mutateAsync: downloadPdf, isPending } = useDownloadQuotePdf();
 
   const handleDownload = async () => {
-    if (!selectedCompany?.slug || !authorizer || isPending) return
+    if (!selectedCompany?.slug || !authorizer || isPending) return;
 
     try {
       const blob = await downloadPdf({
         company: selectedCompany.slug,
         quoteId: quote.id,
         authorizer,
-      })
+      });
 
-      const url = URL.createObjectURL(blob)
-      const anchor = document.createElement('a')
-      anchor.href = url
-      anchor.download = `${quote.quote_number ?? 'cotizacion'}.pdf`
-      anchor.click()
-      URL.revokeObjectURL(url)
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `${quote.quote_number ?? "cotizacion"}.pdf`;
+      anchor.click();
+      URL.revokeObjectURL(url);
 
-      toast.success(`Cotización ${quote.quote_number} generada`)
-      handleOpenChange(false)
+      toast.success(`Cotización ${quote.quote_number} generada`);
+      handleOpenChange(false);
     } catch (error) {
       toast.error(
         error instanceof Error
           ? error.message
-          : 'No se pudo generar el formato de la cotización.'
-      )
+          : "No se pudo generar el formato de la cotización.",
+      );
     }
-  }
+  };
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -126,8 +126,8 @@ export default function DownloadQuotePdfDialog({
                   key={item.key}
                   htmlFor={`quote-authorizer-${item.key}`}
                   className={cn(
-                    'flex cursor-pointer items-center gap-3 rounded-md border px-3 py-2.5 transition-colors hover:bg-muted/40',
-                    authorizer === item.key && 'border-primary bg-primary/5'
+                    "flex cursor-pointer items-center gap-3 rounded-md border px-3 py-2.5 transition-colors hover:bg-muted/40",
+                    authorizer === item.key && "border-primary bg-primary/5",
                   )}
                 >
                   <RadioGroupItem
@@ -164,10 +164,10 @@ export default function DownloadQuotePdfDialog({
             ) : (
               <Download className="size-4" />
             )}
-            {isPending ? 'Generando...' : 'Descargar PDF'}
+            {isPending ? "Generando..." : "Descargar PDF"}
           </Button>
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

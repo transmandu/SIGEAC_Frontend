@@ -1,6 +1,6 @@
-import axios from '@/lib/axios';
-import { isAxiosError } from 'axios';
-import { useMutation } from '@tanstack/react-query';
+import axios from "@/lib/axios";
+import { isAxiosError } from "axios";
+import { useMutation } from "@tanstack/react-query";
 
 /**
  * Al pedir la respuesta como blob, los errores del backend (JSON) también
@@ -10,13 +10,13 @@ const extractErrorMessage = async (error: unknown): Promise<string> => {
   if (isAxiosError(error) && error.response?.data instanceof Blob) {
     try {
       const parsed = JSON.parse(await error.response.data.text());
-      if (typeof parsed?.message === 'string') return parsed.message;
-      if (typeof parsed?.error === 'string') return parsed.error;
+      if (typeof parsed?.message === "string") return parsed.message;
+      if (typeof parsed?.error === "string") return parsed.error;
     } catch {
       // el cuerpo no era JSON; se usa el mensaje genérico
     }
   }
-  return 'No se pudo generar el formato de la cotización.';
+  return "No se pudo generar el formato de la cotización.";
 };
 
 type DownloadQuotePdfVariables = {
@@ -33,7 +33,7 @@ const fetchQuotePdf = async ({
   try {
     const { data } = await axios.get(`/${company}/quote/${quoteId}/pdf`, {
       params: { authorizer },
-      responseType: 'blob',
+      responseType: "blob",
     });
     return data;
   } catch (error) {
