@@ -14,6 +14,7 @@ interface DispatchReportParams {
   third_party_id?: string | null;
   type?: "aeronautical" | "general" | null;
   article_category?: "CONSUMABLE" | "PART" | "COMPONENT" | "TOOL" | null;
+  condition_id?: string | null;
   from: string;
   to: string;
   format?: "pdf" | "excel";
@@ -49,10 +50,12 @@ export const useGetDispatchReport = () => {
             third_party_id: params.third_party_id ?? undefined,
             type: params.type ?? undefined,
             article_category: params.article_category ?? undefined,
+            condition_id: params.condition_id ?? undefined,
             from: params.from,
             to: params.to,
             part_number: params.part_number ?? undefined,
-            alternative_part_number: params.alternative_part_number ?? undefined,
+            alternative_part_number:
+              params.alternative_part_number ?? undefined,
             description: params.description ?? undefined,
             batch_id: params.batch_id ?? undefined,
             variant_type: params.variant_type ?? undefined,
@@ -68,7 +71,8 @@ export const useGetDispatchReport = () => {
           const error = JSON.parse(text);
 
           throw new Error(
-            error.error || "No se encontraron datos para los filtros seleccionados"
+            error.error ||
+              "No se encontraron datos para los filtros seleccionados",
           );
         }
 
@@ -79,7 +83,8 @@ export const useGetDispatchReport = () => {
           const errorData = JSON.parse(text);
 
           throw new Error(
-            errorData.error || "No se encontraron datos para los filtros seleccionados"
+            errorData.error ||
+              "No se encontraron datos para los filtros seleccionados",
           );
         }
 
@@ -89,7 +94,8 @@ export const useGetDispatchReport = () => {
 
     onError: (error: any) => {
       toast.error("Oops!", {
-        description: error.message || "Ocurrió un problema al generar el reporte.",
+        description:
+          error.message || "Ocurrió un problema al generar el reporte.",
       });
     },
   });

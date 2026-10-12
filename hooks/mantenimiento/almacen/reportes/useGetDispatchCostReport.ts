@@ -15,6 +15,7 @@ interface DispatchCostReportParams {
   third_party_id?: string | null;
   type?: "aeronautical" | "general" | null;
   article_category?: "CONSUMABLE" | "PART" | "COMPONENT" | "TOOL" | null;
+  condition_id?: string | null;
   part_number?: string | null;
   description?: string | null;
   brand_model?: string | null;
@@ -43,6 +44,7 @@ export const useGetDispatchCostReport = () => {
             third_party_id: params.third_party_id ?? undefined,
             type: params.type ?? undefined,
             article_category: params.article_category ?? undefined,
+            condition_id: params.condition_id ?? undefined,
             part_number: params.part_number ?? undefined,
             description: params.description ?? undefined,
             brand_model: params.brand_model ?? undefined,
@@ -60,7 +62,8 @@ export const useGetDispatchCostReport = () => {
           const error = JSON.parse(text);
 
           throw new Error(
-            error.error || "No se encontraron datos para los filtros seleccionados"
+            error.error ||
+              "No se encontraron datos para los filtros seleccionados",
           );
         }
 
@@ -71,7 +74,8 @@ export const useGetDispatchCostReport = () => {
           const errorData = JSON.parse(text);
 
           throw new Error(
-            errorData.error || "No se encontraron datos para los filtros seleccionados"
+            errorData.error ||
+              "No se encontraron datos para los filtros seleccionados",
           );
         }
 
@@ -81,7 +85,8 @@ export const useGetDispatchCostReport = () => {
 
     onError: (error: any) => {
       toast.error("Oops!", {
-        description: error.message || "Ocurrió un problema al generar el reporte.",
+        description:
+          error.message || "Ocurrió un problema al generar el reporte.",
       });
     },
   });

@@ -1,5 +1,6 @@
 "use client"
 
+import { flattenDepartments } from "@/lib/departments";
 import { useCreateDispatchRequest } from "@/actions/mantenimiento/almacen/solicitudes/salida/action"
 import { useGetConversionByConsmable } from "@/hooks/mantenimiento/almacen/articulos/useGetConvertionsByConsumableId"
 import { useGetConversionByGeneralArticle } from "@/hooks/mantenimiento/almacen/articulos/useGetConvertionsByGeneralArticleId"
@@ -186,12 +187,6 @@ const BACKDATE_ROLES = ["JEFE_ALMACEN", "SUPERUSER"]
 // los demás campos del multipart, que también cuentan contra el límite.
 const MAX_EVIDENCE_FILES_PER_REQUEST = 18
 
-const flattenDepartments = (departments: Department[]): Department[] =>
-    departments.flatMap((department) => [
-    department,
-    ...flattenDepartments(department.descendants ?? []),
-]);
-
 
 // ── Hook ───────────────────────────────────────────────────────────────────────
 
@@ -222,7 +217,7 @@ export function useDispatchForm(
     const { data: departments, isLoading: isDepartmentsLoading } =
     useGetDepartments(selectedCompany?.slug)
 
-    const allDepartments = useMemo(
+  const allDepartments = useMemo(
     () => flattenDepartments(departments ?? []),
     [departments])
 

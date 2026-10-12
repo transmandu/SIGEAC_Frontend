@@ -1,5 +1,6 @@
 "use client";
 
+import { flattenDepartments } from "@/lib/departments";
 import { useCreateEmployee } from "@/actions/ajustes/empleados/actions";
 import { Button } from "@/components/ui/button";
 import {
@@ -391,12 +392,6 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
       form.handleSubmit(onSubmit)();
     }
   };
-
-  const flattenDepartments = (departments: Department[]): Department[] =>
-    departments.flatMap((department) => [
-      department,
-      ...flattenDepartments(department.descendants ?? []),
-    ]);
 
   const allDepartments = departments ? flattenDepartments(departments) : [];
 

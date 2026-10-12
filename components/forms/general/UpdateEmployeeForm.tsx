@@ -1,5 +1,6 @@
 "use client";
 
+import { flattenDepartments } from "@/lib/departments";
 import { useUpdateEmployee } from "@/actions/ajustes/empleados/actions";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -279,12 +280,6 @@ const buildFormData = (values: FormValues, original: any) => {
   /* =========================
      RENDER
   ========================= */
-
-  const flattenDepartments = (departments: Department[]): Department[] =>
-    departments.flatMap((department) => [
-      department,
-      ...flattenDepartments(department.descendants ?? []),
-    ]);
 
   const allDepartments = departments
     ? flattenDepartments(departments)

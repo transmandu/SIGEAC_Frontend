@@ -1,65 +1,107 @@
-import axiosInstance from "@/lib/axios"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
+import axiosInstance from "@/lib/axios";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { Condition } from "@/types";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
-interface CreateConditionSchema {
-    name: string,
-    description: string,
-    registered_by: string,
-  }
-
-export const useCreateCondition = () => {
-
-    const queryClient = useQueryClient()
-
-    const createMutation = useMutation({
-        mutationFn: async (data: CreateConditionSchema) => {
-            const response = await axiosInstance.post('/hangar74/condition-article', data)
-            return response.data
-          },
-        onSuccess: () => {
-            queryClient.invalidateQueries({queryKey: ['conditions']})
-            toast("¡Creado!", {
-                description: `¡La condición se ha creado correctamente!`
-            })
-          },
-        onError: (error) => {
-            toast('Hey', {
-              description: `No se creo correctamente: ${error}`
-            })
-          },
-        }
-    )
-
-    return {
-      createCondition: createMutation,
-    }
+interface ConditionPayload {
+  name: string;
+  description: string;
+  /** Lo que sale en esta condición se informa en los reportes pero no suma al costo. */
+  excluded_from_cost: boolean;
 }
 
-export const useDeleteCondition = () => {
+export const useCreateCondition = () => {
+  const queryClient = useQueryClient();
+  const { selectedCompany } = useCompanyStore();
+  const slug = selectedCompany?.slug;
 
-  const queryClient = useQueryClient()
+  const createMutation = useMutation({
+    mutationFn: async (data: ConditionPayload): Promise<Condition> => {
+      const response = await axiosInstance.post(
+        `/${slug}/condition-article`,
+        data,
+      );
+      return response.data.Condition;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["conditions", slug] });
+      toast.success("¡Creada!", {
+        description: "La condición ha sido creada correctamente.",
+      });
+    },
+    onError: () => {
+      toast.error("Oops!", {
+        description: "No se pudo crear la condición...",
+      });
+    },
+  });
+
+  return {
+    createCondition: createMutation,
+  };
+};
+
+export const useUpdateCondition = () => {
+  const queryClient = useQueryClient();
+  const { selectedCompany } = useCompanyStore();
+  const slug = selectedCompany?.slug;
+
+  const updateMutation = useMutation({
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: number | string;
+      data: ConditionPayload;
+    }) => {
+      await axiosInstance.put(`/${slug}/condition-article/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["conditions", slug] });
+      toast.success("¡Actualizada!", {
+        description: "La condición ha sido actualizada correctamente.",
+      });
+    },
+    onError: () => {
+      toast.error("Oops!", {
+        description: "¡Hubo un error al actualizar la condición!",
+      });
+    },
+  });
+
+  return {
+    updateCondition: updateMutation,
+  };
+};
+
+export const useDeleteCondition = () => {
+  const queryClient = useQueryClient();
+  const { selectedCompany } = useCompanyStore();
+  const slug = selectedCompany?.slug;
 
   const deleteMutation = useMutation({
-      mutationFn: async (id: number | string) => {
-          await axiosInstance.delete(`/condition-article/${id}`)
-        },
-      onSuccess: () => {
-
-          queryClient.invalidateQueries({queryKey: ['conditions']})
-          toast.success("¡Eliminado!", {
-              description: `¡La condicion ha sido eliminado correctamente!`
-          })
-        },
-      onError: (e) => {
-          toast.error("Oops!", {
-            description: "¡Hubo un error al eliminar la condicion!"
-        })
-        },
-      }
-  )
+    mutationFn: async (id: number | string) => {
+      await axiosInstance.delete(`/${slug}/condition-article/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["conditions", slug] });
+      toast.success("¡Eliminada!", {
+        description: "La condición ha sido eliminada correctamente.",
+      });
+    },
+    onError: (error: any) => {
+      // 409: la condición ya tiene salidas registradas y los reportes dependen de ella.
+      toast.error("Oops!", {
+        description:
+          error?.response?.status === 409
+            ? error.response.data.message
+            : "¡Hubo un error al eliminar la condición!",
+      });
+    },
+  });
 
   return {
     deleteCondition: deleteMutation,
-  }
-}
+  };
+};
