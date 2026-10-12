@@ -1,3 +1,7 @@
+## v4.64.0 — 2026-10-12
+
+- feat: add DocumentSupportBadge component and integrate it across various document sections
+
 ## v4.63.1 — 2026-10-12
 
 - fix: ensure proper comparison of article document type IDs as numbers
