@@ -1,3 +1,7 @@
+## v4.63.1 — 2026-10-12
+
+- fix: ensure proper comparison of article document type IDs as numbers
+
 ## v4.63.0 — 2026-10-12
 
 - feat: add condition management features (#334)
