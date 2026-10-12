@@ -1,3 +1,7 @@
+## v4.62.0 — 2026-10-12
+
+- feat: implement download and upload functionality for quote documents (#333)
+
 ## v4.61.1 — 2026-10-12
 
 - fix: infinity trainning employee card (#332)
