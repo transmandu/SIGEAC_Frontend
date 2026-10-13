@@ -29,8 +29,13 @@ export const useGetMaintenanceControls = (
   withEstimate = false,
 ) => {
   return useQuery<MaintenanceControl[], Error>({
-    queryKey: ["maintenance-controls", company, { includeRetired, withEstimate }],
-    queryFn: () => fetchMaintenanceControls(company, includeRetired, withEstimate),
+    queryKey: [
+      "maintenance-controls",
+      company,
+      { includeRetired, withEstimate },
+    ],
+    queryFn: () =>
+      fetchMaintenanceControls(company, includeRetired, withEstimate),
     placeholderData: keepPreviousData,
     enabled: !!company,
   });

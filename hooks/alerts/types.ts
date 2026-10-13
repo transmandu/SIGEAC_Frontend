@@ -38,10 +38,7 @@ export type QuarantineHazardMeta = {
 
 /** Cuál de los cuatro controles de planificación originó la alerta. */
 export type ControlAlertType =
-  | "maintenance"
-  | "component"
-  | "avionics"
-  | "directive";
+  "maintenance" | "component" | "avionics" | "directive";
 
 /** Presente solo en la variante `maintenance-warning`; datos para los badges del control, el remanente, el estimado y el anillo de progreso. */
 export type MaintenanceWarningMeta = {

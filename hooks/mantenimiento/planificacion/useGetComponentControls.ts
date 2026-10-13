@@ -30,7 +30,8 @@ export const useGetComponentControls = (
 ) => {
   return useQuery<ComponentControl[], Error>({
     queryKey: ["component-controls", company, { includeRetired, withEstimate }],
-    queryFn: () => fetchComponentControls(company, includeRetired, withEstimate),
+    queryFn: () =>
+      fetchComponentControls(company, includeRetired, withEstimate),
     placeholderData: keepPreviousData,
     enabled: !!company,
   });

@@ -270,13 +270,18 @@ export default function ConsumableArticleForm({
   const originalUnit = useMemo(
     () =>
       units?.find(
-        (unit) => `${unit.id}` === `${initialData?.consumable?.primary_unit_id}`,
+        (unit) =>
+          `${unit.id}` === `${initialData?.consumable?.primary_unit_id}`,
       ),
     [initialData, units],
   );
   const unitChanged =
-    !!isEditing && !!baseUnit && !!originalUnit && baseUnit.id !== originalUnit.id;
-  const hasDimensionProfile = !!isEditing && !!initialData?.consumable?.dimension;
+    !!isEditing &&
+    !!baseUnit &&
+    !!originalUnit &&
+    baseUnit.id !== originalUnit.id;
+  const hasDimensionProfile =
+    !!isEditing && !!initialData?.consumable?.dimension;
   const unitChangeBlocked = unitChanged && !isBaseUnitChangeReady(unitChange);
 
   const initialDatesRef = useMemo(

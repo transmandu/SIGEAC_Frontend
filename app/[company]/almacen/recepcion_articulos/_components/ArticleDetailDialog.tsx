@@ -494,32 +494,35 @@ export function ArticleDetailDialog({
                         </div>
 
                         {req.documents.map((doc) => (
-                          <DocumentSupportBadge key={`badge-${doc.id}`} doc={doc} />
+                          <DocumentSupportBadge
+                            key={`badge-${doc.id}`}
+                            doc={doc}
+                          />
                         ))}
 
                         {req.documents
                           .filter((doc) => !!doc.file_path)
                           .map((doc, i, withFile) => (
-                          <TooltipProvider key={doc.id}>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="size-7 shrink-0 text-muted-foreground hover:text-foreground"
-                                  onClick={() => setPreviewDoc(doc)}
-                                >
-                                  <Eye className="size-3.5" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent side="top">
-                                {withFile.length > 1
-                                  ? `Ver documento ${i + 1}`
-                                  : "Ver documento"}
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        ))}
+                            <TooltipProvider key={doc.id}>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="size-7 shrink-0 text-muted-foreground hover:text-foreground"
+                                    onClick={() => setPreviewDoc(doc)}
+                                  >
+                                    <Eye className="size-3.5" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent side="top">
+                                  {withFile.length > 1
+                                    ? `Ver documento ${i + 1}`
+                                    : "Ver documento"}
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          ))}
                       </li>
                     );
                   })}

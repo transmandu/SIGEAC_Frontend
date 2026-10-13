@@ -38,7 +38,8 @@ const FUEL_ACCENT: Record<
     icon: Flame,
     card: "border-amber-200/70 bg-linear-to-br from-amber-50 to-orange-50/40 dark:border-amber-500/20 dark:from-amber-500/10 dark:to-orange-500/5",
     title: "text-amber-700 dark:text-amber-400",
-    badge: "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400",
+    badge:
+      "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400",
     divider: "divide-amber-200/60 dark:divide-amber-500/20",
     barWarehouse: "bg-linear-to-r from-orange-600 to-amber-500",
     barVehicle: "bg-linear-to-r from-amber-400 to-yellow-300",
@@ -47,7 +48,8 @@ const FUEL_ACCENT: Record<
     icon: Droplet,
     card: "border-emerald-200/70 bg-linear-to-br from-emerald-50 to-teal-50/40 dark:border-emerald-500/20 dark:from-emerald-500/10 dark:to-teal-500/5",
     title: "text-emerald-700 dark:text-emerald-400",
-    badge: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400",
+    badge:
+      "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400",
     divider: "divide-emerald-200/60 dark:divide-emerald-500/20",
     barWarehouse: "bg-linear-to-r from-emerald-600 to-emerald-500",
     barVehicle: "bg-linear-to-r from-teal-400 to-teal-300",
@@ -66,7 +68,9 @@ function GroupedFuelCard({
   const warehouseLiters = Number(
     summary?.warehouse_balance_liters?.[fuelType] ?? 0,
   );
-  const vehicleLiters = Number(summary?.vehicle_balance_liters?.[fuelType] ?? 0);
+  const vehicleLiters = Number(
+    summary?.vehicle_balance_liters?.[fuelType] ?? 0,
+  );
   const totalLiters = warehouseLiters + vehicleLiters;
   const hasInitialBalance =
     summary?.has_active_warehouse_initial_balance?.[fuelType] ?? false;
@@ -79,7 +83,12 @@ function GroupedFuelCard({
       )}
     >
       <div className="flex items-center justify-between gap-2 px-5 pt-4">
-        <div className={cn("flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide", accent.title)}>
+        <div
+          className={cn(
+            "flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide",
+            accent.title,
+          )}
+        >
           <Icon className="h-3.5 w-3.5" />
           {getFuelTypeLabel(fuelType)} disponible
         </div>
@@ -96,7 +105,8 @@ function GroupedFuelCard({
       <div className={cn("mt-3 grid grid-cols-2 divide-x", accent.divider)}>
         {(["warehouse", "vehicle"] as Scope[]).map((scope) => {
           const { label, icon: ScopeIcon } = SCOPE_META[scope];
-          const liters = scope === "warehouse" ? warehouseLiters : vehicleLiters;
+          const liters =
+            scope === "warehouse" ? warehouseLiters : vehicleLiters;
           return (
             <div key={scope} className="space-y-1 px-5 py-3">
               <div className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
@@ -162,7 +172,9 @@ export function FuelSummaryCards({
               {activeVehicles}
             </span>
             <span>
-              {activeVehicles === 1 ? "vehiculo operativo activo" : "vehiculos operativos activos"}
+              {activeVehicles === 1
+                ? "vehiculo operativo activo"
+                : "vehiculos operativos activos"}
             </span>
             <ChevronRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
           </button>
@@ -173,7 +185,9 @@ export function FuelSummaryCards({
               {activeVehicles}
             </span>
             <span>
-              {activeVehicles === 1 ? "vehiculo operativo activo" : "vehiculos operativos activos"}
+              {activeVehicles === 1
+                ? "vehiculo operativo activo"
+                : "vehiculos operativos activos"}
             </span>
           </div>
         )}
@@ -181,7 +195,11 @@ export function FuelSummaryCards({
 
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
         {FUEL_TYPES.map(({ value: fuelType }) => (
-          <GroupedFuelCard key={fuelType} fuelType={fuelType} summary={summary} />
+          <GroupedFuelCard
+            key={fuelType}
+            fuelType={fuelType}
+            summary={summary}
+          />
         ))}
       </div>
     </div>

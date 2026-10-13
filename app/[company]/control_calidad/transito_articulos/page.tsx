@@ -42,7 +42,8 @@ const TransitArticlesPage = () => {
           <p className="text-sm text-muted-foreground italic">
             Aquí puede observar los artículos en tránsito y en recepción.
             <br />
-            Es una vista de consulta: abra el detalle para ver la ficha completa.
+            Es una vista de consulta: abra el detalle para ver la ficha
+            completa.
           </p>
         </div>
 

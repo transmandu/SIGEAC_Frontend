@@ -30,7 +30,8 @@ export const useGetDirectiveControls = (
 ) => {
   return useQuery<DirectiveControl[], Error>({
     queryKey: ["directive-controls", company, { includeRetired, withEstimate }],
-    queryFn: () => fetchDirectiveControls(company, includeRetired, withEstimate),
+    queryFn: () =>
+      fetchDirectiveControls(company, includeRetired, withEstimate),
     placeholderData: keepPreviousData,
     enabled: !!company,
   });
