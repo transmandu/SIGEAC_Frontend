@@ -40,9 +40,9 @@ import { cn } from "@/lib/utils";
 import { VoluntaryReport } from "@/types";
 import { addDays, format } from "date-fns";
 import { es } from "date-fns/locale";
-import { CalendarIcon, Loader2, Plus, X } from "lucide-react";
+import { CalendarIcon, Loader2, Plus, ShieldCheck, X } from "lucide-react";
 import Image from "next/image";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 interface FormProps {
@@ -59,7 +59,7 @@ export function CreateGeneralVoluntaryReportForm({
   const { createVoluntaryReport } = useCreateVoluntaryReport();
   const { updateVoluntaryReport } = useUpdateVoluntaryReport();
   const [isAnonymous, setIsAnonymous] = useState(true);
-  const router = useRouter();
+  const [isSubmitted, setIsSubmitted] = useState(false);
   const [consequences, setConsequences] = useState<string[]>([]);
   const [newConsequence, setNewConsequence] = useState("");
 
@@ -224,23 +224,39 @@ export function CreateGeneralVoluntaryReportForm({
         },
       };
       await updateVoluntaryReport.mutateAsync(value);
-    } else {
-      const value = {
-        company: company,
-        reportData: {
-          ...data,
-          status: "PROCESO",
-        },
-      };
-      try {
-        await createVoluntaryReport.mutateAsync(value);
-        router.push(`${process.env.NEXT_PUBLIC_URL}login`);
-      } catch (error) {
-        console.error("Error al crear el reporte:", error);
-      }
+      onClose();
+      return;
     }
-    onClose();
+
+    const value = {
+      company: company,
+      reportData: {
+        ...data,
+        status: "PROCESO",
+      },
+    };
+    try {
+      await createVoluntaryReport.mutateAsync(value);
+      setIsSubmitted(true);
+    } catch (error) {
+      console.error("Error al crear el reporte:", error);
+    }
   };
+
+  if (isSubmitted) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-4 px-6 py-16 text-center">
+        <div className="flex items-center justify-center rounded-full bg-green-100 p-4">
+          <ShieldCheck className="h-12 w-12 text-green-600" />
+        </div>
+        <h2 className="text-2xl font-bold">¡Muchas gracias por reportar!</h2>
+        <p className="max-w-md text-muted-foreground">
+          La seguridad es tarea de todos. El equipo de SMS estará evaluando su
+          reporte.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <Form {...form}>

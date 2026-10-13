@@ -47,9 +47,15 @@ import { cn } from "@/lib/utils";
 import { ObligatoryReport } from "@/types";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { CalendarIcon, Check, ChevronsUpDown, Loader2 } from "lucide-react";
+import {
+  CalendarIcon,
+  Check,
+  ChevronsUpDown,
+  Loader2,
+  ShieldCheck,
+} from "lucide-react";
 import Image from "next/image";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 interface FormProps {
   isEditing?: boolean;
   initialData?: ObligatoryReport;
@@ -151,8 +157,9 @@ export function CreateGeneralObligatoryReportForm({
   type FormSchemaType = z.infer<typeof FormSchema>;
 
   const { createObligatoryReport } = useCreateObligatoryReport();
-  const router = useRouter();
   const { company } = useParams<{ company: string }>();
+
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   const [showOtherInput, setShowOtherInput] = useState(
     initialData?.other_incidents ? true : false,
@@ -253,13 +260,11 @@ export function CreateGeneralObligatoryReportForm({
     };
 
     try {
-      createObligatoryReport.mutateAsync(value);
-      router.push(`{process}/login`);
-      router.push(`${process.env.NEXT_PUBLIC_URL}login`);
+      await createObligatoryReport.mutateAsync(value);
+      setIsSubmitted(true);
     } catch (error) {
       console.error("Error al crear reporte:", error);
     }
-    onClose();
   };
 
   const handleOtherCheckboxChange = (checked: boolean) => {
@@ -274,6 +279,21 @@ export function CreateGeneralObligatoryReportForm({
   ) => {
     form.setValue("other_incidents", event.target.value);
   };
+
+  if (isSubmitted) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-4 px-6 py-16 text-center">
+        <div className="flex items-center justify-center rounded-full bg-green-100 p-4">
+          <ShieldCheck className="h-12 w-12 text-green-600" />
+        </div>
+        <h2 className="text-2xl font-bold">¡Muchas gracias por reportar!</h2>
+        <p className="max-w-md text-muted-foreground">
+          La seguridad es tarea de todos. El equipo de SMS estará evaluando su
+          reporte.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <Form {...form}>
