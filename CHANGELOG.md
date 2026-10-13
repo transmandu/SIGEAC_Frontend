@@ -1,3 +1,7 @@
+## v4.64.1 — 2026-10-13
+
+- fix: qr sms forms (#335)
+
 ## v4.64.0 — 2026-10-12
 
 - feat: add DocumentSupportBadge component and integrate it across various document sections
