@@ -68,8 +68,6 @@ function GroupedFuelCard({
   );
   const vehicleLiters = Number(summary?.vehicle_balance_liters?.[fuelType] ?? 0);
   const totalLiters = warehouseLiters + vehicleLiters;
-  const warehousePct = totalLiters > 0 ? (warehouseLiters / totalLiters) * 100 : 0;
-  const vehiclePct = totalLiters > 0 ? 100 - warehousePct : 0;
   const hasInitialBalance =
     summary?.has_active_warehouse_initial_balance?.[fuelType] ?? false;
 
@@ -99,7 +97,6 @@ function GroupedFuelCard({
         {(["warehouse", "vehicle"] as Scope[]).map((scope) => {
           const { label, icon: ScopeIcon } = SCOPE_META[scope];
           const liters = scope === "warehouse" ? warehouseLiters : vehicleLiters;
-          const pct = scope === "warehouse" ? warehousePct : vehiclePct;
           return (
             <div key={scope} className="space-y-1 px-5 py-3">
               <div className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
@@ -108,9 +105,6 @@ function GroupedFuelCard({
               </div>
               <p className="font-mono text-xl font-bold tabular-nums tracking-tight">
                 {formatLiters(liters)}
-              </p>
-              <p className="text-[11px] text-muted-foreground">
-                {Math.round(pct)}% del disponible
               </p>
               {scope === "warehouse" && !hasInitialBalance ? (
                 <p className="flex items-center gap-1 pt-0.5 text-[10px] text-muted-foreground">
@@ -123,14 +117,22 @@ function GroupedFuelCard({
         })}
       </div>
 
-      <div className="mt-3 flex h-1.5 w-full">
+      {/* Decorativa: dos tonos fijos unidos por un corte en "/" que se funde.
+          Los saldos no son precisos, así que la barra no reparte nada, solo
+          acompaña a la tarjeta. El tono de vehículos se superpone al de
+          almacén: clip-path hace la diagonal y la máscara difumina la unión. */}
+      <div
+        className={cn("relative mt-3 h-1.5 w-full", accent.barWarehouse)}
+        aria-hidden="true"
+      >
         <div
-          className={cn("h-full transition-[width] duration-300 ease-out", accent.barWarehouse)}
-          style={{ width: `${warehousePct}%` }}
-        />
-        <div
-          className={cn("h-full transition-[width] duration-300 ease-out", accent.barVehicle)}
-          style={{ width: `${vehiclePct}%` }}
+          className={cn("absolute inset-y-0 right-0 w-3/5", accent.barVehicle)}
+          style={{
+            clipPath: "polygon(30% 0, 100% 0, 100% 100%, 0 100%)",
+            WebkitMaskImage:
+              "linear-gradient(to right, transparent 0%, black 45%)",
+            maskImage: "linear-gradient(to right, transparent 0%, black 45%)",
+          }}
         />
       </div>
     </div>

@@ -36,24 +36,31 @@ export type QuarantineHazardMeta = {
   remaining: number | null;
 };
 
-/**
- * A qué nivel del avión cuelga el ítem en alerta temprana: la aeronave como
- * conjunto, o una parte instalada (motor/hélice/APU/turbina) con sus propias
- * horas/ciclos. Gobierna el badge de "dónde" en la tarjeta.
- */
-export type MaintenanceWarningScope = "aircraft" | "part";
+/** Cuál de los cuatro controles de planificación originó la alerta. */
+export type ControlAlertType =
+  | "maintenance"
+  | "component"
+  | "avionics"
+  | "directive";
 
-/** Presente solo en la variante `maintenance-warning`; datos para el badge de tipo, el objetivo y la barra de progreso. */
+/** Presente solo en la variante `maintenance-warning`; datos para los badges del control, el remanente, el estimado y el anillo de progreso. */
 export type MaintenanceWarningMeta = {
-  category: "CERTIFICATE" | "SERVICE";
-  scope: MaintenanceWarningScope;
-  partLabel?: string;
+  /** Gradúa color y etiqueta de la tarjeta; el resto del diseño es el mismo. */
+  status: "WARNING" | "CRITICAL" | "OVERDUE";
+  /** Control de origen: la tarjeta lo rotula para no confundir ítems de controles distintos. */
+  control: ControlAlertType;
+  /** Qué es el ítem dentro de su control (ej. "Servicio de aeronave", "Calibración"). */
+  scopeLabel: string;
   unit: "HOURS" | "CYCLES" | "DAYS";
-  /** Valor objetivo del intervalo que causó la alerta (el límite configurado). */
-  limitValue: number;
-  /** Remanente hasta ese objetivo, en la misma unidad. */
+  /** Remanente del intervalo que causó la alerta, en su misma unidad. Negativo = excedido. */
   remainingValue: number;
-  /** 0 a 1, para la barra: cuánto del intervalo ya se consumió. */
+  /**
+   * Fecha estimada de vencimiento, ya formateada. En horas/ciclos es la
+   * proyección según el promedio de vuelo; en días, la fecha límite. Null =
+   * sin estimación (ya vencido, o sin vuelos recientes con qué proyectar).
+   */
+  estimate: string | null;
+  /** 0 a 1, para el anillo: cuánto del intervalo ya se consumió. */
   progress: number;
   aircraftAcronym: string;
 };

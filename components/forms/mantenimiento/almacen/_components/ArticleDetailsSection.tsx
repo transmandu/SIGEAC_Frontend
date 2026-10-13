@@ -115,8 +115,8 @@ export const ArticleDetailsSection = <T extends FieldValues,>({
                     id="has-documentation"
                     checked={hasDocumentation}
                     onCheckedChange={onHasDocumentationChange}
-                    label="¿El artículo tiene documentación?"
-                    description="Seleccione los documentos que se esperan del artículo para consignarlos."
+                    label="¿El artículo requiere o llegó con documentación?"
+                    description="Indique qué documentos requiere el artículo. Si ya los tiene, cargue el archivo (digital) o marque que lo recibió en físico."
                     disabled={disabled}
                 />
 

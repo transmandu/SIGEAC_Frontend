@@ -132,7 +132,12 @@ export function buildGeneralGroup({
         active: pathname.includes(inventarioHref),
         icon: PackageSearch,
         roles: [],
-        excludedRoles: ["JEFE_ALMACEN", "ANALISTA_ALMACEN"],
+        excludedRoles: [
+          "ANALISTA_ALMACEN",
+          "JEFE_ALMACEN",
+          "JEFE_MANTENIMIENTO",
+          "SUPERUSER",
+        ],
         submenus: [],
         requiresOmac: true,
       },

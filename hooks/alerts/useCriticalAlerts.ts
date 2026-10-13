@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useLowStockAlerts } from "./useLowStockAlerts";
 import { useQuarantineAlerts } from "./useQuarantineAlerts";
-import { useMaintenanceControlAlerts } from "./useMaintenanceControlAlerts";
+import { useControlAlerts } from "./useControlAlerts";
 import { useDismissedAlertsStore } from "./useDismissedAlertsStore";
 import { useAlertFiltersStore } from "./useAlertFiltersStore";
 import {
@@ -24,9 +24,9 @@ export const useCriticalAlerts = () => {
   const { alerts: quarantineAlerts, isLoading: isLoadingQuarantine } =
     useQuarantineAlerts();
   const {
-    alerts: maintenanceControlAlerts,
-    isLoading: isLoadingMaintenanceControl,
-  } = useMaintenanceControlAlerts();
+    alerts: controlAlerts,
+    isLoading: isLoadingControls,
+  } = useControlAlerts();
   const dismissedAt = useDismissedAlertsStore((state) => state.dismissedAt);
   const hideInTransit = useAlertFiltersStore((state) => state.hideInTransit);
 
@@ -35,7 +35,7 @@ export const useCriticalAlerts = () => {
     const merged = [
       ...lowStockAlerts,
       ...quarantineAlerts,
-      ...maintenanceControlAlerts,
+      ...controlAlerts,
     ];
 
     // El id es la llave de React y del descarte: repetirlo haría que un
@@ -56,7 +56,7 @@ export const useCriticalAlerts = () => {
     }
 
     return merged;
-  }, [lowStockAlerts, quarantineAlerts, maintenanceControlAlerts]);
+  }, [lowStockAlerts, quarantineAlerts, controlAlerts]);
 
   const visibleAlerts = useMemo<CriticalAlert[]>(() => {
     const today = new Date().toDateString();
@@ -133,6 +133,6 @@ export const useCriticalAlerts = () => {
     actionableCount: pendingCount,
     inTransitCount,
     isLoading:
-      isLoadingLowStock || isLoadingQuarantine || isLoadingMaintenanceControl,
+      isLoadingLowStock || isLoadingQuarantine || isLoadingControls,
   };
 };

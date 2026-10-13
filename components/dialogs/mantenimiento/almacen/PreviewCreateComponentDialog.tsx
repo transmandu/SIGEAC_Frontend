@@ -119,7 +119,7 @@ export default function PreviewCreateComponentDialog({
           {/* Documentación */}
           <section className="p-4 bg-gray-50 rounded-lg shadow-inner">
             <h3 className="font-semibold mb-3 text-gray-700 border-b border-gray-200 pb-1">Documentación</h3>
-            <PreviewRow label="¿Incluye documentación?" value={values.has_documentation ? "Sí" : "No"} />
+            <PreviewRow label="¿Requiere o llegó con documentación?" value={values.has_documentation ? "Sí" : "No"} />
             {values.has_documentation && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
                 <PreviewRow label="Imagen" value={values.image?.name || "Ninguna"} />

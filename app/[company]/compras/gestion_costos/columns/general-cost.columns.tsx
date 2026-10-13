@@ -172,12 +172,12 @@ export function getGeneralCostColumns({
                       "
                     >
                       <span className="text-xs text-muted-foreground">$</span>
-                      <span className="text-sm tabular-nums text-center text-foreground">
+                      <span className="min-w-11.5 max-w-28 truncate text-sm tabular-nums text-center text-foreground">
                         {baseCostValue}
                       </span>
                       {convertedFromUnit ? (
                         <span className="text-[10px] text-muted-foreground">
-                          /{row.original.general_primary_unit?.label}
+                          /{row.original.general_primary_unit?.value}
                         </span>
                       ) : null}
                       <Lock className="h-3 w-3 text-muted-foreground" />
