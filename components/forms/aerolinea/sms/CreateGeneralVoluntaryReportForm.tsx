@@ -40,7 +40,7 @@ import { cn } from "@/lib/utils";
 import { VoluntaryReport } from "@/types";
 import { addDays, format } from "date-fns";
 import { es } from "date-fns/locale";
-import { CalendarIcon, Loader2 } from "lucide-react";
+import { CalendarIcon, Loader2, Plus, X } from "lucide-react";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -60,6 +60,8 @@ export function CreateGeneralVoluntaryReportForm({
     const { updateVoluntaryReport } = useUpdateVoluntaryReport();
     const [isAnonymous, setIsAnonymous] = useState(true);
     const router = useRouter();
+    const [consequences, setConsequences] = useState<string[]>([]);
+    const [newConsequence, setNewConsequence] = useState("");
 
     const FormSchema = z.object({
         identification_date: z
@@ -77,16 +79,16 @@ export function CreateGeneralVoluntaryReportForm({
             .min(3, {
                 message: "La descripción debe tener al menos 3 caracteres",
             })
-            .max(255, {
-                message: "La descripción no debe exceder los 255 caracteres",
+            .max(900, {
+                message: "La descripción no debe exceder los 900 caracteres",
             }),
         possible_consequences: z
             .string()
             .min(3, {
                 message: "Las consecuencias deben tener al menos 3 caracteres",
             })
-            .max(255, {
-                message: "Las consecuencias no debe exceder los 255 caracteres",
+            .max(999, {
+                message: "Las consecuencias no debe exceder los 999 caracteres",
             }),
 
         reporter_name: z
@@ -119,19 +121,10 @@ export function CreateGeneralVoluntaryReportForm({
             .optional(),
         image: z
             .instanceof(File)
-            .refine((file) => file.size <= 5 * 1024 * 1024, "Max 5MB")
+            .refine((file) => file.size <= 10 * 1024 * 1024, "Max 10MB")
             .refine(
                 (file) => ["image/jpeg", "image/png"].includes(file.type),
                 "Solo JPEG/PNG"
-            )
-            .optional(),
-
-        document: z
-            .instanceof(File)
-            .refine((file) => file.size <= 5 * 1024 * 1024, "Máximo 5MB")
-            .refine(
-                (file) => file.type === "application/pdf",
-                "Solo se permiten archivos PDF"
             )
             .optional(),
     });
@@ -147,6 +140,13 @@ export function CreateGeneralVoluntaryReportForm({
                 initialData.reporter_phone
             ) {
                 setIsAnonymous(false);
+            }
+
+            if (initialData.possible_consequences) {
+                const initialConsequences = initialData.possible_consequences
+                    .split(",")
+                    .filter((item) => item.trim() !== "");
+                setConsequences(initialConsequences);
             }
         }
     }, [initialData, isEditing]); // Only run when these values change
@@ -182,6 +182,31 @@ export function CreateGeneralVoluntaryReportForm({
             }),
         },
     });
+
+    const addConsequence = () => {
+        if (newConsequence.trim() !== "") {
+            const updatedConsequences = [...consequences, newConsequence.trim()];
+            setConsequences(updatedConsequences);
+            setNewConsequence("");
+            form.setValue(
+                "possible_consequences",
+                updatedConsequences.join(",")
+            );
+        }
+    };
+
+    const removeConsequence = (index: number) => {
+        const updatedConsequences = consequences.filter((_, i) => i !== index);
+        setConsequences(updatedConsequences);
+        form.setValue("possible_consequences", updatedConsequences.join(","));
+    };
+
+    const handleKeyPress = (e: React.KeyboardEvent) => {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            addConsequence();
+        }
+    };
 
     const onSubmit = async (data: FormSchemaType) => {
         if (isAnonymous) {
@@ -415,23 +440,66 @@ export function CreateGeneralVoluntaryReportForm({
                         <FormItem>
                             <FormLabel>Descripcion de peligro</FormLabel>
                             <FormControl>
-                                <Input placeholder="Breve descripcion del peligro" {...field} />
+                                <Textarea
+                                    placeholder="Breve descripcion del peligro"
+                                    {...field}
+                                    className="min-h-25"
+                                />
                             </FormControl>
                             <FormMessage className="text-xs" />
                         </FormItem>
                     )}
                 />
+
+                <FormItem>
+                    <FormLabel>Consecuencias según su criterio</FormLabel>
+                    <div className="space-y-2">
+                        <div className="flex gap-2">
+                            <Input
+                                placeholder="Escriba una consecuencia"
+                                value={newConsequence}
+                                onChange={(e) => setNewConsequence(e.target.value)}
+                                onKeyPress={handleKeyPress}
+                            />
+                            <Button
+                                type="button"
+                                onClick={addConsequence}
+                                size="icon"
+                            >
+                                <Plus className="h-4 w-4" />
+                            </Button>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                            {consequences.map((consequence, index) => (
+                                <div
+                                    key={index}
+                                    className="flex items-center gap-1 p-2 border rounded-md bg-muted/20 text-sm"
+                                >
+                                    <span>{consequence}</span>
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => removeConsequence(index)}
+                                        className="h-6 w-6"
+                                    >
+                                        <X className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                    <FormMessage className="text-xs" />
+                </FormItem>
+
+                {/* Campo oculto para el valor del formulario */}
                 <FormField
                     control={form.control}
                     name="possible_consequences"
                     render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Consecuencias segun su criterio</FormLabel>
+                        <FormItem className="hidden">
                             <FormControl>
-                                <Textarea
-                                    placeholder="Si son varias, separar por una coma (,)"
-                                    {...field}
-                                />
+                                <Input type="hidden" {...field} />
                             </FormControl>
                             <FormMessage className="text-xs" />
                         </FormItem>
@@ -551,42 +619,12 @@ export function CreateGeneralVoluntaryReportForm({
                                     <FormControl>
                                         <Input
                                             type="file"
-                                            accept="image/jpeg, image/png"
+                                            accept="image/jpeg, image/png, image/jpg"
                                             onChange={(e) => field.onChange(e.target.files?.[0])}
                                         />
                                     </FormControl>
                                 </div>
 
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    <FormField
-                        control={form.control}
-                        name="document"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Documento PDF</FormLabel>
-                                <div className="flex items-center gap-4">
-                                    {field.value && (
-                                        <div>
-                                            <p className="text-sm text-gray-500">
-                                                Archivo seleccionado:
-                                            </p>
-                                            <p className="font-semibold text-sm">
-                                                {field.value.name}
-                                            </p>
-                                        </div>
-                                    )}
-                                    <FormControl>
-                                        <Input
-                                            type="file"
-                                            accept="application/pdf"
-                                            onChange={(e) => field.onChange(e.target.files?.[0])}
-                                        />
-                                    </FormControl>
-                                </div>
                                 <FormMessage />
                             </FormItem>
                         )}

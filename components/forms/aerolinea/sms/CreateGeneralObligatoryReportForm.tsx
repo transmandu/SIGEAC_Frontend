@@ -129,18 +129,10 @@ export function CreateGeneralObligatoryReportForm({
       phone_number: z.string().optional().nullable(),
       image: z
         .instanceof(File)
-        .refine((file) => file.size <= 5 * 1024 * 1024, "Max 5MB")
+        .refine((file) => file.size <= 10 * 1024 * 1024, "Max 10MB")
         .refine(
           (file) => ["image/jpeg", "image/png"].includes(file.type),
           "Solo JPEG/PNG",
-        )
-        .optional(),
-      document: z
-        .instanceof(File)
-        .refine((file) => file.size <= 5 * 1024 * 1024, "Máximo 5MB")
-        .refine(
-          (file) => file.type === "application/pdf",
-          "Solo se permiten archivos PDF",
         )
         .optional(),
     })
@@ -255,7 +247,6 @@ export function CreateGeneralObligatoryReportForm({
       incidents: data.incidents,
       other_incidents: data.other_incidents,
       image: data.image,
-      document: data.document,
       status: "PROCESO",
       email: data.email,
       phone_number: data.phone_number,
@@ -458,7 +449,7 @@ export function CreateGeneralObligatoryReportForm({
             name="pilot_id"
             render={({ field }) => (
               <FormItem className="w-full">
-                <FormLabel>Piloto</FormLabel>
+                <FormLabel>Piloto (Capitan)</FormLabel>
                 {isLoadingPilots ? (
                   <div className="flex items-center gap-2 p-2 border rounded-md bg-muted">
                     <Loader2 className="h-4 w-4 animate-spin " />
@@ -494,7 +485,7 @@ export function CreateGeneralObligatoryReportForm({
             name="copilot_id"
             render={({ field }) => (
               <FormItem className="w-full">
-                <FormLabel>Piloto</FormLabel>
+                <FormLabel>Piloto (Primer Oficial)</FormLabel>
                 {isLoadingPilots ? (
                   <div className="flex items-center gap-2 p-2 border rounded-md bg-muted">
                     <Loader2 className="h-4 w-4 animate-spin" />{" "}
@@ -827,35 +818,6 @@ export function CreateGeneralObligatoryReportForm({
                   </FormControl>
                 </div>
 
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="document"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Documento PDF</FormLabel>
-                <div className="flex items-center gap-4">
-                  {field.value && (
-                    <div>
-                      <p className="text-sm text-gray-500">
-                        Archivo seleccionado:
-                      </p>
-                      <p className="font-semibold text-sm">
-                        {field.value.name}
-                      </p>
-                    </div>
-                  )}
-                  <FormControl>
-                    <Input
-                      type="file"
-                      accept="application/pdf"
-                      onChange={(e) => field.onChange(e.target.files?.[0])}
-                    />
-                  </FormControl>
-                </div>
                 <FormMessage />
               </FormItem>
             )}
