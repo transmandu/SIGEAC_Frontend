@@ -2,12 +2,12 @@
 
 import { Button } from "@/components/ui/button";
 import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
 } from "@/components/ui/form";
 
 import { Input } from "@/components/ui/input";
@@ -16,23 +16,23 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import {
-    useCreateVoluntaryReport,
-    useUpdateVoluntaryReport,
+  useCreateVoluntaryReport,
+  useUpdateVoluntaryReport,
 } from "@/actions/sms/reporte_voluntario/actions";
 import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
 } from "@/components/ui/popover";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
@@ -46,604 +46,597 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 interface FormProps {
-    onClose: () => void;
-    initialData?: VoluntaryReport;
-    isEditing?: boolean;
+  onClose: () => void;
+  initialData?: VoluntaryReport;
+  isEditing?: boolean;
 }
 export function CreateGeneralVoluntaryReportForm({
-    onClose,
-    isEditing,
-    initialData,
+  onClose,
+  isEditing,
+  initialData,
 }: FormProps) {
-    const { company } = useParams<{ company: string }>();
-    const { createVoluntaryReport } = useCreateVoluntaryReport();
-    const { updateVoluntaryReport } = useUpdateVoluntaryReport();
-    const [isAnonymous, setIsAnonymous] = useState(true);
-    const router = useRouter();
-    const [consequences, setConsequences] = useState<string[]>([]);
-    const [newConsequence, setNewConsequence] = useState("");
+  const { company } = useParams<{ company: string }>();
+  const { createVoluntaryReport } = useCreateVoluntaryReport();
+  const { updateVoluntaryReport } = useUpdateVoluntaryReport();
+  const [isAnonymous, setIsAnonymous] = useState(true);
+  const router = useRouter();
+  const [consequences, setConsequences] = useState<string[]>([]);
+  const [newConsequence, setNewConsequence] = useState("");
 
-    const FormSchema = z.object({
-        identification_date: z
-            .date()
-            .refine((val) => !isNaN(val.getTime()), { message: "Invalid Date" }),
-        report_date: z
-            .date()
-            .refine((val) => !isNaN(val.getTime()), { message: "Invalid Date" }),
+  const FormSchema = z.object({
+    identification_date: z
+      .date()
+      .refine((val) => !isNaN(val.getTime()), { message: "Invalid Date" }),
+    report_date: z
+      .date()
+      .refine((val) => !isNaN(val.getTime()), { message: "Invalid Date" }),
 
-        danger_location: z.string(),
-        danger_area: z.string(),
-        airport_location: z.string(),
-        description: z
-            .string()
-            .min(3, {
-                message: "La descripción debe tener al menos 3 caracteres",
-            })
-            .max(900, {
-                message: "La descripción no debe exceder los 900 caracteres",
-            }),
-        possible_consequences: z
-            .string()
-            .min(3, {
-                message: "Las consecuencias deben tener al menos 3 caracteres",
-            })
-            .max(999, {
-                message: "Las consecuencias no debe exceder los 999 caracteres",
-            }),
+    danger_location: z.string(),
+    danger_area: z.string(),
+    airport_location: z.string(),
+    description: z
+      .string()
+      .min(3, {
+        message: "La descripción debe tener al menos 3 caracteres",
+      })
+      .max(900, {
+        message: "La descripción no debe exceder los 900 caracteres",
+      }),
+    possible_consequences: z
+      .string()
+      .min(3, {
+        message: "Las consecuencias deben tener al menos 3 caracteres",
+      })
+      .max(999, {
+        message: "Las consecuencias no debe exceder los 999 caracteres",
+      }),
 
-        reporter_name: z
-            .string()
-            .min(3, {
-                message: "El nombre de quien reporta debe tener al menos 3 letras.",
-            })
-            .max(40)
-            .optional(),
-        reporter_last_name: z
-            .string()
-            .min(3, {
-                message: "El Apellido de quien reporta debe tener al menos 3 letras.",
-            })
-            .max(40)
-            .optional(),
-        reporter_phone: z
-            .string()
-            .regex(/^\d{11}$/, {
-                message: "El número telefónico debe tener almenos 11 dígitos",
-            })
-            .optional(),
+    reporter_name: z
+      .string()
+      .min(3, {
+        message: "El nombre de quien reporta debe tener al menos 3 letras.",
+      })
+      .max(40)
+      .optional(),
+    reporter_last_name: z
+      .string()
+      .min(3, {
+        message: "El Apellido de quien reporta debe tener al menos 3 letras.",
+      })
+      .max(40)
+      .optional(),
+    reporter_phone: z
+      .string()
+      .regex(/^\d{11}$/, {
+        message: "El número telefónico debe tener almenos 11 dígitos",
+      })
+      .optional(),
 
-        reporter_email: z
-            .string()
-            .min(10, {
-                message: "El correo electrónico debe tener al menos 10 caracteres",
-            })
-            .email({ message: "Formato de correo electrónico inválido" })
-            .optional(),
-        image: z
-            .instanceof(File)
-            .refine((file) => file.size <= 10 * 1024 * 1024, "Max 10MB")
-            .refine(
-                (file) => ["image/jpeg", "image/png"].includes(file.type),
-                "Solo JPEG/PNG"
-            )
-            .optional(),
-    });
+    reporter_email: z
+      .string()
+      .min(10, {
+        message: "El correo electrónico debe tener al menos 10 caracteres",
+      })
+      .email({ message: "Formato de correo electrónico inválido" })
+      .optional(),
+    image: z
+      .instanceof(File)
+      .refine((file) => file.size <= 10 * 1024 * 1024, "Max 10MB")
+      .refine(
+        (file) => ["image/jpeg", "image/png"].includes(file.type),
+        "Solo JPEG/PNG",
+      )
+      .optional(),
+  });
 
-    type FormSchemaType = z.infer<typeof FormSchema>;
+  type FormSchemaType = z.infer<typeof FormSchema>;
 
-    useEffect(() => {
-        if (initialData && isEditing) {
-            if (
-                initialData.reporter_email &&
-                initialData.reporter_name &&
-                initialData.reporter_last_name &&
-                initialData.reporter_phone
-            ) {
-                setIsAnonymous(false);
-            }
+  useEffect(() => {
+    if (initialData && isEditing) {
+      if (
+        initialData.reporter_email &&
+        initialData.reporter_name &&
+        initialData.reporter_last_name &&
+        initialData.reporter_phone
+      ) {
+        setIsAnonymous(false);
+      }
 
-            if (initialData.possible_consequences) {
-                const initialConsequences = initialData.possible_consequences
-                    .split(",")
-                    .filter((item) => item.trim() !== "");
-                setConsequences(initialConsequences);
-            }
-        }
-    }, [initialData, isEditing]); // Only run when these values change
+      if (initialData.possible_consequences) {
+        const initialConsequences = initialData.possible_consequences
+          .split(",")
+          .filter((item) => item.trim() !== "");
+        setConsequences(initialConsequences);
+      }
+    }
+  }, [initialData, isEditing]); // Only run when these values change
 
-    const form = useForm<FormSchemaType>({
-        resolver: zodResolver(FormSchema),
-        defaultValues: {
-            danger_area: initialData?.danger_area || "",
-            danger_location: initialData?.danger_location || "",
-            description: initialData?.description || "",
-            possible_consequences: initialData?.possible_consequences || "",
-            airport_location: initialData?.airport_location || "",
+  const form = useForm<FormSchemaType>({
+    resolver: zodResolver(FormSchema),
+    defaultValues: {
+      danger_area: initialData?.danger_area || "",
+      danger_location: initialData?.danger_location || "",
+      description: initialData?.description || "",
+      possible_consequences: initialData?.possible_consequences || "",
+      airport_location: initialData?.airport_location || "",
 
-            identification_date: initialData?.identification_date
-                ? addDays(new Date(initialData.identification_date), 1)
-                : new Date(),
+      identification_date: initialData?.identification_date
+        ? addDays(new Date(initialData.identification_date), 1)
+        : new Date(),
 
-            report_date: initialData?.report_date
-                ? addDays(new Date(initialData.report_date), 1)
-                : new Date(),
+      report_date: initialData?.report_date
+        ? addDays(new Date(initialData.report_date), 1)
+        : new Date(),
 
-            ...(initialData?.reporter_name && {
-                reporter_name: initialData.reporter_name,
-            }),
-            ...(initialData?.reporter_last_name && {
-                reporter_last_name: initialData.reporter_last_name,
-            }),
-            ...(initialData?.reporter_email && {
-                reporter_email: initialData.reporter_email,
-            }),
-            ...(initialData?.reporter_phone && {
-                reporter_phone: initialData.reporter_phone,
-            }),
+      ...(initialData?.reporter_name && {
+        reporter_name: initialData.reporter_name,
+      }),
+      ...(initialData?.reporter_last_name && {
+        reporter_last_name: initialData.reporter_last_name,
+      }),
+      ...(initialData?.reporter_email && {
+        reporter_email: initialData.reporter_email,
+      }),
+      ...(initialData?.reporter_phone && {
+        reporter_phone: initialData.reporter_phone,
+      }),
+    },
+  });
+
+  const addConsequence = () => {
+    if (newConsequence.trim() !== "") {
+      const updatedConsequences = [...consequences, newConsequence.trim()];
+      setConsequences(updatedConsequences);
+      setNewConsequence("");
+      form.setValue("possible_consequences", updatedConsequences.join(","));
+    }
+  };
+
+  const removeConsequence = (index: number) => {
+    const updatedConsequences = consequences.filter((_, i) => i !== index);
+    setConsequences(updatedConsequences);
+    form.setValue("possible_consequences", updatedConsequences.join(","));
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      addConsequence();
+    }
+  };
+
+  const onSubmit = async (data: FormSchemaType) => {
+    if (isAnonymous) {
+      data.reporter_name = "";
+      data.reporter_last_name = "";
+      data.reporter_email = "";
+      data.reporter_phone = "";
+    }
+
+    if (initialData && isEditing) {
+      const value = {
+        company: company,
+        id: initialData.id.toString(),
+        data: {
+          ...data,
+          status: initialData.status,
+          danger_identification_id: initialData?.danger_identification_id,
         },
-    });
+      };
+      await updateVoluntaryReport.mutateAsync(value);
+    } else {
+      const value = {
+        company: company,
+        reportData: {
+          ...data,
+          status: "PROCESO",
+        },
+      };
+      try {
+        await createVoluntaryReport.mutateAsync(value);
+        router.push(`${process.env.NEXT_PUBLIC_URL}login`);
+      } catch (error) {
+        console.error("Error al crear el reporte:", error);
+      }
+    }
+    onClose();
+  };
 
-    const addConsequence = () => {
-        if (newConsequence.trim() !== "") {
-            const updatedConsequences = [...consequences, newConsequence.trim()];
-            setConsequences(updatedConsequences);
-            setNewConsequence("");
-            form.setValue(
-                "possible_consequences",
-                updatedConsequences.join(",")
-            );
-        }
-    };
+  return (
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="flex flex-col space-y-3"
+      >
+        <FormLabel className="text-lg text-center font-bold">
+          Reporte Voluntario de Peligro
+        </FormLabel>
 
-    const removeConsequence = (index: number) => {
-        const updatedConsequences = consequences.filter((_, i) => i !== index);
-        setConsequences(updatedConsequences);
-        form.setValue("possible_consequences", updatedConsequences.join(","));
-    };
-
-    const handleKeyPress = (e: React.KeyboardEvent) => {
-        if (e.key === "Enter") {
-            e.preventDefault();
-            addConsequence();
-        }
-    };
-
-    const onSubmit = async (data: FormSchemaType) => {
-        if (isAnonymous) {
-            data.reporter_name = "";
-            data.reporter_last_name = "";
-            data.reporter_email = "";
-            data.reporter_phone = "";
-        }
-
-        if (initialData && isEditing) {
-            const value = {
-                company: company,
-                id: initialData.id.toString(),
-                data: {
-                    ...data,
-                    status: initialData.status,
-                    danger_identification_id: initialData?.danger_identification_id,
-                },
-            };
-            await updateVoluntaryReport.mutateAsync(value);
-        } else {
-            const value = {
-                company: company,
-                reportData: {
-                    ...data,
-                    status: "PROCESO",
-                },
-            };
-            try {
-                await createVoluntaryReport.mutateAsync(value);
-                router.push(`${process.env.NEXT_PUBLIC_URL}login`);
-            } catch (error) {
-                console.error("Error al crear el reporte:", error);
-            }
-        }
-        onClose();
-    };
-
-    return (
-        <Form {...form}>
-            <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="flex flex-col space-y-3"
-            >
-                <FormLabel className="text-lg text-center font-bold">
-                    Reporte Voluntario de Peligro
-                </FormLabel>
-
-                <div className="flex flex-col sm:flex-row gap-2 items-center justify-center  ">
-                    <FormField
-                        control={form.control}
-                        name="identification_date"
-                        render={({ field }) => (
-                            <FormItem className="flex flex-col mt-2.5 w-full">
-                                <FormLabel>Fecha de Identificacion</FormLabel>
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <FormControl>
-                                            <Button
-                                                variant={"outline"}
-                                                className={cn(
-                                                    "w-full pl-3 text-left font-normal",
-                                                    !field.value && "text-muted-foreground"
-                                                )}
-                                            >
-                                                {field.value ? (
-                                                    format(field.value, "PPP", {
-                                                        locale: es,
-                                                    })
-                                                ) : (
-                                                    <span>Seleccione una fecha</span>
-                                                )}
-                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                            </Button>
-                                        </FormControl>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0" align="start">
-                                        <Calendar
-                                            mode="single"
-                                            selected={field.value}
-                                            onSelect={field.onChange}
-                                            autoFocus
-                                            startMonth={new Date(2000, 0)} // Año mínimo que se mostrará
-                                            endMonth={new Date(new Date().getFullYear(), 11)} // Año máximo (actual)
-                                            captionLayout="dropdown" // Selectores de año/mes
-                                        />
-                                    </PopoverContent>
-                                </Popover>
-                                <FormMessage />
-                            </FormItem>
+        <div className="flex flex-col sm:flex-row gap-2 items-center justify-center  ">
+          <FormField
+            control={form.control}
+            name="identification_date"
+            render={({ field }) => (
+              <FormItem className="flex flex-col mt-2.5 w-full">
+                <FormLabel>Fecha de Identificacion</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full pl-3 text-left font-normal",
+                          !field.value && "text-muted-foreground",
                         )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="report_date"
-                        render={({ field }) => (
-                            <FormItem className="flex flex-col mt-2.5 w-full">
-                                <FormLabel>Fecha de Reporte</FormLabel>
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <FormControl>
-                                            <Button
-                                                variant={"outline"}
-                                                className={cn(
-                                                    "w-full pl-3 text-left font-normal",
-                                                    !field.value && "text-muted-foreground"
-                                                )}
-                                            >
-                                                {field.value ? (
-                                                    format(field.value, "PPP", {
-                                                        locale: es,
-                                                    })
-                                                ) : (
-                                                    <span>Seleccione una fecha</span>
-                                                )}
-                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                            </Button>
-                                        </FormControl>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0" align="start">
-                                        <Calendar
-                                            mode="single"
-                                            selected={field.value}
-                                            onSelect={field.onChange}
-                                            autoFocus
-                                            startMonth={new Date(2000, 0)} // Año mínimo que se mostrará
-                                            endMonth={new Date(new Date().getFullYear(), 11)} // Año máximo (actual)
-                                            captionLayout="dropdown" // Selectores de año/mes
-                                        />
-                                    </PopoverContent>
-                                </Popover>
-                                <FormMessage />
-                            </FormItem>
+                      >
+                        {field.value ? (
+                          format(field.value, "PPP", {
+                            locale: es,
+                          })
+                        ) : (
+                          <span>Seleccione una fecha</span>
                         )}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      autoFocus
+                      startMonth={new Date(2000, 0)} // Año mínimo que se mostrará
+                      endMonth={new Date(new Date().getFullYear(), 11)} // Año máximo (actual)
+                      captionLayout="dropdown" // Selectores de año/mes
                     />
-                </div>
-
-                <div className="flex gap-2 items-center justify-center">
-                    <FormField
-                        control={form.control}
-                        name="danger_location"
-                        render={({ field }) => (
-                            <FormItem className="w-full">
-                                <FormLabel>Base de Localizacion</FormLabel>
-                                <Select
-                                    onValueChange={field.onChange}
-                                    defaultValue={field.value}
-                                >
-                                    <FormControl>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Seleccionar localización" />
-                                        </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        <SelectItem value="PZO">Puerto Ordaz</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </FormItem>
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="report_date"
+            render={({ field }) => (
+              <FormItem className="flex flex-col mt-2.5 w-full">
+                <FormLabel>Fecha de Reporte</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full pl-3 text-left font-normal",
+                          !field.value && "text-muted-foreground",
                         )}
-                    />
-
-                    <FormField
-                        control={form.control}
-                        name="danger_area"
-                        render={({ field }) => (
-                            <FormItem className="w-full">
-                                <FormLabel>Area de identificación</FormLabel>
-                                <Select
-                                    onValueChange={field.onChange}
-                                    defaultValue={field.value}
-                                >
-                                    <FormControl>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Seleccionar área" />
-                                        </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        <SelectItem value="OPERACIONES">OPERACIONES</SelectItem>
-                                        <SelectItem value="MANTENIMIENTO">MANTENIMIENTO</SelectItem>
-                                        <SelectItem value="ADMINISTRACION_RRHH">
-                                            ADMINISTRACION Y RRHH
-                                        </SelectItem>
-                                        <SelectItem value="CONTROL_CALIDAD">
-                                            CONTROL DE CALIDAD
-                                        </SelectItem>
-                                        <SelectItem value="IT">TECNOLOGIA E INFORMACION</SelectItem>
-                                        <SelectItem value="AVSEC">AVSEC</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </FormItem>
+                      >
+                        {field.value ? (
+                          format(field.value, "PPP", {
+                            locale: es,
+                          })
+                        ) : (
+                          <span>Seleccione una fecha</span>
                         )}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      autoFocus
+                      startMonth={new Date(2000, 0)} // Año mínimo que se mostrará
+                      endMonth={new Date(new Date().getFullYear(), 11)} // Año máximo (actual)
+                      captionLayout="dropdown" // Selectores de año/mes
                     />
-                </div>
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
-                <FormField
-                    control={form.control}
-                    name="airport_location"
-                    render={({ field }) => (
-                        <FormItem className="w-full">
-                            <FormLabel>Lugar de Identificacion</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Seleccionar" />
-                                    </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                    <SelectItem value="CALLE_RODAJE">CALLE DE RODAJE</SelectItem>
-                                    <SelectItem value="HANGAR13B">HANGAR13B</SelectItem>
-                                    <SelectItem value="HANGAR17/18C">HANGAR17/18 C</SelectItem>
-                                    <SelectItem value="AEROPUERTO_CANAIMA">
-                                        AEROPUERTO CANAIMA
-                                    </SelectItem>
-                                    <SelectItem value="PLATAFORMA">PLATAFORMA</SelectItem>
-                                    <SelectItem value="PISTA_ATERRIZAJE">
-                                        PISTA DE ATERRIZAJE
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
-                    )}
+        <div className="flex gap-2 items-center justify-center">
+          <FormField
+            control={form.control}
+            name="danger_location"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel>Base de Localizacion</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar localización" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="PZO">Puerto Ordaz</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="danger_area"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel>Area de identificación</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar área" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="OPERACIONES">OPERACIONES</SelectItem>
+                    <SelectItem value="MANTENIMIENTO">MANTENIMIENTO</SelectItem>
+                    <SelectItem value="ADMINISTRACION_RRHH">
+                      ADMINISTRACION Y RRHH
+                    </SelectItem>
+                    <SelectItem value="CONTROL_CALIDAD">
+                      CONTROL DE CALIDAD
+                    </SelectItem>
+                    <SelectItem value="IT">TECNOLOGIA E INFORMACION</SelectItem>
+                    <SelectItem value="AVSEC">AVSEC</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <FormField
+          control={form.control}
+          name="airport_location"
+          render={({ field }) => (
+            <FormItem className="w-full">
+              <FormLabel>Lugar de Identificacion</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="CALLE_RODAJE">CALLE DE RODAJE</SelectItem>
+                  <SelectItem value="HANGAR13B">HANGAR13B</SelectItem>
+                  <SelectItem value="HANGAR17/18C">HANGAR17/18 C</SelectItem>
+                  <SelectItem value="AEROPUERTO_CANAIMA">
+                    AEROPUERTO CANAIMA
+                  </SelectItem>
+                  <SelectItem value="PLATAFORMA">PLATAFORMA</SelectItem>
+                  <SelectItem value="PISTA_ATERRIZAJE">
+                    PISTA DE ATERRIZAJE
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Descripcion de peligro</FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="Breve descripcion del peligro"
+                  {...field}
+                  className="min-h-25"
                 />
+              </FormControl>
+              <FormMessage className="text-xs" />
+            </FormItem>
+          )}
+        />
 
-                <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Descripcion de peligro</FormLabel>
-                            <FormControl>
-                                <Textarea
-                                    placeholder="Breve descripcion del peligro"
-                                    {...field}
-                                    className="min-h-25"
-                                />
-                            </FormControl>
-                            <FormMessage className="text-xs" />
-                        </FormItem>
-                    )}
-                />
+        <FormItem>
+          <FormLabel>Consecuencias según su criterio</FormLabel>
+          <div className="space-y-2">
+            <div className="flex gap-2">
+              <Input
+                placeholder="Escriba una consecuencia"
+                value={newConsequence}
+                onChange={(e) => setNewConsequence(e.target.value)}
+                onKeyPress={handleKeyPress}
+              />
+              <Button type="button" onClick={addConsequence} size="icon">
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {consequences.map((consequence, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-1 p-2 border rounded-md bg-muted/20 text-sm"
+                >
+                  <span>{consequence}</span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeConsequence(index)}
+                    className="h-6 w-6"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+          <FormMessage className="text-xs" />
+        </FormItem>
 
+        {/* Campo oculto para el valor del formulario */}
+        <FormField
+          control={form.control}
+          name="possible_consequences"
+          render={({ field }) => (
+            <FormItem className="hidden">
+              <FormControl>
+                <Input type="hidden" {...field} />
+              </FormControl>
+              <FormMessage className="text-xs" />
+            </FormItem>
+          )}
+        />
+
+        <div>
+          <Checkbox
+            checked={isAnonymous}
+            onCheckedChange={(checked) => {
+              // El Checkbox puede emitir "indeterminate", no solo boolean.
+              if (typeof checked === "boolean") {
+                setIsAnonymous(checked);
+              }
+            }}
+            value={isAnonymous.toString()} // Convertimos el booleano a string
+          />
+          <Label className="ml-2 text-sm">Reporte anónimo</Label>
+        </div>
+
+        {!isAnonymous && (
+          <div className="grid grid-cols-2 gap-2">
+            <FormField
+              control={form.control}
+              name="reporter_name"
+              render={({ field }) => (
                 <FormItem>
-                    <FormLabel>Consecuencias según su criterio</FormLabel>
-                    <div className="space-y-2">
-                        <div className="flex gap-2">
-                            <Input
-                                placeholder="Escriba una consecuencia"
-                                value={newConsequence}
-                                onChange={(e) => setNewConsequence(e.target.value)}
-                                onKeyPress={handleKeyPress}
-                            />
-                            <Button
-                                type="button"
-                                onClick={addConsequence}
-                                size="icon"
-                            >
-                                <Plus className="h-4 w-4" />
-                            </Button>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                            {consequences.map((consequence, index) => (
-                                <div
-                                    key={index}
-                                    className="flex items-center gap-1 p-2 border rounded-md bg-muted/20 text-sm"
-                                >
-                                    <span>{consequence}</span>
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() => removeConsequence(index)}
-                                        className="h-6 w-6"
-                                    >
-                                        <X className="h-4 w-4" />
-                                    </Button>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                    <FormMessage className="text-xs" />
+                  <FormLabel>Nombre</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Nombre de quien reporta" {...field} />
+                  </FormControl>
+                  <FormMessage className="text-xs" />
                 </FormItem>
+              )}
+            />
 
-                {/* Campo oculto para el valor del formulario */}
-                <FormField
-                    control={form.control}
-                    name="possible_consequences"
-                    render={({ field }) => (
-                        <FormItem className="hidden">
-                            <FormControl>
-                                <Input type="hidden" {...field} />
-                            </FormControl>
-                            <FormMessage className="text-xs" />
-                        </FormItem>
-                    )}
-                />
+            <FormField
+              control={form.control}
+              name="reporter_last_name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Apellido</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Apellido de quien reporta" {...field} />
+                  </FormControl>
+                  <FormMessage className="text-xs" />
+                </FormItem>
+              )}
+            />
 
-                <div>
-                    <Checkbox
-                        checked={isAnonymous}
-                        onCheckedChange={(checked) => {
-                            // El Checkbox puede emitir "indeterminate", no solo boolean.
-                            if (typeof checked === "boolean") {
-                                setIsAnonymous(checked);
-                            }
-                        }}
-                        value={isAnonymous.toString()} // Convertimos el booleano a string
-                    />
-                    <Label className="ml-2 text-sm">Reporte anónimo</Label>
-                </div>
+            <FormField
+              control={form.control}
+              name="reporter_email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Correo electrónico</FormLabel>
+                  <FormControl>
+                    <Input placeholder="ejemplo@gmail.com" {...field} />
+                  </FormControl>
+                  <FormMessage className="text-xs" />
+                </FormItem>
+              )}
+            />
 
-                {!isAnonymous && (
-                    <div className="grid grid-cols-2 gap-2">
-                        <FormField
-                            control={form.control}
-                            name="reporter_name"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Nombre</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="Nombre de quien reporta" {...field} />
-                                    </FormControl>
-                                    <FormMessage className="text-xs" />
-                                </FormItem>
-                            )}
-                        />
+            <FormField
+              control={form.control}
+              name="reporter_phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Teléfono</FormLabel>
+                  <FormControl>
+                    <Input placeholder="" {...field} />
+                  </FormControl>
+                  <FormMessage className="text-xs" />
+                </FormItem>
+              )}
+            />
+          </div>
+        )}
 
-                        <FormField
-                            control={form.control}
-                            name="reporter_last_name"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Apellido</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="Apellido de quien reporta" {...field} />
-                                    </FormControl>
-                                    <FormMessage className="text-xs" />
-                                </FormItem>
-                            )}
-                        />
+        <div className="flex justify-center items-center gap-2">
+          <FormField
+            control={form.control}
+            name="image"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Imagen del Reporte</FormLabel>
 
-                        <FormField
-                            control={form.control}
-                            name="reporter_email"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Correo electrónico</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="ejemplo@gmail.com" {...field} />
-                                    </FormControl>
-                                    <FormMessage className="text-xs" />
-                                </FormItem>
-                            )}
-                        />
-
-                        <FormField
-                            control={form.control}
-                            name="reporter_phone"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Teléfono</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="" {...field} />
-                                    </FormControl>
-                                    <FormMessage className="text-xs" />
-                                </FormItem>
-                            )}
-                        />
+                <div className="flex items-center gap-4">
+                  {field.value ? (
+                    <div className="relative">
+                      <Image
+                        src={URL.createObjectURL(field.value)}
+                        alt="Preview"
+                        width={64}
+                        height={64}
+                        className="rounded-md object-contain h-16 w-auto"
+                      />
                     </div>
-                )}
+                  ) : initialData?.image &&
+                    typeof initialData.image === "string" ? (
+                    <div className="relative">
+                      <Image
+                        src={
+                          initialData.image.startsWith("data:image")
+                            ? initialData.image
+                            : `data:image/jpeg;base64,${initialData.image}`
+                        }
+                        alt="Preview"
+                        width={64}
+                        height={64}
+                        className="rounded-md object-contain h-16 w-auto"
+                      />
+                    </div>
+                  ) : null}
 
-                <div className="flex justify-center items-center gap-2">
-                    <FormField
-                        control={form.control}
-                        name="image"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Imagen del Reporte</FormLabel>
-
-                                <div className="flex items-center gap-4">
-                                    {field.value ? (
-                                        <div className="relative">
-                                            <Image
-                                                src={URL.createObjectURL(field.value)}
-                                                alt="Preview"
-                                                width={64}
-                                                height={64}
-                                                className="rounded-md object-contain h-16 w-auto"
-                                            />
-                                        </div>
-                                    ) : initialData?.image &&
-                                        typeof initialData.image === "string" ? (
-                                        <div className="relative">
-                                            <Image
-                                                src={
-                                                    initialData.image.startsWith("data:image")
-                                                        ? initialData.image
-                                                        : `data:image/jpeg;base64,${initialData.image}`
-                                                }
-                                                alt="Preview"
-                                                width={64}
-                                                height={64}
-                                                className="rounded-md object-contain h-16 w-auto"
-                                            />
-                                        </div>
-                                    ) : null}
-
-                                    <FormControl>
-                                        <Input
-                                            type="file"
-                                            accept="image/jpeg, image/png, image/jpg"
-                                            onChange={(e) => field.onChange(e.target.files?.[0])}
-                                        />
-                                    </FormControl>
-                                </div>
-
-                                <FormMessage />
-                            </FormItem>
-                        )}
+                  <FormControl>
+                    <Input
+                      type="file"
+                      accept="image/jpeg, image/png, image/jpg"
+                      onChange={(e) => field.onChange(e.target.files?.[0])}
                     />
+                  </FormControl>
                 </div>
 
-                <div className="flex justify-between items-center gap-x-4">
-                    <Separator className="flex-1" />
-                    <p className="text-muted-foreground">SIGEAC</p>
-                    <Separator className="flex-1" />
-                </div>
-                <Button disabled={createVoluntaryReport.isPending}>
-                    {createVoluntaryReport.isPending ? (
-                        <Loader2 className="size-4 animate-spin" />
-                    ) : (
-                        "Enviar Reporte"
-                    )}
-                </Button>
-            </form>
-        </Form>
-    );
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="flex justify-between items-center gap-x-4">
+          <Separator className="flex-1" />
+          <p className="text-muted-foreground">SIGEAC</p>
+          <Separator className="flex-1" />
+        </div>
+        <Button disabled={createVoluntaryReport.isPending}>
+          {createVoluntaryReport.isPending ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            "Enviar Reporte"
+          )}
+        </Button>
+      </form>
+    </Form>
+  );
 }
