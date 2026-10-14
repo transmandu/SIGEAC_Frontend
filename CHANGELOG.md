@@ -1,3 +1,7 @@
+## v4.66.0 — 2026-10-14
+
+- feat: enhance pilot and retailer forms with improved validation and l… (#337)
+
 ## v4.65.0 — 2026-10-13
 
 - feat: update maintenance alert system and UI components (#336)
