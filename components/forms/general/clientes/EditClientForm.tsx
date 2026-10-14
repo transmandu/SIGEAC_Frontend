@@ -26,7 +26,7 @@ import { Separator } from "@/components/ui/separator";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
 const phoneRegex = new RegExp(
-  /^([+]?[\s0-9]+)?(\d{3}|[(]?[0-9]+[)])?([-]?[\s]?[0-9])+$/
+  /^([+]?[\s0-9]+)?(\d{3}|[(]?[0-9]+[)])?([-]?[\s]?[0-9])+$/,
 );
 
 const formSchema = z.object({
@@ -49,7 +49,7 @@ const formSchema = z.object({
     .max(40)
     .regex(
       /^[a-zA-Z0-9\s]+$/,
-      "No se permiten caracteres especiales, solo letras"
+      "No se permiten caracteres especiales, solo letras",
     )
     .min(2, {
       message: "El nombre debe tener al menos 2 caracteres y maximo 40.",
@@ -110,13 +110,18 @@ export function EditClientForm({ onClose, client }: EditClientFormProps) {
       phone: formData.phone,
       email: formData.email,
       address: formData.address,
+      pay_credit_days: formData.pay_credit_days,
     };
-    await updateClient.mutateAsync({
-      id: client.id.toString(),
-      data,
-      company: selectedCompany!.slug,
-    });
-    onClose();
+    try {
+      await updateClient.mutateAsync({
+        id: client.id.toString(),
+        data,
+        company: selectedCompany!.slug,
+      });
+      onClose();
+    } catch {
+      // El aviso lo muestra la mutación; el formulario queda abierto.
+    }
   };
 
   return (

@@ -24,12 +24,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
 const FormSchema = z.object({
-  name: z.string(),
-  type: z.string(),
+  name: z.string().min(1, "Debe ingresar un nombre.").max(50),
+  type: z.string().min(1, "Debe seleccionar un tipo."),
 });
 
 type FormSchemaType = z.infer<typeof FormSchema>;
@@ -56,8 +55,12 @@ export function EditInformationSourceForm({ onClose, initialData }: FormProps) {
       id: initialData.id.toString(),
       data: { ...data },
     };
-    await updateInformationSource.mutateAsync(formattedData);
-    onClose();
+    try {
+      await updateInformationSource.mutateAsync(formattedData);
+      onClose();
+    } catch {
+      // El aviso lo muestra la mutación; el formulario queda abierto.
+    }
   };
 
   return (
@@ -86,7 +89,7 @@ export function EditInformationSourceForm({ onClose, initialData }: FormProps) {
           render={({ field }) => (
             <FormItem className="w-full">
               <FormLabel>Seleccionar Tipo</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Seleccionar Tipo" />
@@ -95,6 +98,7 @@ export function EditInformationSourceForm({ onClose, initialData }: FormProps) {
                 <SelectContent>
                   <SelectItem value="PROACTIVO">PROACTIVO</SelectItem>
                   <SelectItem value="REACTIVO">REACTIVO</SelectItem>
+                  <SelectItem value="PREDICTIVO">PREDICTIVO</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />
@@ -102,16 +106,11 @@ export function EditInformationSourceForm({ onClose, initialData }: FormProps) {
           )}
         />
 
-        <div className="flex justify-between items-center gap-x-4">
-          <Separator className="flex-1" />
-          <p className="text-muted-foreground">SIGEAC</p>
-          <Separator className="flex-1" />
-        </div>
         <Button disabled={updateInformationSource.isPending}>
           {updateInformationSource.isPending ? (
             <Loader2 className="animate-spin size-4" />
           ) : (
-            "Actualizar Fuente "
+            "Actualizar"
           )}
         </Button>
       </form>

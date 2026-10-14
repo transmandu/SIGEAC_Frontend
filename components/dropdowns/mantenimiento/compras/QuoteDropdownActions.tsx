@@ -20,13 +20,18 @@ import {
   AlertOctagon,
   ClipboardCheck,
   ClipboardX,
+  FileCheck2,
   FileDown,
+  FileUp,
   MoreHorizontal,
   PackagePlus,
   Trash2,
 } from "lucide-react";
 import type { Quote } from "@/types/purchase";
 import QuoteDropdownDialogs from "@/components/dialogs/mantenimiento/compras/QuoteDropdownDialogs";
+import DownloadQuotePdfDialog from "@/components/dialogs/mantenimiento/compras/DownloadQuotePdfDialog";
+import SignedQuoteDocumentDialog from "@/components/dialogs/mantenimiento/compras/SignedQuoteDocumentDialog";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
 import PurchaseOrderMenuLink from "@/components/dropdowns/mantenimiento/compras/PurchaseOrderMenuLink";
 import CreateComplementaryQuoteDialog from "@/app/[company]/compras/(general)/cotizaciones_generales/[quote_number]/_components/CreateComplementaryQuoteDialog";
 
@@ -59,6 +64,9 @@ const QuoteDropdownActions = ({ quote }: { quote: Quote }) => {
   const [openDelete, setOpenDelete] = useState(false);
   const [openCascadeDelete, setOpenCascadeDelete] = useState(false);
   const [openComplementary, setOpenComplementary] = useState(false);
+  const [openPdf, setOpenPdf] = useState(false);
+  const [openSigned, setOpenSigned] = useState(false);
+  const timeZone = useCompanyTimezone();
 
   const canDelete = quote.status !== "APPROVED";
   const canViewPO = quote.status === "APPROVED";
@@ -167,22 +175,60 @@ const QuoteDropdownActions = ({ quote }: { quote: Quote }) => {
               </Tooltip>
             )}
 
-            {/* Descarga del PDF pendiente de implementar. */}
+            {/* FORMATO PARA FIRMA */}
             <Tooltip>
               <TooltipTrigger asChild>
-                <DropdownMenuItem asChild className="p-0 focus:bg-transparent">
-                  <button
-                    className={`
-                        ${itemBase}
-                        text-blue-600
-                      `}
+                <span>
+                  <DropdownMenuItem
+                    asChild
+                    className="p-0 focus:bg-transparent"
                   >
-                    <FileDown className={iconBase} />
-                  </button>
-                </DropdownMenuItem>
+                    <button
+                      onClick={() => {
+                        setOpenDropdown(false);
+                        setOpenPdf(true);
+                      }}
+                      className={`${itemBase} text-blue-600`}
+                    >
+                      <FileDown className={iconBase} />
+                    </button>
+                  </DropdownMenuItem>
+                </span>
               </TooltipTrigger>
 
-              <TooltipContent>¡Próximamente!</TooltipContent>
+              <TooltipContent>Descargar formato</TooltipContent>
+            </Tooltip>
+
+            {/* DOCUMENTO FIRMADO */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span>
+                  <DropdownMenuItem
+                    asChild
+                    className="p-0 focus:bg-transparent"
+                  >
+                    <button
+                      onClick={() => {
+                        setOpenDropdown(false);
+                        setOpenSigned(true);
+                      }}
+                      className={`${itemBase} ${quote.signed_document ? "text-emerald-600" : "text-slate-600"}`}
+                    >
+                      {quote.signed_document ? (
+                        <FileCheck2 className={iconBase} />
+                      ) : (
+                        <FileUp className={iconBase} />
+                      )}
+                    </button>
+                  </DropdownMenuItem>
+                </span>
+              </TooltipTrigger>
+
+              <TooltipContent>
+                {quote.signed_document
+                  ? "Ver / reemplazar documento firmado"
+                  : "Cargar documento firmado"}
+              </TooltipContent>
             </Tooltip>
 
             {/* COMPLEMENTARY QUOTE */}
@@ -286,6 +332,18 @@ const QuoteDropdownActions = ({ quote }: { quote: Quote }) => {
           setOpenApprove={setOpenApprove}
           openCascadeDelete={openCascadeDelete}
           setOpenCascadeDelete={setOpenCascadeDelete}
+        />
+
+        <DownloadQuotePdfDialog
+          quote={quote}
+          open={openPdf}
+          onOpenChange={setOpenPdf}
+        />
+        <SignedQuoteDocumentDialog
+          quote={quote}
+          open={openSigned}
+          onOpenChange={setOpenSigned}
+          timeZone={timeZone}
         />
 
         {selectedCompany?.slug && (

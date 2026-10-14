@@ -1,6 +1,7 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
+
 import {
   Dialog,
   DialogContent,
@@ -18,13 +19,10 @@ export function CreateThirdPartyDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button
-          variant="outline"
-          className="flex items-center justify-center gap-2 h-8 border-dashed"
-        >
-          <Plus className="h-4 w-4" />
-          Nuevo Tercero
-        </Button>
+        <ActionTriggerButton>
+          <Plus className="h-4 w-4 mr-2" />
+          Crear tercero
+        </ActionTriggerButton>
       </DialogTrigger>
       <DialogContent className="sm:max-w-105">
         <DialogHeader>

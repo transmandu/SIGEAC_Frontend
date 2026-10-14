@@ -1,10 +1,5 @@
 import axiosInstance from "@/lib/axios";
-import {
-  ComponentArticle,
-  ConsumableArticle,
-  DispatchRequest,
-  Request,
-} from "@/types";
+import { getApiErrorMessage } from "@/lib/api-error";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -30,11 +25,7 @@ export const useCreateInformationSource = () => {
   const createMutation = useMutation({
     mutationKey: ["information-sources"],
     mutationFn: async ({ company, data }: InformationSourceSchema) => {
-      await axiosInstance.post(`/${company}/information-sources`, data, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      await axiosInstance.post(`/${company}/information-sources`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["information-sources"] });
@@ -44,9 +35,8 @@ export const useCreateInformationSource = () => {
     },
     onError: (error) => {
       toast.error("Oops!", {
-        description: "No se pudo crear la fuente...",
+        description: getApiErrorMessage(error, "No se pudo crear la fuente..."),
       });
-      console.log(error);
     },
   });
   return {
@@ -58,8 +48,14 @@ export const useDeleteInformationSource = () => {
   const queryClient = useQueryClient();
 
   const deleteMutation = useMutation({
-    mutationFn: async (id: number | string) => {
-      await axiosInstance.delete(`/transmandu/information-sources/${id}`);
+    mutationFn: async ({
+      company,
+      id,
+    }: {
+      company: string | undefined;
+      id: number | string;
+    }) => {
+      await axiosInstance.delete(`/${company}/information-sources/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["information-sources"] });
@@ -67,9 +63,12 @@ export const useDeleteInformationSource = () => {
         description: `¡La fuente ha sido eliminada correctamente!`,
       });
     },
-    onError: (e) => {
+    onError: (error) => {
       toast.error("Oops!", {
-        description: "¡Hubo un error al eliminar la fuente!",
+        description: getApiErrorMessage(
+          error,
+          "¡Hubo un error al eliminar la fuente!",
+        ),
       });
     },
   });
@@ -99,9 +98,11 @@ export const useUpdateInformationSource = () => {
     },
     onError: (error) => {
       toast.error("Oops!", {
-        description: "No se pudo actualizar la fuente...",
+        description: getApiErrorMessage(
+          error,
+          "No se pudo actualizar la fuente...",
+        ),
       });
-      console.log(error);
     },
   });
   return {

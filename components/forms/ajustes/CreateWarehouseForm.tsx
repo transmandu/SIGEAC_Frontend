@@ -1,5 +1,13 @@
-"use client"
-import { Button } from "@/components/ui/button"
+"use client";
+
+import { Loader2 } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import {
+  useCreateWarehouse,
+  useUpdateWarehouse,
+} from "@/actions/mantenimiento/almacen/almacenes/actions";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -8,116 +16,92 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-
-import { useCreateWarehouse } from "@/actions/mantenimiento/almacen/almacenes/actions"
-import { Input } from "@/components/ui/input"
-import { useGetCompaniesWithWarehouses } from "@/hooks/sistema/useGetCompaniesWithWarehouses"
-import { useGetLocationsByCompanyId } from "@/hooks/sistema/useGetLocationsByCompanyId"
-import { zodResolver } from "@/lib/zod-resolver"
-import { Loader2 } from "lucide-react"
-import { useEffect, useState } from "react"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
+} from "@/components/ui/select";
+import { useGetLocationsByCompany } from "@/hooks/sistema/useGetLocationsByCompany";
+import { zodResolver } from "@/lib/zod-resolver";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { Warehouse } from "@/types";
 
 const formSchema = z.object({
-  name: z.string().min(2).max(50),
-  company_id: z.string({
-    message: "Debe seleccionar una compañía."
-  }),
-  location_id: z.string({
-    message: "Debe seleccionar una ubicación."
-  }),
-})
+  name: z
+    .string()
+    .min(2, "El nombre debe tener al menos 2 caracteres.")
+    .max(50),
+  location_id: z.string().min(1, "Debe seleccionar una ubicación."),
+});
 
+interface FormProps {
+  onClose?: () => void;
+  /** Con almacén, el formulario edita en lugar de crear. */
+  warehouse?: Warehouse;
+}
 
-const CreateWarehouseForm = () => {
-
-  const { data: companies, isLoading, error } = useGetCompaniesWithWarehouses();
-
-  const { mutate: fetchLocations, data: locations, isPending } = useGetLocationsByCompanyId();
-
-  const { createWarehouse } = useCreateWarehouse()
-
-  const [companyId, setCompanyId] = useState<number>();
+const CreateWarehouseForm = ({ onClose, warehouse }: FormProps) => {
+  const { selectedCompany } = useCompanyStore();
+  const { data: locations, isLoading: loadingLocations } =
+    useGetLocationsByCompany(selectedCompany?.slug);
+  const { createWarehouse } = useCreateWarehouse();
+  const { updateWarehouse } = useUpdateWarehouse();
+  const mutation = warehouse ? updateWarehouse : createWarehouse;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
-      location_id: "",
-      company_id: "",
+      name: warehouse?.name ?? "",
+      location_id: warehouse?.location?.id ? String(warehouse.location.id) : "",
     },
-  })
-
-  useEffect(() => {
-    if (companyId) {
-      fetchLocations(companyId);
-    }
-  }, [companyId, fetchLocations]);
-
-  const onCompanySelect = (value: string) => {
-    setCompanyId(Number(value))
-  }
+  });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    const formattedValues = {
-      ...values,
-      company_id: Number(values.company_id),
-      location_id: Number(values.location_id),
+    const data = { name: values.name, location_id: Number(values.location_id) };
+
+    try {
+      if (warehouse) {
+        await updateWarehouse.mutateAsync({
+          company: selectedCompany!.slug,
+          id: warehouse.id,
+          data,
+        });
+      } else {
+        await createWarehouse.mutateAsync({
+          company: selectedCompany!.slug,
+          data,
+        });
+      }
+      onClose?.();
+    } catch {
+      // El aviso lo muestra la mutación; el formulario queda abierto.
     }
-    createWarehouse.mutate(formattedValues)
-  }
+  };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
+      <form
+        onSubmit={(e) => {
+          e.stopPropagation();
+          form.handleSubmit(onSubmit)(e);
+        }}
+        className="space-y-3"
+      >
         <FormField
           control={form.control}
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Nombre del almácen</FormLabel>
+              <FormLabel>Nombre del almacén</FormLabel>
               <FormControl>
                 <Input placeholder="EJ: A-001" {...field} />
               </FormControl>
               <FormDescription>
-                Este será el nombre de su almácen.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="company_id"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Empresa</FormLabel>
-              <Select onValueChange={(e) => {
-                field.onChange(e)
-                onCompanySelect(e)
-              }}>
-                <FormControl>
-                  <SelectTrigger disabled={isLoading}>
-                    <SelectValue placeholder={isLoading ? <Loader2 className="size-4 animate-spin" /> : "Seleccionar..."} />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {
-                    companies && <SelectItem value={companies.company.id.toString()}>{companies.company.name}</SelectItem>
-                  }
-                </SelectContent>
-              </Select>
-              <FormDescription>
-                Seleccione la ubicación en la cual se encuentrael almácen.
+                Este será el nombre de su almacén.
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -129,35 +113,50 @@ const CreateWarehouseForm = () => {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Ubicación</FormLabel>
-              <Select onValueChange={field.onChange}>
+              <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
-                  <SelectTrigger disabled={!companyId || isPending}>
-                    <SelectValue placeholder={isPending ? <Loader2 className="size-4 animate-spin" /> : "Seleccione una ubicacion..."} />
+                  <SelectTrigger disabled={loadingLocations}>
+                    <SelectValue
+                      placeholder={
+                        loadingLocations
+                          ? "Cargando..."
+                          : "Seleccione una ubicación..."
+                      }
+                    />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {
-                    isPending ? <Loader2 className="size-4 animate-spin" />
-                      :
-                      locations && locations.map((location) => (
-                        <SelectItem key={location.cod_iata} value={location.id.toString()}>{location.cod_iata} - {location.type}</SelectItem>
-                      ))
-                  }
+                  {locations?.map((location) => (
+                    <SelectItem
+                      key={location.id}
+                      value={location.id.toString()}
+                    >
+                      {location.cod_iata} - {location.type}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <FormDescription>
-                Seleccione la ubicación en la cual se encuentrael almácen.
+                Sede en la que se encuentra el almacén.
               </FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70" disabled={createWarehouse?.isPending} type="submit">
-          {createWarehouse?.isPending ? <Loader2 className="size-4 animate-spin" /> : <p>Crear Almácen</p>}
+        <Button
+          className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70"
+          disabled={mutation.isPending}
+          type="submit"
+        >
+          {mutation.isPending ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <p>{warehouse ? "Actualizar" : "Crear Almacén"}</p>
+          )}
         </Button>
       </form>
     </Form>
-  )
-}
+  );
+};
 
-export default CreateWarehouseForm
+export default CreateWarehouseForm;

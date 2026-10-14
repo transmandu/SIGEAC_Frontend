@@ -47,9 +47,15 @@ import { cn } from "@/lib/utils";
 import { ObligatoryReport } from "@/types";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { CalendarIcon, Check, ChevronsUpDown, Loader2 } from "lucide-react";
+import {
+  CalendarIcon,
+  Check,
+  ChevronsUpDown,
+  Loader2,
+  ShieldCheck,
+} from "lucide-react";
 import Image from "next/image";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 interface FormProps {
   isEditing?: boolean;
   initialData?: ObligatoryReport;
@@ -129,18 +135,10 @@ export function CreateGeneralObligatoryReportForm({
       phone_number: z.string().optional().nullable(),
       image: z
         .instanceof(File)
-        .refine((file) => file.size <= 5 * 1024 * 1024, "Max 5MB")
+        .refine((file) => file.size <= 10 * 1024 * 1024, "Max 10MB")
         .refine(
           (file) => ["image/jpeg", "image/png"].includes(file.type),
           "Solo JPEG/PNG",
-        )
-        .optional(),
-      document: z
-        .instanceof(File)
-        .refine((file) => file.size <= 5 * 1024 * 1024, "Máximo 5MB")
-        .refine(
-          (file) => file.type === "application/pdf",
-          "Solo se permiten archivos PDF",
         )
         .optional(),
     })
@@ -159,8 +157,9 @@ export function CreateGeneralObligatoryReportForm({
   type FormSchemaType = z.infer<typeof FormSchema>;
 
   const { createObligatoryReport } = useCreateObligatoryReport();
-  const router = useRouter();
   const { company } = useParams<{ company: string }>();
+
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   const [showOtherInput, setShowOtherInput] = useState(
     initialData?.other_incidents ? true : false,
@@ -255,20 +254,17 @@ export function CreateGeneralObligatoryReportForm({
       incidents: data.incidents,
       other_incidents: data.other_incidents,
       image: data.image,
-      document: data.document,
       status: "PROCESO",
       email: data.email,
       phone_number: data.phone_number,
     };
 
     try {
-      createObligatoryReport.mutateAsync(value);
-      router.push(`{process}/login`);
-      router.push(`${process.env.NEXT_PUBLIC_URL}login`);
+      await createObligatoryReport.mutateAsync(value);
+      setIsSubmitted(true);
     } catch (error) {
       console.error("Error al crear reporte:", error);
     }
-    onClose();
   };
 
   const handleOtherCheckboxChange = (checked: boolean) => {
@@ -283,6 +279,21 @@ export function CreateGeneralObligatoryReportForm({
   ) => {
     form.setValue("other_incidents", event.target.value);
   };
+
+  if (isSubmitted) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-4 px-6 py-16 text-center">
+        <div className="flex items-center justify-center rounded-full bg-green-100 p-4">
+          <ShieldCheck className="h-12 w-12 text-green-600" />
+        </div>
+        <h2 className="text-2xl font-bold">¡Muchas gracias por reportar!</h2>
+        <p className="max-w-md text-muted-foreground">
+          La seguridad es tarea de todos. El equipo de SMS estará evaluando su
+          reporte.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <Form {...form}>
@@ -458,7 +469,7 @@ export function CreateGeneralObligatoryReportForm({
             name="pilot_id"
             render={({ field }) => (
               <FormItem className="w-full">
-                <FormLabel>Piloto</FormLabel>
+                <FormLabel>Piloto (Capitan)</FormLabel>
                 {isLoadingPilots ? (
                   <div className="flex items-center gap-2 p-2 border rounded-md bg-muted">
                     <Loader2 className="h-4 w-4 animate-spin " />
@@ -494,7 +505,7 @@ export function CreateGeneralObligatoryReportForm({
             name="copilot_id"
             render={({ field }) => (
               <FormItem className="w-full">
-                <FormLabel>Piloto</FormLabel>
+                <FormLabel>Piloto (Primer Oficial)</FormLabel>
                 {isLoadingPilots ? (
                   <div className="flex items-center gap-2 p-2 border rounded-md bg-muted">
                     <Loader2 className="h-4 w-4 animate-spin" />{" "}
@@ -827,35 +838,6 @@ export function CreateGeneralObligatoryReportForm({
                   </FormControl>
                 </div>
 
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="document"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Documento PDF</FormLabel>
-                <div className="flex items-center gap-4">
-                  {field.value && (
-                    <div>
-                      <p className="text-sm text-gray-500">
-                        Archivo seleccionado:
-                      </p>
-                      <p className="font-semibold text-sm">
-                        {field.value.name}
-                      </p>
-                    </div>
-                  )}
-                  <FormControl>
-                    <Input
-                      type="file"
-                      accept="application/pdf"
-                      onChange={(e) => field.onChange(e.target.files?.[0])}
-                    />
-                  </FormControl>
-                </div>
                 <FormMessage />
               </FormItem>
             )}

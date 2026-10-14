@@ -1,19 +1,15 @@
 "use client";
 
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-
-import {
   useDeleteUnit,
   useUpdateUnit,
 } from "@/actions/ajustes/unidades/actions";
-import { Loader2, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { Loader2, Pencil, Trash2 } from "lucide-react";
+import { ConfirmDeleteDialog } from "@/components/dialogs/shared/ConfirmDeleteDialog";
+import {
+  SettingsRowActions,
+  type RowAction,
+} from "@/components/dropdowns/SettingsRowActions";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@/lib/zod-resolver";
@@ -23,7 +19,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -83,52 +78,37 @@ const UnitDropdownActions = ({ unit }: { unit: Unit }) => {
     try {
       await updateUnit.mutateAsync({ id: unit.id, ...values });
       setEditOpen(false);
-    } catch (error) {}
+    } catch {
+      // El aviso lo muestra la mutación; el diálogo queda abierto.
+    }
   };
 
-  const handleDelete = async (id: number | string) => {
-    try {
-      await deleteUnit.mutateAsync(id);
-      setDeleteOpen(false);
-    } catch (error) {}
-  };
+  const actions: RowAction[] = [
+    {
+      key: "edit",
+      label: "Editar unidad",
+      icon: Pencil,
+      tone: "blue",
+      onSelect: () => setEditOpen(true),
+    },
+    {
+      key: "delete",
+      label: "Eliminar unidad",
+      icon: Trash2,
+      tone: "red",
+      onSelect: () => setDeleteOpen(true),
+    },
+  ];
 
   return (
     <>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            className="h-8 w-8 p-0"
-            data-tour="unidades-primary-actions"
-          >
-            <span className="sr-only">Abrir menu</span>
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            className="cursor-pointer"
-            onSelect={() => setEditOpen(true)}
-          >
-            <Pencil className="mr-2 h-4 w-4" /> Editar
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            className="cursor-pointer text-destructive focus:text-destructive"
-            onSelect={() => setDeleteOpen(true)}
-          >
-            <Trash2 className="mr-2 h-4 w-4" /> Eliminar
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <SettingsRowActions actions={actions} tourId="unidades-primary-actions" />
 
       {/* ── Editar ── */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent className="sm:max-w-105">
           <DialogHeader>
-            <DialogTitle>Editar Unidad Primaria</DialogTitle>
+            <DialogTitle>Editar unidad</DialogTitle>
             <DialogDescription>
               Actualice el nombre o el símbolo de la unidad.
             </DialogDescription>
@@ -198,7 +178,7 @@ const UnitDropdownActions = ({ unit }: { unit: Unit }) => {
                 {updateUnit?.isPending ? (
                   <Loader2 className="size-4 animate-spin" />
                 ) : (
-                  <p>Guardar cambios</p>
+                  <p>Actualizar</p>
                 )}
               </Button>
             </form>
@@ -206,40 +186,14 @@ const UnitDropdownActions = ({ unit }: { unit: Unit }) => {
         </DialogContent>
       </Dialog>
 
-      {/* ── Eliminar ── */}
-      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="text-center">
-              ¿Seguro que desea eliminar esta unidad primaria?
-            </DialogTitle>
-            <DialogDescription className="text-center p-2 mb-0 pb-0">
-              Esta acción es irreversible y estaría eliminando por completo la
-              unidad seleccionada.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="flex flex-col gap-2 md:gap-0">
-            <Button
-              className="bg-rose-400 hover:bg-white hover:text-black hover:border hover:border-black"
-              onClick={() => setDeleteOpen(false)}
-              type="button"
-            >
-              Cancelar
-            </Button>
-            <Button
-              disabled={deleteUnit.isPending}
-              className="hover:bg-white hover:text-black hover:border hover:border-black transition-all"
-              onClick={() => handleDelete(unit.id)}
-            >
-              {deleteUnit.isPending ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <p>Confirmar</p>
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConfirmDeleteDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        title="Eliminar unidad"
+        entityName={unit.label}
+        isPending={deleteUnit.isPending}
+        onConfirm={() => deleteUnit.mutateAsync(unit.id)}
+      />
     </>
   );
 };

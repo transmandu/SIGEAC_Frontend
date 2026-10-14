@@ -1,81 +1,89 @@
+"use client";
+
+import { useState } from "react";
+import { Pencil, Trash2 } from "lucide-react";
+import { useDeleteWarehouse } from "@/actions/mantenimiento/almacen/almacenes/actions";
+import { ConfirmDeleteDialog } from "@/components/dialogs/shared/ConfirmDeleteDialog";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu"
-import { EyeIcon, Loader2, MoreHorizontal, Trash2 } from "lucide-react"
-import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { useDeleteWarehouse } from "@/actions/mantenimiento/almacen/almacenes/actions"
-import { useCompanyStore } from "@/stores/CompanyStore"
+  SettingsRowActions,
+  type RowAction,
+} from "@/components/dropdowns/SettingsRowActions";
+import CreateWarehouseForm from "@/components/forms/ajustes/CreateWarehouseForm";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { Warehouse } from "@/types";
 
-const WarehouseDropdownActions
-  = ({ id }: { id: string }) => {
+const WarehouseDropdownActions = ({ warehouse }: { warehouse: Warehouse }) => {
+  const [openEdit, setOpenEdit] = useState(false);
+  const [openDelete, setOpenDelete] = useState(false);
+  const { selectedCompany } = useCompanyStore();
+  const { deleteWarehouse } = useDeleteWarehouse();
 
-    const [open, setOpen] = useState<boolean>(false)
+  const actions: RowAction[] = [
+    {
+      key: "edit",
+      label: "Editar almacén",
+      icon: Pencil,
+      tone: "blue",
+      onSelect: () => setOpenEdit(true),
+    },
+    {
+      key: "delete",
+      label: "Eliminar almacén",
+      icon: Trash2,
+      tone: "red",
+      onSelect: () => setOpenDelete(true),
+    },
+  ];
 
-    const [company, setCompany] = useState<string>();
+  return (
+    <>
+      <SettingsRowActions actions={actions} />
 
-    const router = useRouter()
-
-    const { deleteWarehouse } = useDeleteWarehouse()
-
-    const { selectedCompany } = useCompanyStore()
-
-    useEffect(() => {
-      if (selectedCompany) {
-        setCompany(selectedCompany?.slug);
-      }
-    }, [selectedCompany])
-
-    const handleDelete = async (id: string, company: string) => {
-      await deleteWarehouse.mutateAsync({ company, id });
-      setOpen(false);
-    }
-
-    return (
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Abrir menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="center" className="flex gap-2 justify-center">
-            <DialogTrigger asChild>
-              <DropdownMenuItem>
-                <Trash2 className='size-5 text-red-500' />
-              </DropdownMenuItem>
-            </DialogTrigger>
-            <DropdownMenuItem onClick={() => {
-              router.push(`/administracion/usuarios_permisos/usuarios/${id}`)
-            }}>
-              <EyeIcon className="size-5" />
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-
-        <DialogContent>
+      <Dialog open={openEdit} onOpenChange={setOpenEdit}>
+        <DialogContent className="sm:max-w-105">
           <DialogHeader>
-            <DialogTitle className="text-center">¿Seguro que desea eliminar el almacén?</DialogTitle>
-            <DialogDescription className="text-center p-2 mb-0 pb-0">
-              Esta acción es irreversible y estaría eliminando por completo el almacén seleccionado.
+            <DialogTitle>Editar almacén</DialogTitle>
+            <DialogDescription>
+              Modifique la información de{" "}
+              <span className="font-medium text-foreground">
+                {warehouse.name}
+              </span>
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter className="flex flex-col-reverse gap-2 md:gap-0">
-            <Button className="bg-rose-400 hover:bg-white hover:text-black hover:border hover:border-black" onClick={() => setOpen(false)} type="submit">Cancelar</Button>
-            <Button disabled={deleteWarehouse.isPending} className="hover:bg-white hover:text-black hover:border hover:border-black transition-all" onClick={() => handleDelete(id, company!.replace(/ /g, ''))}>{deleteWarehouse.isPending ? <Loader2 className="size-4 animate-spin" /> : <p>Confirmar</p>}</Button>
-          </DialogFooter>
+          <CreateWarehouseForm
+            warehouse={warehouse}
+            onClose={() => setOpenEdit(false)}
+          />
         </DialogContent>
       </Dialog>
 
+      <ConfirmDeleteDialog
+        open={openDelete}
+        onOpenChange={setOpenDelete}
+        title="Eliminar almacén"
+        entityName={warehouse.name}
+        warning={
+          <>
+            Solo se puede eliminar un almacén <b>sin artículos</b> registrados.
+          </>
+        }
+        isPending={deleteWarehouse.isPending}
+        onConfirm={() =>
+          deleteWarehouse.mutateAsync({
+            company: selectedCompany!.slug,
+            id: warehouse.id,
+          })
+        }
+      />
+    </>
+  );
+};
 
-    )
-  }
-
-export default WarehouseDropdownActions
+export default WarehouseDropdownActions;

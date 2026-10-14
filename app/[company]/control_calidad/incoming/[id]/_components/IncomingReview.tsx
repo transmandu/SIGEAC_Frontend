@@ -36,6 +36,7 @@ import SecureFileViewer from "@/components/library/SecureFileViewer";
 import axiosInstance from "@/lib/axios";
 import { cn } from "@/lib/utils";
 import { isImageDocument } from "@/lib/warehouse/documents";
+import { DocumentSupportBadge } from "@/components/misc/DocumentSupportBadge";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import type {
   ArticleDocument,
@@ -851,11 +852,7 @@ export function IncomingReview({ article }: { article: any }) {
                               key={doc.id}
                               className="flex items-center gap-1.5"
                             >
-                              {doc.is_physical && (
-                                <span className="select-none inline-flex items-center rounded-full border border-amber-300/60 bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-700 dark:border-amber-600/40 dark:bg-amber-950/30 dark:text-amber-400">
-                                  Físico
-                                </span>
-                              )}
+                              <DocumentSupportBadge doc={doc} />
                               {doc.file_path && (
                                 <>
                                   <button

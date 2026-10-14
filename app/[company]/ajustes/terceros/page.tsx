@@ -1,22 +1,34 @@
 "use client";
 
-import { useMemo, useState, useDeferredValue, useEffect } from "react";
-import { ContentLayout } from "@/components/layout/ContentLayout";
-import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
-import { useCompanyStore } from "@/stores/CompanyStore";
-import { useGetThirdParties } from "@/hooks/general/terceros/useGetThirdParties";
-import { getThirdPartyTypeLabel } from "@/lib/utils";
-import { columns } from "./columns";
-import { DataTable } from "./data-table";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import { SettingsListPage } from "@/components/layout/SettingsListPage";
+import { SettingsDataTable } from "@/components/tables/SettingsDataTable";
+import { CreateThirdPartyDialog } from "@/components/dialogs/general/CreateThirdPartyDialog";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { tercerosSteps } from "@/components/tour/steps/sistema/terceros";
-import { PageHeader } from "@/components/layout/PageHeader";
+import { getThirdPartyTypeLabel } from "@/lib/utils";
+import { useGetThirdParties } from "@/hooks/general/terceros/useGetThirdParties";
+import { SlidersHorizontal } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { columns, THIRD_PARTY_TYPES } from "./columns";
 
 const ThirdPartiesPage = () => {
-  const { selectedCompany } = useCompanyStore();
-  const { data: thirdParties, isLoading, isError } = useGetThirdParties();
+  const {
+    data: thirdParties,
+    isPending,
+    isError,
+    refetch,
+  } = useGetThirdParties();
   const [search, setSearch] = useState("");
+  const [type, setType] = useState("ALL");
+  const deferredSearch = useDeferredValue(search);
+
   const { registerTour, unregisterTour } = useTourContext();
 
   useEffect(() => {
@@ -27,81 +39,69 @@ const ThirdPartiesPage = () => {
     return () => unregisterTour("terceros");
   }, [thirdParties, registerTour, unregisterTour]);
 
-  const deferredSearch = useDeferredValue(search);
-
-  const filteredThirdParties = useMemo(() => {
+  const filtered = useMemo(() => {
     if (!thirdParties) return [];
+    const q = deferredSearch.trim().toLowerCase();
 
-    const q = deferredSearch.toLowerCase();
+    return thirdParties.filter((item) => {
+      if (type !== "ALL" && item.type !== type) return false;
+      if (!q) return true;
 
-    return thirdParties.filter((thirdParty) => {
-      const matchesSearch =
-        !deferredSearch.trim() ||
-        thirdParty.name?.toLowerCase()?.includes(q) ||
-        getThirdPartyTypeLabel(thirdParty.type)?.toLowerCase()?.includes(q);
-
-      return matchesSearch;
+      return (
+        item.name?.toLowerCase().includes(q) ||
+        getThirdPartyTypeLabel(item.type)?.toLowerCase().includes(q)
+      );
     });
-  }, [thirdParties, deferredSearch]);
+  }, [thirdParties, deferredSearch, type]);
 
   return (
-    <ContentLayout title="Terceros">
-      <div className="flex flex-col gap-6">
-        <PageHeader />
-
-        <div
-          className="flex flex-col gap-2 border-b pb-4"
-          data-tour="terceros-title"
-        >
-          <h1 className="text-3xl font-semibold tracking-tight">
-            Control de Terceros
-          </h1>
-
-          <p className="text-sm text-muted-foreground">
-            Administra los terceros registrados en el sistema.
-          </p>
+    <SettingsListPage
+      title="Terceros"
+      heading="Control de Terceros"
+      description="Administra los terceros registrados en el sistema."
+      tourPrefix="terceros"
+      search={{
+        value: search,
+        onChange: setSearch,
+        placeholder: "Buscar terceros...",
+      }}
+      filters={
+        <div className="relative">
+          <SlidersHorizontal className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 z-10 size-3.5 text-muted-foreground" />
+          <Select value={type} onValueChange={setType}>
+            <SelectTrigger className="h-8 w-50 pl-8 text-xs bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60 transition-colors focus:ring-1 focus:ring-primary/40">
+              <SelectValue placeholder="Tipo" />
+            </SelectTrigger>
+            <SelectContent className="border-slate-200/60 dark:border-slate-700/60">
+              <SelectItem value="ALL">Todos los tipos</SelectItem>
+              {THIRD_PARTY_TYPES.map((value) => (
+                <SelectItem key={value} value={value}>
+                  {getThirdPartyTypeLabel(value)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
-
-        <div className="flex items-center justify-between gap-4 px-3 py-2 rounded-xl border bg-slate-200/40 border-slate-200/40 dark:bg-slate-800/70 dark:border-slate-700/60 backdrop-blur-md dark:shadow-[0_4px_20px_rgba(0,0,0,0.35)]">
-          <div className="relative w-64 sm:w-72">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
-
-            <Input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar terceros..."
-              className="
-                pl-8 h-8 text-xs
-                bg-white/80 dark:bg-slate-900/60
-                border-slate-200/60
-                dark:border-slate-700/60
-                focus-visible:ring-1
-                focus-visible:ring-primary/40
-              "
-            />
-          </div>
-
-          <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
-            {filteredThirdParties.length}{" "}
-            {filteredThirdParties.length === 1 ? "tercero" : "terceros"}
-          </span>
-        </div>
-
-        <DataTable
-          columns={columns}
-          data={filteredThirdParties}
-          loading={isLoading}
-        />
-
-        {isError && (
-          <div className="rounded-lg border border-red-500/20 bg-red-500/5 px-4 py-3">
-            <p className="text-sm text-red-500">
-              Ha ocurrido un error al cargar los terceros.
-            </p>
-          </div>
-        )}
-      </div>
-    </ContentLayout>
+      }
+      count={{
+        value: thirdParties ? filtered.length : undefined,
+        singular: "tercero",
+        plural: "terceros",
+      }}
+    >
+      <SettingsDataTable
+        columns={columns}
+        data={filtered}
+        loading={isPending}
+        error={isError}
+        errorMessage="No se pudieron cargar los terceros"
+        onRetry={() => refetch()}
+        filtered={!!deferredSearch.trim() || type !== "ALL"}
+        emptyMessage="No se han encontrado terceros."
+        actions={<CreateThirdPartyDialog />}
+        tourPrefix="terceros"
+      />
+    </SettingsListPage>
   );
 };
 

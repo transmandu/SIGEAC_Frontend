@@ -11,7 +11,10 @@ export type CriticalAlertSourceKey =
   | "low_stock_general"
   | "low_stock_consumable"
   | "quarantine_article"
-  | "maintenance_control";
+  | "maintenance_control"
+  | "component_control"
+  | "avionics_control"
+  | "directive_control";
 
 const fetchCriticalAlertSources = async (
   company: string,

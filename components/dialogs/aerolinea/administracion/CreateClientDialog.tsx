@@ -1,6 +1,9 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+
+import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
+
 import {
   Dialog,
   DialogContent,
@@ -28,13 +31,10 @@ export function CreateClientDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button
-          onClick={() => setOpen(true)}
-          variant={"outline"}
-          className="flex items-center justify-center gap-2 h-8 border-dashed"
-        >
-          Registrar Cliente
-        </Button>
+        <ActionTriggerButton>
+          <Plus className="h-4 w-4 mr-2" />
+          Crear cliente
+        </ActionTriggerButton>
       </DialogTrigger>
       <DialogContent
         onInteractOutside={(e) => {

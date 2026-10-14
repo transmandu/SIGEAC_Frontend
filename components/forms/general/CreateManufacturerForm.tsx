@@ -22,59 +22,69 @@ import { Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { useCreateManufacturer } from "@/actions/ajustes/fabricantes/actions";
+import {
+  useCreateManufacturer,
+  useUpdateManufacturer,
+} from "@/actions/ajustes/fabricantes/actions";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { Manufacturer } from "@/types";
 
 const formSchema = z.object({
   name: z.string().min(3, {
     message: "El nombre debe tener al menos 3 carácters.",
   }),
   description: z.string().optional(),
-  type: z.enum(["AIRCRAFT", "ENGINE", "APU", "PROPELLER", "GENERAL", "PART", "TOOL"], {
-    error: "Debe seleccionar un tipo",
-  }),
+  type: z.enum(
+    ["AIRCRAFT", "ENGINE", "APU", "PROPELLER", "GENERAL", "PART", "TOOL"],
+    {
+      error: "Debe seleccionar un tipo",
+    },
+  ),
 });
 
 interface FormProps {
   onClose: () => void;
   defaultType?:
-  | "AIRCRAFT"
-  | "ENGINE"
-  | "APU"
-  | "PROPELLER"
-  | "GENERAL"
-  | "PART"
-  | "TOOL";
+    "AIRCRAFT" | "ENGINE" | "APU" | "PROPELLER" | "GENERAL" | "PART" | "TOOL";
   onSuccess?: (manufacturer: any) => void;
+  /** Con fabricante, el formulario edita en lugar de crear. */
+  manufacturer?: Manufacturer;
 }
 
 export default function CreateManufacturerForm({
   onClose,
   defaultType = "GENERAL",
   onSuccess,
+  manufacturer,
 }: FormProps) {
   const { selectedCompany } = useCompanyStore();
 
   const { createManufacturer } = useCreateManufacturer();
+  const { updateManufacturer } = useUpdateManufacturer();
+  const mutation = manufacturer ? updateManufacturer : createManufacturer;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
-      type: defaultType,
-      description: "",
+      name: manufacturer?.name ?? "",
+      type: manufacturer?.type ?? defaultType,
+      description: manufacturer?.description ?? "",
     },
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      const result = await createManufacturer.mutateAsync({
-        company: selectedCompany?.slug,
-        data: {
-          ...values,
-          description: values.description || "", // Asegurar que description siempre sea string
-        },
-      });
+      const data = { ...values, description: values.description || "" };
+      const result = manufacturer
+        ? await updateManufacturer.mutateAsync({
+            company: selectedCompany?.slug,
+            id: manufacturer.id,
+            data,
+          })
+        : await createManufacturer.mutateAsync({
+            company: selectedCompany?.slug,
+            data,
+          });
       if (onSuccess && result) {
         onSuccess(result);
       }
@@ -111,11 +121,28 @@ export default function CreateManufacturerForm({
 
         <FormField
           control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Nombre completo</FormLabel>
+              <FormControl>
+                <Input placeholder="EJ: The Boeing Company" {...field} />
+              </FormControl>
+              <FormDescription>
+                Opcional. Se muestra como nombre completo en el listado.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
           name="type"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Tipo</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Seleccione el tipo..." />
@@ -139,13 +166,13 @@ export default function CreateManufacturerForm({
 
         <Button
           className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70"
-          disabled={createManufacturer?.isPending}
+          disabled={mutation.isPending}
           type="submit"
         >
-          {createManufacturer?.isPending ? (
+          {mutation.isPending ? (
             <Loader2 className="size-4 animate-spin" />
           ) : (
-            <p>Crear</p>
+            <p>{manufacturer ? "Actualizar" : "Crear"}</p>
           )}
         </Button>
       </form>

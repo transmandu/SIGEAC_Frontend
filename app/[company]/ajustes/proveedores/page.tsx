@@ -1,26 +1,28 @@
 "use client";
 
-import { useDeferredValue, useMemo, useState, useEffect } from "react";
-import { ContentLayout } from "@/components/layout/ContentLayout";
-import LoadingPage from "@/components/misc/LoadingPage";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import { SettingsListPage } from "@/components/layout/SettingsListPage";
+import { SettingsDataTable } from "@/components/tables/SettingsDataTable";
+import { CreateVendorDialog } from "@/components/dialogs/general/CreateVendorDialog";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useGetVendors } from "@/hooks/general/proveedores/useGetVendors";
 import { getColumns } from "./columns";
-import { DataTable } from "./data-table";
 import { Vendor } from "@/types";
 import VendorsToolBar from "./_components/VendorsToolBar";
 import VendorsSubRow from "./_components/VendorsSubRow";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { proveedoresSteps } from "@/components/tour/steps/ajustes/proveedores/proveedores";
-import { PageHeader } from "@/components/layout/PageHeader";
+
+const columns = getColumns();
 
 const VendorsPage = () => {
   const { selectedCompany } = useCompanyStore();
 
   const {
     data: vendors,
-    isLoading,
+    isPending,
     isError,
+    refetch,
   } = useGetVendors(selectedCompany?.slug);
 
   const [search, setSearch] = useState("");
@@ -28,8 +30,8 @@ const VendorsPage = () => {
   const { registerTour, unregisterTour } = useTourContext();
 
   useEffect(() => {
-    if (vendors && vendors?.length > 0) {
-      registerTour("proveedores", "Proverdores", proveedoresSteps);
+    if (vendors && vendors.length > 0) {
+      registerTour("proveedores", "Proveedores", proveedoresSteps);
     }
     return () => unregisterTour("proveedores");
   }, [registerTour, unregisterTour, vendors]);
@@ -38,10 +40,11 @@ const VendorsPage = () => {
 
   const filteredVendors = useMemo<Vendor[]>(() => {
     if (!vendors) return [];
-    const q = deferredSearch.toLowerCase();
+    const q = deferredSearch.trim().toLowerCase();
+
     return vendors.filter((vendor: Vendor) => {
       const matchesSearch =
-        !deferredSearch.trim() ||
+        !q ||
         vendor.name?.toLowerCase?.().includes(q) ||
         vendor.email?.toLowerCase?.().includes(q) ||
         vendor.phone?.toLowerCase?.().includes(q) ||
@@ -53,68 +56,41 @@ const VendorsPage = () => {
     });
   }, [vendors, deferredSearch, type]);
 
-  const columns = useMemo(
-    () => getColumns(selectedCompany ?? undefined),
-    [selectedCompany],
-  );
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-75">
-        <LoadingPage />
-      </div>
-    );
-  }
-
   return (
-    <ContentLayout title="Proveedores">
-      <div className="flex flex-col gap-6">
-        <PageHeader />
-
-        <div className="flex flex-col gap-2 border-b pb-4">
-          <div className="flex items-end justify-between">
-            <div className="flex flex-col" data-tour="proveedores-title">
-              <h1 className="text-3xl font-semibold tracking-tight">
-                Proveedores
-              </h1>
-
-              <p className="text-sm text-muted-foreground">
-                Visualiza y administra los proveedores y beneficiarios
-                registrados dentro de la configuración global del sistema.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between gap-4 px-3 py-2 rounded-xl border bg-slate-200/40 border-slate-200/40 dark:bg-slate-800/70 dark:border-slate-700/60 backdrop-blur-md dark:shadow-[0_4px_20px_rgba(0,0,0,0.35)]">
-          <VendorsToolBar
-            search={search}
-            setSearch={setSearch}
-            type={type}
-            setType={setType}
-          />
-
-          <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
-            {(vendors ?? []).length}{" "}
-            {(vendors ?? []).length === 1 ? "proveedor" : "proveedores"}
-          </span>
-        </div>
-
-        <DataTable
-          columns={columns}
-          data={filteredVendors}
-          renderSubRow={(vendor: Vendor) => <VendorsSubRow vendor={vendor} />}
+    <SettingsListPage
+      title="Proveedores"
+      heading="Proveedores"
+      description="Visualiza y administra los proveedores y beneficiarios registrados dentro de la configuración global del sistema."
+      tourPrefix="proveedores"
+      toolbar={
+        <VendorsToolBar
+          search={search}
+          setSearch={setSearch}
+          type={type}
+          setType={setType}
         />
-
-        {isError && (
-          <div className="rounded-lg border border-red-500/20 bg-red-500/5 px-4 py-3">
-            <p className="text-sm text-red-500">
-              Ha ocurrido un error al cargar los proveedores.
-            </p>
-          </div>
-        )}
-      </div>
-    </ContentLayout>
+      }
+      count={{
+        value: vendors ? filteredVendors.length : undefined,
+        singular: "proveedor",
+        plural: "proveedores",
+      }}
+    >
+      <SettingsDataTable
+        columns={columns}
+        data={filteredVendors}
+        loading={isPending}
+        error={isError}
+        errorMessage="No se pudieron cargar los proveedores"
+        onRetry={() => refetch()}
+        filtered={!!deferredSearch.trim() || type !== "ALL"}
+        emptyMessage="No se encontraron proveedores."
+        actions={<CreateVendorDialog />}
+        tourPrefix="proveedores"
+        bodyTourId="proveedores-expand"
+        renderSubRow={(vendor: Vendor) => <VendorsSubRow vendor={vendor} />}
+      />
+    </SettingsListPage>
   );
 };
 

@@ -60,7 +60,6 @@ import type {
 // Departments come back as a tree (each with nested `descendants`), so the
 // selector must flatten it to let the user pick any department, not just
 // the top-level ones.
-
 // Destino de la entrega: el almacén (flujo normal, intake PENDING que el
 // almacén confirma) o una entrega directa afiliada a un departamento,
 // empleado, autorizado o tercero — mismas entidades que la requisición

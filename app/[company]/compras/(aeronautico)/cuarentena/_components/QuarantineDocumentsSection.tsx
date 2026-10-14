@@ -9,6 +9,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { cn } from '@/lib/utils'
 import type { ArticleDocumentRequirementSummary } from '@/types'
 import { Check, FileUp, Paperclip, RefreshCw, X } from 'lucide-react'
+import { DocumentSupportBadge } from "@/components/misc/DocumentSupportBadge";
 
 export type DocumentDraft = {
   file?: File
@@ -54,18 +55,18 @@ export function QuarantineDocumentsSection({
           <div
             key={requirement.id}
             className={cn(
-              'rounded-xl border px-4 py-3 transition-colors',
+              "rounded-xl border px-4 py-3 transition-colors",
               resolved
-                ? 'border-emerald-500/40 bg-emerald-500/5'
+                ? "border-emerald-500/40 bg-emerald-500/5"
                 : consigned
-                  ? 'border-slate-200/70 dark:border-slate-700/60'
-                  : 'border-amber-500/40 bg-amber-500/5',
+                  ? "border-slate-200/70 dark:border-slate-700/60"
+                  : "border-amber-500/40 bg-amber-500/5",
             )}
           >
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div className="min-w-0">
                 <p className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">
-                  {requirement.document_type?.name ?? 'Documento'}
+                  {requirement.document_type?.name ?? "Documento"}
                 </p>
                 {requirement.document_type?.regulation && (
                   <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
@@ -76,12 +77,12 @@ export function QuarantineDocumentsSection({
 
               <Badge
                 className={cn(
-                  'select-none gap-1 whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-xs',
+                  "select-none gap-1 whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-xs",
                   resolved
-                    ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
+                    ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
                     : consigned
-                      ? 'border-slate-300/50 bg-slate-500/10 text-slate-600 dark:text-slate-300'
-                      : 'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300',
+                      ? "border-slate-300/50 bg-slate-500/10 text-slate-600 dark:text-slate-300"
+                      : "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300",
                 )}
               >
                 {resolved ? (
@@ -90,9 +91,9 @@ export function QuarantineDocumentsSection({
                     Listo para subir
                   </>
                 ) : consigned ? (
-                  'Consignado'
+                  "Consignado"
                 ) : (
-                  'Pendiente'
+                  "Pendiente"
                 )}
               </Badge>
             </div>
@@ -106,9 +107,10 @@ export function QuarantineDocumentsSection({
                     className="inline-flex items-center gap-1 rounded-full border border-slate-200/70 px-2 py-0.5 text-[10px] text-muted-foreground dark:border-slate-700/60"
                   >
                     <Paperclip className="size-2.5" />
-                    <span className="max-w-[160px] truncate">
-                      {doc.file_path?.split('/').pop() ?? (doc.is_physical ? 'Recibido en físico' : 'Documento')}
+                    <span className="max-w-40 truncate">
+                      {doc.file_path?.split("/").pop() ?? "Recibido en físico"}
                     </span>
+                    <DocumentSupportBadge doc={doc} />
                   </span>
                 ))}
 
@@ -199,12 +201,14 @@ export function QuarantineDocumentsSection({
                 </div>
 
                 {draft?.file && (
-                  <p className="truncate text-[10px] text-muted-foreground">{draft.file.name}</p>
+                  <p className="truncate text-[10px] text-muted-foreground">
+                    {draft.file.name}
+                  </p>
                 )}
               </div>
             )}
           </div>
-        )
+        );
       })}
     </div>
   )

@@ -1,81 +1,99 @@
-"use client"
+"use client";
 
 import { type AppColumnDef } from "@/lib/table";
-import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
-import WarehouseDropdownActions from "@/components/dropdowns/ajustes/WarehouseDropdownActions"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Warehouse } from "@/types"
+import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
+import { TagBadge } from "@/components/misc/TagBadge";
+import WarehouseDropdownActions from "@/components/dropdowns/ajustes/WarehouseDropdownActions";
+import { Warehouse } from "@/types";
 
 export const columns: AppColumnDef<Warehouse>[] = [
   {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Seleccionar todos"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Seleccionar fila"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
     accessorKey: "name",
+    size: 220,
     header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Abrev." />
+      <div className="flex justify-center w-full">
+        <DataTableColumnHeader filter column={column} title="Nombre" />
+      </div>
     ),
-    cell: ({ row }) =>
-      <>
-        <span className='font-bold flex justify-center'>{row.original.name ?? "N/A"}</span>
-      </>
+    meta: { title: "Nombre" },
+    cell: ({ row }) => (
+      <div className="flex justify-center w-full">
+        <span className="text-sm font-semibold text-slate-700 dark:text-slate-200 text-center">
+          {row.original.name ?? "—"}
+        </span>
+      </div>
+    ),
   },
   {
-    accessorKey: "location.address",
+    id: "location",
+    size: 320,
+    accessorFn: (warehouse) =>
+      `${warehouse.location?.address ?? ""} ${warehouse.location?.type ?? ""}`.trim(),
     header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Ubicación" />
+      <div className="flex justify-center w-full">
+        <DataTableColumnHeader filter column={column} title="Ubicación" />
+      </div>
     ),
-    cell: ({ row }) =>
-      <>
-        <span className="flex justify-center">{row.original.location.address} - {row.original.location.type}</span>
-      </>
+    meta: { title: "Ubicación" },
+    cell: ({ row }) => (
+      <div className="flex justify-center w-full">
+        <span className="text-sm text-slate-600 dark:text-slate-300 text-center">
+          {row.original.location
+            ? `${row.original.location.address} - ${row.original.location.type}`
+            : "—"}
+        </span>
+      </div>
+    ),
   },
   {
     accessorKey: "company",
+    size: 200,
     header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Empresa" />
+      <div className="flex justify-center w-full">
+        <DataTableColumnHeader column={column} title="Empresa" />
+      </div>
     ),
-    cell: ({ row }) =>
-      <>
-        <span className="flex justify-center font-medium">{row.original.company}</span>
-      </>
+    meta: { title: "Empresa" },
+    cell: ({ row }) => (
+      <div className="flex justify-center w-full">
+        <span className="text-sm text-slate-600 dark:text-slate-300">
+          {row.original.company}
+        </span>
+      </div>
+    ),
   },
   {
     accessorKey: "type",
+    size: 160,
     header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Tipo" />
+      <div className="flex justify-center w-full">
+        <DataTableColumnHeader column={column} title="Tipo" />
+      </div>
     ),
-    cell: ({ row }) =>
-      <>
-        <span className='text-muted-foreground flex justify-center italic'>{row.original.type}</span>
-      </>
+    meta: { title: "Tipo" },
+    cell: ({ row }) => (
+      <div className="flex justify-center w-full">
+        {row.original.type ? (
+          <TagBadge tone="slate">{row.original.type}</TagBadge>
+        ) : (
+          <span className="text-sm text-muted-foreground">—</span>
+        )}
+      </div>
+    ),
   },
   {
     id: "actions",
-    cell: ({ row }) => {
-      const id = row.original.id
-      return (
-        <WarehouseDropdownActions id={id} />
-      )
-    },
+    size: 100,
+    header: ({ column }) => (
+      <div className="flex justify-center w-full">
+        <DataTableColumnHeader column={column} title="Acciones" />
+      </div>
+    ),
+    meta: { title: "Acciones" },
+    cell: ({ row }) => (
+      <div className="flex justify-center w-full">
+        <WarehouseDropdownActions warehouse={row.original} />
+      </div>
+    ),
   },
-]
+];

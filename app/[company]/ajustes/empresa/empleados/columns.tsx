@@ -7,8 +7,12 @@ import { CarnetCell } from "@/app/[company]/ajustes/empresa/empleados/_component
 import EmployeesDropdownActions from "@/components/dropdowns/general/EmployeesDropdownActions";
 import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
-
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+  TooltipProvider,
+} from "@/components/ui/tooltip";
 
 type EmployeeMode = "active" | "inactive";
 
@@ -26,28 +30,23 @@ const formatDate = (date?: string | null) => {
 
 export const getEmployeeColumns = (
   mode: EmployeeMode,
-  expandedRowId: string | false,
-  setExpandedRowId: (id: string | false) => void
 ): AppColumnDef<Employee>[] => {
   return [
     {
       id: "expander",
+      size: 40,
       header: () => null,
-      cell: ({ row }) => {
-        const isExpanded = expandedRowId === row.id;
-        return (
+      cell: ({ row }) => (
+        <div className="flex justify-center w-full">
           <ChevronRight
             className={cn(
-              "size-3.5 text-muted-foreground/50 transition-transform duration-200 cursor-pointer",
-              isExpanded && "rotate-90 text-amber-600 dark:text-amber-500"
+              "size-3.5 text-muted-foreground/50 transition-transform",
+              row.getIsExpanded() &&
+                "rotate-90 text-blue-600 dark:text-blue-400",
             )}
-            onClick={(e) => {
-              e.stopPropagation();
-              setExpandedRowId(isExpanded ? false : row.id);
-            }}
           />
-        );
-      },
+        </div>
+      ),
       enableSorting: false,
       enableHiding: false,
     },
@@ -60,7 +59,7 @@ export const getEmployeeColumns = (
         </div>
       ),
       cell: ({ row }) => (
-        <div className="flex justify-center font-bold">
+        <div className="flex justify-center text-sm font-semibold text-slate-700 dark:text-slate-200">
           {row.original.first_name}
         </div>
       ),
@@ -74,7 +73,7 @@ export const getEmployeeColumns = (
         </div>
       ),
       cell: ({ row }) => (
-        <div className="flex justify-center text-muted-foreground">
+        <div className="flex justify-center text-sm text-slate-600 dark:text-slate-300">
           {row.original.middle_name ?? "N/A"}
         </div>
       ),
@@ -88,7 +87,7 @@ export const getEmployeeColumns = (
         </div>
       ),
       cell: ({ row }) => (
-        <div className="flex justify-center font-bold">
+        <div className="flex justify-center text-sm font-semibold text-slate-700 dark:text-slate-200">
           {row.original.last_name}
         </div>
       ),
@@ -98,11 +97,15 @@ export const getEmployeeColumns = (
       meta: { title: "Segundo Apellido" },
       header: ({ column }) => (
         <div className="flex justify-center w-full">
-          <DataTableColumnHeader filter column={column} title="Segundo Apellido" />
+          <DataTableColumnHeader
+            filter
+            column={column}
+            title="Segundo Apellido"
+          />
         </div>
       ),
       cell: ({ row }) => (
-        <div className="flex justify-center text-muted-foreground">
+        <div className="flex justify-center text-sm text-slate-600 dark:text-slate-300">
           {row.original.second_last_name ?? "N/A"}
         </div>
       ),
@@ -116,7 +119,7 @@ export const getEmployeeColumns = (
         </div>
       ),
       cell: ({ row }) => (
-        <div className="flex justify-center font-semibold italic text-muted-foreground">
+        <div className="flex justify-center text-sm font-medium text-slate-700 dark:text-slate-200">
           {row.original.dni_type}-{row.original.dni}
         </div>
       ),
@@ -133,11 +136,7 @@ export const getEmployeeColumns = (
         const isFemale = gender === "FEMALE";
         const isUnknown = !gender;
 
-        const label = isMale
-          ? "Hombre"
-          : isFemale
-          ? "Mujer"
-          : "No definido";
+        const label = isMale ? "Hombre" : isFemale ? "Mujer" : "No definido";
 
         return (
           <TooltipProvider>
@@ -152,7 +151,7 @@ export const getEmployeeColumns = (
                       isFemale &&
                         "bg-pink-500/10 text-pink-500 border-pink-500/20",
                       isUnknown &&
-                        "bg-muted/40 text-muted-foreground border-muted"
+                        "bg-muted/40 text-muted-foreground border-muted",
                     )}
                   >
                     {isMale ? "♂" : isFemale ? "♀" : "—"}
@@ -160,9 +159,7 @@ export const getEmployeeColumns = (
                 </div>
               </TooltipTrigger>
 
-              <TooltipContent>
-                {label}
-              </TooltipContent>
+              <TooltipContent>{label}</TooltipContent>
             </Tooltip>
           </TooltipProvider>
         );
@@ -203,13 +200,17 @@ export const getEmployeeColumns = (
       header: () => (
         <div className="flex justify-center w-full">Img. Carnet</div>
       ),
-      cell: ({ row }) => (
-        <CarnetCell photoUrl={row.original.photo_url} />
-      ),
+      cell: ({ row }) => <CarnetCell photoUrl={row.original.photo_url} />,
     },
     {
       id: "actions",
-      header: () => null,
+      size: 100,
+      header: ({ column }) => (
+        <div className="flex justify-center w-full">
+          <DataTableColumnHeader column={column} title="Acciones" />
+        </div>
+      ),
+      meta: { title: "Acciones" },
       cell: ({ row }) => (
         <div
           className="flex justify-center"
@@ -220,6 +221,6 @@ export const getEmployeeColumns = (
       ),
       enableSorting: false,
       enableHiding: false,
-    }
+    },
   ];
 };

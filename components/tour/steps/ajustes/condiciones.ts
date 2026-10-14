@@ -10,13 +10,19 @@ export const condicionesSteps: StepType[] = [
   {
     selector: '[data-tour="condiciones-table"]',
     content:
-      "Cada fila muestra el nombre de la condición y su descripción. Puede crear nuevas condiciones con el botón superior.",
+      "Cada fila muestra el nombre de la condición, su descripción y si lo que sale en ella suma o no al costo de los reportes. Use las acciones disponibles para editar o eliminar.",
     position: "top",
   },
   {
     selector: '[data-tour="condiciones-new"]',
     content:
-      "Registre una nueva condición. Solo necesita ingresar el nombre y una descripción que explique su significado.",
+      "Registre una nueva condición. Indique el nombre, una descripción y, si lo que sale en esa condición (por ejemplo, resguardo) no debe sumar al costo, marque «No cuenta como gasto».",
+    position: "left",
+  },
+  {
+    selector: '[data-tour="condiciones-actions"]',
+    content:
+      "Acciones por condición: editar sus datos o eliminarla. Una condición que no cuenta como gasto y ya tiene salidas registradas no puede eliminarse.",
     position: "left",
   },
   {

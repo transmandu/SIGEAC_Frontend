@@ -1,275 +1,198 @@
-"use client"
+"use client";
 
+import { useState } from "react";
+import { Minus, Pencil, RotateCcw, Trash2 } from "lucide-react";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-
+  useDeactivateEmployee,
+  useDeleteEmployee,
+  useReactivateEmployee,
+} from "@/actions/ajustes/empleados/actions";
+import { ConfirmDeleteDialog } from "@/components/dialogs/shared/ConfirmDeleteDialog";
+import {
+  SettingsRowActions,
+  type RowAction,
+} from "@/components/dropdowns/SettingsRowActions";
+import { UpdateEmployeeForm } from "@/components/forms/general/UpdateEmployeeForm";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-
-import { Button } from "@/components/ui/button"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
-
-import {
-  MoreHorizontal,
-  Pencil,
-  Trash2,
-  Minus,
-  RotateCcw,
-} from "lucide-react"
-
-import { useState } from "react"
-import { Employee } from "@/types"
-import { useCompanyStore } from "@/stores/CompanyStore"
-
-import { useDeleteEmployee } from "@/actions/ajustes/empleados/actions"
-import { useDeactivateEmployee, useReactivateEmployee } from "@/actions/ajustes/empleados/actions"
-
-import { UpdateEmployeeForm } from "@/components/forms/general/UpdateEmployeeForm"
+} from "@/components/ui/dialog";
+import { useAuth } from "@/contexts/AuthContext";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { Employee } from "@/types";
 
 const EmployeesDropdownActions = ({ employee }: { employee: Employee }) => {
-  const [openUpdate, setOpenUpdate] = useState(false)
-  const [openDelete, setOpenDelete] = useState(false)
-  const [openDeactivate, setOpenDeactivate] = useState(false)
-  const [openReactivate, setOpenReactivate] = useState(false)
+  const [openUpdate, setOpenUpdate] = useState(false);
+  const [openDelete, setOpenDelete] = useState(false);
+  const [openDeactivate, setOpenDeactivate] = useState(false);
+  const [openReactivate, setOpenReactivate] = useState(false);
 
-  const { selectedCompany } = useCompanyStore()
+  const { selectedCompany } = useCompanyStore();
+  const { user } = useAuth();
 
-  const deleteEmployee = useDeleteEmployee()
-  const deactivateEmployee = useDeactivateEmployee()
-  const reactivateEmployee = useReactivateEmployee()
+  const deleteEmployee = useDeleteEmployee();
+  const deactivateEmployee = useDeactivateEmployee();
+  const reactivateEmployee = useReactivateEmployee();
 
-  const userRole = "SUPERUSER"
-  const isSuperUser = userRole === "SUPERUSER"
+  const isSuperUser = user?.roles?.some((role) => role.name === "SUPERUSER");
+  const isActive = !!employee.isActive;
+  const fullName = `${employee.first_name} ${employee.last_name}`;
+  const company = selectedCompany?.slug ?? "";
 
-  const mode = employee.isActive ? "active" : "inactive"
+  const actions: RowAction[] = [
+    ...(isActive
+      ? [
+          {
+            key: "edit",
+            label: "Editar empleado",
+            icon: Pencil,
+            tone: "blue" as const,
+            onSelect: () => setOpenUpdate(true),
+          },
+          {
+            key: "deactivate",
+            label: "Desactivar empleado",
+            icon: Minus,
+            onSelect: () => setOpenDeactivate(true),
+          },
+        ]
+      : [
+          {
+            key: "reactivate",
+            label: "Reactivar empleado",
+            icon: RotateCcw,
+            onSelect: () => setOpenReactivate(true),
+          },
+        ]),
+    ...(isSuperUser
+      ? [
+          {
+            key: "delete",
+            label: "Eliminar permanentemente",
+            icon: Trash2,
+            tone: "red" as const,
+            onSelect: () => setOpenDelete(true),
+          },
+        ]
+      : []),
+  ];
 
-  const handleDelete = () => {
-    if (!selectedCompany) return
-
-    deleteEmployee.mutate({
-      id: employee.id,
-      company: selectedCompany.slug,
-    })
-  }
-
-  const handleDeactivate = () => {
-    if (!selectedCompany) return
-
-    deactivateEmployee.mutate({
-      id: employee.id,
-      company: selectedCompany.slug,
-    })
-  }
-
-  const handleReactivate = () => {
-    if (!selectedCompany) return
-
-    reactivateEmployee.mutate({
-      id: employee.id,
-      company: selectedCompany.slug,
-    })
-  }
+  const toggleStatus = async (
+    mutation: typeof deactivateEmployee,
+    close: () => void,
+  ) => {
+    try {
+      await mutation.mutateAsync({ id: employee.id, company });
+      close();
+    } catch {
+      // El aviso lo muestra la mutación; el diálogo queda abierto.
+    }
+  };
 
   return (
-    <TooltipProvider>
-      <>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <MoreHorizontal className="h-4 w-4" />
+    <>
+      <SettingsRowActions actions={actions} />
+
+      <Dialog open={openUpdate} onOpenChange={setOpenUpdate}>
+        <DialogContent className="max-w-lg lg:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Actualizar empleado</DialogTitle>
+            <DialogDescription>
+              Modifique la información de{" "}
+              <span className="font-medium text-foreground">{fullName}</span>
+            </DialogDescription>
+          </DialogHeader>
+
+          <UpdateEmployeeForm
+            employee={employee}
+            onSuccess={() => setOpenUpdate(false)}
+          />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={openDeactivate} onOpenChange={setOpenDeactivate}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Desactivar empleado</DialogTitle>
+            <DialogDescription>
+              {fullName} será ocultado de operaciones activas, pero podrá ser
+              reactivado posteriormente.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="rounded-xl border border-yellow-500/20 bg-yellow-500/5 p-3 text-sm text-yellow-700 dark:text-yellow-400">
+            Acción reversible. No se eliminan datos del sistema.
+          </div>
+
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setOpenDeactivate(false)}>
+              Cancelar
             </Button>
-          </DropdownMenuTrigger>
+            <Button
+              className="bg-yellow-500 hover:bg-yellow-600 text-white"
+              disabled={deactivateEmployee.isPending}
+              onClick={() =>
+                toggleStatus(deactivateEmployee, () => setOpenDeactivate(false))
+              }
+            >
+              Desactivar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
-          <DropdownMenuContent
-            align="end"
-            className="flex gap-1 p-1 w-auto min-w-0"
-          >
-            {mode === "active" && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <DropdownMenuItem onClick={() => setOpenUpdate(true)}>
-                    <Pencil className="h-4 w-4 text-blue-500" />
-                  </DropdownMenuItem>
-                </TooltipTrigger>
-                <TooltipContent>Editar empleado</TooltipContent>
-              </Tooltip>
-            )}
+      <Dialog open={openReactivate} onOpenChange={setOpenReactivate}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Reactivar empleado</DialogTitle>
+            <DialogDescription>
+              {fullName} volverá a estar activo en el sistema.
+            </DialogDescription>
+          </DialogHeader>
 
-            {mode === "active" && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <DropdownMenuItem onClick={() => setOpenDeactivate(true)}>
-                    <Minus className="h-4 w-4 text-yellow-500" />
-                  </DropdownMenuItem>
-                </TooltipTrigger>
-                <TooltipContent>Desactivar empleado</TooltipContent>
-              </Tooltip>
-            )}
+          <div className="rounded-xl border border-green-500/20 bg-green-500/5 p-3 text-sm text-green-700 dark:text-green-400">
+            Se restaurará su acceso a operaciones activas.
+          </div>
 
-            {mode === "inactive" && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <DropdownMenuItem onClick={() => setOpenReactivate(true)}>
-                    <RotateCcw className="h-4 w-4 text-green-500" />
-                  </DropdownMenuItem>
-                </TooltipTrigger>
-                <TooltipContent>Reactivar empleado</TooltipContent>
-              </Tooltip>
-            )}
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setOpenReactivate(false)}>
+              Cancelar
+            </Button>
+            <Button
+              className="bg-green-600 hover:bg-green-700 text-white"
+              disabled={reactivateEmployee.isPending}
+              onClick={() =>
+                toggleStatus(reactivateEmployee, () => setOpenReactivate(false))
+              }
+            >
+              Reactivar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
-            {isSuperUser && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <DropdownMenuItem
-                    onClick={() => setOpenDelete(true)}
-                    className="text-red-500 focus:text-red-500"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </DropdownMenuItem>
-                </TooltipTrigger>
-                <TooltipContent>Eliminar permanentemente</TooltipContent>
-              </Tooltip>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
+      <ConfirmDeleteDialog
+        open={openDelete}
+        onOpenChange={setOpenDelete}
+        title="Eliminar empleado"
+        entityName={fullName}
+        warning={
+          <>
+            Esta acción es <b>irreversible</b> y elimina todos los datos
+            asociados al empleado.
+          </>
+        }
+        isPending={deleteEmployee.isPending}
+        onConfirm={() =>
+          deleteEmployee.mutateAsync({ id: employee.id, company })
+        }
+      />
+    </>
+  );
+};
 
-        {/* EDITAR */}
-        <Dialog open={openUpdate} onOpenChange={setOpenUpdate}>
-          <DialogContent className="max-w-lg lg:max-w-2xl">
-            <DialogHeader>
-              <DialogTitle className="text-center">
-                Actualizar Empleado
-              </DialogTitle>
-              <DialogDescription className="text-center">
-                Modifique la información del empleado.
-              </DialogDescription>
-            </DialogHeader>
-
-            <UpdateEmployeeForm
-              employee={employee}
-              onSuccess={() => setOpenUpdate(false)}
-            />
-          </DialogContent>
-        </Dialog>
-
-        {/* DESACTIVAR */}
-        <Dialog open={openDeactivate} onOpenChange={setOpenDeactivate}>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle className="text-yellow-600">
-                Desactivar empleado
-              </DialogTitle>
-              <DialogDescription>
-                El empleado será ocultado de operaciones activas, pero podrá ser reactivado posteriormente.
-              </DialogDescription>
-            </DialogHeader>
-
-            <div className="mt-4 rounded-md border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-700">
-              Acción reversible. No se eliminan datos del sistema.
-            </div>
-
-            <div className="flex justify-end gap-2 mt-4">
-              <Button variant="outline" onClick={() => setOpenDeactivate(false)}>
-                Cancelar
-              </Button>
-
-              <Button
-                className="bg-yellow-500 hover:bg-yellow-600 text-white"
-                onClick={() => {
-                  handleDeactivate()
-                  setOpenDeactivate(false)
-                }}
-              >
-                Desactivar
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        {/* REACTIVAR */}
-        <Dialog open={openReactivate} onOpenChange={setOpenReactivate}>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle className="text-green-600">
-                Reactivar empleado
-              </DialogTitle>
-              <DialogDescription>
-                El empleado volverá a estar activo en el sistema.
-              </DialogDescription>
-            </DialogHeader>
-
-            <div className="mt-4 rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-700">
-              Se restaurará su acceso a operaciones activas.
-            </div>
-
-            <div className="flex justify-end gap-2 mt-4">
-              <Button variant="outline" onClick={() => setOpenReactivate(false)}>
-                Cancelar
-              </Button>
-
-              <Button
-                className="bg-green-600 hover:bg-green-700 text-white"
-                onClick={() => {
-                  handleReactivate()
-                  setOpenReactivate(false)
-                }}
-              >
-                Reactivar
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        {/* ELIMINAR */}
-        <Dialog open={openDelete} onOpenChange={setOpenDelete}>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle className="text-red-600">
-                Eliminar empleado
-              </DialogTitle>
-              <DialogDescription>
-                Esta acción eliminará permanentemente el empleado del sistema.
-              </DialogDescription>
-            </DialogHeader>
-
-            <div className="mt-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-              Advertencia: esta acción es irreversible y elimina todos los datos asociados.
-            </div>
-
-            <div className="flex justify-end gap-2 mt-4">
-              <Button variant="outline" onClick={() => setOpenDelete(false)}>
-                Cancelar
-              </Button>
-
-              <Button
-                variant="destructive"
-                onClick={() => {
-                  handleDelete()
-                  setOpenDelete(false)
-                }}
-              >
-                Eliminar
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </>
-    </TooltipProvider>
-  )
-}
-
-export default EmployeesDropdownActions
+export default EmployeesDropdownActions;

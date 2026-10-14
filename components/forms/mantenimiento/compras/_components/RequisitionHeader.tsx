@@ -144,7 +144,6 @@ export function RequisitionHeader({
 
   // Los departamentos llegan como árbol (con `descendants` anidados); se
   // aplanan para poder elegir cualquiera, no solo los de primer nivel.
-
   const allDepartments = departments ? flattenDepartments(departments) : [];
 
   return (

@@ -126,7 +126,7 @@ export function DataTable({
           <Input
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Buscar por Nro. de solicitud, justificación o solicitante..."
+            placeholder="Buscar por Nro. de solicitud, artículo, justificación o solicitante..."
             className="h-8 rounded-md border-border pl-8 pr-8 text-xs"
           />
           {isFetching ? (

@@ -1,3 +1,35 @@
+## v4.66.0 — 2026-10-14
+
+- feat: enhance pilot and retailer forms with improved validation and l… (#337)
+
+## v4.65.0 — 2026-10-13
+
+- feat: update maintenance alert system and UI components (#336)
+
+## v4.64.1 — 2026-10-13
+
+- fix: qr sms forms (#335)
+
+## v4.64.0 — 2026-10-12
+
+- feat: add DocumentSupportBadge component and integrate it across various document sections
+
+## v4.63.1 — 2026-10-12
+
+- fix: ensure proper comparison of article document type IDs as numbers
+
+## v4.63.0 — 2026-10-12
+
+- feat: add condition management features (#334)
+
+## v4.62.0 — 2026-10-12
+
+- feat: implement download and upload functionality for quote documents (#333)
+
+## v4.61.1 — 2026-10-12
+
+- fix: infinity trainning employee card (#332)
+
 ## v4.61.0 — 2026-10-11
 
 - feat: add status filter to requisitions and update UI components (#331)

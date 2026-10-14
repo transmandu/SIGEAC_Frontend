@@ -145,6 +145,22 @@ export interface Quote {
   parent_quote_order?: { id: number; quote_number: string } | null;
   /** Mandatory reason explaining why the undocumented difference exists. */
   complementary_justification?: string | null;
+  /** Escaneo del formato impreso, firmado y sellado; null si aún no se ha cargado. */
+  signed_document?: QuoteSignedDocument | null;
+}
+
+export interface QuoteSignedDocument {
+  name: string | null;
+  uploaded_by: string | null;
+  uploaded_at: string | null;
+}
+
+/** Alto cargo que recibe y firma el formato impreso de la cotización. */
+export interface QuoteAuthorizer {
+  key: string;
+  name: string;
+  dni: string;
+  position: string;
 }
 
 // ── Create quote mutation payload ──────────────────────────────────────────

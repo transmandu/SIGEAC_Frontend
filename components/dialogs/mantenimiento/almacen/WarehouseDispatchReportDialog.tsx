@@ -17,7 +17,11 @@ import { Button } from "@/components/ui/button";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 import { Loader2, Download, FileText, Scale } from "lucide-react";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
+import {
+  ReportTabsList,
+  ReportTabsTrigger,
+} from "@/components/dialogs/mantenimiento/almacen/ReportTabs";
 
 import { RiFileExcel2Fill } from "react-icons/ri";
 
@@ -30,11 +34,13 @@ import { useGetBalanceAndTotalReport } from "@/hooks/mantenimiento/almacen/repor
 import { useGetAuthorizedEmployees } from "@/hooks/ajustes/autorizados/useGetAuthorizedEmployees";
 import { useGetThirdParties } from "@/hooks/general/terceros/useGetThirdParties";
 import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment";
+import { useGetConditions } from "@/hooks/general/condiciones/useGetConditions";
 
 import { useGetDispatchReportArticleOptions } from "@/hooks/mantenimiento/almacen/reportes/useGetDispatchReportArticleOptions";
 import { useGetDispatchWorkOrders } from "@/hooks/mantenimiento/almacen/reportes/useGetDispatchWorkOrders";
 
 import { DispatchReportFilters } from "@/components/dialogs/mantenimiento/almacen/DispatchReportFilters";
+import { PlanningDispatchReportFilters } from "@/components/dialogs/mantenimiento/almacen/PlanningDispatchReportFilters";
 import {
   Tooltip,
   TooltipContent,
@@ -50,10 +56,12 @@ export function WarehouseDispatchReportDialog() {
   const { selectedStation, selectedCompany } = useCompanyStore();
   const { user } = useAuth();
 
-  const isPlanificacionOnlyFilters =
+  // Planificación tiene sus propios filtros y no ve lo de administración (balances).
+  const isPlanning =
     user?.roles?.some((r) =>
       ["JEFE_PLANIFICACION", "ANALISTA_PLANIFICACION"].includes(r.name),
     ) ?? false;
+  const canSeeBalance = !isPlanning;
 
   const [activeTab, setActiveTab] = useState("dispatch");
   const [open, setOpen] = useState(false);
@@ -69,6 +77,7 @@ export function WarehouseDispatchReportDialog() {
     string | null
   >(null);
   const [thirdPartyId, setThirdPartyId] = useState<string | null>(null);
+  const [conditionId, setConditionId] = useState<string | null>(null);
 
   const [dispatchType, setDispatchType] = useState<DispatchType | null>(null);
   const [articleCategory, setArticleCategory] =
@@ -95,7 +104,6 @@ export function WarehouseDispatchReportDialog() {
   const { data: departments, isLoading: isLoadingDepartments } =
     useGetDepartments(selectedCompany?.slug, { includeInactive: true });
 
-
   const allDepartments = departments ? flattenDepartments(departments) : [];
 
   const { data: authorizedEmployees, isLoading: isLoadingEmployees } =
@@ -103,6 +111,10 @@ export function WarehouseDispatchReportDialog() {
 
   const { data: thirdParties, isLoading: isLoadingThirdParties } =
     useGetThirdParties();
+
+  const { data: conditions, isLoading: isLoadingConditions } = useGetConditions(
+    selectedCompany?.slug,
+  );
 
   const { data: articleOptions } = useGetDispatchReportArticleOptions(open);
 
@@ -131,6 +143,7 @@ export function WarehouseDispatchReportDialog() {
       setDepartmentId(null);
       setAuthorizedEmployeeId(null);
       setThirdPartyId(null);
+      setConditionId(null);
       setDispatchType(null);
       setArticleCategory(null);
 
@@ -156,6 +169,7 @@ export function WarehouseDispatchReportDialog() {
     department_id: departmentId || undefined,
     authorized_employee_id: authorizedEmployeeId || undefined,
     third_party_id: thirdPartyId || undefined,
+    condition_id: conditionId || undefined,
     type: dispatchType || undefined,
     article_category: articleCategory || undefined,
 
@@ -264,67 +278,95 @@ export function WarehouseDispatchReportDialog() {
         </div>
         <div className="px-6 py-5">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid mb-4 grid-cols-2">
-              <TabsTrigger
-                value="dispatch"
-                className=" flex gap-2 text-xs rounded-lg transition-all duration-200 data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:shadow-blue-500/10 data-[state=active]:ring-1 data-[state=active]:ring-blue-500/ data-[state=active]:text-blue-600"
-              >
+            <ReportTabsList>
+              <ReportTabsTrigger value="dispatch">
                 <FileText className="w-3.5 h-3.5" />
                 Salidas
-              </TabsTrigger>
+              </ReportTabsTrigger>
 
-              <TabsTrigger
-                value="balance"
-                className=" flex gap-2 text-xs rounded-lg transition-all duration-200 data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:shadow-blue-500/10 data-[state=active]:ring-1 data-[state=active]:ring-blue-500/ data-[state=active]:text-blue-600"
-              >
-                <Scale className="w-3.5 h-3.5" />
-                Balance
-              </TabsTrigger>
-            </TabsList>
+              {canSeeBalance && (
+                <ReportTabsTrigger value="balance">
+                  <Scale className="w-3.5 h-3.5" />
+                  Balance
+                </ReportTabsTrigger>
+              )}
+            </ReportTabsList>
 
-            <DispatchReportFilters
-              startDate={startDate}
-              endDate={endDate}
-              setStartDate={setStartDate}
-              setEndDate={setEndDate}
+            {isPlanning ? (
+              <PlanningDispatchReportFilters
+                startDate={startDate}
+                endDate={endDate}
+                setStartDate={setStartDate}
+                setEndDate={setEndDate}
+                isDateRangeInvalid={isDateRangeInvalid}
+                aircraft={aircraft}
+                setAircraft={setAircraft}
+                aircrafts={aircrafts}
+                isLoadingAircrafts={isLoadingAircrafts}
+                workOrder={workOrder}
+                setWorkOrder={setWorkOrder}
+                workOrders={workOrders}
+                isLoadingWorkOrders={isLoadingWorkOrders}
+                dispatchType={dispatchType}
+                setDispatchType={setDispatchType}
+                articleCategory={articleCategory}
+                setArticleCategory={setArticleCategory}
+                conditionId={conditionId}
+                setConditionId={setConditionId}
+                conditions={conditions}
+                isLoadingConditions={isLoadingConditions}
+                articleOptions={articleOptions}
+                articleFilters={articleFilters}
+                setArticleFilters={setArticleFilters}
+              />
+            ) : (
+              <DispatchReportFilters
+                startDate={startDate}
+                endDate={endDate}
+                setStartDate={setStartDate}
+                setEndDate={setEndDate}
 
-              aircraft={aircraft}
-              setAircraft={setAircraft}
-              aircrafts={aircrafts}
-              isLoadingAircrafts={isLoadingAircrafts}
+                aircraft={aircraft}
+                setAircraft={setAircraft}
+                aircrafts={aircrafts}
+                isLoadingAircrafts={isLoadingAircrafts}
 
-              workOrder={workOrder}
-              setWorkOrder={setWorkOrder}
-              workOrders={workOrders}
-              isLoadingWorkOrders={isLoadingWorkOrders}
+                workOrder={workOrder}
+                setWorkOrder={setWorkOrder}
+                workOrders={workOrders}
+                isLoadingWorkOrders={isLoadingWorkOrders}
 
-              departmentId={departmentId}
-              setDepartmentId={setDepartmentId}
-              departments={allDepartments}
-              isLoadingDepartments={isLoadingDepartments}
+                departmentId={departmentId}
+                setDepartmentId={setDepartmentId}
+                departments={allDepartments}
+                isLoadingDepartments={isLoadingDepartments}
 
-              authorizedEmployeeId={authorizedEmployeeId}
-              setAuthorizedEmployeeId={setAuthorizedEmployeeId}
-              authorizedEmployees={authorizedEmployees}
-              isLoadingEmployees={isLoadingEmployees}
+                authorizedEmployeeId={authorizedEmployeeId}
+                setAuthorizedEmployeeId={setAuthorizedEmployeeId}
+                authorizedEmployees={authorizedEmployees}
+                isLoadingEmployees={isLoadingEmployees}
 
-              thirdPartyId={thirdPartyId}
-              setThirdPartyId={setThirdPartyId}
-              thirdParties={thirdParties}
-              isLoadingThirdParties={isLoadingThirdParties}
+                thirdPartyId={thirdPartyId}
+                setThirdPartyId={setThirdPartyId}
+                thirdParties={thirdParties}
+                isLoadingThirdParties={isLoadingThirdParties}
 
-              dispatchType={dispatchType}
-              setDispatchType={setDispatchType}
-              articleCategory={articleCategory}
-              setArticleCategory={setArticleCategory}
+                dispatchType={dispatchType}
+                setDispatchType={setDispatchType}
+                articleCategory={articleCategory}
+                setArticleCategory={setArticleCategory}
 
-              articleOptions={articleOptions}
-              articleFilters={articleFilters}
-              setArticleFilters={setArticleFilters}
+                articleOptions={articleOptions}
+                articleFilters={articleFilters}
+                setArticleFilters={setArticleFilters}
 
-              isDateRangeInvalid={isDateRangeInvalid}
-              isPlanificacionOnlyFilters={isPlanificacionOnlyFilters}
-            />
+                isDateRangeInvalid={isDateRangeInvalid}
+                conditionId={conditionId}
+                setConditionId={setConditionId}
+                conditions={conditions}
+                isLoadingConditions={isLoadingConditions}
+              />
+            )}
 
             <TabsContent value="dispatch" className="mt-8">
               <div className="grid grid-cols-[1fr_auto] gap-4 items-center">
@@ -373,52 +415,54 @@ export function WarehouseDispatchReportDialog() {
               </div>
             </TabsContent>
 
-            <TabsContent value="balance" className="mt-8">
-              <div className="grid grid-cols-[1fr_auto] gap-4 items-center">
-                <Button
-                  size="lg"
-                  className="h-12 rounded-2xl font-medium shadow-xs transition-all hover:shadow-md active:scale-[0.98]"
-                  onClick={() => handleDownload("balance")}
-                  disabled={!canDownload || loadingDownload}
-                >
-                  {loadingDownload ? (
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  ) : (
-                    <Download className="mr-2 h-5 w-5" />
-                  )}
-                  Descargar Balance
-                  <span className="ml-2 text-xs font-normal opacity-80">
-                    PDF
-                  </span>
-                </Button>
+            {canSeeBalance && (
+              <TabsContent value="balance" className="mt-8">
+                <div className="grid grid-cols-[1fr_auto] gap-4 items-center">
+                  <Button
+                    size="lg"
+                    className="h-12 rounded-2xl font-medium shadow-xs transition-all hover:shadow-md active:scale-[0.98]"
+                    onClick={() => handleDownload("balance")}
+                    disabled={!canDownload || loadingDownload}
+                  >
+                    {loadingDownload ? (
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    ) : (
+                      <Download className="mr-2 h-5 w-5" />
+                    )}
+                    Descargar Balance
+                    <span className="ml-2 text-xs font-normal opacity-80">
+                      PDF
+                    </span>
+                  </Button>
 
-                <TooltipProvider>
-                  <Tooltip delayDuration={150}>
-                    <TooltipTrigger asChild>
-                      <Button
-                        size="lg"
-                        variant="outline"
-                        className="h-12 px-4 rounded-2xl border-green-200 bg-green-50/80 text-green-700 shadow-xs transition-all hover:bg-green-100 hover:border-green-300 hover:shadow-md active:scale-[0.98] dark:border-green-900 dark:bg-green-950/30 dark:text-green-400 dark:hover:bg-green-950/50"
-                        onClick={() => handleExcel("balance")}
-                        disabled={!canDownload || loadingDownload}
+                  <TooltipProvider>
+                    <Tooltip delayDuration={150}>
+                      <TooltipTrigger asChild>
+                        <Button
+                          size="lg"
+                          variant="outline"
+                          className="h-12 px-4 rounded-2xl border-green-200 bg-green-50/80 text-green-700 shadow-xs transition-all hover:bg-green-100 hover:border-green-300 hover:shadow-md active:scale-[0.98] dark:border-green-900 dark:bg-green-950/30 dark:text-green-400 dark:hover:bg-green-950/50"
+                          onClick={() => handleExcel("balance")}
+                          disabled={!canDownload || loadingDownload}
+                        >
+                          <RiFileExcel2Fill className="h-6 w-6 shrink-0" />
+                        </Button>
+                      </TooltipTrigger>
+
+                      <TooltipContent
+                        side="top"
+                        align="center"
+                        sideOffset={10}
+                        avoidCollisions={false}
+                        className="z-9999 whitespace-nowrap rounded-xl px-3 py-1.5"
                       >
-                        <RiFileExcel2Fill className="h-6 w-6 shrink-0" />
-                      </Button>
-                    </TooltipTrigger>
-
-                    <TooltipContent
-                      side="top"
-                      align="center"
-                      sideOffset={10}
-                      avoidCollisions={false}
-                      className="z-9999 whitespace-nowrap rounded-xl px-3 py-1.5"
-                    >
-                      Descargar en Excel
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            </TabsContent>
+                        Descargar en Excel
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+              </TabsContent>
+            )}
           </Tabs>
         </div>
       </DialogContent>

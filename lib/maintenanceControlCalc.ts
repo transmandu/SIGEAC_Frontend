@@ -96,7 +96,8 @@ export const fmtNumber = (value: number) => {
   const trimmedDecimals = decPart === "00" ? "" : decPart.replace(/0+$/, "");
   return trimmedDecimals ? `${intPart},${trimmedDecimals}` : intPart;
 };
-const fmtDate = (date: Date) => format(date, "dd/MM/yyyy", { locale: es });
+export const fmtDate = (date: Date) =>
+  format(date, "dd/MM/yyyy", { locale: es });
 
 /**
  * Traduce UN intervalo ya calculado por el backend (MaintenanceControlCalculator)

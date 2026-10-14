@@ -393,7 +393,6 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
     }
   };
 
-
   const allDepartments = departments ? flattenDepartments(departments) : [];
 
   return (

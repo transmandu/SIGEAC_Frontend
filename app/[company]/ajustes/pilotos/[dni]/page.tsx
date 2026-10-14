@@ -1,107 +1,70 @@
 "use client";
-import { ContentLayout } from "@/components/layout/ContentLayout";
-import { useGetPilotByDni } from "@/hooks/ajustes/piloto/useGetPilotById";
-import {
-  Loader2,
-  User,
-  Phone,
-  Mail,
-  CreditCard,
-  Fingerprint,
-  AlertCircle,
-} from "lucide-react";
+
 import { useParams } from "next/navigation";
+import { Loader2 } from "lucide-react";
+import { ContentLayout } from "@/components/layout/ContentLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { useGetPilotByDni } from "@/hooks/ajustes/piloto/useGetPilotById";
+import { useCompanyStore } from "@/stores/CompanyStore";
+
+const Item = ({ label, value }: { label: string; value?: React.ReactNode }) => (
+  <div className="flex flex-col gap-1 rounded-md border bg-muted/20 px-3 py-2">
+    <span className="text-[11px] uppercase tracking-wide text-muted-foreground">
+      {label}
+    </span>
+    <span className="text-sm font-medium text-foreground">{value || "—"}</span>
+  </div>
+);
 
 const ShowPilot = () => {
   const { dni } = useParams<{ dni: string }>();
+  const { selectedCompany } = useCompanyStore();
+  const {
+    data: pilot,
+    isLoading,
+    isError,
+  } = useGetPilotByDni(selectedCompany?.slug, dni);
 
-  const { data: pilot, isLoading, isError } = useGetPilotByDni(dni);
+  const employee = pilot?.employee;
+  const fullName = employee
+    ? `${employee.first_name} ${employee.last_name}`
+    : undefined;
 
   return (
     <ContentLayout title="Detalles del Piloto">
-      <PageHeader className="mb-6" />
+      <div className="flex flex-col gap-6">
+        <PageHeader currentLabel={fullName} />
 
-      <div className="flex flex-col justify-center items-center border border-gray-300 rounded-lg p-6 gap-y-4 shadow-md dark:border-gray-700">
-        <div className="flex items-center gap-3">
-          <User className="w-8 h-8 text-blue-600" />
-          <h1 className="text-2xl font-semibold text-center text-gray-800 dark:text-white">
-            Información del Piloto
+        <div className="flex flex-col gap-2 border-b pb-4">
+          <h1 className="text-3xl font-semibold tracking-tight">
+            {fullName ?? "Información del Piloto"}
           </h1>
+          <p className="text-sm text-muted-foreground">
+            Datos personales y de contacto del piloto.
+          </p>
         </div>
 
         {isLoading && (
-          <div className="flex w-full h-64 justify-center items-center">
-            <Loader2 className="size-24 animate-spin text-blue-500" />
+          <div className="flex h-48 items-center justify-center">
+            <Loader2 className="size-10 animate-spin text-muted-foreground" />
           </div>
         )}
 
         {pilot && (
-          <div className="w-full max-w-2xl space-y-4">
-            {/* Sección de Datos Personales */}
-            <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
-              <h2 className="text-lg font-semibold mb-3 text-gray-800 dark:text-white flex items-center gap-2">
-                <User className="w-5 h-5 text-blue-600" />
-                Datos Personales
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div>
-                  <p className="font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                    <User className="w-4 h-4" /> Nombre:{" "}
-                    {pilot.employee.first_name}
-                  </p>
-                </div>
-                <div>
-                  <p className="font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                    <User className="w-4 h-4" /> Apellido:{" "}
-                    {pilot.employee.last_name}
-                  </p>
-                </div>
-                <div>
-                  <p className="font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                    <Fingerprint className="w-4 h-4" /> Número de Cédula:{" "}
-                    {pilot.employee_dni}
-                  </p>
-                </div>
-                <div>
-                  <p className="font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                    <CreditCard className="w-4 h-4" /> Número de Licencia:{" "}
-                    {pilot.license_number}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Sección de Datos de Contacto */}
-            <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
-              <h2 className="text-lg font-semibold mb-3 text-gray-800 dark:text-white flex items-center gap-2">
-                <Mail className="w-5 h-5 text-green-600" />
-                Datos de Contacto
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div>
-                  <p className="font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                    <Phone className="w-4 h-4" /> Teléfono:
-                  </p>
-                  {/* <p>{pilot.phone}</p> */}
-                </div>
-                <div>
-                  <p className="font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                    <Mail className="w-4 h-4" /> Correo Electrónico:
-                  </p>
-                  {/* <p>{pilot.email}</p> */}
-                </div>
-              </div>
-            </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <Item label="Nombre" value={employee?.first_name} />
+            <Item label="Apellido" value={employee?.last_name} />
+            <Item label="Cédula" value={pilot.employee_dni} />
+            <Item label="Nº de licencia" value={pilot.license_number} />
+            <Item label="Teléfono" value={employee?.phone} />
+            <Item label="Correo electrónico" value={employee?.email} />
           </div>
         )}
 
         {isError && (
-          <div className="bg-red-100 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 flex items-center gap-3">
-            <AlertCircle className="w-5 h-5 text-red-500" />
-            <p className="text-red-700 dark:text-red-300">
-              Ha ocurrido un error al cargar los datos del piloto. Por favor,
-              intente de nuevo más tarde.
+          <div className="rounded-lg border border-red-500/20 bg-red-500/5 px-4 py-3">
+            <p className="text-sm text-red-500">
+              Ha ocurrido un error al cargar los datos del piloto.
             </p>
           </div>
         )}

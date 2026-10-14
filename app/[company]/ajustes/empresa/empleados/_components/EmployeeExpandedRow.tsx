@@ -8,13 +8,7 @@ interface Props {
   employee: Employee;
 }
 
-const Item = ({
-  label,
-  value,
-}: {
-  label: string;
-  value?: React.ReactNode;
-}) => {
+const Item = ({ label, value }: { label: string; value?: React.ReactNode }) => {
   return (
     <div className="flex flex-col gap-1 rounded-md border bg-muted/20 px-3 py-2">
       <span className="text-[11px] uppercase tracking-wide text-muted-foreground">
@@ -29,28 +23,13 @@ const Item = ({
 
 export function EmployeeExpandedRow({ employee }: Props) {
   return (
-    <div className="px-6 py-4">
-      {/* HEADER CONTEXTUAL */}
-      <div className="mb-4 flex items-center justify-between">
-        <div className="text-sm font-semibold">
-          Información del empleado
-        </div>
-
-        <div className="text-xs text-muted-foreground">
-          Datos adicionales
-        </div>
-      </div>
-
-      {/* GRID MEJORADO */}
+    <div>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-
         <Item label="Tipo de sangre" value={employee.blood_type} />
 
         <Item
           label="Fecha nacimiento"
-          value={
-            formatCalendarDate(employee.birth_date, "date", "—")
-          }
+          value={formatCalendarDate(employee.birth_date, "date", "—")}
         />
 
         <Item label="Email" value={employee.email} />

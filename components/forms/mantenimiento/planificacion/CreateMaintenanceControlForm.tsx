@@ -1049,7 +1049,7 @@ const emptyFormValues: FormValues = {
   has_reference_manual: false,
   reference_manual: "",
   maintenance_catalog_manual_id: undefined,
-  remaining_percentage: 10,
+  remaining_percentage: 15,
   certificates: [],
   services: [],
   selected_part_ids: [],

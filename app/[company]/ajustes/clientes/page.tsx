@@ -1,54 +1,78 @@
 "use client";
 
-import { ContentLayout } from "@/components/layout/ContentLayout";
-import { DataTable } from "./data-table";
-import { columns } from "./columns";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import { SettingsListPage } from "@/components/layout/SettingsListPage";
+import { SettingsDataTable } from "@/components/tables/SettingsDataTable";
+import { CreateClientDialog } from "@/components/dialogs/aerolinea/administracion/CreateClientDialog";
 import { useGetClients } from "@/hooks/general/clientes/useGetClients";
-import LoadingPage from "@/components/misc/LoadingPage";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { useEffect } from "react";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { clientesSteps } from "@/components/tour/steps/ajustes/clientes/clientes";
-import { PageHeader } from "@/components/layout/PageHeader";
+import { columns } from "./columns";
 
-// CAMBIAR ID POR CDI, RIF O LO QUE SEA
 const ClientsPage = () => {
   const { selectedCompany } = useCompanyStore();
-  const { data, isLoading, isError } = useGetClients(selectedCompany?.slug);
+  const {
+    data: clients,
+    isPending,
+    isError,
+    refetch,
+  } = useGetClients(selectedCompany?.slug);
   const { registerTour, unregisterTour } = useTourContext();
+  const [search, setSearch] = useState("");
+  const deferredSearch = useDeferredValue(search);
 
   useEffect(() => {
-    if (data && data.length > 0) {
+    if (clients && clients.length > 0) {
       registerTour("clientes", "Clientes", clientesSteps);
     }
     return () => unregisterTour("clientes");
-  }, [registerTour, unregisterTour, data]);
+  }, [registerTour, unregisterTour, clients]);
 
-  if (isLoading) {
-    return <LoadingPage />;
-  }
+  const filtered = useMemo(() => {
+    if (!clients) return [];
+    const q = deferredSearch.trim().toLowerCase();
+    if (!q) return clients;
+
+    return clients.filter(
+      (c) =>
+        c.name?.toLowerCase().includes(q) ||
+        c.dni?.toLowerCase().includes(q) ||
+        c.phone?.toLowerCase().includes(q) ||
+        c.address?.toLowerCase().includes(q),
+    );
+  }, [clients, deferredSearch]);
 
   return (
-    <ContentLayout title="Clientes">
-      <PageHeader className="mb-6" />
-
-      {" "}
-      <h1
-        className="text-5xl font-bold text-center mt-2"
-        data-tour="clientes-title"
-      >
-        Control de Clientes
-      </h1>
-      <p className="text-sm text-muted-foreground text-center italic mt-2">
-        Aquí puede llevar el control de los clientes registrados.
-      </p>
-      {data && <DataTable columns={columns} data={data} />}
-      {isError && (
-        <p className="text-muted-foreground text-sm italic text-center">
-          Ha ocurrido un error al cargar los clientes...
-        </p>
-      )}
-    </ContentLayout>
+    <SettingsListPage
+      title="Clientes"
+      heading="Control de Clientes"
+      description="Administra los clientes registrados en el sistema."
+      tourPrefix="clientes"
+      search={{
+        value: search,
+        onChange: setSearch,
+        placeholder: "Buscar clientes...",
+      }}
+      count={{
+        value: clients ? filtered.length : undefined,
+        singular: "cliente",
+        plural: "clientes",
+      }}
+    >
+      <SettingsDataTable
+        columns={columns}
+        data={filtered}
+        error={isError}
+        errorMessage="No se pudieron cargar los clientes"
+        onRetry={() => refetch()}
+        filtered={!!deferredSearch.trim()}
+        loading={isPending}
+        emptyMessage="No se han encontrado clientes."
+        actions={<CreateClientDialog />}
+        tourPrefix="clientes"
+      />
+    </SettingsListPage>
   );
 };
 

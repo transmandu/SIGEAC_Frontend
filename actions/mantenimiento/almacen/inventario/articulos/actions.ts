@@ -479,14 +479,18 @@ export const useUploadArticleDocuments = () => {
         { document_type_ids: documents.map((doc) => doc.typeId) },
       );
 
-      const requirements: { id: number; article_document_type_id: number }[] =
-        data?.Requirements ?? [];
+      // SQL Server devuelve las llaves foráneas como texto ("4"), así que
+      // se comparan como número para no perder el requerimiento.
+      const requirements: {
+        id: number;
+        article_document_type_id: number | string;
+      }[] = data?.Requirements ?? [];
 
       for (const doc of documents) {
         if (!doc.file && !doc.isPhysical) continue;
 
         const requirement = requirements.find(
-          (req) => req.article_document_type_id === doc.typeId,
+          (req) => Number(req.article_document_type_id) === doc.typeId,
         );
 
         if (!requirement) {

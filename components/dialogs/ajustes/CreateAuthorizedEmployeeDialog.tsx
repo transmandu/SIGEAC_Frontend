@@ -1,5 +1,7 @@
 "use client";
 
+import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
+
 import { useState } from "react";
 import {
   Dialog,
@@ -9,7 +11,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { AuthorizedEmployeeForm } from "@/components/forms/ajustes/CreateAuthorizedEmployeed";
 
@@ -19,10 +20,10 @@ export function CreateAuthorizedEmployeeDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="flex items-center justify-center h-8 border-dashed">
-          <Plus className="mr-2 h-3 w-3" />
-          Crear
-        </Button>
+        <ActionTriggerButton>
+          <Plus className="h-4 w-4 mr-2" />
+          Crear autorización
+        </ActionTriggerButton>
       </DialogTrigger>
 
       <DialogContent>

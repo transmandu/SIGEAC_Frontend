@@ -252,7 +252,9 @@ const ArticleDocumentsSelector = ({
                                 <span className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-400">
                                     <CheckCircle2 className="size-3.5" />
                                     Ya consignado
-                                    {existingDocument.is_physical && " (físico)"}
+                                    {!existingDocument.file_path
+                                        ? " (recibido en físico, sin archivo digital)"
+                                        : existingDocument.is_physical && " (físico y digital)"}
                                 </span>
                                 <div className="flex items-center gap-1">
                                     {existingDocument.file_path && (
