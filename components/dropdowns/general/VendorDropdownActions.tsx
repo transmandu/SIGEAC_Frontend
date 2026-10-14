@@ -29,7 +29,7 @@ import { MoreHorizontal, Edit3, Trash2, Loader2 } from "lucide-react";
 import VendorDropdownDialogs from "@/components/dialogs/general/VendorDropdownDialogs";
 
 const iconBase =
-  "size-[18px] transition-all duration-200 ease-out group-hover:scale-110";
+  "size-4.5 transition-all duration-200 ease-out group-hover:scale-110";
 
 const itemBase = `
   group

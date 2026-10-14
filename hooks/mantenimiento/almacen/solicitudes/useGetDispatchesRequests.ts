@@ -3,7 +3,7 @@ import type { DispatchArticle } from "@/app/[company]/almacen/solicitudes/salida
 import { useDebounce } from "@/hooks/helpers/useDebounce";
 import axios from "@/lib/axios";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { MaintenanceAircraft } from "@/types";
+import { AeronauticalAircraft } from "@/types";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
@@ -34,7 +34,7 @@ interface IDispatch {
   rejection_reason?: string | null;
   category?: string;
   work_order?: string;
-  aircraft?: MaintenanceAircraft;
+  aircraft?: AeronauticalAircraft;
   articles: DispatchArticle[];
 }
 

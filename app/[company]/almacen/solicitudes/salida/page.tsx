@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useGetDispatchesByLocation } from "@/hooks/mantenimiento/almacen/solicitudes/useGetDispatchesRequests";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { Department, MaintenanceAircraft } from "@/types";
+import { Department, AeronauticalAircraft } from "@/types";
 import { DataTable } from "./data-table";
 import { PageHeader } from "@/components/layout/PageHeader";
 
@@ -58,7 +58,7 @@ export type DispatchGroupRow = {
   status: string;
   requested_by: string;
   created_by: string;
-  aircraft?: MaintenanceAircraft;
+  aircraft?: AeronauticalAircraft;
   justification: string | null;
   department?: Department;
   submission_date: string | null;
