@@ -35,7 +35,7 @@ import {
 } from "@/components/ui/dialog";
 
 import { CreateCarrierForm } from "@/components/forms/operaciones/cargo/CreateCarrierForm";
-import { CreateClientForm } from "@/components/forms/general/CreateClientForm";
+import { CreateClientForm } from "@/components/forms/aerolinea/clientes/CreateClientForm";
 import { ComboboxField } from "@/components/ui/ComboboxField";
 import { ItemsTable } from "./ItemsTable";
 import { useCargoShipmentForm } from "@/hooks/operaciones/cargo/useCargoShipmentForm";

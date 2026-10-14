@@ -1,4 +1,5 @@
 import axiosInstance from "@/lib/axios";
+import { getApiErrorMessage } from "@/lib/api-error";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -25,9 +26,12 @@ export const useCreateJobTitle = () => {
         description: "¡El cargo ha sido creado correctamente!",
       });
     },
-    onError: () => {
+    onError: (error) => {
       toast.error("Oops!", {
-        description: "¡Hubo un error al crear el cargo!",
+        description: getApiErrorMessage(
+          error,
+          "¡Hubo un error al crear el cargo!",
+        ),
       });
     },
   });
@@ -39,18 +43,24 @@ export const useUpdateJobTitle = () => {
   const queryClient = useQueryClient();
 
   const updateMutation = useMutation({
-    // El backend expone el update sin prefijo de empresa, a diferencia del resto.
-    mutationFn: async ({ id, data }: UpdateJobTitleFormSchema) =>
-      await axiosInstance.put(`/job-titles/${id}`, data),
+    mutationFn: async ({ company, id, data }: UpdateJobTitleFormSchema) =>
+      await axiosInstance.put(`/${company}/job-titles/${id}`, data),
     onSuccess: (_, { company }) => {
       queryClient.invalidateQueries({ queryKey: ["job_titles", company] });
+      queryClient.invalidateQueries({ queryKey: ["employees", company] });
+      queryClient.invalidateQueries({
+        queryKey: ["employees-inactive", company],
+      });
       toast.success("¡Actualizado!", {
         description: "¡El cargo ha sido actualizado correctamente!",
       });
     },
-    onError: () => {
+    onError: (error) => {
       toast.error("Oops!", {
-        description: "¡Hubo un error al actualizar el cargo!",
+        description: getApiErrorMessage(
+          error,
+          "¡Hubo un error al actualizar el cargo!",
+        ),
       });
     },
   });
@@ -70,9 +80,11 @@ export const useDeleteJobTitle = () => {
         description: "¡El cargo ha sido eliminado correctamente!",
       });
     },
-    onError: () => {
+    onError: (error: any) => {
       toast.error("Oops!", {
-        description: "¡Hubo un error al eliminar el cargo!",
+        description:
+          error?.response?.data?.message ??
+          "¡Hubo un error al eliminar el cargo! Puede que tenga empleados asignados.",
       });
     },
   });

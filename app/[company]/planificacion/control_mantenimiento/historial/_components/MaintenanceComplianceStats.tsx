@@ -136,7 +136,7 @@ function useComplianceStats(compliances: MaintenanceCompliance[]) {
     const datesByItem: Record<string, Date[]> = {};
 
     for (const c of compliances) {
-      const date = parseISO(c.compliance_date);
+      const date = parseISO(c.applied_date);
       const monthKey = format(date, "yyyy-MM");
       byMonth[monthKey] = (byMonth[monthKey] ?? 0) + 1;
 
@@ -145,7 +145,7 @@ function useComplianceStats(compliances: MaintenanceCompliance[]) {
         "—";
       byAircraft[aircraftLabel] = (byAircraft[aircraftLabel] ?? 0) + 1;
 
-      const itemName = c.maintenance_control_item?.name ?? "—";
+      const itemName = c.maintenance_control_item?.description ?? "—";
       byItem[itemName] = (byItem[itemName] ?? 0) + 1;
 
       const itemKey = String(c.maintenance_control_item_id);

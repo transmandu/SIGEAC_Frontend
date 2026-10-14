@@ -1,6 +1,7 @@
 import type {
   CatalogCategory,
   CatalogCountingMethod,
+  CatalogMissingField,
   CatalogRequirementType,
   CatalogStatus,
   Msg3TaskType,
@@ -16,6 +17,12 @@ export const CATEGORY_LABELS: Record<CatalogCategory, string> = {
 export const STATUS_LABELS: Record<CatalogStatus, string> = {
   ACTIVE: "Vigente",
   SUPERSEDED: "Superado",
+};
+
+export const MISSING_FIELD_LABELS: Record<CatalogMissingField, string> = {
+  manual: "manual",
+  code: "código",
+  tasks: "tareas",
 };
 
 export const COUNTING_METHOD_LABELS: Record<CatalogCountingMethod, string> = {

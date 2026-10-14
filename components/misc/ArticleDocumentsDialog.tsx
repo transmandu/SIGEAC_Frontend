@@ -15,6 +15,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
+import { DocumentSupportBadge } from "@/components/misc/DocumentSupportBadge";
 import { useGetArticleDocumentRequirements } from "@/hooks/mantenimiento/almacen/articulos/useGetArticleDocumentRequirements";
 import axiosInstance from "@/lib/axios";
 import { cn } from "@/lib/utils";
@@ -129,11 +130,7 @@ const ArticleDocumentsDialog = ({
                       <div className="flex flex-wrap items-center gap-1">
                         {req.documents.map((doc) => (
                           <span key={doc.id} className="flex items-center gap-1">
-                            {doc.is_physical && (
-                              <span className="select-none inline-flex items-center rounded-full border border-amber-300/60 bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-700 dark:border-amber-600/40 dark:bg-amber-950/30 dark:text-amber-400">
-                                Físico
-                              </span>
-                            )}
+                            <DocumentSupportBadge doc={doc} />
                             {doc.file_path && (
                               <>
                                 <Tooltip>

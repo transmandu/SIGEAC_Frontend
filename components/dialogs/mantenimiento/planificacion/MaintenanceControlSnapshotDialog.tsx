@@ -47,12 +47,12 @@ import { toast } from "sonner";
  * la que viene la reconstrucción histórica, no una lista plana.
  */
 function groupSnapshotItems(items: MaintenanceControlSnapshotItem[]) {
-  const certificates = items.filter((i) => i.category === "CERTIFICATE");
+  const certificates = items.filter((i) => i.item_type === "CERTIFICATE");
   // Un servicio es "de aeronave" cuando no cuelga de ninguna parte: se mira
-  // maintenance_control_part_id, no part_label — una parte sin part_name ni
+  // aircraft_part_id, no part_label — una parte sin part_name ni
   // part_number deja part_label vacío y sus servicios caían acá.
   const aircraftServices = items.filter(
-    (i) => i.category === "SERVICE" && !i.maintenance_control_part_id,
+    (i) => i.item_type === "SERVICE" && !i.aircraft_part_id,
   );
 
   const groups: {
@@ -80,14 +80,12 @@ function groupSnapshotItems(items: MaintenanceControlSnapshotItem[]) {
   const partIds = Array.from(
     new Set(
       items
-        .filter((i) => i.maintenance_control_part_id)
-        .map((i) => i.maintenance_control_part_id as number),
+        .filter((i) => i.aircraft_part_id)
+        .map((i) => i.aircraft_part_id as number),
     ),
   );
   partIds.forEach((partId) => {
-    const partItems = items.filter(
-      (i) => i.maintenance_control_part_id === partId,
-    );
+    const partItems = items.filter((i) => i.aircraft_part_id === partId);
     groups.push({
       key: `part-${partId}`,
       title: partItems[0]?.part_label || "Parte",
@@ -316,7 +314,7 @@ export function MaintenanceControlSnapshotDialog() {
                       return (
                         <TableRow key={item.id} className={meta.row}>
                           <TableCell className="font-medium">
-                            {item.name}
+                            {item.description}
                           </TableCell>
                           <TableCell>
                             {computed.frequency}

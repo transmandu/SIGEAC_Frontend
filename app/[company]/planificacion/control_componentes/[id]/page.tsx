@@ -1,5 +1,6 @@
 "use client";
 
+import { ControlItemFlagBadges } from "@/components/planificacion/controles/ControlItemFlagBadges";
 import { useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
@@ -36,8 +37,10 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { RegisterComponentComplianceDialog } from "@/components/dialogs/mantenimiento/planificacion/RegisterComponentComplianceDialog";
+import { CloseComplianceDialog } from "@/components/dialogs/mantenimiento/planificacion/CloseComplianceDialog";
+import { StartComplianceDialog } from "@/components/dialogs/mantenimiento/planificacion/StartComplianceDialog";
 import { AddComponentControlItemDialog } from "@/components/dialogs/mantenimiento/planificacion/AddComponentControlItemDialog";
+import { ImportComponentComplianceHistoryDialog } from "@/components/dialogs/mantenimiento/planificacion/ImportComponentComplianceHistoryDialog";
 import { useGetComponentControl } from "@/hooks/mantenimiento/planificacion/useGetComponentControl";
 import { useGetAircraftDailyAverage } from "@/hooks/mantenimiento/planificacion/useGetAircraftDailyAverage";
 import { useCompanyStore } from "@/stores/CompanyStore";
@@ -67,7 +70,6 @@ import { WorkOrderCell } from "@/components/planificacion/controles/WorkOrderCel
 import { AddToQueueButton } from "@/components/planificacion/cola/AddToQueueButton";
 import {
   AlertTriangle,
-  Clock,
   Cog,
   Info,
   Plane,
@@ -134,6 +136,7 @@ function StatusLegend({
     WARNING: "Remanente dentro del doble del margen configurado.",
     CRITICAL: "Remanente dentro del margen configurado.",
     OVERDUE: "Ya superó la fecha, horas o ciclos límite.",
+    NONE: "No tiene un cumplimiento vigente: inicie uno para que corra su reloj.",
   };
 
   return (
@@ -214,7 +217,6 @@ function PrimaryItemAction({
   aircraftId,
   parentHours,
   parentCycles,
-  company,
 }: {
   item: ComponentControlItem;
   aircraftId: number | string;
@@ -224,9 +226,9 @@ function PrimaryItemAction({
 }) {
   if (!item.id) return null;
 
-  const pendingWorkOrder = item.pending_work_order;
-  const isBlockedByWorkOrder =
-    !!pendingWorkOrder && pendingWorkOrder.status !== "CLOSED";
+  const current = item.current_compliance;
+  const itemName = `${item.description} — P/N ${item.part_number} · S/N ${item.serial}`;
+  const units = item.intervals.map((interval) => interval.counting_method);
 
   return (
     <>
@@ -236,31 +238,31 @@ function PrimaryItemAction({
         subject={`componente «${item.description} · S/N ${item.serial}»`}
       />
 
-      {isBlockedByWorkOrder ? (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Link
-              href={`/${company}/planificacion/ordenes_trabajo/${pendingWorkOrder!.order_number}`}
-              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground hover:underline"
-            >
-              <Clock className="size-3.5 shrink-0" />
-              <span className="truncate">{pendingWorkOrder!.order_number}</span>
-            </Link>
-          </TooltipTrigger>
-          <TooltipContent>
-            Bloqueado hasta que se cierre la Orden de Trabajo{" "}
-            {pendingWorkOrder!.order_number}.
-          </TooltipContent>
-        </Tooltip>
-      ) : (
-        <RegisterComponentComplianceDialog
-          itemId={item.id}
-          itemName={`${item.description} — P/N ${item.part_number} · S/N ${item.serial}`}
+      {current ? (
+        <CloseComplianceDialog
+          kind="component"
+          complianceId={current.id}
+          subjectName={itemName}
           aircraftId={aircraftId}
-          defaultAction={item.action}
+          units={units}
+          appliedDate={current.applied_date}
           defaultHours={parentHours}
           defaultCycles={parentCycles}
-          pendingWorkOrder={pendingWorkOrder ?? null}
+          currentProviderId={current.maintenance_provider_id}
+          currentWorkOrder={current.work_order ?? null}
+          defaultAction={item.action}
+        />
+      ) : (
+        <StartComplianceDialog
+          kind="component"
+          subjectId={item.id}
+          subjectName={itemName}
+          aircraftId={aircraftId}
+          units={units}
+          defaultHours={parentHours}
+          defaultCycles={parentCycles}
+          defaultProviderId={item.maintenance_provider_id}
+          defaultAction={item.action}
         />
       )}
     </>
@@ -292,10 +294,10 @@ const COL = {
   applied: "w-[125px]",
   since: "w-[110px]",
   next: "w-[120px]",
-  remaining: "w-[150px]",
+  remaining: "w-37.5",
   estimate: "w-[115px]",
   provider: "w-[140px]",
-  workOrder: "w-[150px]",
+  workOrder: "w-37.5",
   actions: "w-[80px]",
 };
 
@@ -373,7 +375,7 @@ function ComponentsTable({
           {items.map((item) => {
             const computed = computeMaintenanceItem(item);
             const meta = STATUS_META[computed.status];
-            const pending = item.pending_work_order;
+            const pending = item.current_compliance?.work_order;
             return (
               <TableRow
                 key={item.id}
@@ -389,17 +391,7 @@ function ComponentsTable({
                     <Badge variant="outline" className="text-[10px]">
                       {COMPONENT_ACTION_LABELS[item.action]}
                     </Badge>
-                    {item.is_hazardous && (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <span className="inline-flex items-center rounded border border-amber-500/40 bg-amber-500/10 px-1 text-[10px] text-amber-700 dark:text-amber-400">
-                            <AlertTriangle className="mr-0.5 size-3" />
-                            MP
-                          </span>
-                        </TooltipTrigger>
-                        <TooltipContent>Mercancía peligrosa</TooltipContent>
-                      </Tooltip>
-                    )}
+                    <ControlItemFlagBadges flags={item.flags} />
                   </span>
                 </TableCell>
                 <TableCell className={cn(COL.limit, "truncate")}>
@@ -512,10 +504,12 @@ function ComponentsTable({
                     company={company}
                     aircraftId={aircraftId}
                     subject={`componente «${item.description} · S/N ${item.serial}»`}
-                    taskDescription={`${COMPONENT_ACTION_LABELS[item.action]} — ${item.description} (P/N ${item.part_number}, S/N ${item.serial})`}
-                    previous={item.latest_compliance?.work_order}
+                    taskDescription={`${COMPONENT_ACTION_LABELS[item.action]} — ${item.declared_description?.trim() || item.description} (P/N ${item.part_number}, S/N ${item.serial})`}
+                    previous={item.last_completed_compliance?.work_order}
                     current={pending}
-                    readOnly={controlRetired || !item.id}
+                    readOnly={
+                      controlRetired || !item.id || !item.current_compliance
+                    }
                     onWorkOrderCreated={(workOrder) =>
                       linkComponentPendingWorkOrder.mutateAsync({
                         company: selectedCompanySlug!,
@@ -562,17 +556,14 @@ const ComponentControlDetailPage = () => {
   const [onlyHazardous, setOnlyHazardous] = useState(false);
 
   const activeItems = useMemo(
-    () =>
-      (control?.items ?? []).filter(
-        (i) => i.status === "ACTIVE" && !i.retired_at,
-      ),
+    () => (control?.items ?? []).filter((i) => !i.retired_at),
     [control],
   );
 
   const filtered = useMemo(() => {
     const needle = search.trim().toLowerCase();
     return activeItems.filter((item) => {
-      if (onlyHazardous && !item.is_hazardous) return false;
+      if (onlyHazardous && !item.flags?.includes("HAZARDOUS")) return false;
       if (status !== "all" && computeMaintenanceItem(item).status !== status)
         return false;
       if (needle) {
@@ -620,11 +611,8 @@ const ComponentControlDetailPage = () => {
   // numerados por tipo ("Motor 1 - serial"), igual que el Control de Mantenimiento.
   const parentsById = new Map<string, MaintenanceAircraftPart>();
   activeItems.forEach((item) => {
-    if (item.parent_aircraft_part && item.parent_aircraft_part_id) {
-      parentsById.set(
-        String(item.parent_aircraft_part_id),
-        item.parent_aircraft_part,
-      );
+    if (item.aircraft_part && item.aircraft_part_id) {
+      parentsById.set(String(item.aircraft_part_id), item.aircraft_part);
     }
   });
   const counters: Record<string, number> = {};
@@ -633,14 +621,16 @@ const ComponentControlDetailPage = () => {
     .map(([partId, part]) => {
       const type = (part.type ?? "").toUpperCase();
       counters[type] = (counters[type] ?? 0) + 1;
+      const typeLabel = `${partTypeLabel(part.type)} ${counters[type]}`;
       return {
         id: partId,
         part,
-        label: `${partTypeLabel(part.type)} ${counters[type]}${part.serial ? ` - ${part.serial}` : ""}`,
+        typeLabel,
+        label: `${typeLabel}${part.serial ? ` - ${part.serial}` : ""}`,
       };
     });
 
-  const fuselageItems = filtered.filter((i) => !i.parent_aircraft_part_id);
+  const fuselageItems = filtered.filter((i) => !i.aircraft_part_id);
   const aircraftHours = Number(control.aircraft?.flight_hours ?? 0);
   const aircraftCycles = Number(control.aircraft?.flight_cycles ?? 0);
 
@@ -671,14 +661,20 @@ const ComponentControlDetailPage = () => {
               filename={`historial_control_componentes_${control.aircraft?.acronym ?? control.id}`}
             />
             {!controlRetired && (
-              <ActionTriggerButton asChild>
-                <Link
-                  href={`/${company}/planificacion/control_componentes/editar/${control.id}`}
-                >
-                  <SquarePen className="mr-2 size-4" />
-                  Editar
-                </Link>
-              </ActionTriggerButton>
+              <>
+                <ImportComponentComplianceHistoryDialog
+                  controlId={control.id}
+                  items={activeItems}
+                />
+                <ActionTriggerButton asChild>
+                  <Link
+                    href={`/${company}/planificacion/control_componentes/editar/${control.id}`}
+                  >
+                    <SquarePen className="mr-2 size-4" />
+                    Editar
+                  </Link>
+                </ActionTriggerButton>
+              </>
             )}
           </div>
         </div>
@@ -832,17 +828,28 @@ const ComponentControlDetailPage = () => {
           />
         </FormSection>
 
-        {parents.map(({ id: partId, part, label }) => (
+        {parents.map(({ id: partId, part, label, typeLabel }) => (
           <FormSection
             key={partId}
             icon={Cog}
-            title={label}
+            title={
+              <>
+                {typeLabel}
+                {part.serial && (
+                  <>
+                    {" "}
+                    <span className="text-muted-foreground">S/N:</span>{" "}
+                    {part.serial}
+                  </>
+                )}
+              </>
+            }
             hint={`Componentes medidos contra el TSN/CSN de ${label}.`}
             action={
               !controlRetired && (
                 <AddComponentControlItemDialog
                   controlId={control.id}
-                  parentAircraftPartId={partId}
+                  aircraftPartId={partId}
                   sectionLabel={label}
                   currentHours={Number(part.time_since_new ?? 0)}
                   currentCycles={Number(part.cycles_since_new ?? 0)}
@@ -852,7 +859,7 @@ const ComponentControlDetailPage = () => {
           >
             <ComponentsTable
               items={filtered.filter(
-                (i) => String(i.parent_aircraft_part_id) === partId,
+                (i) => String(i.aircraft_part_id) === partId,
               )}
               parentHours={Number(part.time_since_new ?? 0)}
               parentCycles={Number(part.cycles_since_new ?? 0)}

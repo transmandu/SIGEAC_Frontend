@@ -1,5 +1,6 @@
 "use client";
 
+import { ControlItemFlagBadges } from "@/components/planificacion/controles/ControlItemFlagBadges";
 import { Fragment, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
@@ -31,8 +32,10 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { RegisterAvionicsComplianceDialog } from "@/components/dialogs/mantenimiento/planificacion/RegisterAvionicsComplianceDialog";
+import { CloseComplianceDialog } from "@/components/dialogs/mantenimiento/planificacion/CloseComplianceDialog";
+import { StartComplianceDialog } from "@/components/dialogs/mantenimiento/planificacion/StartComplianceDialog";
 import { AddAvionicsControlItemDialog } from "@/components/dialogs/mantenimiento/planificacion/AddAvionicsControlItemDialog";
+import { ImportAvionicsComplianceHistoryDialog } from "@/components/dialogs/mantenimiento/planificacion/ImportAvionicsComplianceHistoryDialog";
 import { useGetAvionicsControl } from "@/hooks/mantenimiento/planificacion/useGetAvionicsControl";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import {
@@ -58,14 +61,7 @@ import { RetireRecordButton } from "@/components/planificacion/controles/RetireR
 import { useLinkAvionicsPendingWorkOrder } from "@/actions/mantenimiento/planificacion/control_avionica/actions";
 import { WorkOrderCell } from "@/components/planificacion/controles/WorkOrderCell";
 import { AddToQueueButton } from "@/components/planificacion/cola/AddToQueueButton";
-import {
-  AlertTriangle,
-  Clock,
-  Info,
-  Radio,
-  Search,
-  SquarePen,
-} from "lucide-react";
+import { AlertTriangle, Info, Radio, Search, SquarePen } from "lucide-react";
 
 function InfoItem({
   label,
@@ -105,7 +101,6 @@ function TruncatedText({ children }: { children: string }) {
 function PrimaryTaskAction({
   item,
   task,
-  company,
   aircraftId,
   aircraftHours,
   aircraftCycles,
@@ -119,9 +114,8 @@ function PrimaryTaskAction({
 }) {
   if (!task.id) return null;
 
-  const pendingWorkOrder = task.pending_work_order;
-  const isBlockedByWorkOrder =
-    !!pendingWorkOrder && pendingWorkOrder.status !== "CLOSED";
+  const current = task.current_compliance;
+  const units = task.intervals.map((interval) => interval.counting_method);
 
   const taskName = `${AVIONICS_ACTION_LABELS[task.action]} — ${item.description}${item.position ? ` ${item.position}` : ""} · S/N ${item.serial}`;
 
@@ -133,32 +127,33 @@ function PrimaryTaskAction({
         subject={`tarea «${taskName}»`}
       />
 
-      {isBlockedByWorkOrder ? (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Link
-              href={`/${company}/planificacion/ordenes_trabajo/${pendingWorkOrder!.order_number}`}
-              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground hover:underline"
-            >
-              <Clock className="size-3.5 shrink-0" />
-              <span className="truncate">{pendingWorkOrder!.order_number}</span>
-            </Link>
-          </TooltipTrigger>
-          <TooltipContent>
-            Bloqueado hasta que se cierre la Orden de Trabajo{" "}
-            {pendingWorkOrder!.order_number}.
-          </TooltipContent>
-        </Tooltip>
-      ) : (
-        <RegisterAvionicsComplianceDialog
-          taskId={task.id}
-          taskName={taskName}
-          aircraftId={aircraftId}
-          defaultHours={aircraftHours}
-          defaultCycles={aircraftCycles}
-          pendingWorkOrder={pendingWorkOrder ?? null}
-        />
-      )}
+      {/* Una tarea por condición no tiene plazo ni cumplimientos programados. */}
+      {!task.is_on_condition &&
+        (current ? (
+          <CloseComplianceDialog
+            kind="avionics"
+            complianceId={current.id}
+            subjectName={taskName}
+            aircraftId={aircraftId}
+            units={units}
+            appliedDate={current.applied_date}
+            defaultHours={aircraftHours}
+            defaultCycles={aircraftCycles}
+            currentProviderId={current.maintenance_provider_id}
+            currentWorkOrder={current.work_order ?? null}
+          />
+        ) : (
+          <StartComplianceDialog
+            kind="avionics"
+            subjectId={task.id}
+            subjectName={taskName}
+            aircraftId={aircraftId}
+            units={units}
+            defaultHours={aircraftHours}
+            defaultCycles={aircraftCycles}
+            defaultProviderId={task.maintenance_provider_id}
+          />
+        ))}
     </>
   );
 }
@@ -184,13 +179,13 @@ function TaskActionCell({
 }
 
 const COL = {
-  task: "w-[150px]",
+  task: "w-37.5",
   limit: "w-[110px]",
   applied: "w-[125px]",
   next: "w-[115px]",
-  remaining: "w-[150px]",
+  remaining: "w-37.5",
   provider: "w-[140px]",
-  workOrder: "w-[150px]",
+  workOrder: "w-37.5",
   actions: "w-[80px]",
 };
 
@@ -213,7 +208,7 @@ const AvionicsControlDetailPage = () => {
   const activeItems = useMemo(
     () =>
       (control?.items ?? [])
-        .filter((i) => i.status === "ACTIVE" && !i.retired_at)
+        .filter((i) => !i.retired_at)
         .map((i) => ({
           ...i,
           tasks: (i.tasks ?? []).filter((task) => !task.retired_at),
@@ -225,7 +220,7 @@ const AvionicsControlDetailPage = () => {
   const filtered = useMemo(() => {
     const needle = search.trim().toLowerCase();
     return activeItems.filter((item) => {
-      if (onlyHazardous && !item.is_hazardous) return false;
+      if (onlyHazardous && !item.flags?.includes("HAZARDOUS")) return false;
       if (status === "ON_CONDITION" && item.status_computed) return false;
       if (
         status !== "all" &&
@@ -302,14 +297,20 @@ const AvionicsControlDetailPage = () => {
               filename={`historial_control_avionica_${control.aircraft?.acronym ?? control.id}`}
             />
             {!controlRetired && (
-              <ActionTriggerButton asChild>
-                <Link
-                  href={`/${company}/planificacion/control_avionica/editar/${control.id}`}
-                >
-                  <SquarePen className="mr-2 size-4" />
-                  Editar
-                </Link>
-              </ActionTriggerButton>
+              <>
+                <ImportAvionicsComplianceHistoryDialog
+                  controlId={control.id}
+                  items={activeItems}
+                />
+                <ActionTriggerButton asChild>
+                  <Link
+                    href={`/${company}/planificacion/control_avionica/editar/${control.id}`}
+                  >
+                    <SquarePen className="mr-2 size-4" />
+                    Editar
+                  </Link>
+                </ActionTriggerButton>
+              </>
             )}
           </div>
         </div>
@@ -464,7 +465,7 @@ const AvionicsControlDetailPage = () => {
                         const meta = computed
                           ? STATUS_META[computed.status]
                           : null;
-                        const pending = task.pending_work_order;
+                        const pending = task.current_compliance?.work_order;
                         return (
                           <TableRow
                             key={task.id ?? t}
@@ -488,19 +489,7 @@ const AvionicsControlDetailPage = () => {
                                   </span>
                                 )}
                                 <span className="mt-1 flex flex-wrap items-center gap-1">
-                                  {item.is_hazardous && (
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <span className="inline-flex items-center rounded border border-amber-500/40 bg-amber-500/10 px-1 text-[10px] text-amber-700 dark:text-amber-400">
-                                          <AlertTriangle className="mr-0.5 size-3" />
-                                          MP
-                                        </span>
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        Mercancía peligrosa
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  )}
+                                  <ControlItemFlagBadges flags={item.flags} />
                                   {!controlRetired && item.id && (
                                     <RetireRecordButton
                                       recordType="avionics_control_item"
@@ -632,10 +621,16 @@ const AvionicsControlDetailPage = () => {
                                 company={company}
                                 aircraftId={control.aircraft.id}
                                 subject={`tarea «${AVIONICS_ACTION_LABELS[task.action]} — ${item.description} · S/N ${item.serial}»`}
-                                taskDescription={`${AVIONICS_ACTION_LABELS[task.action]} — ${item.description}${item.position ? ` ${item.position}` : ""} (P/N ${item.part_number}, S/N ${item.serial})`}
-                                previous={task.latest_compliance?.work_order}
+                                taskDescription={`${AVIONICS_ACTION_LABELS[task.action]} — ${item.declared_description?.trim() || item.description}${item.position ? ` ${item.position}` : ""} (P/N ${item.part_number}, S/N ${item.serial})`}
+                                previous={
+                                  task.last_completed_compliance?.work_order
+                                }
                                 current={pending}
-                                readOnly={controlRetired || !task.id}
+                                readOnly={
+                                  controlRetired ||
+                                  !task.id ||
+                                  !task.current_compliance
+                                }
                                 onWorkOrderCreated={(workOrder) =>
                                   linkAvionicsPendingWorkOrder.mutateAsync({
                                     company: selectedCompanySlug!,

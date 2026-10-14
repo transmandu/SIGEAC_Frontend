@@ -1,30 +1,96 @@
 "use client";
 
-import ClientDropdownActions from "@/components/dropdowns/general/ClientDropdownActions";
+import ConditionDropdownActions from "@/components/dropdowns/ajustes/ConditionDropdownActions";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
-import { Condition } from "@/types";
+import { TagBadge } from "@/components/misc/TagBadge";
 import { type AppColumnDef } from "@/lib/table";
+import { Condition } from "@/types";
 
 export const columns: AppColumnDef<Condition>[] = [
   {
     accessorKey: "name",
+    size: 260,
+
     header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Nombre" />
+      <div className="flex justify-center w-full">
+        <DataTableColumnHeader filter column={column} title="Nombre" />
+      </div>
     ),
+
     meta: { title: "Nombre" },
+
     cell: ({ row }) => (
-      <div className="flex justify-center font-bold">{row.original.name}</div>
-    ),
-  },
-  {
-    accessorKey: "description",
-    header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Descripción" />
-    ),
-    meta: { title: "Descripción" },
-    cell: ({ row }) => (
-      <div className="flex justify-center font-bold">{row.original.description}</div>
+      <div className="flex justify-center w-full">
+        <span className="text-sm font-semibold text-slate-700 dark:text-slate-200 text-center">
+          {row.original.name}
+        </span>
+      </div>
     ),
   },
 
+  {
+    accessorKey: "description",
+    size: 360,
+
+    header: ({ column }) => (
+      <div className="flex justify-center w-full">
+        <DataTableColumnHeader filter column={column} title="Descripción" />
+      </div>
+    ),
+
+    meta: { title: "Descripción" },
+
+    cell: ({ row }) => (
+      <div className="flex justify-center w-full">
+        <span className="text-sm text-muted-foreground text-center">
+          {row.original.description || "—"}
+        </span>
+      </div>
+    ),
+  },
+
+  {
+    accessorKey: "excluded_from_cost",
+    size: 180,
+
+    header: ({ column }) => (
+      <div className="flex justify-center w-full">
+        <DataTableColumnHeader column={column} title="En reportes de costo" />
+      </div>
+    ),
+
+    meta: { title: "En reportes de costo" },
+
+    cell: ({ row }) => (
+      <div className="flex justify-center w-full">
+        {row.original.excluded_from_cost ? (
+          <TagBadge tone="green">No suma al costo</TagBadge>
+        ) : (
+          <span className="text-sm text-muted-foreground">Suma al costo</span>
+        )}
+      </div>
+    ),
+  },
+
+  {
+    id: "actions",
+    size: 100,
+
+    header: ({ column }) => (
+      <div className="flex justify-center w-full">
+        <DataTableColumnHeader column={column} title="Acciones" />
+      </div>
+    ),
+
+    meta: { title: "Acciones" },
+
+    cell: ({ row }) => (
+      <div
+        className="flex justify-center w-full"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <ConditionDropdownActions condition={row.original} />
+      </div>
+    ),
+  },
 ];

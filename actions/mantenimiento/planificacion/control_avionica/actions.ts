@@ -2,7 +2,11 @@ import type { ConfirmedReason } from "@/components/dialogs/mantenimiento/planifi
 import type { EditReasonValue } from "@/components/forms/mantenimiento/planificacion/EditReasonFields";
 import { invalidatePlanificationAudit } from "@/hooks/mantenimiento/planificacion/useGetPlanificationAuditStats";
 import axiosInstance from "@/lib/axios";
-import { AvionicsAction, MaintenanceCountingMethod } from "@/types";
+import {
+  AvionicsAction,
+  ControlItemFlag,
+  MaintenanceCountingMethod,
+} from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -24,7 +28,7 @@ export interface AvionicsTaskData {
   action: AvionicsAction;
   is_on_condition: boolean;
   maintenance_provider_id?: string;
-  first_applied_date?: string;
+  applied_date?: string;
   remaining_percentage?: number | null;
   intervals: AvionicsIntervalData[];
 }
@@ -33,8 +37,9 @@ export interface AvionicsItemData {
   id?: number;
   aircraft_part_id?: number | null;
   maintenance_catalog_service_id?: number | null;
-  is_hazardous: boolean;
+  flags: ControlItemFlag[];
   description: string;
+  declared_description?: string;
   part_number: string;
   serial: string;
   position?: string;
@@ -158,7 +163,8 @@ export const useAddAvionicsControlItem = () => {
     },
     onError: (error: any) => {
       toast.error("Oops!", {
-        description: firstBackendError(error) || "No se pudo agregar el equipo...",
+        description:
+          firstBackendError(error) || "No se pudo agregar el equipo...",
       });
       console.log(error);
     },
@@ -210,7 +216,7 @@ export const useLinkAvionicsPendingWorkOrder = () => {
       workOrderId: string | number;
     }) => {
       await axiosInstance.patch(
-        `/${company}/avionics-control-tasks/${taskId}/pending-work-order`,
+        `/${company}/avionics-control-tasks/${taskId}/work-order`,
         {
           work_order_id: workOrderId,
         },
@@ -240,55 +246,64 @@ export const useLinkAvionicsPendingWorkOrder = () => {
   return { linkAvionicsPendingWorkOrder: linkMutation };
 };
 
-export interface CreateAvionicsComplianceData {
-  avionics_control_task_id: number;
-  maintenance_provider_id: string;
-  work_order_id?: string;
-  compliance_date: string;
-  hours_reading: number;
-  cycles_reading: number;
-  notes?: string;
+export interface ImportAvionicsComplianceHistorySkippedRow {
+  row: number;
+  reason: string;
 }
 
-export const useCreateAvionicsCompliance = () => {
+export interface ImportAvionicsComplianceHistoryResult {
+  imported: number;
+  skipped: ImportAvionicsComplianceHistorySkippedRow[];
+}
+
+// Sincrónico (no se encola): el archivo es de un solo control y a lo sumo
+// unas pocas decenas de filas, así que se procesa en la misma petición y la
+// respuesta ya trae el resumen final (importados/omitidos), no un estado a consultar.
+export const useImportAvionicsComplianceHistory = () => {
   const queryClient = useQueryClient();
 
-  const createMutation = useMutation({
+  const importMutation = useMutation({
     mutationFn: async ({
-      data,
+      file,
+      controlId,
       company,
     }: {
-      data: CreateAvionicsComplianceData;
+      file: File;
+      controlId: string | number;
       company: string;
-    }) => {
-      await axiosInstance.post(`/${company}/avionics-compliances`, data);
+    }): Promise<ImportAvionicsComplianceHistoryResult> => {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const { data } = await axiosInstance.post(
+        `/${company}/avionics-controls/${controlId}/import-compliance-history`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } },
+      );
+      return data;
     },
-    onSuccess: () => {
-      invalidatePlanificationAudit(queryClient);
-      queryClient.invalidateQueries({
-        queryKey: ["avionics-control"],
-        exact: false,
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["avionics-controls"],
-        exact: false,
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["avionics-compliances"],
-        exact: false,
-      });
-      toast.success("¡Registrado!", {
-        description: "El cumplimiento de la tarea quedó registrado.",
-      });
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ["avionics-compliances"] });
+      if (result.imported > 0) {
+        toast.success("¡Histórico importado!", {
+          description: `${result.imported} cumplimiento(s) cargado(s)${result.skipped.length ? `, ${result.skipped.length} fila(s) omitida(s).` : "."}`,
+        });
+      } else {
+        toast.error("Nada para importar", {
+          description:
+            "Ninguna fila coincidió con una tarea programada de este control.",
+        });
+      }
     },
-    onError: (error: any) => {
+    onError: (error) => {
       toast.error("Oops!", {
-        description:
-          firstBackendError(error) || "No se pudo registrar el cumplimiento...",
+        description: "No se pudo importar el archivo...",
       });
       console.log(error);
     },
   });
 
-  return { createAvionicsCompliance: createMutation };
+  return {
+    importAvionicsComplianceHistory: importMutation,
+  };
 };

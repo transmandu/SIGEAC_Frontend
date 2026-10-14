@@ -1,123 +1,113 @@
 "use client";
 
 import { type AppColumnDef } from "@/lib/table";
-
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
-
-import { Checkbox } from "@/components/ui/checkbox";
-import { Pilot } from "@/types";
 import PilotDropdownActions from "@/components/misc/PilotDropdownActions";
+import { Pilot } from "@/types";
 
 export const columns: AppColumnDef<Pilot>[] = [
   {
-    id: "select",
-    header: ({ table }) => (
-      
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Seleccionar todos"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Seleccionar fila"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: "dni",
+    accessorKey: "employee_dni",
+    size: 160,
     header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Cedula" />
+      <div className="flex justify-center w-full">
+        <DataTableColumnHeader filter column={column} title="Cédula" />
+      </div>
     ),
-    meta: { title: "Cedula" },
+    meta: { title: "Cédula" },
     cell: ({ row }) => (
-      <div className="flex justify-center">
-        <span className="font-bold text-center">{row.original.employee_dni}</span>
+      <div className="flex justify-center w-full">
+        <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
+          {row.original.employee_dni}
+        </span>
       </div>
     ),
   },
   {
-    accessorKey: "first_name",
+    id: "name",
+    size: 280,
+    accessorFn: (pilot) =>
+      `${pilot.employee?.first_name ?? ""} ${pilot.employee?.last_name ?? ""}`.trim(),
     header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Nombre" />
+      <div className="flex justify-center w-full">
+        <DataTableColumnHeader filter column={column} title="Nombre" />
+      </div>
     ),
     meta: { title: "Nombre" },
     cell: ({ row }) => (
-      <div className="flex justify-center">
-        <span className="font-bold text-center">{row.original.employee.first_name}</span>
-      </div>
-    ),
-  },
-  {
-    accessorKey: "last_name",
-    header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Apellido" />
-    ),
-    meta: { title: "Apellido" },
-    cell: ({ row }) => (
-      <div className="flex justify-center">
-        <span className="font-bold text-center">
-          {row.original.employee.last_name}
+      <div className="flex justify-center w-full">
+        <span className="text-sm font-semibold text-slate-700 dark:text-slate-200 text-center">
+          {row.original.employee?.first_name} {row.original.employee?.last_name}
         </span>
       </div>
     ),
   },
   {
     accessorKey: "license_number",
+    size: 200,
     header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Nro. de Licencia" />
-    ),
-    meta: { title: "Nro. Licencia" },
-    cell: ({ row }) => (
-      <div className="flex justify-center">
-        <span className="text-muted-foreground italic">
-          {row.original.license_number}
-        </span>
+      <div className="flex justify-center w-full">
+        <DataTableColumnHeader column={column} title="Nro. de Licencia" />
       </div>
     ),
-  },
-
-  {
-    accessorKey: "phone",
-    header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Telefono" />
-    ),
-    meta: { title: "Telefono" },
+    meta: { title: "Nro. de Licencia" },
     cell: ({ row }) => (
-      <div className="flex justify-center">
-        <span className="text-muted-foreground italic">
-          {/* {row.original.phone} */}
+      <div className="flex justify-center w-full">
+        <span className="text-sm text-slate-600 dark:text-slate-300">
+          {row.original.license_number || "—"}
         </span>
       </div>
     ),
   },
   {
-    accessorKey: "email",
+    id: "phone",
+    size: 160,
+    accessorFn: (pilot) => pilot.employee?.phone ?? "",
     header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Correo Electronico" />
+      <div className="flex justify-center w-full">
+        <DataTableColumnHeader column={column} title="Teléfono" />
+      </div>
     ),
-    meta: { title: "Email" },
+    meta: { title: "Teléfono" },
     cell: ({ row }) => (
-      <div className="flex justify-center">
-        <span className="text-muted-foreground italic">
-          {/* {row.original.email} */}
+      <div className="flex justify-center w-full">
+        <span className="text-sm text-slate-600 dark:text-slate-300">
+          {row.original.employee?.phone || "—"}
+        </span>
+      </div>
+    ),
+  },
+  {
+    id: "email",
+    size: 240,
+    accessorFn: (pilot) => pilot.employee?.email ?? "",
+    header: ({ column }) => (
+      <div className="flex justify-center w-full">
+        <DataTableColumnHeader column={column} title="Correo" />
+      </div>
+    ),
+    meta: { title: "Correo" },
+    cell: ({ row }) => (
+      <div className="flex justify-center w-full">
+        <span className="text-sm text-slate-600 dark:text-slate-300">
+          {row.original.employee?.email || "—"}
         </span>
       </div>
     ),
   },
   {
     id: "actions",
-    cell: ({ row }) => {
-      const pilot = row.original;
-      return <PilotDropdownActions pilot={pilot} />;
-    },
+    size: 100,
+    header: ({ column }) => (
+      <div className="flex justify-center w-full">
+        <DataTableColumnHeader column={column} title="Acciones" />
+      </div>
+    ),
+    meta: { title: "Acciones" },
+    cell: ({ row }) => (
+      <div className="flex justify-center w-full">
+        <PilotDropdownActions pilot={row.original} />
+      </div>
+    ),
   },
 ];

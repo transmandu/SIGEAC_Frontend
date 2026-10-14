@@ -15,10 +15,9 @@ import {
 } from "react-hook-form";
 import { zodResolver } from "@/lib/zod-resolver";
 import { z } from "zod";
-import { format, parseISO } from "date-fns";
+import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import {
-  AlertTriangle,
   Check,
   ClipboardList,
   Cog,
@@ -63,7 +62,14 @@ import {
   useUpdateComponentControl,
 } from "@/actions/mantenimiento/planificacion/control_componentes/actions";
 import { CreateMaintenanceProviderDialog } from "@/components/dialogs/mantenimiento/planificacion/CreateMaintenanceProviderDialog";
-import { ComponentAction, ComponentControl } from "@/types";
+import { ComponentAction, ComponentControl, ControlItemFlag } from "@/types";
+import { CONTROL_ITEM_FLAGS } from "@/lib/controlItemFlags";
+import {
+  appliedDateOf,
+  appliedReadingOf,
+  consumedAtStartOf,
+} from "@/lib/complianceFormMapping";
+import { ControlItemFlagsField } from "./ControlItemFlagsField";
 import {
   COMPONENT_ACTION_LABELS,
   COMPONENT_LIMIT_KIND_LABELS,
@@ -85,6 +91,9 @@ import {
   RemainingPercentageField,
   useParentOptions,
   useSuggestedControlTitle,
+  dirtyAt,
+  notifyInvalidForm,
+  withoutUnchangedApplication,
 } from "./_shared";
 
 const ALL_COUNTING_METHODS = ["HOURS", "CYCLES", "DAYS"] as const;
@@ -132,15 +141,19 @@ const intervalSchema = z.object({
 
 const itemSchema = z.object({
   id: z.number().optional(),
-  is_hazardous: z.boolean().default(false),
+  flags: z.array(z.enum(CONTROL_ITEM_FLAGS)).default([]),
   description: z.string().min(1, "Requerido"),
+  // Redacción para la OT y los formatos INAC; vacía = se usa `description`.
+  declared_description: z.string().optional(),
   part_number: z.string().min(1, "Requerido"),
   serial: z.string().min(1, "Requerido"),
   position: z.string().optional(),
   action: actionEnum,
   reference_document: z.string().optional(),
   maintenance_provider_id: z.string().min(1, "Seleccione quién lo realizó"),
-  first_applied_date: z.date({ error: "Seleccione una fecha" }),
+  // Opcional solo para un componente existente sin cumplimiento vigente (se
+  // deja como está); en una fila nueva lo exige el superRefine de abajo.
+  applied_date: z.date().optional(),
   remaining_percentage: optionalPercentage,
   intervals: z.array(intervalSchema).min(1, "Agregue al menos un intervalo"),
 });
@@ -188,9 +201,21 @@ const formSchema = z
       basePath: string,
     ) => {
       items.forEach((item, index) => {
+        const existing = item.id !== undefined;
+        if (existing && !item.applied_date) return;
+
+        if (!item.applied_date) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Seleccione una fecha",
+            path: [basePath, index, "applied_date"],
+          });
+        }
+
         const seen = new Set<string>();
         item.intervals.forEach((interval, i) => {
           if (
+            !existing &&
             interval.counting_method !== "DAYS" &&
             interval.initial_value === undefined
           ) {
@@ -239,15 +264,16 @@ const emptyInterval = (usedMethods: string[] = []) => ({
 // heredando en silencio): así el usuario ve con qué umbral va a alertar y
 // puede cambiarlo sin adivinar de dónde salía el número.
 const emptyItem = (controlPercentage?: number | string) => ({
-  is_hazardous: false,
+  flags: [] as ControlItemFlag[],
   description: "",
+  declared_description: "",
   part_number: "",
   serial: "",
   position: "",
   action: "OVERHAUL",
   reference_document: "",
   maintenance_provider_id: "",
-  first_applied_date: undefined as unknown as Date,
+  applied_date: undefined as unknown as Date,
   remaining_percentage: controlPercentage,
   intervals: [emptyInterval()],
 });
@@ -639,6 +665,14 @@ function ComponentCard({
         />
       </div>
 
+      <TextField
+        control={control}
+        name={`${namePrefix}.declared_description`}
+        label="Descripción en formatos"
+        placeholder="Cómo se redacta en la OT y los formatos INAC. Si se deja vacía se usa la descripción."
+        optional
+      />
+
       {/* El trabajo que arranca el conteo: qué se hizo, quién y cuándo. */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1.5fr)_minmax(0,1.8fr)_minmax(0,130px)_minmax(0,100px)]">
         <SelectField
@@ -669,7 +703,7 @@ function ComponentCard({
           </FieldLabel>
           <CompactDateField
             control={control}
-            name={`${namePrefix}.first_applied_date`}
+            name={`${namePrefix}.applied_date`}
           />
         </FormItem>
         <FormItem className="min-w-0 space-y-1">
@@ -684,26 +718,7 @@ function ComponentCard({
         </FormItem>
       </div>
 
-      <FormField
-        control={control}
-        name={`${namePrefix}.is_hazardous`}
-        render={({ field }) => (
-          <FormItem className="space-y-0">
-            <label className="flex w-fit cursor-pointer select-none items-center gap-2 text-sm">
-              <FormControl>
-                <Checkbox
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-              <span className="flex items-center gap-1">
-                <AlertTriangle className="size-3.5 text-amber-500" />
-                Mercancía peligrosa
-              </span>
-            </label>
-          </FormItem>
-        )}
-      />
+      <ControlItemFlagsField control={control} name={`${namePrefix}.flags`} />
 
       <div className="space-y-2 border-t border-slate-400/25 pt-3 dark:border-slate-600/25">
         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -845,10 +860,14 @@ function ComponentPartsSection({ control }: { control: Control<any> }) {
                 <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
                   {part.typeLabel}
                 </span>
-                <span className="font-medium">{part.name}</span>
+                <span className="font-medium">
+                  <span className="text-muted-foreground">Modelo:</span>{" "}
+                  {part.name}
+                </span>
                 {part.serial && (
-                  <span className="text-[11px] text-muted-foreground">
-                    S/N {part.serial}
+                  <span className="text-[11px]">
+                    <span className="text-muted-foreground">S/N:</span>{" "}
+                    {part.serial}
                   </span>
                 )}
               </span>
@@ -905,8 +924,9 @@ function ComponentPartsSection({ control }: { control: Control<any> }) {
 function mapToFormItem(item: NonNullable<ComponentControl["items"]>[number]) {
   return {
     id: item.id,
-    is_hazardous: item.is_hazardous,
+    flags: item.flags ?? [],
     description: item.description,
+    declared_description: item.declared_description ?? "",
     part_number: item.part_number,
     serial: item.serial,
     position: item.position ?? "",
@@ -915,8 +935,7 @@ function mapToFormItem(item: NonNullable<ComponentControl["items"]>[number]) {
     maintenance_provider_id: item.maintenance_provider_id
       ? String(item.maintenance_provider_id)
       : "",
-    // parseISO, no `new Date`: "yyyy-MM-dd" con new Date cae al día anterior en UTC-4.
-    first_applied_date: parseISO(item.first_applied_date),
+    applied_date: appliedDateOf(item.current_compliance),
     remaining_percentage:
       item.remaining_percentage !== null &&
       item.remaining_percentage !== undefined
@@ -927,14 +946,13 @@ function mapToFormItem(item: NonNullable<ComponentControl["items"]>[number]) {
       counting_method: interval.counting_method,
       limit_kind: interval.limit_kind,
       limit_value: Number(interval.limit_value),
-      initial_value:
-        interval.initial_value != null
-          ? Number(interval.initial_value)
-          : undefined,
+      initial_value: appliedReadingOf(
+        item.current_compliance,
+        interval.counting_method,
+      ),
       consumed_at_event:
-        interval.consumed_at_event != null
-          ? Number(interval.consumed_at_event)
-          : 0,
+        consumedAtStartOf(item.current_compliance, interval.counting_method) ??
+        0,
     })),
   };
 }
@@ -955,12 +973,10 @@ const emptyFormValues: FormValues = {
 function buildDefaultValues(initialData?: ComponentControl): FormValues {
   if (!initialData) return emptyFormValues;
 
-  // Los removidos se conservan en el backend por historial; el formulario
-  // edita solo lo instalado.
-  const active = (initialData.items ?? []).filter(
-    (i) => i.status === "ACTIVE" && !i.retired_at,
-  );
-  const partItems = active.filter((i) => i.parent_aircraft_part_id);
+  // Los dados de baja se conservan en el backend por historial; el formulario
+  // edita solo lo vigente.
+  const active = (initialData.items ?? []).filter((i) => !i.retired_at);
+  const partItems = active.filter((i) => i.aircraft_part_id);
 
   return {
     aircraft_id: String(initialData.aircraft_id),
@@ -972,13 +988,13 @@ function buildDefaultValues(initialData?: ComponentControl): FormValues {
       ? Number(initialData.maintenance_catalog_manual_id)
       : undefined,
     remaining_percentage: Number(initialData.remaining_percentage),
-    items: active.filter((i) => !i.parent_aircraft_part_id).map(mapToFormItem),
+    items: active.filter((i) => !i.aircraft_part_id).map(mapToFormItem),
     selected_part_ids: Array.from(
-      new Set(partItems.map((i) => String(i.parent_aircraft_part_id))),
+      new Set(partItems.map((i) => String(i.aircraft_part_id))),
     ),
     part_items: partItems.map((item) => ({
       ...mapToFormItem(item),
-      aircraft_part_id: String(item.parent_aircraft_part_id),
+      aircraft_part_id: String(item.aircraft_part_id),
     })),
   };
 }
@@ -1013,7 +1029,7 @@ export default function CreateComponentControlForm({
     defaultValues: buildDefaultValues(initialData),
   });
   // Leído en render: react-hook-form solo rastrea lo que se suscribe aquí.
-  const { isDirty } = form.formState;
+  const { isDirty, dirtyFields } = form.formState;
 
   // Mismo cast que CreateMaintenanceControlForm: desde react-hook-form 7.87
   // el genérico no es asignable a Control<any> con arrays anidados.
@@ -1033,11 +1049,15 @@ export default function CreateComponentControlForm({
     // El backend recibe una sola lista; el conjunto al que pertenece cada
     // componente sale de en qué sección se cargó.
     const allItems = [
-      ...values.items.map((item) => ({
+      ...values.items.map((item, i) => ({
         ...item,
         aircraft_part_id: null as string | null,
+        dirty: dirtyAt(dirtyFields.items, i),
       })),
-      ...values.part_items,
+      ...values.part_items.map((item, i) => ({
+        ...item,
+        dirty: dirtyAt(dirtyFields.part_items, i),
+      })),
     ];
 
     const payload = {
@@ -1048,29 +1068,38 @@ export default function CreateComponentControlForm({
       reference_manual: values.reference_manual,
       maintenance_catalog_manual_id: values.maintenance_catalog_manual_id,
       remaining_percentage: values.remaining_percentage,
-      items: allItems.map((item) => ({
-        id: item.id,
-        parent_aircraft_part_id: item.aircraft_part_id
-          ? Number(item.aircraft_part_id)
-          : null,
-        maintenance_provider_id: item.maintenance_provider_id,
-        is_hazardous: item.is_hazardous ?? false,
-        description: item.description,
-        part_number: item.part_number,
-        serial: item.serial,
-        position: item.position || undefined,
-        action: item.action as ComponentAction,
-        reference_document: item.reference_document || undefined,
-        first_applied_date: format(item.first_applied_date, "yyyy-MM-dd"),
-        remaining_percentage: item.remaining_percentage ?? null,
-        intervals: item.intervals.map((interval) => ({
-          counting_method: interval.counting_method,
-          limit_kind: interval.limit_kind as "HARD_TIME" | "LIFE_LIMIT",
-          limit_value: interval.limit_value,
-          initial_value: interval.initial_value,
-          consumed_at_event: interval.consumed_at_event ?? 0,
-        })),
-      })),
+      items: allItems.map(({ dirty, ...item }) =>
+        withoutUnchangedApplication(
+          {
+            id: item.id,
+            aircraft_part_id: item.aircraft_part_id
+              ? Number(item.aircraft_part_id)
+              : null,
+            maintenance_provider_id: item.maintenance_provider_id,
+            flags: item.flags ?? [],
+            description: item.description,
+            declared_description:
+              item.declared_description?.trim() || undefined,
+            part_number: item.part_number,
+            serial: item.serial,
+            position: item.position || undefined,
+            action: item.action as ComponentAction,
+            reference_document: item.reference_document || undefined,
+            applied_date: item.applied_date
+              ? format(item.applied_date, "yyyy-MM-dd")
+              : undefined,
+            remaining_percentage: item.remaining_percentage ?? null,
+            intervals: item.intervals.map((interval) => ({
+              counting_method: interval.counting_method,
+              limit_kind: interval.limit_kind as "HARD_TIME" | "LIFE_LIMIT",
+              limit_value: interval.limit_value,
+              initial_value: interval.initial_value,
+              consumed_at_event: interval.consumed_at_event ?? 0,
+            })),
+          },
+          dirty,
+        ),
+      ),
     };
 
     if (isEditing) {
@@ -1105,7 +1134,7 @@ export default function CreateComponentControlForm({
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit(onSubmit)}
+        onSubmit={form.handleSubmit(onSubmit, notifyInvalidForm(form))}
         onKeyDown={(e) => {
           // Enter en un <input> enviaría el formulario entero.
           if (
@@ -1321,7 +1350,7 @@ export default function CreateComponentControlForm({
 
         <Button
           className="h-11 gap-2 self-end rounded-lg bg-linear-to-br from-primary to-primary/85 px-6 text-primary-foreground shadow-sm transition-all duration-200 hover:shadow-md hover:shadow-blue-500/25 disabled:opacity-70"
-          disabled={isPending}
+          disabled={isPending || (isEditing && !isDirty)}
           type="submit"
         >
           {isPending ? (

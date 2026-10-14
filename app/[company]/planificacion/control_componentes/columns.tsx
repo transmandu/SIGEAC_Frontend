@@ -18,8 +18,9 @@ import { Plane, Cog } from "lucide-react";
 function statusCounts(control: ComponentControl) {
   const counts = emptyStatusCounts();
   for (const item of control.items ?? []) {
-    if (item.status !== "ACTIVE") continue;
-    counts[computeMaintenanceItem(item).status] += 1;
+    if (item.retired_at) continue;
+    const { status } = computeMaintenanceItem(item);
+    if (status !== "NONE") counts[status] += 1;
   }
   return counts;
 }

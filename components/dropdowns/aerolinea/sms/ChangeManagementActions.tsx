@@ -47,6 +47,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { DownloadOptionDialog } from "@/components/dialogs/shared/DownloadOptionDialog";
 
 const ChangeManagementActions = ({
   changeManagement,
@@ -60,6 +61,7 @@ const ChangeManagementActions = ({
   const { assignReviewers } = useAssignReviewers();
   const [openDelete, setOpenDelete] = useState<boolean>(false);
   const [openReview, setOpenReview] = useState<boolean>(false);
+  const [openDownloadChoice, setOpenDownloadChoice] = useState<boolean>(false);
   const [reviewedById, setReviewedById] = useState<string>("");
   const [approvedById, setApprovedById] = useState<string>("");
 
@@ -113,6 +115,14 @@ const ChangeManagementActions = ({
     }
   };
 
+  const handleDownload = () => {
+    if (changeManagement.library_document_id) {
+      setOpenDownloadChoice(true);
+      return;
+    }
+    void handleDownloadPdf();
+  };
+
   return (
     <TooltipProvider delayDuration={120}>
       <Dialog open={openDelete} onOpenChange={setOpenDelete}>
@@ -156,7 +166,7 @@ const ChangeManagementActions = ({
             </DropdownMenuItem>
 
             <DropdownMenuItem
-              onClick={handleDownloadPdf}
+              onClick={handleDownload}
               disabled={downloadChangeRequestPdf.isPending}
             >
               <Tooltip>
@@ -355,6 +365,20 @@ const ChangeManagementActions = ({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <DownloadOptionDialog
+        open={openDownloadChoice}
+        onOpenChange={setOpenDownloadChoice}
+        company={selectedCompany?.slug}
+        libraryDocumentId={changeManagement.library_document_id}
+        documentLabel={`solicitud_de_cambio_${changeManagement.request_number ?? changeManagement.id}`}
+        onTemplate={() => void handleDownloadPdf()}
+        templatePending={downloadChangeRequestPdf.isPending}
+        templateTitle="Plantilla (PDF)"
+        templateDescription="Solicitud de cambio generada por el sistema."
+        documentTitle="Documento asociado"
+        documentDescription="Archivo de la biblioteca digital asociado a esta solicitud."
+      />
     </TooltipProvider>
   );
 };

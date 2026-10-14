@@ -17,7 +17,7 @@ import { Plane, Radio } from "lucide-react";
 function statusCounts(control: AvionicsControl) {
   const counts = emptyStatusCounts();
   for (const item of control.items ?? []) {
-    if (item.status !== "ACTIVE" || !item.status_computed) continue;
+    if (item.retired_at || !item.status_computed) continue;
     counts[item.status_computed] += 1;
   }
   return counts;

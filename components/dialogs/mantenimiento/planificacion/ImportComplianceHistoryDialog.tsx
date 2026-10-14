@@ -37,10 +37,14 @@ const FORMAT_COLUMNS = [
   },
   {
     header: "Fecha",
-    hint: "dd/mm/aaaa. Debe ser anterior a la primera aplicación del ítem.",
+    hint: "dd/mm/aaaa. Debe ser anterior al inicio del cumplimiento vigente del ítem.",
   },
   { header: "Horas", hint: "Opcional si el ítem no se cuenta en horas." },
   { header: "Ciclos", hint: "Opcional si el ítem no se cuenta en ciclos." },
+  {
+    header: "N° OT",
+    hint: "Opcional. Si coincide con una Orden de Trabajo existente de esta aeronave, se vincula.",
+  },
   { header: "Realizado Por", hint: "Opcional, texto libre." },
   { header: "Observaciones", hint: "Opcional." },
 ];
@@ -101,7 +105,9 @@ export function ImportComplianceHistoryDialog({
           <DialogDescription>
             Carga cumplimientos de <strong>antes</strong> de usar este sistema,
             solo para tener con qué comparar en las estadísticas. No reemplazan
-            ni afectan el cálculo de Aplicada/Próximo/Remanente vigente.
+            ni afectan el cálculo de Aplicada/Próximo/Remanente vigente. Una
+            fila con el mismo ítem y fecha de un cumplimiento ya cargado se
+            omite sola, así que reimportar el mismo archivo es seguro.
           </DialogDescription>
         </DialogHeader>
 
@@ -137,7 +143,7 @@ export function ImportComplianceHistoryDialog({
                     variant="outline"
                     className="font-normal"
                   >
-                    {item.name}
+                    {item.description}
                   </Badge>
                 ))}
               </div>

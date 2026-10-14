@@ -1,5 +1,12 @@
 "use client";
 
+import { Loader2 } from "lucide-react";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import {
+  useCreateJobTitle,
+  useUpdateJobTitle,
+} from "@/actions/general/cargo/actions";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -10,13 +17,9 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-
 import { zodResolver } from "@/lib/zod-resolver";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
-
-import { useCreateJobTitle } from "@/actions/general/cargo/actions";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { JobTitle } from "@/types";
 
 const jobTitleSchema = z.object({
   name: z.string().min(1, "El nombre es obligatorio"),
@@ -25,33 +28,55 @@ const jobTitleSchema = z.object({
 
 type JobTitleForm = z.infer<typeof jobTitleSchema>;
 
-export function CreateJobTitleForm({ onSuccess }: { onSuccess?: () => void }) {
+interface Props {
+  onSuccess?: () => void;
+  /** Con cargo, el formulario edita en lugar de crear. */
+  jobTitle?: JobTitle;
+}
+
+export function CreateJobTitleForm({ onSuccess, jobTitle }: Props) {
   const form = useForm<JobTitleForm>({
     resolver: zodResolver(jobTitleSchema),
     defaultValues: {
-      name: "",
-      description: "",
+      name: jobTitle?.name ?? "",
+      description: jobTitle?.description ?? "",
     },
   });
 
   const { selectedCompany } = useCompanyStore();
   const { createJobTitle } = useCreateJobTitle();
+  const { updateJobTitle } = useUpdateJobTitle();
+  const mutation = jobTitle ? updateJobTitle : createJobTitle;
 
   const onSubmit = async (data: JobTitleForm) => {
-    const formattedData = {
-      company: selectedCompany!.slug,
-      data: { ...data },
-    };
+    const company = selectedCompany!.slug;
 
-    await createJobTitle.mutateAsync(formattedData);
-
-    onSuccess?.();
-    form.reset();
+    try {
+      if (jobTitle) {
+        await updateJobTitle.mutateAsync({
+          company,
+          id: String(jobTitle.id),
+          data,
+        });
+      } else {
+        await createJobTitle.mutateAsync({ company, data });
+        form.reset();
+      }
+      onSuccess?.();
+    } catch {
+      // El aviso lo muestra la mutación; el formulario queda abierto.
+    }
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form
+        onSubmit={(e) => {
+          e.stopPropagation();
+          form.handleSubmit(onSubmit)(e);
+        }}
+        className="space-y-4"
+      >
         <FormField
           control={form.control}
           name="name"
@@ -80,9 +105,19 @@ export function CreateJobTitleForm({ onSuccess }: { onSuccess?: () => void }) {
           )}
         />
 
-        <div className="flex justify-end pt-2">
-          <Button type="submit">Guardar</Button>
-        </div>
+        <Button
+          className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70"
+          type="submit"
+          disabled={mutation.isPending}
+        >
+          {mutation.isPending ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : jobTitle ? (
+            "Actualizar"
+          ) : (
+            "Crear cargo"
+          )}
+        </Button>
       </form>
     </Form>
   );

@@ -161,8 +161,8 @@ export default function DownloadRequisitionPdfDialog({
               </div>
               <DialogDescription className="text-xs leading-relaxed">
                 {isSelfReceiver
-                  ? 'El documento lo incluye a usted en la sección “Departamento Receptor” y su firma en “Recibe conforme”.'
-                  : 'El documento incluye al receptor seleccionado en la sección “Departamento Receptor” y su firma en “Recibe conforme”.'}
+                  ? "El documento lo incluye a usted en la sección “Departamento Receptor” y su firma en “Recibe conforme”."
+                  : "El documento incluye al receptor seleccionado en la sección “Departamento Receptor” y su firma en “Recibe conforme”."}
               </DialogDescription>
             </div>
           </div>
@@ -171,9 +171,7 @@ export default function DownloadRequisitionPdfDialog({
         {/* ===== Cuerpo ===== */}
         <div className="px-6 py-6 space-y-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium">
-              Departamento receptor
-            </label>
+            <label className="text-sm font-medium">Departamento receptor</label>
 
             {isSelfReceiver ? (
               <>
@@ -205,7 +203,7 @@ export default function DownloadRequisitionPdfDialog({
                           myEmployee.department?.name,
                         ]
                           .filter(Boolean)
-                          .join(' — ')}
+                          .join(" — ")}
                       </p>
                     )}
                   </div>
@@ -227,8 +225,8 @@ export default function DownloadRequisitionPdfDialog({
                     <SelectValue
                       placeholder={
                         isReceiversLoading
-                          ? 'Cargando empleados...'
-                          : 'Seleccionar empleado'
+                          ? "Cargando empleados..."
+                          : "Seleccionar empleado"
                       }
                     />
                   </SelectTrigger>
@@ -244,7 +242,7 @@ export default function DownloadRequisitionPdfDialog({
                             {employee.first_name} {employee.last_name}
                             {employee.job_title?.name
                               ? ` — ${employee.job_title.name}`
-                              : ''}
+                              : ""}
                           </SelectItem>
                         ))}
                       </SelectGroup>
@@ -276,7 +274,7 @@ export default function DownloadRequisitionPdfDialog({
             Cancelar
           </Button>
           <Button
-            className="gap-2 min-w-[150px]"
+            className="gap-2 min-w-37.5"
             onClick={handleDownload}
             disabled={!canDownload || isPending}
           >
@@ -285,10 +283,10 @@ export default function DownloadRequisitionPdfDialog({
             ) : (
               <Download className="size-4" />
             )}
-            {isPending ? 'Generando...' : 'Descargar PDF'}
+            {isPending ? "Generando..." : "Descargar PDF"}
           </Button>
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

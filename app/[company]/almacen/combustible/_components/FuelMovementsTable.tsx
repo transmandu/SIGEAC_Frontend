@@ -41,11 +41,13 @@ export function FuelMovementsTable({
   company,
   movements,
   vehicles = [],
+  canManage = false,
   isSuperUser = false,
 }: {
   company?: string;
   movements: FuelMovement[];
   vehicles?: FuelVehicle[];
+  canManage?: boolean;
   isSuperUser?: boolean;
 }) {
   // El vehiculo anidado en el movimiento puede venir sin brand/model/color
@@ -165,10 +167,12 @@ export function FuelMovementsTable({
                           company={company}
                           movement={movement}
                         />
-                        <AnnulFuelMovementDialog
-                          company={company}
-                          movement={movement}
-                        />
+                        {canManage && (
+                          <AnnulFuelMovementDialog
+                            company={company}
+                            movement={movement}
+                          />
+                        )}
                         {isSuperUser && isAnnulled && (
                           <DeleteFuelMovementDialog
                             company={company}

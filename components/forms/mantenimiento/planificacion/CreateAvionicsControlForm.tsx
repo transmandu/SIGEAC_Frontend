@@ -15,10 +15,9 @@ import {
 } from "react-hook-form";
 import { zodResolver } from "@/lib/zod-resolver";
 import { z } from "zod";
-import { format, parseISO } from "date-fns";
+import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import {
-  AlertTriangle,
   ClipboardList,
   HelpCircle,
   Loader2,
@@ -62,7 +61,14 @@ import {
   useUpdateAvionicsControl,
 } from "@/actions/mantenimiento/planificacion/control_avionica/actions";
 import { CreateMaintenanceProviderDialog } from "@/components/dialogs/mantenimiento/planificacion/CreateMaintenanceProviderDialog";
-import { AvionicsAction, AvionicsControl } from "@/types";
+import { AvionicsAction, AvionicsControl, ControlItemFlag } from "@/types";
+import { CONTROL_ITEM_FLAGS } from "@/lib/controlItemFlags";
+import {
+  appliedDateOf,
+  appliedReadingOf,
+  consumedAtStartOf,
+} from "@/lib/complianceFormMapping";
+import { ControlItemFlagsField } from "./ControlItemFlagsField";
 import { AVIONICS_ACTION_LABELS } from "@/lib/avionicsControlLabels";
 import {
   FormSection,
@@ -79,6 +85,9 @@ import {
   ProviderSelect,
   RemainingPercentageField,
   useSuggestedControlTitle,
+  dirtyAt,
+  notifyInvalidForm,
+  withoutUnchangedApplication,
 } from "./_shared";
 
 const ALL_COUNTING_METHODS = ["HOURS", "CYCLES", "DAYS"] as const;
@@ -122,15 +131,17 @@ const taskSchema = z.object({
   action: actionEnum,
   is_on_condition: z.boolean().default(false),
   maintenance_provider_id: z.string().optional(),
-  first_applied_date: z.date().optional(),
+  applied_date: z.date().optional(),
   remaining_percentage: optionalPercentage,
   intervals: z.array(intervalSchema).default([]),
 });
 
 const itemSchema = z.object({
   id: z.number().optional(),
-  is_hazardous: z.boolean().default(false),
+  flags: z.array(z.enum(CONTROL_ITEM_FLAGS)).default([]),
   description: z.string().min(1, "Requerido"),
+  // Redacción para la OT y los formatos INAC; vacía = se usa `description`.
+  declared_description: z.string().optional(),
   part_number: z.string().min(1, "Requerido"),
   serial: z.string().min(1, "Requerido"),
   position: z.string().optional(),
@@ -165,15 +176,18 @@ const formSchema = z
       item.tasks.forEach((task, t) => {
         if (task.is_on_condition) return;
         const path = ["items", index, "tasks", t];
+        // Una tarea existente sin cumplimiento vigente no trae aplicación: se
+        // deja como está y no se le exige lo que solo pide iniciar uno.
+        const unchanged = task.id !== undefined && !task.applied_date;
 
-        if (!task.first_applied_date) {
+        if (!unchanged && !task.applied_date) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: "Indique la fecha del último evento",
-            path: [...path, "first_applied_date"],
+            path: [...path, "applied_date"],
           });
         }
-        if (!task.maintenance_provider_id) {
+        if (!unchanged && !task.maintenance_provider_id) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: "Indique quién la realizó",
@@ -192,6 +206,7 @@ const formSchema = z
         const seen = new Set<string>();
         task.intervals.forEach((interval, i) => {
           if (
+            task.id === undefined &&
             interval.counting_method !== "DAYS" &&
             interval.initial_value === undefined
           ) {
@@ -231,14 +246,15 @@ const emptyTask = (controlPercentage?: number | string) => ({
   action: "FUNCTIONAL_CHECK",
   is_on_condition: true,
   maintenance_provider_id: "",
-  first_applied_date: undefined as unknown as Date,
+  applied_date: undefined as unknown as Date,
   remaining_percentage: controlPercentage as number | undefined,
   intervals: [] as ReturnType<typeof emptyInterval>[],
 });
 
 const emptyItem = (controlPercentage?: number | string) => ({
-  is_hazardous: false,
+  flags: [] as ControlItemFlag[],
   description: "",
+  declared_description: "",
   part_number: "",
   serial: "",
   position: "",
@@ -603,7 +619,7 @@ function TaskCard({
           </FieldLabel>
           <CompactDateField
             control={control}
-            name={`${namePrefix}.first_applied_date`}
+            name={`${namePrefix}.applied_date`}
           />
         </FormItem>
         {/* Va al final de la fila porque es lo que decide si abajo aparecen
@@ -784,9 +800,16 @@ function DeviceCard({
         />
       </div>
 
-      {/* Los tres opcionales del equipo juntos: dónde está montado, de qué
-          documento sale y si es mercancía peligrosa. */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,90px)_minmax(0,1fr)_auto]">
+      <TextField
+        control={control}
+        name={`${namePrefix}.declared_description`}
+        label="Descripción en formatos"
+        placeholder="Cómo se redacta en la OT y los formatos INAC. Si se deja vacía se usa la descripción."
+        optional
+      />
+
+      {/* Dónde está montado y de qué documento sale. */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,90px)_minmax(0,1fr)]">
         <TextField
           control={control}
           name={`${namePrefix}.position`}
@@ -801,30 +824,9 @@ function DeviceCard({
           placeholder="EJ: AMM 3200/355 / RAV 135"
           optional
         />
-        <FormField
-          control={control}
-          name={`${namePrefix}.is_hazardous`}
-          render={({ field }) => (
-            <FormItem className="space-y-1">
-              <span className={cn(labelClass, "hidden lg:block")} aria-hidden>
-                &nbsp;
-              </span>
-              <label className="flex h-11 w-fit cursor-pointer select-none items-center gap-2 text-sm">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <span className="flex items-center gap-1 whitespace-nowrap">
-                  <AlertTriangle className="size-3.5 text-amber-500" />
-                  Mercancía peligrosa
-                </span>
-              </label>
-            </FormItem>
-          )}
-        />
       </div>
+
+      <ControlItemFlagsField control={control} name={`${namePrefix}.flags`} />
 
       <div className="space-y-2 border-t border-slate-400/25 pt-3 dark:border-slate-600/25">
         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -867,8 +869,9 @@ function DeviceCard({
 function mapToFormItem(item: NonNullable<AvionicsControl["items"]>[number]) {
   return {
     id: item.id,
-    is_hazardous: item.is_hazardous,
+    flags: item.flags ?? [],
     description: item.description,
+    declared_description: item.declared_description ?? "",
     part_number: item.part_number,
     serial: item.serial,
     position: item.position ?? "",
@@ -882,9 +885,7 @@ function mapToFormItem(item: NonNullable<AvionicsControl["items"]>[number]) {
         maintenance_provider_id: task.maintenance_provider_id
           ? String(task.maintenance_provider_id)
           : "",
-        first_applied_date: task.first_applied_date
-          ? parseISO(task.first_applied_date)
-          : undefined,
+        applied_date: appliedDateOf(task.current_compliance),
         remaining_percentage:
           task.remaining_percentage !== null &&
           task.remaining_percentage !== undefined
@@ -894,10 +895,10 @@ function mapToFormItem(item: NonNullable<AvionicsControl["items"]>[number]) {
           id: interval.id,
           counting_method: interval.counting_method,
           limit_value: Number(interval.limit_value),
-          initial_value:
-            interval.initial_value != null
-              ? Number(interval.initial_value)
-              : undefined,
+          initial_value: appliedReadingOf(
+            task.current_compliance,
+            interval.counting_method,
+          ),
         })),
       })),
   };
@@ -928,7 +929,7 @@ function buildDefaultValues(initialData?: AvionicsControl): FormValues {
       : undefined,
     remaining_percentage: Number(initialData.remaining_percentage),
     items: (initialData.items ?? [])
-      .filter((i) => i.status === "ACTIVE" && !i.retired_at)
+      .filter((i) => !i.retired_at)
       .map(mapToFormItem),
   };
 }
@@ -963,7 +964,7 @@ export default function CreateAvionicsControlForm({
     defaultValues: buildDefaultValues(initialData),
   });
   // Leído en render: react-hook-form solo rastrea lo que se suscribe aquí.
-  const { isDirty } = form.formState;
+  const { isDirty, dirtyFields } = form.formState;
 
   // Mismo cast que los otros formularios de control (react-hook-form 7.87).
   const control = form.control as unknown as Control<any>;
@@ -987,36 +988,47 @@ export default function CreateAvionicsControlForm({
       reference_manual: values.reference_manual,
       maintenance_catalog_manual_id: values.maintenance_catalog_manual_id,
       remaining_percentage: values.remaining_percentage,
-      items: values.items.map((item) => ({
+      items: values.items.map((item, itemIndex) => ({
         id: item.id,
-        is_hazardous: item.is_hazardous ?? false,
+        flags: item.flags ?? [],
         description: item.description,
+        declared_description: item.declared_description?.trim() || undefined,
         part_number: item.part_number,
         serial: item.serial,
         position: item.position || undefined,
         reference_document: item.reference_document || undefined,
-        tasks: item.tasks.map((task) => ({
-          id: task.id,
-          action: task.action as AvionicsAction,
-          is_on_condition: task.is_on_condition ?? false,
-          // Quién la hizo y cuándo se envían siempre: una tarea por condición
-          // igual se cumple y deja registro. Lo que no tiene es plazo, y por
-          // eso el % de alerta y los intervalos sí quedan vacíos.
-          maintenance_provider_id: task.maintenance_provider_id || undefined,
-          first_applied_date: task.first_applied_date
-            ? format(task.first_applied_date, "yyyy-MM-dd")
-            : undefined,
-          remaining_percentage: task.is_on_condition
-            ? null
-            : (task.remaining_percentage ?? null),
-          intervals: task.is_on_condition
-            ? []
-            : task.intervals.map((interval) => ({
-                counting_method: interval.counting_method,
-                limit_value: interval.limit_value,
-                initial_value: interval.initial_value,
-              })),
-        })),
+        tasks: item.tasks.map((task, taskIndex) =>
+          withoutUnchangedApplication(
+            {
+              id: task.id,
+              action: task.action as AvionicsAction,
+              is_on_condition: task.is_on_condition ?? false,
+              // Quién la hizo y cuándo se envían siempre: una tarea por condición
+              // igual se cumple y deja registro. Lo que no tiene es plazo, y por
+              // eso el % de alerta y los intervalos sí quedan vacíos.
+              maintenance_provider_id:
+                task.maintenance_provider_id || undefined,
+              applied_date: task.applied_date
+                ? format(task.applied_date, "yyyy-MM-dd")
+                : undefined,
+              remaining_percentage: task.is_on_condition
+                ? null
+                : (task.remaining_percentage ?? null),
+              intervals: task.is_on_condition
+                ? []
+                : task.intervals.map((interval) => ({
+                    counting_method: interval.counting_method,
+                    limit_value: interval.limit_value,
+                    initial_value: interval.initial_value,
+                  })),
+            },
+            dirtyAt(
+              (dirtyAt(dirtyFields.items, itemIndex) as { tasks?: unknown })
+                ?.tasks,
+              taskIndex,
+            ),
+          ),
+        ),
       })),
     };
 
@@ -1052,7 +1064,7 @@ export default function CreateAvionicsControlForm({
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit(onSubmit)}
+        onSubmit={form.handleSubmit(onSubmit, notifyInvalidForm(form))}
         onKeyDown={(e) => {
           if (
             e.key === "Enter" &&
@@ -1251,7 +1263,7 @@ export default function CreateAvionicsControlForm({
 
         <Button
           className="h-11 gap-2 self-end rounded-lg bg-linear-to-br from-primary to-primary/85 px-6 text-primary-foreground shadow-sm transition-all duration-200 hover:shadow-md hover:shadow-blue-500/25 disabled:opacity-70"
-          disabled={isPending}
+          disabled={isPending || (isEditing && !isDirty)}
           type="submit"
         >
           {isPending ? (

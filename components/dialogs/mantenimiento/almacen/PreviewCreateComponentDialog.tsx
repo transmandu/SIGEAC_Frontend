@@ -70,47 +70,83 @@ export default function PreviewCreateComponentDialog({
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-primary">Vista Previa del Componente</DialogTitle>
+          <DialogTitle className="text-primary">
+            Vista Previa del Componente
+          </DialogTitle>
           <DialogDescription>
             Verifique que toda la información sea correcta antes de registrar.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
-
           {/* Datos Principales */}
           <section className="p-4 bg-gray-50 rounded-lg shadow-inner">
-            <h3 className="font-semibold mb-3 text-gray-700 border-b border-gray-200 pb-1">Identificación principal</h3>
+            <h3 className="font-semibold mb-3 text-gray-700 border-b border-gray-200 pb-1">
+              Identificación principal
+            </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <PreviewRow label="N° Parte" value={values.part_number} />
-              <PreviewRow label="N° Parte Alternativos" value={values.alternative_part_number?.length ? values.alternative_part_number.join(", ") : "—"} />
-              {values.batch_name && <PreviewRow label="Descripción del componente" value={values.batch_name} />}
+              <PreviewRow
+                label="N° Parte Alternativos"
+                value={
+                  values.alternative_part_number?.length
+                    ? values.alternative_part_number.join(", ")
+                    : "—"
+                }
+              />
+              {values.batch_name && (
+                <PreviewRow
+                  label="Descripción del componente"
+                  value={values.batch_name}
+                />
+              )}
             </div>
           </section>
 
           {/* Identificación y Estado */}
           <section className="p-4 bg-gray-50 rounded-lg shadow-inner">
-            <h3 className="font-semibold mb-3 text-gray-700 border-b border-gray-200 pb-1">Identificación y estado</h3>
+            <h3 className="font-semibold mb-3 text-gray-700 border-b border-gray-200 pb-1">
+              Identificación y estado
+            </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <PreviewRow label="Serial" value={formatSerial(values.serial)} />
-              <PreviewRow label="Condición" value={values.condition_name || "—"} />
-              <PreviewRow label="Fabricante" value={values.manufacturer_name || "—"} />
-              <PreviewRow label="Ubicación interna" value={values.zone || "—"} />
+              <PreviewRow
+                label="Condición"
+                value={values.condition_name || "—"}
+              />
+              <PreviewRow
+                label="Fabricante"
+                value={values.manufacturer_name || "—"}
+              />
+              <PreviewRow
+                label="Ubicación interna"
+                value={values.zone || "—"}
+              />
             </div>
           </section>
 
           {/* Fechas */}
           <section className="p-4 bg-gray-50 rounded-lg shadow-inner">
-            <h3 className="font-semibold mb-3 text-gray-700 border-b border-gray-200 pb-1">Fechas</h3>
+            <h3 className="font-semibold mb-3 text-gray-700 border-b border-gray-200 pb-1">
+              Fechas
+            </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <PreviewRow label="Fabricación" value={formatDate(values.fabrication_date)} />
-              <PreviewRow label="Shelf-Life" value={formatDate(values.expiration_date)} />
+              <PreviewRow
+                label="Fabricación"
+                value={formatDate(values.fabrication_date)}
+              />
+              <PreviewRow
+                label="Shelf-Life"
+                value={formatDate(values.expiration_date)}
+              />
             </div>
           </section>
 
           {/* Observaciones */}
           <section className="p-4 bg-gray-50 rounded-lg shadow-inner">
-            <h3 className="font-semibold mb-3 text-gray-700 border-b border-gray-200 pb-1">Observaciones</h3>
+            <h3 className="font-semibold mb-3 text-gray-700 border-b border-gray-200 pb-1">
+              Observaciones
+            </h3>
             <div className="p-3 rounded-md bg-white border border-gray-200 text-sm whitespace-pre-wrap">
               {values.description || "—"}
             </div>
@@ -118,20 +154,32 @@ export default function PreviewCreateComponentDialog({
 
           {/* Documentación */}
           <section className="p-4 bg-gray-50 rounded-lg shadow-inner">
-            <h3 className="font-semibold mb-3 text-gray-700 border-b border-gray-200 pb-1">Documentación</h3>
-            <PreviewRow label="¿Incluye documentación?" value={values.has_documentation ? "Sí" : "No"} />
+            <h3 className="font-semibold mb-3 text-gray-700 border-b border-gray-200 pb-1">
+              Documentación
+            </h3>
+            <PreviewRow
+              label="¿Requiere o llegó con documentación?"
+              value={values.has_documentation ? "Sí" : "No"}
+            />
             {values.has_documentation && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
-                <PreviewRow label="Imagen" value={values.image?.name || "Ninguna"} />
+                <PreviewRow
+                  label="Imagen"
+                  value={values.image?.name || "Ninguna"}
+                />
               </div>
             )}
           </section>
-
         </div>
 
         <DialogFooter className="flex justify-end gap-3">
-          <Button variant="outline" onClick={onClose}>Volver</Button>
-          <Button className="bg-primary text-white hover:bg-blue-900" onClick={() => onConfirm(values)}>
+          <Button variant="outline" onClick={onClose}>
+            Volver
+          </Button>
+          <Button
+            className="bg-primary text-white hover:bg-blue-900"
+            onClick={() => onConfirm(values)}
+          >
             Registrar
           </Button>
         </DialogFooter>

@@ -50,7 +50,7 @@ export function CreateShippingAgencyForm({
   isLoading: externalLoading,
 }: Props) {
   const { selectedCompany } = useCompanyStore();
-  const { mutateAsync, isLoading: internalLoading } = useCreateShippingAgency(
+  const { mutateAsync, isPending: internalLoading } = useCreateShippingAgency(
     selectedCompany?.slug,
   ) as any;
 

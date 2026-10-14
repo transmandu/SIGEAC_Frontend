@@ -1,5 +1,6 @@
 "use client";
 
+import { flattenDepartments } from "@/lib/departments";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment";
 import { useCompanyStore } from "@/stores/CompanyStore";
@@ -10,15 +11,6 @@ import { columns } from "./columns";
 import { DataTable } from "./data-table";
 import { PageHeader } from "@/components/layout/PageHeader";
 
-const flattenDepartments = (
-  departments: Department[],
-): Department[] => {
-  return departments.flatMap((department) => [
-    department,
-    ...flattenDepartments(department.descendants ?? []),
-  ]);
-};
-
 const DepartmentPage = () => {
   const { selectedCompany } = useCompanyStore();
 
@@ -28,9 +20,7 @@ const DepartmentPage = () => {
     isError: error,
   } = useGetDepartments(selectedCompany?.slug);
 
-  const tableData = departments
-    ? flattenDepartments(departments)
-    : [];
+  const tableData = departments ? flattenDepartments(departments) : [];
 
   return (
     <ContentLayout title="Departamentos">
@@ -59,12 +49,7 @@ const DepartmentPage = () => {
         </div>
       )}
 
-      {departments && (
-        <DataTable
-          columns={columns}
-          data={tableData}
-        />
-      )}
+      {departments && <DataTable columns={columns} data={tableData} />}
     </ContentLayout>
   );
 };

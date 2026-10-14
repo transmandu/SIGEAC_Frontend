@@ -1,20 +1,10 @@
 "use client";
 
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
-import {
-  Calendar as CalendarIcon,
-  AlertCircle,
-  Filter,
-  PackageSearch,
-  X,
-  CalendarDays,
-  CalendarX,
-} from "lucide-react";
+import { Filter, PackageSearch } from "lucide-react";
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
+import { DispatchReportDateRange } from "@/components/dialogs/mantenimiento/almacen/DispatchReportDateRange";
 import { Input } from "@/components/ui/input";
-import { Calendar } from "@/components/ui/calendar";
 import {
   Select,
   SelectContent,
@@ -34,15 +24,16 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import type { Condition } from "@/types";
 import type { DispatchReportArticleOptions } from "@/types/inventory/queues";
 
 /* ---------------- TYPES ---------------- */
 
-type DispatchType = "aeronautical" | "general";
+export type DispatchType = "aeronautical" | "general";
 
 export type ArticleCategory = "CONSUMABLE" | "PART" | "COMPONENT" | "TOOL";
 
-const ARTICLE_CATEGORIES: { value: ArticleCategory; label: string }[] = [
+export const ARTICLE_CATEGORIES: { value: ArticleCategory; label: string }[] = [
   { value: "CONSUMABLE", label: "Consumible" },
   { value: "PART", label: "Parte" },
   { value: "COMPONENT", label: "Componente" },
@@ -84,7 +75,11 @@ interface Props {
   articleCategory: ArticleCategory | null;
   setArticleCategory: (v: ArticleCategory | null) => void;
   isDateRangeInvalid: boolean;
-  isPlanificacionOnlyFilters: boolean;
+  /** Condición con que salió el artículo (catálogo de condiciones). */
+  conditionId: string | null;
+  setConditionId: (v: string | null) => void;
+  conditions?: Condition[];
+  isLoadingConditions?: boolean;
   /** Valores distintos de lo despachado en la sede, calculados por el servidor. */
   articleOptions?: DispatchReportArticleOptions;
   articleFilters: {
@@ -130,7 +125,10 @@ export function DispatchReportFilters({
   articleCategory,
   setArticleCategory,
   isDateRangeInvalid,
-  isPlanificacionOnlyFilters,
+  conditionId,
+  setConditionId,
+  conditions,
+  isLoadingConditions,
   articleOptions,
   articleFilters,
   setArticleFilters,
@@ -138,8 +136,6 @@ export function DispatchReportFilters({
   const today = new Date();
   const [openGeneral, setOpenGeneral] = useState(false);
   const [openItems, setOpenItems] = useState(false);
-  const [openStartDate, setOpenStartDate] = useState(false);
-  const [openEndDate, setOpenEndDate] = useState(false);
   const [partNumberSearch, setPartNumberSearch] = useState("");
   const [altPartSearch, setAltPartSearch] = useState("");
   const [descriptionSearch, setDescriptionSearch] = useState("");
@@ -151,9 +147,6 @@ export function DispatchReportFilters({
   const [employeeSearch, setEmployeeSearch] = useState("");
   const [thirdPartySearch, setThirdPartySearch] = useState("");
 
-  const [calendarMonth, setCalendarMonth] = useState<Date>(
-    new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-  );
   // Los valores ya llegan distintos y ordenados: aquí solo se filtran por lo
   // escrito en el buscador del selector.
   const renderOptions = (
@@ -189,49 +182,50 @@ export function DispatchReportFilters({
       value: workOrder,
     },
 
-    !isPlanificacionOnlyFilters &&
-      departmentId && {
-        label: "Departamento",
-        value:
-          departments?.find((d) => String(d.id) === String(departmentId))
-            ?.name ?? departmentId,
-      },
+    departmentId && {
+      label: "Departamento",
+      value:
+        departments?.find((d) => String(d.id) === String(departmentId))?.name ??
+        departmentId,
+    },
 
-    !isPlanificacionOnlyFilters &&
-      authorizedEmployeeId && {
-        label: "Empresa",
-        value:
-          authorizedEmployees?.find(
-            (e) => String(e.id) === String(authorizedEmployeeId),
-          )?.employee_name ?? authorizedEmployeeId,
-      },
+    authorizedEmployeeId && {
+      label: "Empresa",
+      value:
+        authorizedEmployees?.find(
+          (e) => String(e.id) === String(authorizedEmployeeId),
+        )?.employee_name ?? authorizedEmployeeId,
+    },
 
-    !isPlanificacionOnlyFilters &&
-      thirdPartyId && {
-        label: "Tercero",
-        value:
-          thirdParties?.find((t) => String(t.id) === String(thirdPartyId))
-            ?.name ?? thirdPartyId,
-      },
+    thirdPartyId && {
+      label: "Tercero",
+      value:
+        thirdParties?.find((t) => String(t.id) === String(thirdPartyId))
+          ?.name ?? thirdPartyId,
+    },
 
-    !isPlanificacionOnlyFilters &&
-      dispatchType && {
-        label: "Tipo",
-        value: dispatchType === "aeronautical" ? "Aeronáutico" : "General",
-      },
+    dispatchType && {
+      label: "Tipo",
+      value: dispatchType === "aeronautical" ? "Aeronáutico" : "General",
+    },
 
-    !isPlanificacionOnlyFilters &&
-      articleCategory && {
-        label: "Categoría",
-        value:
-          ARTICLE_CATEGORIES.find((c) => c.value === articleCategory)?.label ??
-          articleCategory,
-      },
+    articleCategory && {
+      label: "Categoría",
+      value:
+        ARTICLE_CATEGORIES.find((c) => c.value === articleCategory)?.label ??
+        articleCategory,
+    },
   ].filter(Boolean) as { label: string; value: string }[];
 
   const generalSelectedCount = generalSelectedFilters.length;
 
   const articleSelectedFilters = [
+    conditionId && {
+      label: "Condición",
+      value:
+        conditions?.find((c) => String(c.id) === String(conditionId))?.name ??
+        conditionId,
+    },
     articleFilters.part_number && {
       label: "Part Number",
       value: articleFilters.part_number,
@@ -258,222 +252,13 @@ export function DispatchReportFilters({
 
   return (
     <div className="space-y-4 py-2 flex flex-col items-center">
-      {/* ===================== FECHAS ===================== */}
-      <div className="p-4 border rounded-2xl bg-muted/20 dark:bg-muted/10 space-y-3 w-full mb-4">
-        <div className="flex items-center gap-2 text-foreground/80">
-          <CalendarIcon className="w-4 h-4 text-muted-foreground" />
-          <span className="text-sm font-medium">Rango de Fechas</span>
-        </div>
-
-        <Popover>
-          <PopoverTrigger asChild>
-            <div className="flex justify-center w-full">
-              <Button
-                variant="outline"
-                className="w-[320px] mx-auto justify-center text-center gap-2 h-11 px-4 border border-dashed border-slate-300/60 dark:border-slate-700/40 bg-background/60 backdrop-blur-sm font-medium text-slate-700 dark:text-slate-200 shadow-xs hover:bg-slate-50 dark:hover:bg-slate-900/40"
-              >
-                <CalendarDays className="w-4 h-4 text-muted-foreground" />
-
-                {startDate && endDate ? (
-                  startDate.getTime() === endDate.getTime() ? (
-                    <span className="text-center whitespace-nowrap">
-                      {format(startDate, "dd MMM yyyy", { locale: es })}
-                    </span>
-                  ) : (
-                    <span className="text-center whitespace-nowrap">
-                      {format(startDate, "dd MMM yyyy", { locale: es })} —{" "}
-                      {format(endDate, "dd MMM yyyy", { locale: es })}
-                    </span>
-                  )
-                ) : (
-                  <span className="text-center text-muted-foreground whitespace-nowrap">
-                    Seleccionar rango de fechas
-                  </span>
-                )}
-              </Button>
-            </div>
-          </PopoverTrigger>
-
-          <PopoverContent
-            align="center"
-            side="bottom"
-            sideOffset={10}
-            className="p-3 w-auto min-w-[320px] rounded-2xl border border-slate-200/60 dark:border-slate-800/60 shadow-xl backdrop-blur-sm bg-white/90 dark:bg-slate-950/90"
-          >
-            {/* ================= PRESETS ================= */}
-            <div className="flex items-center justify-center gap-2 mb-2 flex-wrap">
-              {[
-                {
-                  label: "7D",
-                  tooltip: "Últimos 7 días",
-                  fn: () => {
-                    const end = new Date();
-                    const start = new Date();
-                    start.setDate(end.getDate() - 7);
-
-                    setStartDate(start);
-                    setEndDate(end);
-                    setCalendarMonth(start);
-                  },
-                },
-                {
-                  label: "30D",
-                  tooltip: "Últimos 30 días",
-                  fn: () => {
-                    const end = new Date();
-                    const start = new Date();
-                    start.setDate(end.getDate() - 30);
-
-                    setStartDate(start);
-                    setEndDate(end);
-                    setCalendarMonth(start);
-                  },
-                },
-                {
-                  label:
-                    calendarMonth.getMonth() === new Date().getMonth() &&
-                    calendarMonth.getFullYear() === new Date().getFullYear()
-                      ? "MES"
-                      : format(calendarMonth, "MMM yyyy", {
-                          locale: es,
-                        }).toUpperCase(),
-
-                  tooltip: "Mes visible en el calendario",
-
-                  fn: () => {
-                    const today = new Date();
-
-                    const start = new Date(
-                      calendarMonth.getFullYear(),
-                      calendarMonth.getMonth(),
-                      1,
-                    );
-
-                    const isCurrentMonth =
-                      calendarMonth.getMonth() === today.getMonth() &&
-                      calendarMonth.getFullYear() === today.getFullYear();
-
-                    const end = isCurrentMonth
-                      ? today
-                      : new Date(
-                          calendarMonth.getFullYear(),
-                          calendarMonth.getMonth() + 1,
-                          0,
-                        );
-
-                    setStartDate(start);
-                    setEndDate(end);
-                    setCalendarMonth(start);
-                  },
-                },
-              ].map((p) => (
-                <TooltipProvider key={p.label} delayDuration={100}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="text-xs text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900 px-2 h-7"
-                        onClick={p.fn}
-                      >
-                        {p.label}
-                      </Button>
-                    </TooltipTrigger>
-
-                    <TooltipContent className="text-xs" sideOffset={6}>
-                      {p.tooltip}
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              ))}
-
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-7 w-7 text-slate-500 hover:text-slate-700 dark:hover:text-slate-200"
-                      onClick={() => {
-                        setStartDate(undefined);
-                        setEndDate(undefined);
-                      }}
-                    >
-                      <CalendarX className="w-4 h-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent className="text-xs">
-                    Limpiar rango
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-
-            {/* ================= CALENDAR ================= */}
-            <div className="scale-[0.95] origin-top">
-              <Calendar
-                mode="range"
-                selected={{ from: startDate, to: endDate }}
-                month={calendarMonth}
-                onMonthChange={setCalendarMonth}
-                onSelect={(range: any) => {
-                  const from = range?.from;
-                  const to = range?.to;
-
-                  if (!from) {
-                    setStartDate(undefined);
-                    setEndDate(undefined);
-                    return;
-                  }
-
-                  if (!to) {
-                    setStartDate(from);
-                    setEndDate(from);
-                    setCalendarMonth(from);
-                    return;
-                  }
-
-                  setStartDate(from);
-                  setEndDate(to);
-                  setCalendarMonth(from);
-                }}
-                numberOfMonths={
-                  startDate && endDate
-                    ? startDate.getMonth() !== endDate.getMonth() ||
-                      startDate.getFullYear() !== endDate.getFullYear()
-                      ? 2
-                      : 1
-                    : 1
-                }
-                showOutsideDays={false}
-                endMonth={new Date()}
-                locale={es}
-                disabled={(d) => d > new Date()}
-                className={cn(
-                  "rounded-xl",
-                  "[&_.rdp-day_selected]:bg-slate-200",
-                  "[&_.rdp-day_selected]:text-slate-900",
-                  "[&_.rdp-day_range_middle]:bg-slate-100",
-                  "[&_.rdp-day_range_middle]:text-slate-900",
-                  "[&_.rdp-day_range_start]:bg-slate-300",
-                  "[&_.rdp-day_range_end]:bg-slate-300",
-                )}
-                formatters={{
-                  formatCaption: (date) =>
-                    format(date, "MMMM yyyy", { locale: es }).toUpperCase(),
-                }}
-              />
-            </div>
-          </PopoverContent>
-        </Popover>
-
-        {isDateRangeInvalid && (
-          <div className="flex items-center gap-2 text-xs text-red-500">
-            <AlertCircle className="w-3 h-3" />
-            Rango de fechas inválido
-          </div>
-        )}
-      </div>
+      <DispatchReportDateRange
+        startDate={startDate}
+        endDate={endDate}
+        setStartDate={setStartDate}
+        setEndDate={setEndDate}
+        isDateRangeInvalid={isDateRangeInvalid}
+      />
 
       {/* ===================== FILTRO GENERAL (SIN CAMBIOS) ===================== */}
       <div className="w-full flex justify-center">
@@ -634,479 +419,492 @@ export function DispatchReportFilters({
               </Select>
             </div>
 
-            {!isPlanificacionOnlyFilters && (
-              <>
-                <div className="space-y-1">
-                  <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
-                    Departamento
+            <div className="space-y-1">
+              <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+                Departamento
+              </div>
+
+              <Select
+                value={departmentId || "all"}
+                onValueChange={(v) => setDepartmentId(v === "all" ? null : v)}
+              >
+                <SelectTrigger disabled={isLoadingDepartments}>
+                  <SelectValue placeholder="Seleccionar departamento" />
+                </SelectTrigger>
+                <SelectContent>
+                  <div className="p-2">
+                    <Input
+                      value={departmentSearch}
+                      onChange={(e) => setDepartmentSearch(e.target.value)}
+                      onKeyDown={(e) => e.stopPropagation()}
+                      placeholder="Buscar departamento..."
+                      className="h-9"
+                    />
                   </div>
 
-                  <Select
-                    value={departmentId || "all"}
-                    onValueChange={(v) =>
-                      setDepartmentId(v === "all" ? null : v)
+                  <SelectItem value="all">Todos</SelectItem>
+                  {(departments ?? [])
+                    .filter((d) =>
+                      d.name
+                        .toLowerCase()
+                        .includes(departmentSearch.toLowerCase()),
+                    )
+                    .map((d) => (
+                      <SelectItem key={d.id} value={d.id.toString()}>
+                        {d.name}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1">
+              <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+                Empresa
+              </div>
+
+              <Select
+                value={authorizedEmployeeId || "all"}
+                onValueChange={(v) =>
+                  setAuthorizedEmployeeId(v === "all" ? null : v)
+                }
+              >
+                <SelectTrigger disabled={isLoadingEmployees}>
+                  <SelectValue placeholder="Seleccionar empresa" />
+                </SelectTrigger>
+                <SelectContent>
+                  <div className="p-2">
+                    <Input
+                      value={employeeSearch}
+                      onChange={(e) => setEmployeeSearch(e.target.value)}
+                      onKeyDown={(e) => e.stopPropagation()}
+                      placeholder="Buscar empresa..."
+                      className="h-9"
+                    />
+                  </div>
+
+                  <SelectItem value="all">Todas</SelectItem>
+                  {(authorizedEmployees ?? [])
+                    .filter((emp) =>
+                      `${emp.employee_name} ${(emp.from_company_db ?? "").toUpperCase()}`
+                        .toLowerCase()
+                        .includes(employeeSearch.toLowerCase()),
+                    )
+                    .map((emp) => (
+                      <SelectItem key={emp.id} value={emp.id.toString()}>
+                        {emp.employee_name} -{" "}
+                        {(emp.from_company_db ?? "").toUpperCase()}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1">
+              <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+                Terceros
+              </div>
+
+              <Select
+                value={thirdPartyId || "all"}
+                onValueChange={(v) => setThirdPartyId(v === "all" ? null : v)}
+              >
+                <SelectTrigger disabled={isLoadingThirdParties}>
+                  <SelectValue placeholder="Seleccionar terceros" />
+                </SelectTrigger>
+                <SelectContent>
+                  <div className="p-2">
+                    <Input
+                      value={thirdPartySearch}
+                      onChange={(e) => setThirdPartySearch(e.target.value)}
+                      onKeyDown={(e) => e.stopPropagation()}
+                      placeholder="Buscar terceros..."
+                      className="h-9"
+                    />
+                  </div>
+
+                  <SelectItem value="all">Todos</SelectItem>
+                  {(thirdParties ?? [])
+                    .filter((tp) =>
+                      tp.name
+                        .toLowerCase()
+                        .includes(thirdPartySearch.toLowerCase()),
+                    )
+                    .map((tp) => (
+                      <SelectItem key={tp.id} value={tp.id.toString()}>
+                        {tp.name}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1">
+              <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+                Tipo de Despacho
+              </div>
+
+              <Select
+                value={dispatchType || "all"}
+                onValueChange={(v) => {
+                  const next = v === "all" ? null : (v as DispatchType);
+                  setDispatchType(next);
+
+                  // La categoría solo desglosa el aeronáutico.
+                  if (next === "general") {
+                    setArticleCategory(null);
+                  }
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="aeronautical">Aeronáutico</SelectItem>
+                  <SelectItem value="general">General</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {dispatchType !== "general" && (
+              <div className="space-y-1">
+                <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+                  Categoría Aeronáutica
+                </div>
+
+                <Select
+                  value={articleCategory || "all"}
+                  onValueChange={(v) => {
+                    const next = v === "all" ? null : (v as ArticleCategory);
+                    setArticleCategory(next);
+
+                    // Elegir una categoría implica despachos aeronáuticos.
+                    if (next) {
+                      setDispatchType("aeronautical");
                     }
-                  >
-                    <SelectTrigger disabled={isLoadingDepartments}>
-                      <SelectValue placeholder="Seleccionar departamento" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <div className="p-2">
-                        <Input
-                          value={departmentSearch}
-                          onChange={(e) => setDepartmentSearch(e.target.value)}
-                          onKeyDown={(e) => e.stopPropagation()}
-                          placeholder="Buscar departamento..."
-                          className="h-9"
-                        />
-                      </div>
-
-                      <SelectItem value="all">Todos</SelectItem>
-                      {(departments ?? [])
-                        .filter((d) =>
-                          d.name
-                            .toLowerCase()
-                            .includes(departmentSearch.toLowerCase()),
-                        )
-                        .map((d) => (
-                          <SelectItem key={d.id} value={d.id.toString()}>
-                            {d.name}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-1">
-                  <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
-                    Empresa
-                  </div>
-
-                  <Select
-                    value={authorizedEmployeeId || "all"}
-                    onValueChange={(v) =>
-                      setAuthorizedEmployeeId(v === "all" ? null : v)
-                    }
-                  >
-                    <SelectTrigger disabled={isLoadingEmployees}>
-                      <SelectValue placeholder="Seleccionar empresa" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <div className="p-2">
-                        <Input
-                          value={employeeSearch}
-                          onChange={(e) => setEmployeeSearch(e.target.value)}
-                          onKeyDown={(e) => e.stopPropagation()}
-                          placeholder="Buscar empresa..."
-                          className="h-9"
-                        />
-                      </div>
-
-                      <SelectItem value="all">Todas</SelectItem>
-                      {(authorizedEmployees ?? [])
-                        .filter((emp) =>
-                          `${emp.employee_name} ${(emp.from_company_db ?? "").toUpperCase()}`
-                            .toLowerCase()
-                            .includes(employeeSearch.toLowerCase()),
-                        )
-                        .map((emp) => (
-                          <SelectItem key={emp.id} value={emp.id.toString()}>
-                            {emp.employee_name} -{" "}
-                            {(emp.from_company_db ?? "").toUpperCase()}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-1">
-                  <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
-                    Terceros
-                  </div>
-
-                  <Select
-                    value={thirdPartyId || "all"}
-                    onValueChange={(v) =>
-                      setThirdPartyId(v === "all" ? null : v)
-                    }
-                  >
-                    <SelectTrigger disabled={isLoadingThirdParties}>
-                      <SelectValue placeholder="Seleccionar terceros" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <div className="p-2">
-                        <Input
-                          value={thirdPartySearch}
-                          onChange={(e) => setThirdPartySearch(e.target.value)}
-                          onKeyDown={(e) => e.stopPropagation()}
-                          placeholder="Buscar terceros..."
-                          className="h-9"
-                        />
-                      </div>
-
-                      <SelectItem value="all">Todos</SelectItem>
-                      {(thirdParties ?? [])
-                        .filter((tp) =>
-                          tp.name
-                            .toLowerCase()
-                            .includes(thirdPartySearch.toLowerCase()),
-                        )
-                        .map((tp) => (
-                          <SelectItem key={tp.id} value={tp.id.toString()}>
-                            {tp.name}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-1">
-                  <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
-                    Tipo de Despacho
-                  </div>
-
-                  <Select
-                    value={dispatchType || "all"}
-                    onValueChange={(v) => {
-                      const next = v === "all" ? null : (v as DispatchType);
-                      setDispatchType(next);
-
-                      // La categoría solo desglosa el aeronáutico.
-                      if (next === "general") {
-                        setArticleCategory(null);
-                      }
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar tipo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos</SelectItem>
-                      <SelectItem value="aeronautical">Aeronáutico</SelectItem>
-                      <SelectItem value="general">General</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {dispatchType !== "general" && (
-                  <div className="space-y-1">
-                    <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
-                      Categoría Aeronáutica
-                    </div>
-
-                    <Select
-                      value={articleCategory || "all"}
-                      onValueChange={(v) => {
-                        const next =
-                          v === "all" ? null : (v as ArticleCategory);
-                        setArticleCategory(next);
-
-                        // Elegir una categoría implica despachos aeronáuticos.
-                        if (next) {
-                          setDispatchType("aeronautical");
-                        }
-                      }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Seleccionar categoría" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todas</SelectItem>
-                        {ARTICLE_CATEGORIES.map((c) => (
-                          <SelectItem key={c.value} value={c.value}>
-                            {c.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-              </>
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar categoría" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas</SelectItem>
+                    {ARTICLE_CATEGORIES.map((c) => (
+                      <SelectItem key={c.value} value={c.value}>
+                        {c.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             )}
           </PopoverContent>
         </Popover>
       </div>
 
-      {!isPlanificacionOnlyFilters && (
-        <div className="w-full flex justify-center">
-          <Popover open={openItems} onOpenChange={setOpenItems}>
-            <PopoverTrigger asChild>
-              <Button
-                className={cn(
-                  "w-[70%] justify-between h-12 text-sm font-medium transition-all border",
-                  "bg-primary/5 hover:bg-primary/10",
-                  "border-primary/20",
-                  openItems && "ring-2 ring-primary/40",
-                )}
-              >
-                <span className="flex items-center gap-2 text-foreground/80">
-                  <PackageSearch className="w-4 h-4 text-muted-foreground" />
-
-                  {articleSelectedCount === 0 ? (
-                    "Filtro de Artículos"
-                  ) : (
-                    <span className="text-sm font-medium">
-                      Filtro de Artículos
-                    </span>
-                  )}
-                </span>
-
-                <div className="flex items-center gap-2">
-                  {articleSelectedCount > 0 && (
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="w-6 h-6 rounded-full bg-primary text-white text-[11px] flex items-center justify-center font-medium">
-                            {articleSelectedCount}
-                          </div>
-                        </TooltipTrigger>
-
-                        <TooltipContent className="text-xs space-y-1">
-                          {articleSelectedFilters.map((f, i) => (
-                            <div key={i}>
-                              {f.label}:{" "}
-                              <span className="font-medium">{f.value}</span>
-                            </div>
-                          ))}
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  )}
-
-                  {articleSelectedCount === 0 && (
-                    <span className="text-xs text-muted-foreground hidden sm:block">
-                      Part / Desc / Marca...
-                    </span>
-                  )}
-                </div>
-              </Button>
-            </PopoverTrigger>
-
-            <PopoverContent
-              side="bottom"
-              align="center"
-              collisionPadding={16}
+      <div className="w-full flex justify-center">
+        <Popover open={openItems} onOpenChange={setOpenItems}>
+          <PopoverTrigger asChild>
+            <Button
               className={cn(
-                "w-[92vw] max-w-85 space-y-4 p-4",
-                // En pantallas de poca altura el listado de filtros desbordaba el
-                // viewport: lo acotamos al espacio real que Radix deja libre y
-                // dejamos que scrollee internamente.
-                "max-h-(--radix-popover-content-available-height) overflow-y-auto",
+                "w-[70%] justify-between h-12 text-sm font-medium transition-all border",
+                "bg-primary/5 hover:bg-primary/10",
+                "border-primary/20",
+                openItems && "ring-2 ring-primary/40",
               )}
             >
-              {/* ================= PART NUMBER ================= */}
-              <div className="space-y-1">
-                <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
-                  Part Number
-                </div>
+              <span className="flex items-center gap-2 text-foreground/80">
+                <PackageSearch className="w-4 h-4 text-muted-foreground" />
 
-                <Select
-                  value={articleFilters.part_number || "all"}
-                  onValueChange={(v) =>
-                    setArticleFilters((prev: any) => ({
-                      ...prev,
-                      part_number: v === "all" ? "" : v,
-                    }))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar Part Number" />
-                  </SelectTrigger>
+                {articleSelectedCount === 0 ? (
+                  "Filtro de Artículos"
+                ) : (
+                  <span className="text-sm font-medium">
+                    Filtro de Artículos
+                  </span>
+                )}
+              </span>
 
-                  <SelectContent>
-                    <div className="p-2">
-                      <Input
-                        autoFocus
-                        value={partNumberSearch}
-                        onChange={(e) => setPartNumberSearch(e.target.value)}
-                        onKeyDown={(e) => e.stopPropagation()}
-                        placeholder="Buscar Part Number..."
-                        className="h-9"
-                      />
-                    </div>
+              <div className="flex items-center gap-2">
+                {articleSelectedCount > 0 && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="w-6 h-6 rounded-full bg-primary text-white text-[11px] flex items-center justify-center font-medium">
+                          {articleSelectedCount}
+                        </div>
+                      </TooltipTrigger>
 
-                    <SelectItem value="all">Todos</SelectItem>
+                      <TooltipContent className="text-xs space-y-1">
+                        {articleSelectedFilters.map((f, i) => (
+                          <div key={i}>
+                            {f.label}:{" "}
+                            <span className="font-medium">{f.value}</span>
+                          </div>
+                        ))}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
 
-                    {/* ================= PART NUMBER ================= */}
-                    {renderOptions(
-                      articleOptions?.part_numbers,
-                      partNumberSearch,
-                      "pn",
-                    )}
-                  </SelectContent>
-                </Select>
+                {articleSelectedCount === 0 && (
+                  <span className="text-xs text-muted-foreground hidden sm:block">
+                    Condición / Part / Desc...
+                  </span>
+                )}
+              </div>
+            </Button>
+          </PopoverTrigger>
+
+          <PopoverContent
+            side="bottom"
+            align="center"
+            collisionPadding={16}
+            className={cn(
+              "w-[92vw] max-w-85 space-y-4 p-4",
+              // En pantallas de poca altura el listado de filtros desbordaba el
+              // viewport: lo acotamos al espacio real que Radix deja libre y
+              // dejamos que scrollee internamente.
+              "max-h-(--radix-popover-content-available-height) overflow-y-auto",
+            )}
+          >
+            {/* ================= CONDICIÓN (del artículo) ================= */}
+            <div className="space-y-1">
+              <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+                Condición
               </div>
 
-              {/* ================= ALT PART ================= */}
-              <div className="space-y-1">
-                <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
-                  Alt Part Number
-                </div>
+              <Select
+                value={conditionId || "all"}
+                onValueChange={(v) => setConditionId(v === "all" ? null : v)}
+              >
+                <SelectTrigger disabled={isLoadingConditions}>
+                  <SelectValue placeholder="Seleccionar condición" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas</SelectItem>
+                  {(conditions ?? []).map((c) => (
+                    <SelectItem key={c.id} value={c.id.toString()}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-                <Select
-                  value={articleFilters.alternative_part_number || "all"}
-                  onValueChange={(v) =>
-                    setArticleFilters((prev: any) => ({
-                      ...prev,
-                      alternative_part_number: v === "all" ? "" : v,
-                    }))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar Alt Part" />
-                  </SelectTrigger>
-
-                  <SelectContent>
-                    <div className="p-2">
-                      <Input
-                        value={altPartSearch}
-                        onChange={(e) => setAltPartSearch(e.target.value)}
-                        onKeyDown={(e) => e.stopPropagation()}
-                        placeholder="Buscar Alt Part..."
-                        className="h-9"
-                      />
-                    </div>
-
-                    <SelectItem value="all">Todos</SelectItem>
-
-                    {/* ================= ALT PART NUMBER ================= */}
-                    {renderOptions(
-                      articleOptions?.alternative_part_numbers,
-                      altPartSearch,
-                      "apn",
-                    )}
-                  </SelectContent>
-                </Select>
+            {/* ================= PART NUMBER ================= */}
+            <div className="space-y-1">
+              <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+                Part Number
               </div>
 
-              {/* ================= DESCRIPCIÓN ================= */}
-              <div className="space-y-1">
-                <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
-                  Descripción
-                </div>
+              <Select
+                value={articleFilters.part_number || "all"}
+                onValueChange={(v) =>
+                  setArticleFilters((prev: any) => ({
+                    ...prev,
+                    part_number: v === "all" ? "" : v,
+                  }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar Part Number" />
+                </SelectTrigger>
 
-                <Select
-                  value={articleFilters.description || "all"}
-                  onValueChange={(v) =>
-                    setArticleFilters((prev: any) => ({
-                      ...prev,
-                      description: v === "all" ? "" : v,
-                    }))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar descripción" />
-                  </SelectTrigger>
+                <SelectContent>
+                  <div className="p-2">
+                    <Input
+                      autoFocus
+                      value={partNumberSearch}
+                      onChange={(e) => setPartNumberSearch(e.target.value)}
+                      onKeyDown={(e) => e.stopPropagation()}
+                      placeholder="Buscar Part Number..."
+                      className="h-9"
+                    />
+                  </div>
 
-                  <SelectContent>
-                    <div className="p-2">
-                      <Input
-                        value={descriptionSearch}
-                        onChange={(e) => setDescriptionSearch(e.target.value)}
-                        onKeyDown={(e) => e.stopPropagation()}
-                        placeholder="Buscar descripción..."
-                        className="h-9"
-                      />
-                    </div>
+                  <SelectItem value="all">Todos</SelectItem>
 
-                    <SelectItem value="all">Todos</SelectItem>
-                    {/* ================= DESCRIPCIÓN ================= */}
-                    {renderOptions(
-                      articleOptions?.descriptions,
-                      descriptionSearch,
-                      "desc",
-                    )}
-                  </SelectContent>
-                </Select>
+                  {/* ================= PART NUMBER ================= */}
+                  {renderOptions(
+                    articleOptions?.part_numbers,
+                    partNumberSearch,
+                    "pn",
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* ================= ALT PART ================= */}
+            <div className="space-y-1">
+              <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+                Alt Part Number
               </div>
 
-              {/* ================= ESPECIFICACION ================= */}
-              <div className="space-y-1">
-                <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
-                  Present. / Especif.
-                </div>
+              <Select
+                value={articleFilters.alternative_part_number || "all"}
+                onValueChange={(v) =>
+                  setArticleFilters((prev: any) => ({
+                    ...prev,
+                    alternative_part_number: v === "all" ? "" : v,
+                  }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar Alt Part" />
+                </SelectTrigger>
 
-                <Select
-                  value={articleFilters.variant_type || "all"}
-                  onValueChange={(v) =>
-                    setArticleFilters((prev: any) => ({
-                      ...prev,
-                      variant_type: v === "all" ? "" : v,
-                    }))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar Present. / Especif." />
-                  </SelectTrigger>
+                <SelectContent>
+                  <div className="p-2">
+                    <Input
+                      value={altPartSearch}
+                      onChange={(e) => setAltPartSearch(e.target.value)}
+                      onKeyDown={(e) => e.stopPropagation()}
+                      placeholder="Buscar Alt Part..."
+                      className="h-9"
+                    />
+                  </div>
 
-                  <SelectContent>
-                    <div className="p-2">
-                      <Input
-                        value={modelSearch}
-                        onChange={(e) => setModelSearch(e.target.value)}
-                        onKeyDown={(e) => e.stopPropagation()}
-                        placeholder="Buscar Present. / Especif...."
-                        className="h-9"
-                      />
-                    </div>
+                  <SelectItem value="all">Todos</SelectItem>
 
-                    <SelectItem value="all">Todos</SelectItem>
+                  {/* ================= ALT PART NUMBER ================= */}
+                  {renderOptions(
+                    articleOptions?.alternative_part_numbers,
+                    altPartSearch,
+                    "apn",
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
 
-                    {/* ================= PRESENTACIÓN / ESPECIF ================= */}
-                    {renderOptions(
-                      articleOptions?.variant_types,
-                      modelSearch,
-                      "variant",
-                    )}
-                  </SelectContent>
-                </Select>
+            {/* ================= DESCRIPCIÓN ================= */}
+            <div className="space-y-1">
+              <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+                Descripción
               </div>
 
-              {/* ================= MARCA ================= */}
-              <div className="space-y-1">
-                <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
-                  Marca / Modelo
-                </div>
+              <Select
+                value={articleFilters.description || "all"}
+                onValueChange={(v) =>
+                  setArticleFilters((prev: any) => ({
+                    ...prev,
+                    description: v === "all" ? "" : v,
+                  }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar descripción" />
+                </SelectTrigger>
 
-                <Select
-                  value={articleFilters.brand_model || "all"}
-                  onValueChange={(v) =>
-                    setArticleFilters((prev: any) => ({
-                      ...prev,
-                      brand_model: v === "all" ? "" : v,
-                    }))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar marca / modelo" />
-                  </SelectTrigger>
+                <SelectContent>
+                  <div className="p-2">
+                    <Input
+                      value={descriptionSearch}
+                      onChange={(e) => setDescriptionSearch(e.target.value)}
+                      onKeyDown={(e) => e.stopPropagation()}
+                      placeholder="Buscar descripción..."
+                      className="h-9"
+                    />
+                  </div>
 
-                  <SelectContent>
-                    <div className="p-2">
-                      <Input
-                        value={brandSearch}
-                        onChange={(e) => setBrandSearch(e.target.value)}
-                        onKeyDown={(e) => e.stopPropagation()}
-                        placeholder="Buscar marca / modelo..."
-                        className="h-9"
-                      />
-                    </div>
+                  <SelectItem value="all">Todos</SelectItem>
+                  {/* ================= DESCRIPCIÓN ================= */}
+                  {renderOptions(
+                    articleOptions?.descriptions,
+                    descriptionSearch,
+                    "desc",
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
 
-                    <SelectItem value="all">Todos</SelectItem>
-
-                    {/* ================= MARCA / MODELO ================= */}
-                    {renderOptions(
-                      articleOptions?.brand_models,
-                      brandSearch,
-                      "brand",
-                    )}
-                  </SelectContent>
-                </Select>
+            {/* ================= ESPECIFICACION ================= */}
+            <div className="space-y-1">
+              <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+                Present. / Especif.
               </div>
-            </PopoverContent>
-          </Popover>
-        </div>
-      )}
+
+              <Select
+                value={articleFilters.variant_type || "all"}
+                onValueChange={(v) =>
+                  setArticleFilters((prev: any) => ({
+                    ...prev,
+                    variant_type: v === "all" ? "" : v,
+                  }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar Present. / Especif." />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <div className="p-2">
+                    <Input
+                      value={modelSearch}
+                      onChange={(e) => setModelSearch(e.target.value)}
+                      onKeyDown={(e) => e.stopPropagation()}
+                      placeholder="Buscar Present. / Especif...."
+                      className="h-9"
+                    />
+                  </div>
+
+                  <SelectItem value="all">Todos</SelectItem>
+
+                  {/* ================= PRESENTACIÓN / ESPECIF ================= */}
+                  {renderOptions(
+                    articleOptions?.variant_types,
+                    modelSearch,
+                    "variant",
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* ================= MARCA ================= */}
+            <div className="space-y-1">
+              <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+                Marca / Modelo
+              </div>
+
+              <Select
+                value={articleFilters.brand_model || "all"}
+                onValueChange={(v) =>
+                  setArticleFilters((prev: any) => ({
+                    ...prev,
+                    brand_model: v === "all" ? "" : v,
+                  }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar marca / modelo" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <div className="p-2">
+                    <Input
+                      value={brandSearch}
+                      onChange={(e) => setBrandSearch(e.target.value)}
+                      onKeyDown={(e) => e.stopPropagation()}
+                      placeholder="Buscar marca / modelo..."
+                      className="h-9"
+                    />
+                  </div>
+
+                  <SelectItem value="all">Todos</SelectItem>
+
+                  {/* ================= MARCA / MODELO ================= */}
+                  {renderOptions(
+                    articleOptions?.brand_models,
+                    brandSearch,
+                    "brand",
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+          </PopoverContent>
+        </Popover>
+      </div>
     </div>
   );
 }

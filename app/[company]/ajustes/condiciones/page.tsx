@@ -1,53 +1,71 @@
 "use client";
 
-import { ContentLayout } from "@/components/layout/ContentLayout";
-import LoadingPage from "@/components/misc/LoadingPage";
-import { useGetConditions } from "@/hooks/general/condiciones/useGetConditions";
-import { useCompanyStore } from "@/stores/CompanyStore";
-import { columns } from "./columns";
-import { DataTable } from "./data-table";
-import { useEffect } from "react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import { SettingsListPage } from "@/components/layout/SettingsListPage";
+import { SettingsDataTable } from "@/components/tables/SettingsDataTable";
+import { CreateConditionDialog } from "@/components/dialogs/ajustes/CreateConditionDialog";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { condicionesSteps } from "@/components/tour/steps/ajustes/condiciones";
-import { PageHeader } from "@/components/layout/PageHeader";
+import { useGetConditions } from "@/hooks/general/condiciones/useGetConditions";
+import { columns } from "./columns";
 
 const ConditionsPage = () => {
-  const { selectedCompany } = useCompanyStore();
-  const { data, isLoading, isError } = useGetConditions();
+  const { data: conditions, isPending, isError, refetch } = useGetConditions();
+  const [search, setSearch] = useState("");
+  const deferredSearch = useDeferredValue(search);
+
   const { registerTour, unregisterTour } = useTourContext();
 
   useEffect(() => {
-    if (data && data.length > 0) {
+    if (conditions && conditions.length > 0) {
       registerTour("condiciones", "Condiciones", condicionesSteps);
     }
 
     return () => unregisterTour("condiciones");
-  }, [registerTour, unregisterTour, data]);
+  }, [conditions, registerTour, unregisterTour]);
 
-  if (isLoading) {
-    return <LoadingPage />;
-  }
+  const filtered = useMemo(() => {
+    if (!conditions) return [];
+    const q = deferredSearch.trim().toLowerCase();
+    if (!q) return conditions;
+
+    return conditions.filter(
+      (item) =>
+        item.name?.toLowerCase().includes(q) ||
+        item.description?.toLowerCase().includes(q),
+    );
+  }, [conditions, deferredSearch]);
 
   return (
-    <ContentLayout title="Condiciones">
-      <PageHeader className="mb-6" />{" "}
-      <h1
-        className="text-5xl font-bold text-center mt-2"
-        data-tour="condiciones-title"
-      >
-        Control de Codiciones
-      </h1>
-      <p className="text-sm text-muted-foreground text-center italic mt-2">
-        Aquí puede llevar el control de las condiciones registradas en el
-        sistema.
-      </p>
-      {data && <DataTable columns={columns} data={data} />}
-      {isError && (
-        <p className="text-muted-foreground text-sm italic text-center">
-          Ha ocurrido un error al cargar los clientes...
-        </p>
-      )}
-    </ContentLayout>
+    <SettingsListPage
+      title="Condiciones"
+      heading="Control de Condiciones"
+      description="Administra las condiciones de los artículos del almacén y cuáles no cuentan como gasto en los reportes."
+      tourPrefix="condiciones"
+      search={{
+        value: search,
+        onChange: setSearch,
+        placeholder: "Buscar condiciones...",
+      }}
+      count={{
+        value: conditions ? filtered.length : undefined,
+        singular: "condición",
+        plural: "condiciones",
+      }}
+    >
+      <SettingsDataTable
+        columns={columns}
+        data={filtered}
+        loading={isPending}
+        error={isError}
+        errorMessage="No se pudieron cargar las condiciones"
+        onRetry={() => refetch()}
+        filtered={!!deferredSearch.trim()}
+        emptyMessage="No se han encontrado condiciones."
+        actions={<CreateConditionDialog />}
+        tourPrefix="condiciones"
+      />
+    </SettingsListPage>
   );
 };
 

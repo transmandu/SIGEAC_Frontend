@@ -1,6 +1,8 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { Plus } from "lucide-react";
+
+import { useState } from "react";
 import {
   Dialog,
   DialogTrigger,
@@ -8,19 +10,20 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 
-import { CreateEmployeeForm } from '@/components/forms/general/CreateEmployeeForm';
+import { CreateEmployeeForm } from "@/components/forms/general/CreateEmployeeForm";
 
 export function CreateEmployeeDialog() {
   const [open, setOpen] = useState(false);
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-<ActionTriggerButton className="flex items-center justify-center gap-2">
-  Crear Empleado
-</ActionTriggerButton>
+        <ActionTriggerButton>
+          <Plus className="h-4 w-4 mr-2" />
+          Crear empleado
+        </ActionTriggerButton>
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-5xl">

@@ -1,5 +1,6 @@
 "use client";
 
+import { flattenDepartments } from "@/lib/departments";
 import { useState, useMemo } from "react";
 import { format } from "date-fns";
 import { Department } from "@/types";
@@ -16,7 +17,11 @@ import { Button } from "@/components/ui/button";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 import { Loader2, Download, FileText, Scale } from "lucide-react";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
+import {
+  ReportTabsList,
+  ReportTabsTrigger,
+} from "@/components/dialogs/mantenimiento/almacen/ReportTabs";
 
 import { RiFileExcel2Fill } from "react-icons/ri";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -32,6 +37,7 @@ import { useGetBalanceAndTotalReport } from "@/hooks/mantenimiento/almacen/repor
 import { useGetAuthorizedEmployees } from "@/hooks/ajustes/autorizados/useGetAuthorizedEmployees";
 import { useGetThirdParties } from "@/hooks/general/terceros/useGetThirdParties";
 import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment";
+import { useGetConditions } from "@/hooks/general/condiciones/useGetConditions";
 
 import { useGetDispatchReportArticleOptions } from "@/hooks/mantenimiento/almacen/reportes/useGetDispatchReportArticleOptions";
 
@@ -83,6 +89,7 @@ export function AdministrationDispatchReportDialog({
     string | null
   >(null);
   const [thirdPartyId, setThirdPartyId] = useState<string | null>(null);
+  const [conditionId, setConditionId] = useState<string | null>(null);
 
   const [dispatchType, setDispatchType] = useState<DispatchType | null>(null);
   const [articleCategory, setArticleCategory] =
@@ -111,12 +118,6 @@ export function AdministrationDispatchReportDialog({
   const { data: departments, isLoading: isLoadingDepartments } =
     useGetDepartments(selectedCompany?.slug);
 
-  const flattenDepartments = (departments: Department[]): Department[] =>
-    departments.flatMap((department) => [
-      department,
-      ...flattenDepartments(department.descendants ?? []),
-    ]);
-
   const allDepartments = departments ? flattenDepartments(departments) : [];
 
   const { data: authorizedEmployees, isLoading: isLoadingEmployees } =
@@ -124,6 +125,10 @@ export function AdministrationDispatchReportDialog({
 
   const { data: thirdParties, isLoading: isLoadingThirdParties } =
     useGetThirdParties();
+
+  const { data: conditions, isLoading: isLoadingConditions } = useGetConditions(
+    selectedCompany?.slug,
+  );
 
   const { data: articleOptions } = useGetDispatchReportArticleOptions(open);
 
@@ -149,6 +154,7 @@ export function AdministrationDispatchReportDialog({
       setDepartmentId(null);
       setAuthorizedEmployeeId(null);
       setThirdPartyId(null);
+      setConditionId(null);
       setDispatchType(null);
       setArticleCategory(null);
       setWithCosts(canSeeCostReport);
@@ -184,6 +190,7 @@ export function AdministrationDispatchReportDialog({
     department_id: departmentId || undefined,
     authorized_employee_id: authorizedEmployeeId || undefined,
     third_party_id: thirdPartyId || undefined,
+    condition_id: conditionId || undefined,
     type: dispatchType || undefined,
     article_category: articleCategory || undefined,
 
@@ -213,6 +220,7 @@ export function AdministrationDispatchReportDialog({
     department_id: departmentId || undefined,
     authorized_employee_id: authorizedEmployeeId || undefined,
     third_party_id: thirdPartyId || undefined,
+    condition_id: conditionId || undefined,
     type: dispatchType || undefined,
     article_category: articleCategory || undefined,
 
@@ -361,27 +369,19 @@ export function AdministrationDispatchReportDialog({
           )}
 
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList
-              className={`grid mb-4 ${withCosts ? "grid-cols-1" : "grid-cols-2"}`}
-            >
-              <TabsTrigger
-                value="dispatch"
-                className="flex items-center justify-center gap-2 text-xs rounded-lg px-3 transition-all duration-200 data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:shadow-primary/10 data-[state=active]:ring-1 data-[state=active]:ring-primary/ data-[state=active]:text-primary"
-              >
+            <ReportTabsList>
+              <ReportTabsTrigger value="dispatch">
                 <FileText className="w-3.5 h-3.5" />
                 Salidas
-              </TabsTrigger>
+              </ReportTabsTrigger>
 
               {!withCosts && (
-                <TabsTrigger
-                  value="balance"
-                  className="flex items-center justify-center gap-2 text-xs rounded-lg px-3 transition-all duration-200 data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:shadow-primary/10 data-[state=active]:ring-1 data-[state=active]:ring-primary/ data-[state=active]:text-primary"
-                >
+                <ReportTabsTrigger value="balance">
                   <Scale className="w-3.5 h-3.5" />
                   Balance
-                </TabsTrigger>
+                </ReportTabsTrigger>
               )}
-            </TabsList>
+            </ReportTabsList>
 
             <DispatchReportFilters
               startDate={startDate}
@@ -423,7 +423,10 @@ export function AdministrationDispatchReportDialog({
               setArticleFilters={setArticleFilters}
 
               isDateRangeInvalid={isDateRangeInvalid}
-              isPlanificacionOnlyFilters={false}
+              conditionId={conditionId}
+              setConditionId={setConditionId}
+              conditions={conditions}
+              isLoadingConditions={isLoadingConditions}
             />
 
             <TabsContent value="dispatch" className="mt-8">

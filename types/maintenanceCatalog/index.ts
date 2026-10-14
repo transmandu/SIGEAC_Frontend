@@ -88,6 +88,9 @@ export type CatalogTask = {
   requirements: CatalogTaskRequirement[];
 };
 
+/** Lo que le falta a un servicio para estar bien cargado (lo calcula el backend). */
+export type CatalogMissingField = "manual" | "code" | "tasks";
+
 export type CatalogService = {
   id: number;
   maintenance_catalog_manual_id: number | null;
@@ -102,6 +105,9 @@ export type CatalogService = {
   tasks?: CatalogTask[];
   tasks_count?: number;
   aircrafts?: MaintenanceAircraft[];
+  /** Los nacidos de un ítem de control cargado a mano llegan incompletos. */
+  missing_fields: CatalogMissingField[];
+  is_incomplete: boolean;
   registered_by: string;
   updated_by: string | null;
 };

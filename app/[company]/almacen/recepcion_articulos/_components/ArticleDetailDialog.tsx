@@ -36,6 +36,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { EditTransitArticleDialog } from "@/app/[company]/compras/(aeronautico)/en_transito/_components/EditTransitArticleDialog";
 import SecureFileViewer from "@/components/library/SecureFileViewer";
+import { DocumentSupportBadge } from "@/components/misc/DocumentSupportBadge";
 import axiosInstance from "@/lib/axios";
 import { cn, toAltPartNumbers } from "@/lib/utils";
 import type { TransitArticle } from "@/types/purchase/in-transit";
@@ -182,7 +183,19 @@ function Section({
   );
 }
 
-export function ArticleDetailDialog({ article }: { article: TransitArticle }) {
+/**
+ * `readOnly` es la ficha para quien solo consulta (Control de Calidad): sin
+ * editar el artículo ni declarar documentos, aunque su rol lo permitiera en
+ * almacén. Es una propiedad y no un chequeo de rol porque SUPERUSER edita en
+ * almacén y aquí tampoco debe hacerlo.
+ */
+export function ArticleDetailDialog({
+  article,
+  readOnly = false,
+}: {
+  article: TransitArticle;
+  readOnly?: boolean;
+}) {
   const [open, setOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [previewDoc, setPreviewDoc] = useState<ArticleDocument | null>(null);
@@ -193,7 +206,8 @@ export function ArticleDetailDialog({ article }: { article: TransitArticle }) {
   const isReception = status === "RECEPTION";
 
   const roles = user?.roles?.map((r) => r.name) ?? [];
-  const canEdit = isReception && EDIT_ROLES.some((r) => roles.includes(r));
+  const canEdit =
+    !readOnly && isReception && EDIT_ROLES.some((r) => roles.includes(r));
 
   const location = article.batch?.warehouse?.location;
   // El `?? []` crea un array nuevo en cada render, y eso invalidaba el memo de
@@ -214,11 +228,12 @@ export function ArticleDetailDialog({ article }: { article: TransitArticle }) {
   // Mientras nadie declare qué documentos exige el artículo, compras no tiene
   // qué buscar. Es el motivo que almacén resuelve sin esperar a nadie, así que
   // se señala desde el ícono, antes de que alguien abra la ficha.
-  const needsDocumentsDeclared =
+  const documentsNotDeclared =
     isReception &&
     (article.incoming_readiness?.reasons ?? []).includes(
       "MISSING_DOCUMENT_REQUIREMENTS",
     );
+  const needsDocumentsDeclared = !readOnly && documentsNotDeclared;
 
   const consignedCount = requirements.filter(
     (req) => req.documents.length > 0,
@@ -478,34 +493,45 @@ export function ArticleDetailDialog({ article }: { article: TransitArticle }) {
                           </p>
                         </div>
 
-                        {req.documents.map((doc, i) => (
-                          <TooltipProvider key={doc.id}>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="size-7 shrink-0 text-muted-foreground hover:text-foreground"
-                                  onClick={() => setPreviewDoc(doc)}
-                                >
-                                  <Eye className="size-3.5" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent side="top">
-                                {req.documents.length > 1
-                                  ? `Ver documento ${i + 1}`
-                                  : "Ver documento"}
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
+                        {req.documents.map((doc) => (
+                          <DocumentSupportBadge
+                            key={`badge-${doc.id}`}
+                            doc={doc}
+                          />
                         ))}
+
+                        {req.documents
+                          .filter((doc) => !!doc.file_path)
+                          .map((doc, i, withFile) => (
+                            <TooltipProvider key={doc.id}>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="size-7 shrink-0 text-muted-foreground hover:text-foreground"
+                                    onClick={() => setPreviewDoc(doc)}
+                                  >
+                                    <Eye className="size-3.5" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent side="top">
+                                  {withFile.length > 1
+                                    ? `Ver documento ${i + 1}`
+                                    : "Ver documento"}
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          ))}
                       </li>
                     );
                   })}
                 </ul>
               ) : !needsDocumentsDeclared ? (
                 <p className="text-sm text-muted-foreground/50">
-                  No hay documentación requerida para este artículo.
+                  {documentsNotDeclared
+                    ? "Almacén aún no indica qué documentos exige este artículo."
+                    : "No hay documentación requerida para este artículo."}
                 </p>
               ) : null}
 

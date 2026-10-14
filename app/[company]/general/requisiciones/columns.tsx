@@ -200,19 +200,17 @@ export const getColumns = (
       }
 
       return (
-        <div className="flex flex-col items-center justify-center gap-1.5">
+        <div className="flex flex-col items-center justify-center gap-1">
           {entries.map(({ key, label, value, icon: Icon }) => (
             <div
               key={key}
-              className="flex flex-col items-center justify-center gap-0.5"
+              title={`${label}: ${value}`}
+              className="flex items-center justify-center gap-1.5"
             >
-              <span className="text-[10px] uppercase tracking-wide text-muted-foreground/70 border border-border/60 rounded px-1 leading-4">
-                {label}
+              <Icon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+              <span className="whitespace-nowrap text-xs font-medium">
+                {value}
               </span>
-              <div className="flex items-center justify-center gap-1.5">
-                <Icon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                <span className="font-medium text-sm">{value}</span>
-              </div>
             </div>
           ))}
         </div>

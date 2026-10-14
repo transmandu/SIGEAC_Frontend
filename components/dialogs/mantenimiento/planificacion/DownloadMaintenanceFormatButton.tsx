@@ -8,6 +8,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useIsSuperuser } from "@/hooks/helpers/useIsSuperuser";
 import axiosInstance from "@/lib/axios";
 import { toast } from "sonner";
 
@@ -20,14 +21,17 @@ interface DownloadMaintenanceFormatButtonProps {
 /**
  * Descarga el formato certificado INAC-43-008 (Aeronave/Motor/Hélice) ya
  * lleno con los datos reales de ese bloque — el backend arma el PDF al
- * vuelo, así que solo hay que pedirlo como blob y bajarlo.
+ * vuelo, así que solo hay que pedirlo como blob y bajarlo. Solo SUPERUSER.
  */
 export function DownloadMaintenanceFormatButton({
   url,
   filename,
   label = "Descargar formato INAC",
 }: DownloadMaintenanceFormatButtonProps) {
+  const isSuperuser = useIsSuperuser();
   const [isDownloading, setIsDownloading] = useState(false);
+
+  if (!isSuperuser) return null;
 
   const handleDownload = async () => {
     setIsDownloading(true);

@@ -41,6 +41,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { useGetControlQueue } from "@/hooks/mantenimiento/planificacion/useGetControlQueue";
 import { useGetMaintenanceAircrafts } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts";
 import { CatalogServicePicker } from "@/components/misc/CatalogServicePicker";
 import { cn } from "@/lib/utils";
@@ -58,7 +59,8 @@ import {
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useForm, useWatch } from "react-hook-form";
+import { FieldErrors, useForm, useWatch } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 
 const manualWorkOrderSchema = z.object({
@@ -78,7 +80,7 @@ const manualWorkOrderSchema = z.object({
         description_task: z
           .string()
           .min(1, "La descripción de la tarea es obligatoria"),
-        ata: z.string().min(1, "Código ATA requerido"),
+        ata: z.string().optional(),
         material: z.string().nullable().optional(),
         task_items: z
           .array(
@@ -199,6 +201,13 @@ const NonServiceWorkOrderForm = ({
 
   const router = useRouter();
 
+  // Desde la bandeja, las tareas de la orden son los ítems que se marcaron ahí:
+  // llegan solo sus ids por la URL, así que se leen de la bandeja.
+  const { data: controlQueue, isLoading: isQueueLoading } = useGetControlQueue(
+    fromControlQueue ? selectedCompany?.slug : undefined,
+    prefillAircraftId,
+  );
+
   const form = useForm<ManualWorkOrderFormValues>({
     resolver: zodResolver(manualWorkOrderSchema),
     defaultValues: {
@@ -218,6 +227,7 @@ const NonServiceWorkOrderForm = ({
 
   useEffect(() => {
     if (prefillApplied.current || !aircrafts) return;
+    if (fromControlQueue && !controlQueue) return;
 
     if (prefillAircraftId) {
       const aircraft = aircrafts.find(
@@ -225,12 +235,33 @@ const NonServiceWorkOrderForm = ({
       );
       if (aircraft) {
         form.setValue("aircraft_id", aircraft.id.toString());
-        form.setValue("authorizing", aircraft.client.authorizing);
+        if (aircraft.client.authorizing) {
+          form.setValue("authorizing", aircraft.client.authorizing);
+        }
         setSelectedAircraft(aircraft.manufacturer.id.toString());
       }
     }
 
-    if (prefillTaskDescription) {
+    const queuedEntries = fromControlQueue
+      ? (controlQueue?.entries ?? []).filter((entry) =>
+          queueEntryIds.includes(entry.id),
+        )
+      : [];
+
+    if (queuedEntries.length) {
+      setTasks(
+        queuedEntries.map((entry) => ({
+          id: crypto.randomUUID(),
+          material: "",
+          description_task: entry.label ?? "",
+          ata: "",
+          task_number: "",
+          origin_manual: "",
+          maintenance_catalog_task_id: "",
+          task_items: [],
+        })),
+      );
+    } else if (prefillTaskDescription) {
       setTasks([
         {
           id: crypto.randomUUID(),
@@ -246,7 +277,16 @@ const NonServiceWorkOrderForm = ({
     }
 
     prefillApplied.current = true;
-  }, [aircrafts, prefillAircraftId, prefillTaskDescription, form]);
+    // queueEntryIds se rearma en cada render; su contenido viene de la URL.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    aircrafts,
+    controlQueue,
+    fromControlQueue,
+    prefillAircraftId,
+    prefillTaskDescription,
+    form,
+  ]);
 
   const addEmptyTask = () => {
     setTasks((prev) => [
@@ -365,6 +405,21 @@ const NonServiceWorkOrderForm = ({
   useEffect(() => {
     form.setValue("work_order_task", tasks, { shouldValidate: true });
   }, [tasks, form]);
+
+  // Los campos de las tareas viven en estado local, no en <FormField>, así que
+  // sus errores de validación no tienen dónde pintarse solos: sin esto el botón
+  // "no hacía nada" cuando faltaba, p. ej., el código ATA de una tarea.
+  const onInvalid = (errors: FieldErrors<ManualWorkOrderFormValues>) => {
+    console.warn("[NonServiceWorkOrderForm] Validación fallida:", errors);
+    const taskErrors = errors.work_order_task;
+    const message =
+      (Array.isArray(taskErrors)
+        ? "Revise los campos obligatorios de las tareas (descripción)."
+        : taskErrors?.message) ??
+      Object.values(errors).find((e) => e?.message)?.message ??
+      "Revise los campos obligatorios.";
+    toast.error("Faltan datos", { description: String(message) });
+  };
 
   const onSubmit = async (data: ManualWorkOrderFormValues) => {
     const selectedAircraftData = aircrafts?.find(
@@ -515,7 +570,10 @@ const NonServiceWorkOrderForm = ({
       )}
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form
+          onSubmit={form.handleSubmit(onSubmit, onInvalid)}
+          className="space-y-6"
+        >
           <div className="flex gap-6 items-center justify-center w-full">
             <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-2">
               <FormField
@@ -585,10 +643,12 @@ const NonServiceWorkOrderForm = ({
                                         "aircraft_id",
                                         aircraft.id.toString(),
                                       );
-                                      form.setValue(
-                                        "authorizing",
-                                        aircraft.client.authorizing,
-                                      );
+                                      if (aircraft.client.authorizing) {
+                                        form.setValue(
+                                          "authorizing",
+                                          aircraft.client.authorizing,
+                                        );
+                                      }
                                       setSelectedAircraft(
                                         aircraft.manufacturer.id.toString(),
                                       );
@@ -809,105 +869,136 @@ const NonServiceWorkOrderForm = ({
                 Agregar Item
               </Button>
 
+              {fromControlQueue && isQueueLoading && (
+                <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="size-4 animate-spin" />
+                  Cargando los ítems seleccionados...
+                </p>
+              )}
+
               <ScrollArea
                 className={cn("flex", tasks.length > 1 ? "h-137.5" : "")}
               >
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  {tasks.map((task) => (
-                    <div key={task.id} className="p-4 border rounded-lg mb-2">
-                      <div className="flex gap-2 justify-between items-center">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 w-full">
-                          <div className="flex items-center justify-between md:col-span-3">
-                            <span className="text-xs text-muted-foreground">
-                              {task.origin_manual
-                                ? `Origen: ${task.origin_manual}`
-                                : "Tarea manual"}
-                            </span>
-                            <CatalogServicePicker
-                              aircraftId={form.watch("aircraft_id")}
-                              onSelectTask={(catalogTask, service) => {
-                                const requirementsText =
-                                  catalogTask.requirements
-                                    .map(
-                                      (r) =>
-                                        `${r.description}${r.part_number ? ` (${r.part_number})` : ""}`,
-                                    )
-                                    .join("\n");
-                                applyTaskFromCatalog(task.id, {
-                                  description_task: catalogTask.description,
-                                  ata: catalogTask.ata ?? "",
-                                  origin_manual:
-                                    service.manual?.name ?? service.name,
-                                  maintenance_catalog_task_id: String(
-                                    catalogTask.id,
-                                  ),
-                                  materialAppend: requirementsText || undefined,
-                                });
-                              }}
-                            />
+                  {tasks.map((task, taskIndex) => {
+                    const taskErrors = Array.isArray(
+                      form.formState.errors.work_order_task,
+                    )
+                      ? form.formState.errors.work_order_task[taskIndex]
+                      : undefined;
+                    return (
+                      <div key={task.id} className="p-4 border rounded-lg mb-2">
+                        <div className="flex gap-2 justify-between items-center">
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 w-full">
+                            <div className="flex items-center justify-between md:col-span-3">
+                              <span className="text-xs text-muted-foreground">
+                                {task.origin_manual
+                                  ? `Origen: ${task.origin_manual}`
+                                  : "Tarea manual"}
+                              </span>
+                              <CatalogServicePicker
+                                aircraftId={form.watch("aircraft_id")}
+                                onSelectTask={(catalogTask, service) => {
+                                  const requirementsText =
+                                    catalogTask.requirements
+                                      .map(
+                                        (r) =>
+                                          `${r.description}${r.part_number ? ` (${r.part_number})` : ""}`,
+                                      )
+                                      .join("\n");
+                                  applyTaskFromCatalog(task.id, {
+                                    description_task: catalogTask.description,
+                                    ata: catalogTask.ata ?? "",
+                                    origin_manual:
+                                      service.manual?.name ?? service.name,
+                                    maintenance_catalog_task_id: String(
+                                      catalogTask.id,
+                                    ),
+                                    materialAppend:
+                                      requirementsText || undefined,
+                                  });
+                                }}
+                              />
+                            </div>
+
+                            {/* ATA Code */}
+                            <FormItem>
+                              <FormLabel>Código ATA (opcional)</FormLabel>
+                              <Input
+                                value={task.ata}
+                                onChange={(e) =>
+                                  updateTask(task.id, "ata", e.target.value)
+                                }
+                                placeholder="Ej: 25"
+                              />
+                              {taskErrors?.ata && (
+                                <p className="text-sm font-medium text-destructive">
+                                  {taskErrors.ata.message}
+                                </p>
+                              )}
+                            </FormItem>
+
+                            {/* Task Description (full width) */}
+                            <FormItem className="md:col-span-3">
+                              <FormLabel>Descripción de la Tarea</FormLabel>
+                              <Textarea
+                                value={task.description_task}
+                                onChange={(e) =>
+                                  updateTask(
+                                    task.id,
+                                    "description_task",
+                                    e.target.value,
+                                  )
+                                }
+                                placeholder="Describa la tarea..."
+                              />
+                              {taskErrors?.description_task && (
+                                <p className="text-sm font-medium text-destructive">
+                                  {taskErrors.description_task.message}
+                                </p>
+                              )}
+                            </FormItem>
+
+                            {/* Materials (full width) */}
+                            <FormItem className="md:col-span-3">
+                              <FormLabel>Material</FormLabel>
+                              <Textarea
+                                value={task.material}
+                                onChange={(e) =>
+                                  updateTask(
+                                    task.id,
+                                    "material",
+                                    e.target.value,
+                                  )
+                                }
+                                placeholder="Materiales requeridos.."
+                              />
+                            </FormItem>
+
+                            {/* Si quieres luego manejar task_items, aquí puedes reactivar el UI
+                              usando addEmptyTaskItem/updateTaskItem/removeTaskItem */}
                           </div>
 
-                          {/* ATA Code */}
-                          <FormItem>
-                            <FormLabel>Código ATA</FormLabel>
-                            <Input
-                              value={task.ata}
-                              onChange={(e) =>
-                                updateTask(task.id, "ata", e.target.value)
-                              }
-                              placeholder="Ej: 25"
-                            />
-                            <FormMessage />
-                          </FormItem>
-
-                          {/* Task Description (full width) */}
-                          <FormItem className="md:col-span-3">
-                            <FormLabel>Descripción de la Tarea</FormLabel>
-                            <Textarea
-                              value={task.description_task}
-                              onChange={(e) =>
-                                updateTask(
-                                  task.id,
-                                  "description_task",
-                                  e.target.value,
-                                )
-                              }
-                              placeholder="Describa la tarea..."
-                            />
-                            <FormMessage />
-                          </FormItem>
-
-                          {/* Materials (full width) */}
-                          <FormItem className="md:col-span-3">
-                            <FormLabel>Material</FormLabel>
-                            <Textarea
-                              value={task.material}
-                              onChange={(e) =>
-                                updateTask(task.id, "material", e.target.value)
-                              }
-                              placeholder="Materiales requeridos.."
-                            />
-                            <FormMessage />
-                          </FormItem>
-
-                          {/* Si quieres luego manejar task_items, aquí puedes reactivar el UI
-                              usando addEmptyTaskItem/updateTaskItem/removeTaskItem */}
+                          <Button
+                            variant="ghost"
+                            type="button"
+                            size="icon"
+                            onClick={() => removeTask(task.id)}
+                            className="hover:text-red-500 ml-2"
+                          >
+                            <MinusCircle className="size-4" />
+                          </Button>
                         </div>
-
-                        <Button
-                          variant="ghost"
-                          type="button"
-                          size="icon"
-                          onClick={() => removeTask(task.id)}
-                          className="hover:text-red-500 ml-2"
-                        >
-                          <MinusCircle className="size-4" />
-                        </Button>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </ScrollArea>
+              {form.formState.errors.work_order_task?.message && (
+                <p className="text-sm font-medium text-destructive">
+                  {form.formState.errors.work_order_task.message}
+                </p>
+              )}
             </div>
           </div>
 

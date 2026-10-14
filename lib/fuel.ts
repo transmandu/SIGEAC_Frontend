@@ -19,6 +19,9 @@ export const FUEL_ALLOWED_ROLES = [
   "JEFE_MANTENIMIENTO",
 ];
 
+// ANALISTA_ALMACEN y JEFE_MANTENIMIENTO solo consultan.
+export const FUEL_MANAGE_ROLES = ["SUPERUSER", "JEFE_ALMACEN"];
+
 // Formatos de placa venezolana vigentes (equivalente a la validacion del backend).
 export const FUEL_PLATE_REGEX =
   /^(?:[A-Z]{3}[0-9]{3}|[A-Z]{2}[0-9]{3}[A-Z]{2}|[A-Z]{2}[0-9]{3}[A-Z]|[A-Z][0-9]{2}[A-Z]{2}[0-9][A-Z])$/;

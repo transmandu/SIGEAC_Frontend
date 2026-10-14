@@ -1,3 +1,142 @@
+## v4.66.1 — 2026-10-14
+
+- refactor: renew clients for good division (#338)
+
+## v4.66.0 — 2026-10-14
+
+- feat: enhance pilot and retailer forms with improved validation and l… (#337)
+
+## v4.65.0 — 2026-10-13
+
+- feat: update maintenance alert system and UI components (#336)
+
+## v4.64.1 — 2026-10-13
+
+- fix: qr sms forms (#335)
+
+## v4.64.0 — 2026-10-12
+
+- feat: add DocumentSupportBadge component and integrate it across various document sections
+
+## v4.63.1 — 2026-10-12
+
+- fix: ensure proper comparison of article document type IDs as numbers
+
+## v4.63.0 — 2026-10-12
+
+- feat: add condition management features (#334)
+
+## v4.62.0 — 2026-10-12
+
+- feat: implement download and upload functionality for quote documents (#333)
+
+## v4.61.1 — 2026-10-12
+
+- fix: infinity trainning employee card (#332)
+
+## v4.61.0 — 2026-10-11
+
+- feat: add status filter to requisitions and update UI components (#331)
+
+## v4.60.0 — 2026-10-11
+
+- feat: restrict management actions to users with appropriate roles in … (#330)
+
+## v4.59.0 — 2026-10-10
+
+- feat: integrate control queue data into NonServiceWorkOrderForm for task pre-filling
+
+## v4.58.0 — 2026-10-10
+
+- feat: add base unit change functionality for general articles and consumables
+
+## v4.57.4 — 2026-10-10
+
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- fix: enhance form handling by adding dirty field tracking and application state management
+
+## v4.57.3 — 2026-10-10
+
+- fix: improve form validation feedback and error handling in multiple forms
+
+## v4.57.2 — 2026-10-10
+
+- refactor: logic control planification remake (#329)
+
+## v4.57.1 — 2026-10-09
+
+- Merge pull request #327 from transmandu/fix/array-guard-map-not-a-function
+- style: formato automatico (prettier)
+- fix: guard Array.isArray before .map() on roles, permissions, modules and images
+
+## v4.57.0 — 2026-10-09
+
+- feat: chart from sms dashboard removed (#328)
+
+## v4.56.0 — 2026-10-09
+
+- feat: drop-causa-raiz-from-identification-form (#326)
+
+## v4.55.1 — 2026-10-08
+
+- fix: danger identification date (#325)
+
+## v4.55.0 — 2026-10-08
+
+- feat: get docs from library (#324)
+
+## v4.54.0 — 2026-10-07
+
+- feat: update grid column styles for responsive layout in PartNumberGroupDialog
+
+## v4.53.0 — 2026-10-07
+
+- feat: update tooltip content wrapping and improve layout in DataTable… (#323)
+
+## v4.52.0 — 2026-10-07
+
+- feat: add new file order in library module (#322)
+
+## v4.51.0 — 2026-10-07
+
+- feat: add new chart to sms dashboard (#320)
+
+## v4.50.0 — 2026-10-07
+
+- feat: add IncompleteBadge component and update catalog invalidation l… (#321)
+
+## v4.49.0 — 2026-10-06
+
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- feat: add service toolbar for filtering and searching in ManualsPage
+
+## v4.48.0 — 2026-10-06
+
+- feat: add HorizontalScroller component for native horizontal scrolling
+
+## v4.47.1 — 2026-10-06
+
+- refactor: remove catalog manuals and services pages, components, and … (#319)
+
+## v4.47.0 — 2026-10-06
+
+- feat: download library (#318)
+
+## v4.46.0 — 2026-10-06
+
+- feat: add import compliance history functionality for avionics, compo… (#317)
+
+## v4.45.0 — 2026-10-06
+
+- ci:add GitHub Action to create ClickUp task on push to main (#316)
+- feat: enhance part labeling with type and serial number formatting across multiple components
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- feat: restrict download button visibility to SUPERUSER role
+
+## v4.44.0 — 2026-10-05
+
+- feat: add AddDirectiveControlItemDialog and AddMaintenanceControlItem… (#315)
+
 ## v4.43.0 — 2026-10-05
 
 - feat: restrict access to directive control pages to SUPERUSER role (#313)

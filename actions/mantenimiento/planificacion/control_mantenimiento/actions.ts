@@ -3,9 +3,19 @@ import type { EditReasonValue } from "@/components/forms/mantenimiento/planifica
 import { invalidatePlanificationAudit } from "@/hooks/mantenimiento/planificacion/useGetPlanificationAuditStats";
 import axiosInstance from "@/lib/axios";
 import { MaintenanceControlItemInterval } from "@/types";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQueryClient,
+  type QueryClient,
+} from "@tanstack/react-query";
 import { toast } from "sonner";
 
+// Un ítem cargado a mano crea además su entrada en el catálogo (sin manual,
+// incompleta): hay que refrescar el catálogo, no solo el control.
+const invalidateCatalog = (queryClient: QueryClient) => {
+  queryClient.invalidateQueries({ queryKey: ["maintenance-catalog-services"] });
+  queryClient.invalidateQueries({ queryKey: ["maintenance-catalog-manuals"] });
+};
 /**
  * Primer mensaje de validación que haya devuelto el backend, sea del campo
  * que sea. Antes solo se leía `errors.aircraft_id`, así que un error de
@@ -23,8 +33,9 @@ const firstBackendError = (error: any): string | undefined => {
 interface MaintenanceItemData {
   id?: number;
   maintenance_catalog_service_id?: number;
-  name: string;
-  first_applied_date: string;
+  description: string;
+  declared_description?: string;
+  applied_date?: string;
   remaining_percentage?: number | null;
   intervals: MaintenanceControlItemInterval[];
   maintenance_provider_id?: string;
@@ -63,6 +74,7 @@ export const useCreateMaintenanceControl = () => {
     onSuccess: () => {
       invalidatePlanificationAudit(queryClient);
       queryClient.invalidateQueries({ queryKey: ["maintenance-controls"] });
+      invalidateCatalog(queryClient);
       toast.success("¡Creado!", {
         description: `El control de mantenimiento ha sido registrado correctamente.`,
       });
@@ -100,6 +112,7 @@ export const useUpdateMaintenanceControl = () => {
     onSuccess: () => {
       invalidatePlanificationAudit(queryClient);
       queryClient.invalidateQueries({ queryKey: ["maintenance-controls"] });
+      invalidateCatalog(queryClient);
       toast.success("¡Actualizado!", {
         description: `El control de mantenimiento ha sido actualizado correctamente.`,
       });
@@ -130,7 +143,10 @@ export const useAddMaintenanceControlItem = () => {
     }: {
       company: string;
       controlId: string | number;
-      data: MaintenanceItemData & { category: "CERTIFICATE" | "SERVICE"; maintenance_control_part_id?: number };
+      data: MaintenanceItemData & {
+        item_type: "CERTIFICATE" | "SERVICE";
+        aircraft_part_id?: number;
+      };
     }) => {
       const response = await axiosInstance.post(
         `/${company}/maintenance-controls/${controlId}/items`,
@@ -144,6 +160,7 @@ export const useAddMaintenanceControlItem = () => {
         queryKey: ["maintenance-controls"],
         exact: false,
       });
+      invalidateCatalog(queryClient);
       toast.success("¡Agregado!", {
         description: "El ítem ha sido agregado al control correctamente.",
       });
@@ -176,7 +193,7 @@ export const useLinkPendingWorkOrder = () => {
       workOrderId: string | number;
     }) => {
       await axiosInstance.patch(
-        `/${company}/maintenance-control-items/${itemId}/pending-work-order`,
+        `/${company}/maintenance-control-items/${itemId}/work-order`,
         {
           work_order_id: workOrderId,
         },

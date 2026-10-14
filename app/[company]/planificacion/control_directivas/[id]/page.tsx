@@ -32,8 +32,10 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { RegisterDirectiveComplianceDialog } from "@/components/dialogs/mantenimiento/planificacion/RegisterDirectiveComplianceDialog";
+import { CloseComplianceDialog } from "@/components/dialogs/mantenimiento/planificacion/CloseComplianceDialog";
+import { StartComplianceDialog } from "@/components/dialogs/mantenimiento/planificacion/StartComplianceDialog";
 import { AddDirectiveControlItemDialog } from "@/components/dialogs/mantenimiento/planificacion/AddDirectiveControlItemDialog";
+import { ImportDirectiveComplianceHistoryDialog } from "@/components/dialogs/mantenimiento/planificacion/ImportDirectiveComplianceHistoryDialog";
 import { useGetDirectiveControl } from "@/hooks/mantenimiento/planificacion/useGetDirectiveControl";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import {
@@ -67,7 +69,6 @@ import { AddToQueueButton } from "@/components/planificacion/cola/AddToQueueButt
 import {
   AlertTriangle,
   CheckCircle2,
-  Clock,
   Cog,
   Info,
   Plane,
@@ -120,7 +121,6 @@ function TruncatedText({ children }: { children: string }) {
  */
 function PrimaryItemAction({
   item,
-  company,
   aircraftId,
   currentHours,
   currentCycles,
@@ -133,9 +133,9 @@ function PrimaryItemAction({
 }) {
   if (!item.id || item.complied_at) return null;
 
-  const pendingWorkOrder = item.pending_work_order;
-  const isBlockedByWorkOrder =
-    !!pendingWorkOrder && pendingWorkOrder.status !== "CLOSED";
+  const current = item.current_compliance;
+  const itemName = `AD ${item.ad_number} — ${item.description}`;
+  const units = item.intervals.map((interval) => interval.counting_method);
 
   return (
     <>
@@ -145,31 +145,33 @@ function PrimaryItemAction({
         subject={`AD «${item.ad_number}»`}
       />
 
-      {isBlockedByWorkOrder ? (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Link
-              href={`/${company}/planificacion/ordenes_trabajo/${pendingWorkOrder!.order_number}`}
-              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground hover:underline"
-            >
-              <Clock className="size-3.5 shrink-0" />
-              <span className="truncate">{pendingWorkOrder!.order_number}</span>
-            </Link>
-          </TooltipTrigger>
-          <TooltipContent>
-            Bloqueado hasta que se cierre la Orden de Trabajo{" "}
-            {pendingWorkOrder!.order_number}.
-          </TooltipContent>
-        </Tooltip>
-      ) : (
-        <RegisterDirectiveComplianceDialog
-          itemId={item.id}
-          itemName={`AD ${item.ad_number} — ${item.description}`}
-          defaultMethod={item.compliance_method}
+      {current ? (
+        <CloseComplianceDialog
+          kind="directive"
+          complianceId={current.id}
+          subjectName={itemName}
           aircraftId={aircraftId}
+          units={units}
+          appliedDate={current.applied_date}
           defaultHours={currentHours}
           defaultCycles={currentCycles}
-          pendingWorkOrder={pendingWorkOrder ?? null}
+          currentProviderId={current.maintenance_provider_id}
+          currentWorkOrder={current.work_order ?? null}
+          // Una AD de única vez, una vez cumplida, no admite otro cumplimiento.
+          canStartNext={item.compliance_type !== "ONE_TIME"}
+          defaultMethod={item.compliance_method}
+        />
+      ) : (
+        <StartComplianceDialog
+          kind="directive"
+          subjectId={item.id}
+          subjectName={itemName}
+          aircraftId={aircraftId}
+          units={units}
+          defaultHours={currentHours}
+          defaultCycles={currentCycles}
+          defaultProviderId={item.maintenance_provider_id}
+          defaultMethod={item.compliance_method}
         />
       )}
     </>
@@ -203,9 +205,9 @@ const COL = {
   limit: "w-[110px]",
   applied: "w-[125px]",
   next: "w-[115px]",
-  remaining: "w-[150px]",
+  remaining: "w-37.5",
   provider: "w-[140px]",
-  workOrder: "w-[150px]",
+  workOrder: "w-37.5",
   actions: "w-[80px]",
 };
 
@@ -292,11 +294,8 @@ const DirectiveControlDetailPage = () => {
   // igual que en los otros controles.
   const parentsById = new Map<string, MaintenanceAircraftPart>();
   items.forEach((item) => {
-    if (item.parent_aircraft_part && item.parent_aircraft_part_id) {
-      parentsById.set(
-        String(item.parent_aircraft_part_id),
-        item.parent_aircraft_part,
-      );
+    if (item.aircraft_part && item.aircraft_part_id) {
+      parentsById.set(String(item.aircraft_part_id), item.aircraft_part);
     }
   });
   const counters: Record<string, number> = {};
@@ -305,14 +304,16 @@ const DirectiveControlDetailPage = () => {
     .map(([partId, part]) => {
       const type = (part.type ?? "").toUpperCase();
       counters[type] = (counters[type] ?? 0) + 1;
+      const typeLabel = `${partTypeLabel(part.type)} ${counters[type]}`;
       return {
         id: partId,
         part,
-        label: `${partTypeLabel(part.type)} ${counters[type]}${part.serial ? ` - ${part.serial}` : ""}`,
+        typeLabel,
+        label: `${typeLabel}${part.serial ? ` - ${part.serial}` : ""}`,
       };
     });
 
-  const fuselageItems = filtered.filter((i) => !i.parent_aircraft_part_id);
+  const fuselageItems = filtered.filter((i) => !i.aircraft_part_id);
 
   const recurrentCount = items.filter(
     (i) => i.compliance_type === "RECURRENT",
@@ -344,14 +345,20 @@ const DirectiveControlDetailPage = () => {
                 filename={`historial_control_directivas_${control.aircraft?.acronym ?? control.id}`}
               />
               {!controlRetired && (
-                <ActionTriggerButton asChild>
-                  <Link
-                    href={`/${company}/planificacion/control_directivas/editar/${control.id}`}
-                  >
-                    <SquarePen className="mr-2 size-4" />
-                    Editar
-                  </Link>
-                </ActionTriggerButton>
+                <>
+                  <ImportDirectiveComplianceHistoryDialog
+                    controlId={control.id}
+                    items={items}
+                  />
+                  <ActionTriggerButton asChild>
+                    <Link
+                      href={`/${company}/planificacion/control_directivas/editar/${control.id}`}
+                    >
+                      <SquarePen className="mr-2 size-4" />
+                      Editar
+                    </Link>
+                  </ActionTriggerButton>
+                </>
               )}
             </div>
           </div>
@@ -469,17 +476,28 @@ const DirectiveControlDetailPage = () => {
             />
           </FormSection>
 
-          {parents.map(({ id: partId, part, label }) => (
+          {parents.map(({ id: partId, part, label, typeLabel }) => (
             <FormSection
               key={partId}
               icon={Cog}
-              title={label}
+              title={
+                <>
+                  {typeLabel}
+                  {part.serial && (
+                    <>
+                      {" "}
+                      <span className="text-muted-foreground">S/N:</span>{" "}
+                      {part.serial}
+                    </>
+                  )}
+                </>
+              }
               hint={`Directivas medidas contra el TSN/CSN de ${label}.`}
               action={
                 !controlRetired && (
                   <AddDirectiveControlItemDialog
                     controlId={control.id}
-                    parentAircraftPartId={partId}
+                    aircraftPartId={partId}
                     sectionLabel={label}
                     currentHours={Number(part.time_since_new ?? 0)}
                     currentCycles={Number(part.cycles_since_new ?? 0)}
@@ -489,7 +507,7 @@ const DirectiveControlDetailPage = () => {
             >
               <DirectivesTable
                 items={filtered.filter(
-                  (i) => String(i.parent_aircraft_part_id) === partId,
+                  (i) => String(i.aircraft_part_id) === partId,
                 )}
                 emptyLabel="Ninguna directiva de este conjunto coincide con el filtro."
                 company={company}
@@ -590,8 +608,8 @@ function DirectivesTable({
               ? computeMaintenanceItem(item)
               : null;
             const meta = computed ? STATUS_META[computed.status] : null;
-            const pending = item.pending_work_order;
-            const lastCompliance = item.latest_compliance;
+            const pending = item.current_compliance?.work_order;
+            const lastCompliance = item.last_completed_compliance;
 
             return (
               <TableRow
@@ -742,8 +760,9 @@ function DirectivesTable({
                     colSpan={5}
                     className="text-sm text-muted-foreground"
                   >
-                    Sin plazo definido — registre el cumplimiento cuando se
-                    ejecute.
+                    {item.current_compliance
+                      ? "Sin plazo definido — ciérrelo cuando se ejecute."
+                      : "Sin cumplimiento vigente — inícielo para que corra el plazo."}
                   </TableCell>
                 )}
 
@@ -752,13 +771,16 @@ function DirectivesTable({
                     company={company}
                     aircraftId={control.aircraft.id}
                     subject={`AD «${item.ad_number}»`}
-                    taskDescription={`AD ${item.ad_number}${item.revision ? ` ${item.revision}` : ""} (${DIRECTIVE_AUTHORITY_LABELS[item.authority]}): ${item.description}${item.compliance_method ? `. Método: ${item.compliance_method}` : ""}`}
+                    taskDescription={`AD ${item.ad_number}${item.revision ? ` ${item.revision}` : ""} (${DIRECTIVE_AUTHORITY_LABELS[item.authority]}): ${item.declared_description?.trim() || item.description}${item.compliance_method ? `. Método: ${item.compliance_method}` : ""}`}
                     previous={lastCompliance?.work_order}
                     current={pending}
                     // Una AD de única vez ya cumplida no vuelve a necesitar
                     // orden: solo queda su historia.
                     readOnly={
-                      !!control.retired_at || !item.id || !!item.complied_at
+                      !!control.retired_at ||
+                      !item.id ||
+                      !!item.complied_at ||
+                      !item.current_compliance
                     }
                     onWorkOrderCreated={(workOrder) =>
                       linkDirectivePendingWorkOrder.mutateAsync({

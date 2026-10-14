@@ -9,6 +9,9 @@ import { Loader2, Plus, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { CONTROL_ITEM_FLAGS } from "@/lib/controlItemFlags";
+import { ControlItemFlagsField } from "@/components/forms/mantenimiento/planificacion/ControlItemFlagsField";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -68,7 +71,11 @@ const optionalNumeric = z.preprocess(
 
 const optionalPercentage = z.preprocess(
   (val) => (val === "" || val === undefined || val === null ? undefined : val),
-  z.coerce.number().min(0, "Debe ser ≥ 0").max(100, "Debe ser ≤ 100").optional(),
+  z.coerce
+    .number()
+    .min(0, "Debe ser ≥ 0")
+    .max(100, "Debe ser ≤ 100")
+    .optional(),
 );
 
 const intervalSchema = z.object({
@@ -88,18 +95,18 @@ const taskSchema = z
     ]),
     is_on_condition: z.boolean().default(false),
     maintenance_provider_id: z.string().optional(),
-    first_applied_date: z.date().optional(),
+    applied_date: z.date().optional(),
     remaining_percentage: optionalPercentage,
     intervals: z.array(intervalSchema).default([]),
   })
   .superRefine((vals, ctx) => {
     if (vals.is_on_condition) return;
 
-    if (!vals.first_applied_date) {
+    if (!vals.applied_date) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "Indique la fecha del último evento",
-        path: ["first_applied_date"],
+        path: ["applied_date"],
       });
     }
     if (!vals.maintenance_provider_id) {
@@ -119,7 +126,10 @@ const taskSchema = z
 
     const seenMethods = new Set<string>();
     vals.intervals.forEach((interval, index) => {
-      if (interval.counting_method !== "DAYS" && interval.initial_value === undefined) {
+      if (
+        interval.counting_method !== "DAYS" &&
+        interval.initial_value === undefined
+      ) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: "Indique las horas/ciclos de la aeronave en ese evento",
@@ -139,10 +149,11 @@ const taskSchema = z
 
 const formSchema = z.object({
   description: z.string().min(1, "Requerido"),
+  declared_description: z.string().optional(),
   part_number: z.string().min(1, "Requerido"),
   serial: z.string().min(1, "Requerido"),
   position: z.string().optional(),
-  is_hazardous: z.boolean().default(false),
+  flags: z.array(z.enum(CONTROL_ITEM_FLAGS)).default([]),
   reference_document: z.string().optional(),
   tasks: z.array(taskSchema).min(1, "Agregue al menos una tarea"),
 });
@@ -150,8 +161,9 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 const emptyInterval = (usedMethods: string[] = []) => ({
-  counting_method: (ALL_COUNTING_METHODS.find((m) => !usedMethods.includes(m)) ??
-    "HOURS") as "HOURS" | "CYCLES" | "DAYS",
+  counting_method: (ALL_COUNTING_METHODS.find(
+    (m) => !usedMethods.includes(m),
+  ) ?? "HOURS") as "HOURS" | "CYCLES" | "DAYS",
   limit_value: undefined as unknown as number,
 });
 
@@ -159,7 +171,7 @@ const emptyTask = () => ({
   action: "FUNCTIONAL_CHECK" as const,
   is_on_condition: false,
   maintenance_provider_id: "",
-  first_applied_date: undefined,
+  applied_date: undefined,
   intervals: [emptyInterval()],
 });
 
@@ -179,7 +191,10 @@ function TaskIntervalRow({
   canRemove: boolean;
 }) {
   const namePrefix = `tasks.${taskIndex}.intervals.${intervalIndex}` as const;
-  const countingMethod = useWatch({ control, name: `${namePrefix}.counting_method` });
+  const countingMethod = useWatch({
+    control,
+    name: `${namePrefix}.counting_method`,
+  });
   const needsInitialReading = countingMethod && countingMethod !== "DAYS";
   const availableMethods = ALL_COUNTING_METHODS.filter(
     (unit) => unit === countingMethod || !usedMethods.includes(unit),
@@ -278,14 +293,19 @@ function TaskRow({
   canRemove: boolean;
 }) {
   const namePrefix = `tasks.${index}` as const;
-  const isOnCondition = useWatch({ control, name: `${namePrefix}.is_on_condition` });
+  const isOnCondition = useWatch({
+    control,
+    name: `${namePrefix}.is_on_condition`,
+  });
   const {
     fields: intervalFields,
     append: appendInterval,
     remove: removeInterval,
   } = useFieldArray({ control, name: `${namePrefix}.intervals` });
   const intervals = useWatch({ control, name: `${namePrefix}.intervals` });
-  const usedMethods = (intervals ?? []).map((i) => i.counting_method).filter(Boolean);
+  const usedMethods = (intervals ?? [])
+    .map((i) => i.counting_method)
+    .filter(Boolean);
   const canAddInterval = intervalFields.length < ALL_COUNTING_METHODS.length;
 
   return (
@@ -303,11 +323,13 @@ function TaskRow({
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {Object.entries(AVIONICS_ACTION_LABELS).map(([value, label]) => (
-                    <SelectItem key={value} value={value}>
-                      {label}
-                    </SelectItem>
-                  ))}
+                  {Object.entries(AVIONICS_ACTION_LABELS).map(
+                    ([value, label]) => (
+                      <SelectItem key={value} value={value}>
+                        {label}
+                      </SelectItem>
+                    ),
+                  )}
                 </SelectContent>
               </Select>
               <FormMessage />
@@ -332,9 +354,14 @@ function TaskRow({
         render={({ field }) => (
           <FormItem className="flex items-center gap-2 space-y-0">
             <FormControl>
-              <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+              <Checkbox
+                checked={field.value}
+                onCheckedChange={field.onChange}
+              />
             </FormControl>
-            <FormLabel className="cursor-pointer font-normal">Por condición (sin plazo)</FormLabel>
+            <FormLabel className="cursor-pointer font-normal">
+              Por condición (sin plazo)
+            </FormLabel>
           </FormItem>
         )}
       />
@@ -344,7 +371,7 @@ function TaskRow({
           <div className="grid grid-cols-2 gap-4">
             <FormField
               control={control}
-              name={`${namePrefix}.first_applied_date`}
+              name={`${namePrefix}.applied_date`}
               render={({ field }) => (
                 <FormItem className="w-full">
                   <DatePickerField
@@ -373,7 +400,8 @@ function TaskRow({
             render={({ field }) => (
               <FormItem className="w-full">
                 <FormLabel className={labelClass}>
-                  % Alerta <span className="text-muted-foreground text-xs">(Opc.)</span>
+                  % Alerta{" "}
+                  <span className="text-muted-foreground text-xs">(Opc.)</span>
                 </FormLabel>
                 <FormControl>
                   <NumericInput
@@ -409,8 +437,7 @@ function TaskRow({
                 className="w-fit gap-1.5"
                 onClick={() => appendInterval(emptyInterval(usedMethods))}
               >
-                <Plus className="size-3.5" />
-                Ó este otro límite
+                <Plus className="size-3.5" />Ó este otro límite
               </Button>
             )}
           </div>
@@ -426,9 +453,9 @@ interface AddAvionicsControlItemDialogProps {
 
 /**
  * "Añadir Ítem" — alta de un equipo (con sus tareas) sobre un control de
- * aviónica YA EXISTENTE, sin pasar por Editar. Sin cumplimiento inicial: el
- * cumplimiento es por TAREA, no por equipo, y se registra después desde el
- * detalle con el flujo normal una vez creado.
+ * aviónica YA EXISTENTE, sin pasar por Editar. El cumplimiento es por TAREA,
+ * no por equipo: la fecha y lecturas de cada tarea programada inician su
+ * cumplimiento vigente.
  */
 export function AddAvionicsControlItemDialog({
   controlId,
@@ -441,10 +468,11 @@ export function AddAvionicsControlItemDialog({
     resolver: zodResolver(formSchema),
     defaultValues: {
       description: "",
+      declared_description: "",
       part_number: "",
       serial: "",
       position: "",
-      is_hazardous: false,
+      flags: [],
       reference_document: "",
       tasks: [emptyTask()],
     },
@@ -468,10 +496,11 @@ export function AddAvionicsControlItemDialog({
       controlId,
       data: {
         description: values.description,
+        declared_description: values.declared_description?.trim() || undefined,
         part_number: values.part_number,
         serial: values.serial,
         position: values.position || undefined,
-        is_hazardous: values.is_hazardous,
+        flags: values.flags,
         reference_document: values.reference_document || undefined,
         tasks: values.tasks.map((task) => ({
           action: task.action,
@@ -479,14 +508,14 @@ export function AddAvionicsControlItemDialog({
           maintenance_provider_id: task.is_on_condition
             ? undefined
             : task.maintenance_provider_id,
-          first_applied_date: task.is_on_condition
+          applied_date: task.is_on_condition
             ? undefined
-            : task.first_applied_date
-              ? format(task.first_applied_date, "yyyy-MM-dd")
+            : task.applied_date
+              ? format(task.applied_date, "yyyy-MM-dd")
               : undefined,
           remaining_percentage: task.is_on_condition
             ? null
-            : task.remaining_percentage ?? null,
+            : (task.remaining_percentage ?? null),
           intervals: task.is_on_condition ? [] : task.intervals,
         })),
       },
@@ -496,7 +525,10 @@ export function AddAvionicsControlItemDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={(next) => (next ? setOpen(true) : resetAndClose())}>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => (next ? setOpen(true) : resetAndClose())}
+    >
       <Tooltip>
         <TooltipTrigger asChild>
           <DialogTrigger asChild>
@@ -519,12 +551,16 @@ export function AddAvionicsControlItemDialog({
         <DialogHeader>
           <DialogTitle>Añadir Equipo</DialogTitle>
           <DialogDescription>
-            Registra un equipo nuevo (con sus tareas) en este control sin tocar los demás.
+            Registra un equipo nuevo (con sus tareas) en este control sin tocar
+            los demás.
           </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="flex flex-col gap-4"
+          >
             <FormField
               control={control}
               name="description"
@@ -532,7 +568,31 @@ export function AddAvionicsControlItemDialog({
                 <FormItem className="w-full">
                   <FormLabel className={labelClass}>Descripción</FormLabel>
                   <FormControl>
-                    <Input placeholder="EJ: Transpondedor" className={fieldClass} {...field} />
+                    <Input
+                      placeholder="EJ: Transpondedor"
+                      className={fieldClass}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={control}
+              name="declared_description"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel className={labelClass}>
+                    Descripción en formatos (Opcional)
+                  </FormLabel>
+                  <FormControl>
+                    <Textarea
+                      rows={2}
+                      placeholder="Cómo se redacta en la OT y los formatos INAC. Si se deja vacía se usa la descripción."
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -572,7 +632,10 @@ export function AddAvionicsControlItemDialog({
                 render={({ field }) => (
                   <FormItem className="w-full">
                     <FormLabel className={labelClass}>
-                      Posición <span className="text-muted-foreground text-xs">(Opc.)</span>
+                      Posición{" "}
+                      <span className="text-muted-foreground text-xs">
+                        (Opc.)
+                      </span>
                     </FormLabel>
                     <FormControl>
                       <Input className={fieldClass} {...field} />
@@ -583,19 +646,9 @@ export function AddAvionicsControlItemDialog({
               />
             </div>
 
-            <FormField
-              control={control}
-              name="is_hazardous"
-              render={({ field }) => (
-                <FormItem className="flex items-center gap-2 space-y-0">
-                  <FormControl>
-                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                  </FormControl>
-                  <FormLabel className="cursor-pointer font-normal">
-                    Es un material peligroso
-                  </FormLabel>
-                </FormItem>
-              )}
+            <ControlItemFlagsField
+              control={control as unknown as Control<any>}
+              name="flags"
             />
 
             <FormSection title="Tareas">

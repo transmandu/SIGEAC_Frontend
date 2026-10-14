@@ -498,7 +498,7 @@ export default function PartComponentArticleForm({
         title: "Detalles y documentos",
         fields: [
           {
-            label: "¿Tiene documentación?",
+            label: "¿Requiere o llegó con documentación?",
             value: values.has_documentation ? "Sí" : "No",
           },
           {

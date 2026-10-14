@@ -47,6 +47,13 @@ import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits";
 import { useGetGeneralArticles } from "@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticles";
 import { GeneralArticle } from "@/types";
 import {
+  BaseUnitChangeNotice,
+  EMPTY_BASE_UNIT_CHANGE,
+  baseUnitChangePayload,
+  isBaseUnitChangeReady,
+  type BaseUnitChangeValue,
+} from "@/components/forms/mantenimiento/almacen/BaseUnitChangeNotice";
+import {
   ConsumableConversionsField,
   type ConsumableConversionInput,
 } from "@/components/forms/mantenimiento/almacen/ConsumableConversionsField";
@@ -293,6 +300,19 @@ const CreateGeneralArticleForm = ({
     [],
   );
 
+  // Equivalencia que se pide al cambiar la unidad base de un artículo ya
+  // registrado; tampoco es un campo del formulario.
+  const [unitChange, setUnitChange] = useState<BaseUnitChangeValue>(
+    EMPTY_BASE_UNIT_CHANGE,
+  );
+  const originalUnit = initialData?.general_primary_unit;
+  const unitChanged =
+    !!isEditing &&
+    !!watchedUnitId &&
+    !!originalUnit &&
+    String(watchedUnitId) !== String(originalUnit.id);
+  const unitChangeBlocked = unitChanged && !isBaseUnitChangeReady(unitChange);
+
   // Igual que las conversiones: no es un campo del formulario sino una
   // decisión que acompaña al payload.
   const [dimension, setDimension] = useState<DimensionDraft>(EMPTY_DIMENSION);
@@ -403,7 +423,10 @@ const CreateGeneralArticleForm = ({
                 ? parseFloat(values.maximum_quantity.toFixed(2))
                 : undefined,
           },
-          conversions,
+          ...(unitChanged ? baseUnitChangePayload(unitChange) : {}),
+          // Con cambio de base el backend reorienta las equivalencias; las
+          // que viajan aquí siguen escritas contra la unidad anterior.
+          conversions: unitChanged && !unitChange.relabel ? undefined : conversions,
           // Con perfil ya creado solo viajan las escalas de medida:
           // las medidas de la pieza no se pueden cambiar.
           dimension:
@@ -771,6 +794,7 @@ const CreateGeneralArticleForm = ({
                         <Select
                           onValueChange={field.onChange}
                           value={field.value || undefined}
+                          disabled={!!isEditing && !!initialData?.dimension}
                         >
                           <FormControl>
                             <SelectTrigger className={selectTriggerClass}>
@@ -795,13 +819,34 @@ const CreateGeneralArticleForm = ({
                       <FormDescription className="text-xs">
                         {currentMode === "add"
                           ? "Unidad en la que se cuenta este artículo."
-                          : "En qué se cuenta: UNIDADES, LÁMINA, CAJA…"}
+                          : isEditing && initialData?.dimension
+                            ? "Se mide por dimensiones: su unidad base no se puede cambiar."
+                            : "En qué se cuenta: UNIDADES, LÁMINA, CAJA…"}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               </div>
+
+              {unitChanged && originalUnit && (
+                <BaseUnitChangeNotice
+                  className="mt-4"
+                  oldLabel={originalUnit.label}
+                  newLabel={
+                    units?.find((u) => String(u.id) === String(watchedUnitId))
+                      ?.label ?? "la unidad nueva"
+                  }
+                  registeredOldPerNew={
+                    existingConversions?.find(
+                      (row) => String(row.unit.id) === String(watchedUnitId),
+                    )?.base_per_unit
+                  }
+                  value={unitChange}
+                  onChange={setUnitChange}
+                  disabled={busy}
+                />
+              )}
 
               {currentMode !== "add" && (
                 <div className="mt-4 grid grid-cols-2 gap-3 items-start border-t border-slate-400/30 pt-4 dark:border-slate-600/30">
@@ -876,7 +921,7 @@ const CreateGeneralArticleForm = ({
                   baseUnitId={watchedUnitId ? Number(watchedUnitId) : undefined}
                   value={conversions}
                   onChange={setConversions}
-                  disabled={busy}
+                  disabled={busy || (unitChanged && !unitChange.relabel)}
                 />
               </section>
 
@@ -915,7 +960,11 @@ const CreateGeneralArticleForm = ({
           </Button>
           <Button
             type="submit"
-            disabled={busy || (currentMode === "add" && !selectedArticle)}
+            disabled={
+              busy ||
+              unitChangeBlocked ||
+              (currentMode === "add" && !selectedArticle)
+            }
             className="min-w-35"
           >
             {busy ? (

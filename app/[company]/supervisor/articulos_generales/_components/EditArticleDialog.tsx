@@ -1,5 +1,12 @@
 "use client"
 
+import {
+    BaseUnitChangeNotice,
+    EMPTY_BASE_UNIT_CHANGE,
+    baseUnitChangePayload,
+    isBaseUnitChangeReady,
+    type BaseUnitChangeValue,
+} from "@/components/forms/mantenimiento/almacen/BaseUnitChangeNotice"
 import { Button } from "@/components/ui/button"
 import {
     Dialog,
@@ -65,6 +72,7 @@ export function EditArticleDialog({
     const [quantity, setQuantity] = useState("")
     const [unitId, setUnitId] = useState<number | null>(null)
     const [stockUnlocked, setStockUnlocked] = useState(false)
+    const [unitChange, setUnitChange] = useState<BaseUnitChangeValue>(EMPTY_BASE_UNIT_CHANGE)
     // Ediciones pendientes de las otras dos pestañas. Nada se escribe hasta
     // confirmar: las tres áreas se persisten juntas en una transacción.
     const [conversionEdits, setConversionEdits] = useState<ConversionEdits>({})
@@ -88,6 +96,7 @@ export function EditArticleDialog({
         setQuantity(String(article.quantity ?? ""))
         setUnitId(article.primary_unit_id)
         setStockUnlocked(false)
+        setUnitChange(EMPTY_BASE_UNIT_CHANGE)
         setConversionEdits({})
         setCostEdits({})
         setIntakeUnitEdits([])
@@ -172,6 +181,10 @@ export function EditArticleDialog({
         stockUnlocked &&
         (Number(quantity) !== Number(article.quantity) || unitId !== article.primary_unit_id)
 
+    const unitChanged =
+        stockUnlocked && unitId !== null && unitId !== article.primary_unit_id
+    const unitChangeBlocked = unitChanged && !isBaseUnitChangeReady(unitChange)
+
     const handleSave = async () => {
         await updateArticle.mutateAsync({
             id: article.id,
@@ -180,6 +193,7 @@ export function EditArticleDialog({
                 ...(hasEdits(conversionEdits) ? { conversions: conversionEdits } : {}),
                 ...(hasEdits(costEdits) ? { cost_changes: costEdits } : {}),
                 ...(intakeUnitEdits.length > 0 ? { intake_units: intakeUnitEdits } : {}),
+                ...(unitChanged ? baseUnitChangePayload(unitChange) : {}),
             },
         })
 
@@ -346,15 +360,31 @@ export function EditArticleDialog({
                                     </div>
                                 </div>
 
+                                {unitChanged && (
+                                    <BaseUnitChangeNotice
+                                        oldLabel={article.general_primary_unit?.label ?? "la unidad anterior"}
+                                        newLabel={
+                                            units?.find((unit) => unit.id === unitId)?.label ??
+                                            "la unidad nueva"
+                                        }
+                                        registeredOldPerNew={
+                                            detail?.conversions.find((row) => row.unit_id === unitId)
+                                                ?.base_per_unit
+                                        }
+                                        value={unitChange}
+                                        onChange={setUnitChange}
+                                        disabled={updateArticle.isPending}
+                                    />
+                                )}
+
                                 {stockChanged && (
                                     <div className="flex items-start gap-2.5 rounded-lg border border-primary/40 bg-primary/[0.07] px-3 py-2.5">
                                         <AlertTriangle className="size-4 text-primary shrink-0 mt-0.5" />
                                         <p className="text-xs text-muted-foreground leading-relaxed">
                                             Está modificando el stock real. Cambiar la unidad{" "}
                                             <strong className="text-foreground/80">no</strong>{" "}
-                                            reconvierte la cantidad: si el artículo estaba mal
-                                            registrado en otra unidad, ajuste también la cantidad
-                                            para que refleje la existencia física.
+                                            reconvierte la cantidad: ajústela para que refleje la
+                                            existencia física en la unidad elegida.
                                         </p>
                                     </div>
                                 )}
@@ -432,7 +462,7 @@ export function EditArticleDialog({
                         // Se activa con cambios en CUALQUIERA de las tres
                         // pestañas; al confirmar se envía solo lo modificado.
                         disabled={
-                            pendingCount === 0 || !description.trim() || updateArticle.isPending
+                            pendingCount === 0 || !description.trim() || updateArticle.isPending || unitChangeBlocked
                         }
                     >
                         {updateArticle.isPending && <Loader2 className="mr-2 size-4 animate-spin" />}

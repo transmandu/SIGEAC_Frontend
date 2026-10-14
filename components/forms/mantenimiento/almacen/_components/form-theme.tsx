@@ -115,7 +115,7 @@ export const SectionTitle = ({
 }: {
   /** Sin icono, la viñeta queda como un punto neutro del mismo tamaño. */
   icon?: LucideIcon;
-  title: string;
+  title: React.ReactNode;
   hint?: string;
   action?: React.ReactNode;
 }) => (
@@ -155,7 +155,7 @@ export const FormSection = ({
   children,
 }: {
   icon?: LucideIcon;
-  title: string;
+  title: React.ReactNode;
   hint?: string;
   action?: React.ReactNode;
   className?: string;

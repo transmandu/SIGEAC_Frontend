@@ -16,11 +16,16 @@ import {
   ClipboardCheck,
   ClipboardX,
   Trash2,
+  FileCheck2,
   FileDown,
+  FileUp,
   PackagePlus,
 } from "lucide-react";
 import QuoteDropdownDialogs from "@/components/dialogs/mantenimiento/compras/QuoteDropdownDialogs";
 import type { Quote } from "@/types/purchase";
+import DownloadQuotePdfDialog from "@/components/dialogs/mantenimiento/compras/DownloadQuotePdfDialog";
+import SignedQuoteDocumentDialog from "@/components/dialogs/mantenimiento/compras/SignedQuoteDocumentDialog";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
 import PurchaseOrderLinkButton from "@/components/dropdowns/mantenimiento/compras/PurchaseOrderLinkButton";
 import CreateComplementaryQuoteDialog from "./CreateComplementaryQuoteDialog";
 
@@ -56,7 +61,10 @@ export default function QuoteActions({
   const [openReject, setOpenReject] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
   const [openCascadeDelete, setOpenCascadeDelete] = useState(false);
+  const [openPdf, setOpenPdf] = useState(false);
+  const [openSigned, setOpenSigned] = useState(false);
   const [openComplementary, setOpenComplementary] = useState(false);
+  const timeZone = useCompanyTimezone();
 
   const status = quote.status;
 
@@ -119,24 +127,42 @@ export default function QuoteActions({
           </Tooltip>
         )}
 
-        {/* PDF DOWNLOAD (placeholder) */}
+        {/* FORMATO PARA FIRMA */}
         <Tooltip>
           <TooltipTrigger asChild>
-            <span className="inline-flex">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => {
-                  console.log("PDF download not implemented yet");
-                }}
-                className={`${itemBase} text-blue-600`}
-              >
-                <FileDown className={iconBase} />
-              </Button>
-            </span>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setOpenPdf(true)}
+              className={`${itemBase} text-blue-600`}
+            >
+              <FileDown className={iconBase} />
+            </Button>
           </TooltipTrigger>
+          <TooltipContent side="top">Descargar formato</TooltipContent>
+        </Tooltip>
 
-          <TooltipContent side="top">¡Próximamente!</TooltipContent>
+        {/* DOCUMENTO FIRMADO */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setOpenSigned(true)}
+              className={`${itemBase} ${quote.signed_document ? "text-emerald-600" : "text-slate-600"}`}
+            >
+              {quote.signed_document ? (
+                <FileCheck2 className={iconBase} />
+              ) : (
+                <FileUp className={iconBase} />
+              )}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            {quote.signed_document
+              ? "Ver / reemplazar documento firmado"
+              : "Cargar documento firmado"}
+          </TooltipContent>
         </Tooltip>
 
         {/* DELETE */}
@@ -205,6 +231,18 @@ export default function QuoteActions({
         )}
 
         {/* DIALOGS */}
+        <DownloadQuotePdfDialog
+          quote={quote}
+          open={openPdf}
+          onOpenChange={setOpenPdf}
+        />
+        <SignedQuoteDocumentDialog
+          quote={quote}
+          open={openSigned}
+          onOpenChange={setOpenSigned}
+          timeZone={timeZone}
+        />
+
         <QuoteDropdownDialogs
           quote={quote}
           openApprove={openApprove}

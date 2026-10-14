@@ -41,10 +41,12 @@ import { useState } from "react";
 export function FuelVehiclesTable({
   company,
   vehicles,
+  canManage = false,
   isSuperUser = false,
 }: {
   company?: string;
   vehicles: FuelVehicle[];
+  canManage?: boolean;
   isSuperUser?: boolean;
 }) {
   const updateStatus = useUpdateFuelVehicleStatus(company);
@@ -74,7 +76,7 @@ export function FuelVehiclesTable({
             <TableHead className="text-right">km/L</TableHead>
             <TableHead className="text-right">KM inicial</TableHead>
             <TableHead>Estado</TableHead>
-            <TableHead className="text-center">Accion</TableHead>
+            {canManage && <TableHead className="text-center">Accion</TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -180,73 +182,79 @@ export function FuelVehiclesTable({
                       {getFuelStatusLabel(vehicle.status)}
                     </span>
                   </TableCell>
-                  <TableCell className="text-center">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <span className="sr-only">Abrir menu</span>
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          className="gap-2"
-                          onClick={() => setEditVehicleId(vehicle.id)}
-                        >
-                          <Pencil className="h-4 w-4" />
-                          Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="gap-2"
-                          onClick={() => toggleStatus(vehicle)}
-                          disabled={updateStatus.isPending}
-                        >
-                          {pendingVehicleId === vehicle.id ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : isInactive ? (
-                            <Power className="h-4 w-4" />
-                          ) : (
-                            <PowerOff className="h-4 w-4" />
-                          )}
-                          {isInactive ? "Activar" : "Inactivar"}
-                        </DropdownMenuItem>
-                        {isSuperUser && (
-                          <DropdownMenuItem
-                            className="gap-2 text-destructive focus:text-destructive"
-                            onClick={() => setDeleteVehicleId(vehicle.id)}
+                  {canManage && (
+                    <TableCell className="text-center">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
                           >
-                            <Trash2 className="h-4 w-4" />
-                            Eliminar
+                            <span className="sr-only">Abrir menu</span>
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            className="gap-2"
+                            onClick={() => setEditVehicleId(vehicle.id)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                            Editar
                           </DropdownMenuItem>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                          <DropdownMenuItem
+                            className="gap-2"
+                            onClick={() => toggleStatus(vehicle)}
+                            disabled={updateStatus.isPending}
+                          >
+                            {pendingVehicleId === vehicle.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : isInactive ? (
+                              <Power className="h-4 w-4" />
+                            ) : (
+                              <PowerOff className="h-4 w-4" />
+                            )}
+                            {isInactive ? "Activar" : "Inactivar"}
+                          </DropdownMenuItem>
+                          {isSuperUser && (
+                            <DropdownMenuItem
+                              className="gap-2 text-destructive focus:text-destructive"
+                              onClick={() => setDeleteVehicleId(vehicle.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              Eliminar
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
 
-                    <EditFuelVehicleDialog
-                      company={company}
-                      vehicle={vehicle}
-                      open={editVehicleId === vehicle.id}
-                      onOpenChange={(next) =>
-                        setEditVehicleId(next ? vehicle.id : null)
-                      }
-                    />
-                    {isSuperUser && (
-                      <DeleteFuelVehicleDialog
+                      <EditFuelVehicleDialog
                         company={company}
                         vehicle={vehicle}
-                        open={deleteVehicleId === vehicle.id}
+                        open={editVehicleId === vehicle.id}
                         onOpenChange={(next) =>
-                          setDeleteVehicleId(next ? vehicle.id : null)
+                          setEditVehicleId(next ? vehicle.id : null)
                         }
                       />
-                    )}
-                  </TableCell>
+                      {isSuperUser && (
+                        <DeleteFuelVehicleDialog
+                          company={company}
+                          vehicle={vehicle}
+                          open={deleteVehicleId === vehicle.id}
+                          onOpenChange={(next) =>
+                            setDeleteVehicleId(next ? vehicle.id : null)
+                          }
+                        />
+                      )}
+                    </TableCell>
+                  )}
                 </TableRow>
               );
             })
           ) : (
             <TableRow className="hover:bg-transparent">
-              <TableCell colSpan={11} className="h-36">
+              <TableCell colSpan={canManage ? 11 : 10} className="h-36">
                 <div className="flex flex-col items-center justify-center gap-1 text-center">
                   <Truck className="h-5 w-5 text-muted-foreground" />
                   <p className="text-sm font-medium">Sin vehiculos</p>

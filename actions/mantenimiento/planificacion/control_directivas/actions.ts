@@ -7,9 +7,19 @@ import {
   DirectiveComplianceType,
   MaintenanceCountingMethod,
 } from "@/types";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQueryClient,
+  type QueryClient,
+} from "@tanstack/react-query";
 import { toast } from "sonner";
 
+// Un ítem cargado a mano crea además su entrada en el catálogo (sin manual,
+// incompleta): hay que refrescar el catálogo, no solo el control.
+const invalidateCatalog = (queryClient: QueryClient) => {
+  queryClient.invalidateQueries({ queryKey: ["maintenance-catalog-services"] });
+  queryClient.invalidateQueries({ queryKey: ["maintenance-catalog-manuals"] });
+};
 const firstBackendError = (error: any): string | undefined => {
   const errors = error?.response?.data?.errors;
   const firstMessage = errors && Object.values(errors).flat()[0];
@@ -25,17 +35,18 @@ export interface DirectiveIntervalData {
 
 export interface DirectiveItemData {
   id?: number;
-  parent_aircraft_part_id?: number | null;
+  aircraft_part_id?: number | null;
   maintenance_provider_id?: string;
   maintenance_catalog_service_id?: number | null;
   ad_number: string;
   authority: DirectiveAuthority;
   revision?: string;
   description: string;
+  declared_description?: string;
   reference_document?: string;
   compliance_method?: string;
   compliance_type: DirectiveComplianceType;
-  first_applied_date?: string;
+  applied_date?: string;
   remaining_percentage?: number | null;
   intervals: DirectiveIntervalData[];
 }
@@ -67,6 +78,7 @@ export const useCreateDirectiveControl = () => {
     onSuccess: () => {
       invalidatePlanificationAudit(queryClient);
       queryClient.invalidateQueries({ queryKey: ["directive-controls"] });
+      invalidateCatalog(queryClient);
       toast.success("¡Creado!", {
         description:
           "El control de directivas ha sido registrado correctamente.",
@@ -107,6 +119,7 @@ export const useUpdateDirectiveControl = () => {
         queryKey: ["directive-control"],
         exact: false,
       });
+      invalidateCatalog(queryClient);
       toast.success("¡Actualizado!", {
         description:
           "El control de directivas ha sido actualizado correctamente.",
@@ -151,6 +164,7 @@ export const useAddDirectiveControlItem = () => {
         queryKey: ["directive-control"],
         exact: false,
       });
+      invalidateCatalog(queryClient);
       toast.success("¡Agregada!", {
         description: "La AD ha sido agregada al control correctamente.",
       });
@@ -210,7 +224,7 @@ export const useLinkDirectivePendingWorkOrder = () => {
       workOrderId: string | number;
     }) => {
       await axiosInstance.patch(
-        `/${company}/directive-control-items/${itemId}/pending-work-order`,
+        `/${company}/directive-control-items/${itemId}/work-order`,
         {
           work_order_id: workOrderId,
         },
@@ -240,56 +254,64 @@ export const useLinkDirectivePendingWorkOrder = () => {
   return { linkDirectivePendingWorkOrder: linkMutation };
 };
 
-export interface CreateDirectiveComplianceData {
-  directive_control_item_id: number;
-  maintenance_provider_id: string;
-  work_order_id?: string;
-  compliance_date: string;
-  hours_reading: number;
-  cycles_reading: number;
-  compliance_method?: string;
-  notes?: string;
+export interface ImportDirectiveComplianceHistorySkippedRow {
+  row: number;
+  reason: string;
 }
 
-export const useCreateDirectiveCompliance = () => {
+export interface ImportDirectiveComplianceHistoryResult {
+  imported: number;
+  skipped: ImportDirectiveComplianceHistorySkippedRow[];
+}
+
+// Sincrónico (no se encola): el archivo es de un solo control y a lo sumo
+// unas pocas decenas de filas, así que se procesa en la misma petición y la
+// respuesta ya trae el resumen final (importados/omitidos), no un estado a consultar.
+export const useImportDirectiveComplianceHistory = () => {
   const queryClient = useQueryClient();
 
-  const createMutation = useMutation({
+  const importMutation = useMutation({
     mutationFn: async ({
-      data,
+      file,
+      controlId,
       company,
     }: {
-      data: CreateDirectiveComplianceData;
+      file: File;
+      controlId: string | number;
       company: string;
-    }) => {
-      await axiosInstance.post(`/${company}/directive-compliances`, data);
+    }): Promise<ImportDirectiveComplianceHistoryResult> => {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const { data } = await axiosInstance.post(
+        `/${company}/directive-controls/${controlId}/import-compliance-history`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } },
+      );
+      return data;
     },
-    onSuccess: () => {
-      invalidatePlanificationAudit(queryClient);
-      queryClient.invalidateQueries({
-        queryKey: ["directive-control"],
-        exact: false,
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["directive-controls"],
-        exact: false,
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["directive-compliances"],
-        exact: false,
-      });
-      toast.success("¡Registrado!", {
-        description: "El cumplimiento de la AD quedó registrado.",
-      });
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ["directive-compliances"] });
+      if (result.imported > 0) {
+        toast.success("¡Histórico importado!", {
+          description: `${result.imported} cumplimiento(s) cargado(s)${result.skipped.length ? `, ${result.skipped.length} fila(s) omitida(s).` : "."}`,
+        });
+      } else {
+        toast.error("Nada para importar", {
+          description:
+            "Ninguna fila coincidió con el N° AD de ninguna directiva de este control.",
+        });
+      }
     },
-    onError: (error: any) => {
+    onError: (error) => {
       toast.error("Oops!", {
-        description:
-          firstBackendError(error) || "No se pudo registrar el cumplimiento...",
+        description: "No se pudo importar el archivo...",
       });
       console.log(error);
     },
   });
 
-  return { createDirectiveCompliance: createMutation };
+  return {
+    importDirectiveComplianceHistory: importMutation,
+  };
 };

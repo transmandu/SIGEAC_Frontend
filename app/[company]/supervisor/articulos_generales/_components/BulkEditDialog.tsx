@@ -1,5 +1,12 @@
 "use client";
 
+import {
+  BaseUnitChangeNotice,
+  EMPTY_BASE_UNIT_CHANGE,
+  baseUnitChangeEquivalence,
+  isBaseUnitChangeReady,
+  type BaseUnitChangeValue,
+} from "@/components/forms/mantenimiento/almacen/BaseUnitChangeNotice";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -27,7 +34,7 @@ import type {
   SupervisorGeneralArticle,
 } from "@/types/supervisor";
 import { ArrowRight, ListChecks, Loader2, Wand2 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { DecimalInput } from "./DecimalInput";
 import SupervisorActionButton from "./SupervisorActionButton";
 import { dependencyBadgeCls, formatQuantity } from "./utils/uiHelpers";
@@ -73,34 +80,46 @@ export function BulkEditDialog({
 }) {
   const [rows, setRows] = useState<DraftRow[]>([]);
   const [stockUnlocked, setStockUnlocked] = useState(false);
+  // Equivalencia pedida por artículo cuya unidad cambió, indexada por id.
+  const [unitChanges, setUnitChanges] = useState<
+    Record<number, BaseUnitChangeValue>
+  >({});
 
   const { selectedCompany } = useCompanyStore();
   const { data: units } = useGetUnits(selectedCompany?.slug);
   const { bulkEditArticles } = useBulkEditArticles();
 
-  useEffect(() => {
-    if (!open) return;
+  const [syncedWith, setSyncedWith] = useState<{
+    open: boolean;
+    articles: SupervisorGeneralArticle[];
+  } | null>(null);
 
-    setRows(
-      articles.map((article) => ({
-        id: article.id,
-        description: article.description ?? "",
-        brand_model: article.brand_model ?? "",
-        variant_type: article.variant_type ?? "",
-        minimum_quantity:
-          article.minimum_quantity != null
-            ? String(article.minimum_quantity)
-            : "",
-        maximum_quantity:
-          article.maximum_quantity != null
-            ? String(article.maximum_quantity)
-            : "",
-        quantity: String(article.quantity ?? ""),
-        primary_unit_id: article.primary_unit_id,
-      })),
-    );
-    setStockUnlocked(false);
-  }, [open, articles]);
+  if (syncedWith?.open !== open || syncedWith.articles !== articles) {
+    setSyncedWith({ open, articles });
+
+    if (open) {
+      setRows(
+        articles.map((article) => ({
+          id: article.id,
+          description: article.description ?? "",
+          brand_model: article.brand_model ?? "",
+          variant_type: article.variant_type ?? "",
+          minimum_quantity:
+            article.minimum_quantity != null
+              ? String(article.minimum_quantity)
+              : "",
+          maximum_quantity:
+            article.maximum_quantity != null
+              ? String(article.maximum_quantity)
+              : "",
+          quantity: String(article.quantity ?? ""),
+          primary_unit_id: article.primary_unit_id,
+        })),
+      );
+      setStockUnlocked(false);
+      setUnitChanges({});
+    }
+  }
 
   /** Valores originales, para resaltar qué celdas cambiaron. */
   const originals = useMemo(
@@ -146,6 +165,22 @@ export function BulkEditDialog({
       current.map((row) => (row.id === id ? { ...row, [field]: value } : row)),
     );
 
+  /** Filas cuya unidad base cambió: cada una necesita su equivalencia. */
+  const unitChangedRows = stockUnlocked
+    ? rows.filter((row) => {
+        const original = originals.get(row.id);
+        return (
+          !!original &&
+          row.primary_unit_id !== null &&
+          row.primary_unit_id !== original.primary_unit_id
+        );
+      })
+    : [];
+  const unitChangesPending = unitChangedRows.some(
+    (row) =>
+      !isBaseUnitChangeReady(unitChanges[row.id] ?? EMPTY_BASE_UNIT_CHANGE),
+  );
+
   const handleSave = async () => {
     const payload: BulkEditRow[] = rows.map((row) => ({
       id: row.id,
@@ -163,6 +198,14 @@ export function BulkEditDialog({
             quantity: Number(row.quantity),
             primary_unit_id: row.primary_unit_id ?? undefined,
           }
+        : {}),
+      ...(unitChangedRows.some((changed) => changed.id === row.id)
+        ? (() => {
+            const change = unitChanges[row.id] ?? EMPTY_BASE_UNIT_CHANGE;
+            return change.relabel
+              ? { relabel_unit: true }
+              : { unit_change: baseUnitChangeEquivalence(change) };
+          })()
         : {}),
     }));
 
@@ -259,7 +302,7 @@ export function BulkEditDialog({
                                 )
                               }
                               className={cn(
-                                "h-8 min-w-[150px] bg-background/70 border-border/60",
+                                "h-8 min-w-37.5 bg-background/70 border-border/60",
                                 row[field.key] !==
                                   (original?.[field.key] ?? "") &&
                                   "border-primary/60 bg-primary/6",
@@ -345,6 +388,27 @@ export function BulkEditDialog({
             </div>
           </div>
 
+          {unitChangedRows.map((row) => (
+            <div key={row.id} className="space-y-1">
+              <p className="text-xs font-medium">{row.description}</p>
+              <BaseUnitChangeNotice
+                oldLabel={
+                  originals.get(row.id)?.general_primary_unit?.label ??
+                  "la unidad anterior"
+                }
+                newLabel={
+                  units?.find((unit) => unit.id === row.primary_unit_id)
+                    ?.label ?? "la unidad nueva"
+                }
+                value={unitChanges[row.id] ?? EMPTY_BASE_UNIT_CHANGE}
+                onChange={(value) =>
+                  setUnitChanges((current) => ({ ...current, [row.id]: value }))
+                }
+                disabled={bulkEditArticles.isPending}
+              />
+            </div>
+          ))}
+
           {stockUnlocked && (
             <p className="text-[11px] text-muted-foreground/70 leading-relaxed">
               Está editando stock real. Cambiar la unidad{" "}
@@ -368,7 +432,11 @@ export function BulkEditDialog({
           <SupervisorActionButton
             emphasis="primary"
             onClick={handleSave}
-            disabled={changedCount === 0 || bulkEditArticles.isPending}
+            disabled={
+              changedCount === 0 ||
+              unitChangesPending ||
+              bulkEditArticles.isPending
+            }
           >
             {bulkEditArticles.isPending && (
               <Loader2 className="mr-2 size-4 animate-spin" />
@@ -405,7 +473,7 @@ function FindReplaceBar({
         value={field}
         onValueChange={(value) => setField(value as BulkTextField)}
       >
-        <SelectTrigger className="h-8 w-[150px] text-xs bg-background border-border/60">
+        <SelectTrigger className="h-8 w-37.5 text-xs bg-background border-border/60">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
