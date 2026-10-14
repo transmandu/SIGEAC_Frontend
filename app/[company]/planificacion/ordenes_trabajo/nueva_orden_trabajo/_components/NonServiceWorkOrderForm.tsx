@@ -235,7 +235,9 @@ const NonServiceWorkOrderForm = ({
       );
       if (aircraft) {
         form.setValue("aircraft_id", aircraft.id.toString());
-        form.setValue("authorizing", aircraft.client.authorizing);
+        if (aircraft.client.authorizing) {
+          form.setValue("authorizing", aircraft.client.authorizing);
+        }
         setSelectedAircraft(aircraft.manufacturer.id.toString());
       }
     }
@@ -638,10 +640,12 @@ const NonServiceWorkOrderForm = ({
                                         "aircraft_id",
                                         aircraft.id.toString(),
                                       );
-                                      form.setValue(
-                                        "authorizing",
-                                        aircraft.client.authorizing,
-                                      );
+                                      if (aircraft.client.authorizing) {
+                                        form.setValue(
+                                          "authorizing",
+                                          aircraft.client.authorizing,
+                                        );
+                                      }
                                       setSelectedAircraft(
                                         aircraft.manufacturer.id.toString(),
                                       );

@@ -13,7 +13,7 @@ import {
   useCreateCargoShipment,
   useUpdateCargoShipment,
 } from "@/actions/cargo/actions";
-import { useGetClients } from "@/hooks/general/clientes/useGetClients";
+import { useGetClients } from "@/hooks/aerolinea/clientes/useGetClients";
 import { useGetAircrafts } from "@/hooks/general/aeronaves/useGetAircrafts";
 import { useGetEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetEmployees";
 import { useGetNextGuide } from "@/hooks/operaciones/cargo/useGetNextGuide";

@@ -14,7 +14,7 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { PlanificationAircraftTab } from './_components/PlanificationAircraftTab';
 import { useGetMaintenanceAircrafts } from '@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts';
-import { useGetClients } from '@/hooks/general/clientes/useGetClients';
+import { useGetClients } from '@/hooks/mantenimiento/clientes/useGetClients';
 import { PageHeader } from "@/components/layout/PageHeader";
 
 const normalize = (v?: string | null) => (v ?? '').toLowerCase();
