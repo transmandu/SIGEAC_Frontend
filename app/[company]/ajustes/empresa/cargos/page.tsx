@@ -1,44 +1,64 @@
 "use client";
 
-import { ContentLayout } from "@/components/layout/ContentLayout";
+import { useDeferredValue, useMemo, useState } from "react";
+import { SettingsListPage } from "@/components/layout/SettingsListPage";
+import { SettingsDataTable } from "@/components/tables/SettingsDataTable";
+import { CreateJobTitleDialog } from "@/components/dialogs/general/CreateJobTitleDialog";
 import { useGetJobTitles } from "@/hooks/ajustes/cargo/useGetJobTitles";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { Loader2 } from "lucide-react";
 import { columns } from "./columns";
-import { DataTable } from "./data-table";
-import { PageHeader } from "@/components/layout/PageHeader";
 
 const JobTitlePage = () => {
-
   const { selectedCompany } = useCompanyStore();
   const {
     data: jobTitles,
-    isLoading: loading,
-    isError: error,
+    isPending,
+    isError,
+    refetch,
   } = useGetJobTitles(selectedCompany?.slug);
+  const [search, setSearch] = useState("");
+  const deferredSearch = useDeferredValue(search);
+
+  const filtered = useMemo(() => {
+    if (!jobTitles) return [];
+    const q = deferredSearch.trim().toLowerCase();
+    if (!q) return jobTitles;
+
+    return jobTitles.filter(
+      (job) =>
+        job.name?.toLowerCase().includes(q) ||
+        job.description?.toLowerCase().includes(q),
+    );
+  }, [jobTitles, deferredSearch]);
 
   return (
-    <ContentLayout title="Cargos">
-      <PageHeader className="mb-6" />
-
-      <h1 className="font-bold text-4xl text-center">Gestión de Cargos</h1>
-      <p className="text-muted-foreground text-sm italic text-center mb-2">
-        Aquí puede ver el listado de los cargos registrados en el sistema.
-      </p>
-      {loading && (
-        <div className="grid mt-72 place-content-center">
-          <Loader2 className="w-12 h-12 animate-spin" />
-        </div>
-      )}
-      {error && (
-        <div className="grid mt-72 place-content-center">
-          <p className="text-sm text-muted-foreground">
-            Ha ocurrido un error al cargar los cargos...
-          </p>
-        </div>
-      )}
-       {jobTitles && <DataTable columns={columns} data={jobTitles} />}
-    </ContentLayout>
+    <SettingsListPage
+      title="Cargos"
+      heading="Gestión de Cargos"
+      description="Administra los cargos que se asignan a los empleados."
+      search={{
+        value: search,
+        onChange: setSearch,
+        placeholder: "Buscar cargos...",
+      }}
+      count={{
+        value: jobTitles ? filtered.length : undefined,
+        singular: "cargo",
+        plural: "cargos",
+      }}
+    >
+      <SettingsDataTable
+        columns={columns}
+        data={filtered}
+        error={isError}
+        errorMessage="No se pudieron cargar los cargos"
+        onRetry={() => refetch()}
+        filtered={!!deferredSearch.trim()}
+        loading={isPending}
+        emptyMessage="No se han encontrado cargos."
+        actions={<CreateJobTitleDialog />}
+      />
+    </SettingsListPage>
   );
 };
 

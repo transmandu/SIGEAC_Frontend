@@ -3,7 +3,7 @@
 import { type AppColumnDef } from "@/lib/table";
 import { ChevronRight } from "lucide-react";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
-import { Badge } from "@/components/ui/badge";
+import { TagBadge } from "@/components/misc/TagBadge";
 import { cn } from "@/lib/utils";
 import { ShippingAgency } from "@/types";
 import ShippingAgencyDropdownActions from "@/components/dropdowns/general/ShippingAgencyDropdownActions";
@@ -103,16 +103,9 @@ export const getColumns = (selectedCompany?: {
       const isNational = row.original.type === "NATIONAL";
       return (
         <div className="flex justify-center w-full">
-          <Badge
-            className={cn(
-              `whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-xs transition-colors duration-150 cursor-default hover:scale-100 hover:translate-y-0`,
-              isNational
-                ? `border-blue-500/30 bg-blue-500/15 text-blue-700 dark:text-blue-300`
-                : `border-sky-400/30 bg-sky-400/10 text-sky-600 dark:text-sky-300`,
-            )}
-          >
+          <TagBadge tone={isNational ? "blue" : "violet"}>
             {isNational ? "Nacional" : "Internacional"}
-          </Badge>
+          </TagBadge>
         </div>
       );
     },

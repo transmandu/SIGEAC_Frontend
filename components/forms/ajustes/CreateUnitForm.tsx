@@ -1,4 +1,4 @@
-'use client';
+"use client";
 import { useCreateUnit } from "@/actions/ajustes/unidades/actions";
 import {
   Form,
@@ -18,7 +18,6 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import type { Unit } from "@/types";
 
-
 const formSchema = z.object({
   label: z.string().min(3, {
     message: "El nombre debe tener al menos 3 carácters.",
@@ -27,8 +26,7 @@ const formSchema = z.object({
     message: "El Simbolo de la unidad debe tener al menos 1 carácters.",
   }),
   is_dimensional: z.boolean().default(false),
-})
-
+});
 
 interface FormProps {
   onClose: () => void;
@@ -37,7 +35,11 @@ interface FormProps {
   onCreated?: (unit: Unit) => void;
 }
 
-export default function CreateUnitForm({ onClose, onSuccess, onCreated }: FormProps) {
+export default function CreateUnitForm({
+  onClose,
+  onSuccess,
+  onCreated,
+}: FormProps) {
   const { createUnit } = useCreateUnit();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -46,18 +48,22 @@ export default function CreateUnitForm({ onClose, onSuccess, onCreated }: FormPr
       value: "",
       is_dimensional: false,
     },
-  })
+  });
   const { control } = form;
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    const unit = await createUnit.mutateAsync(values);
-    if (onSuccess) {
-      onSuccess(values);
+    try {
+      const unit = await createUnit.mutateAsync(values);
+      if (onSuccess) {
+        onSuccess(values);
+      }
+      if (unit && onCreated) {
+        onCreated(unit);
+      }
+      onClose();
+    } catch {
+      // El aviso lo muestra la mutación; el formulario queda abierto.
     }
-    if (unit && onCreated) {
-      onCreated(unit);
-    }
-    onClose()
-  }
+  };
   return (
     <Form {...form}>
       {/* stopPropagation: este form se renderiza dentro de otros formularios
@@ -76,10 +82,12 @@ export default function CreateUnitForm({ onClose, onSuccess, onCreated }: FormPr
             <FormItem>
               <FormLabel>Nombre</FormLabel>
               <FormControl>
-                <Input placeholder="EJ: Kilogramo, Litro, Mililitro" {...field} />
+                <Input
+                  placeholder="EJ: Kilogramo, Litro, Mililitro"
+                  {...field}
+                />
               </FormControl>
-              <FormDescription>
-              </FormDescription>
+              <FormDescription></FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -93,8 +101,7 @@ export default function CreateUnitForm({ onClose, onSuccess, onCreated }: FormPr
               <FormControl>
                 <Input placeholder="EJ: Kg, L, mL" {...field} />
               </FormControl>
-              <FormDescription>
-              </FormDescription>
+              <FormDescription></FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -123,10 +130,18 @@ export default function CreateUnitForm({ onClose, onSuccess, onCreated }: FormPr
             </FormItem>
           )}
         />
-        <Button className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70" disabled={createUnit?.isPending} type="submit">
-          {createUnit?.isPending ? <Loader2 className="size-4 animate-spin" /> : <p>Crear</p>}
+        <Button
+          className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70"
+          disabled={createUnit?.isPending}
+          type="submit"
+        >
+          {createUnit?.isPending ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <p>Crear</p>
+          )}
         </Button>
       </form>
     </Form>
-  )
+  );
 }

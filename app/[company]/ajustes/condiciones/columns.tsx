@@ -2,7 +2,7 @@
 
 import ConditionDropdownActions from "@/components/dropdowns/ajustes/ConditionDropdownActions";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
-import { Badge } from "@/components/ui/badge";
+import { TagBadge } from "@/components/misc/TagBadge";
 import { type AppColumnDef } from "@/lib/table";
 import { Condition } from "@/types";
 
@@ -64,9 +64,7 @@ export const columns: AppColumnDef<Condition>[] = [
     cell: ({ row }) => (
       <div className="flex justify-center w-full">
         {row.original.excluded_from_cost ? (
-          <Badge className="rounded-md border border-green-500/20 bg-green-500/10 text-green-700 dark:text-green-300">
-            No suma al costo
-          </Badge>
+          <TagBadge tone="green">No suma al costo</TagBadge>
         ) : (
           <span className="text-sm text-muted-foreground">Suma al costo</span>
         )}

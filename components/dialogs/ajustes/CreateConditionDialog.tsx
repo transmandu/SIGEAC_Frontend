@@ -1,6 +1,7 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
+
 import {
   Dialog,
   DialogContent,
@@ -28,13 +29,10 @@ export function CreateConditionDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {triggerButton || (
-          <Button
-            variant="outline"
-            className="flex items-center justify-center gap-2 h-8 border-dashed"
-          >
-            <Plus className="h-4 w-4" />
-            Nueva Condición
-          </Button>
+          <ActionTriggerButton>
+            <Plus className="h-4 w-4 mr-2" />
+            Crear condición
+          </ActionTriggerButton>
         )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-105">

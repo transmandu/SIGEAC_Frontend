@@ -1,145 +1,97 @@
+"use client";
+
+import { useState } from "react";
+import { Pencil, Trash2 } from "lucide-react";
+import { useDeleteManufacturer } from "@/actions/ajustes/fabricantes/actions";
+import { ConfirmDeleteDialog } from "@/components/dialogs/shared/ConfirmDeleteDialog";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu"
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import CreateManufacturerForm from "@/components/forms/general/CreateManufacturerForm";
+import {
+  SettingsRowActions,
+  type RowAction,
+} from "@/components/dropdowns/SettingsRowActions";
+import { useAuth } from "@/contexts/AuthContext";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { Manufacturer } from "@/types";
 
+const ManufacturerDropdownActions = ({
+  manufacturer,
+}: {
+  manufacturer: Manufacturer;
+}) => {
+  const [openEdit, setOpenEdit] = useState(false);
+  const [openDelete, setOpenDelete] = useState(false);
+  const { selectedCompany } = useCompanyStore();
+  const { user } = useAuth();
+  const { deleteManufacturer } = useDeleteManufacturer();
 
-import { useDeleteManufacturer, useUpdateManufacturer } from "@/actions/ajustes/fabricantes/actions"
-import { Loader2, MoreHorizontal, Pencil, Trash2 } from "lucide-react"
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Manufacturer } from "@/types"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useCompanyStore } from "@/stores/CompanyStore"
+  // El backend solo deja eliminar fabricantes a SUPERUSER.
+  const canDelete = user?.roles?.some((role) => role.name === "SUPERUSER");
 
-const ManufacturerDropdownActions = ({ manufacturer }: { manufacturer: Manufacturer }) => {
-
-  const [openDelete, setOpenDelete] = useState<boolean>(false)
-  const [openEdit, setOpenEdit] = useState<boolean>(false)
-  const { selectedCompany } = useCompanyStore()
-
-  const { deleteManufacturer } = useDeleteManufacturer()
-  const { updateManufacturer } = useUpdateManufacturer()
-
-  // Estado para el formulario de edición
-  const [formData, setFormData] = useState({
-    name: manufacturer.name,
-    description: manufacturer.description,
-    type: manufacturer.type
-  })
-
-  const handleDelete = async (id: number | string) => {
-    await deleteManufacturer.mutateAsync(id);
-    setOpenDelete(false);
-  }
-
-  const handleUpdate = async () => {
-    await updateManufacturer.mutateAsync({
-      company: selectedCompany?.slug,
-      id: manufacturer.id,
-      data: formData
-    });
-    setOpenEdit(false);
-  }
+  const actions: RowAction[] = [
+    {
+      key: "edit",
+      label: "Editar fabricante",
+      icon: Pencil,
+      tone: "blue",
+      onSelect: () => setOpenEdit(true),
+    },
+    ...(canDelete
+      ? [
+          {
+            key: "delete",
+            label: "Eliminar fabricante",
+            icon: Trash2,
+            tone: "red" as const,
+            onSelect: () => setOpenDelete(true),
+          },
+        ]
+      : []),
+  ];
 
   return (
     <>
-      {/* Dialog de Editar */}
+      <SettingsRowActions actions={actions} tourId="fabricantes-actions" />
+
       <Dialog open={openEdit} onOpenChange={setOpenEdit}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="sm:max-w-105">
           <DialogHeader>
-            <DialogTitle className="text-center">Editar Fabricante</DialogTitle>
-            <DialogDescription className="text-center">
-              Modifique la información del fabricante
+            <DialogTitle>Editar fabricante</DialogTitle>
+            <DialogDescription>
+              Modifique la información de{" "}
+              <span className="font-medium text-foreground">
+                {manufacturer.name}
+              </span>
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Nombre</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="Nombre del fabricante"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="description">Descripción</Label>
-              <Input
-                id="description"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Descripción"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="type">Tipo</Label>
-              <Select value={formData.type} onValueChange={(value: any) => setFormData({ ...formData, type: value })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccione un tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="AIRCRAFT">Aeronave</SelectItem>
-                  <SelectItem value="ENGINE">Motor</SelectItem>
-                  <SelectItem value="APU">APU</SelectItem>
-                  <SelectItem value="PROPELLER">Hélice</SelectItem>
-                  <SelectItem value="GENERAL">General</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter className="flex flex-col gap-2 md:gap-0">
-            <Button variant="outline" onClick={() => setOpenEdit(false)}>Cancelar</Button>
-            <Button 
-              disabled={updateManufacturer.isPending} 
-              onClick={handleUpdate}
-            >
-              {updateManufacturer.isPending ? <Loader2 className="size-4 animate-spin" /> : "Guardar cambios"}
-            </Button>
-          </DialogFooter>
+          <CreateManufacturerForm
+            manufacturer={manufacturer}
+            onClose={() => setOpenEdit(false)}
+          />
         </DialogContent>
       </Dialog>
 
-      {/* Dialog de Eliminar */}
-      <Dialog open={openDelete} onOpenChange={setOpenDelete}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="text-center">¿Seguro que desea eliminar este fabricante?</DialogTitle>
-            <DialogDescription className="text-center p-2 mb-0 pb-0">
-              Esta acción es irreversible y estaría eliminando por completo el fabricante seleccionado.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="flex flex-col gap-2 md:gap-0">
-            <Button className="bg-rose-400 hover:bg-white hover:text-black hover:border hover:border-black" onClick={() => setOpenDelete(false)} type="submit">Cancelar</Button>
-            <Button disabled={deleteManufacturer.isPending} className="hover:bg-white hover:text-black hover:border hover:border-black transition-all" onClick={() => handleDelete(manufacturer.id)}>{deleteManufacturer.isPending ? <Loader2 className="size-4 animate-spin" /> : <p>Confirmar</p>}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Dropdown Menu */}
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="h-8 w-8 p-0" data-tour="fabricantes-actions">
-            <span className="sr-only">Abrir menu</span>
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="center" className="flex gap-2 justify-center">
-          <DropdownMenuItem className="cursor-pointer" onClick={() => setOpenEdit(true)}>
-            <Pencil className='size-5 text-blue-500' />
-          </DropdownMenuItem>
-          <DropdownMenuItem className="cursor-pointer" onClick={() => setOpenDelete(true)}>
-            <Trash2 className='size-5 text-red-500' />
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <ConfirmDeleteDialog
+        open={openDelete}
+        onOpenChange={setOpenDelete}
+        title="Eliminar fabricante"
+        entityName={manufacturer.name}
+        isPending={deleteManufacturer.isPending}
+        onConfirm={() =>
+          deleteManufacturer.mutateAsync({
+            company: selectedCompany?.slug,
+            id: manufacturer.id,
+          })
+        }
+      />
     </>
-  )
-}
+  );
+};
 
-export default ManufacturerDropdownActions
+export default ManufacturerDropdownActions;

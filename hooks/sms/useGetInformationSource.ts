@@ -4,7 +4,7 @@ import { InformationSource } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 
 const fetchInformationSources = async (
-  company?: string
+  company?: string,
 ): Promise<InformationSource[]> => {
   const { data } = await axiosInstance.get(`/${company}/information-sources`);
   return data;
@@ -13,7 +13,7 @@ const fetchInformationSources = async (
 export const useGetInformationSources = () => {
   const { selectedCompany } = useCompanyStore();
   return useQuery<InformationSource[]>({
-    queryKey: ["information-sources"],
+    queryKey: ["information-sources", selectedCompany?.slug],
     queryFn: () => fetchInformationSources(selectedCompany?.slug),
     staleTime: 1000 * 60 * 5,
     enabled: !!selectedCompany?.slug,
