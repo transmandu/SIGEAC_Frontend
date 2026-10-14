@@ -32,7 +32,10 @@ export const useCreateAuthorizedEmployee = () => {
 
     onError: (error: any) => {
       if (error.response?.status === 422) {
-        toast.error("Datos inválidos. Verifique la información ingresada.");
+        toast.error(
+          error.response?.data?.message ??
+            "Datos inválidos. Verifique la información ingresada.",
+        );
         return;
       }
       toast.error("Ha ocurrido un error al crear la autorización.");

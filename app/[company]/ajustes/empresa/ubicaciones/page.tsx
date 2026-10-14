@@ -1,62 +1,65 @@
-'use client'
+"use client";
 
-import { ContentLayout } from '@/components/layout/ContentLayout'
-import { useGetLocationsByCompany } from '@/hooks/sistema/useGetLocationsByCompany'
-import { useCompanyStore } from '@/stores/CompanyStore'
-
-import LoadingPage from '@/components/misc/LoadingPage'
-
-import { columns } from './columns'
-import { DataTable } from './data-table'
-import { PageHeader } from "@/components/layout/PageHeader";
+import { useDeferredValue, useMemo, useState } from "react";
+import { SettingsListPage } from "@/components/layout/SettingsListPage";
+import { SettingsDataTable } from "@/components/tables/SettingsDataTable";
+import { useGetLocationsByCompany } from "@/hooks/sistema/useGetLocationsByCompany";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { columns } from "./columns";
 
 const LocationsPage = () => {
-  const { selectedCompany } = useCompanyStore()
-
-  const companySlug = selectedCompany?.slug
-
+  const { selectedCompany } = useCompanyStore();
   const {
     data: locations,
-    isPending: isLoading,
-    isError: error,
-  } = useGetLocationsByCompany(companySlug)
+    isPending,
+    isError,
+    refetch,
+  } = useGetLocationsByCompany(selectedCompany?.slug);
+  const [search, setSearch] = useState("");
+  const deferredSearch = useDeferredValue(search);
 
-  const loading = !companySlug || isLoading
+  const filtered = useMemo(() => {
+    if (!locations) return [];
+    const q = deferredSearch.trim().toLowerCase();
+    if (!q) return locations;
 
-  if (loading) return <LoadingPage />
+    return locations.filter(
+      (location) =>
+        location.name?.toLowerCase().includes(q) ||
+        location.address?.toLowerCase().includes(q) ||
+        location.cod_iata?.toLowerCase().includes(q) ||
+        location.type?.toLowerCase().includes(q),
+    );
+  }, [locations, deferredSearch]);
 
   return (
-    <ContentLayout title='Ubicaciones'>
-      <PageHeader className="mb-6" />
+    <SettingsListPage
+      title="Ubicaciones"
+      heading="Control de Ubicaciones"
+      description="Consulta las ubicaciones registradas para la empresa en el sistema."
+      search={{
+        value: search,
+        onChange: setSearch,
+        placeholder: "Buscar ubicaciones...",
+      }}
+      count={{
+        value: locations ? filtered.length : undefined,
+        singular: "ubicación",
+        plural: "ubicaciones",
+      }}
+    >
+      <SettingsDataTable
+        columns={columns}
+        data={filtered}
+        loading={isPending}
+        error={isError}
+        errorMessage="No se pudieron cargar las ubicaciones"
+        onRetry={() => refetch()}
+        filtered={!!deferredSearch.trim()}
+        emptyMessage="No se han encontrado ubicaciones."
+      />
+    </SettingsListPage>
+  );
+};
 
-      <div className='flex flex-col gap-y-2'>
-
-        <div className='flex items-baseline justify-between'>
-          <h1 className='text-2xl font-bold'>
-            Control de Ubicaciones
-          </h1>
-        </div>
-
-        <p className='text-xs text-muted-foreground'>
-          Aquí se lleva el control de las diferentes ubicaciones registradas en el sistema.
-        </p>
-
-        {error && (
-          <p className='text-sm text-muted-foreground italic'>
-            Ha ocurrido un error al cargar las ubicaciones...
-          </p>
-        )}
-
-        {locations && (
-          <DataTable
-            columns={columns}
-            data={locations}
-          />
-        )}
-
-      </div>
-    </ContentLayout>
-  )
-}
-
-export default LocationsPage
+export default LocationsPage;

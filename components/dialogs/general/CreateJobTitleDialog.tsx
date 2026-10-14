@@ -1,6 +1,9 @@
 'use client';
 
+import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
+
 import { useState } from 'react';
+import { Plus } from 'lucide-react';
 import {
   Dialog,
   DialogTrigger,
@@ -9,7 +12,6 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { CreateJobTitleForm } from '@/components/forms/general/CreateJobTitleForm';
 
 export function CreateJobTitleDialog() {
@@ -18,10 +20,13 @@ export function CreateJobTitleDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline">Crear Cargo</Button>
+        <ActionTriggerButton>
+          <Plus className="h-4 w-4 mr-2" />
+          Crear cargo
+        </ActionTriggerButton>
       </DialogTrigger>
 
-      <DialogContent>
+      <DialogContent className="sm:max-w-105">
         <DialogHeader>
           <DialogTitle>Crear Cargo</DialogTitle>
           <DialogDescription>

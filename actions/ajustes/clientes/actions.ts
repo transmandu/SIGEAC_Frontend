@@ -1,4 +1,5 @@
 import axiosInstance from "@/lib/axios"
+import { getApiErrorMessage } from "@/lib/api-error";
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 
@@ -31,8 +32,8 @@ export const useCreateClient = () => {
           })
         },
       onError: (error) => {
-          toast('Hey', {
-            description: `No se creo correctamente: ${error}`
+          toast.error('Error', {
+            description: getApiErrorMessage(error, "No se creó correctamente.")
           })
         },
       }
@@ -59,9 +60,9 @@ export const useDeleteClient = () => {
               description: `¡El cliente ha sido eliminado correctamente!`
           })
         },
-      onError: (e) => {
+      onError: (error) => {
           toast.error("Oops!", {
-            description: "¡Hubo un error al eliminar el cliente!"
+            description: getApiErrorMessage(error, "¡Hubo un error al eliminar el cliente!")
         })
         },
       }
@@ -87,7 +88,7 @@ export const useUpdateClient = () => {
     },
     onError: (error) => {
       toast.error("Oops!", {
-        description: `Hubo un error al actualizar el cliente: ${error}`,
+        description: getApiErrorMessage(error, "Hubo un error al actualizar el cliente."),
       });
     },
   });

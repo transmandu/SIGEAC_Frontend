@@ -228,13 +228,17 @@ export function UpdateEmployeeForm({ employee, onSuccess }: Props) {
 
     const formData = buildFormData(values, employee);
 
-    await updateEmployee.mutateAsync({
-      company: selectedCompany.slug,
-      id: Number(employee.id),
-      data: formData,
-    });
+    try {
+      await updateEmployee.mutateAsync({
+        company: selectedCompany.slug,
+        id: Number(employee.id),
+        data: formData,
+      });
 
-    onSuccess?.();
+      onSuccess?.();
+    } catch {
+      // El aviso lo muestra la mutación; el formulario queda abierto.
+    }
   };
 
   const isEmpty = (v?: string) => !v || v === "";

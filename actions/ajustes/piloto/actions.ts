@@ -1,4 +1,5 @@
 import axiosInstance from "@/lib/axios";
+import { getApiErrorMessage } from "@/lib/api-error";
 import { Pilot } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -15,7 +16,6 @@ interface updatePilotSchema {
   company: string;
   id: string;
   data: {
-    employee_dni: string;
     license_number: string;
   };
 }
@@ -25,11 +25,7 @@ export const useCreatePilot = () => {
   const createMutation = useMutation({
     mutationKey: ["pilots"],
     mutationFn: async ({ company, data }: PilotSchema) => {
-      await axiosInstance.post(`/${company}/pilots`, data, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      await axiosInstance.post(`/${company}/pilots`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["pilots"] });
@@ -39,9 +35,8 @@ export const useCreatePilot = () => {
     },
     onError: (error) => {
       toast.error("Oops!", {
-        description: "No se pudo crear el piloto...",
+        description: getApiErrorMessage(error, "No se pudo crear el piloto..."),
       });
-      console.log(error);
     },
   });
   return {
@@ -53,8 +48,14 @@ export const useDeletePilot = () => {
   const queryClient = useQueryClient();
 
   const deleteMutation = useMutation({
-    mutationFn: async (id: number | string) => {
-      await axiosInstance.delete(`/transmandu/pilots/${id}`);
+    mutationFn: async ({
+      company,
+      id,
+    }: {
+      company: string | undefined;
+      id: number | string;
+    }) => {
+      await axiosInstance.delete(`/${company}/pilots/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["pilots"] });
@@ -62,9 +63,9 @@ export const useDeletePilot = () => {
         description: `¡El piloto ha sido eliminado correctamente!`,
       });
     },
-    onError: (e) => {
+    onError: (error) => {
       toast.error("Oops!", {
-        description: "¡Hubo un error al eliminar un piloto!",
+        description: getApiErrorMessage(error, "¡Hubo un error al eliminar el piloto!"),
       });
     },
   });
@@ -85,14 +86,13 @@ export const useUpdatePilot = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["pilots"] });
       toast.success("¡Actualizado!", {
-        description: `El piloto ha sido actualizada correctamente.`,
+        description: `El piloto ha sido actualizado correctamente.`,
       });
     },
     onError: (error) => {
       toast.error("Oops!", {
-        description: "No se pudo actualizar el piloto...",
+        description: getApiErrorMessage(error, "No se pudo actualizar el piloto..."),
       });
-      console.log(error);
     },
   });
   return {

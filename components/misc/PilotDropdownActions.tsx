@@ -1,131 +1,99 @@
-import { useDeletePilot } from "@/actions/ajustes/piloto/actions";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Pilot } from "@/types";
-import {
-  ClipboardPen,
-  EyeIcon,
-  Loader2,
-  MoreHorizontal,
-  Trash2,
-} from "lucide-react";
+"use client";
+
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
+import { Eye, Pencil, Trash2 } from "lucide-react";
+import { useDeletePilot } from "@/actions/ajustes/piloto/actions";
+import { ConfirmDeleteDialog } from "@/components/dialogs/shared/ConfirmDeleteDialog";
+import {
+  SettingsRowActions,
+  type RowAction,
+} from "@/components/dropdowns/SettingsRowActions";
+import { CreatePilotForm } from "@/components/forms/general/CreatePilotForm";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
-import { useRouter } from "next/navigation";
-import { CreatePilotForm } from "@/components/forms/general/CreatePilotForm";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { Pilot } from "@/types";
 
 const PilotDropdownActions = ({ pilot }: { pilot: Pilot }) => {
-  const [open, setOpen] = useState<boolean>(false);
-  const [openEdit, setOpenEdit] = useState<boolean>(false);
+  const [openEdit, setOpenEdit] = useState(false);
+  const [openDelete, setOpenDelete] = useState(false);
   const { deletePilot } = useDeletePilot();
   const { selectedCompany } = useCompanyStore();
-
   const router = useRouter();
 
-  const handleDelete = async (id: number | string) => {
-    await deletePilot.mutateAsync(id);
-    setOpen(false);
-  };
+  const fullName = `${pilot.employee?.first_name ?? ""} ${pilot.employee?.last_name ?? ""}`.trim();
+
+  const actions: RowAction[] = [
+    {
+      key: "view",
+      label: "Ver piloto",
+      icon: Eye,
+      onSelect: () =>
+        router.push(`/${selectedCompany?.slug}/ajustes/pilotos/${pilot.employee_dni}`),
+    },
+    {
+      key: "edit",
+      label: "Editar piloto",
+      icon: Pencil,
+      tone: "blue",
+      onSelect: () => setOpenEdit(true),
+    },
+    {
+      key: "delete",
+      label: "Eliminar piloto",
+      icon: Trash2,
+      tone: "red",
+      onSelect: () => setOpenDelete(true),
+    },
+  ];
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="h-8 w-8 p-0">
-            <span className="sr-only">Abrir menu</span>
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-
-        <DropdownMenuContent
-          align="center"
-          className="flex-col gap-2 justify-center"
-        >
-          <DialogTrigger asChild>
-            <DropdownMenuItem>
-              <Trash2 className="size-5 text-red-500" />
-              <p className="pl-2">Eliminar</p>
-            </DropdownMenuItem>
-          </DialogTrigger>
-
-          <DropdownMenuItem
-            onClick={() => {
-              router.push(
-                `/${selectedCompany?.slug}/ajustes/pilotos/${pilot.employee_dni}`
-              );
-            }}
-          >
-            <EyeIcon className="size-5" />
-            <p className="pl-2">Ver</p>
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setOpenEdit(true)}>
-            <ClipboardPen className="size-5" />
-            <p className="pl-2">Editar</p>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle className="text-center">
-            ¿Seguro que desea eliminar el piloto?
-          </DialogTitle>
-          <DialogDescription className="text-center p-2 mb-0 pb-0">
-            Esta acción es irreversible y estaría eliminando por completo el
-            piloto seleccionado.
-          </DialogDescription>
-        </DialogHeader>
-
-        <DialogFooter className="flex flex-col-reverse gap-2 md:gap-0">
-          <Button
-            className="bg-rose-400 hover:bg-white hover:text-black hover:border hover:border-black"
-            onClick={() => setOpen(false)}
-            type="submit"
-          >
-            Cancelar
-          </Button>
-
-          <Button
-            disabled={deletePilot.isPending}
-            className="hover:bg-white hover:text-black hover:border hover:border-black transition-all"
-            onClick={() => handleDelete(pilot.id)}
-          >
-            {deletePilot.isPending ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              <p>Confirmar</p>
-            )}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
+    <>
+      <SettingsRowActions actions={actions} tourId="pilotos-actions" />
 
       <Dialog open={openEdit} onOpenChange={setOpenEdit}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-105">
           <DialogHeader>
-            <DialogTitle className="text-center">Edicion de Piloto</DialogTitle>
-            <CreatePilotForm
-              initialData={pilot}
-              isEditing={true}
-              onClose={() => setOpenEdit(false)}
-            />
+            <DialogTitle>Editar piloto</DialogTitle>
+            <DialogDescription>
+              Modifique la licencia de{" "}
+              <span className="font-medium text-foreground">{fullName}</span>
+            </DialogDescription>
           </DialogHeader>
+          <CreatePilotForm
+            initialData={pilot}
+            isEditing
+            onClose={() => setOpenEdit(false)}
+          />
         </DialogContent>
       </Dialog>
-    </Dialog>
+
+      <ConfirmDeleteDialog
+        open={openDelete}
+        onOpenChange={setOpenDelete}
+        title="Eliminar piloto"
+        entityName={fullName || pilot.employee_dni}
+        warning={
+          <>
+            Se eliminará su registro como piloto. El empleado <b>no</b> se
+            elimina.
+          </>
+        }
+        isPending={deletePilot.isPending}
+        onConfirm={() =>
+          deletePilot.mutateAsync({
+            company: selectedCompany?.slug,
+            id: pilot.id,
+          })
+        }
+      />
+    </>
   );
 };
 

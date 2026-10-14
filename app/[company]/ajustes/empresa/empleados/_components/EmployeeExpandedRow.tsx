@@ -29,19 +29,7 @@ const Item = ({
 
 export function EmployeeExpandedRow({ employee }: Props) {
   return (
-    <div className="px-6 py-4">
-      {/* HEADER CONTEXTUAL */}
-      <div className="mb-4 flex items-center justify-between">
-        <div className="text-sm font-semibold">
-          Información del empleado
-        </div>
-
-        <div className="text-xs text-muted-foreground">
-          Datos adicionales
-        </div>
-      </div>
-
-      {/* GRID MEJORADO */}
+    <div>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
 
         <Item label="Tipo de sangre" value={employee.blood_type} />

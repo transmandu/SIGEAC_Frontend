@@ -110,13 +110,18 @@ export function EditClientForm({ onClose, client }: EditClientFormProps) {
       phone: formData.phone,
       email: formData.email,
       address: formData.address,
+      pay_credit_days: formData.pay_credit_days,
     };
-    await updateClient.mutateAsync({
-      id: client.id.toString(),
-      data,
-      company: selectedCompany!.slug,
-    });
-    onClose();
+    try {
+      await updateClient.mutateAsync({
+        id: client.id.toString(),
+        data,
+        company: selectedCompany!.slug,
+      });
+      onClose();
+    } catch {
+      // El aviso lo muestra la mutación; el formulario queda abierto.
+    }
   };
 
   return (

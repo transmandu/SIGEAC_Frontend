@@ -49,14 +49,18 @@ export default function CreateUnitForm({ onClose, onSuccess, onCreated }: FormPr
   })
   const { control } = form;
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    const unit = await createUnit.mutateAsync(values);
-    if (onSuccess) {
-      onSuccess(values);
+    try {
+      const unit = await createUnit.mutateAsync(values);
+      if (onSuccess) {
+        onSuccess(values);
+      }
+      if (unit && onCreated) {
+        onCreated(unit);
+      }
+      onClose()
+    } catch {
+      // El aviso lo muestra la mutación; el formulario queda abierto.
     }
-    if (unit && onCreated) {
-      onCreated(unit);
-    }
-    onClose()
   }
   return (
     <Form {...form}>

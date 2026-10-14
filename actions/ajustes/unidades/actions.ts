@@ -1,4 +1,5 @@
 import axiosInstance from "@/lib/axios";
+import { getApiErrorMessage } from "@/lib/api-error";
 import { Unit } from "@/types";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -32,8 +33,8 @@ export const useCreateUnit = () => {
       });
     },
     onError: (error) => {
-      toast("Hey", {
-        description: `No se creo correctamente: ${error}`,
+      toast.error("Error", {
+        description: getApiErrorMessage(error, "No se creó correctamente."),
       });
     },
   });
@@ -57,16 +58,16 @@ export const useUpdateUnit = () => {
         queryKey: ["units", selectedCompany?.slug],
       });
       // Las conversiones muestran el label de su unidad: renombrarla las desactualiza.
-      queryClient.invalidateQueries({
-        queryKey: ["secondary-units", selectedCompany?.slug],
-      });
+      ["unit-conversions", "unit-conversion-presets", "unit-conversion-suggestions"].forEach((key) =>
+        queryClient.invalidateQueries({ queryKey: [key, selectedCompany?.slug] }),
+      );
       toast.success("¡Actualizado!", {
         description: `¡La unidad se ha actualizado correctamente!`,
       });
     },
-    onError: () => {
+    onError: (error) => {
       toast.error("Oops!", {
-        description: "¡Hubo un error al actualizar la unidad!",
+        description: getApiErrorMessage(error, "¡Hubo un error al actualizar la unidad!"),
       });
     },
   });
@@ -88,16 +89,17 @@ export const useDeleteUnit = () => {
       queryClient.invalidateQueries({
         queryKey: ["units", selectedCompany?.slug],
       });
-      queryClient.invalidateQueries({
-        queryKey: ["secondary-units", selectedCompany?.slug],
-      });
+      ["unit-conversions", "unit-conversion-presets", "unit-conversion-suggestions"].forEach((key) =>
+        queryClient.invalidateQueries({ queryKey: [key, selectedCompany?.slug] }),
+      );
       toast.success("¡Eliminado!", {
         description: `¡La unidad ha sido eliminado correctamente!`,
       });
     },
-    onError: (e) => {
+    onError: (error: any) => {
       toast.error("Oops!", {
-        description: "¡Hubo un error al eliminar la unidad!",
+        description:
+          error?.response?.data?.message ?? "¡Hubo un error al eliminar la unidad!",
       });
     },
   });

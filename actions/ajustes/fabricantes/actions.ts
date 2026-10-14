@@ -1,4 +1,5 @@
 import axiosInstance from "@/lib/axios"
+import { getApiErrorMessage } from "@/lib/api-error";
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 
@@ -26,8 +27,8 @@ export const useCreateManufacturer = () => {
       })
     },
     onError: (error) => {
-      toast('Hey', {
-        description: `No se creo correctamente: ${error}`
+      toast.error('Error', {
+        description: getApiErrorMessage(error, "No se creó correctamente.")
       })
     },
   }
@@ -57,7 +58,7 @@ export const useUpdateManufacturer = () => {
     },
     onError: (error) => {
       toast.error('Error', {
-        description: `No se actualizó correctamente: ${error}`
+        description: getApiErrorMessage(error, "No se actualizó correctamente.")
       })
     },
   })
@@ -72,8 +73,8 @@ export const useDeleteManufacturer = () => {
   const queryClient = useQueryClient()
 
   const deleteMutation = useMutation({
-    mutationFn: async (id: number | string) => {
-      await axiosInstance.delete(`/hangar74/manufacturers/${id}`)
+    mutationFn: async ({ company, id }: { company: string | undefined; id: number | string }) => {
+      await axiosInstance.delete(`/${company}/manufacturers/${id}`)
     },
     onSuccess: () => {
 
@@ -82,9 +83,9 @@ export const useDeleteManufacturer = () => {
         description: `¡El fabricante ha sido eliminado correctamente!`
       })
     },
-    onError: (e) => {
+    onError: (error) => {
       toast.error("Oops!", {
-        description: "¡Hubo un error al eliminar al fabricante!"
+        description: getApiErrorMessage(error, "¡Hubo un error al eliminar al fabricante!")
       })
     },
   }

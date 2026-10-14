@@ -1,5 +1,7 @@
 'use client';
 
+import { Plus } from "lucide-react";
+
 import { useState } from 'react';
 import {
   Dialog,
@@ -18,9 +20,10 @@ export function CreateEmployeeDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-<ActionTriggerButton className="flex items-center justify-center gap-2">
-  Crear Empleado
-</ActionTriggerButton>
+        <ActionTriggerButton>
+          <Plus className="h-4 w-4 mr-2" />
+          Crear empleado
+        </ActionTriggerButton>
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-5xl">

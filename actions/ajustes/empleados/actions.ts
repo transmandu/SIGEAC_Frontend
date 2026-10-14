@@ -1,4 +1,5 @@
 import axiosInstance from "@/lib/axios"
+import { getApiErrorMessage } from "@/lib/api-error"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { Employee } from "@/types"
@@ -57,7 +58,7 @@ export const useCreateEmployee = () => {
     },
 
     onError: (error: any) => {
-      toast.error(error?.message ?? "Error al crear empleado")
+      toast.error(getApiErrorMessage(error, "Error al crear empleado"))
     }
   })
 }
@@ -102,7 +103,10 @@ export const useCreateEmployee = () => {
           queryKey: ["employee", variables.company, variables.id],
         })
 
-        toast.success(response?.message ?? "Empleado actualizado correctamente")
+        // Los pilotos listan datos del empleado (nombre, contacto) y caen con él.
+      queryClient.invalidateQueries({ queryKey: ["pilots"] })
+
+      toast.success(response?.message ?? "Empleado actualizado correctamente")
       },
 
       onError: (error: any) => {
@@ -139,11 +143,18 @@ export const useDeleteEmployee = () => {
         queryKey: ["employees", variables.company]
       })
 
+      queryClient.invalidateQueries({
+        queryKey: ["employees-inactive", variables.company]
+      })
+
+      // Los pilotos listan datos del empleado (nombre, contacto) y caen con él.
+      queryClient.invalidateQueries({ queryKey: ["pilots"] })
+
       toast.success("Empleado eliminado correctamente")
     },
 
     onError: (error: any) => {
-      toast.error(error?.message ?? "Error al eliminar")
+      toast.error(error?.response?.data?.message ?? error?.message ?? "Error al eliminar")
     }
   })
 }
@@ -176,6 +187,9 @@ export const useDeactivateEmployee = () => {
         queryKey: ["employees-inactive", variables.company]
       })
 
+      // Los pilotos listan datos del empleado (nombre, contacto) y caen con él.
+      queryClient.invalidateQueries({ queryKey: ["pilots"] })
+
       toast.success(data?.message ?? "Empleado desactivado correctamente")
     },
 
@@ -205,6 +219,9 @@ export const useReactivateEmployee = () => {
       queryClient.invalidateQueries({
         queryKey: ["employees-inactive", variables.company]
       })
+
+      // Los pilotos listan datos del empleado (nombre, contacto) y caen con él.
+      queryClient.invalidateQueries({ queryKey: ["pilots"] })
 
       toast.success(data?.message ?? "Empleado reactivado correctamente")
     },

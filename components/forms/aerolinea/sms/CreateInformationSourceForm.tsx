@@ -23,13 +23,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 import { Loader2 } from "lucide-react";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
 const FormSchema = z.object({
-  type: z.string(),
-  name: z.string().max(21),
+  type: z.string().min(1, "Debe seleccionar un tipo."),
+  name: z.string().min(1, "Debe ingresar un nombre.").max(50),
 });
 
 type FormSchemaType = z.infer<typeof FormSchema>;
@@ -43,15 +42,19 @@ export function CreateInformationSourceForm({ onClose }: FormProps) {
   const { selectedCompany } = useCompanyStore();
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
-    defaultValues: {},
+    defaultValues: { name: "", type: "" },
   });
 
   const onSubmit = async (data: FormSchemaType) => {
-    await createInformationSource.mutateAsync({
-      company: selectedCompany!.slug,
-      data: data,
-    });
-    onClose();
+    try {
+      await createInformationSource.mutateAsync({
+        company: selectedCompany!.slug,
+        data: data,
+      });
+      onClose();
+    } catch {
+      // El aviso lo muestra la mutación; el formulario queda abierto.
+    }
   };
 
   return (
@@ -60,10 +63,7 @@ export function CreateInformationSourceForm({ onClose }: FormProps) {
         onSubmit={form.handleSubmit(onSubmit)}
         className="flex flex-col space-y-3"
       >
-        <FormLabel className="text-lg text-center">
-          Formulario de Fuente de Informacion
-        </FormLabel>
-        <div className="flex gap-2 items-center justify-center  ">
+        <div className="flex gap-2 items-start justify-center">
           <FormField
             control={form.control}
             name="name"
@@ -71,7 +71,7 @@ export function CreateInformationSourceForm({ onClose }: FormProps) {
               <FormItem>
                 <FormLabel>Nombre de la Fuente</FormLabel>
                 <FormControl>
-                  <Input placeholder="" {...field} maxLength={20} />
+                  <Input placeholder="" {...field} maxLength={50} />
                 </FormControl>
                 <FormMessage className="text-xs" />
               </FormItem>
@@ -85,7 +85,7 @@ export function CreateInformationSourceForm({ onClose }: FormProps) {
                 <FormLabel>Seleccionar Tipo</FormLabel>
                 <Select
                   onValueChange={field.onChange}
-                  defaultValue={field.value}
+                  value={field.value}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -95,6 +95,7 @@ export function CreateInformationSourceForm({ onClose }: FormProps) {
                   <SelectContent>
                     <SelectItem value="PROACTIVO">PROACTIVO</SelectItem>
                     <SelectItem value="REACTIVO">REACTIVO</SelectItem>
+                    <SelectItem value="PREDICTIVO">PREDICTIVO</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -103,16 +104,11 @@ export function CreateInformationSourceForm({ onClose }: FormProps) {
           />
         </div>
 
-        <div className="flex justify-between items-center gap-x-4">
-          <Separator className="flex-1" />
-          <p className="text-muted-foreground">SIGEAC</p>
-          <Separator className="flex-1" />
-        </div>
         <Button disabled={createInformationSource.isPending}>
           {createInformationSource.isPending ? (
             <Loader2 className="size-4 animate-spin" />
           ) : (
-            "Enviar"
+            "Crear fuente"
           )}
         </Button>
       </form>

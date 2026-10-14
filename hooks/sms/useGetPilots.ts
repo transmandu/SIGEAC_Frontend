@@ -9,7 +9,7 @@ const fetchPilots = async (company?: string): Promise<Pilot[]> => {
 
 export const useGetPilots = (company?: string) => {
   return useQuery<Pilot[]>({
-    queryKey: ["pilots"],
+    queryKey: ["pilots", company],
     queryFn: () => fetchPilots(company),
     staleTime: 1000 * 60 * 5,
     enabled: !!company,

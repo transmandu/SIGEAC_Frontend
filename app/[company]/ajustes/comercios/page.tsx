@@ -1,25 +1,26 @@
 "use client";
 
-import { useEffect } from "react";
-import { ContentLayout } from "@/components/layout/ContentLayout";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import { SettingsListPage } from "@/components/layout/SettingsListPage";
+import { SettingsDataTable } from "@/components/tables/SettingsDataTable";
+import { CreateRetailerDialog } from "@/components/dialogs/mantenimiento/compras/CreateRetailerDialog";
 import { useGetRetailers } from "@/hooks/general/comercios/useGetRetailers";
-import { Loader2 } from "lucide-react";
-import { columns } from "./columns";
-import { DataTable } from "./data-table";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { comerciosSteps } from "@/components/tour/steps/ajustes/comercios";
-import { PageHeader } from "@/components/layout/PageHeader";
+import { columns } from "./columns";
 
 const RetailersPage = () => {
   const { selectedCompany } = useCompanyStore();
   const {
     data: retailers,
-    isLoading,
-    error,
+    isPending,
+    isError,
+    refetch,
   } = useGetRetailers(selectedCompany?.slug);
-
   const { registerTour, unregisterTour } = useTourContext();
+  const [search, setSearch] = useState("");
+  const deferredSearch = useDeferredValue(search);
 
   useEffect(() => {
     if (retailers && retailers.length > 0) {
@@ -29,34 +30,49 @@ const RetailersPage = () => {
     return () => unregisterTour("comercios");
   }, [registerTour, unregisterTour, retailers]);
 
-  return (
-    <ContentLayout title="Comercios">
-      <PageHeader className="mb-6" />
+  const filtered = useMemo(() => {
+    if (!retailers) return [];
+    const q = deferredSearch.trim().toLowerCase();
+    if (!q) return retailers;
 
-      <h1
-        className="text-5xl font-bold text-center mt-2"
-        data-tour="comercios-title"
-      >
-        Control de Comercios
-      </h1>
-      <p className="text-sm text-muted-foreground text-center italic mt-2">
-        Aquí puede llevar el control de los comercios y lugares de compra
-        (tiendas físicas o en línea) donde se adquieren los artículos generales.
-      </p>
-      {isLoading && (
-        <div className="grid mt-72 place-content-center">
-          <Loader2 className="w-12 h-12 animate-spin" />
-        </div>
-      )}
-      {error && (
-        <div className="grid mt-72 place-content-center">
-          <p className="text-sm text-muted-foreground">
-            Ha ocurrido un error al cargar los comercios...
-          </p>
-        </div>
-      )}
-      {retailers && <DataTable columns={columns} data={retailers} />}
-    </ContentLayout>
+    return retailers.filter(
+      (r) =>
+        r.name?.toLowerCase().includes(q) ||
+        r.phone?.toLowerCase().includes(q) ||
+        r.address?.toLowerCase().includes(q),
+    );
+  }, [retailers, deferredSearch]);
+
+  return (
+    <SettingsListPage
+      title="Comercios"
+      heading="Control de Comercios"
+      description="Administra los comercios y lugares de compra (tiendas físicas o en línea) donde se adquieren los artículos generales."
+      tourPrefix="comercios"
+      search={{
+        value: search,
+        onChange: setSearch,
+        placeholder: "Buscar comercios...",
+      }}
+      count={{
+        value: retailers ? filtered.length : undefined,
+        singular: "comercio",
+        plural: "comercios",
+      }}
+    >
+      <SettingsDataTable
+        columns={columns}
+        data={filtered}
+        error={isError}
+        errorMessage="No se pudieron cargar los comercios"
+        onRetry={() => refetch()}
+        filtered={!!deferredSearch.trim()}
+        loading={isPending}
+        emptyMessage="No se han encontrado comercios."
+        actions={<CreateRetailerDialog />}
+        tourPrefix="comercios"
+      />
+    </SettingsListPage>
   );
 };
 

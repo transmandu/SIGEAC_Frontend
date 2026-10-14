@@ -22,7 +22,7 @@ export const clientesSteps: StepType[] = [
   {
     selector: '[data-tour="clientes-actions"]',
     content:
-      "Acciones por cliente: eliminar, ver resumen, estadísticas de vuelos, editar datos o agregar saldo a favor.",
+      "Acciones por cliente: ver su detalle, editar sus datos o eliminarlo.",
     position: "left",
   },
   {

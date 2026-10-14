@@ -1,5 +1,5 @@
 'use client';
-import { useCreateRetailer } from "@/actions/ajustes/comercios/actions";
+import { useCreateRetailer, useUpdateRetailer } from "@/actions/ajustes/comercios/actions";
 import {
   Form,
   FormControl,
@@ -31,30 +31,43 @@ interface FormProps {
   onClose: () => void,
   /** Called with the newly created retailer after a successful creation. */
   onCreated?: (retailer: Retailer) => void,
+  /** Con comercio, el formulario edita en lugar de crear. */
+  retailer?: Retailer,
 }
 
-export default function CreateRetailerForm({ onClose, onCreated }: FormProps) {
+export default function CreateRetailerForm({ onClose, onCreated, retailer }: FormProps) {
   const { createRetailer } = useCreateRetailer()
+  const { updateRetailer } = useUpdateRetailer()
+  const mutation = retailer ? updateRetailer : createRetailer
   const { selectedCompany } = useCompanyStore()
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
-      address: "",
-      phone: "",
+      name: retailer?.name ?? "",
+      address: retailer?.address ?? "",
+      phone: retailer?.phone ?? "",
     },
   })
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      const retailer = await createRetailer.mutateAsync({
-        ...values,
-        company: selectedCompany!.slug,
-      })
-      if (retailer) onCreated?.(retailer)
-    } catch (error) {
+      if (retailer) {
+        await updateRetailer.mutateAsync({
+          ...values,
+          id: retailer.id,
+          company: selectedCompany!.slug,
+        })
+      } else {
+        const created = await createRetailer.mutateAsync({
+          ...values,
+          company: selectedCompany!.slug,
+        })
+        if (created) onCreated?.(created)
+      }
+      onClose()
+    } catch {
+      // El aviso lo muestra la mutación; el formulario queda abierto.
     }
-    onClose()
   }
 
   return (
@@ -112,8 +125,8 @@ export default function CreateRetailerForm({ onClose, onCreated }: FormProps) {
             )}
           />
         </div>
-        <Button className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70" disabled={createRetailer?.isPending} type="submit">
-          {createRetailer?.isPending ? <Loader2 className="size-4 animate-spin" /> : <p>Crear Comercio</p>}
+        <Button className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70" disabled={mutation.isPending} type="submit">
+          {mutation.isPending ? <Loader2 className="size-4 animate-spin" /> : <p>{retailer ? "Actualizar" : "Crear Comercio"}</p>}
         </Button>
       </form>
     </Form>

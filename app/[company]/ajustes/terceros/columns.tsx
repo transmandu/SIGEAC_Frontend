@@ -1,11 +1,26 @@
-"use client"
+"use client";
 
 import { type AppColumnDef } from "@/lib/table";
-import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
-import ThirdPartyDropdownActions from "@/components/dropdowns/general/ThirdPartyDropdownActions"
-import { ThirdParty } from "@/types"
-import { getThirdPartyTypeLabel } from "@/lib/utils"
-import { Badge } from "@/components/ui/badge"
+import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
+import ThirdPartyDropdownActions from "@/components/dropdowns/general/ThirdPartyDropdownActions";
+import { ThirdParty } from "@/types";
+import { getThirdPartyTypeLabel } from "@/lib/utils";
+import { TagBadge, type TagTone } from "@/components/misc/TagBadge";
+
+/** Un color por tipo: se distingue de un vistazo sin leer el texto. */
+export const THIRD_PARTY_TYPE_TONES: Record<string, TagTone> = {
+  CLIENT_COMPANY: "sky",
+  CLIENT_PERSON: "violet",
+  OTHER: "slate",
+  SIN_TIPO: "amber",
+};
+
+export const THIRD_PARTY_TYPES = [
+  "CLIENT_COMPANY",
+  "CLIENT_PERSON",
+  "OTHER",
+  "SIN_TIPO",
+] as const;
 
 export const columns: AppColumnDef<ThirdParty>[] = [
   {
@@ -47,11 +62,9 @@ export const columns: AppColumnDef<ThirdParty>[] = [
 
     cell: ({ row }) => (
       <div className="flex justify-center w-full">
-        <Badge
-          className="rounded-md border border-blue-500/20 bg-blue-500/10 text-blue-700 dark:text-blue-300"
-        >
+        <TagBadge tone={THIRD_PARTY_TYPE_TONES[row.original.type] ?? "slate"}>
           {getThirdPartyTypeLabel(row.original.type)}
-        </Badge>
+        </TagBadge>
       </div>
     ),
   },
@@ -79,4 +92,4 @@ export const columns: AppColumnDef<ThirdParty>[] = [
       </div>
     ),
   },
-]
+];

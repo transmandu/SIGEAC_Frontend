@@ -11,7 +11,7 @@ const fetchWarehouses = async (company: string): Promise<Warehouse[]> => {
 export const useGetWarehouses = () => {
   const {selectedCompany} = useCompanyStore()
   return useQuery<Warehouse[]>({
-    queryKey: ['warehouses'],
+    queryKey: ['warehouses', selectedCompany?.slug],
     queryFn: ()=> fetchWarehouses(selectedCompany!.slug),
     staleTime: 1000 * 60 * 5,
     enabled: !!selectedCompany

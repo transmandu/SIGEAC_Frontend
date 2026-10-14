@@ -1,80 +1,69 @@
 "use client";
 
 import { type AppColumnDef } from "@/lib/table";
-
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
-
-import { Checkbox } from "@/components/ui/checkbox";
-import { InformationSource, Manufacturer, Pilot, Vendor } from "@/types";
+import { TagBadge, type TagTone } from "@/components/misc/TagBadge";
 import InformationSourceDropdownActions from "@/components/dropdowns/aerolinea/sms/InformationSourceDropDownActions";
-import { Badge } from "@/components/ui/badge";
+import { InformationSource } from "@/types";
+
+const TYPE_TONES: Record<InformationSource["type"], TagTone> = {
+  PROACTIVO: "green",
+  REACTIVO: "rose",
+  PREDICTIVO: "blue",
+};
 
 export const columns: AppColumnDef<InformationSource>[] = [
   {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Seleccionar todos"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Seleccionar fila"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
     accessorKey: "name",
+    size: 360,
     header: ({ column }) => (
-      <DataTableColumnHeader
-        filter
-        column={column}
-        title="Nombre de la Fuente"
-      />
+      <div className="flex justify-center w-full">
+        <DataTableColumnHeader
+          filter
+          column={column}
+          title="Nombre de la Fuente"
+        />
+      </div>
     ),
     meta: { title: "Nombre" },
     cell: ({ row }) => (
-      <div className="flex justify-center">
-        <span className="font-bold text-center">{row.original.name}</span>
+      <div className="flex justify-center w-full">
+        <span className="text-sm font-semibold text-slate-700 dark:text-slate-200 text-center">
+          {row.original.name}
+        </span>
       </div>
     ),
   },
   {
     accessorKey: "type",
+    size: 220,
     header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Tipo de Fuente" />
+      <div className="flex justify-center w-full">
+        <DataTableColumnHeader filter column={column} title="Tipo de Fuente" />
+      </div>
     ),
     meta: { title: "Tipo" },
     cell: ({ row }) => (
-      <div className="flex justify-center">
-        <Badge
-          className={`justify-center items-center text-center font-bold font-sans ${
-            row.original.type === "PROACTIVO" ? "bg-green-400" : "bg-red-400"
-          }`}
-        >
-          <p>{row.original.type}</p>
-        </Badge>
+      <div className="flex justify-center w-full">
+        <TagBadge tone={TYPE_TONES[row.original.type] ?? "slate"}>
+          {row.original.type}
+        </TagBadge>
       </div>
     ),
   },
   {
     id: "actions",
-    cell: ({ row }) => {
-      const informationSource = row.original;
-      return (
-        <InformationSourceDropdownActions
-          informationSource={informationSource}
-        />
-      );
-    },
+    size: 100,
+    header: ({ column }) => (
+      <div className="flex justify-center w-full">
+        <DataTableColumnHeader column={column} title="Acciones" />
+      </div>
+    ),
+    meta: { title: "Acciones" },
+    cell: ({ row }) => (
+      <div className="flex justify-center w-full">
+        <InformationSourceDropdownActions informationSource={row.original} />
+      </div>
+    ),
   },
 ];
