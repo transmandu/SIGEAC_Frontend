@@ -83,10 +83,7 @@ export function CreateInformationSourceForm({ onClose }: FormProps) {
             render={({ field }) => (
               <FormItem className="w-full">
                 <FormLabel>Seleccionar Tipo</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  value={field.value}
-                >
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Seleccionar Tipo" />

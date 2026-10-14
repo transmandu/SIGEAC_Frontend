@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
 import { Plus } from "lucide-react";
 
-import { useState } from 'react';
+import { useState } from "react";
 import {
   Dialog,
   DialogTrigger,
@@ -10,10 +10,10 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 
-import { CreateEmployeeForm } from '@/components/forms/general/CreateEmployeeForm';
+import { CreateEmployeeForm } from "@/components/forms/general/CreateEmployeeForm";
 
 export function CreateEmployeeDialog() {
   const [open, setOpen] = useState(false);

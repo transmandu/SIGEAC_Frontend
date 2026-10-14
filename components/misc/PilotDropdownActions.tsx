@@ -27,7 +27,8 @@ const PilotDropdownActions = ({ pilot }: { pilot: Pilot }) => {
   const { selectedCompany } = useCompanyStore();
   const router = useRouter();
 
-  const fullName = `${pilot.employee?.first_name ?? ""} ${pilot.employee?.last_name ?? ""}`.trim();
+  const fullName =
+    `${pilot.employee?.first_name ?? ""} ${pilot.employee?.last_name ?? ""}`.trim();
 
   const actions: RowAction[] = [
     {
@@ -35,7 +36,9 @@ const PilotDropdownActions = ({ pilot }: { pilot: Pilot }) => {
       label: "Ver piloto",
       icon: Eye,
       onSelect: () =>
-        router.push(`/${selectedCompany?.slug}/ajustes/pilotos/${pilot.employee_dni}`),
+        router.push(
+          `/${selectedCompany?.slug}/ajustes/pilotos/${pilot.employee_dni}`,
+        ),
     },
     {
       key: "edit",

@@ -1,47 +1,47 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Minus, Pencil, RotateCcw, Trash2 } from "lucide-react"
+import { useState } from "react";
+import { Minus, Pencil, RotateCcw, Trash2 } from "lucide-react";
 import {
   useDeactivateEmployee,
   useDeleteEmployee,
   useReactivateEmployee,
-} from "@/actions/ajustes/empleados/actions"
-import { ConfirmDeleteDialog } from "@/components/dialogs/shared/ConfirmDeleteDialog"
+} from "@/actions/ajustes/empleados/actions";
+import { ConfirmDeleteDialog } from "@/components/dialogs/shared/ConfirmDeleteDialog";
 import {
   SettingsRowActions,
   type RowAction,
-} from "@/components/dropdowns/SettingsRowActions"
-import { UpdateEmployeeForm } from "@/components/forms/general/UpdateEmployeeForm"
-import { Button } from "@/components/ui/button"
+} from "@/components/dropdowns/SettingsRowActions";
+import { UpdateEmployeeForm } from "@/components/forms/general/UpdateEmployeeForm";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { useAuth } from "@/contexts/AuthContext"
-import { useCompanyStore } from "@/stores/CompanyStore"
-import { Employee } from "@/types"
+} from "@/components/ui/dialog";
+import { useAuth } from "@/contexts/AuthContext";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { Employee } from "@/types";
 
 const EmployeesDropdownActions = ({ employee }: { employee: Employee }) => {
-  const [openUpdate, setOpenUpdate] = useState(false)
-  const [openDelete, setOpenDelete] = useState(false)
-  const [openDeactivate, setOpenDeactivate] = useState(false)
-  const [openReactivate, setOpenReactivate] = useState(false)
+  const [openUpdate, setOpenUpdate] = useState(false);
+  const [openDelete, setOpenDelete] = useState(false);
+  const [openDeactivate, setOpenDeactivate] = useState(false);
+  const [openReactivate, setOpenReactivate] = useState(false);
 
-  const { selectedCompany } = useCompanyStore()
-  const { user } = useAuth()
+  const { selectedCompany } = useCompanyStore();
+  const { user } = useAuth();
 
-  const deleteEmployee = useDeleteEmployee()
-  const deactivateEmployee = useDeactivateEmployee()
-  const reactivateEmployee = useReactivateEmployee()
+  const deleteEmployee = useDeleteEmployee();
+  const deactivateEmployee = useDeactivateEmployee();
+  const reactivateEmployee = useReactivateEmployee();
 
-  const isSuperUser = user?.roles?.some((role) => role.name === "SUPERUSER")
-  const isActive = !!employee.isActive
-  const fullName = `${employee.first_name} ${employee.last_name}`
-  const company = selectedCompany?.slug ?? ""
+  const isSuperUser = user?.roles?.some((role) => role.name === "SUPERUSER");
+  const isActive = !!employee.isActive;
+  const fullName = `${employee.first_name} ${employee.last_name}`;
+  const company = selectedCompany?.slug ?? "";
 
   const actions: RowAction[] = [
     ...(isActive
@@ -79,19 +79,19 @@ const EmployeesDropdownActions = ({ employee }: { employee: Employee }) => {
           },
         ]
       : []),
-  ]
+  ];
 
   const toggleStatus = async (
     mutation: typeof deactivateEmployee,
     close: () => void,
   ) => {
     try {
-      await mutation.mutateAsync({ id: employee.id, company })
-      close()
+      await mutation.mutateAsync({ id: employee.id, company });
+      close();
     } catch {
       // El aviso lo muestra la mutación; el diálogo queda abierto.
     }
-  }
+  };
 
   return (
     <>
@@ -187,10 +187,12 @@ const EmployeesDropdownActions = ({ employee }: { employee: Employee }) => {
           </>
         }
         isPending={deleteEmployee.isPending}
-        onConfirm={() => deleteEmployee.mutateAsync({ id: employee.id, company })}
+        onConfirm={() =>
+          deleteEmployee.mutateAsync({ id: employee.id, company })
+        }
       />
     </>
-  )
-}
+  );
+};
 
-export default EmployeesDropdownActions
+export default EmployeesDropdownActions;

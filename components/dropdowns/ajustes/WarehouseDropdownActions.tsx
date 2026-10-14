@@ -1,29 +1,29 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Pencil, Trash2 } from "lucide-react"
-import { useDeleteWarehouse } from "@/actions/mantenimiento/almacen/almacenes/actions"
-import { ConfirmDeleteDialog } from "@/components/dialogs/shared/ConfirmDeleteDialog"
+import { useState } from "react";
+import { Pencil, Trash2 } from "lucide-react";
+import { useDeleteWarehouse } from "@/actions/mantenimiento/almacen/almacenes/actions";
+import { ConfirmDeleteDialog } from "@/components/dialogs/shared/ConfirmDeleteDialog";
 import {
   SettingsRowActions,
   type RowAction,
-} from "@/components/dropdowns/SettingsRowActions"
-import CreateWarehouseForm from "@/components/forms/ajustes/CreateWarehouseForm"
+} from "@/components/dropdowns/SettingsRowActions";
+import CreateWarehouseForm from "@/components/forms/ajustes/CreateWarehouseForm";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { useCompanyStore } from "@/stores/CompanyStore"
-import { Warehouse } from "@/types"
+} from "@/components/ui/dialog";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { Warehouse } from "@/types";
 
 const WarehouseDropdownActions = ({ warehouse }: { warehouse: Warehouse }) => {
-  const [openEdit, setOpenEdit] = useState(false)
-  const [openDelete, setOpenDelete] = useState(false)
-  const { selectedCompany } = useCompanyStore()
-  const { deleteWarehouse } = useDeleteWarehouse()
+  const [openEdit, setOpenEdit] = useState(false);
+  const [openDelete, setOpenDelete] = useState(false);
+  const { selectedCompany } = useCompanyStore();
+  const { deleteWarehouse } = useDeleteWarehouse();
 
   const actions: RowAction[] = [
     {
@@ -40,7 +40,7 @@ const WarehouseDropdownActions = ({ warehouse }: { warehouse: Warehouse }) => {
       tone: "red",
       onSelect: () => setOpenDelete(true),
     },
-  ]
+  ];
 
   return (
     <>
@@ -52,10 +52,15 @@ const WarehouseDropdownActions = ({ warehouse }: { warehouse: Warehouse }) => {
             <DialogTitle>Editar almacén</DialogTitle>
             <DialogDescription>
               Modifique la información de{" "}
-              <span className="font-medium text-foreground">{warehouse.name}</span>
+              <span className="font-medium text-foreground">
+                {warehouse.name}
+              </span>
             </DialogDescription>
           </DialogHeader>
-          <CreateWarehouseForm warehouse={warehouse} onClose={() => setOpenEdit(false)} />
+          <CreateWarehouseForm
+            warehouse={warehouse}
+            onClose={() => setOpenEdit(false)}
+          />
         </DialogContent>
       </Dialog>
 
@@ -64,14 +69,21 @@ const WarehouseDropdownActions = ({ warehouse }: { warehouse: Warehouse }) => {
         onOpenChange={setOpenDelete}
         title="Eliminar almacén"
         entityName={warehouse.name}
-        warning={<>Solo se puede eliminar un almacén <b>sin artículos</b> registrados.</>}
+        warning={
+          <>
+            Solo se puede eliminar un almacén <b>sin artículos</b> registrados.
+          </>
+        }
         isPending={deleteWarehouse.isPending}
         onConfirm={() =>
-          deleteWarehouse.mutateAsync({ company: selectedCompany!.slug, id: warehouse.id })
+          deleteWarehouse.mutateAsync({
+            company: selectedCompany!.slug,
+            id: warehouse.id,
+          })
         }
       />
     </>
-  )
-}
+  );
+};
 
-export default WarehouseDropdownActions
+export default WarehouseDropdownActions;

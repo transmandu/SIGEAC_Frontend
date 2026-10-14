@@ -52,7 +52,9 @@ export function RetailerDropdownActions({ retailer }: { retailer: Retailer }) {
             <DialogTitle>Editar comercio</DialogTitle>
             <DialogDescription>
               Modifique la información de{" "}
-              <span className="font-medium text-foreground">{retailer.name}</span>
+              <span className="font-medium text-foreground">
+                {retailer.name}
+              </span>
             </DialogDescription>
           </DialogHeader>
           <CreateRetailerForm

@@ -28,7 +28,10 @@ export const useCreateJobTitle = () => {
     },
     onError: (error) => {
       toast.error("Oops!", {
-        description: getApiErrorMessage(error, "¡Hubo un error al crear el cargo!"),
+        description: getApiErrorMessage(
+          error,
+          "¡Hubo un error al crear el cargo!",
+        ),
       });
     },
   });
@@ -45,14 +48,19 @@ export const useUpdateJobTitle = () => {
     onSuccess: (_, { company }) => {
       queryClient.invalidateQueries({ queryKey: ["job_titles", company] });
       queryClient.invalidateQueries({ queryKey: ["employees", company] });
-      queryClient.invalidateQueries({ queryKey: ["employees-inactive", company] });
+      queryClient.invalidateQueries({
+        queryKey: ["employees-inactive", company],
+      });
       toast.success("¡Actualizado!", {
         description: "¡El cargo ha sido actualizado correctamente!",
       });
     },
     onError: (error) => {
       toast.error("Oops!", {
-        description: getApiErrorMessage(error, "¡Hubo un error al actualizar el cargo!"),
+        description: getApiErrorMessage(
+          error,
+          "¡Hubo un error al actualizar el cargo!",
+        ),
       });
     },
   });

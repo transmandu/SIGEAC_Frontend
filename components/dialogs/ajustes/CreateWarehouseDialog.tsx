@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 
-import { useState } from "react"
-import { Plus } from "lucide-react"
-import CreateWarehouseForm from "@/components/forms/ajustes/CreateWarehouseForm"
+import { useState } from "react";
+import { Plus } from "lucide-react";
+import CreateWarehouseForm from "@/components/forms/ajustes/CreateWarehouseForm";
 import {
   Dialog,
   DialogContent,
@@ -12,10 +12,10 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 
 const CreateWarehouseDialog = () => {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(false);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -35,7 +35,7 @@ const CreateWarehouseDialog = () => {
         <CreateWarehouseForm onClose={() => setOpen(false)} />
       </DialogContent>
     </Dialog>
-  )
-}
+  );
+};
 
-export default CreateWarehouseDialog
+export default CreateWarehouseDialog;

@@ -65,7 +65,10 @@ export const useDeleteInformationSource = () => {
     },
     onError: (error) => {
       toast.error("Oops!", {
-        description: getApiErrorMessage(error, "¡Hubo un error al eliminar la fuente!"),
+        description: getApiErrorMessage(
+          error,
+          "¡Hubo un error al eliminar la fuente!",
+        ),
       });
     },
   });
@@ -95,7 +98,10 @@ export const useUpdateInformationSource = () => {
     },
     onError: (error) => {
       toast.error("Oops!", {
-        description: getApiErrorMessage(error, "No se pudo actualizar la fuente..."),
+        description: getApiErrorMessage(
+          error,
+          "No se pudo actualizar la fuente...",
+        ),
       });
     },
   });

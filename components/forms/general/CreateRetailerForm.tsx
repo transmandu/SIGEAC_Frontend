@@ -1,5 +1,8 @@
-'use client';
-import { useCreateRetailer, useUpdateRetailer } from "@/actions/ajustes/comercios/actions";
+"use client";
+import {
+  useCreateRetailer,
+  useUpdateRetailer,
+} from "@/actions/ajustes/comercios/actions";
 import {
   Form,
   FormControl,
@@ -25,21 +28,25 @@ const formSchema = z.object({
   }),
   address: z.string().optional(),
   phone: z.string().optional(),
-})
+});
 
 interface FormProps {
-  onClose: () => void,
+  onClose: () => void;
   /** Called with the newly created retailer after a successful creation. */
-  onCreated?: (retailer: Retailer) => void,
+  onCreated?: (retailer: Retailer) => void;
   /** Con comercio, el formulario edita en lugar de crear. */
-  retailer?: Retailer,
+  retailer?: Retailer;
 }
 
-export default function CreateRetailerForm({ onClose, onCreated, retailer }: FormProps) {
-  const { createRetailer } = useCreateRetailer()
-  const { updateRetailer } = useUpdateRetailer()
-  const mutation = retailer ? updateRetailer : createRetailer
-  const { selectedCompany } = useCompanyStore()
+export default function CreateRetailerForm({
+  onClose,
+  onCreated,
+  retailer,
+}: FormProps) {
+  const { createRetailer } = useCreateRetailer();
+  const { updateRetailer } = useUpdateRetailer();
+  const mutation = retailer ? updateRetailer : createRetailer;
+  const { selectedCompany } = useCompanyStore();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -47,7 +54,7 @@ export default function CreateRetailerForm({ onClose, onCreated, retailer }: For
       address: retailer?.address ?? "",
       phone: retailer?.phone ?? "",
     },
-  })
+  });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
@@ -56,19 +63,19 @@ export default function CreateRetailerForm({ onClose, onCreated, retailer }: For
           ...values,
           id: retailer.id,
           company: selectedCompany!.slug,
-        })
+        });
       } else {
         const created = await createRetailer.mutateAsync({
           ...values,
           company: selectedCompany!.slug,
-        })
-        if (created) onCreated?.(created)
+        });
+        if (created) onCreated?.(created);
       }
-      onClose()
+      onClose();
     } catch {
       // El aviso lo muestra la mutación; el formulario queda abierto.
     }
-  }
+  };
 
   return (
     <Form {...form}>
@@ -89,9 +96,14 @@ export default function CreateRetailerForm({ onClose, onCreated, retailer }: For
               <FormItem className="w-full">
                 <FormLabel>Nombre del Comercio</FormLabel>
                 <FormControl>
-                  <Input placeholder="EJ: Ferretería EPA, Mercado Libre, etc..." {...field} />
+                  <Input
+                    placeholder="EJ: Ferretería EPA, Mercado Libre, etc..."
+                    {...field}
+                  />
                 </FormControl>
-                <FormDescription>Tienda física o sitio en línea donde se compra.</FormDescription>
+                <FormDescription>
+                  Tienda física o sitio en línea donde se compra.
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -105,7 +117,9 @@ export default function CreateRetailerForm({ onClose, onCreated, retailer }: For
                 <FormControl>
                   <Input placeholder="..." {...field} />
                 </FormControl>
-                <FormDescription>Número de contacto (opcional).</FormDescription>
+                <FormDescription>
+                  Número de contacto (opcional).
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -119,16 +133,26 @@ export default function CreateRetailerForm({ onClose, onCreated, retailer }: For
                 <FormControl>
                   <Input placeholder="..." {...field} />
                 </FormControl>
-                <FormDescription>Dirección física o URL del sitio (opcional).</FormDescription>
+                <FormDescription>
+                  Dirección física o URL del sitio (opcional).
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
         </div>
-        <Button className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70" disabled={mutation.isPending} type="submit">
-          {mutation.isPending ? <Loader2 className="size-4 animate-spin" /> : <p>{retailer ? "Actualizar" : "Crear Comercio"}</p>}
+        <Button
+          className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70"
+          disabled={mutation.isPending}
+          type="submit"
+        >
+          {mutation.isPending ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <p>{retailer ? "Actualizar" : "Crear Comercio"}</p>
+          )}
         </Button>
       </form>
     </Form>
-  )
+  );
 }

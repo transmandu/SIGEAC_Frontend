@@ -34,21 +34,18 @@ const formSchema = z.object({
     message: "El nombre debe tener al menos 3 carácters.",
   }),
   description: z.string().optional(),
-  type: z.enum(["AIRCRAFT", "ENGINE", "APU", "PROPELLER", "GENERAL", "PART", "TOOL"], {
-    error: "Debe seleccionar un tipo",
-  }),
+  type: z.enum(
+    ["AIRCRAFT", "ENGINE", "APU", "PROPELLER", "GENERAL", "PART", "TOOL"],
+    {
+      error: "Debe seleccionar un tipo",
+    },
+  ),
 });
 
 interface FormProps {
   onClose: () => void;
   defaultType?:
-  | "AIRCRAFT"
-  | "ENGINE"
-  | "APU"
-  | "PROPELLER"
-  | "GENERAL"
-  | "PART"
-  | "TOOL";
+    "AIRCRAFT" | "ENGINE" | "APU" | "PROPELLER" | "GENERAL" | "PART" | "TOOL";
   onSuccess?: (manufacturer: any) => void;
   /** Con fabricante, el formulario edita en lugar de crear. */
   manufacturer?: Manufacturer;

@@ -39,7 +39,11 @@ interface FormProps {
   isEditing?: boolean;
 }
 
-export function CreatePilotForm({ onClose, initialData, isEditing }: FormProps) {
+export function CreatePilotForm({
+  onClose,
+  initialData,
+  isEditing,
+}: FormProps) {
   const { selectedCompany } = useCompanyStore();
   const { createPilot } = useCreatePilot();
   const { updatePilot } = useUpdatePilot();

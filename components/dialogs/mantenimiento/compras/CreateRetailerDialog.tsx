@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import { Plus } from "lucide-react";
 
@@ -10,10 +10,10 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger
-} from "@/components/ui/dialog"
-import { useState } from "react"
-import CreateRetailerForm from "@/components/forms/general/CreateRetailerForm"
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { useState } from "react";
+import CreateRetailerForm from "@/components/forms/general/CreateRetailerForm";
 
 export function CreateRetailerDialog() {
   const [open, setOpen] = useState(false);
@@ -29,11 +29,12 @@ export function CreateRetailerDialog() {
         <DialogHeader>
           <DialogTitle>Creación de Comercio</DialogTitle>
           <DialogDescription>
-            Registre un comercio o lugar de compra (tienda física o en línea) rellenando la información necesaria.
+            Registre un comercio o lugar de compra (tienda física o en línea)
+            rellenando la información necesaria.
           </DialogDescription>
         </DialogHeader>
         <CreateRetailerForm onClose={() => setOpen(false)} />
       </DialogContent>
     </Dialog>
-  )
+  );
 }

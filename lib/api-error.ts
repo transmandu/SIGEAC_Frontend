@@ -7,8 +7,7 @@ import axios from "axios";
 export function getApiErrorMessage(error: unknown, fallback: string): string {
   if (axios.isAxiosError(error)) {
     const data = error.response?.data as
-      | { message?: unknown; errors?: Record<string, string[]> }
-      | undefined;
+      { message?: unknown; errors?: Record<string, string[]> } | undefined;
 
     const firstValidation = data?.errors
       ? Object.values(data.errors).flat()[0]

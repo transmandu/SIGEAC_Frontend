@@ -1220,7 +1220,8 @@ export type Location = {
 export type Manufacturer = {
   id: number;
   name: string;
-  type: "AIRCRAFT" | "ENGINE" | "APU" | "PROPELLER" | "GENERAL" | "PART" | "TOOL"; // AIRCRAFT para aeronaves, los demás para partes
+  type:
+    "AIRCRAFT" | "ENGINE" | "APU" | "PROPELLER" | "GENERAL" | "PART" | "TOOL"; // AIRCRAFT para aeronaves, los demás para partes
   description: string;
 };
 

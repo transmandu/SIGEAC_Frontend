@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 
-import { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { useState } from "react";
+import { Plus } from "lucide-react";
 import {
   Dialog,
   DialogTrigger,
@@ -11,8 +11,8 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '@/components/ui/dialog';
-import { CreateJobTitleForm } from '@/components/forms/general/CreateJobTitleForm';
+} from "@/components/ui/dialog";
+import { CreateJobTitleForm } from "@/components/forms/general/CreateJobTitleForm";
 
 export function CreateJobTitleDialog() {
   const [open, setOpen] = useState(false);

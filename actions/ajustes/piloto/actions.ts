@@ -65,7 +65,10 @@ export const useDeletePilot = () => {
     },
     onError: (error) => {
       toast.error("Oops!", {
-        description: getApiErrorMessage(error, "¡Hubo un error al eliminar el piloto!"),
+        description: getApiErrorMessage(
+          error,
+          "¡Hubo un error al eliminar el piloto!",
+        ),
       });
     },
   });
@@ -91,7 +94,10 @@ export const useUpdatePilot = () => {
     },
     onError: (error) => {
       toast.error("Oops!", {
-        description: getApiErrorMessage(error, "No se pudo actualizar el piloto..."),
+        description: getApiErrorMessage(
+          error,
+          "No se pudo actualizar el piloto...",
+        ),
       });
     },
   });

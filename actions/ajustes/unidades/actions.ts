@@ -21,7 +21,10 @@ export const useCreateUnit = () => {
 
   const createMutation = useMutation({
     mutationFn: async (data: createUnitSchema): Promise<Unit> => {
-      const res = await axiosInstance.post(`/${selectedCompany?.slug}/unit`, data);
+      const res = await axiosInstance.post(
+        `/${selectedCompany?.slug}/unit`,
+        data,
+      );
       return res.data?.Unit as Unit;
     },
     onSuccess: () => {
@@ -50,7 +53,10 @@ export const useUpdateUnit = () => {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, ...data }: updateUnitSchema): Promise<Unit> => {
-      const res = await axiosInstance.patch(`/${selectedCompany?.slug}/unit/${id}`, data);
+      const res = await axiosInstance.patch(
+        `/${selectedCompany?.slug}/unit/${id}`,
+        data,
+      );
       return res.data?.Unit as Unit;
     },
     onSuccess: () => {
@@ -58,8 +64,14 @@ export const useUpdateUnit = () => {
         queryKey: ["units", selectedCompany?.slug],
       });
       // Las conversiones muestran el label de su unidad: renombrarla las desactualiza.
-      ["unit-conversions", "unit-conversion-presets", "unit-conversion-suggestions"].forEach((key) =>
-        queryClient.invalidateQueries({ queryKey: [key, selectedCompany?.slug] }),
+      [
+        "unit-conversions",
+        "unit-conversion-presets",
+        "unit-conversion-suggestions",
+      ].forEach((key) =>
+        queryClient.invalidateQueries({
+          queryKey: [key, selectedCompany?.slug],
+        }),
       );
       toast.success("¡Actualizado!", {
         description: `¡La unidad se ha actualizado correctamente!`,
@@ -67,7 +79,10 @@ export const useUpdateUnit = () => {
     },
     onError: (error) => {
       toast.error("Oops!", {
-        description: getApiErrorMessage(error, "¡Hubo un error al actualizar la unidad!"),
+        description: getApiErrorMessage(
+          error,
+          "¡Hubo un error al actualizar la unidad!",
+        ),
       });
     },
   });
@@ -89,8 +104,14 @@ export const useDeleteUnit = () => {
       queryClient.invalidateQueries({
         queryKey: ["units", selectedCompany?.slug],
       });
-      ["unit-conversions", "unit-conversion-presets", "unit-conversion-suggestions"].forEach((key) =>
-        queryClient.invalidateQueries({ queryKey: [key, selectedCompany?.slug] }),
+      [
+        "unit-conversions",
+        "unit-conversion-presets",
+        "unit-conversion-suggestions",
+      ].forEach((key) =>
+        queryClient.invalidateQueries({
+          queryKey: [key, selectedCompany?.slug],
+        }),
       );
       toast.success("¡Eliminado!", {
         description: `¡La unidad ha sido eliminado correctamente!`,
@@ -99,7 +120,8 @@ export const useDeleteUnit = () => {
     onError: (error: any) => {
       toast.error("Oops!", {
         description:
-          error?.response?.data?.message ?? "¡Hubo un error al eliminar la unidad!",
+          error?.response?.data?.message ??
+          "¡Hubo un error al eliminar la unidad!",
       });
     },
   });
@@ -108,4 +130,3 @@ export const useDeleteUnit = () => {
     deleteUnit: deleteMutation,
   };
 };
-

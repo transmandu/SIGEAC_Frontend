@@ -58,7 +58,9 @@ export function ConfirmDeleteDialog({
             {entityName ? (
               <>
                 Vas a eliminar{" "}
-                <span className="font-medium text-foreground">{entityName}</span>
+                <span className="font-medium text-foreground">
+                  {entityName}
+                </span>
               </>
             ) : (
               "Vas a eliminar este registro"

@@ -14,7 +14,7 @@ export const useCreateAuthorizedEmployee = () => {
       from_company_db: string;
       to_company_db: string;
     }) => {
-      const response = await axios.post( "/authorized-employees", payload );
+      const response = await axios.post("/authorized-employees", payload);
       return response;
     },
 
@@ -22,11 +22,16 @@ export const useCreateAuthorizedEmployee = () => {
       if (response.status === 201) {
         toast.success("Autorización creada correctamente.");
         await queryClient.invalidateQueries({
-          queryKey: [ "authorized-employees-from-company", variables.from_company_db, ],
+          queryKey: [
+            "authorized-employees-from-company",
+            variables.from_company_db,
+          ],
         });
       }
       if (response.status === 204) {
-        toast.info( "El empleado ya existe en la empresa destino. No es necesario autorizarlo." );
+        toast.info(
+          "El empleado ya existe en la empresa destino. No es necesario autorizarlo.",
+        );
       }
     },
 
@@ -61,7 +66,9 @@ export const useDeleteAuthorizedEmployee = (companySlug?: string) => {
 
     onError: (error: any) => {
       if (error.response?.status === 403) {
-        toast.error("Solo la empresa de origen puede eliminar esta autorización.");
+        toast.error(
+          "Solo la empresa de origen puede eliminar esta autorización.",
+        );
         return;
       }
       toast.error("Ha ocurrido un error al eliminar la autorización.");

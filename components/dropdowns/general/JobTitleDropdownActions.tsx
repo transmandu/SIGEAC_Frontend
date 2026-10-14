@@ -52,7 +52,9 @@ const JobTitleDropdownActions = ({ jobTitle }: { jobTitle: JobTitle }) => {
             <DialogTitle>Editar cargo</DialogTitle>
             <DialogDescription>
               Modifique la información de{" "}
-              <span className="font-medium text-foreground">{jobTitle.name}</span>
+              <span className="font-medium text-foreground">
+                {jobTitle.name}
+              </span>
             </DialogDescription>
           </DialogHeader>
           <CreateJobTitleForm
