@@ -1,9 +1,11 @@
-import axios from '@/lib/axios';
-import { AeronauticalAircraft } from '@/types';
-import { useQuery } from '@tanstack/react-query';
+import axios from "@/lib/axios";
+import { AeronauticalAircraft } from "@/types";
+import { useQuery } from "@tanstack/react-query";
 
-const fetchAircrafts = async (company?: string): Promise<AeronauticalAircraft[]> => {
-  const {data} = await axios.get(`/${company}/aeronautical/aircrafts`);
+const fetchAircrafts = async (
+  company?: string,
+): Promise<AeronauticalAircraft[]> => {
+  const { data } = await axios.get(`/${company}/aeronautical/aircrafts`);
   return data;
 };
 

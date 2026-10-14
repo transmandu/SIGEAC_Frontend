@@ -97,9 +97,8 @@ export function WarehouseDispatchReportDialog() {
   const { mutateAsync: getDispatch } = useGetDispatchReport();
   const { mutateAsync: getBalance } = useGetBalanceAndTotalReport();
 
-  const { data: aircrafts, isLoading: isLoadingAircrafts } = useGetMaintenanceAircrafts(
-    selectedCompany?.slug,
-  );
+  const { data: aircrafts, isLoading: isLoadingAircrafts } =
+    useGetMaintenanceAircrafts(selectedCompany?.slug);
 
   const { data: departments, isLoading: isLoadingDepartments } =
     useGetDepartments(selectedCompany?.slug);

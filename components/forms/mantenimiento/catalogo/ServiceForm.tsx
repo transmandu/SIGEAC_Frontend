@@ -76,7 +76,9 @@ export function ServiceForm({
     selectedCompany?.slug,
     { status: "ACTIVE" },
   );
-  const { data: aircrafts = [] } = useGetMaintenanceAircrafts(selectedCompany?.slug);
+  const { data: aircrafts = [] } = useGetMaintenanceAircrafts(
+    selectedCompany?.slug,
+  );
   const [form, setForm] = useState<ServiceFormData>(emptyState);
 
   // El select siempre ofrece los manuales vigentes; si el servicio ya

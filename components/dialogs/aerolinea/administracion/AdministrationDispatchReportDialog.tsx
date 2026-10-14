@@ -108,9 +108,8 @@ export function AdministrationDispatchReportDialog({
   const { mutateAsync: getDispatchCostReport } = useGetDispatchCostReport();
   const { mutateAsync: getBalance } = useGetBalanceAndTotalReport();
 
-  const { data: aircrafts, isLoading: isLoadingAircrafts } = useGetMaintenanceAircrafts(
-    selectedCompany?.slug,
-  );
+  const { data: aircrafts, isLoading: isLoadingAircrafts } =
+    useGetMaintenanceAircrafts(selectedCompany?.slug);
 
   const { data: workOrders, isLoading: isLoadingWorkOrders } =
     useGetDispatchWorkOrders(selectedCompany?.slug);

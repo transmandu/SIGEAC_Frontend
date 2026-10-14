@@ -88,7 +88,10 @@ export const useUpdateMaintenanceAircraft = () => {
       data: CreateAircraftWithPartsData & EditReasonValue;
       company: string;
     }) => {
-      await axiosInstance.put(`/${company}/aeronautical/aircrafts/${acronym}`, data);
+      await axiosInstance.put(
+        `/${company}/aeronautical/aircrafts/${acronym}`,
+        data,
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["aircrafts"] });
@@ -125,9 +128,12 @@ export const useDeleteMaintenanceAircraft = () => {
       company: string;
       reason: ConfirmedReason;
     }) => {
-      await axiosInstance.delete(`/${company}/aeronautical/aircrafts/${acronym}`, {
-        data: reason,
-      });
+      await axiosInstance.delete(
+        `/${company}/aeronautical/aircrafts/${acronym}`,
+        {
+          data: reason,
+        },
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["aircrafts"], exact: false });

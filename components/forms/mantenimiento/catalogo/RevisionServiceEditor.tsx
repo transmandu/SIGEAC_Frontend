@@ -40,7 +40,9 @@ export function RevisionServiceEditor({
   onChange,
 }: RevisionServiceEditorProps) {
   const { selectedCompany } = useCompanyStore();
-  const { data: aircrafts = [] } = useGetMaintenanceAircrafts(selectedCompany?.slug);
+  const { data: aircrafts = [] } = useGetMaintenanceAircrafts(
+    selectedCompany?.slug,
+  );
 
   const toggleAircraft = (id: number, checked: boolean) => {
     onChange({

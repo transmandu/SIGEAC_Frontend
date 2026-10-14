@@ -1,36 +1,40 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Department } from "@/types"
+import { useState } from "react";
+import { Department } from "@/types";
 
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip"
+} from "@/components/ui/tooltip";
 
-import { Button } from "@/components/ui/button"
-import { MoreHorizontal, Pencil, Trash2 } from "lucide-react"
-import  DepartmentDropdownDialogs from "@/components/dialogs/general/DepartmentDropdownDialogs"
+import { Button } from "@/components/ui/button";
+import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import DepartmentDropdownDialogs from "@/components/dialogs/general/DepartmentDropdownDialogs";
 
 const iconBase =
   "size-4.5 transition-all duration-200 ease-out group-hover:scale-110";
 
 const itemBase =
-  "group relative flex items-center justify-center size-9 rounded-xl transition-all duration-200 ease-out hover:bg-muted hover:shadow-xs active:scale-95"
+  "group relative flex items-center justify-center size-9 rounded-xl transition-all duration-200 ease-out hover:bg-muted hover:shadow-xs active:scale-95";
 
-const DepartmentDropdownActions = ({ department }: { department: Department }) => {
-  const [openDropdown, setOpenDropdown] = useState(false)
-  const [openEdit, setOpenEdit] = useState(false)
-  const [openDelete, setOpenDelete] = useState(false)
+const DepartmentDropdownActions = ({
+  department,
+}: {
+  department: Department;
+}) => {
+  const [openDropdown, setOpenDropdown] = useState(false);
+  const [openEdit, setOpenEdit] = useState(false);
+  const [openDelete, setOpenDelete] = useState(false);
 
   return (
     <TooltipProvider delayDuration={120}>
@@ -55,11 +59,14 @@ const DepartmentDropdownActions = ({ department }: { department: Department }) =
             <Tooltip>
               <TooltipTrigger asChild>
                 <span>
-                  <DropdownMenuItem asChild className="p-0 focus:bg-transparent">
+                  <DropdownMenuItem
+                    asChild
+                    className="p-0 focus:bg-transparent"
+                  >
                     <button
                       onClick={() => {
-                        setOpenDropdown(false)
-                        setOpenEdit(true)
+                        setOpenDropdown(false);
+                        setOpenEdit(true);
                       }}
                       className={`${itemBase} text-blue-600`}
                     >
@@ -76,11 +83,14 @@ const DepartmentDropdownActions = ({ department }: { department: Department }) =
             <Tooltip>
               <TooltipTrigger asChild>
                 <span>
-                  <DropdownMenuItem asChild className="p-0 focus:bg-transparent">
+                  <DropdownMenuItem
+                    asChild
+                    className="p-0 focus:bg-transparent"
+                  >
                     <button
                       onClick={() => {
-                        setOpenDropdown(false)
-                        setOpenDelete(true)
+                        setOpenDropdown(false);
+                        setOpenDelete(true);
                       }}
                       className={`${itemBase} text-red-600`}
                     >
@@ -105,7 +115,7 @@ const DepartmentDropdownActions = ({ department }: { department: Department }) =
         />
       </>
     </TooltipProvider>
-  )
-}
+  );
+};
 
-export default DepartmentDropdownActions
+export default DepartmentDropdownActions;
