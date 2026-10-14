@@ -1,3 +1,7 @@
+## v4.67.0 — 2026-10-14
+
+- feat(aeronaves): implement aircraft management features (#340)
+
 ## v4.66.2 — 2026-10-14
 
 - Merge pull request #339 from transmandu/ci/add-clickup-task-automation
