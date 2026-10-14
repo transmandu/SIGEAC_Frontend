@@ -34,7 +34,10 @@ export function DepartmentTypesDialog({ open, onOpenChange }: Props) {
   const { selectedCompany } = useCompanyStore();
   const slug = selectedCompany?.slug;
 
-  const { data: types, isLoading } = useGetDepartmentTypes(slug, { includeInactive: true });
+  const { data: types, isLoading } = useGetDepartmentTypes(slug, {
+    includeInactive: true,
+    enabled: open,
+  });
   const { createDepartmentType } = useCreateDepartmentType();
   const { updateDepartmentType } = useUpdateDepartmentType();
   const { deleteDepartmentType } = useDeleteDepartmentType();

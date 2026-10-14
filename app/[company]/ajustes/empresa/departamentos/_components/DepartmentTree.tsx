@@ -20,8 +20,17 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import {
+  memo,
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { toolbarBarClass, toolbarFieldClass, toolbarIconButtonClass } from "./theme";
+import type { DropStore } from "./dropTarget";
 import { toneFor } from "./tones";
 
 export const ROOT_DROP_ID = "drop-root";
@@ -59,13 +68,28 @@ interface NodeProps {
   selectedId: number | null;
   collapsed: Set<number>;
   forceOpen: boolean;
+  store: DropStore;
+  dragDisabled: boolean;
   onToggle: (id: number) => void;
   onSelect: (id: number) => void;
   onAddChild: (parentId: number) => void;
   onReorder: (parentId: number | null, orderedIds: number[]) => void;
 }
 
-function TreeNode({
+/** "inside", "before:blocked"… o "" si esta fila no es el destino actual. */
+const useDropMark = (store: DropStore, id: number) =>
+  useSyncExternalStore(
+    store.subscribe,
+    () => {
+      const { preview, blocked } = store.get();
+      return preview?.targetId === id && preview.zone !== "root"
+        ? `${preview.zone}${blocked ? ":blocked" : ""}`
+        : "";
+    },
+    () => "",
+  );
+
+const TreeNode = memo(function TreeNode({
   node,
   depth,
   index,
@@ -74,6 +98,8 @@ function TreeNode({
   selectedId,
   collapsed,
   forceOpen,
+  store,
+  dragDisabled,
   onToggle,
   onSelect,
   onAddChild,
@@ -84,8 +110,13 @@ function TreeNode({
     listeners,
     setNodeRef: setDragRef,
     isDragging,
-  } = useDraggable({ id: dragId(node.id) });
-  const { setNodeRef: setDropRef, isOver } = useDroppable({ id: dropId(node.id) });
+  } = useDraggable({ id: dragId(node.id), disabled: dragDisabled });
+  const { setNodeRef: setDropRef } = useDroppable({ id: dropId(node.id) });
+
+  const mark = useDropMark(store, node.id);
+  const blocked = mark.endsWith(":blocked");
+  const target = mark && !isDragging ? mark.split(":")[0] : null;
+  const indicator = blocked ? "bg-destructive" : "bg-primary";
 
   const children = node.children ?? [];
   const hasChildren = children.length > 0;
@@ -116,15 +147,27 @@ function TreeNode({
         className={cn(
           "group relative flex items-center gap-1.5 rounded-xl border border-transparent px-1.5 py-1.5 transition-all",
           selected ? "bg-primary/8 border-primary/30 shadow-xs" : "hover:bg-muted/60",
-          isOver && !isDragging && "bg-primary/12 ring-primary/60 ring-2",
+          target === "inside" &&
+            (blocked ? "bg-destructive/10 ring-destructive/60 ring-2" : "bg-primary/12 ring-primary/60 ring-2"),
           isDragging && "opacity-40",
           !node.is_active && "opacity-70",
         )}
       >
+        {(target === "before" || target === "after") && (
+          <span
+            className={cn(
+              "pointer-events-none absolute inset-x-2 z-10 h-0.5 rounded-full",
+              indicator,
+              target === "before" ? "-top-px" : "-bottom-px",
+            )}
+          />
+        )}
+
         <button
           type="button"
           aria-label="Arrastrar para mover"
-          className="text-muted-foreground/60 hover:text-foreground cursor-grab touch-none rounded-md p-0.5 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 active:cursor-grabbing"
+          disabled={dragDisabled}
+          className="text-muted-foreground/60 hover:text-foreground cursor-grab touch-none rounded-md p-0.5 opacity-40 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 active:cursor-grabbing disabled:cursor-not-allowed"
           {...attributes}
           {...listeners}
         >
@@ -224,7 +267,7 @@ function TreeNode({
       </div>
 
       {open && (
-        <ul className="border-border/70 mt-0.5 ml-5.5 space-y-0.5 border-l pl-2">
+        <ul className="border-border/70 ml-5.5 border-l pl-2">
           {children.map((child, childIndex) => (
             <TreeNode
               key={child.id}
@@ -236,6 +279,8 @@ function TreeNode({
               selectedId={selectedId}
               collapsed={collapsed}
               forceOpen={forceOpen}
+              store={store}
+              dragDisabled={dragDisabled}
               onToggle={onToggle}
               onSelect={onSelect}
               onAddChild={onAddChild}
@@ -246,7 +291,7 @@ function TreeNode({
       )}
     </li>
   );
-}
+});
 
 interface TreeProps {
   nodes: Department[];
@@ -254,23 +299,74 @@ interface TreeProps {
   onSelect: (id: number) => void;
   onAddChild: (parentId: number) => void;
   onReorder: (parentId: number | null, orderedIds: number[]) => void;
+  store: DropStore;
+  dragDisabled: boolean;
 }
 
-export function DepartmentTree({ nodes, selectedId, onSelect, onAddChild, onReorder }: TreeProps) {
-  const { setNodeRef, isOver } = useDroppable({ id: ROOT_DROP_ID });
+export const DepartmentTree = memo(function DepartmentTree({
+  nodes,
+  selectedId,
+  onSelect,
+  onAddChild,
+  onReorder,
+  store,
+  dragDisabled,
+}: TreeProps) {
+  const { setNodeRef } = useDroppable({ id: ROOT_DROP_ID });
+  const rootMark = useSyncExternalStore(
+    store.subscribe,
+    () => {
+      const { preview, blocked } = store.get();
+      return preview?.zone === "root" ? (blocked ? "blocked" : "ok") : "";
+    },
+    () => "",
+  );
+  const isOver = rootMark !== "";
+  const blocked = rootMark === "blocked";
+
+  const hoveredInsideId = useSyncExternalStore(
+    store.subscribe,
+    () => {
+      const { preview } = store.get();
+      return preview?.zone === "inside" ? preview.targetId : null;
+    },
+    () => null,
+  );
 
   const [query, setQuery] = useState("");
+  const deferredQuery = useDeferredValue(query);
   const [collapsed, setCollapsed] = useState<Set<number>>(new Set());
 
-  const needle = normalize(query);
+  const needle = normalize(deferredQuery);
   const visible = useMemo(() => (needle ? filterTree(nodes, needle) : nodes), [nodes, needle]);
 
-  const toggle = (id: number) =>
-    setCollapsed((current) => {
-      const next = new Set(current);
-      if (!next.delete(id)) next.add(id);
-      return next;
-    });
+  // Al sostener un departamento sobre una rama cerrada, se abre para poder soltarlo dentro.
+  const hoveredClosedId =
+    hoveredInsideId !== null && collapsed.has(hoveredInsideId) ? hoveredInsideId : null;
+
+  useEffect(() => {
+    if (hoveredClosedId === null) return;
+    const timer = setTimeout(
+      () =>
+        setCollapsed((current) => {
+          const next = new Set(current);
+          next.delete(hoveredClosedId);
+          return next;
+        }),
+      600,
+    );
+    return () => clearTimeout(timer);
+  }, [hoveredClosedId]);
+
+  const toggle = useCallback(
+    (id: number) =>
+      setCollapsed((current) => {
+        const next = new Set(current);
+        if (!next.delete(id)) next.add(id);
+        return next;
+      }),
+    [],
+  );
 
   return (
     <div className="space-y-3">
@@ -324,7 +420,7 @@ export function DepartmentTree({ nodes, selectedId, onSelect, onAddChild, onReor
           Ningún departamento coincide con &quot;{query}&quot;.
         </p>
       ) : (
-        <ul className="space-y-0.5">
+        <ul>
           {visible.map((node, index) => (
             <TreeNode
               key={node.id}
@@ -336,6 +432,8 @@ export function DepartmentTree({ nodes, selectedId, onSelect, onAddChild, onReor
               selectedId={selectedId}
               collapsed={collapsed}
               forceOpen={needle !== ""}
+              store={store}
+              dragDisabled={dragDisabled}
               onToggle={toggle}
               onSelect={onSelect}
               onAddChild={onAddChild}
@@ -349,11 +447,12 @@ export function DepartmentTree({ nodes, selectedId, onSelect, onAddChild, onReor
         ref={setNodeRef}
         className={cn(
           "text-muted-foreground rounded-xl border border-dashed px-3 py-2.5 text-center text-xs transition-colors",
-          isOver && "border-primary bg-primary/10 text-foreground",
+          isOver && !blocked && "border-primary bg-primary/10 text-foreground",
+          isOver && blocked && "border-destructive bg-destructive/10 text-foreground",
         )}
       >
         Suelta aquí para dejar un departamento en la raíz del organigrama
       </div>
     </div>
   );
-}
+});

@@ -55,7 +55,7 @@ import {
   Pencil,
   Users,
 } from "lucide-react";
-import { useState } from "react";
+import { memo, useMemo, useState } from "react";
 import { DepartmentHistoryTab } from "./DepartmentHistoryTab";
 import { DepartmentLocationsEditor } from "./DepartmentLocationsEditor";
 import { DepartmentMembersTab } from "./DepartmentMembersTab";
@@ -73,7 +73,7 @@ interface Props {
   onSelect: (id: number) => void;
 }
 
-export function DepartmentDetailPanel({ department, tree, onEdit, onGone, onSelect }: Props) {
+export const DepartmentDetailPanel = memo(function DepartmentDetailPanel({ department, tree, onEdit, onGone, onSelect }: Props) {
   const { selectedCompany } = useCompanyStore();
   const slug = selectedCompany?.slug;
 
@@ -84,13 +84,23 @@ export function DepartmentDetailPanel({ department, tree, onEdit, onGone, onSele
   const [mergeOpen, setMergeOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
-  const flat = flattenTreeWithDepth(tree);
-  const subtree = new Set(collectSubtreeIds(department));
-  const allDepartments = flat.map((entry) => entry.department);
-  const moveTargets = flat.filter(({ department: candidate }) => !subtree.has(candidate.id));
+  const flat = useMemo(() => flattenTreeWithDepth(tree), [tree]);
+  const subtree = useMemo(() => new Set(collectSubtreeIds(department)), [department]);
+  const allDepartments = useMemo(() => flat.map((entry) => entry.department), [flat]);
+  const moveTargets = useMemo(
+    () => flat.filter(({ department: candidate }) => !subtree.has(candidate.id)),
+    [flat, subtree],
+  );
+  const mergeCandidates = useMemo(
+    () => allDepartments.filter((candidate) => !subtree.has(candidate.id)),
+    [allDepartments, subtree],
+  );
 
   const children = department.children ?? [];
-  const path = findDepartmentPath(tree, department.id).slice(0, -1);
+  const path = useMemo(
+    () => findDepartmentPath(tree, department.id).slice(0, -1),
+    [tree, department.id],
+  );
   const tone = toneFor(department.department_type_id);
   const Icon = path.length === 0 ? Landmark : children.length ? Network : Building2;
 
@@ -278,7 +288,7 @@ export function DepartmentDetailPanel({ department, tree, onEdit, onGone, onSele
         open={mergeOpen}
         onOpenChange={setMergeOpen}
         source={department}
-        candidates={allDepartments.filter((candidate) => !subtree.has(candidate.id))}
+        candidates={mergeCandidates}
         onMerged={onSelect}
       />
 
@@ -307,4 +317,4 @@ export function DepartmentDetailPanel({ department, tree, onEdit, onGone, onSele
       </AlertDialog>
     </div>
   );
-}
+});

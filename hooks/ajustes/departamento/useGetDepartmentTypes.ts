@@ -14,13 +14,13 @@ const fetchDepartmentTypes = async (
 
 export const useGetDepartmentTypes = (
   company: string | undefined,
-  options?: { includeInactive?: boolean },
+  options?: { includeInactive?: boolean; enabled?: boolean },
 ) => {
   const includeInactive = options?.includeInactive ?? false;
 
   return useQuery<DepartmentType[], Error>({
     queryKey: ["department-types", company, { includeInactive }],
     queryFn: () => fetchDepartmentTypes(company, includeInactive),
-    enabled: !!company,
+    enabled: !!company && (options?.enabled ?? true),
   });
 };

@@ -14,28 +14,35 @@ import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGetDepartmentTree } from "@/hooks/ajustes/departamento/useGetDepartmentTree";
 import { useGetDepartmentTypes } from "@/hooks/ajustes/departamento/useGetDepartmentTypes";
-import {
-  collectSubtreeIds,
-  findDepartmentNode,
-  flattenTreeWithDepth,
-} from "@/lib/departments";
+import { findDepartmentNode, flattenTreeWithDepth } from "@/lib/departments";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Department } from "@/types";
 import {
   DndContext,
   DragEndEvent,
+  DragMoveEvent,
   DragOverlay,
   PointerSensor,
+  pointerWithin,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import { Network, Plus, Tags } from "lucide-react";
-import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { Ban, Network, Plus, Tags } from "lucide-react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { DepartmentDetailPanel } from "./_components/DepartmentDetailPanel";
 import { DepartmentFormDialog } from "./_components/DepartmentFormDialog";
 import { DepartmentTree, ROOT_DROP_ID } from "./_components/DepartmentTree";
 import { DepartmentTypesDialog } from "./_components/DepartmentTypesDialog";
+import {
+  applyMove,
+  createDropStore,
+  DropPreview,
+  DropResolution,
+  resolveDrop,
+  zoneFromPointer,
+} from "./_components/dropTarget";
 import { toneFor } from "./_components/tones";
 
 const idFrom = (value: string | number, prefix: string): number | null => {
@@ -51,9 +58,13 @@ const DepartmentPage = () => {
   const { data: types } = useGetDepartmentTypes(slug);
   const { moveDepartment } = useMoveDepartment();
   const { reorderDepartments } = useReorderDepartments();
+  const queryClient = useQueryClient();
 
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [draggingId, setDraggingId] = useState<number | null>(null);
+  const [resolution, setResolution] = useState<DropResolution | null>(null);
+  const dropStore = useState(createDropStore)[0];
+  const resolutionRef = useRef<DropResolution | null>(null);
   const [formState, setFormState] = useState<{
     department: Department | null;
     parentId: number | null;
@@ -62,41 +73,115 @@ const DepartmentPage = () => {
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
-  const roots = tree ?? [];
-  const flat = flattenTreeWithDepth(roots).map((entry) => entry.department);
-  const selected = selectedId !== null ? findDepartmentNode(roots, selectedId) : null;
-  const dragging = draggingId !== null ? findDepartmentNode(roots, draggingId) : null;
+  const roots = useMemo(() => tree ?? [], [tree]);
+  const flat = useMemo(
+    () => flattenTreeWithDepth(roots).map((entry) => entry.department),
+    [roots],
+  );
+  const selected = useMemo(
+    () => (selectedId !== null ? findDepartmentNode(roots, selectedId) : null),
+    [roots, selectedId],
+  );
+  const dragging = useMemo(
+    () => (draggingId !== null ? findDepartmentNode(roots, draggingId) : null),
+    [roots, draggingId],
+  );
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const blocked = resolution?.status === "invalid";
+  const saving = moveDepartment.isPending || reorderDepartments.isPending;
+
+  const resetDrag = () => {
     setDraggingId(null);
+    setResolution(null);
+    resolutionRef.current = null;
+    dropStore.set({ preview: null, blocked: false });
+  };
 
-    const movedId = idFrom(event.active.id, "dept-");
-    const overId = event.over?.id;
+  const handleDragMove = (event: DragMoveEvent) => {
+    const { over, activatorEvent, delta } = event;
+    let next: DropPreview | null = null;
 
-    if (movedId === null || overId === undefined || !slug) return;
-
-    const moved = findDepartmentNode(roots, movedId);
-    if (!moved) return;
-
-    const newParentId = overId === ROOT_DROP_ID ? null : idFrom(overId, "drop-");
-
-    if (overId !== ROOT_DROP_ID && newParentId === null) return;
-    if (newParentId === movedId || newParentId === moved.department_parent_id) return;
-
-    if (newParentId !== null && collectSubtreeIds(moved).includes(newParentId)) {
-      toast.error("Movimiento no permitido", {
-        description: "Un departamento no puede depender de sí mismo ni de uno de sus dependientes.",
-      });
-      return;
+    if (over?.id === ROOT_DROP_ID) {
+      next = { targetId: null, zone: "root" };
+    } else if (over) {
+      const targetId = idFrom(over.id, "drop-");
+      const pointerY = (activatorEvent as PointerEvent).clientY + delta.y;
+      if (targetId !== null) {
+        next = { targetId, zone: zoneFromPointer(pointerY, over.rect.top, over.rect.height) };
+      }
     }
 
-    moveDepartment.mutate({ company: slug, id: movedId, department_parent_id: newParentId });
+    const current = dropStore.get().preview;
+    if (current?.targetId === next?.targetId && current?.zone === next?.zone) return;
+
+    const movedId = idFrom(event.active.id, "dept-");
+    const outcome = next && movedId !== null ? resolveDrop(roots, movedId, next) : null;
+
+    resolutionRef.current = outcome;
+    dropStore.set({ preview: next, blocked: outcome?.status === "invalid" });
+    setResolution(outcome);
   };
 
-  const handleReorder = (parentId: number | null, orderedIds: number[]) => {
-    if (!slug) return;
-    reorderDepartments.mutate({ company: slug, parent_id: parentId, ordered_ids: orderedIds });
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const movedId = idFrom(event.active.id, "dept-");
+    const outcome = resolutionRef.current;
+    resetDrag();
+
+    if (movedId === null || !outcome || !slug) return;
+
+    if (outcome.status === "invalid") {
+      toast.error("Movimiento no permitido", { description: outcome.reason });
+      return;
+    }
+    if (outcome.status === "noop") return;
+
+    const key = ["departments", slug, "tree"];
+    await queryClient.cancelQueries({ queryKey: key });
+    const previous = queryClient.getQueryData<Department[]>(key);
+    queryClient.setQueryData<Department[]>(
+      key,
+      applyMove(roots, movedId, outcome.parentId, outcome.position),
+    );
+
+    const rollback = { onError: () => queryClient.setQueryData(key, previous) };
+
+    if (outcome.sameParent) {
+      reorderDepartments.mutate(
+        { company: slug, parent_id: outcome.parentId, ordered_ids: outcome.orderedIds },
+        rollback,
+      );
+    } else {
+      moveDepartment.mutate(
+        {
+          company: slug,
+          id: movedId,
+          department_parent_id: outcome.parentId,
+          position: outcome.position,
+        },
+        rollback,
+      );
+    }
   };
+
+  const reorderMutate = reorderDepartments.mutate;
+  const handleReorder = useCallback(
+    (parentId: number | null, orderedIds: number[]) => {
+      if (!slug) return;
+      reorderMutate({ company: slug, parent_id: parentId, ordered_ids: orderedIds });
+    },
+    [slug, reorderMutate],
+  );
+
+  const handleAddChild = useCallback(
+    (parentId: number) => setFormState({ department: null, parentId }),
+    [],
+  );
+  const handleEdit = useCallback(
+    (department: Department) =>
+      setFormState({ department, parentId: department.department_parent_id }),
+    [],
+  );
+  const handleGone = useCallback(() => setSelectedId(null), []);
 
   return (
     <ContentLayout title="Departamentos">
@@ -145,7 +230,7 @@ const DepartmentPage = () => {
               <SectionTitle
                 icon={Network}
                 title="Estructura"
-                hint="Arrastra un departamento sobre otro para cambiar de quién depende."
+                hint="Arrastra por el asa: al centro de otro lo cuelga de él; en su borde superior o inferior lo reubica a su lado."
                 action={
                   <span className="text-muted-foreground text-xs tabular-nums">
                     {flat.length} {flat.length === 1 ? "departamento" : "departamentos"}
@@ -160,25 +245,41 @@ const DepartmentPage = () => {
               ) : (
                 <DndContext
                   sensors={sensors}
+                  collisionDetection={pointerWithin}
                   onDragStart={(event) => setDraggingId(idFrom(event.active.id, "dept-"))}
-                  onDragCancel={() => setDraggingId(null)}
+                  onDragMove={handleDragMove}
+                  onDragCancel={resetDrag}
                   onDragEnd={handleDragEnd}
                 >
                   <DepartmentTree
                     nodes={roots}
                     selectedId={selectedId}
                     onSelect={setSelectedId}
-                    onAddChild={(parentId) => setFormState({ department: null, parentId })}
+                    onAddChild={handleAddChild}
                     onReorder={handleReorder}
+                    store={dropStore}
+                    dragDisabled={saving}
                   />
 
                   <DragOverlay>
                     {dragging ? (
-                      <div className="bg-card flex items-center gap-2.5 rounded-xl border px-3 py-2 shadow-lg">
-                        <span
-                          className={`size-2.5 rounded-full ${toneFor(dragging.department_type_id).dot}`}
-                        />
-                        <span className="text-sm font-medium">{dragging.full_name}</span>
+                      <div
+                        className={`bg-card rounded-xl border px-3 py-2 shadow-lg ${blocked ? "border-destructive/60" : ""}`}
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <span
+                            className={`size-2.5 rounded-full ${toneFor(dragging.department_type_id).dot}`}
+                          />
+                          <span className="text-sm font-medium">{dragging.full_name}</span>
+                        </div>
+                        {resolution && resolution.status !== "noop" && (
+                          <p
+                            className={`mt-1 flex max-w-72 items-start gap-1.5 text-xs ${blocked ? "text-destructive" : "text-muted-foreground"}`}
+                          >
+                            {blocked && <Ban className="mt-0.5 size-3 shrink-0" />}
+                            {resolution.status === "invalid" ? resolution.reason : resolution.label}
+                          </p>
+                        )}
                       </div>
                     ) : null}
                   </DragOverlay>
@@ -192,10 +293,8 @@ const DepartmentPage = () => {
                   key={selected.id}
                   department={selected}
                   tree={roots}
-                  onEdit={(department) =>
-                    setFormState({ department, parentId: department.department_parent_id })
-                  }
-                  onGone={() => setSelectedId(null)}
+                  onEdit={handleEdit}
+                  onGone={handleGone}
                   onSelect={setSelectedId}
                 />
               ) : (
