@@ -28,7 +28,7 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
-import { useGetClients } from "@/hooks/general/clientes/useGetClients";
+import { useGetClients } from "@/hooks/mantenimiento/clientes/useGetClients";
 import { useCreateMaintenanceAircraft } from "@/actions/mantenimiento/planificacion/aeronaves/actions";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useQueryClient } from "@tanstack/react-query";

@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import { Eye, Pencil, Trash2 } from "lucide-react";
-import { useDeleteClient } from "@/actions/ajustes/clientes/actions";
+import { useDeleteClient } from "@/actions/aerolinea/clientes/actions";
 import { ConfirmDeleteDialog } from "@/components/dialogs/shared/ConfirmDeleteDialog";
 import {
   SettingsRowActions,
   type RowAction,
 } from "@/components/dropdowns/SettingsRowActions";
-import { EditClientForm } from "@/components/forms/general/clientes/EditClientForm";
+import { EditClientForm } from "@/components/forms/aerolinea/clientes/EditClientForm";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -19,7 +19,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { Client } from "@/types";
+import type { AirlineClient } from "@/types";
 
 const Field = ({
   label,
@@ -38,7 +38,7 @@ const Field = ({
   </div>
 );
 
-const ClientDropdownActions = ({ client }: { client: Client }) => {
+const ClientDropdownActions = ({ client }: { client: AirlineClient }) => {
   const { selectedCompany } = useCompanyStore();
   const { deleteClient } = useDeleteClient();
   const [openDetails, setOpenDetails] = useState(false);

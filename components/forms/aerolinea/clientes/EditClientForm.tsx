@@ -1,6 +1,8 @@
 "use client";
 
-import { useCreateClient } from "@/actions/ajustes/clientes/actions";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { useUpdateClient } from "@/actions/aerolinea/clientes/actions";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -18,13 +20,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useCompanyStore } from "@/stores/CompanyStore";
+import { Separator } from "@/components/ui/separator";
 import { zodResolver } from "@/lib/zod-resolver";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import type { AirlineClient } from "@/types";
 
 const phoneRegex = new RegExp(
   /^([+]?[\s0-9]+)?(\d{3}|[(]?[0-9]+[)])?([-]?[\s]?[0-9])+$/,
@@ -37,7 +36,7 @@ const formSchema = z.object({
       message: "El número de identificación debe tener el formato adecuado.",
     })
     .max(11, {
-      message: "El número de identificación tiene un máximo 9 caracteres.",
+      message: "El número de identificación tiene un máximo 11 caracteres.",
     })
     .regex(/^\d+$/, {
       message: "El documento solo puede contener números",
@@ -49,64 +48,70 @@ const formSchema = z.object({
     .string()
     .max(40)
     .regex(
-      /^[a-zA-Z0-9\s]+$/,
-      "No se permiten caracteres especiales, solo letras",
+      /^[\p{L}\p{N}\s.,&'-]+$/u,
+      "El nombre solo admite letras, números, espacios y . , & ' -",
     )
-    .min(2, {
-      message: "El nombre debe tener al menos 2 caracteres y maximo 40.",
+    .min(3, {
+      message: "El nombre debe tener al menos 3 caracteres y maximo 40.",
     }),
   phone: z
     .string()
     .min(10, "El número de tlf debe tener al menos 10 digitos")
     .max(15, "El número de telefono debe tener hasta maximo 15 digitos")
-    .regex(phoneRegex, "Número de telefono invalido")
-    .optional(),
-  email: z
-    .string()
-    .email({
-      message: "Debe ser un email válido.",
-    })
-    .optional(),
+    .regex(phoneRegex, "Número de telefono invalido"),
+  email: z.string().email({
+    message: "Debe ser un email válido.",
+  }),
   address: z
     .string()
-    .min(2, {
-      message: "La dirección debe tener al menos 2 caracteres.",
+    .min(3, {
+      message: "La dirección debe tener al menos 3 caracteres.",
     })
     .max(100, {
       message: "La dirección tiene un máximo 100 caracteres.",
-    })
-    .optional(),
-  authorizing: z.enum(["PROPIETARIO", "EXPLOTADOR"], {
-    message: "Debe seleccionar si es Propietario o Explotador.",
-  }),
-  pay_credit_days: z.string().optional(),
+    }),
+  pay_credit_days: z.coerce
+    .number({ error: "Solo se permiten números" })
+    .int("Debe ser un número entero")
+    .min(0, { message: "Mínimo 0 días" })
+    .max(730, { message: "Máximo 730 días" }),
 });
 
-interface FormProps {
+type FormValues = z.infer<typeof formSchema>;
+
+interface EditClientFormProps {
+  client: AirlineClient;
   onClose: () => void;
-  onCreated?: (client: { id: number; name: string }) => void;
 }
 
-export function CreateClientForm({ onClose, onCreated }: FormProps) {
+export function EditClientForm({ onClose, client }: EditClientFormProps) {
   const { selectedCompany } = useCompanyStore();
-  const { createClient } = useCreateClient();
-  const [isAdmin, setIsAdmin] = useState(false);
-  const form = useForm<z.infer<typeof formSchema>>({
+  const { updateClient } = useUpdateClient();
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: {},
+    defaultValues: {
+      dni: client.dni,
+      dni_type: client.dni_type,
+      name: client.name,
+      phone: client.phone,
+      email: client.email,
+      address: client.address,
+      pay_credit_days: client.pay_credit_days ?? 0,
+    },
   });
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    createClient.mutate(
-      { company: selectedCompany!.slug, data: values },
-      {
-        onSuccess: (newClient) => {
-          onCreated?.(newClient); // <-- Notificamos al padre
-          onClose();
-        },
-      },
-    );
-  }
+  const onSubmit = async (values: FormValues) => {
+    try {
+      await updateClient.mutateAsync({
+        id: client.id.toString(),
+        data: values,
+        company: selectedCompany!.slug,
+      });
+      onClose();
+    } catch {
+      // El aviso lo muestra la mutación; el formulario queda abierto.
+    }
+  };
 
   return (
     <Form {...form}>
@@ -136,6 +141,7 @@ export function CreateClientForm({ onClose, onCreated }: FormProps) {
                     <SelectItem value="E">E</SelectItem>
                   </SelectContent>
                 </Select>
+                <FormMessage className="text-xs" />
               </FormItem>
             )}
           />
@@ -203,77 +209,45 @@ export function CreateClientForm({ onClose, onCreated }: FormProps) {
             )}
           />
         </div>
-        <div className="flex gap-2 items-center justify-center">
-          <FormField
-            control={form.control}
-            name="address"
-            render={({ field }) => (
-              <FormItem className="w-full" data-tour="clientes-crear-address">
-                <FormLabel>Dirección</FormLabel>
-                <FormControl className="w-[420px]">
-                  <Input placeholder="Ingresa la dirección" {...field} />
-                </FormControl>
-                <FormMessage className="text-xs" />
-              </FormItem>
-            )}
-          />
+        <FormField
+          control={form.control}
+          name="address"
+          render={({ field }) => (
+            <FormItem className="w-full" data-tour="clientes-crear-address">
+              <FormLabel>Dirección</FormLabel>
+              <FormControl>
+                <Input placeholder="Ingresa la dirección" {...field} />
+              </FormControl>
+              <FormMessage className="text-xs" />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="pay_credit_days"
+          render={({ field }) => (
+            <FormItem className="w-full" data-tour="clientes-crear-credit">
+              <FormLabel>Días de crédito</FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  placeholder="0 - 730 días"
+                  min={0}
+                  max={730}
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage className="text-xs" />
+            </FormItem>
+          )}
+        />
+        <div className="flex justify-between items-center gap-x-4">
+          <Separator className="flex-1" />
+          <p className="text-muted-foreground">SIGEAC</p>
+          <Separator className="flex-1" />
         </div>
-
-        <div className="flex gap-2 items-center justify-center">
-          <FormField
-            control={form.control}
-            name="authorizing"
-            render={({ field }) => (
-              <FormItem className="w-full" data-tour="clientes-crear-authorizing">
-                <FormLabel>Tipo de Cliente</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccione el tipo de cliente..." />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="PROPIETARIO">Propietario</SelectItem>
-                    <SelectItem value="EXPLOTADOR">Explotador</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage className="text-xs" />
-              </FormItem>
-            )}
-          />
-        </div>
-        <div className="flex items-center gap-2">
-          <Checkbox
-            onCheckedChange={(checked) => setIsAdmin(!!checked)}
-            checked={isAdmin}
-          />
-          <Label>¿Es un cliente administrativo?</Label>
-        </div>
-        {isAdmin && (
-          <FormField
-            control={form.control}
-            name="pay_credit_days"
-            render={({ field }) => (
-              <FormItem className="w-full">
-                <FormLabel>Días de crédito</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="0 - 730 días"
-                    {...field}
-                    onChange={(e) => field.onChange(Number(e.target.value))}
-                  />
-                </FormControl>
-                <FormMessage className="text-xs" />
-              </FormItem>
-            )}
-          />
-        )}
-        <Button type="submit" data-tour="clientes-crear-submit" disabled={createClient.isPending}>
-          {createClient.isPending ? "Enviando..." : "Enviar"}
+        <Button type="submit" disabled={updateClient.isPending}>
+          {updateClient.isPending ? "Actualizando..." : "Actualizar"}
         </Button>
       </form>
     </Form>
