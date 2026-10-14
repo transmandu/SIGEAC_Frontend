@@ -570,7 +570,10 @@ const NonServiceWorkOrderForm = ({
       )}
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit, onInvalid)} className="space-y-6">
+        <form
+          onSubmit={form.handleSubmit(onSubmit, onInvalid)}
+          className="space-y-6"
+        >
           <div className="flex gap-6 items-center justify-center w-full">
             <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-2">
               <FormField
@@ -884,105 +887,109 @@ const NonServiceWorkOrderForm = ({
                       ? form.formState.errors.work_order_task[taskIndex]
                       : undefined;
                     return (
-                    <div key={task.id} className="p-4 border rounded-lg mb-2">
-                      <div className="flex gap-2 justify-between items-center">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 w-full">
-                          <div className="flex items-center justify-between md:col-span-3">
-                            <span className="text-xs text-muted-foreground">
-                              {task.origin_manual
-                                ? `Origen: ${task.origin_manual}`
-                                : "Tarea manual"}
-                            </span>
-                            <CatalogServicePicker
-                              aircraftId={form.watch("aircraft_id")}
-                              onSelectTask={(catalogTask, service) => {
-                                const requirementsText =
-                                  catalogTask.requirements
-                                    .map(
-                                      (r) =>
-                                        `${r.description}${r.part_number ? ` (${r.part_number})` : ""}`,
-                                    )
-                                    .join("\n");
-                                applyTaskFromCatalog(task.id, {
-                                  description_task: catalogTask.description,
-                                  ata: catalogTask.ata ?? "",
-                                  origin_manual:
-                                    service.manual?.name ?? service.name,
-                                  maintenance_catalog_task_id: String(
-                                    catalogTask.id,
-                                  ),
-                                  materialAppend: requirementsText || undefined,
-                                });
-                              }}
-                            />
+                      <div key={task.id} className="p-4 border rounded-lg mb-2">
+                        <div className="flex gap-2 justify-between items-center">
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 w-full">
+                            <div className="flex items-center justify-between md:col-span-3">
+                              <span className="text-xs text-muted-foreground">
+                                {task.origin_manual
+                                  ? `Origen: ${task.origin_manual}`
+                                  : "Tarea manual"}
+                              </span>
+                              <CatalogServicePicker
+                                aircraftId={form.watch("aircraft_id")}
+                                onSelectTask={(catalogTask, service) => {
+                                  const requirementsText =
+                                    catalogTask.requirements
+                                      .map(
+                                        (r) =>
+                                          `${r.description}${r.part_number ? ` (${r.part_number})` : ""}`,
+                                      )
+                                      .join("\n");
+                                  applyTaskFromCatalog(task.id, {
+                                    description_task: catalogTask.description,
+                                    ata: catalogTask.ata ?? "",
+                                    origin_manual:
+                                      service.manual?.name ?? service.name,
+                                    maintenance_catalog_task_id: String(
+                                      catalogTask.id,
+                                    ),
+                                    materialAppend:
+                                      requirementsText || undefined,
+                                  });
+                                }}
+                              />
+                            </div>
+
+                            {/* ATA Code */}
+                            <FormItem>
+                              <FormLabel>Código ATA (opcional)</FormLabel>
+                              <Input
+                                value={task.ata}
+                                onChange={(e) =>
+                                  updateTask(task.id, "ata", e.target.value)
+                                }
+                                placeholder="Ej: 25"
+                              />
+                              {taskErrors?.ata && (
+                                <p className="text-sm font-medium text-destructive">
+                                  {taskErrors.ata.message}
+                                </p>
+                              )}
+                            </FormItem>
+
+                            {/* Task Description (full width) */}
+                            <FormItem className="md:col-span-3">
+                              <FormLabel>Descripción de la Tarea</FormLabel>
+                              <Textarea
+                                value={task.description_task}
+                                onChange={(e) =>
+                                  updateTask(
+                                    task.id,
+                                    "description_task",
+                                    e.target.value,
+                                  )
+                                }
+                                placeholder="Describa la tarea..."
+                              />
+                              {taskErrors?.description_task && (
+                                <p className="text-sm font-medium text-destructive">
+                                  {taskErrors.description_task.message}
+                                </p>
+                              )}
+                            </FormItem>
+
+                            {/* Materials (full width) */}
+                            <FormItem className="md:col-span-3">
+                              <FormLabel>Material</FormLabel>
+                              <Textarea
+                                value={task.material}
+                                onChange={(e) =>
+                                  updateTask(
+                                    task.id,
+                                    "material",
+                                    e.target.value,
+                                  )
+                                }
+                                placeholder="Materiales requeridos.."
+                              />
+                            </FormItem>
+
+                            {/* Si quieres luego manejar task_items, aquí puedes reactivar el UI
+                              usando addEmptyTaskItem/updateTaskItem/removeTaskItem */}
                           </div>
 
-                          {/* ATA Code */}
-                          <FormItem>
-                            <FormLabel>Código ATA (opcional)</FormLabel>
-                            <Input
-                              value={task.ata}
-                              onChange={(e) =>
-                                updateTask(task.id, "ata", e.target.value)
-                              }
-                              placeholder="Ej: 25"
-                            />
-                            {taskErrors?.ata && (
-                              <p className="text-sm font-medium text-destructive">
-                                {taskErrors.ata.message}
-                              </p>
-                            )}
-                          </FormItem>
-
-                          {/* Task Description (full width) */}
-                          <FormItem className="md:col-span-3">
-                            <FormLabel>Descripción de la Tarea</FormLabel>
-                            <Textarea
-                              value={task.description_task}
-                              onChange={(e) =>
-                                updateTask(
-                                  task.id,
-                                  "description_task",
-                                  e.target.value,
-                                )
-                              }
-                              placeholder="Describa la tarea..."
-                            />
-                            {taskErrors?.description_task && (
-                              <p className="text-sm font-medium text-destructive">
-                                {taskErrors.description_task.message}
-                              </p>
-                            )}
-                          </FormItem>
-
-                          {/* Materials (full width) */}
-                          <FormItem className="md:col-span-3">
-                            <FormLabel>Material</FormLabel>
-                            <Textarea
-                              value={task.material}
-                              onChange={(e) =>
-                                updateTask(task.id, "material", e.target.value)
-                              }
-                              placeholder="Materiales requeridos.."
-                            />
-                            
-                          </FormItem>
-
-                          {/* Si quieres luego manejar task_items, aquí puedes reactivar el UI
-                              usando addEmptyTaskItem/updateTaskItem/removeTaskItem */}
+                          <Button
+                            variant="ghost"
+                            type="button"
+                            size="icon"
+                            onClick={() => removeTask(task.id)}
+                            className="hover:text-red-500 ml-2"
+                          >
+                            <MinusCircle className="size-4" />
+                          </Button>
                         </div>
-
-                        <Button
-                          variant="ghost"
-                          type="button"
-                          size="icon"
-                          onClick={() => removeTask(task.id)}
-                          className="hover:text-red-500 ml-2"
-                        >
-                          <MinusCircle className="size-4" />
-                        </Button>
                       </div>
-                    </div>
                     );
                   })}
                 </div>
