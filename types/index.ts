@@ -27,7 +27,8 @@ export type Airport = {
 
 export type Aircraft = {
   id: number;
-  client: Client;
+  /** Solo OMAC: en aerolínea la aeronave no tiene cliente. */
+  client: AeronauticalClient;
   location: Location;
   location_id?: number;
   fabricant: string;
@@ -237,7 +238,7 @@ export type CashMovement = {
   total_amount: string;
   bank_account: BankAccount;
   vendor: AdministrationVendor;
-  client: Client;
+  client: AirlineClient;
   accountant: Accountant;
   category: Category;
   cash_movement_details: CashMovementDetails[];
@@ -257,7 +258,18 @@ export type Category = {
   accountant: Accountant;
 };
 
-export type Client = {
+export type AeronauticalClient = {
+  id: number;
+  name: string;
+  authorizing: "PROPIETARIO" | "EXPLOTADOR" | null;
+  dni: string | null;
+  dni_type: string | null;
+  address: string | null;
+  email: string | null;
+  phone: string | null;
+};
+
+export type AirlineClient = {
   id: number;
   name: string;
   dni: string;
@@ -382,7 +394,7 @@ export type Credit = {
   renting: Renting;
   flight: Flight;
   vendor: AdministrationVendor;
-  client: Client;
+  client: AirlineClient;
   details: string;
   type: "PAGAR" | "COBRAR";
   opening_date: Date;
@@ -484,18 +496,9 @@ export type DepartmentAuditLog = {
   created_at: string;
 };
 
-export type MaintenanceClient = {
-  id: number;
-  name: string;
-  email: string;
-  address: string;
-  phone_number: string;
-  authorizing: "PROPIETARIO" | "EXPLOTADOR";
-};
-
 export type MaintenanceAircraft = {
   id: number;
-  client: MaintenanceClient;
+  client: AeronauticalClient;
   manufacturer: Manufacturer;
   serial: string;
   model: string;
@@ -1160,7 +1163,7 @@ export type WorkOrderTask = {
 
 export interface WorkOrder extends Request {
   order_number: string;
-  client: MaintenanceClient;
+  client: AeronauticalClient;
   aircraft: MaintenanceAircraft;
   status: string;
   date: string;
@@ -1224,7 +1227,7 @@ export interface DispatchRequest extends Request {
 export type Flight = {
   id: number;
   guide_code: string;
-  client: Client;
+  client: AirlineClient;
   route: Route;
   aircraft: Aircraft;
   date: string;
@@ -1249,7 +1252,7 @@ export type AdministrationFlight = {
   updated_by: string;
   date: string;
   details: string;
-  client: Client;
+  client: AirlineClient;
   flight: Flight;
 };
 
@@ -1257,7 +1260,7 @@ export type FlightPayment = {
   id: number;
   bank_account: BankAccount;
   flight: Flight;
-  client: Client;
+  client: AirlineClient;
   pay_method: "EFECTIVO" | "TRANSFERENCIA";
   pay_amount: string;
   payment_date: Date;
@@ -1359,7 +1362,7 @@ export type Renting = {
   deadline: Date;
   article: AdministrationArticle;
   aircraft: Aircraft;
-  client: Client;
+  client: AirlineClient;
   debt_status: "PENDIENTE" | "PAGADO";
   bank_account: BankAccount;
   //reference_pic: string,
@@ -1416,7 +1419,7 @@ export type Route = {
 
 export type Sell = {
   id: number;
-  client: Client;
+  client: AirlineClient;
   concept: string;
   total_price: number;
   payed_amount: number;
@@ -2190,7 +2193,7 @@ export type CargoShipment = {
   external_copilot_id: number | null;
   externalPilot?: ExternalPilot;
   externalCopilot?: ExternalPilot;
-  client: Client;
+  client: AirlineClient;
   aircraft: Aircraft;
   external_aircraft?: string | null;
   month: number;

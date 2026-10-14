@@ -1,11 +1,11 @@
 "use client";
 
 import { type AppColumnDef } from "@/lib/table";
-import { Client } from "@/types";
-import ClientDropdownActions from "@/components/dropdowns/general/ClientDropdownActions";
+import type { AirlineClient } from "@/types";
+import ClientDropdownActions from "@/components/dropdowns/aerolinea/clientes/ClientDropdownActions";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 
-export const columns: AppColumnDef<Client>[] = [
+export const columns: AppColumnDef<AirlineClient>[] = [
   {
     accessorKey: "name",
     size: 260,
@@ -70,6 +70,23 @@ export const columns: AppColumnDef<Client>[] = [
       <div className="flex justify-center w-full">
         <span className="block max-w-85 text-sm text-slate-600 dark:text-slate-300 text-center whitespace-normal wrap-break-word leading-snug">
           {row.original.address || "—"}
+        </span>
+      </div>
+    ),
+  },
+  {
+    accessorKey: "pay_credit_days",
+    size: 140,
+    header: ({ column }) => (
+      <div className="flex justify-center w-full">
+        <DataTableColumnHeader column={column} title="Días de crédito" />
+      </div>
+    ),
+    meta: { title: "Días de crédito" },
+    cell: ({ row }) => (
+      <div className="flex justify-center w-full">
+        <span className="text-sm text-slate-600 dark:text-slate-300">
+          {row.original.pay_credit_days ?? 0}
         </span>
       </div>
     ),

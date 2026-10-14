@@ -1,9 +1,8 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Plus } from "lucide-react";
-
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
-
 import {
   Dialog,
   DialogContent,
@@ -12,10 +11,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useState, useEffect } from "react";
-import { CreateClientForm } from "@/components/forms/general/CreateClientForm";
+import { CreateClientForm } from "@/components/forms/mantenimiento/clientes/CreateClientForm";
 import { useTourContext } from "@/components/tour/TourProvider";
-import { clientesCrearSteps } from "@/components/tour/steps/ajustes/clientes/clientes-crear";
+import { clientesCrearAeronauticalSteps } from "@/components/tour/steps/ajustes/clientes/clientes-crear";
 
 export function CreateClientDialog() {
   const [open, setOpen] = useState(false);
@@ -23,7 +21,11 @@ export function CreateClientDialog() {
 
   useEffect(() => {
     if (open) {
-      registerTour("clientes-crear", "Clientes - Crear", clientesCrearSteps);
+      registerTour(
+        "clientes-crear",
+        "Clientes - Crear",
+        clientesCrearAeronauticalSteps,
+      );
     }
     return () => unregisterTour("clientes-crear");
   }, [open, registerTour, unregisterTour]);
@@ -36,11 +38,7 @@ export function CreateClientDialog() {
           Crear cliente
         </ActionTriggerButton>
       </DialogTrigger>
-      <DialogContent
-        onInteractOutside={(e) => {
-          e.preventDefault(); // Evita que el diálogo se cierre al hacer clic fuera
-        }}
-      >
+      <DialogContent onInteractOutside={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle data-tour="clientes-crear-header">
             Crear Cliente

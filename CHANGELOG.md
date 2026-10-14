@@ -1,3 +1,7 @@
+## v4.66.1 — 2026-10-14
+
+- refactor: renew clients for good division (#338)
+
 ## v4.66.0 — 2026-10-14
 
 - feat: enhance pilot and retailer forms with improved validation and l… (#337)

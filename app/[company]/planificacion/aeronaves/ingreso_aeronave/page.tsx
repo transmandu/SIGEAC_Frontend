@@ -4,8 +4,8 @@ import {
   useCreateMaintenanceAircraft,
   AircraftPartAPI,
 } from "@/actions/mantenimiento/planificacion/aeronaves/actions";
-import { useCreateClient } from "@/actions/ajustes/clientes/actions";
-import { useGetClients } from "@/hooks/general/clientes/useGetClients";
+import { useCreateClient } from "@/actions/mantenimiento/clientes/actions";
+import { useGetClients } from "@/hooks/mantenimiento/clientes/useGetClients";
 import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufacturers";
 import { AircraftPartsInfoForm } from "@/components/forms/mantenimiento/aeronaves/AircraftPartsForm";
 import { AircraftInfoForm } from "@/components/forms/mantenimiento/aeronaves/AircraftInfoForm";
@@ -113,8 +113,9 @@ export default function NewAircraftPage() {
 
     try {
       // Buscar cliente existente por nombre
+      const clientName = aircraftData.client_name.trim().toUpperCase();
       const existingClient = clients?.find(
-        (client) => client.name === aircraftData.client_name,
+        (client) => client.name.toUpperCase() === clientName,
       );
       let clientId = "";
 
@@ -127,11 +128,6 @@ export default function NewAircraftPage() {
           company: selectedCompany!.slug,
           data: {
             name: aircraftData.client_name,
-            phone: "0000000000",
-            email: "default@example.com",
-            address: "N/A",
-            dni: "00000000",
-            dni_type: "V",
             authorizing: aircraftData.authorizing,
           },
         });

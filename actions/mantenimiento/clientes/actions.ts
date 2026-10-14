@@ -3,15 +3,14 @@ import { getApiErrorMessage } from "@/lib/api-error";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-interface CreateClientSchema {
+export interface AeronauticalClientPayload {
   name: string;
+  authorizing: "PROPIETARIO" | "EXPLOTADOR";
+  dni?: string;
+  dni_type?: string;
   phone?: string;
   email?: string;
   address?: string;
-  dni: string;
-  dni_type: string;
-  authorizing: "PROPIETARIO" | "EXPLOTADOR";
-  pay_credit_days?: string;
 }
 
 export const useCreateClient = () => {
@@ -22,16 +21,19 @@ export const useCreateClient = () => {
       company,
       data,
     }: {
-      company: string | null;
-      data: CreateClientSchema;
+      company: string;
+      data: AeronauticalClientPayload;
     }) => {
-      const response = await axiosInstance.post(`/${company}/clients`, data);
+      const response = await axiosInstance.post(
+        `/${company}/aeronautical/clients`,
+        data,
+      );
       return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["clients"] });
       toast("¡Creado!", {
-        description: `¡El cliente se ha creado correctamente!`,
+        description: "¡El cliente se ha creado correctamente!",
       });
     },
     onError: (error) => {
@@ -41,37 +43,7 @@ export const useCreateClient = () => {
     },
   });
 
-  return {
-    createClient: createMutation,
-  };
-};
-
-export const useDeleteClient = () => {
-  const queryClient = useQueryClient();
-
-  const deleteMutation = useMutation({
-    mutationFn: async ({ id, company }: { id: string; company: string }) => {
-      await axiosInstance.delete(`/${company}/clients/${id}`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["clients"] });
-      toast.success("¡Eliminado!", {
-        description: `¡El cliente ha sido eliminado correctamente!`,
-      });
-    },
-    onError: (error) => {
-      toast.error("Oops!", {
-        description: getApiErrorMessage(
-          error,
-          "¡Hubo un error al eliminar el cliente!",
-        ),
-      });
-    },
-  });
-
-  return {
-    deleteClient: deleteMutation,
-  };
+  return { createClient: createMutation };
 };
 
 export const useUpdateClient = () => {
@@ -84,10 +56,10 @@ export const useUpdateClient = () => {
       company,
     }: {
       id: string;
-      data: any;
+      data: Partial<AeronauticalClientPayload>;
       company: string;
     }) => {
-      await axiosInstance.patch(`/${company}/clients/${id}`, data);
+      await axiosInstance.patch(`/${company}/aeronautical/clients/${id}`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["clients"] });
@@ -105,7 +77,31 @@ export const useUpdateClient = () => {
     },
   });
 
-  return {
-    updateClient: updateMutation,
-  };
+  return { updateClient: updateMutation };
+};
+
+export const useDeleteClient = () => {
+  const queryClient = useQueryClient();
+
+  const deleteMutation = useMutation({
+    mutationFn: async ({ id, company }: { id: string; company: string }) => {
+      await axiosInstance.delete(`/${company}/aeronautical/clients/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
+      toast.success("¡Eliminado!", {
+        description: "¡El cliente ha sido eliminado correctamente!",
+      });
+    },
+    onError: (error) => {
+      toast.error("Oops!", {
+        description: getApiErrorMessage(
+          error,
+          "¡Hubo un error al eliminar el cliente!",
+        ),
+      });
+    },
+  });
+
+  return { deleteClient: deleteMutation };
 };
