@@ -102,7 +102,7 @@ export function CreateResguardoAircraftForm({
         queryKey: ["aircrafts", selectedCompany.slug],
         queryFn: async () => {
           const { data } = await axiosInstance.get(
-            `/${selectedCompany.slug}/aircrafts`,
+            `/${selectedCompany.slug}/aeronautical/aircrafts`,
           );
           return data;
         },

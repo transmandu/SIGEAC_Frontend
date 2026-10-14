@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { MaintenanceAircraft } from "@/types";
+import { AeronauticalAircraft } from "@/types";
 import { PlusCircle, Search, Building2, Filter } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -56,7 +56,7 @@ const AircraftsPage = () => {
   }, [aircrafts, tabValue]);
 
   // Filtrado flexible por múltiples campos + operador
-  const filteredAircrafts = useMemo<MaintenanceAircraft[]>(() => {
+  const filteredAircrafts = useMemo<AeronauticalAircraft[]>(() => {
     if (!aircrafts) return [];
 
     let filtered = aircrafts;
@@ -64,7 +64,7 @@ const AircraftsPage = () => {
     // Filtrar por operador si no es "all"
     if (selectedOperator !== "all") {
       filtered = filtered.filter(
-        (a: MaintenanceAircraft) =>
+        (a: AeronauticalAircraft) =>
           a.client?.id?.toString() === selectedOperator,
       );
     }
@@ -72,7 +72,7 @@ const AircraftsPage = () => {
     // Filtrar por búsqueda de texto
     const q = normalize(query);
     if (q) {
-      filtered = filtered.filter((a: MaintenanceAircraft) => {
+      filtered = filtered.filter((a: AeronauticalAircraft) => {
         const hayCoincidencia =
           normalize(a.acronym).includes(q) ||
           normalize(a.model).includes(q) ||
@@ -87,7 +87,7 @@ const AircraftsPage = () => {
 
   // Agrupar aeronaves por operador
   const aircraftsByOperator = useMemo(() => {
-    const groups: Record<string, MaintenanceAircraft[]> = {};
+    const groups: Record<string, AeronauticalAircraft[]> = {};
 
     filteredAircrafts.forEach((aircraft) => {
       const operatorId = aircraft.client?.id?.toString() || "sin-operador";

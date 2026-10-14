@@ -24,7 +24,7 @@ import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import ThirdPartyDropdownDialogs from "@/components/dialogs/general/ThirdPartyDropdownDialogs";
 
 const iconBase =
-  "size-[18px] transition-all duration-200 ease-out group-hover:scale-110";
+  "size-4.5 transition-all duration-200 ease-out group-hover:scale-110";
 
 const itemBase = `
   group

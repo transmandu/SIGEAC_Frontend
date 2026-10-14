@@ -36,7 +36,7 @@ import PurchaseOrderMenuLink from "@/components/dropdowns/mantenimiento/compras/
 import CreateComplementaryQuoteDialog from "@/app/[company]/compras/(general)/cotizaciones_generales/[quote_number]/_components/CreateComplementaryQuoteDialog";
 
 const iconBase =
-  "size-[18px] transition-all duration-200 ease-out group-hover:scale-110";
+  "size-4.5 transition-all duration-200 ease-out group-hover:scale-110";
 
 const itemBase = `
   group

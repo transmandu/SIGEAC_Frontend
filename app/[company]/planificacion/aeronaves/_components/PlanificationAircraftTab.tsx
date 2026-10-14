@@ -17,7 +17,7 @@ import { Separator } from "@/components/ui/separator"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { AircraftAssingment, MaintenanceAircraft } from "@/types"
+import { AircraftAssingment, AeronauticalAircraft } from "@/types"
 import { Button } from "@/components/ui/button"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import Link from "next/link"
@@ -99,7 +99,7 @@ function TreeNode({ part, depth = 0 }: { part: any; depth?: number }) {
 // =========================
 // Componente Principal
 // =========================
-export function PlanificationAircraftTab({ aircraft }: { aircraft: MaintenanceAircraft & { aircraft_assignments?: any[], id: number } }) {
+export function PlanificationAircraftTab({ aircraft }: { aircraft: AeronauticalAircraft & { aircraft_assignments?: any[], id: number } }) {
     const [q, setQ] = useState("")
     const [isDownloading, setIsDownloading] = useState(false)
     const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false)
@@ -120,7 +120,7 @@ export function PlanificationAircraftTab({ aircraft }: { aircraft: MaintenanceAi
         try {
             // Observa qué limpio queda: no hay URL base manual ni headers de Token
             const response = await axiosInstance.get(
-                `/${selectedCompany.slug}/aircrafts/traceability-export`,
+                `/${selectedCompany.slug}/aeronautical/aircrafts/traceability-export`,
                 {
                     params: { aircraft_id: aircraft.id },
                     responseType: 'blob',
@@ -179,7 +179,7 @@ export function PlanificationAircraftTab({ aircraft }: { aircraft: MaintenanceAi
             if (opts?.second_date) params.second_date = opts.second_date;
 
             const response = await axiosInstance.get(
-                `/${selectedCompany.slug}/aircrafts/traceability-export`,
+                `/${selectedCompany.slug}/aeronautical/aircrafts/traceability-export`,
                 {
                     params,
                     responseType: 'blob',
@@ -608,7 +608,7 @@ export function PlanificationAircraftTab({ aircraft }: { aircraft: MaintenanceAi
     )
 }
 
-function MonthlyFlightStats({ aircraft }: { aircraft: MaintenanceAircraft }) {
+function MonthlyFlightStats({ aircraft }: { aircraft: AeronauticalAircraft }) {
     const currentDate = new Date()
     const dateRange = {
         first_date: format(startOfMonth(currentDate), 'yyyy-MM-dd'),

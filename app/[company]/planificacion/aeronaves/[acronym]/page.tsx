@@ -39,7 +39,7 @@ import { useParams } from "next/navigation";
 import LoadingPage from "@/components/misc/LoadingPage";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { useGetMaintenanceAircraftByAcronym } from "@/hooks/mantenimiento/planificacion/useGetMaitenanceAircraftByAcronym";
-import type { MaintenanceAircraft, MaintenanceAircraftPart } from "@/types";
+import type { AeronauticalAircraft, MaintenanceAircraftPart } from "@/types";
 import { PageHeader } from "@/components/layout/PageHeader";
 
 // ---------- helpers ----------

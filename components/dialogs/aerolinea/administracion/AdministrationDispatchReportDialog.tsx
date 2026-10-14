@@ -29,7 +29,7 @@ import { Label } from "@/components/ui/label";
 
 import { useCompanyStore } from "@/stores/CompanyStore";
 
-import { useGetAircrafts } from "@/hooks/general/aeronaves/useGetAircrafts";
+import { useGetMaintenanceAircrafts } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts";
 import { useGetDispatchWorkOrders } from "@/hooks/mantenimiento/almacen/reportes/useGetDispatchWorkOrders";
 import { useGetDispatchReport } from "@/hooks/mantenimiento/almacen/reportes/useGetDispatchReport";
 import { useGetDispatchCostReport } from "@/hooks/mantenimiento/almacen/reportes/useGetDispatchCostReport";
@@ -108,7 +108,7 @@ export function AdministrationDispatchReportDialog({
   const { mutateAsync: getDispatchCostReport } = useGetDispatchCostReport();
   const { mutateAsync: getBalance } = useGetBalanceAndTotalReport();
 
-  const { data: aircrafts, isLoading: isLoadingAircrafts } = useGetAircrafts(
+  const { data: aircrafts, isLoading: isLoadingAircrafts } = useGetMaintenanceAircrafts(
     selectedCompany?.slug,
   );
 

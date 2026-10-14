@@ -20,7 +20,6 @@ import { z } from "zod";
 import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits";
 import { useDebounce } from "@/lib/useDebounce";
 import type { RequisitionBatchForm } from "@/types/purchase";
-import type { Aircraft } from "@/types";
 import { Separator } from "@/components/ui/separator";
 import { RequisitionHeader } from "./_components/RequisitionHeader";
 import { BatchArticlesSection } from "./_components/BatchArticlesSection";
@@ -121,32 +120,7 @@ export function CreateAeronauticalRequisitionForm({ onClose }: FormProps) {
   const { data: maintenanceAircrafts, isLoading: isAircraftsLoading } =
     useGetMaintenanceAircrafts(selectedCompany?.slug);
 
-  const aircrafts: Aircraft[] | undefined = maintenanceAircrafts?.map((ac) => ({
-    id: ac.id,
-    acronym: ac.acronym,
-    serial: ac.serial,
-    model: ac.model,
-    fabricant: ac.manufacturer?.name ?? "",
-    brand: "",
-    client: ac.client as any,
-    location: ac.location,
-    is_external: false,
-    flight_hours:
-      typeof ac.flight_hours === "number"
-        ? ac.flight_hours
-        : parseFloat(String(ac.flight_hours)) || 0,
-    cycles:
-      typeof ac.flight_cycles === "number"
-        ? ac.flight_cycles
-        : parseFloat(String(ac.flight_cycles)) || 0,
-    fabricant_date: new Date(ac.fabricant_date),
-    owner: "",
-    aircraft_operator: "",
-    type_engine: "",
-    number_engine: "",
-    comments: ac.comments ?? "",
-    status: "EN POSESION" as const,
-  }));
+  const aircrafts = maintenanceAircrafts;
 
   const {
     data: workOrders,
@@ -191,7 +165,7 @@ export function CreateAeronauticalRequisitionForm({ onClose }: FormProps) {
     if (!query) return aircrafts;
     return aircrafts.filter((ac) => {
       const searchText =
-        `${ac.acronym} ${ac.fabricant} ${ac.model ?? ""} ${ac.serial ?? ""}`.toLowerCase();
+        `${ac.acronym} ${ac.manufacturer?.name ?? ""} ${ac.model ?? ""} ${ac.serial ?? ""}`.toLowerCase();
       return searchText.includes(query);
     });
   }, [aircrafts, aircraftSearch]);

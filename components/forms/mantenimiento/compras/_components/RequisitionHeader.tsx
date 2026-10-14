@@ -27,7 +27,7 @@ import { useWatch, type UseFormReturn } from "react-hook-form";
 import type {
   Employee,
   WorkOrder,
-  Aircraft,
+  AeronauticalAircraft,
   Department,
   ThirdParty,
 } from "@/types";
@@ -70,9 +70,9 @@ interface RequisitionHeaderProps {
   filteredWorkOrders?: WorkOrder[];
   workOrderSearch?: string;
   setWorkOrderSearch?: (v: string) => void;
-  aircrafts?: Aircraft[];
+  aircrafts?: AeronauticalAircraft[];
   isAircraftsLoading?: boolean;
-  filteredAircrafts?: Aircraft[];
+  filteredAircrafts?: AeronauticalAircraft[];
   aircraftSearch?: string;
   setAircraftSearch?: (v: string) => void;
   aircraftPlaceholder?: string;

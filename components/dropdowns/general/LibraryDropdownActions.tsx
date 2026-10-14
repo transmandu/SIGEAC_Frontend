@@ -35,7 +35,7 @@ import { UploadVersionDialog } from "@/components/library/UploadVersionDialog";
 import { DownloadDocumentDialog } from "@/components/library/DownloadDocumentDialog";
 
 const iconBase =
-  "size-[18px] transition-all duration-200 ease-out group-hover:scale-110";
+  "size-4.5 transition-all duration-200 ease-out group-hover:scale-110";
 
 const itemBase = `
   group

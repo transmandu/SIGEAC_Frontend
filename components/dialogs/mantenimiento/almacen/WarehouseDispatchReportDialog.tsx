@@ -28,7 +28,7 @@ import { RiFileExcel2Fill } from "react-icons/ri";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
-import { useGetAircrafts } from "@/hooks/general/aeronaves/useGetAircrafts";
+import { useGetMaintenanceAircrafts } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts";
 import { useGetDispatchReport } from "@/hooks/mantenimiento/almacen/reportes/useGetDispatchReport";
 import { useGetBalanceAndTotalReport } from "@/hooks/mantenimiento/almacen/reportes/useGetBalanceAndTotalReport";
 import { useGetAuthorizedEmployees } from "@/hooks/ajustes/autorizados/useGetAuthorizedEmployees";
@@ -97,7 +97,7 @@ export function WarehouseDispatchReportDialog() {
   const { mutateAsync: getDispatch } = useGetDispatchReport();
   const { mutateAsync: getBalance } = useGetBalanceAndTotalReport();
 
-  const { data: aircrafts, isLoading: isLoadingAircrafts } = useGetAircrafts(
+  const { data: aircrafts, isLoading: isLoadingAircrafts } = useGetMaintenanceAircrafts(
     selectedCompany?.slug,
   );
 

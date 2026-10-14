@@ -25,27 +25,30 @@ export type Airport = {
   country: string;
 };
 
-export type Aircraft = {
+/** Aeronave de aerolínea: flota propia o externa (solo para registrar carga). */
+export type AirlineAircraft = {
   id: number;
-  /** Solo OMAC: en aerolínea la aeronave no tiene cliente. */
-  client: AeronauticalClient;
-  location: Location;
-  location_id?: number;
-  fabricant: string;
   brand: string;
+  model: string;
   serial: string;
   acronym: string;
-  is_external: boolean;
-  flight_hours: number;
-  cycles: number;
-  fabricant_date: Date;
-  owner: string;
-  aircraft_operator: string;
-  type_engine: string;
-  number_engine: string;
-  comments: string;
-  model: string;
   status: "VENDIDO" | "EN POSESION" | "RENTADO";
+  owner: string;
+  comments: string | null;
+  fabricant_date: string;
+  is_external: boolean;
+  inac: boolean;
+  location_id: number;
+  location?: Location;
+  manufacturer_id: number | null;
+  manufacturer?: Manufacturer;
+};
+
+/** Respuesta de `aircraft-acronyms` (ambas ramas). */
+export type AircraftAcronym = {
+  id: number;
+  acronym: string;
+  model: string | null;
 };
 
 export type AdministrationArticle = {
@@ -433,7 +436,7 @@ export type Department = {
   descendants: Department[];
 };
 
-export type MaintenanceAircraft = {
+export type AeronauticalAircraft = {
   id: number;
   client: AeronauticalClient;
   manufacturer: Manufacturer;
@@ -452,7 +455,7 @@ export type MaintenanceAircraft = {
 
 export type AircraftAssingment = {
   id: string;
-  aircraft: Aircraft;
+  aircraft: AeronauticalAircraft;
   aircraft_part: MaintenanceAircraftPart;
   assigned_date: Date;
   removed_date: Date;
@@ -481,7 +484,7 @@ export type MaintenanceAircraftPart = {
   aircraft_id?: string;
   aircraft_part_id?: string | null; // ID del padre (null si es raíz)
   sub_parts?: MaintenanceAircraftPart[];
-  aircraft?: MaintenanceAircraft;
+  aircraft?: AeronauticalAircraft;
   type: string;
   description: string;
 };
@@ -764,7 +767,7 @@ export type ComponentControlItem = Retirable & {
 export type ComponentControl = Retirable & {
   id: number;
   aircraft_id: number | string;
-  aircraft: MaintenanceAircraft;
+  aircraft: AeronauticalAircraft;
   title: string;
   description?: string | null;
   has_reference_manual: boolean;
@@ -842,7 +845,7 @@ export type AvionicsControlItem = Retirable & {
 export type AvionicsControl = Retirable & {
   id: number;
   aircraft_id: number | string;
-  aircraft: MaintenanceAircraft;
+  aircraft: AeronauticalAircraft;
   title: string;
   description?: string | null;
   has_reference_manual: boolean;
@@ -909,7 +912,7 @@ export type DirectiveControlItem = Retirable & {
 export type DirectiveControl = Retirable & {
   id: number;
   aircraft_id: number | string;
-  aircraft: MaintenanceAircraft;
+  aircraft: AeronauticalAircraft;
   title: string;
   description?: string | null;
   has_reference_manual: boolean;
@@ -952,7 +955,7 @@ export type MaintenanceControlItem = Retirable & {
 export type MaintenanceControl = Retirable & {
   id: number;
   aircraft_id: number | string;
-  aircraft: MaintenanceAircraft;
+  aircraft: AeronauticalAircraft;
   title: string;
   description?: string;
   has_reference_manual: boolean;
@@ -1060,7 +1063,7 @@ export type FlightControl = {
   flight_date: string;
   flight_hours: number;
   flight_cycles: number;
-  aircraft: MaintenanceAircraft;
+  aircraft: AeronauticalAircraft;
 };
 
 export type AssignedTechnician = {
@@ -1101,7 +1104,7 @@ export type WorkOrderTask = {
 export interface WorkOrder extends Request {
   order_number: string;
   client: AeronauticalClient;
-  aircraft: MaintenanceAircraft;
+  aircraft: AeronauticalAircraft;
   status: string;
   date: string;
   description: string;
@@ -1166,7 +1169,7 @@ export type Flight = {
   guide_code: string;
   client: AirlineClient;
   route: Route;
-  aircraft: Aircraft;
+  aircraft: AirlineAircraft;
   date: string;
   details: string;
   fee: string;
@@ -1298,7 +1301,7 @@ export type Renting = {
   end_date: Date;
   deadline: Date;
   article: AdministrationArticle;
-  aircraft: Aircraft;
+  aircraft: AirlineAircraft;
   client: AirlineClient;
   debt_status: "PENDIENTE" | "PAGADO";
   bank_account: BankAccount;
@@ -1332,7 +1335,7 @@ export type AdministrationRequisition = {
   received_by: string;
   justification: string;
   submission_date: Date;
-  aircraft?: Aircraft;
+  aircraft?: AirlineAircraft;
 };
 
 export type Role = {
@@ -1480,7 +1483,7 @@ export type Warehouse = {
 export interface WorkOrder extends Request {
   order_number: string;
   service: string;
-  aircraft: MaintenanceAircraft;
+  aircraft: AeronauticalAircraft;
   description: string;
   employee: Employee;
 }
@@ -1531,7 +1534,7 @@ export type ObligatoryReport = {
   flight_time: string;
   pilot: Pilot;
   copilot: Pilot;
-  aircraft: Aircraft;
+  aircraft: AirlineAircraft;
   flight_number: string;
   flight_origin: string;
   flight_destiny: string;
@@ -2131,7 +2134,7 @@ export type CargoShipment = {
   externalPilot?: ExternalPilot;
   externalCopilot?: ExternalPilot;
   client: AirlineClient;
-  aircraft: Aircraft;
+  aircraft: AirlineAircraft;
   external_aircraft?: string | null;
   month: number;
   year: number;
@@ -2171,7 +2174,7 @@ export type CargoManifest = {
   id: number;
   manifest_number: string;
   aircraft_id: number | null;
-  aircraft?: Aircraft | null;
+  aircraft?: AirlineAircraft | null;
   month: number;
   year: number;
   total_weight: number;

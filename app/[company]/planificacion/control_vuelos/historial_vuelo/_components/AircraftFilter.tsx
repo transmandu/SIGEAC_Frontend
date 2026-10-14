@@ -11,12 +11,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { CardTitle } from "@/components/ui/card";
-import { Aircraft } from "@/types";
+import { AircraftAcronym } from "@/types";
 
 interface AircraftFilterProps {
   selectedAcronym: string;
   onAcronymChange: (value: string) => void;
-  aircrafts: Aircraft[];
+  aircrafts: AircraftAcronym[];
   loading: boolean;
 }
 

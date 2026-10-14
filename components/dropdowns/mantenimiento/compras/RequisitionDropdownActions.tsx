@@ -32,9 +32,9 @@ import UpdateRequisitionPriorityDialog from "@/components/dialogs/mantenimiento/
 import { useOpenQuoteDraftEditor } from "@/components/dialogs/mantenimiento/compras/QuoteDraftEditorProvider";
 
 const iconBase =
-  "size-[18px] transition-all duration-200 ease-out group-hover:scale-110";
+  "size-4.5 transition-all duration-200 ease-out group-hover:scale-110";
 const iconReject =
-  "size-[18px] transition-all duration-200 ease-out group-hover:scale-110";
+  "size-4.5 transition-all duration-200 ease-out group-hover:scale-110";
 const itemBase = `
   group
   relative

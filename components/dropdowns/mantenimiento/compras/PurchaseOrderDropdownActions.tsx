@@ -12,9 +12,8 @@ import InvoicePreviewDialog from "@/components/dialogs/mantenimiento/compras/Inv
 import { useCompanyStore } from "@/stores/CompanyStore"
 
 const iconBase =
-  "size-[18px] transition-all duration-200 ease-out group-hover:scale-110"
-const itemBase = 
-  `group relative flex items-center justify-center size-9 rounded-xl transition-all duration-200 ease-out hover:bg-muted hover:shadow-xs active:scale-95`
+  "size-4.5 transition-all duration-200 ease-out group-hover:scale-110";
+const itemBase = `group relative flex items-center justify-center size-9 rounded-xl transition-all duration-200 ease-out hover:bg-muted hover:shadow-xs active:scale-95`;
 
 const PurchaseOrderDropdownActions = ({ po }: { po: PurchaseOrder }) => {
   const { user } = useAuth()
