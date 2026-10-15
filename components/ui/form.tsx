@@ -13,6 +13,7 @@ import {
 } from "react-hook-form"
 
 import { cn } from "@/lib/utils"
+import { collectIssues } from "@/lib/formErrors"
 import { Label } from "@/components/ui/label"
 
 const Form = FormProvider
@@ -147,7 +148,7 @@ const FormMessage = React.forwardRef<
   React.HTMLAttributes<HTMLParagraphElement>
 >(({ className, children, ...props }, ref) => {
   const { error, formMessageId } = useFormField()
-  const body = error?.message ? String(error.message) : children
+  const body = collectIssues(error)[0]?.message ?? children
 
   if (!body) {
     return null

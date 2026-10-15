@@ -63,7 +63,7 @@ import type {
 import type { AuthorizedEmployeeResponse } from "@/hooks/ajustes/autorizados/useGetAuthorizedEmployees";
 import type { RequisitionGeneralArticleForm } from "@/types/purchase";
 import { ArticleImageAttachment } from "./ArticleImageAttachment";
-import { RequiredIndicator } from "./RequiredIndicator";
+import { RequiredIndicator } from "@/components/misc/RequiredIndicator";
 import { ActiveRequisitionWarning } from "./ActiveRequisitionWarning";
 import { getRequisitionArticleKey } from "@/hooks/mantenimiento/compras/useGetActiveGeneralArticleRequisitions";
 import type { ActiveGeneralArticleRequisition } from "@/types/purchase";

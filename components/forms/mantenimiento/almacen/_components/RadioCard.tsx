@@ -27,6 +27,7 @@ export const RadioCard = ({
   label,
   hint,
   disabled,
+  invalid,
   className,
 }: {
   id: string;
@@ -36,6 +37,8 @@ export const RadioCard = ({
   label: string;
   hint?: string;
   disabled?: boolean;
+  /** El grupo tiene un error: las opciones sin elegir se marcan como pendientes. */
+  invalid?: boolean;
   className?: string;
 }) => (
   <label
@@ -47,6 +50,9 @@ export const RadioCard = ({
       disabled
         ? "cursor-not-allowed opacity-50"
         : "cursor-pointer hover:border-blue-400/40 hover:bg-primary/3",
+      invalid &&
+        !checked &&
+        "border-destructive/70 bg-destructive/5 hover:border-destructive dark:border-destructive/70",
       checked && !disabled && "border-primary/50 bg-primary/6",
       className,
     )}

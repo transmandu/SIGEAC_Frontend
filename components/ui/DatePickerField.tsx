@@ -14,6 +14,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { RequiredIndicator } from "@/components/misc/RequiredIndicator";
 import {
   fieldClass,
   hintClass,
@@ -30,6 +31,12 @@ interface DatePickerFieldProps {
   maxYear?: number;
   showNotApplicable?: boolean;
   required?: boolean;
+  /**
+   * Solo muestra el asterisco de obligatorio. A diferencia de `required` no
+   * valida por su cuenta: es para los formularios cuyo esquema ya decide cuándo
+   * la fecha falta y la reporta por `error`.
+   */
+  markRequired?: boolean;
   error?: string;
   /**
    * Sube "No aplica" a la línea del rótulo.
@@ -57,6 +64,7 @@ export function DatePickerField({
   maxYear,
   showNotApplicable = false,
   required = false,
+  markRequired = false,
   error,
   notApplicableInLabel = false,
   minDate,
@@ -80,9 +88,18 @@ export function DatePickerField({
    */
   const renderLabel = (checkbox?: React.ReactNode) => (
     <div className="flex h-4 items-center justify-between gap-3">
-      <label className={cn(labelClass, "leading-none")}>
+      <label
+        className={cn(
+          labelClass,
+          "leading-none",
+          displayError && "text-destructive",
+        )}
+      >
         {label}
-        {required && <span className="ml-1 text-destructive">*</span>}
+        <RequiredIndicator
+          show={required || markRequired}
+          invalid={!!displayError}
+        />
       </label>
       {checkbox}
     </div>
@@ -248,6 +265,7 @@ export function DatePickerField({
           onKeyDown={handleInputKeyPress}
           disabled={disabled}
           maxLength={10}
+          aria-invalid={!!displayError}
           className={cn(
             fieldClass,
             "pr-16",

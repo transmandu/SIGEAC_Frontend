@@ -44,6 +44,10 @@ import {
   selectTriggerClass,
 } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
 import { NumericTextInput } from "@/components/forms/mantenimiento/almacen/_components/NumericInput";
+import {
+  applyServerFieldErrors,
+  invalidFormHandler,
+} from "@/components/forms/mantenimiento/almacen/_components/form-feedback";
 
 import { ArticleFormShell } from "./ArticleFormShell";
 import {
@@ -62,6 +66,7 @@ import { MultiSerialInput } from "./sections/MultiSerialInput";
 import { WarehouseDetailsSection } from "./sections/WarehouseDetailsSection";
 import {
   ARTICLE_SOURCES,
+  articleFieldLabels,
   requireSourceJustification,
   sourceLabel,
   type ArticleFormProps,
@@ -79,8 +84,10 @@ const formSchema = z
     part_number: z
       .string({ message: "Debe ingresar un número de parte." })
       .min(2, "El número de parte debe contener al menos 2 caracteres."),
-    alternative_part_number: z.array(z.string().min(2)).optional(),
-    serial: z.array(z.string().min(1)).optional(),
+    alternative_part_number: z
+      .array(z.string().min(2, "Cada número alterno debe tener al menos 2 caracteres."))
+      .optional(),
+    serial: z.array(z.string().min(1, "Un serial no puede estar vacío.")).optional(),
     description: z.string().optional(),
     zone: z.string().optional(),
     manufacturer_id: z.string().optional(),
@@ -158,6 +165,9 @@ export default function PartComponentArticleForm({
 }: ArticleFormProps & { category: "COMPONENT" | "PART" }) {
   const isComponent = category === "COMPONENT";
   const categoryLabel = isComponent ? "Componente" : "Parte";
+  const fieldLabels = articleFieldLabels(
+    `Descripción de ${categoryLabel.toLowerCase()}`,
+  );
 
   const { user } = useAuth();
   const isEngineering = (user?.roles ?? []).some((role) =>
@@ -391,6 +401,8 @@ export default function PartComponentArticleForm({
         hard_time_calendar: apiDate(hardTimeCalendar),
         reception_date: receptionApiDate(receptionDate),
       },
+      onFieldErrors: (errors) =>
+        applyServerFieldErrors(form.setError, errors, fieldLabels),
       afterCreate: () => {
         form.reset();
         setFabricationDate(null);
@@ -543,8 +555,9 @@ export default function PartComponentArticleForm({
         // La vista previa la pide quien monta el formulario: solo el
         // alta y la edición formales del artículo la usan. Al crear se
         // confirma lo que va a nacer; al editar, cómo queda.
-        onSubmit={form.handleSubmit((values) =>
-          showPreview ? setPreview(values) : save(values),
+        onSubmit={form.handleSubmit(
+          (values) => (showPreview ? setPreview(values) : save(values)),
+          invalidFormHandler(fieldLabels),
         )}
       >
         <IdentificationSection

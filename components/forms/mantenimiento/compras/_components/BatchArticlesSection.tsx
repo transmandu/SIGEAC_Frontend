@@ -62,7 +62,7 @@ import type { BatchWithArticles } from "@/hooks/mantenimiento/almacen/renglones/
 import { CreateBatchForm } from "@/components/forms/mantenimiento/almacen/CreateBatchForm";
 import { ArticleDocumentTypesAttachment } from "./ArticleDocumentTypesAttachment";
 import { ArticleImageAttachment } from "./ArticleImageAttachment";
-import { RequiredIndicator } from "./RequiredIndicator";
+import { RequiredIndicator } from "@/components/misc/RequiredIndicator";
 
 interface BatchArticlesSectionProps {
   form: UseFormReturn<any>;

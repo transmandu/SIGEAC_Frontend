@@ -3,6 +3,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { formatQuantity } from "@/lib/utils";
 import { toast } from "sonner";
+import { apiErrorMessage } from "@/lib/apiErrorMessage";
 import type { ConfirmGeneralArticleIntakeResponse, NeedsUnitConversionResponse, RejectGeneralArticleIntakeResponse, UpdateGeneralArticleIntakePayload, UpdateGeneralArticleIntakeResponse } from "@/types/purchase";
 
 export function isNeedsUnitConversionResponse(data: unknown): data is NeedsUnitConversionResponse {
@@ -162,8 +163,8 @@ export const useUpdateGeneralArticle = () => {
             });
         },
         onError: (error: any) => {
-            toast.error('Error', {
-                description: `No se actualizó correctamente: ${error.message || error}`
+            toast.error("No se pudo actualizar el artículo", {
+                description: apiErrorMessage(error, "Intente de nuevo en unos instantes."),
             });
         },
     });
@@ -450,8 +451,8 @@ export const useCreateGeneralArticle = () => {
             });
         },
         onError: (error) => {
-            toast.error("Oops!", {
-                description: "No se pudo crear el articulo...",
+            toast.error("No se pudo crear el artículo", {
+                description: apiErrorMessage(error, "Intente de nuevo en unos instantes."),
             });
             console.log(error);
         },

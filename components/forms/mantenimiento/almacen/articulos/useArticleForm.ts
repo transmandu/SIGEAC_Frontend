@@ -17,11 +17,25 @@ import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufactu
 import { useGetBatchesByCategory } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByCategory";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
+import { serverFieldErrors } from "@/components/forms/mantenimiento/almacen/_components/form-feedback";
+
 import {
   statusForDestination,
   type ArticleDestination,
   type EditingArticle,
 } from "./types";
+
+interface SubmitArgs {
+  /** Payload ya armado por cada categoría. */
+  payload: Record<string, any>;
+  hasDocumentation?: boolean;
+  /** Casillas que desvían el camino normal del artículo. */
+  destination: ArticleDestination;
+  /** Limpieza propia de la categoría tras crear. */
+  afterCreate?: () => void;
+  /** Recibe los errores por campo de un 422, para marcarlos en el formulario. */
+  onFieldErrors?: (errors: Record<string, string[]>) => void;
+}
 
 /**
  * Ciclo de vida común de los formularios de artículo por lote.
@@ -110,24 +124,37 @@ export const useArticleForm = ({
       hasDocumentation,
       destination,
       afterCreate,
-    }: {
-      payload: Record<string, any>;
-      hasDocumentation?: boolean;
-      /** Casillas que desvían el camino normal del artículo. */
-      destination: ArticleDestination;
-      /** Limpieza propia de la categoría tras crear. */
-      afterCreate?: () => void;
-    }) => {
+      onFieldErrors,
+    }: SubmitArgs) => {
       if (!companySlug) return;
 
       const company = companySlug;
 
+      // Un 422 del guardado es el servidor diciendo qué campo está mal: se
+      // entrega al formulario para que lo marque. Solo el del propio guardado:
+      // si la subida de documentos falla con 422 el artículo ya existe, y
+      // tratarlo como error de campo dejaría el formulario lleno y sin
+      // resetear sobre un artículo ya creado.
+      const rejectedByField = (error: unknown) => {
+        const fieldErrors = serverFieldErrors(error);
+        if (!fieldErrors || !onFieldErrors) return false;
+
+        onFieldErrors(fieldErrors);
+
+        return true;
+      };
+
       if (isEditing && initialData) {
-        await updateArticle.mutateAsync({
-          id: initialData.id,
-          company,
-          data: { ...payload, article_type: articleType },
-        });
+        try {
+          await updateArticle.mutateAsync({
+            id: initialData.id,
+            company,
+            data: { ...payload, article_type: articleType },
+          });
+        } catch (error) {
+          if (rejectedByField(error)) return;
+          throw error;
+        }
 
         // Al editar, desmarcar la casilla retira los requerimientos:
         // por eso se sincroniza siempre, no solo cuando hay archivos.
@@ -156,14 +183,21 @@ export const useArticleForm = ({
         return;
       }
 
-      const response = await createArticle.mutateAsync({
-        company,
-        data: {
-          ...payload,
-          article_type: articleType,
-          status: statusForDestination(destination),
-        } as any,
-      });
+      let response;
+
+      try {
+        response = await createArticle.mutateAsync({
+          company,
+          data: {
+            ...payload,
+            article_type: articleType,
+            status: statusForDestination(destination),
+          } as any,
+        });
+      } catch (error) {
+        if (rejectedByField(error)) return;
+        throw error;
+      }
 
       if (hasDocumentation && documents.length > 0) {
         for (const articleId of extractCreatedArticleIds(response?.data)) {
