@@ -1,3 +1,7 @@
+## v4.68.0 — 2026-10-15
+
+- feat: enhance form validation and error handling in article forms (#341)
+
 ## v4.67.0 — 2026-10-14
 
 - feat(aeronaves): implement aircraft management features (#340)
