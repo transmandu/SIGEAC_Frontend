@@ -35,6 +35,21 @@ const lockedFieldClass = cn(
   "dark:[&:is(input,textarea):read-only]:hover:border-slate-600/60",
 );
 
+/**
+ * `FormControl` marca `aria-invalid` en el control que envuelve, así que basta
+ * este estilo para que cualquier campo con error se vea con error: sin él solo
+ * se teñía el rótulo y el mensaje, y el campo en sí quedaba idéntico a uno sano.
+ *
+ * Los `hover:` van repetidos con `aria-invalid:` porque el realce azul del
+ * campo sano tiene la misma especificidad y, al pasar el cursor, devolvería el
+ * borde normal justo sobre el campo que hay que corregir.
+ */
+export const invalidFieldClass = cn(
+  "aria-invalid:border-destructive/70 dark:aria-invalid:border-destructive/70",
+  "aria-invalid:hover:border-destructive aria-invalid:hover:shadow-destructive/10",
+  "aria-invalid:focus-visible:ring-destructive/30",
+);
+
 export const fieldClass = cn(
   "h-11 rounded-lg text-[15px]",
   "bg-linear-to-br from-background/70 to-background/40",
@@ -44,6 +59,7 @@ export const fieldClass = cn(
   "hover:border-blue-400/30",
   "hover:shadow-md hover:shadow-blue-500/10",
   "transition-all duration-200",
+  invalidFieldClass,
   lockedFieldClass,
 );
 

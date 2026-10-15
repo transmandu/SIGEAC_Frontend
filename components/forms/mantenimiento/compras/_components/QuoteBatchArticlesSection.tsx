@@ -33,7 +33,7 @@ import {
   LEAD_TIME_UNITS,
   articleNeedsJustification,
 } from "@/components/forms/mantenimiento/compras/CreateQuoteForm";
-import { RequiredIndicator } from "./RequiredIndicator";
+import { RequiredIndicator } from "@/components/misc/RequiredIndicator";
 import { VendorCombobox } from "@/components/forms/general/compras/_components/VendorCombobox";
 import { UnitCombobox } from "@/components/forms/general/compras/_components/UnitCombobox";
 import { ConditionCombobox } from "@/components/forms/general/compras/_components/ConditionCombobox";

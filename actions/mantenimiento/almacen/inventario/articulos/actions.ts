@@ -9,6 +9,7 @@ import {
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { apiErrorMessage } from "@/lib/apiErrorMessage";
 
 interface ArticleData {
   serial?: string | string[];
@@ -277,8 +278,11 @@ export const useCreateArticle = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo crear el articulo...",
+      toast.error("No se pudo crear el artículo", {
+        description: apiErrorMessage(
+          error,
+          "Intente de nuevo en unos instantes.",
+        ),
       });
       console.log(error);
     },
@@ -317,8 +321,11 @@ export const useCreateToReviewArticle = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo crear el articulo...",
+      toast.error("No se pudo crear el artículo", {
+        description: apiErrorMessage(
+          error,
+          "Intente de nuevo en unos instantes.",
+        ),
       });
       console.log(error);
     },
@@ -1018,8 +1025,11 @@ export const useUpdateArticle = () => {
     },
 
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo actualizar el articulo...",
+      toast.error("No se pudo actualizar el artículo", {
+        description: apiErrorMessage(
+          error,
+          "Intente de nuevo en unos instantes.",
+        ),
       });
 
       console.log(error);

@@ -29,7 +29,7 @@ import {
 import { MarqueeBlockText } from "@/components/misc/MarqueeBlockText";
 import type { Vendor } from "@/types";
 import type { QuoteableRequisition } from "@/types/purchase/quote";
-import { RequiredIndicator } from "./RequiredIndicator";
+import { RequiredIndicator } from "@/components/misc/RequiredIndicator";
 import { VendorCombobox } from "@/components/forms/general/compras/_components/VendorCombobox";
 
 interface LocationOption {

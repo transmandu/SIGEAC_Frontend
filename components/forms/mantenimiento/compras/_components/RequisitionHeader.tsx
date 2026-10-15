@@ -47,7 +47,7 @@ import {
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RequiredIndicator } from "./RequiredIndicator";
+import { RequiredIndicator } from "@/components/misc/RequiredIndicator";
 
 // Los empleados propios y los autorizados de otra empresa viven en tablas
 // distintas con ids que pueden coincidir, así que el selector se parte en dos

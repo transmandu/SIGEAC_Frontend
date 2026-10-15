@@ -6,6 +6,7 @@ import type { Control, UseFormReturn } from "react-hook-form";
 import { CreateManufacturerDialog } from "@/components/dialogs/general/CreateManufacturerDialog";
 import { CreateBatchDialog } from "@/components/dialogs/mantenimiento/almacen/CreateBatchDialog";
 import { MultiInputField } from "@/components/misc/MultiInputField";
+import { RequiredIndicator } from "@/components/misc/RequiredIndicator";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -148,6 +149,7 @@ export const IdentificationSection = ({
   batchCategory,
   onBatchCreated,
   purchaseOrderLocked,
+  manufacturerRequired,
   disabled,
   /** Campos propios de la categoría, dentro del mismo grid. */
   children,
@@ -162,6 +164,8 @@ export const IdentificationSection = ({
   batchCategory: string;
   onBatchCreated?: (batchName: string) => void | Promise<void>;
   purchaseOrderLocked?: boolean;
+  /** Solo las herramientas lo exigen: en el resto el fabricante es opcional. */
+  manufacturerRequired?: boolean;
   disabled?: boolean;
   children?: React.ReactNode;
   /**
@@ -182,10 +186,13 @@ export const IdentificationSection = ({
         <FormField
           control={control}
           name="part_number"
-          render={({ field }) => (
+          render={({ field, fieldState }) => (
             <FormItem className="w-full">
               <FieldLabelRow>
-                <FormLabel className={labelClass}>Nro. de parte</FormLabel>
+                <FormLabel className={labelClass}>
+                  Nro. de parte
+                  <RequiredIndicator invalid={!!fieldState.error} />
+                </FormLabel>
               </FieldLabelRow>
               <FormControl>
                 <Input
@@ -208,7 +215,7 @@ export const IdentificationSection = ({
         <FormField
           control={control}
           name="batch_id"
-          render={({ field }) => (
+          render={({ field, fieldState }) => (
             <FormItem className="w-full">
               <FieldLabelRow
                 action={
@@ -231,7 +238,10 @@ export const IdentificationSection = ({
                   )
                 }
               >
-                <FormLabel className={labelClass}>{batchLabel}</FormLabel>
+                <FormLabel className={labelClass}>
+                  {batchLabel}
+                  <RequiredIndicator invalid={!!fieldState.error} />
+                </FormLabel>
               </FieldLabelRow>
               <SearchableSelect
                 options={batches}
@@ -259,7 +269,7 @@ export const IdentificationSection = ({
         <FormField
           control={control}
           name="manufacturer_id"
-          render={({ field }) => (
+          render={({ field, fieldState }) => (
             <FormItem className="w-full">
               <FieldLabelRow
                 action={
@@ -288,7 +298,13 @@ export const IdentificationSection = ({
                   />
                 }
               >
-                <FormLabel className={labelClass}>Fabricante</FormLabel>
+                <FormLabel className={labelClass}>
+                  Fabricante
+                  <RequiredIndicator
+                    show={!!manufacturerRequired}
+                    invalid={!!fieldState.error}
+                  />
+                </FormLabel>
               </FieldLabelRow>
               <SearchableSelect
                 options={manufacturers}

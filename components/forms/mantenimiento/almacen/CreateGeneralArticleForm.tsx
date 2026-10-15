@@ -65,6 +65,14 @@ import {
   type DimensionDraft,
 } from "./_components/DimensionFields";
 import { NumericInput } from "./_components/NumericInput";
+import {
+  applyServerFieldErrors,
+  invalidFormHandler,
+  serverFieldErrors,
+  type FieldLabels,
+} from "./_components/form-feedback";
+import { invalidFieldClass } from "./_components/form-theme";
+import { RequiredIndicator } from "@/components/misc/RequiredIndicator";
 
 // Mismo lenguaje visual que el LoginForm: cristal suave con borde slate y
 // realce azul al pasar el cursor.
@@ -89,7 +97,18 @@ const fieldClass = cn(
   "[&:is(input,textarea):read-only]:bg-muted/40",
   "[&:is(input,textarea):read-only]:hover:border-slate-400/60",
   "[&:is(input,textarea):read-only]:hover:shadow-xs",
+  invalidFieldClass,
 );
+
+/** Cómo se nombra cada campo en el aviso de "datos por corregir". */
+const FIELD_LABELS: FieldLabels = {
+  description: "Descripción",
+  primary_unit_id: "Unidad base",
+  quantity: "Cantidad",
+  minimum_quantity: "Cantidad mínima",
+  maximum_quantity: "Cantidad máxima",
+  warehouse_id: "Almacén",
+};
 
 const numericFieldClass = cn(fieldClass, "tabular-nums");
 
@@ -426,7 +445,8 @@ const CreateGeneralArticleForm = ({
           ...(unitChanged ? baseUnitChangePayload(unitChange) : {}),
           // Con cambio de base el backend reorienta las equivalencias; las
           // que viajan aquí siguen escritas contra la unidad anterior.
-          conversions: unitChanged && !unitChange.relabel ? undefined : conversions,
+          conversions:
+            unitChanged && !unitChange.relabel ? undefined : conversions,
           // Con perfil ya creado solo viajan las escalas de medida:
           // las medidas de la pieza no se pueden cambiar.
           dimension:
@@ -466,6 +486,11 @@ const CreateGeneralArticleForm = ({
       }
     } catch (error) {
       console.error("Error:", error);
+
+      const fieldErrors = serverFieldErrors(error);
+      if (fieldErrors) {
+        applyServerFieldErrors(form.setError, fieldErrors, FIELD_LABELS);
+      }
     }
   };
 
@@ -488,7 +513,7 @@ const CreateGeneralArticleForm = ({
           // fluye con el scroll del documento.
           inDialog && "flex-1",
         )}
-        onSubmit={form.handleSubmit(onSubmit)}
+        onSubmit={form.handleSubmit(onSubmit, invalidFormHandler(FIELD_LABELS))}
       >
         <div
           className={cn("shrink-0 space-y-1", inDialog && "border-b px-6 py-4")}
@@ -581,9 +606,15 @@ const CreateGeneralArticleForm = ({
                 <FormField
                   control={form.control}
                   name="description"
-                  render={({ field }) => (
+                  render={({ field, fieldState }) => (
                     <FormItem>
-                      <FormLabel className={labelClass}>Descripción</FormLabel>
+                      <FormLabel className={labelClass}>
+                        Descripción
+                        <RequiredIndicator
+                          show={currentMode !== "add"}
+                          invalid={!!fieldState.error}
+                        />
+                      </FormLabel>
                       <FormControl>
                         <Textarea
                           {...field}
@@ -750,10 +781,14 @@ const CreateGeneralArticleForm = ({
                 <FormField
                   control={form.control}
                   name="quantity"
-                  render={({ field }) => (
+                  render={({ field, fieldState }) => (
                     <FormItem>
                       <FormLabel className={labelClass}>
                         {currentMode === "add" ? "Sumar cantidad" : "Cantidad"}
+                        <RequiredIndicator
+                          show={currentMode !== "edit"}
+                          invalid={!!fieldState.error}
+                        />
                       </FormLabel>
                       <FormControl>
                         <NumericInput
@@ -772,9 +807,15 @@ const CreateGeneralArticleForm = ({
                 <FormField
                   control={form.control}
                   name="primary_unit_id"
-                  render={({ field }) => (
+                  render={({ field, fieldState }) => (
                     <FormItem>
-                      <FormLabel className={labelClass}>Unidad base</FormLabel>
+                      <FormLabel className={labelClass}>
+                        Unidad base
+                        <RequiredIndicator
+                          show={currentMode !== "add"}
+                          invalid={!!fieldState.error}
+                        />
+                      </FormLabel>
                       {currentMode === "add" ? (
                         /* Al sumar stock la unidad no se elige: es la
                                        del artículo. Se muestra como texto porque
