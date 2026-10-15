@@ -4,30 +4,42 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { formatQuantity } from "@/lib/utils";
 import { toast } from "sonner";
 import { apiErrorMessage } from "@/lib/apiErrorMessage";
-import type { ConfirmGeneralArticleIntakeResponse, NeedsUnitConversionResponse, RejectGeneralArticleIntakeResponse, UpdateGeneralArticleIntakePayload, UpdateGeneralArticleIntakeResponse } from "@/types/purchase";
+import type {
+  ConfirmGeneralArticleIntakeResponse,
+  NeedsUnitConversionResponse,
+  RejectGeneralArticleIntakeResponse,
+  UpdateGeneralArticleIntakePayload,
+  UpdateGeneralArticleIntakeResponse,
+} from "@/types/purchase";
 
-export function isNeedsUnitConversionResponse(data: unknown): data is NeedsUnitConversionResponse {
-    return !!data && typeof data === "object" && (data as any).needs_conversion === true;
+export function isNeedsUnitConversionResponse(
+  data: unknown,
+): data is NeedsUnitConversionResponse {
+  return (
+    !!data &&
+    typeof data === "object" &&
+    (data as any).needs_conversion === true
+  );
 }
 
 export interface IUpdateArticleData {
-    id: number
-    newQuantity: number;
+  id: number;
+  newQuantity: number;
 }
 
 interface ArticleData {
-    article_type?: string;
-    description?: string;
-    brand_model: string;
-    quantity: number;
-    minimum_quantity?: number;
-    maximum_quantity?: number;
-    variant_type: string;
-    primary_unit_id: string;
-    warehouse_id: string;
-    image?: File | null;
-    conversions?: ArticleConversionInput[];
-    dimension?: ArticleDimensionInput;
+  article_type?: string;
+  description?: string;
+  brand_model: string;
+  quantity: number;
+  minimum_quantity?: number;
+  maximum_quantity?: number;
+  variant_type: string;
+  primary_unit_id: string;
+  warehouse_id: string;
+  image?: File | null;
+  conversions?: ArticleConversionInput[];
+  dimension?: ArticleDimensionInput;
 }
 
 /**
@@ -36,216 +48,237 @@ interface ArticleData {
  * mandar `measure_conversions`: cambiar sus medidas alteraría el saldo cortado.
  */
 export interface ArticleDimensionInput {
-    axes?: 1 | 2;
-    measure_unit_id?: number;
-    piece_length?: number;
-    piece_width?: number;
-    measure_conversions?: {
-        unit_id: number;
-        direction: "base_per_unit" | "units_per_base";
-        value: number;
-    }[];
+  axes?: 1 | 2;
+  measure_unit_id?: number;
+  piece_length?: number;
+  piece_width?: number;
+  measure_conversions?: {
+    unit_id: number;
+    direction: "base_per_unit" | "units_per_base";
+    value: number;
+  }[];
 }
 
-
 interface updateArticleData {
-    article_type?: string;
-    description?: string;
-    brand_model?: string;
-    variant_type?: string;
-    primary_unit_id?: string;
-    minimum_quantity?: number;
-    maximum_quantity?: number;
+  article_type?: string;
+  description?: string;
+  brand_model?: string;
+  variant_type?: string;
+  primary_unit_id?: string;
+  minimum_quantity?: number;
+  maximum_quantity?: number;
 }
 
 /** Equivalencia declarada para el artículo: 1 unit_id = value <unidad base>. */
 interface ArticleConversionInput {
-    unit_id: number;
-    direction: string;
-    value: number;
+  unit_id: number;
+  direction: string;
+  value: number;
 }
 export const useUpdateGeneralArticle = () => {
-    const queryClient = useQueryClient();
-    const { selectedCompany } = useCompanyStore();
+  const queryClient = useQueryClient();
+  const { selectedCompany } = useCompanyStore();
 
-    const updateGeneralArticle = useMutation({
-        mutationKey: ["general-article-update", selectedCompany?.slug],
-        mutationFn: async ({
-            id,
+  const updateGeneralArticle = useMutation({
+    mutationKey: ["general-article-update", selectedCompany?.slug],
+    mutationFn: async ({
+      id,
+      articleData,
+      image,
+      conversions,
+      dimension,
+      unit_change,
+      relabel_unit,
+    }: {
+      id: string | number;
+      articleData: updateArticleData;
+      image?: File | null;
+      conversions?: ArticleConversionInput[];
+      dimension?: ArticleDimensionInput;
+      /** Al cambiar la unidad base: equivalencia entre la anterior y la nueva. */
+      unit_change?: { direction: string; value: number };
+      /** Cambio de unidad que solo corrige una etiqueta mal puesta. */
+      relabel_unit?: boolean;
+    }) => {
+      if (!image) {
+        const { data } = await axiosInstance.patch(
+          `/${selectedCompany?.slug}/general-articles/${id}`,
+          {
             articleData,
-            image,
-            conversions,
-            dimension,
-            unit_change,
-            relabel_unit,
-        }: {
-            id: string | number;
-            articleData: updateArticleData;
-            image?: File | null;
-            conversions?: ArticleConversionInput[];
-            dimension?: ArticleDimensionInput;
-            /** Al cambiar la unidad base: equivalencia entre la anterior y la nueva. */
-            unit_change?: { direction: string; value: number };
-            /** Cambio de unidad que solo corrige una etiqueta mal puesta. */
-            relabel_unit?: boolean;
-        }) => {
-            if (!image) {
-                const { data } = await axiosInstance.patch(
-                    `/${selectedCompany?.slug}/general-articles/${id}`,
-                    {
-                        articleData,
-                        ...(unit_change ? { unit_change } : {}),
-                        ...(relabel_unit ? { relabel_unit } : {}),
-                        ...(conversions ? { conversions } : {}),
-                        ...(dimension ? { dimension } : {}),
-                    }
-                );
-                return data;
-            }
+            ...(unit_change ? { unit_change } : {}),
+            ...(relabel_unit ? { relabel_unit } : {}),
+            ...(conversions ? { conversions } : {}),
+            ...(dimension ? { dimension } : {}),
+          },
+        );
+        return data;
+      }
 
-            // multipart no admite PATCH real: se hace POST y Laravel lo reinterpreta con _method.
-            const formData = new FormData();
-            formData.append("_method", "PATCH");
-            formData.append("image", image);
+      // multipart no admite PATCH real: se hace POST y Laravel lo reinterpreta con _method.
+      const formData = new FormData();
+      formData.append("_method", "PATCH");
+      formData.append("image", image);
 
-            Object.entries(articleData).forEach(([key, value]) => {
-                if (value === undefined || value === null) return;
-                formData.append(`articleData[${key}]`, String(value));
-            });
+      Object.entries(articleData).forEach(([key, value]) => {
+        if (value === undefined || value === null) return;
+        formData.append(`articleData[${key}]`, String(value));
+      });
 
-            if (unit_change) {
-                formData.append("unit_change[direction]", unit_change.direction);
-                formData.append("unit_change[value]", String(unit_change.value));
-            }
-            if (relabel_unit) formData.append("relabel_unit", "1");
+      if (unit_change) {
+        formData.append("unit_change[direction]", unit_change.direction);
+        formData.append("unit_change[value]", String(unit_change.value));
+      }
+      if (relabel_unit) formData.append("relabel_unit", "1");
 
-            // multipart no anida objetos: cada conversión viaja con índice.
-            conversions?.forEach((row, index) => {
-                formData.append(`conversions[${index}][unit_id]`, String(row.unit_id));
-                formData.append(`conversions[${index}][direction]`, row.direction);
-                formData.append(`conversions[${index}][value]`, String(row.value));
-            });
+      // multipart no anida objetos: cada conversión viaja con índice.
+      conversions?.forEach((row, index) => {
+        formData.append(`conversions[${index}][unit_id]`, String(row.unit_id));
+        formData.append(`conversions[${index}][direction]`, row.direction);
+        formData.append(`conversions[${index}][value]`, String(row.value));
+      });
 
-            if (dimension) {
-                if (dimension.axes !== undefined) {
-                    formData.append("dimension[axes]", String(dimension.axes));
-                    formData.append("dimension[measure_unit_id]", String(dimension.measure_unit_id));
-                    formData.append("dimension[piece_length]", String(dimension.piece_length));
-                }
-                if (dimension.piece_width !== undefined) {
-                    formData.append("dimension[piece_width]", String(dimension.piece_width));
-                }
-                dimension.measure_conversions?.forEach((row, i) => {
-                    formData.append(`dimension[measure_conversions][${i}][unit_id]`, String(row.unit_id));
-                    formData.append(`dimension[measure_conversions][${i}][direction]`, row.direction);
-                    formData.append(`dimension[measure_conversions][${i}][value]`, String(row.value));
-                });
-            }
+      if (dimension) {
+        if (dimension.axes !== undefined) {
+          formData.append("dimension[axes]", String(dimension.axes));
+          formData.append(
+            "dimension[measure_unit_id]",
+            String(dimension.measure_unit_id),
+          );
+          formData.append(
+            "dimension[piece_length]",
+            String(dimension.piece_length),
+          );
+        }
+        if (dimension.piece_width !== undefined) {
+          formData.append(
+            "dimension[piece_width]",
+            String(dimension.piece_width),
+          );
+        }
+        dimension.measure_conversions?.forEach((row, i) => {
+          formData.append(
+            `dimension[measure_conversions][${i}][unit_id]`,
+            String(row.unit_id),
+          );
+          formData.append(
+            `dimension[measure_conversions][${i}][direction]`,
+            row.direction,
+          );
+          formData.append(
+            `dimension[measure_conversions][${i}][value]`,
+            String(row.value),
+          );
+        });
+      }
 
-            const { data } = await axiosInstance.post(
-                `/${selectedCompany?.slug}/general-articles/${id}`,
-                formData,
-                { headers: { "Content-Type": "multipart/form-data" } }
-            );
-            return data;
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({
-                queryKey: ["general-articles", selectedCompany?.slug]
-            });
-            // La cantidad mínima pudo cambiar, y es la que dispara la alerta.
-            queryClient.invalidateQueries({
-                queryKey: ["low-stock-general-articles", selectedCompany?.slug]
-            });
+      const { data } = await axiosInstance.post(
+        `/${selectedCompany?.slug}/general-articles/${id}`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } },
+      );
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["general-articles", selectedCompany?.slug],
+      });
+      // La cantidad mínima pudo cambiar, y es la que dispara la alerta.
+      queryClient.invalidateQueries({
+        queryKey: ["low-stock-general-articles", selectedCompany?.slug],
+      });
 
-            toast.success("¡Actualizado!", {
-                description: "Las cantidades han sido actualizadas correctamente."
-            });
-        },
-        onError: (error: any) => {
-            toast.error("No se pudo actualizar el artículo", {
-                description: apiErrorMessage(error, "Intente de nuevo en unos instantes."),
-            });
-        },
-    });
+      toast.success("¡Actualizado!", {
+        description: "Las cantidades han sido actualizadas correctamente.",
+      });
+    },
+    onError: (error: any) => {
+      toast.error("No se pudo actualizar el artículo", {
+        description: apiErrorMessage(
+          error,
+          "Intente de nuevo en unos instantes.",
+        ),
+      });
+    },
+  });
 
-    return {
-        updateGeneralArticle,
-    };
+  return {
+    updateGeneralArticle,
+  };
 };
 
 export interface IAddQuantityGeneralArticle {
-    id: number;
-    quantity: number;
+  id: number;
+  quantity: number;
 }
 
 // Suma sobre la existencia actual; no la fija. Para corregir el total se usa
 // useUpdateGeneralArticleQuantity, que reemplaza el valor.
 export const useAddQuantityGeneralArticle = () => {
-    const queryClient = useQueryClient();
-    const { selectedCompany } = useCompanyStore();
+  const queryClient = useQueryClient();
+  const { selectedCompany } = useCompanyStore();
 
-    const mutation = useMutation({
-        mutationKey: ["add-quantity-general-article"],
-        mutationFn: async ({ id, quantity }: IAddQuantityGeneralArticle) => {
-            if (!selectedCompany?.slug) throw new Error("No hay compañía seleccionada");
-            await axiosInstance.patch(
-                `/${selectedCompany.slug}/add-quantity-general-article/${id}`,
-                { quantity }
-            );
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["general-articles"] });
-            toast.success("¡Cantidad actualizada!", {
-                description: "La cantidad del artículo se actualizó correctamente.",
-            });
-        },
-        onError: (error: any) => {
-            toast.error("Error", {
-                description:
-                    error?.response?.data?.message ||
-                    "No se pudo actualizar la cantidad del artículo.",
-            });
-            console.error(error);
-        },
-    });
+  const mutation = useMutation({
+    mutationKey: ["add-quantity-general-article"],
+    mutationFn: async ({ id, quantity }: IAddQuantityGeneralArticle) => {
+      if (!selectedCompany?.slug)
+        throw new Error("No hay compañía seleccionada");
+      await axiosInstance.patch(
+        `/${selectedCompany.slug}/add-quantity-general-article/${id}`,
+        { quantity },
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["general-articles"] });
+      toast.success("¡Cantidad actualizada!", {
+        description: "La cantidad del artículo se actualizó correctamente.",
+      });
+    },
+    onError: (error: any) => {
+      toast.error("Error", {
+        description:
+          error?.response?.data?.message ||
+          "No se pudo actualizar la cantidad del artículo.",
+      });
+      console.error(error);
+    },
+  });
 
-    return { addQuantityGeneralArticle: mutation };
+  return { addQuantityGeneralArticle: mutation };
 };
 
 export const useUpdateGeneralArticleQuantity = () => {
-    const queryClient = useQueryClient();
-    const { selectedCompany } = useCompanyStore();
-    const updateGeneralArticleQuantity = useMutation({
-        mutationKey: ["article-general-quantity"],
-        mutationFn: async ({
-            updates
-        }: {
-            updates: IUpdateArticleData[];
-        }) => {
-            await axiosInstance.patch(`/${selectedCompany?.slug}/article-general-quantity`, {
-                updates,
-            });
+  const queryClient = useQueryClient();
+  const { selectedCompany } = useCompanyStore();
+  const updateGeneralArticleQuantity = useMutation({
+    mutationKey: ["article-general-quantity"],
+    mutationFn: async ({ updates }: { updates: IUpdateArticleData[] }) => {
+      await axiosInstance.patch(
+        `/${selectedCompany?.slug}/article-general-quantity`,
+        {
+          updates,
         },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["general-articles"] });
-            queryClient.invalidateQueries({ queryKey: ["low-stock-general-articles", selectedCompany?.slug] });
-            toast.success("¡Actualizado!", {
-                description: "Las cantidades han sido actualizadas correctamente."
-            });
-        },
-        onError: (error) => {
-            toast('Hey', {
-                description: `No se actualizó correctamente: ${error}`
-            })
-        },
-    });
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["general-articles"] });
+      queryClient.invalidateQueries({
+        queryKey: ["low-stock-general-articles", selectedCompany?.slug],
+      });
+      toast.success("¡Actualizado!", {
+        description: "Las cantidades han sido actualizadas correctamente.",
+      });
+    },
+    onError: (error) => {
+      toast("Hey", {
+        description: `No se actualizó correctamente: ${error}`,
+      });
+    },
+  });
 
-    return {
-        updateGeneralArticleQuantity: updateGeneralArticleQuantity,
-    };
+  return {
+    updateGeneralArticleQuantity: updateGeneralArticleQuantity,
+  };
 };
-
 
 // Es lo que mueve el stock: hasta aquí el intake era solo papel.
 //
@@ -253,211 +286,266 @@ export const useUpdateGeneralArticleQuantity = () => {
 // responde 422 con needs_conversion en vez de duplicarlo. El caller pide entonces
 // la equivalencia y reintenta con newConversionEquivalence.
 export const useConfirmGeneralArticleIntake = () => {
-    const queryClient = useQueryClient();
-    const { selectedCompany } = useCompanyStore();
+  const queryClient = useQueryClient();
+  const { selectedCompany } = useCompanyStore();
 
-    const confirmGeneralArticleIntake = useMutation({
-        mutationKey: ["confirm-general-article-intake", selectedCompany?.slug],
-        mutationFn: async ({
-            id,
-            confirmedAt,
-            newConversionEquivalence,
-            extraConversions,
-            dimension,
-        }: {
-            id: number;
-            confirmedAt?: Date;
-            newConversionEquivalence?: number;
-            /** Equivalencias que el almacenista declara sin que se las pidan. */
-            extraConversions?: { unit_id: number; direction: string; value: number }[];
-            /** Activa el modo dimensional al confirmar. */
-            dimension?: ArticleDimensionInput;
-        }) => {
-            const { data } = await axiosInstance.patch<ConfirmGeneralArticleIntakeResponse>(
-                `/${selectedCompany?.slug}/general-article-intakes/${id}/confirm`,
-                {
-                    ...(confirmedAt ? { confirmed_at: confirmedAt.toISOString() } : {}),
-                    ...(newConversionEquivalence
-                        ? {
-                            new_conversion: {
-                                // Fijo: el almacenista declara desde la unidad comprada
-                                // hacia la que ya maneja el inventario, nunca al revés.
-                                direction: 'base_per_unit',
-                                value: newConversionEquivalence,
-                            },
-                        }
-                        : {}),
-                    ...(extraConversions?.length ? { extra_conversions: extraConversions } : {}),
-                    ...(dimension ? { dimension } : {}),
+  const confirmGeneralArticleIntake = useMutation({
+    mutationKey: ["confirm-general-article-intake", selectedCompany?.slug],
+    mutationFn: async ({
+      id,
+      confirmedAt,
+      newConversionEquivalence,
+      extraConversions,
+      dimension,
+    }: {
+      id: number;
+      confirmedAt?: Date;
+      newConversionEquivalence?: number;
+      /** Equivalencias que el almacenista declara sin que se las pidan. */
+      extraConversions?: {
+        unit_id: number;
+        direction: string;
+        value: number;
+      }[];
+      /** Activa el modo dimensional al confirmar. */
+      dimension?: ArticleDimensionInput;
+    }) => {
+      const { data } =
+        await axiosInstance.patch<ConfirmGeneralArticleIntakeResponse>(
+          `/${selectedCompany?.slug}/general-article-intakes/${id}/confirm`,
+          {
+            ...(confirmedAt ? { confirmed_at: confirmedAt.toISOString() } : {}),
+            ...(newConversionEquivalence
+              ? {
+                  new_conversion: {
+                    // Fijo: el almacenista declara desde la unidad comprada
+                    // hacia la que ya maneja el inventario, nunca al revés.
+                    direction: "base_per_unit",
+                    value: newConversionEquivalence,
+                  },
                 }
-            );
-            return data;
-        },
-        onSuccess: (data) => {
-            queryClient.invalidateQueries({ queryKey: ["general-article-intakes"], exact: false });
-            queryClient.invalidateQueries({ queryKey: ["general-articles"], exact: false });
-            queryClient.invalidateQueries({ queryKey: ["conversions-by-general-article"], exact: false });
+              : {}),
+            ...(extraConversions?.length
+              ? { extra_conversions: extraConversions }
+              : {}),
+            ...(dimension ? { dimension } : {}),
+          },
+        );
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({
+        queryKey: ["general-article-intakes"],
+        exact: false,
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["general-articles"],
+        exact: false,
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["conversions-by-general-article"],
+        exact: false,
+      });
 
-            const entry = data?.stock_entry;
+      const entry = data?.stock_entry;
 
-            toast.success("¡Confirmado!", {
-                description: entry
-                    ? `Se realizó correctamente el ingreso de ${formatQuantity(entry.quantity)} ${entry.unit_label ?? ""} del artículo ${entry.description}, por favor verifique.`.replace(/\s+/g, " ")
-                    : "La entrada fue confirmada y el stock se actualizó correctamente."
-            });
-        },
-        onError: (error: any) => {
-            // No es un fallo: el caller abre el diálogo para pedir la equivalencia.
-            if (isNeedsUnitConversionResponse(error?.response?.data)) return;
+      toast.success("¡Confirmado!", {
+        description: entry
+          ? `Se realizó correctamente el ingreso de ${formatQuantity(entry.quantity)} ${entry.unit_label ?? ""} del artículo ${entry.description}, por favor verifique.`.replace(
+              /\s+/g,
+              " ",
+            )
+          : "La entrada fue confirmada y el stock se actualizó correctamente.",
+      });
+    },
+    onError: (error: any) => {
+      // No es un fallo: el caller abre el diálogo para pedir la equivalencia.
+      if (isNeedsUnitConversionResponse(error?.response?.data)) return;
 
-            toast.error("Error", {
-                description: error?.response?.data?.message || "No se pudo confirmar la entrada."
-            });
-        },
-    });
+      toast.error("Error", {
+        description:
+          error?.response?.data?.message || "No se pudo confirmar la entrada.",
+      });
+    },
+  });
 
-    return {
-        confirmGeneralArticleIntake,
-    };
+  return {
+    confirmGeneralArticleIntake,
+  };
 };
 
 // Para cuando lo que llegó físicamente no es lo registrado. Nunca toca el stock:
 // el intake queda REJECTED como historial y el backend avisa a quien registró la
 // entrega para que la re-registre sobre la misma orden de compra.
 export const useRejectGeneralArticleIntake = () => {
-    const queryClient = useQueryClient();
-    const { selectedCompany } = useCompanyStore();
+  const queryClient = useQueryClient();
+  const { selectedCompany } = useCompanyStore();
 
-    const rejectGeneralArticleIntake = useMutation({
-        mutationKey: ["reject-general-article-intake", selectedCompany?.slug],
-        mutationFn: async ({ id, rejectionReason }: { id: number; rejectionReason: string }) => {
-            const { data } = await axiosInstance.patch<RejectGeneralArticleIntakeResponse>(
-                `/${selectedCompany?.slug}/general-article-intakes/${id}/reject`,
-                { rejection_reason: rejectionReason }
-            );
-            return data;
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["general-article-intakes"], exact: false });
+  const rejectGeneralArticleIntake = useMutation({
+    mutationKey: ["reject-general-article-intake", selectedCompany?.slug],
+    mutationFn: async ({
+      id,
+      rejectionReason,
+    }: {
+      id: number;
+      rejectionReason: string;
+    }) => {
+      const { data } =
+        await axiosInstance.patch<RejectGeneralArticleIntakeResponse>(
+          `/${selectedCompany?.slug}/general-article-intakes/${id}/reject`,
+          { rejection_reason: rejectionReason },
+        );
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["general-article-intakes"],
+        exact: false,
+      });
 
-            toast.success("Entrada rechazada", {
-                description: "Se notificó al responsable de la entrega para que revise la discrepancia."
-            });
-        },
-        onError: (error: any) => {
-            toast.error("Error", {
-                description: error?.response?.data?.message || "No se pudo rechazar la entrada."
-            });
-        },
-    });
+      toast.success("Entrada rechazada", {
+        description:
+          "Se notificó al responsable de la entrega para que revise la discrepancia.",
+      });
+    },
+    onError: (error: any) => {
+      toast.error("Error", {
+        description:
+          error?.response?.data?.message || "No se pudo rechazar la entrada.",
+      });
+    },
+  });
 
-    return {
-        rejectGeneralArticleIntake,
-    };
+  return {
+    rejectGeneralArticleIntake,
+  };
 };
 
 // Corrección de una recepción ya registrada (típicamente fechas mal cargadas).
 // Si el intake ya estaba confirmado, el backend reajusta el stock en la misma
 // operación: de ahí que la respuesta traiga stock_adjustment.
 export const useUpdateGeneralArticleIntake = () => {
-    const queryClient = useQueryClient();
-    const { selectedCompany } = useCompanyStore();
+  const queryClient = useQueryClient();
+  const { selectedCompany } = useCompanyStore();
 
-    const updateGeneralArticleIntake = useMutation({
-        mutationKey: ["update-general-article-intake", selectedCompany?.slug],
-        mutationFn: async ({ id, payload }: { id: number; payload: UpdateGeneralArticleIntakePayload }) => {
-            const { data } = await axiosInstance.patch<UpdateGeneralArticleIntakeResponse>(
-                `/${selectedCompany?.slug}/general-article-intakes/${id}`,
-                payload
-            );
-            return data;
-        },
-        onSuccess: (data) => {
-            queryClient.invalidateQueries({ queryKey: ["general-article-intakes"], exact: false });
-            queryClient.invalidateQueries({ queryKey: ["general-articles"], exact: false });
+  const updateGeneralArticleIntake = useMutation({
+    mutationKey: ["update-general-article-intake", selectedCompany?.slug],
+    mutationFn: async ({
+      id,
+      payload,
+    }: {
+      id: number;
+      payload: UpdateGeneralArticleIntakePayload;
+    }) => {
+      const { data } =
+        await axiosInstance.patch<UpdateGeneralArticleIntakeResponse>(
+          `/${selectedCompany?.slug}/general-article-intakes/${id}`,
+          payload,
+        );
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({
+        queryKey: ["general-article-intakes"],
+        exact: false,
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["general-articles"],
+        exact: false,
+      });
 
-            const adjustment = data?.stock_adjustment;
+      const adjustment = data?.stock_adjustment;
 
-            toast.success("Recepción corregida", {
-                description: adjustment
-                    ? `El stock del artículo se reajustó a ${formatQuantity(adjustment.resulting_quantity)}, por favor verifique.`
-                    : "Los cambios se guardaron correctamente."
-            });
-        },
-        onError: (error: any) => {
-            toast.error("Error", {
-                description: error?.response?.data?.message || "No se pudo corregir la recepción."
-            });
-        },
-    });
+      toast.success("Recepción corregida", {
+        description: adjustment
+          ? `El stock del artículo se reajustó a ${formatQuantity(adjustment.resulting_quantity)}, por favor verifique.`
+          : "Los cambios se guardaron correctamente.",
+      });
+    },
+    onError: (error: any) => {
+      toast.error("Error", {
+        description:
+          error?.response?.data?.message || "No se pudo corregir la recepción.",
+      });
+    },
+  });
 
-    return {
-        updateGeneralArticleIntake,
-    };
+  return {
+    updateGeneralArticleIntake,
+  };
 };
 
 export const useCreateGeneralArticle = () => {
-    const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
-    const createMutation = useMutation({
-        mutationKey: ["articles"],
-        mutationFn: async ({
-            data,
-            company,
-        }: {
-            company: string;
-            data: ArticleData;
-        }) => {
-            const formData = new FormData();
+  const createMutation = useMutation({
+    mutationKey: ["articles"],
+    mutationFn: async ({
+      data,
+      company,
+    }: {
+      company: string;
+      data: ArticleData;
+    }) => {
+      const formData = new FormData();
 
-            Object.entries(data).forEach(([key, value]) => {
-                if (value === undefined || value === null) return;
+      Object.entries(data).forEach(([key, value]) => {
+        if (value === undefined || value === null) return;
 
-                // multipart no anida objetos: las conversiones van con índice.
-                if (key === "conversions") {
-                    (value as ArticleConversionInput[]).forEach((row, index) => {
-                        formData.append(`conversions[${index}][unit_id]`, String(row.unit_id));
-                        formData.append(`conversions[${index}][direction]`, row.direction);
-                        formData.append(`conversions[${index}][value]`, String(row.value));
-                    });
-                    return;
-                }
+        // multipart no anida objetos: las conversiones van con índice.
+        if (key === "conversions") {
+          (value as ArticleConversionInput[]).forEach((row, index) => {
+            formData.append(
+              `conversions[${index}][unit_id]`,
+              String(row.unit_id),
+            );
+            formData.append(`conversions[${index}][direction]`, row.direction);
+            formData.append(`conversions[${index}][value]`, String(row.value));
+          });
+          return;
+        }
 
-                // Sin este caso el objeto viajaría como "[object Object]".
-                if (key === "dimension") {
-                    const dim = value as ArticleDimensionInput;
-                    formData.append("dimension[axes]", String(dim.axes));
-                    formData.append("dimension[measure_unit_id]", String(dim.measure_unit_id));
-                    formData.append("dimension[piece_length]", String(dim.piece_length));
-                    if (dim.piece_width !== undefined) {
-                        formData.append("dimension[piece_width]", String(dim.piece_width));
-                    }
-                    return;
-                }
+        // Sin este caso el objeto viajaría como "[object Object]".
+        if (key === "dimension") {
+          const dim = value as ArticleDimensionInput;
+          formData.append("dimension[axes]", String(dim.axes));
+          formData.append(
+            "dimension[measure_unit_id]",
+            String(dim.measure_unit_id),
+          );
+          formData.append("dimension[piece_length]", String(dim.piece_length));
+          if (dim.piece_width !== undefined) {
+            formData.append("dimension[piece_width]", String(dim.piece_width));
+          }
+          return;
+        }
 
-                formData.append(key, value instanceof File ? value : String(value));
-            });
+        formData.append(key, value instanceof File ? value : String(value));
+      });
 
-            await axiosInstance.post(`/${company}/general-articles`, formData, {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
-            });
+      await axiosInstance.post(`/${company}/general-articles`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
         },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["general-articles"] });
-            toast.success("¡Creado!", {
-                description: `El articulo ha sido creado correctamente.`,
-            });
-        },
-        onError: (error) => {
-            toast.error("No se pudo crear el artículo", {
-                description: apiErrorMessage(error, "Intente de nuevo en unos instantes."),
-            });
-            console.log(error);
-        },
-    });
-    return {
-        createGeneralArticle: createMutation,
-    };
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["general-articles"] });
+      toast.success("¡Creado!", {
+        description: `El articulo ha sido creado correctamente.`,
+      });
+    },
+    onError: (error) => {
+      toast.error("No se pudo crear el artículo", {
+        description: apiErrorMessage(
+          error,
+          "Intente de nuevo en unos instantes.",
+        ),
+      });
+      console.log(error);
+    },
+  });
+  return {
+    createGeneralArticle: createMutation,
+  };
 };

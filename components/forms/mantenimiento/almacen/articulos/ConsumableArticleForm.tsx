@@ -88,7 +88,11 @@ const formSchema = z
       .min(2, "El número de parte debe contener al menos 2 caracteres."),
     lot_number: z.string().optional(),
     alternative_part_number: z
-      .array(z.string().min(2, "Cada número alterno debe tener al menos 2 caracteres."))
+      .array(
+        z
+          .string()
+          .min(2, "Cada número alterno debe tener al menos 2 caracteres."),
+      )
       .optional(),
     description: z.string().optional(),
     zone: z.string().optional(),
@@ -682,9 +686,7 @@ export default function ConsumableArticleForm({
                 <FormItem className="w-full">
                   <FormLabel className={labelClass}>
                     Cantidad
-                    <RequiredIndicator
-                      invalid={!!fieldState.error}
-                    />
+                    <RequiredIndicator invalid={!!fieldState.error} />
                   </FormLabel>
                   <FormControl>
                     <NumericInput

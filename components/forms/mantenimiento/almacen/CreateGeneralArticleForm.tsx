@@ -445,7 +445,8 @@ const CreateGeneralArticleForm = ({
           ...(unitChanged ? baseUnitChangePayload(unitChange) : {}),
           // Con cambio de base el backend reorienta las equivalencias; las
           // que viajan aquí siguen escritas contra la unidad anterior.
-          conversions: unitChanged && !unitChange.relabel ? undefined : conversions,
+          conversions:
+            unitChanged && !unitChange.relabel ? undefined : conversions,
           // Con perfil ya creado solo viajan las escalas de medida:
           // las medidas de la pieza no se pueden cambiar.
           dimension:

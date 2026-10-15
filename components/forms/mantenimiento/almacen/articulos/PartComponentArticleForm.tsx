@@ -85,9 +85,15 @@ const formSchema = z
       .string({ message: "Debe ingresar un número de parte." })
       .min(2, "El número de parte debe contener al menos 2 caracteres."),
     alternative_part_number: z
-      .array(z.string().min(2, "Cada número alterno debe tener al menos 2 caracteres."))
+      .array(
+        z
+          .string()
+          .min(2, "Cada número alterno debe tener al menos 2 caracteres."),
+      )
       .optional(),
-    serial: z.array(z.string().min(1, "Un serial no puede estar vacío.")).optional(),
+    serial: z
+      .array(z.string().min(1, "Un serial no puede estar vacío."))
+      .optional(),
     description: z.string().optional(),
     zone: z.string().optional(),
     manufacturer_id: z.string().optional(),

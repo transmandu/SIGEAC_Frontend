@@ -191,9 +191,7 @@ export const IdentificationSection = ({
               <FieldLabelRow>
                 <FormLabel className={labelClass}>
                   Nro. de parte
-                  <RequiredIndicator
-                    invalid={!!fieldState.error}
-                  />
+                  <RequiredIndicator invalid={!!fieldState.error} />
                 </FormLabel>
               </FieldLabelRow>
               <FormControl>
@@ -242,9 +240,7 @@ export const IdentificationSection = ({
               >
                 <FormLabel className={labelClass}>
                   {batchLabel}
-                  <RequiredIndicator
-                    invalid={!!fieldState.error}
-                  />
+                  <RequiredIndicator invalid={!!fieldState.error} />
                 </FormLabel>
               </FieldLabelRow>
               <SearchableSelect
