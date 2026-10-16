@@ -56,13 +56,13 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type { Aircraft, Batch, Unit } from "@/types";
+import type { AeronauticalAircraft, Batch, Unit } from "@/types";
 import type { RequisitionBatchForm } from "@/types/purchase";
 import type { BatchWithArticles } from "@/hooks/mantenimiento/almacen/renglones/useSearchBatchesWithArticles";
 import { CreateBatchForm } from "@/components/forms/mantenimiento/almacen/CreateBatchForm";
 import { ArticleDocumentTypesAttachment } from "./ArticleDocumentTypesAttachment";
 import { ArticleImageAttachment } from "./ArticleImageAttachment";
-import { RequiredIndicator } from "./RequiredIndicator";
+import { RequiredIndicator } from "@/components/misc/RequiredIndicator";
 
 interface BatchArticlesSectionProps {
   form: UseFormReturn<any>;
@@ -74,9 +74,9 @@ interface BatchArticlesSectionProps {
   setBatchSearch: (v: string) => void;
   units?: Unit[];
   isUnitsLoading: boolean;
-  aircrafts?: Aircraft[];
+  aircrafts?: AeronauticalAircraft[];
   isAircraftsLoading: boolean;
-  filteredAircrafts: Aircraft[];
+  filteredAircrafts: AeronauticalAircraft[];
   aircraftSearch: string;
   setAircraftSearch: (v: string) => void;
   handleBatchSelect: (
@@ -493,7 +493,7 @@ export function BatchArticlesSection({
                               </div>
                             </div>
 
-                            {/* Row 2: Alternative Part Number, Aircraft, Priority */}
+                            {/* Row 2: Alternative Part Number, AeronauticalAircraft, Priority */}
                             <div className="flex items-center gap-2">
                               <div className="flex flex-col gap-1 flex-1">
                                 <label

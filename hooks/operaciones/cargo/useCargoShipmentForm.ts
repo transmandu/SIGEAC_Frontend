@@ -14,7 +14,7 @@ import {
   useUpdateCargoShipment,
 } from "@/actions/cargo/actions";
 import { useGetClients } from "@/hooks/aerolinea/clientes/useGetClients";
-import { useGetAircrafts } from "@/hooks/general/aeronaves/useGetAircrafts";
+import { useGetAircrafts } from "@/hooks/aerolinea/aeronaves/useGetAircrafts";
 import { useGetEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetEmployees";
 import { useGetNextGuide } from "@/hooks/operaciones/cargo/useGetNextGuide";
 import { useGetPilots } from "@/hooks/sms/useGetPilots";

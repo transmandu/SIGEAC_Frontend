@@ -89,7 +89,7 @@ export function SettingsRowActions({
                           TONES[tone],
                         )}
                       >
-                        <Icon className="size-[18px] transition-all duration-200 ease-out group-hover:scale-110" />
+                        <Icon className="size-4.5 transition-all duration-200 ease-out group-hover:scale-110" />
                       </button>
                     </DropdownMenuItem>
                   </span>

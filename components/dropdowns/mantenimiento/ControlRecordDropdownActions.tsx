@@ -35,7 +35,7 @@ import Link from "next/link";
 import { type ReactNode, useState } from "react";
 
 const iconBase =
-  "size-[18px] transition-all duration-200 ease-out group-hover:scale-110";
+  "size-4.5 transition-all duration-200 ease-out group-hover:scale-110";
 
 const itemBase =
   "group relative flex items-center justify-center size-9 rounded-xl transition-all duration-200 ease-out hover:bg-muted hover:shadow-sm active:scale-95";

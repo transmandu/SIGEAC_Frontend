@@ -24,7 +24,7 @@ import {
   SectionTitle,
 } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
 import { useGetCatalogManuals } from "@/hooks/mantenimiento/catalogo/useGetCatalogManuals";
-import { useGetAircrafts } from "@/hooks/general/aeronaves/useGetAircrafts";
+import { useGetMaintenanceAircrafts } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts";
 import { IntervalListEditor } from "@/components/misc/IntervalListEditor";
 import { ServiceTasksEditor } from "@/components/forms/mantenimiento/catalogo/ServiceTasksEditor";
 import { CATEGORY_LABELS, STATUS_LABELS } from "@/lib/maintenanceCatalogLabels";
@@ -76,7 +76,9 @@ export function ServiceForm({
     selectedCompany?.slug,
     { status: "ACTIVE" },
   );
-  const { data: aircrafts = [] } = useGetAircrafts(selectedCompany?.slug);
+  const { data: aircrafts = [] } = useGetMaintenanceAircrafts(
+    selectedCompany?.slug,
+  );
   const [form, setForm] = useState<ServiceFormData>(emptyState);
 
   // El select siempre ofrece los manuales vigentes; si el servicio ya

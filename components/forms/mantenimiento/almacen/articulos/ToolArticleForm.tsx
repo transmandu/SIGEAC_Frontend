@@ -31,7 +31,12 @@ import {
   ArticleDetailsSection,
   savedImageUrl,
 } from "@/components/forms/mantenimiento/almacen/_components/ArticleDetailsSection";
+import { RequiredIndicator } from "@/components/misc/RequiredIndicator";
 import { CheckboxCard } from "@/components/forms/mantenimiento/almacen/_components/CheckboxCard";
+import {
+  applyServerFieldErrors,
+  invalidFormHandler,
+} from "@/components/forms/mantenimiento/almacen/_components/form-feedback";
 import {
   FieldLabelRow,
   FormSection,
@@ -53,6 +58,7 @@ import { DestinationChecks } from "./sections/DestinationChecks";
 import { WarehouseDetailsSection } from "./sections/WarehouseDetailsSection";
 import {
   ARTICLE_SOURCES,
+  articleFieldLabels,
   requireSourceJustification,
   sourceLabel,
   type ArticleFormProps,
@@ -64,7 +70,13 @@ const formSchema = z
     part_number: z
       .string()
       .min(2, "El número de parte debe tener al menos 2 caracteres."),
-    alternative_part_number: z.array(z.string().min(2)).optional(),
+    alternative_part_number: z
+      .array(
+        z
+          .string()
+          .min(2, "Cada número alterno debe tener al menos 2 caracteres."),
+      )
+      .optional(),
     serial: z.string().optional(),
     model: z.string().optional(),
     description: z.string().optional(),
@@ -109,6 +121,11 @@ const formSchema = z
   });
 
 type FormValues = z.infer<typeof formSchema>;
+
+const FIELD_LABELS = articleFieldLabels("Descripción de herramienta", {
+  calibration_date: "Última calibración",
+  next_calibration: "Periodo de calibración",
+});
 
 /** El almacén marca "no aplica" con esta fecha centinela. */
 const NOT_APPLICABLE = "1900-01-01";
@@ -301,6 +318,8 @@ export default function ToolArticleForm({
         calibration_date: apiDate(values.calibration_date),
         reception_date: receptionApiDate(receptionDate),
       },
+      onFieldErrors: (errors) =>
+        applyServerFieldErrors(form.setError, errors, FIELD_LABELS),
       afterCreate: () => {
         form.reset();
         setReceptionDate(null);
@@ -402,8 +421,9 @@ export default function ToolArticleForm({
         // La vista previa la pide quien monta el formulario: solo el
         // alta y la edición formales del artículo la usan. Al crear se
         // confirma lo que va a nacer; al editar, cómo queda.
-        onSubmit={form.handleSubmit((values) =>
-          showPreview ? setPreview(values) : save(values),
+        onSubmit={form.handleSubmit(
+          (values) => (showPreview ? setPreview(values) : save(values)),
+          invalidFormHandler(FIELD_LABELS),
         )}
       >
         <IdentificationSection
@@ -415,6 +435,7 @@ export default function ToolArticleForm({
           batchLabel="Descripción de herramienta"
           batchCategory="TOOL"
           purchaseOrderLocked={!!initialData?.purchase_order_id}
+          manufacturerRequired
           disabled={busy}
           onBatchCreated={async (batchName) => {
             const { data: updated } = await refetchBatches();
@@ -504,12 +525,14 @@ export default function ToolArticleForm({
                 <FormField
                   control={form.control}
                   name="calibration_date"
-                  render={({ field }) => (
+                  render={({ field, fieldState }) => (
                     // `space-y-0`: el campo ya trae su propia
                     // separación entre rótulo e input.
                     <FormItem className="w-full space-y-0">
                       <DatePickerField
                         label="Última calibración"
+                        markRequired
+                        error={fieldState.error?.message}
                         value={field.value}
                         setValue={(date) =>
                           form.setValue("calibration_date", date ?? undefined, {
@@ -522,7 +545,6 @@ export default function ToolArticleForm({
                         shortcuts="back"
                         maxYear={new Date().getFullYear()}
                       />
-                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -530,7 +552,7 @@ export default function ToolArticleForm({
                 <FormField
                   control={form.control}
                   name="next_calibration"
-                  render={({ field }) => (
+                  render={({ field, fieldState }) => (
                     <FormItem className="w-full">
                       {/* `h-4`: iguala la altura del rótulo
                                                 del campo de fecha, que reserva
@@ -539,6 +561,7 @@ export default function ToolArticleForm({
                         className={cn(labelClass, "flex h-4 items-center")}
                       >
                         Periodo de calibración
+                        <RequiredIndicator invalid={!!fieldState.error} />
                       </FormLabel>
                       <Select
                         onValueChange={(value) => field.onChange(Number(value))}

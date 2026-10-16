@@ -22,7 +22,7 @@ import {
 import { CATEGORY_LABELS } from "@/lib/maintenanceCatalogLabels";
 import { CatalogCategory } from "@/types/maintenanceCatalog";
 import { RevisionServiceFormData } from "@/actions/mantenimiento/catalogo/manuales/actions";
-import { useGetAircrafts } from "@/hooks/general/aeronaves/useGetAircrafts";
+import { useGetMaintenanceAircrafts } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
 interface RevisionServiceEditorProps {
@@ -40,7 +40,9 @@ export function RevisionServiceEditor({
   onChange,
 }: RevisionServiceEditorProps) {
   const { selectedCompany } = useCompanyStore();
-  const { data: aircrafts = [] } = useGetAircrafts(selectedCompany?.slug);
+  const { data: aircrafts = [] } = useGetMaintenanceAircrafts(
+    selectedCompany?.slug,
+  );
 
   const toggleAircraft = (id: number, checked: boolean) => {
     onChange({

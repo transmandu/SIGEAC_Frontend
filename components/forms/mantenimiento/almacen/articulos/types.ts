@@ -37,6 +37,26 @@ export const requireSourceJustification = (
 };
 
 /**
+ * Nombre con que se cita cada campo en el aviso de "datos por corregir" y al
+ * marcar un rechazo del servidor. Cada categoría aporta el rótulo de su
+ * descripción y los campos que solo ella tiene.
+ */
+export const articleFieldLabels = (
+  batchLabel: string,
+  extra: Record<string, string> = {},
+): Record<string, string> => ({
+  part_number: "Nro. de parte",
+  alternative_part_number: "Nros. de parte alternos",
+  batch_id: batchLabel,
+  manufacturer_id: "Fabricante",
+  serial: "Serial",
+  source: "Procedencia",
+  justification: "¿De dónde viene?",
+  image: "Imagen",
+  ...extra,
+});
+
+/**
  * Destino del artículo recién recepcionado, elegido con casillas del propio
  * formulario. Antes cada destino tenía su ruta y su copia del formulario.
  */

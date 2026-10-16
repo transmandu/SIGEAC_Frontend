@@ -1,3 +1,18 @@
+## v4.68.0 — 2026-10-15
+
+- feat: enhance form validation and error handling in article forms (#341)
+
+## v4.67.0 — 2026-10-14
+
+- feat(aeronaves): implement aircraft management features (#340)
+
+## v4.66.2 — 2026-10-14
+
+- Merge pull request #339 from transmandu/ci/add-clickup-task-automation
+- Merge branch 'main' into ci/add-clickup-task-automation
+- fix(ci): clean commit title for clickup tasks
+- ci: add GitHub Action to create ClickUp task on push to main
+
 ## v4.66.1 — 2026-10-14
 
 - refactor: renew clients for good division (#338)

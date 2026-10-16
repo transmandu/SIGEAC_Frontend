@@ -21,7 +21,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import Link from "next/link";
-import { MaintenanceAircraft } from "@/types";
+import { AeronauticalAircraft } from "@/types";
 import MaintenanceAircraftDropdownActions from "@/components/dropdowns/mantenimiento/ordenes_trabajo/MaintenanceAircraftDropdownActions";
 
 const fmtNumber = (n: any) => {
@@ -35,7 +35,7 @@ const fmtNumber = (n: any) => {
       });
 };
 
-export const columns: AppColumnDef<MaintenanceAircraft>[] = [
+export const columns: AppColumnDef<AeronauticalAircraft>[] = [
   {
     id: "select",
     header: ({ table }) => (

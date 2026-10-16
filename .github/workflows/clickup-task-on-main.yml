@@ -20,9 +20,10 @@ jobs:
           COMMIT_SHA: ${{ github.sha }}
         run: |
           FIRST_LINE=$(echo "$COMMIT_MESSAGE" | head -n1)
+          CLEAN_TITLE=$(echo "$FIRST_LINE" | sed -E 's/^[a-zA-Z]+(\([^)]+\))?!?:[[:space:]]*//')
 
           PAYLOAD=$(jq -n \
-            --arg name "[$REPO_NAME] Fix: $FIRST_LINE" \
+            --arg name "$CLEAN_TITLE" \
             --arg desc "Repo: $REPO_NAME
           Commit: $COMMIT_URL
           Autor: $COMMIT_AUTHOR

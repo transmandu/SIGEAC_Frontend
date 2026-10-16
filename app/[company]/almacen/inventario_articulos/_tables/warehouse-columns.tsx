@@ -26,7 +26,7 @@ import ArticleImageCell from "@/components/misc/ArticleImageCell";
 import ArticleStatusSincePopover, {
   tracksStatusSince,
 } from "@/components/misc/ArticleStatusSincePopover";
-import { Aircraft, ArticleDimension } from "@/types";
+import { AirlineAircraft, ArticleDimension } from "@/types";
 export interface IArticleSimple {
   id: number;
   part_number: string;
@@ -49,7 +49,7 @@ export interface IArticleSimple {
   group_key?: string;
   min_quantity?: number | string;
   has_documentation?: boolean;
-  aircraft?: Aircraft;
+  aircraft?: AirlineAircraft;
   tool?: {
     status?: string | null;
     needs_calibration?: boolean | null;
@@ -166,7 +166,7 @@ export const flattenArticles = (
 
     has_documentation: article.has_documentation,
     unit: (article.unit as Unit | null) ?? undefined,
-    aircraft: (article.aircraft as Aircraft | null) ?? undefined,
+    aircraft: (article.aircraft as AirlineAircraft | null) ?? undefined,
     tool: article.tool ?? undefined,
 
     component:

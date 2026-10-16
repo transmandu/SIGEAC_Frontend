@@ -27,7 +27,7 @@ import { useWatch, type UseFormReturn } from "react-hook-form";
 import type {
   Employee,
   WorkOrder,
-  Aircraft,
+  AeronauticalAircraft,
   Department,
   ThirdParty,
 } from "@/types";
@@ -47,7 +47,7 @@ import {
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RequiredIndicator } from "./RequiredIndicator";
+import { RequiredIndicator } from "@/components/misc/RequiredIndicator";
 
 // Los empleados propios y los autorizados de otra empresa viven en tablas
 // distintas con ids que pueden coincidir, así que el selector se parte en dos
@@ -70,9 +70,9 @@ interface RequisitionHeaderProps {
   filteredWorkOrders?: WorkOrder[];
   workOrderSearch?: string;
   setWorkOrderSearch?: (v: string) => void;
-  aircrafts?: Aircraft[];
+  aircrafts?: AeronauticalAircraft[];
   isAircraftsLoading?: boolean;
-  filteredAircrafts?: Aircraft[];
+  filteredAircrafts?: AeronauticalAircraft[];
   aircraftSearch?: string;
   setAircraftSearch?: (v: string) => void;
   aircraftPlaceholder?: string;

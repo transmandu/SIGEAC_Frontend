@@ -1,4 +1,4 @@
-import type { MaintenanceAircraft, Unit } from "@/types";
+import type { AeronauticalAircraft, Unit } from "@/types";
 
 /**
  * Catálogo de Servicios/Certificados y Tareas de Mantenimiento: el programa
@@ -104,7 +104,7 @@ export type CatalogService = {
   manual: CatalogManual | null;
   tasks?: CatalogTask[];
   tasks_count?: number;
-  aircrafts?: MaintenanceAircraft[];
+  aircrafts?: AeronauticalAircraft[];
   /** Los nacidos de un ítem de control cargado a mano llegan incompletos. */
   missing_fields: CatalogMissingField[];
   is_incomplete: boolean;

@@ -53,6 +53,11 @@ import {
   fieldClass,
 } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
 import { NumericInput } from "@/components/forms/mantenimiento/almacen/_components/NumericInput";
+import {
+  applyServerFieldErrors,
+  invalidFormHandler,
+} from "@/components/forms/mantenimiento/almacen/_components/form-feedback";
+import { RequiredIndicator } from "@/components/misc/RequiredIndicator";
 
 import { ArticleFormShell } from "./ArticleFormShell";
 import {
@@ -69,6 +74,7 @@ import { DestinationChecks } from "./sections/DestinationChecks";
 import { WarehouseDetailsSection } from "./sections/WarehouseDetailsSection";
 import {
   ARTICLE_SOURCES,
+  articleFieldLabels,
   requireSourceJustification,
   sourceLabel,
   type ArticleFormProps,
@@ -81,7 +87,13 @@ const formSchema = z
       .string({ message: "Debe ingresar un número de parte." })
       .min(2, "El número de parte debe contener al menos 2 caracteres."),
     lot_number: z.string().optional(),
-    alternative_part_number: z.array(z.string().min(2)).optional(),
+    alternative_part_number: z
+      .array(
+        z
+          .string()
+          .min(2, "Cada número alterno debe tener al menos 2 caracteres."),
+      )
+      .optional(),
     description: z.string().optional(),
     zone: z.string().optional(),
     manufacturer_id: z.string().optional(),
@@ -107,6 +119,10 @@ const formSchema = z
   .superRefine(requireSourceJustification);
 
 type FormValues = z.infer<typeof formSchema>;
+
+const FIELD_LABELS = articleFieldLabels("Descripción de consumible", {
+  quantity: "Cantidad",
+});
 
 /** El almacén marca "no aplica" con esta fecha centinela. */
 const NOT_APPLICABLE = "1900-01-01";
@@ -402,6 +418,8 @@ export default function ConsumableArticleForm({
           dimensionPayload(dimension, !!initialData?.consumable?.dimension) ??
           undefined,
       },
+      onFieldErrors: (errors) =>
+        applyServerFieldErrors(form.setError, errors, FIELD_LABELS),
       afterCreate: () => {
         form.reset();
         setConversions([]);
@@ -530,8 +548,9 @@ export default function ConsumableArticleForm({
         // La vista previa la pide quien monta el formulario: solo el
         // alta y la edición formales del artículo la usan. Al crear se
         // confirma lo que va a nacer; al editar, cómo queda.
-        onSubmit={form.handleSubmit((values) =>
-          showPreview ? setPreview(values) : save(values),
+        onSubmit={form.handleSubmit(
+          (values) => (showPreview ? setPreview(values) : save(values)),
+          invalidFormHandler(FIELD_LABELS),
         )}
       >
         <IdentificationSection
@@ -663,9 +682,12 @@ export default function ConsumableArticleForm({
             <FormField
               control={form.control}
               name="quantity"
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem className="w-full">
-                  <FormLabel className={labelClass}>Cantidad</FormLabel>
+                  <FormLabel className={labelClass}>
+                    Cantidad
+                    <RequiredIndicator invalid={!!fieldState.error} />
+                  </FormLabel>
                   <FormControl>
                     <NumericInput
                       placeholder="Ej: 15.7"

@@ -1,34 +1,30 @@
-"use client"
+"use client";
 
-import { useState } from 'react'
-import { Company } from '@/types'
+import { useState } from "react";
+import { Company } from "@/types";
 
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+} from "@/components/ui/dropdown-menu";
 
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@/components/ui/tooltip'
+} from "@/components/ui/tooltip";
 
-import { Button } from '@/components/ui/button'
+import { Button } from "@/components/ui/button";
 
-import {
-  MoreHorizontal,
-  Pencil,
-  Trash2,
-} from 'lucide-react'
+import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 
-import CompanyDropdownDialogs from '@/components/dialogs/ajustes/CompanyDropdownDialogs'
+import CompanyDropdownDialogs from "@/components/dialogs/ajustes/CompanyDropdownDialogs";
 
 const iconBase =
-  'size-[18px] transition-all duration-200 ease-out group-hover:scale-110'
+  "size-4.5 transition-all duration-200 ease-out group-hover:scale-110";
 
 const itemBase = `
   group
@@ -44,18 +40,18 @@ const itemBase = `
   hover:bg-muted
   hover:shadow-xs
   active:scale-95
-`
+`;
 
 interface Props {
-  company: Company
+  company: Company;
 }
 
 const CompanyDropdownActions = ({ company }: Props) => {
-  const [openDropdown, setOpenDropdown] = useState(false)
-  const [openEdit, setOpenEdit] = useState(false)
-  const [openDelete, setOpenDelete] = useState(false)
+  const [openDropdown, setOpenDropdown] = useState(false);
+  const [openEdit, setOpenEdit] = useState(false);
+  const [openDelete, setOpenDelete] = useState(false);
 
-  const isInactive = false
+  const isInactive = false;
 
   return (
     <TooltipProvider delayDuration={120}>
@@ -76,10 +72,7 @@ const CompanyDropdownActions = ({ company }: Props) => {
             </TooltipContent>
           </Tooltip>
         ) : (
-          <DropdownMenu
-            open={openDropdown}
-            onOpenChange={setOpenDropdown}
-          >
+          <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
@@ -114,7 +107,6 @@ const CompanyDropdownActions = ({ company }: Props) => {
                 animate-in fade-in zoom-in-95 duration-200
               "
             >
-
               {/* EDIT */}
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -125,8 +117,8 @@ const CompanyDropdownActions = ({ company }: Props) => {
                     >
                       <button
                         onClick={() => {
-                          setOpenDropdown(false)
-                          setOpenEdit(true)
+                          setOpenDropdown(false);
+                          setOpenEdit(true);
                         }}
                         className={`${itemBase} text-blue-600`}
                       >
@@ -136,9 +128,7 @@ const CompanyDropdownActions = ({ company }: Props) => {
                   </span>
                 </TooltipTrigger>
 
-                <TooltipContent>
-                  Editar empresa
-                </TooltipContent>
+                <TooltipContent>Editar empresa</TooltipContent>
               </Tooltip>
 
               {/* DELETE */}
@@ -151,8 +141,8 @@ const CompanyDropdownActions = ({ company }: Props) => {
                     >
                       <button
                         onClick={() => {
-                          setOpenDropdown(false)
-                          setOpenDelete(true)
+                          setOpenDropdown(false);
+                          setOpenDelete(true);
                         }}
                         className={`${itemBase} text-red-600`}
                       >
@@ -162,11 +152,8 @@ const CompanyDropdownActions = ({ company }: Props) => {
                   </span>
                 </TooltipTrigger>
 
-                <TooltipContent>
-                  Eliminar empresa
-                </TooltipContent>
+                <TooltipContent>Eliminar empresa</TooltipContent>
               </Tooltip>
-
             </DropdownMenuContent>
           </DropdownMenu>
         )}
@@ -180,7 +167,7 @@ const CompanyDropdownActions = ({ company }: Props) => {
         />
       </>
     </TooltipProvider>
-  )
-}
+  );
+};
 
-export default CompanyDropdownActions
+export default CompanyDropdownActions;

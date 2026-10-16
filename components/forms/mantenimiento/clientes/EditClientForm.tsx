@@ -94,13 +94,6 @@ const formSchema = z
         message: "Elija el tipo de documento.",
       });
     }
-    if (values.dni_type && !values.dni) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["dni"],
-        message: "Indique el número de documento.",
-      });
-    }
   });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -130,7 +123,7 @@ export function EditClientForm({ onClose, client }: EditClientFormProps) {
     try {
       await updateClient.mutateAsync({
         id: client.id.toString(),
-        data: values,
+        data: { ...values, dni_type: values.dni ? values.dni_type : null },
         company: selectedCompany!.slug,
       });
       onClose();

@@ -100,6 +100,17 @@ export function buildSettingsGroup({
             ],
           },
           {
+            href: `/${slug}/ajustes/aeronaves`,
+            label: "Aeronaves",
+            active: pathname === `/${slug}/ajustes/aeronaves`,
+            requiresOmac: false,
+            roles: [
+              "JEFE_ADMINISTRACION",
+              "ANALISTA_ADMINISTRACION",
+              "SUPERUSER",
+            ],
+          },
+          {
             href: `/${slug}/ajustes/terceros`,
             label: "Terceros",
             active: pathname === `/${slug}/ajustes/terceros`,

@@ -17,7 +17,7 @@ export const clientesCrearAeronauticalSteps: StepType[] = [
   {
     selector: '[data-tour="clientes-crear-dni-type"]',
     content:
-      "Tipo de documento de identidad (opcional): V (Venezolano), J (Jurídico) o E (Extranjero). Si indica el tipo, debe indicar también el número.",
+      "Tipo de documento de identidad (opcional): V (Venezolano), J (Jurídico) o E (Extranjero). Solo se guarda si indica también el número.",
     position: "bottom",
   },
   {

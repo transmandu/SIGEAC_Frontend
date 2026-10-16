@@ -1,7 +1,8 @@
 import type {
   Unit,
   User,
-  Aircraft,
+  AeronauticalAircraft,
+  AirlineAircraft,
   WorkOrder,
   Convertion,
   Department,
@@ -184,7 +185,7 @@ export interface Requisition {
   arrival_date?: string;
   submission_date: string;
   work_order?: WorkOrder;
-  aircraft?: Aircraft | null;
+  aircraft?: AeronauticalAircraft | AirlineAircraft | null;
   department?: Department | null;
   third_party?: ThirdParty | null;
   quotes?: RequisitionQuote[];
@@ -238,7 +239,7 @@ export interface MyRequisition {
   justification: string | null;
   submission_date: string;
   work_order?: string | null;
-  aircraft?: Aircraft | null;
+  aircraft?: AeronauticalAircraft | AirlineAircraft | null;
   department?: Department | null;
   third_party?: ThirdParty | null;
   batch?: RequisitionBatch[];
@@ -269,7 +270,7 @@ export interface RequisitionByOrderNumber {
   image?: string | null;
   submission_date?: string | null;
   observation?: string | null;
-  aircraft?: Aircraft | null;
+  aircraft?: AeronauticalAircraft | AirlineAircraft | null;
   department?: Department | null;
   third_party?: ThirdParty | null;
   /** Free-text OT for this requisition (not a linked WorkOrder record). */

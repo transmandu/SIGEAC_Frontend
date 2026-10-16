@@ -7,7 +7,7 @@ export interface AeronauticalClientPayload {
   name: string;
   authorizing: "PROPIETARIO" | "EXPLOTADOR";
   dni?: string;
-  dni_type?: string;
+  dni_type?: string | null;
   phone?: string;
   email?: string;
   address?: string;

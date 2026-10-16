@@ -1,177 +1,185 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import type { PurchaseOrder } from "@/types/purchase"
-import { useAuth } from "@/contexts/AuthContext"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { Button } from "@/components/ui/button"
-import { AlertOctagon, ClipboardCheck, FileDown, MoreHorizontal, Receipt, Wallet } from "lucide-react"
-import PurchaseOrderDropdownDialogs from "@/components/dialogs/mantenimiento/compras/PurchaseOrderDropdownDialogs"
-import InvoicePreviewDialog from "@/components/dialogs/mantenimiento/compras/InvoicePreviewDialog"
-import { useCompanyStore } from "@/stores/CompanyStore"
+import { useState } from "react";
+import type { PurchaseOrder } from "@/types/purchase";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
+import {
+  AlertOctagon,
+  ClipboardCheck,
+  FileDown,
+  MoreHorizontal,
+  Receipt,
+  Wallet,
+} from "lucide-react";
+import PurchaseOrderDropdownDialogs from "@/components/dialogs/mantenimiento/compras/PurchaseOrderDropdownDialogs";
+import InvoicePreviewDialog from "@/components/dialogs/mantenimiento/compras/InvoicePreviewDialog";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 const iconBase =
-  "size-[18px] transition-all duration-200 ease-out group-hover:scale-110"
-const itemBase = 
-  `group relative flex items-center justify-center size-9 rounded-xl transition-all duration-200 ease-out hover:bg-muted hover:shadow-xs active:scale-95`
+  "size-4.5 transition-all duration-200 ease-out group-hover:scale-110";
+const itemBase = `group relative flex items-center justify-center size-9 rounded-xl transition-all duration-200 ease-out hover:bg-muted hover:shadow-xs active:scale-95`;
 
 const PurchaseOrderDropdownActions = ({ po }: { po: PurchaseOrder }) => {
-  const { user } = useAuth()
-  const { selectedCompany } = useCompanyStore()
-  const [openDropdown, setOpenDropdown] = useState(false)
-  const [openApprove, setOpenApprove] = useState(false)
-  const [openInvoice, setOpenInvoice] = useState(false)
-  const [openCascadeDelete, setOpenCascadeDelete] = useState(false)
+  const { user } = useAuth();
+  const { selectedCompany } = useCompanyStore();
+  const [openDropdown, setOpenDropdown] = useState(false);
+  const [openApprove, setOpenApprove] = useState(false);
+  const [openInvoice, setOpenInvoice] = useState(false);
+  const [openCascadeDelete, setOpenCascadeDelete] = useState(false);
 
-  const canPay = po.status === "PENDING"
-  const canComplete = po.status === "PAID"
-  const canApprove = canPay || canComplete
-  const invoices = po.invoices ?? []
-  const hasInvoice = invoices.length > 0
-  const isSuperUser = (user?.roles?.map((role) => role.name) || []).includes("SUPERUSER")
+  const canPay = po.status === "PENDING";
+  const canComplete = po.status === "PAID";
+  const canApprove = canPay || canComplete;
+  const invoices = po.invoices ?? [];
+  const hasInvoice = invoices.length > 0;
+  const isSuperUser = (user?.roles?.map((role) => role.name) || []).includes(
+    "SUPERUSER",
+  );
 
   return (
     <TooltipProvider delayDuration={120}>
       <>
-          <DropdownMenu
-            open={openDropdown}
-            onOpenChange={setOpenDropdown}
-          >
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="size-8 rounded-xl border border-transparent transition-all duration-200 hover:bg-muted/70 hover:border-border/50 hover:shadow-xs data-[state=open]:bg-muted"
-              >
-                <MoreHorizontal className="size-4" />
-              </Button>
-            </DropdownMenuTrigger>
-
-            <DropdownMenuContent
-              align="center"
-              sideOffset={3}
-              className="flex items-center justify-center gap-1.5 rounded-2xl border border-border/50 bg-background/90 backdrop-blur-xl shadow-xl p-1.5 overflow-visible animate-in fade-in zoom-in-95 duration-200"
+        <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-8 rounded-xl border border-transparent transition-all duration-200 hover:bg-muted/70 hover:border-border/50 hover:shadow-xs data-[state=open]:bg-muted"
             >
-              {/* PAY / COMPLETE PURCHASE */}
-              {canApprove && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span>
-                      <DropdownMenuItem
-                        asChild
-                        className="p-0 focus:bg-transparent"
-                      >
-                        <button
-                          onClick={() => {
-                            setOpenDropdown(false)
-                            setOpenApprove(true)
-                          }}
-                          className={`
-                            ${itemBase}
-                            text-emerald-600
-                          `}
-                        >
-                          {canPay ? (
-                            <Wallet className={iconBase} />
-                          ) : (
-                            <ClipboardCheck className={iconBase} />
-                          )}
-                        </button>
-                      </DropdownMenuItem>
-                    </span>
-                  </TooltipTrigger>
+              <MoreHorizontal className="size-4" />
+            </Button>
+          </DropdownMenuTrigger>
 
-                  <TooltipContent>
-                    {canPay ? "Pagar compra" : "Completar compra"}
-                  </TooltipContent>
-                </Tooltip>
-              )}
-              {/* VIEW INVOICE */}
-              {hasInvoice && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span>
-                      <DropdownMenuItem
-                        asChild
-                        className="p-0 focus:bg-transparent"
-                      >
-                        <button
-                          onClick={() => {
-                            setOpenDropdown(false)
-                            setOpenInvoice(true)
-                          }}
-                          className={`
-                            ${itemBase}
-                            text-amber-600
-                          `}
-                        >
-                          <Receipt className={iconBase} />
-                        </button>
-                      </DropdownMenuItem>
-                    </span>
-                  </TooltipTrigger>
-
-                  <TooltipContent>
-                    {invoices.length > 1 ? "Ver facturas" : "Ver factura"}
-                  </TooltipContent>
-                </Tooltip>
-              )}
-              {/* Descarga del PDF pendiente de implementar. */}
-                <Tooltip>
-                  <TooltipTrigger asChild>
+          <DropdownMenuContent
+            align="center"
+            sideOffset={3}
+            className="flex items-center justify-center gap-1.5 rounded-2xl border border-border/50 bg-background/90 backdrop-blur-xl shadow-xl p-1.5 overflow-visible animate-in fade-in zoom-in-95 duration-200"
+          >
+            {/* PAY / COMPLETE PURCHASE */}
+            {canApprove && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>
                     <DropdownMenuItem
                       asChild
                       className="p-0 focus:bg-transparent"
                     >
                       <button
+                        onClick={() => {
+                          setOpenDropdown(false);
+                          setOpenApprove(true);
+                        }}
                         className={`
+                            ${itemBase}
+                            text-emerald-600
+                          `}
+                      >
+                        {canPay ? (
+                          <Wallet className={iconBase} />
+                        ) : (
+                          <ClipboardCheck className={iconBase} />
+                        )}
+                      </button>
+                    </DropdownMenuItem>
+                  </span>
+                </TooltipTrigger>
+
+                <TooltipContent>
+                  {canPay ? "Pagar compra" : "Completar compra"}
+                </TooltipContent>
+              </Tooltip>
+            )}
+            {/* VIEW INVOICE */}
+            {hasInvoice && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>
+                    <DropdownMenuItem
+                      asChild
+                      className="p-0 focus:bg-transparent"
+                    >
+                      <button
+                        onClick={() => {
+                          setOpenDropdown(false);
+                          setOpenInvoice(true);
+                        }}
+                        className={`
+                            ${itemBase}
+                            text-amber-600
+                          `}
+                      >
+                        <Receipt className={iconBase} />
+                      </button>
+                    </DropdownMenuItem>
+                  </span>
+                </TooltipTrigger>
+
+                <TooltipContent>
+                  {invoices.length > 1 ? "Ver facturas" : "Ver factura"}
+                </TooltipContent>
+              </Tooltip>
+            )}
+            {/* Descarga del PDF pendiente de implementar. */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuItem asChild className="p-0 focus:bg-transparent">
+                  <button
+                    className={`
                           ${itemBase}
                           text-blue-600
                         `}
-                      >
-                        <FileDown className={iconBase} />
-                      </button>
-                    </DropdownMenuItem>
-                  </TooltipTrigger>
+                  >
+                    <FileDown className={iconBase} />
+                  </button>
+                </DropdownMenuItem>
+              </TooltipTrigger>
 
-                  <TooltipContent>
-                    ¡Próximamente!
-                  </TooltipContent>
-                </Tooltip>
+              <TooltipContent>¡Próximamente!</TooltipContent>
+            </Tooltip>
 
-              {/* CASCADE DELETE (SUPERUSER) */}
-              {isSuperUser && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span>
-                      <DropdownMenuItem
-                        asChild
-                        className="p-0 focus:bg-transparent"
-                      >
-                        <button
-                          onClick={() => {
-                            setOpenDropdown(false)
-                            setOpenCascadeDelete(true)
-                          }}
-                          className={`
+            {/* CASCADE DELETE (SUPERUSER) */}
+            {isSuperUser && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>
+                    <DropdownMenuItem
+                      asChild
+                      className="p-0 focus:bg-transparent"
+                    >
+                      <button
+                        onClick={() => {
+                          setOpenDropdown(false);
+                          setOpenCascadeDelete(true);
+                        }}
+                        className={`
                             ${itemBase}
                             text-red-700
                           `}
-                        >
-                          <AlertOctagon className={iconBase} />
-                        </button>
-                      </DropdownMenuItem>
-                    </span>
-                  </TooltipTrigger>
+                      >
+                        <AlertOctagon className={iconBase} />
+                      </button>
+                    </DropdownMenuItem>
+                  </span>
+                </TooltipTrigger>
 
-                  <TooltipContent>
-                    Eliminar en cascada (SuperUser)
-                  </TooltipContent>
-                </Tooltip>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+                <TooltipContent>Eliminar en cascada (SuperUser)</TooltipContent>
+              </Tooltip>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         <PurchaseOrderDropdownDialogs
           po={po}
@@ -192,7 +200,7 @@ const PurchaseOrderDropdownActions = ({ po }: { po: PurchaseOrder }) => {
         )}
       </>
     </TooltipProvider>
-  )
-}
+  );
+};
 
-export default PurchaseOrderDropdownActions
+export default PurchaseOrderDropdownActions;
