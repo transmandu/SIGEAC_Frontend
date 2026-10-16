@@ -13,9 +13,10 @@ export const MANUFACTURER_TYPE_LABELS: Record<ManufacturerType, string> = {
   TOOL: "Herramientas",
 };
 
-export const MANUFACTURER_TYPES = Object.keys(
-  MANUFACTURER_TYPE_LABELS,
-) as [ManufacturerType, ...ManufacturerType[]];
+export const MANUFACTURER_TYPES = Object.keys(MANUFACTURER_TYPE_LABELS) as [
+  ManufacturerType,
+  ...ManufacturerType[],
+];
 
 const same = (a: string, b: string) =>
   a.trim().toUpperCase() === b.trim().toUpperCase();
@@ -40,12 +41,9 @@ export const buildManufacturerSchema = (
         .max(255, {
           message: "La abreviatura no puede superar los 255 caracteres.",
         }),
-      description: z
-        .string()
-        .trim()
-        .max(255, {
-          message: "El nombre completo no puede superar los 255 caracteres.",
-        }),
+      description: z.string().trim().max(255, {
+        message: "El nombre completo no puede superar los 255 caracteres.",
+      }),
       type: z.enum(MANUFACTURER_TYPES, { error: "Seleccione un tipo" }),
     })
     .superRefine((values, ctx) => {

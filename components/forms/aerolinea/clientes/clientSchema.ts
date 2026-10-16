@@ -30,7 +30,9 @@ export const buildAirlineClientSchema = (
         .min(1, { message: "Ingrese el número de documento." })
         .min(7, { message: "El documento debe tener al menos 7 dígitos." })
         .max(11, { message: "El documento no puede superar los 11 dígitos." })
-        .regex(/^\d+$/, { message: "El documento solo puede contener números." }),
+        .regex(/^\d+$/, {
+          message: "El documento solo puede contener números.",
+        }),
       name: z
         .string()
         .trim()
@@ -59,7 +61,9 @@ export const buildAirlineClientSchema = (
         .trim()
         .min(1, { message: "Ingrese la dirección." })
         .min(3, { message: "La dirección debe tener al menos 3 caracteres." })
-        .max(100, { message: "La dirección no puede superar los 100 caracteres." }),
+        .max(100, {
+          message: "La dirección no puede superar los 100 caracteres.",
+        }),
       pay_credit_days: z
         .string()
         .trim()
@@ -71,10 +75,7 @@ export const buildAirlineClientSchema = (
     })
     .superRefine((values, ctx) => {
       const others = (clients ?? []).filter((client) => client.id !== ignoreId);
-      const taken = (
-        field: "name" | "dni" | "email",
-        message: string,
-      ) => {
+      const taken = (field: "name" | "dni" | "email", message: string) => {
         if (others.some((client) => same(client[field], values[field]))) {
           ctx.addIssue({ code: "custom", path: [field], message });
         }

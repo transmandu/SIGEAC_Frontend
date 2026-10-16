@@ -33,7 +33,9 @@ export const buildConditionSchema = (
       .trim()
       .min(1, { message: "Ingrese una descripción." })
       .min(2, { message: "La descripción debe tener al menos 2 caracteres." })
-      .max(500, { message: "La descripción no puede superar los 500 caracteres." }),
+      .max(500, {
+        message: "La descripción no puede superar los 500 caracteres.",
+      }),
     excluded_from_cost: z.boolean(),
   });
 

@@ -81,10 +81,7 @@ export default function CreateUnitForm({
         // Dialog viva en un portal, y dispararía el submit del form padre.
         onSubmit={(e) => {
           e.stopPropagation();
-          form.handleSubmit(
-            onSubmit,
-            invalidFormHandler(UNIT_FIELD_LABELS),
-          )(e);
+          form.handleSubmit(onSubmit, invalidFormHandler(UNIT_FIELD_LABELS))(e);
         }}
       >
         <UnitFormFields

@@ -30,7 +30,9 @@ export const buildThirdPartySchema = (
         .trim()
         .min(1, { message: "Ingrese el nombre del tercero." })
         .min(3, { message: "El nombre debe tener al menos 3 caracteres." })
-        .max(255, { message: "El nombre no puede superar los 255 caracteres." }),
+        .max(255, {
+          message: "El nombre no puede superar los 255 caracteres.",
+        }),
       type: z
         .string()
         .min(1, { message: "Seleccione un tipo." })

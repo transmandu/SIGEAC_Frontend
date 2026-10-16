@@ -33,7 +33,10 @@ export const useCreateCondition = () => {
     },
     onError: (error) => {
       toast.error("Oops!", {
-        description: getApiErrorMessage(error, "No se pudo crear la condición."),
+        description: getApiErrorMessage(
+          error,
+          "No se pudo crear la condición.",
+        ),
       });
     },
   });

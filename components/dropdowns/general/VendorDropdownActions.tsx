@@ -60,7 +60,10 @@ const VendorDropdownActions = ({ vendor }: { vendor: Vendor }) => {
               ; solo se guardará lo que cambie.
             </DialogDescription>
           </DialogHeader>
-          <UpdateVendorForm vendor={vendor} onClose={() => setEditOpen(false)} />
+          <UpdateVendorForm
+            vendor={vendor}
+            onClose={() => setEditOpen(false)}
+          />
         </DialogContent>
       </Dialog>
 

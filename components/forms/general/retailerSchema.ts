@@ -36,10 +36,14 @@ export const buildRetailerSchema = (
     address: z
       .string()
       .trim()
-      .max(255, { message: "La ubicación no puede superar los 255 caracteres." }),
+      .max(255, {
+        message: "La ubicación no puede superar los 255 caracteres.",
+      }),
   });
 
-export type RetailerFormValues = z.infer<ReturnType<typeof buildRetailerSchema>>;
+export type RetailerFormValues = z.infer<
+  ReturnType<typeof buildRetailerSchema>
+>;
 
 export const RETAILER_FIELD_LABELS = {
   name: "Nombre",

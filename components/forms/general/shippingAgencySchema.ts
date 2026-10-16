@@ -29,7 +29,9 @@ export const buildShippingAgencySchema = (
         .trim()
         .min(1, { message: "Ingrese el nombre de la agencia." })
         .min(2, { message: "El nombre debe tener al menos 2 caracteres." })
-        .max(255, { message: "El nombre no puede superar los 255 caracteres." }),
+        .max(255, {
+          message: "El nombre no puede superar los 255 caracteres.",
+        }),
       code: z
         .string()
         .trim()
@@ -43,7 +45,9 @@ export const buildShippingAgencySchema = (
       phone: z
         .string()
         .trim()
-        .max(50, { message: "El teléfono no puede superar los 50 caracteres." }),
+        .max(50, {
+          message: "El teléfono no puede superar los 50 caracteres.",
+        }),
       email: z
         .string()
         .trim()

@@ -189,8 +189,7 @@ export function VendorFormFields({
                   />
                 </FormControl>
                 <FormDescription className={hintClass}>
-                  Opcional. Dirección fiscal para facturación y
-                  correspondencia.
+                  Opcional. Dirección fiscal para facturación y correspondencia.
                 </FormDescription>
                 <FormMessage />
               </FormItem>

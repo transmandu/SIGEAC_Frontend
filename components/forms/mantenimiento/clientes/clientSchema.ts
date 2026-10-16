@@ -74,7 +74,9 @@ export const buildAeronauticalClientSchema = (
       email: optional(
         z
           .string()
-          .max(255, { message: "El correo no puede superar los 255 caracteres." })
+          .max(255, {
+            message: "El correo no puede superar los 255 caracteres.",
+          })
           .email({ message: "Ingrese un correo válido." }),
       ),
       address: optional(

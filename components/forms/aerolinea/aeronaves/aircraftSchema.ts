@@ -11,7 +11,8 @@ const STATUSES = ["EN POSESION", "RENTADO", "VENDIDO"] as const;
 const same = (a?: string | null, b?: string | null) =>
   (a ?? "").trim().toUpperCase() === (b ?? "").trim().toUpperCase();
 
-const hasManufacturer = (value?: string) => !!value && value !== NO_MANUFACTURER;
+const hasManufacturer = (value?: string) =>
+  !!value && value !== NO_MANUFACTURER;
 
 /**
  * Esquema del formulario de aeronaves de aerolínea. Matrícula y serial no
@@ -100,7 +101,9 @@ export const buildAircraftSchema = (
       }
     });
 
-export type AircraftFormValues = z.infer<ReturnType<typeof buildAircraftSchema>>;
+export type AircraftFormValues = z.infer<
+  ReturnType<typeof buildAircraftSchema>
+>;
 
 export const AIRCRAFT_FIELD_LABELS = {
   acronym: "Matrícula",

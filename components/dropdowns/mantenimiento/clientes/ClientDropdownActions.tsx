@@ -117,9 +117,9 @@ const ClientDropdownActions = ({ client }: { client: AeronauticalClient }) => {
 
       <Dialog open={openEdit} onOpenChange={setOpenEdit}>
         <DialogContent
-        className="max-h-[90vh] overflow-y-auto sm:max-w-3xl"
-        onInteractOutside={(e) => e.preventDefault()}
-      >
+          className="max-h-[90vh] overflow-y-auto sm:max-w-3xl"
+          onInteractOutside={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>Editar cliente</DialogTitle>
             <DialogDescription>

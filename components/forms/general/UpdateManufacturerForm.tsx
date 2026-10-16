@@ -71,7 +71,11 @@ export default function UpdateManufacturerForm({
     } catch (error) {
       const errors = serverFieldErrors(error);
       if (errors) {
-        applyServerFieldErrors(form.setError, errors, MANUFACTURER_FIELD_LABELS);
+        applyServerFieldErrors(
+          form.setError,
+          errors,
+          MANUFACTURER_FIELD_LABELS,
+        );
       }
     }
   };

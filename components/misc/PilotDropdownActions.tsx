@@ -66,14 +66,11 @@ const PilotDropdownActions = ({ pilot }: { pilot: Pilot }) => {
             <DialogTitle>Editar piloto</DialogTitle>
             <DialogDescription>
               Modifique lo necesario de{" "}
-              <span className="font-medium text-foreground">{fullName}</span>
-              ; solo se guardará lo que cambie.
+              <span className="font-medium text-foreground">{fullName}</span>;
+              solo se guardará lo que cambie.
             </DialogDescription>
           </DialogHeader>
-          <UpdatePilotForm
-            pilot={pilot}
-            onClose={() => setOpenEdit(false)}
-          />
+          <UpdatePilotForm pilot={pilot} onClose={() => setOpenEdit(false)} />
         </DialogContent>
       </Dialog>
 

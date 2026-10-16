@@ -73,8 +73,8 @@ const ConditionDropdownActions = ({ condition }: { condition: Condition }) => {
         warning={
           <>
             Esta acción es <b>irreversible</b>. Si la condición está en uso por
-            artículos, o excluye del costo y tiene salidas registradas, no
-            podrá ser eliminada.
+            artículos, o excluye del costo y tiene salidas registradas, no podrá
+            ser eliminada.
           </>
         }
         isPending={deleteCondition.isPending}

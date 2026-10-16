@@ -27,7 +27,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { AIRLINE_DNI_TYPES, type AirlineClientFormValues } from "./clientSchema";
+import {
+  AIRLINE_DNI_TYPES,
+  type AirlineClientFormValues,
+} from "./clientSchema";
 
 /**
  * Campos compartidos por el alta y la edición de un cliente de aerolínea.

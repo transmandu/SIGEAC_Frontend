@@ -27,8 +27,7 @@ interface FormProps {
 }
 
 export function CreateConditionForm({ onClose, onSuccess }: FormProps) {
-  const { data: conditions, isSuccess: conditionsLoaded } =
-    useGetConditions();
+  const { data: conditions, isSuccess: conditionsLoaded } = useGetConditions();
   const { createCondition } = useCreateCondition();
 
   const schema = useMemo(() => buildConditionSchema(conditions), [conditions]);

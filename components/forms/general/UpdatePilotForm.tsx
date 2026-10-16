@@ -54,7 +54,9 @@ export function UpdatePilotForm({ pilot, onClose }: FormProps) {
 
   // El empleado es fijo al editar: solo se ofrece el propio piloto.
   const employeeOptions = useMemo(() => {
-    const employee = (employees ?? []).find((e) => e.dni === pilot.employee_dni);
+    const employee = (employees ?? []).find(
+      (e) => e.dni === pilot.employee_dni,
+    );
     const name = employee
       ? `${employee.first_name} ${employee.last_name} (${employee.dni_type}-${employee.dni})`
       : `${pilot.employee?.first_name ?? ""} ${pilot.employee?.last_name ?? ""} (${pilot.employee_dni})`.trim();

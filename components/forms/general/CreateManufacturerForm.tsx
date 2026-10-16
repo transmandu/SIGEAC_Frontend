@@ -68,7 +68,11 @@ export default function CreateManufacturerForm({
       // El toast lo muestra la mutación; aquí se marca el campo rechazado.
       const errors = serverFieldErrors(error);
       if (errors) {
-        applyServerFieldErrors(form.setError, errors, MANUFACTURER_FIELD_LABELS);
+        applyServerFieldErrors(
+          form.setError,
+          errors,
+          MANUFACTURER_FIELD_LABELS,
+        );
       }
     }
   };

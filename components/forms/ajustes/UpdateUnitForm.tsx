@@ -77,10 +77,7 @@ export default function UpdateUnitForm({ unit, onClose }: FormProps) {
         onCancel={onClose}
         onSubmit={(e) => {
           e.stopPropagation();
-          form.handleSubmit(
-            onSubmit,
-            invalidFormHandler(UNIT_FIELD_LABELS),
-          )(e);
+          form.handleSubmit(onSubmit, invalidFormHandler(UNIT_FIELD_LABELS))(e);
         }}
       >
         <UnitFormFields
