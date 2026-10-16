@@ -1,45 +1,24 @@
 "use client";
 
 import { useState } from "react";
+import { Pencil, Trash2 } from "lucide-react";
+
+import { useDeleteShippingAgency } from "@/actions/ajustes/agencias_envio/actions";
+import { ConfirmDeleteDialog } from "@/components/dialogs/shared/ConfirmDeleteDialog";
+import {
+  SettingsRowActions,
+  type RowAction,
+} from "@/components/dropdowns/SettingsRowActions";
+import { UpdateShippingAgencyForm } from "@/components/forms/general/UpdateShippingAgencyForm";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { ShippingAgency } from "@/types";
-
-import {
-  useUpdateShippingAgency,
-  useDeleteShippingAgency,
-} from "@/actions/ajustes/agencias_envio/actions";
-
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-
-import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Edit3, Trash2, Loader2 } from "lucide-react";
-
-import ShippingAgencyDropdownDialogs from "@/components/dialogs/general/ShippingAgencyDropdownDialogs";
-
-const iconBase =
-  "size-4.5 transition-all duration-200 ease-out group-hover:scale-110";
-
-const itemBase = `
-  group
-  flex items-center justify-center
-  size-9
-  rounded-xl
-  transition-all duration-200 ease-out
-  hover:bg-muted hover:shadow-xs
-  active:scale-95
-`;
 
 const ShippingAgencyDropdownActions = ({
   agency,
@@ -47,136 +26,66 @@ const ShippingAgencyDropdownActions = ({
   agency: ShippingAgency;
 }) => {
   const { selectedCompany } = useCompanyStore();
+  const [editOpen, setEditOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
-  const updateMutation = useUpdateShippingAgency(selectedCompany?.slug);
-  const deleteMutation = useDeleteShippingAgency(selectedCompany?.slug);
-
-  const [openDropdown, setOpenDropdown] = useState(false);
-
-  const [openEdit, setOpenEdit] = useState(false);
-  const [openDelete, setOpenDelete] = useState(false);
+  const deleteAgency = useDeleteShippingAgency(selectedCompany?.slug);
 
   if (!selectedCompany) return null;
 
-  const handleDelete = async () => {
-    await deleteMutation.mutateAsync(agency.id);
-    setOpenDelete(false);
-  };
-
-  const handleUpdate = async (data: any) => {
-    await updateMutation.mutateAsync({
-      ...data,
-      id: agency.id,
-    });
-    setOpenEdit(false);
-  };
-
-  const isDeleting = deleteMutation.status === "pending";
+  const actions: RowAction[] = [
+    {
+      key: "edit",
+      label: "Editar agencia",
+      icon: Pencil,
+      tone: "blue",
+      onSelect: () => setEditOpen(true),
+    },
+    {
+      key: "delete",
+      label: "Eliminar agencia",
+      icon: Trash2,
+      tone: "red",
+      onSelect: () => setDeleteOpen(true),
+    },
+  ];
 
   return (
-    <TooltipProvider delayDuration={120}>
-      <>
-        <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="
-                size-8
-                rounded-xl
-                border border-transparent
-                transition-all duration-200
-                hover:bg-muted/70
-                hover:border-border/50
-                hover:shadow-xs
-                data-[state=open]:bg-muted
-              "
-              data-tour="agencias-envio-actions"
-            >
-              <MoreHorizontal className="size-4" />
-            </Button>
-          </DropdownMenuTrigger>
+    <>
+      <SettingsRowActions actions={actions} tourId="agencias-envio-actions" />
 
-          <DropdownMenuContent
-            align="center"
-            sideOffset={3}
-            className="
-              flex items-center justify-center gap-1.5
-              rounded-2xl
-              border border-border/50
-              bg-background/90
-              backdrop-blur-xl
-              shadow-xl
-              p-1.5
-              animate-in fade-in zoom-in-95 duration-200
-              overflow-visible
-            "
-          >
-            {/* EDIT */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span>
-                  <DropdownMenuItem
-                    asChild
-                    className="p-0 focus:bg-transparent"
-                  >
-                    <button
-                      onClick={() => {
-                        setOpenDropdown(false);
-                        setOpenEdit(true);
-                      }}
-                      className={`${itemBase} text-blue-600`}
-                    >
-                      <Edit3 className={iconBase} />
-                    </button>
-                  </DropdownMenuItem>
-                </span>
-              </TooltipTrigger>
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Editar agencia de envío</DialogTitle>
+            <DialogDescription>
+              Modifique lo necesario de{" "}
+              <span className="font-medium text-foreground">{agency.name}</span>
+              ; solo se guardará lo que cambie.
+            </DialogDescription>
+          </DialogHeader>
+          <UpdateShippingAgencyForm
+            agency={agency}
+            onClose={() => setEditOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
 
-              <TooltipContent>Editar agencia</TooltipContent>
-            </Tooltip>
-
-            {/* DELETE */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span>
-                  <DropdownMenuItem
-                    asChild
-                    className="p-0 focus:bg-transparent"
-                  >
-                    <button
-                      onClick={() => {
-                        setOpenDropdown(false);
-                        setOpenDelete(true);
-                      }}
-                      className={`${itemBase} text-red-600`}
-                      disabled={isDeleting}
-                    >
-                      {isDeleting ? (
-                        <Loader2 className={`${iconBase} animate-spin`} />
-                      ) : (
-                        <Trash2 className={iconBase} />
-                      )}
-                    </button>
-                  </DropdownMenuItem>
-                </span>
-              </TooltipTrigger>
-
-              <TooltipContent>Eliminar agencia</TooltipContent>
-            </Tooltip>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        {/* Dialogs separados (igual patrón base) */}
-        <ShippingAgencyDropdownDialogs
-          agency={agency}
-          openEdit={openEdit}
-          setOpenEdit={setOpenEdit}
-          openDelete={openDelete}
-          setOpenDelete={setOpenDelete}
-        />
-      </>
-    </TooltipProvider>
+      <ConfirmDeleteDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        title="Eliminar agencia"
+        entityName={agency.name}
+        warning={
+          <>
+            Esta acción es <b>irreversible</b>. Si la agencia tiene órdenes de
+            compra asociadas, no podrá ser eliminada.
+          </>
+        }
+        isPending={deleteAgency.isPending}
+        onConfirm={() => deleteAgency.mutateAsync(agency.id)}
+      />
+    </>
   );
 };
 

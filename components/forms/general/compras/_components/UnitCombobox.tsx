@@ -12,7 +12,11 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Dialog,
   DialogContent,
@@ -63,7 +67,7 @@ export function UnitCombobox({
               "w-full min-w-0 justify-between bg-background/70 font-normal",
               !selected && "text-muted-foreground",
               invalid && "border-destructive/60 ring-1 ring-destructive/30",
-              triggerClassName
+              triggerClassName,
             )}
           >
             <span className="min-w-0 truncate">
@@ -112,7 +116,9 @@ export function UnitCombobox({
                     <Check
                       className={cn(
                         "mr-2 size-4 shrink-0",
-                        unit.id.toString() === value ? "opacity-100" : "opacity-0"
+                        unit.id.toString() === value
+                          ? "opacity-100"
+                          : "opacity-0",
                       )}
                     />
                     <span className="min-w-0 truncate">{unit.label}</span>
@@ -131,7 +137,7 @@ export function UnitCombobox({
 
       {/* Crear unidad modal — auto-selects the new unit on success */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="sm:max-w-[490px]">
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Creación de Unidad</DialogTitle>
             <DialogDescription>

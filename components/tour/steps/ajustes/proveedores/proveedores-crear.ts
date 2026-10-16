@@ -40,7 +40,7 @@ export const proveedoresCrearSteps: StepType[] = [
   {
     selector: '[data-tour="proveedores-dialog-submit"]',
     content:
-      "Presione para guardar el nuevo proveedor. Todos los campos son obligatorios.",
+      "Presione para guardar el nuevo proveedor. Todos los campos son obligatorios, salvo la dirección.",
     position: "top",
   },
 ];

@@ -74,7 +74,8 @@ export const useUpdateAircraft = () => {
       company: string;
       /** Matrícula actual: la que identifica a la aeronave en la URL. */
       acronym: string;
-      data: AirlineAircraftPayload;
+      /** Actualización parcial: solo viajan los campos que cambiaron. */
+      data: Partial<AirlineAircraftPayload>;
     }) => {
       const response = await axiosInstance.put(
         `/${company}/airline/aircrafts/${acronym}`,

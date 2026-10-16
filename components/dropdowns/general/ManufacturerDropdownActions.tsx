@@ -11,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import CreateManufacturerForm from "@/components/forms/general/CreateManufacturerForm";
+import UpdateManufacturerForm from "@/components/forms/general/UpdateManufacturerForm";
 import {
   SettingsRowActions,
   type RowAction,
@@ -60,17 +60,18 @@ const ManufacturerDropdownActions = ({
       <SettingsRowActions actions={actions} tourId="fabricantes-actions" />
 
       <Dialog open={openEdit} onOpenChange={setOpenEdit}>
-        <DialogContent className="sm:max-w-105">
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Editar fabricante</DialogTitle>
             <DialogDescription>
-              Modifique la información de{" "}
+              Modifique lo necesario de{" "}
               <span className="font-medium text-foreground">
                 {manufacturer.name}
               </span>
+              ; solo se guardará lo que cambie.
             </DialogDescription>
           </DialogHeader>
-          <CreateManufacturerForm
+          <UpdateManufacturerForm
             manufacturer={manufacturer}
             onClose={() => setOpenEdit(false)}
           />

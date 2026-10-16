@@ -25,7 +25,7 @@ export default function CreatePilotDialog() {
           Registrar piloto
         </ActionTriggerButton>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-105">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Registro de Piloto</DialogTitle>
           <DialogDescription>

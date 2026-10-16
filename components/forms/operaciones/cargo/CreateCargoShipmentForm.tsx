@@ -438,7 +438,10 @@ export default function CreateCargoShipmentForm({
         onOpenChange={setOpenNewClient}
         data-tour="cargo-crear-modal-cliente"
       >
-        <DialogContent onInteractOutside={(e) => e.preventDefault()}>
+        <DialogContent
+          className="max-h-[90vh] overflow-y-auto sm:max-w-3xl"
+          onInteractOutside={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>Registrar Cliente</DialogTitle>
             <DialogDescription>

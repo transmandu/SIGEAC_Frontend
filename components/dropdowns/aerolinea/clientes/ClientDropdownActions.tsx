@@ -108,12 +108,16 @@ const ClientDropdownActions = ({ client }: { client: AirlineClient }) => {
       </Dialog>
 
       <Dialog open={openEdit} onOpenChange={setOpenEdit}>
-        <DialogContent onInteractOutside={(e) => e.preventDefault()}>
+        <DialogContent
+          className="max-h-[90vh] overflow-y-auto sm:max-w-3xl"
+          onInteractOutside={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>Editar cliente</DialogTitle>
             <DialogDescription>
-              Modifique la información de{" "}
+              Modifique lo necesario de{" "}
               <span className="font-medium text-foreground">{client.name}</span>
+              ; solo se guardará lo que cambie.
             </DialogDescription>
           </DialogHeader>
           <EditClientForm client={client} onClose={() => setOpenEdit(false)} />

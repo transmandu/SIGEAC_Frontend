@@ -11,7 +11,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useState } from "react";
-import { CreateCompanyForm } from "@/components/forms/general/CreateCompanyForm";
 import CreateManufacturerForm from "@/components/forms/general/CreateManufacturerForm";
 import { Plus } from "lucide-react";
 
@@ -38,7 +37,7 @@ export function CreateManufacturerDialog({
           </ActionTriggerButton>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-105">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Creación de Fabricante</DialogTitle>
           <DialogDescription>

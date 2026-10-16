@@ -10,7 +10,7 @@ import {
   DialogDescription,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Handshake } from "lucide-react";
+import { Plus } from "lucide-react";
 import CreateVendorForm from "@/components/forms/general/CreateVendorForm";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { proveedoresCrearSteps } from "@/components/tour/steps/ajustes/proveedores/proveedores-crear";
@@ -50,35 +50,14 @@ export function CreateVendorDialog({
         </ActionTriggerButton>
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-140 p-0 overflow-hidden rounded-3xl border border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl">
-        <div
-          className="relative px-6 pt-8 pb-5 bg-linear-to-br from-blue-500/5 via-background to-background"
-          data-tour="proveedores-dialog-header"
-        >
-          <DialogHeader className="space-y-3">
-            <div className="flex items-center gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-blue-500/10 bg-blue-500/10 text-blue-600 dark:text-blue-400">
-                <Handshake className="h-6 w-6" />
-              </div>
-              <div className="space-y-1">
-                <DialogTitle className="text-xl font-semibold tracking-tight">
-                  Nuevo proveedor
-                </DialogTitle>
-                <p className="text-sm font-medium text-blue-600 dark:text-blue-300">
-                  Gestión de compras
-                </p>
-                <DialogDescription className="text-sm text-muted-foreground leading-relaxed max-w-md">
-                  Registra un nuevo proveedor o beneficiario para la gestión de
-                  compras del sistema.
-                </DialogDescription>
-              </div>
-            </div>
-          </DialogHeader>
-        </div>
-
-        <div className="px-6 py-6">
-          <CreateVendorForm onClose={() => onOpenChange(false)} />
-        </div>
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
+        <DialogHeader data-tour="proveedores-dialog-header">
+          <DialogTitle>Nuevo proveedor</DialogTitle>
+          <DialogDescription>
+            Registre un proveedor o beneficiario para la gestión de compras.
+          </DialogDescription>
+        </DialogHeader>
+        <CreateVendorForm onClose={() => onOpenChange(false)} />
       </DialogContent>
     </Dialog>
   );

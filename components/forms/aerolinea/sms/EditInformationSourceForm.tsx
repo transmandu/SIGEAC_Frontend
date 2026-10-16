@@ -1,37 +1,27 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { useMemo } from "react";
+import { useForm } from "react-hook-form";
 
 import { useUpdateInformationSource } from "@/actions/ajustes/tipos_fuente/actions";
-import { Input } from "@/components/ui/input";
-import { InformationSource } from "@/types";
-import { zodResolver } from "@/lib/zod-resolver";
-import { Loader2 } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  applyServerFieldErrors,
+  invalidFormHandler,
+  serverFieldErrors,
+} from "@/components/forms/mantenimiento/almacen/_components/form-feedback";
+import { ArticleFormShell } from "@/components/forms/mantenimiento/almacen/articulos/ArticleFormShell";
+import { Form } from "@/components/ui/form";
+import { useGetInformationSources } from "@/hooks/sms/useGetInformationSource";
+import { zodResolver } from "@/lib/zod-resolver";
 import { useCompanyStore } from "@/stores/CompanyStore";
-
-const FormSchema = z.object({
-  name: z.string().min(1, "Debe ingresar un nombre.").max(50),
-  type: z.string().min(1, "Debe seleccionar un tipo."),
-});
-
-type FormSchemaType = z.infer<typeof FormSchema>;
+import { InformationSource } from "@/types";
+import { InformationSourceFormFields } from "./InformationSourceFormFields";
+import {
+  buildInformationSourceSchema,
+  diffInformationSource,
+  INFORMATION_SOURCE_FIELD_LABELS,
+  type InformationSourceFormValues,
+} from "./informationSourceSchema";
 
 interface FormProps {
   onClose: () => void;
@@ -39,81 +29,73 @@ interface FormProps {
 }
 
 export function EditInformationSourceForm({ onClose, initialData }: FormProps) {
-  const { updateInformationSource } = useUpdateInformationSource();
   const { selectedCompany } = useCompanyStore();
-  const form = useForm<FormSchemaType>({
-    resolver: zodResolver(FormSchema),
+  const { data: sources } = useGetInformationSources();
+  const { updateInformationSource } = useUpdateInformationSource();
+
+  const schema = useMemo(
+    () => buildInformationSourceSchema(sources, initialData.id),
+    [sources, initialData.id],
+  );
+
+  // Los valores iniciales se fijan al montar: el diálogo desmonta su contenido
+  // al cerrarse, así que cada apertura parte de lo guardado y un refetch de la
+  // lista no pisa lo que el usuario está escribiendo.
+  const form = useForm<InformationSourceFormValues>({
+    resolver: zodResolver(schema),
     defaultValues: {
-      name: initialData.name || "",
-      type: initialData.type || "",
+      name: initialData.name ?? "",
+      type: initialData.type,
     },
   });
 
-  const onSubmit = async (data: FormSchemaType) => {
-    const formattedData = {
-      company: selectedCompany!.slug,
-      id: initialData.id.toString(),
-      data: { ...data },
-    };
-    try {
-      await updateInformationSource.mutateAsync(formattedData);
+  const onSubmit = async (values: InformationSourceFormValues) => {
+    const changes = diffInformationSource(initialData, values);
+
+    if (Object.keys(changes).length === 0) {
       onClose();
-    } catch {
-      // El aviso lo muestra la mutación; el formulario queda abierto.
+      return;
+    }
+
+    try {
+      await updateInformationSource.mutateAsync({
+        company: selectedCompany!.slug,
+        id: initialData.id.toString(),
+        data: changes,
+      });
+      onClose();
+    } catch (error) {
+      const errors = serverFieldErrors(error);
+      if (errors) {
+        applyServerFieldErrors(
+          form.setError,
+          errors,
+          INFORMATION_SOURCE_FIELD_LABELS,
+        );
+      }
     }
   };
 
   return (
     <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="flex flex-col space-y-3"
+      <ArticleFormShell
+        isEditing
+        busy={updateInformationSource.isPending}
+        canSave={form.formState.isDirty}
+        onCancel={onClose}
+        onSubmit={(e) => {
+          e.stopPropagation();
+          form.handleSubmit(
+            onSubmit,
+            invalidFormHandler(INFORMATION_SOURCE_FIELD_LABELS),
+          )(e);
+        }}
       >
-        <FormField
+        <InformationSourceFormFields
           control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Nombre de la Fuente</FormLabel>
-              <FormControl>
-                <Input placeholder="" {...field} />
-              </FormControl>
-              <FormMessage className="text-xs" />
-            </FormItem>
-          )}
+          disabled={updateInformationSource.isPending}
         />
-
-        <FormField
-          control={form.control}
-          name="type"
-          render={({ field }) => (
-            <FormItem className="w-full">
-              <FormLabel>Seleccionar Tipo</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar Tipo" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="PROACTIVO">PROACTIVO</SelectItem>
-                  <SelectItem value="REACTIVO">REACTIVO</SelectItem>
-                  <SelectItem value="PREDICTIVO">PREDICTIVO</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <Button disabled={updateInformationSource.isPending}>
-          {updateInformationSource.isPending ? (
-            <Loader2 className="animate-spin size-4" />
-          ) : (
-            "Actualizar"
-          )}
-        </Button>
-      </form>
+      </ArticleFormShell>
     </Form>
   );
 }

@@ -5,16 +5,9 @@ import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { TagBadge, type TagTone } from "@/components/misc/TagBadge";
 import ManufacturerDropdownActions from "@/components/dropdowns/general/ManufacturerDropdownActions";
 import { Manufacturer } from "@/types";
+import { MANUFACTURER_TYPE_LABELS } from "@/components/forms/general/manufacturerSchema";
 
-export const MANUFACTURER_TYPE_LABELS: Record<Manufacturer["type"], string> = {
-  AIRCRAFT: "Aeronave",
-  ENGINE: "Plantas de Poder",
-  APU: "APU",
-  PROPELLER: "Hélice",
-  GENERAL: "Piezas en General",
-  PART: "Partes/Componentes",
-  TOOL: "Herramientas",
-};
+export { MANUFACTURER_TYPE_LABELS };
 
 /** Un color por tipo: se distingue de un vistazo sin leer el texto. */
 export const MANUFACTURER_TYPE_TONES: Record<Manufacturer["type"], TagTone> = {

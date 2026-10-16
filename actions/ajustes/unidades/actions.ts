@@ -11,7 +11,8 @@ interface createUnitSchema {
   is_dimensional?: boolean;
 }
 
-interface updateUnitSchema extends createUnitSchema {
+/** Actualización parcial: solo viajan los campos que cambiaron. */
+interface updateUnitSchema extends Partial<createUnitSchema> {
   id: number | string;
 }
 

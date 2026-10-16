@@ -1,4 +1,5 @@
 import axiosInstance from "@/lib/axios";
+import { getApiErrorMessage } from "@/lib/api-error";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Condition } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -30,9 +31,12 @@ export const useCreateCondition = () => {
         description: "La condición ha sido creada correctamente.",
       });
     },
-    onError: () => {
+    onError: (error) => {
       toast.error("Oops!", {
-        description: "No se pudo crear la condición...",
+        description: getApiErrorMessage(
+          error,
+          "No se pudo crear la condición.",
+        ),
       });
     },
   });
@@ -53,7 +57,8 @@ export const useUpdateCondition = () => {
       data,
     }: {
       id: number | string;
-      data: ConditionPayload;
+      /** Actualización parcial: solo viajan los campos que cambiaron. */
+      data: Partial<ConditionPayload>;
     }) => {
       await axiosInstance.put(`/${slug}/condition-article/${id}`, data);
     },
@@ -63,9 +68,12 @@ export const useUpdateCondition = () => {
         description: "La condición ha sido actualizada correctamente.",
       });
     },
-    onError: () => {
+    onError: (error) => {
       toast.error("Oops!", {
-        description: "¡Hubo un error al actualizar la condición!",
+        description: getApiErrorMessage(
+          error,
+          "¡Hubo un error al actualizar la condición!",
+        ),
       });
     },
   });
@@ -90,13 +98,14 @@ export const useDeleteCondition = () => {
         description: "La condición ha sido eliminada correctamente.",
       });
     },
-    onError: (error: any) => {
-      // 409: la condición ya tiene salidas registradas y los reportes dependen de ella.
+    onError: (error) => {
+      // 409/422: la condición tiene salidas o artículos y no puede borrarse;
+      // el motivo viene en el mensaje del servidor.
       toast.error("Oops!", {
-        description:
-          error?.response?.status === 409
-            ? error.response.data.message
-            : "¡Hubo un error al eliminar la condición!",
+        description: getApiErrorMessage(
+          error,
+          "¡Hubo un error al eliminar la condición!",
+        ),
       });
     },
   });
