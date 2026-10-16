@@ -10,7 +10,7 @@ import {
   SettingsRowActions,
   type RowAction,
 } from "@/components/dropdowns/SettingsRowActions";
-import { AircraftForm } from "@/components/forms/aerolinea/aeronaves/AircraftForm";
+import { EditAircraftForm } from "@/components/forms/aerolinea/aeronaves/EditAircraftForm";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -147,19 +147,20 @@ const AircraftDropdownActions = ({
 
       <Dialog open={openEdit} onOpenChange={setOpenEdit}>
         <DialogContent
-          className="max-h-[90vh] overflow-y-auto sm:max-w-2xl"
+          className="max-h-[90vh] overflow-y-auto sm:max-w-4xl"
           onInteractOutside={(e) => e.preventDefault()}
         >
           <DialogHeader>
             <DialogTitle>Editar aeronave</DialogTitle>
             <DialogDescription>
-              Modifique la información de{" "}
+              Modifique lo necesario de{" "}
               <span className="font-medium text-foreground">
                 {aircraft.acronym}
               </span>
+              ; solo se guardará lo que cambie.
             </DialogDescription>
           </DialogHeader>
-          <AircraftForm
+          <EditAircraftForm
             aircraft={aircraft}
             onClose={() => setOpenEdit(false)}
           />

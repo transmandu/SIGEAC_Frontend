@@ -1,181 +1,101 @@
 "use client";
 
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { zodResolver } from "@/lib/zod-resolver";
-import { Loader2 } from "lucide-react";
+import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { Button } from "@/components/ui/button";
+
+import { useCreateManufacturer } from "@/actions/ajustes/fabricantes/actions";
 import {
-  useCreateManufacturer,
-  useUpdateManufacturer,
-} from "@/actions/ajustes/fabricantes/actions";
+  applyServerFieldErrors,
+  invalidFormHandler,
+  serverFieldErrors,
+} from "@/components/forms/mantenimiento/almacen/_components/form-feedback";
+import { ArticleFormShell } from "@/components/forms/mantenimiento/almacen/articulos/ArticleFormShell";
+import { Form } from "@/components/ui/form";
+import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufacturers";
+import { zodResolver } from "@/lib/zod-resolver";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Manufacturer } from "@/types";
-
-const formSchema = z.object({
-  name: z.string().min(3, {
-    message: "El nombre debe tener al menos 3 carácters.",
-  }),
-  description: z.string().optional(),
-  type: z.enum(
-    ["AIRCRAFT", "ENGINE", "APU", "PROPELLER", "GENERAL", "PART", "TOOL"],
-    {
-      error: "Debe seleccionar un tipo",
-    },
-  ),
-});
+import { ManufacturerFormFields } from "./ManufacturerFormFields";
+import {
+  buildManufacturerSchema,
+  MANUFACTURER_FIELD_LABELS,
+  type ManufacturerFormValues,
+} from "./manufacturerSchema";
 
 interface FormProps {
   onClose: () => void;
-  defaultType?:
-    "AIRCRAFT" | "ENGINE" | "APU" | "PROPELLER" | "GENERAL" | "PART" | "TOOL";
+  defaultType?: Manufacturer["type"];
   onSuccess?: (manufacturer: any) => void;
-  /** Con fabricante, el formulario edita en lugar de crear. */
-  manufacturer?: Manufacturer;
 }
 
 export default function CreateManufacturerForm({
   onClose,
   defaultType = "GENERAL",
   onSuccess,
-  manufacturer,
 }: FormProps) {
   const { selectedCompany } = useCompanyStore();
-
+  const { data: manufacturers, isSuccess: manufacturersLoaded } =
+    useGetManufacturers(selectedCompany?.slug);
   const { createManufacturer } = useCreateManufacturer();
-  const { updateManufacturer } = useUpdateManufacturer();
-  const mutation = manufacturer ? updateManufacturer : createManufacturer;
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: manufacturer?.name ?? "",
-      type: manufacturer?.type ?? defaultType,
-      description: manufacturer?.description ?? "",
-    },
+  const schema = useMemo(
+    () => buildManufacturerSchema(manufacturers),
+    [manufacturers],
+  );
+
+  const form = useForm<ManufacturerFormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: { name: "", description: "", type: defaultType },
   });
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  // Los duplicados se validan contra el catálogo: si este llega después de que
+  // el usuario ya escribió, hay que volver a validar lo escrito.
+  useEffect(() => {
+    if (manufacturersLoaded && form.formState.dirtyFields.name) {
+      form.trigger("name");
+    }
+  }, [manufacturersLoaded, manufacturers, form]);
+
+  const onSubmit = async (values: ManufacturerFormValues) => {
     try {
-      const data = { ...values, description: values.description || "" };
-      const result = manufacturer
-        ? await updateManufacturer.mutateAsync({
-            company: selectedCompany?.slug,
-            id: manufacturer.id,
-            data,
-          })
-        : await createManufacturer.mutateAsync({
-            company: selectedCompany?.slug,
-            data,
-          });
-      if (onSuccess && result) {
-        onSuccess(result);
-      }
+      const result = await createManufacturer.mutateAsync({
+        company: selectedCompany?.slug,
+        data: values,
+      });
+      if (result) onSuccess?.(result);
       onClose();
     } catch (error) {
-      console.log(error);
+      // El toast lo muestra la mutación; aquí se marca el campo rechazado.
+      const errors = serverFieldErrors(error);
+      if (errors) {
+        applyServerFieldErrors(form.setError, errors, MANUFACTURER_FIELD_LABELS);
+      }
     }
   };
 
   return (
     <Form {...form}>
-      <form
+      <ArticleFormShell
+        busy={createManufacturer.isPending}
+        canSave
+        submitLabel="Crear fabricante"
+        onCancel={onClose}
+        // stopPropagation: este form se renderiza dentro de otros formularios
+        // (ej. artículos). React propaga el submit por su árbol aunque el
+        // Dialog viva en un portal, y dispararía el submit del form padre.
         onSubmit={(e) => {
-          e.stopPropagation(); //evita que el submit se propague al formulario padre
-          form.handleSubmit(onSubmit)(e); //  ejecuta el submit localmente
+          e.stopPropagation();
+          form.handleSubmit(
+            onSubmit,
+            invalidFormHandler(MANUFACTURER_FIELD_LABELS),
+          )(e);
         }}
       >
-        <FormField
+        <ManufacturerFormFields
           control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Nombre del Fabricante</FormLabel>
-              <FormControl>
-                <Input placeholder="EJ: Boeing, Airbus, etc..." {...field} />
-              </FormControl>
-              <FormDescription>
-                Este será el nombre del fabricante.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
+          disabled={createManufacturer.isPending}
         />
-
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Nombre completo</FormLabel>
-              <FormControl>
-                <Input placeholder="EJ: The Boeing Company" {...field} />
-              </FormControl>
-              <FormDescription>
-                Opcional. Se muestra como nombre completo en el listado.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="type"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Tipo</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccione el tipo..." />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="AIRCRAFT">Aeronave</SelectItem>
-                  <SelectItem value="ENGINE">Plantas de Poder</SelectItem>
-                  <SelectItem value="APU">APU</SelectItem>
-                  <SelectItem value="PROPELLER">Hélice</SelectItem>
-                  <SelectItem value="GENERAL">Piezas en General</SelectItem>
-                  <SelectItem value="PART">Partes/Componentes</SelectItem>
-                  <SelectItem value="TOOL">Herramientas</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormDescription>Indique el tipo de fabricante.</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <Button
-          className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70"
-          disabled={mutation.isPending}
-          type="submit"
-        >
-          {mutation.isPending ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <p>{manufacturer ? "Actualizar" : "Crear"}</p>
-          )}
-        </Button>
-      </form>
+      </ArticleFormShell>
     </Form>
   );
 }

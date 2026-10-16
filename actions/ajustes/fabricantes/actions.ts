@@ -56,7 +56,8 @@ export const useUpdateManufacturer = () => {
     }: {
       company: string | undefined;
       id: number | string;
-      data: ManufacturerSchema;
+      /** Actualización parcial: solo viajan los campos que cambiaron. */
+      data: Partial<ManufacturerSchema>;
     }) => {
       const response = await axiosInstance.put(
         `/${company}/manufacturers/${id}`,

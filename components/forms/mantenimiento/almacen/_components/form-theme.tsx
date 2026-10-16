@@ -128,19 +128,28 @@ export const SectionTitle = ({
   title,
   hint,
   action,
+  compact,
 }: {
   /** Sin icono, la viñeta queda como un punto neutro del mismo tamaño. */
   icon?: LucideIcon;
   title: React.ReactNode;
   hint?: string;
   action?: React.ReactNode;
+  /** Menos aire bajo el encabezado, para formularios cortos en un diálogo. */
+  compact?: boolean;
 }) => (
   // Con hint el bloque de texto tiene dos líneas: el icono se ancla arriba
   // (con un pequeño empuje) para que quede a la altura del título, no del
   // bloque entero. Sin hint es una sola línea, así que centrarlos es lo que
   // los deja alineados de verdad — "items-start" ahí dejaba el título
   // flotando por encima del icono.
-  <div className={cn("mb-5 flex gap-3", hint ? "items-start" : "items-center")}>
+  <div
+    className={cn(
+      "flex gap-3",
+      compact ? "mb-3" : "mb-5",
+      hint ? "items-start" : "items-center",
+    )}
+  >
     <span
       className={cn(
         "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary",
@@ -167,6 +176,7 @@ export const FormSection = ({
   title,
   hint,
   action,
+  compact,
   className,
   children,
 }: {
@@ -174,11 +184,18 @@ export const FormSection = ({
   title: React.ReactNode;
   hint?: string;
   action?: React.ReactNode;
+  compact?: boolean;
   className?: string;
   children: React.ReactNode;
 }) => (
-  <section className={cn(sectionClass, className)}>
-    <SectionTitle icon={icon} title={title} hint={hint} action={action} />
+  <section className={cn(sectionClass, compact && "p-3.5", className)}>
+    <SectionTitle
+      icon={icon}
+      title={title}
+      hint={hint}
+      action={action}
+      compact={compact}
+    />
     {children}
   </section>
 );

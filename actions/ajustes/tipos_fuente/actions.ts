@@ -14,9 +14,10 @@ interface InformationSourceSchema {
 interface UpdateInformationSourceSchema {
   company: string;
   id: string;
+  /** Actualización parcial: solo viajan los campos que cambiaron. */
   data: {
-    name: string;
-    type: string;
+    name?: string;
+    type?: string;
   };
 }
 

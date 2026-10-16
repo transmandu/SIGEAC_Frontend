@@ -20,6 +20,7 @@ export const ArticleFormShell = ({
   hideActions,
   /** El botón abre una vista previa en vez de guardar: el rótulo lo anuncia. */
   opensPreview,
+  submitTourId,
   onSubmit,
   formRef,
   children,
@@ -31,6 +32,8 @@ export const ArticleFormShell = ({
   onCancel?: () => void;
   hideActions?: boolean;
   opensPreview?: boolean;
+  /** `data-tour` del botón de guardar, para los tours que lo señalan. */
+  submitTourId?: string;
   onSubmit: React.FormEventHandler<HTMLFormElement>;
   formRef?: React.Ref<HTMLFormElement>;
   children: React.ReactNode;
@@ -54,6 +57,7 @@ export const ArticleFormShell = ({
           type="submit"
           disabled={busy || !canSave}
           className="min-w-42.5"
+          data-tour={submitTourId}
         >
           {busy ? (
             <Loader2 className="h-4 w-4 animate-spin" />

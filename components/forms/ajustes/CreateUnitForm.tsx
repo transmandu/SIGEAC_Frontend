@@ -1,32 +1,24 @@
 "use client";
 import { useCreateUnit } from "@/actions/ajustes/unidades/actions";
 import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
+  applyServerFieldErrors,
+  invalidFormHandler,
+  serverFieldErrors,
+} from "@/components/forms/mantenimiento/almacen/_components/form-feedback";
+import { ArticleFormShell } from "@/components/forms/mantenimiento/almacen/articulos/ArticleFormShell";
+import { Form } from "@/components/ui/form";
+import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits";
 import { zodResolver } from "@/lib/zod-resolver";
-import { Loader2 } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { Button } from "@/components/ui/button";
+import { useCompanyStore } from "@/stores/CompanyStore";
 import type { Unit } from "@/types";
-
-const formSchema = z.object({
-  label: z.string().min(3, {
-    message: "El nombre debe tener al menos 3 carácters.",
-  }),
-  value: z.string().min(1, {
-    message: "El Simbolo de la unidad debe tener al menos 1 carácters.",
-  }),
-  is_dimensional: z.boolean().default(false),
-});
+import { useEffect, useMemo } from "react";
+import { useForm } from "react-hook-form";
+import { UnitFormFields } from "./UnitFormFields";
+import {
+  buildUnitSchema,
+  UNIT_FIELD_LABELS,
+  type UnitFormValues,
+} from "./unitSchema";
 
 interface FormProps {
   onClose: () => void;
@@ -40,108 +32,66 @@ export default function CreateUnitForm({
   onSuccess,
   onCreated,
 }: FormProps) {
+  const { selectedCompany } = useCompanyStore();
+  const { data: units, isSuccess: unitsLoaded } = useGetUnits(
+    selectedCompany?.slug,
+  );
   const { createUnit } = useCreateUnit();
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      label: "",
-      value: "",
-      is_dimensional: false,
-    },
+
+  const schema = useMemo(() => buildUnitSchema(units), [units]);
+
+  const form = useForm<UnitFormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: { label: "", value: "", is_dimensional: false },
   });
-  const { control } = form;
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+
+  // Los duplicados se validan contra el catálogo: si este llega después de que
+  // el usuario ya escribió, hay que volver a validar lo escrito.
+  useEffect(() => {
+    if (!unitsLoaded) return;
+    const { label, value } = form.formState.dirtyFields;
+    if (label) form.trigger("label");
+    if (value) form.trigger("value");
+  }, [unitsLoaded, units, form]);
+
+  const onSubmit = async (values: UnitFormValues) => {
     try {
       const unit = await createUnit.mutateAsync(values);
-      if (onSuccess) {
-        onSuccess(values);
-      }
-      if (unit && onCreated) {
-        onCreated(unit);
-      }
+      onSuccess?.(values);
+      if (unit) onCreated?.(unit);
       onClose();
-    } catch {
-      // El aviso lo muestra la mutación; el formulario queda abierto.
+    } catch (error) {
+      // El toast lo muestra la mutación; aquí se marca el campo rechazado.
+      const errors = serverFieldErrors(error);
+      if (errors) {
+        applyServerFieldErrors(form.setError, errors, UNIT_FIELD_LABELS);
+      }
     }
   };
+
   return (
     <Form {...form}>
-      {/* stopPropagation: este form se renderiza dentro de otros formularios
-          (ej. cotización). React propaga el submit por su árbol aunque el
-          Dialog viva en un portal, y dispararía el submit del form padre. */}
-      <form
+      <ArticleFormShell
+        busy={createUnit.isPending}
+        canSave
+        submitLabel="Crear unidad"
+        onCancel={onClose}
+        // stopPropagation: este form se renderiza dentro de otros formularios
+        // (ej. cotización). React propaga el submit por su árbol aunque el
+        // Dialog viva en un portal, y dispararía el submit del form padre.
         onSubmit={(e) => {
           e.stopPropagation();
-          form.handleSubmit(onSubmit)(e);
+          form.handleSubmit(
+            onSubmit,
+            invalidFormHandler(UNIT_FIELD_LABELS),
+          )(e);
         }}
       >
-        <FormField
-          control={control}
-          name="label"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Nombre</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="EJ: Kilogramo, Litro, Mililitro"
-                  {...field}
-                />
-              </FormControl>
-              <FormDescription></FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
+        <UnitFormFields
+          control={form.control}
+          disabled={createUnit.isPending}
         />
-        <FormField
-          control={control}
-          name="value"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Simbolo de la Unidad</FormLabel>
-              <FormControl>
-                <Input placeholder="EJ: Kg, L, mL" {...field} />
-              </FormControl>
-              <FormDescription></FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={control}
-          name="is_dimensional"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-start gap-3 rounded-md border p-3 mt-2">
-              <FormControl>
-                <Checkbox
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                  className="mt-0.5"
-                />
-              </FormControl>
-              <div className="space-y-1 leading-none">
-                <FormLabel className="cursor-pointer">
-                  Sirve para declarar medidas
-                </FormLabel>
-                <p className="text-xs text-muted-foreground">
-                  Habilita esta unidad para dimensionar artículos que se
-                  despachan en trazos (láminas, telas, rollos).
-                </p>
-              </div>
-            </FormItem>
-          )}
-        />
-        <Button
-          className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70"
-          disabled={createUnit?.isPending}
-          type="submit"
-        >
-          {createUnit?.isPending ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <p>Crear</p>
-          )}
-        </Button>
-      </form>
+      </ArticleFormShell>
     </Form>
   );
 }

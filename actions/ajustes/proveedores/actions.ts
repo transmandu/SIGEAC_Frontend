@@ -1,4 +1,5 @@
 import axios from "@/lib/axios"
+import { getApiErrorMessage } from "@/lib/api-error"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { Vendor } from "@/types"
@@ -7,11 +8,12 @@ export interface CreateVendorSchema {
   name: string
   email: string
   phone: string
-  address: string
+  address?: string
   type: "VENDOR" | "BENEFICIARY"
 }
 
-export interface UpdateVendorSchema extends CreateVendorSchema {
+/** Actualización parcial: solo viajan los campos que cambiaron. */
+export interface UpdateVendorSchema extends Partial<CreateVendorSchema> {
   id: number | string
 }
 
@@ -31,9 +33,9 @@ export const useCreateVendor = (companySlug?: string) => {
         description: "El proveedor ha sido creado correctamente."
       })
     },
-    onError: () => {
+    onError: (error) => {
       toast.error("¡Error!", {
-        description: "Hubo un error al crear el proveedor."
+        description: getApiErrorMessage(error, "Hubo un error al crear el proveedor."),
       })
     },
   })
@@ -44,8 +46,8 @@ export const useUpdateVendor = (companySlug?: string) => {
   const queryClient = useQueryClient()
 
   return useMutation<Vendor, Error, UpdateVendorSchema>({
-    mutationFn: async (data) => {
-      const { data: res } = await axios.put(`/${companySlug}/vendors/${data.id}`, data)
+    mutationFn: async ({ id, ...data }) => {
+      const { data: res } = await axios.put(`/${companySlug}/vendors/${id}`, data)
       return res.data as Vendor
     },
     onSuccess: () => {
@@ -55,9 +57,9 @@ export const useUpdateVendor = (companySlug?: string) => {
         description: "El proveedor ha sido actualizado correctamente."
       })
     },
-    onError: () => {
+    onError: (error) => {
       toast.error("¡Error!", {
-        description: "Hubo un error al actualizar el proveedor."
+        description: getApiErrorMessage(error, "Hubo un error al actualizar el proveedor."),
       })
     },
   })
@@ -79,9 +81,9 @@ export const useDeleteVendor = (companySlug?: string) => {
         description: "El proveedor ha sido eliminado correctamente."
       })
     },
-    onError: (error: any) => {
+    onError: (error) => {
       toast.error("¡Error!", {
-        description: error?.response?.data?.errors ?? "Hubo un error al eliminar el proveedor."
+        description: getApiErrorMessage(error, "Hubo un error al eliminar el proveedor."),
       })
     },
   })

@@ -1,4 +1,5 @@
 import axios from "@/lib/axios"
+import { getApiErrorMessage } from "@/lib/api-error"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { ShippingAgency } from "@/types"
@@ -12,7 +13,9 @@ export interface CreateShippingAgencySchema {
   email?: string
 }
 
-export interface UpdateShippingAgencySchema extends CreateShippingAgencySchema {
+/** Actualización parcial: solo viajan los campos que cambiaron. */
+export interface UpdateShippingAgencySchema
+  extends Partial<CreateShippingAgencySchema> {
   id: number
 }
 
@@ -26,7 +29,7 @@ export const useCreateShippingAgency = (companySlug?: string) => {
         `/${companySlug}/shipping-agencies`,
         data
       )
-      return res as ShippingAgency
+      return res.data as ShippingAgency
     },
     onSuccess: () => {
       if (!companySlug) return
@@ -35,9 +38,9 @@ export const useCreateShippingAgency = (companySlug?: string) => {
         description: "La agencia de envío ha sido creada correctamente."
       })
     },
-    onError: () => {
+    onError: (error) => {
       toast.error("¡Error!", {
-        description: "Hubo un error al crear la agencia de envío."
+        description: getApiErrorMessage(error, "Hubo un error al crear la agencia de envío."),
       })
     },
   })
@@ -48,12 +51,12 @@ export const useUpdateShippingAgency = (companySlug?: string) => {
   const queryClient = useQueryClient()
 
   return useMutation<ShippingAgency, Error, UpdateShippingAgencySchema>({
-    mutationFn: async (data) => {
+    mutationFn: async ({ id, ...data }) => {
       const { data: res } = await axios.put(
-        `/${companySlug}/shipping-agencies/${data.id}`,
+        `/${companySlug}/shipping-agencies/${id}`,
         data
       )
-      return res as ShippingAgency
+      return res.data as ShippingAgency
     },
     onSuccess: () => {
       if (!companySlug) return
@@ -62,9 +65,9 @@ export const useUpdateShippingAgency = (companySlug?: string) => {
         description: "La agencia de envío ha sido actualizada correctamente."
       })
     },
-    onError: () => {
+    onError: (error) => {
       toast.error("¡Error!", {
-        description: "Hubo un error al actualizar la agencia de envío."
+        description: getApiErrorMessage(error, "Hubo un error al actualizar la agencia de envío."),
       })
     },
   })
@@ -86,9 +89,9 @@ export const useDeleteShippingAgency = (companySlug?: string) => {
         description: "La agencia de envío ha sido eliminada correctamente."
       })
     },
-    onError: () => {
+    onError: (error) => {
       toast.error("¡Error!", {
-        description: "Hubo un error al eliminar la agencia de envío."
+        description: getApiErrorMessage(error, "Hubo un error al eliminar la agencia de envío."),
       })
     },
   })

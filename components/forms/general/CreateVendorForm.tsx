@@ -1,204 +1,99 @@
 "use client";
 
+import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@/lib/zod-resolver";
-import { z } from "zod";
-import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+
 import { useCreateVendor } from "@/actions/ajustes/proveedores/actions";
+import {
+  applyServerFieldErrors,
+  invalidFormHandler,
+  serverFieldErrors,
+} from "@/components/forms/mantenimiento/almacen/_components/form-feedback";
+import { ArticleFormShell } from "@/components/forms/mantenimiento/almacen/articulos/ArticleFormShell";
+import { Form } from "@/components/ui/form";
+import { useGetVendors } from "@/hooks/general/proveedores/useGetVendors";
+import { zodResolver } from "@/lib/zod-resolver";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { Loader2 } from "lucide-react";
-
-const FormSchema = z.object({
-  name: z
-    .string()
-    .min(2, { message: "El nombre debe tener al menos 2 caracteres." })
-    .max(30, { message: "El nombre tiene un máximo de 30 caracteres." }),
-  email: z.string().email({ message: "Debe ser un email válido." }),
-  phone: z
-    .string()
-    .min(1, { message: "El teléfono es requerido." })
-    .max(20, { message: "El teléfono tiene un máximo de 20 caracteres." }),
-  address: z
-    .string()
-    .min(2, { message: "La dirección debe tener al menos 2 caracteres." })
-    .max(100, { message: "La dirección tiene un máximo de 100 caracteres." }),
-  type: z.enum(["VENDOR", "BENEFICIARY"], {
-    error: "Selecciona un tipo.",
-  }),
-});
-
-type FormSchemaType = z.infer<typeof FormSchema>;
+import type { Vendor } from "@/types";
+import { VendorFormFields } from "./VendorFormFields";
+import {
+  buildVendorSchema,
+  VENDOR_FIELD_LABELS,
+  type VendorFormValues,
+} from "./vendorSchema";
 
 interface Props {
   onClose: () => void;
-  initialValues?: FormSchemaType;
-  onSubmit?: (data: FormSchemaType) => Promise<void>;
-  isLoading?: boolean;
+  /** Recibe el proveedor creado (con su id), p. ej. para seleccionarlo. */
+  onCreated?: (vendor: Vendor) => void;
 }
 
-export default function CreateVendorForm({
-  onClose,
-  initialValues,
-  onSubmit,
-  isLoading: externalLoading,
-}: Props) {
+export default function CreateVendorForm({ onClose, onCreated }: Props) {
   const { selectedCompany } = useCompanyStore();
+  const { data: vendors, isSuccess: vendorsLoaded } = useGetVendors(
+    selectedCompany?.slug,
+  );
   const createVendor = useCreateVendor(selectedCompany?.slug);
 
-  const form = useForm<FormSchemaType>({
-    resolver: zodResolver(FormSchema),
-    defaultValues: initialValues ?? {
+  const schema = useMemo(() => buildVendorSchema(vendors), [vendors]);
+
+  const form = useForm<VendorFormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: {
       name: "",
-      email: "",
       phone: "",
+      email: "",
       address: "",
       type: undefined,
     },
   });
 
-  const handleSubmit = async (data: FormSchemaType) => {
-    if (onSubmit) {
-      await onSubmit(data);
-      onClose();
-      return;
+  // Los duplicados se validan contra el catálogo: si este llega después de que
+  // el usuario ya escribió, hay que volver a validar lo escrito.
+  useEffect(() => {
+    if (vendorsLoaded && form.formState.dirtyFields.name) {
+      form.trigger("name");
     }
+  }, [vendorsLoaded, vendors, form]);
+
+  const onSubmit = async (values: VendorFormValues) => {
     try {
-      await createVendor.mutateAsync(data);
+      const vendor = await createVendor.mutateAsync(values);
+      if (vendor) onCreated?.(vendor);
       onClose();
     } catch (error) {
-      // El error ya se notifica mediante el toast del hook de mutación.
+      // El toast lo muestra la mutación; aquí se marca el campo rechazado.
+      const errors = serverFieldErrors(error);
+      if (errors) {
+        applyServerFieldErrors(form.setError, errors, VENDOR_FIELD_LABELS);
+      }
     }
   };
 
-  const isLoading = onSubmit ? externalLoading : createVendor.isPending;
-
   return (
     <Form {...form}>
-      {/* stopPropagation: este form se renderiza dentro de otros formularios
-          (ej. cotización). React propaga el submit por su árbol aunque el
-          Dialog viva en un portal, y dispararía el submit del form padre. */}
-      <form
+      <ArticleFormShell
+        busy={createVendor.isPending}
+        canSave
+        submitLabel="Crear proveedor"
+        submitTourId="proveedores-dialog-submit"
+        onCancel={onClose}
+        // stopPropagation: este form se renderiza dentro de otros formularios
+        // (ej. cotización). React propaga el submit por su árbol aunque el
+        // Dialog viva en un portal, y dispararía el submit del form padre.
         onSubmit={(e) => {
           e.stopPropagation();
-          form.handleSubmit(handleSubmit)(e);
+          form.handleSubmit(
+            onSubmit,
+            invalidFormHandler(VENDOR_FIELD_LABELS),
+          )(e);
         }}
-        className="flex flex-col gap-4"
       >
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem data-tour="proveedores-dialog-name">
-                <FormLabel>Nombre</FormLabel>
-                <FormControl>
-                  <Input placeholder="Ej: Boeing, Airbus, etc..." {...field} />
-                </FormControl>
-                <FormMessage className="text-xs" />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="phone"
-            render={({ field }) => (
-              <FormItem data-tour="proveedores-dialog-phone">
-                <FormLabel>Teléfono</FormLabel>
-                <FormControl>
-                  <Input placeholder="Ej: +584247000001" {...field} />
-                </FormControl>
-                <FormMessage className="text-xs" />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <FormField
+        <VendorFormFields
           control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem data-tour="proveedores-dialog-email">
-              <FormLabel>Correo electrónico</FormLabel>
-              <FormControl>
-                <Input
-                  type="email"
-                  placeholder="Ej: contacto@proveedor.com"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage className="text-xs" />
-            </FormItem>
-          )}
+          disabled={createVendor.isPending}
         />
-
-        <FormField
-          control={form.control}
-          name="address"
-          render={({ field }) => (
-            <FormItem data-tour="proveedores-dialog-address">
-              <FormLabel>Dirección</FormLabel>
-              <FormControl>
-                <Input placeholder="Ubicación fiscal" {...field} />
-              </FormControl>
-              <FormMessage className="text-xs" />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="type"
-          render={({ field }) => (
-            <FormItem data-tour="proveedores-dialog-type">
-              <FormLabel>Tipo</FormLabel>
-              <Select value={field.value} onValueChange={field.onChange}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecciona el tipo..." />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="VENDOR">Proveedor</SelectItem>
-                  <SelectItem value="BENEFICIARY">Beneficiario</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage className="text-xs" />
-            </FormItem>
-          )}
-        />
-
-        <Button
-          type="submit"
-          className="bg-primary text-white hover:bg-blue-900 disabled:bg-primary/70 flex items-center justify-center gap-2"
-          disabled={isLoading}
-          data-tour="proveedores-dialog-submit"
-        >
-          {isLoading ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : onSubmit ? (
-            "Actualizar Proveedor"
-          ) : (
-            "Crear Proveedor"
-          )}
-        </Button>
-      </form>
+      </ArticleFormShell>
     </Form>
   );
 }

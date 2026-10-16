@@ -131,7 +131,7 @@ export function UnitCombobox({
 
       {/* Crear unidad modal — auto-selects the new unit on success */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="sm:max-w-[490px]">
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Creación de Unidad</DialogTitle>
             <DialogDescription>

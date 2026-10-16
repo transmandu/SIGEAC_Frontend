@@ -51,14 +51,15 @@ const InformationSourceDropdownActions = ({
       <SettingsRowActions actions={actions} tourId="fuentes-actions" />
 
       <Dialog open={openEdit} onOpenChange={setOpenEdit}>
-        <DialogContent className="sm:max-w-105">
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Editar fuente de información</DialogTitle>
             <DialogDescription>
-              Modifique la información de{" "}
+              Modifique lo necesario de{" "}
               <span className="font-medium text-foreground">
                 {informationSource.name}
               </span>
+              ; solo se guardará lo que cambie.
             </DialogDescription>
           </DialogHeader>
           <EditInformationSourceForm
@@ -73,6 +74,12 @@ const InformationSourceDropdownActions = ({
         onOpenChange={setOpenDelete}
         title="Eliminar fuente"
         entityName={informationSource.name}
+        warning={
+          <>
+            Esta acción es <b>irreversible</b>. Si la fuente tiene
+            identificaciones de peligro asociadas, no podrá ser eliminada.
+          </>
+        }
         isPending={deleteInformationSource.isPending}
         onConfirm={() =>
           deleteInformationSource.mutateAsync({

@@ -142,7 +142,7 @@ export function RetailerCombobox({
 
       {/* Crear comercio modal — auto-selects the new retailer on success */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="sm:max-w-[490px]">
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Creación de Comercio</DialogTitle>
             <DialogDescription>

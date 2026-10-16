@@ -1,122 +1,88 @@
 "use client";
 
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { zodResolver } from "@/lib/zod-resolver";
-import { Loader2 } from "lucide-react";
+import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { Button } from "@/components/ui/button";
-import { useCreateThirdParty } from "@/actions/sistema/terceros/actions";
 
-const formSchema = z.object({
-  name: z.string().min(3, {
-    message: "El nombre debe tener al menos 3 caracteres.",
-  }),
-  type: z.string({
-    error: "Debe seleccionar un tipo.",
-  }).min(1, { message: "Debe seleccionar un tipo." }),
-});
+import { useCreateThirdParty } from "@/actions/sistema/terceros/actions";
+import {
+  applyServerFieldErrors,
+  invalidFormHandler,
+  serverFieldErrors,
+} from "@/components/forms/mantenimiento/almacen/_components/form-feedback";
+import { ArticleFormShell } from "@/components/forms/mantenimiento/almacen/articulos/ArticleFormShell";
+import { Form } from "@/components/ui/form";
+import { useGetThirdParties } from "@/hooks/general/terceros/useGetThirdParties";
+import { zodResolver } from "@/lib/zod-resolver";
+import { ThirdPartyFormFields } from "./ThirdPartyFormFields";
+import {
+  buildThirdPartySchema,
+  THIRD_PARTY_FIELD_LABELS,
+  type ThirdPartyFormValues,
+} from "./thirdPartySchema";
 
 interface FormProps {
   onClose: () => void;
 }
 
 export default function CreateThirdPartyForm({ onClose }: FormProps) {
+  const { data: thirdParties, isSuccess: thirdPartiesLoaded } =
+    useGetThirdParties();
   const { createThirdParty } = useCreateThirdParty();
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: "",
-      type: "",
-    },
+  const schema = useMemo(
+    () => buildThirdPartySchema(thirdParties),
+    [thirdParties],
+  );
+
+  const form = useForm<ThirdPartyFormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: { name: "", type: "" },
   });
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  // Los duplicados se validan contra el catálogo: si este llega después de que
+  // el usuario ya escribió, hay que volver a validar lo escrito.
+  useEffect(() => {
+    if (thirdPartiesLoaded && form.formState.dirtyFields.name) {
+      form.trigger("name");
+    }
+  }, [thirdPartiesLoaded, thirdParties, form]);
+
+  const onSubmit = async (values: ThirdPartyFormValues) => {
     try {
       await createThirdParty.mutateAsync(values);
       onClose();
     } catch (error) {
-      console.log(error);
+      // El toast lo muestra la mutación; aquí se marca el campo rechazado.
+      const errors = serverFieldErrors(error);
+      if (errors) {
+        applyServerFieldErrors(form.setError, errors, THIRD_PARTY_FIELD_LABELS);
+      }
     }
   };
 
   return (
     <Form {...form}>
-      <form
+      <ArticleFormShell
+        busy={createThirdParty.isPending}
+        canSave
+        submitLabel="Crear tercero"
+        onCancel={onClose}
+        // stopPropagation: este form puede renderizarse dentro de otros
+        // formularios. React propaga el submit por su árbol aunque el Dialog
+        // viva en un portal, y dispararía el submit del form padre.
         onSubmit={(e) => {
           e.stopPropagation();
-          form.handleSubmit(onSubmit)(e);
+          form.handleSubmit(
+            onSubmit,
+            invalidFormHandler(THIRD_PARTY_FIELD_LABELS),
+          )(e);
         }}
-        className="space-y-4"
       >
-        <FormField
+        <ThirdPartyFormFields
           control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Nombre</FormLabel>
-              <FormControl>
-                <Input placeholder="Ej: Empresa ABC S.A..." {...field} />
-              </FormControl>
-              <FormDescription>Nombre del tercero.</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="type"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Tipo</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccione el tipo..." />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="CLIENT_COMPANY">Cliente - Empresa</SelectItem>
-                  <SelectItem value="CLIENT_PERSON">Cliente - Persona</SelectItem>
-                  <SelectItem value="OTHER">Otro</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormDescription>Indique el tipo de tercero.</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <Button
-          className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70"
           disabled={createThirdParty.isPending}
-          type="submit"
-        >
-          {createThirdParty.isPending ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <p>Crear</p>
-          )}
-        </Button>
-      </form>
+        />
+      </ArticleFormShell>
     </Form>
   );
 }
