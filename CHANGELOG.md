@@ -1,3 +1,7 @@
+## v4.69.0 — 2026-10-16
+
+- feat(client-forms): add ClientFormFields component and integrate into… (#342)
+
 ## v4.68.0 — 2026-10-15
 
 - feat: enhance form validation and error handling in article forms (#341)
