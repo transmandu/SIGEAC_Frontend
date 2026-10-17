@@ -45,7 +45,11 @@ export default function CargoDetailsPage() {
   const { registerTour, unregisterTour } = useTourContext();
 
   useEffect(() => {
-    registerTour("cargo-guia-detalle", "Detalle de Guía", cargoGuiaDetalleSteps);
+    registerTour(
+      "cargo-guia-detalle",
+      "Detalle de Guía",
+      cargoGuiaDetalleSteps,
+    );
     return () => unregisterTour("cargo-guia-detalle");
   }, [registerTour, unregisterTour]);
 
@@ -217,7 +221,9 @@ export default function CargoDetailsPage() {
                   <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
                     Teléfono
                   </p>
-                  <p className="text-sm">{formatPhone(shipment.client?.phone) || "N/A"}</p>
+                  <p className="text-sm">
+                    {formatPhone(shipment.client?.phone) || "N/A"}
+                  </p>
                 </div>
               </div>
             </CardContent>

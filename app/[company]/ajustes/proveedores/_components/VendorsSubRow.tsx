@@ -1,15 +1,15 @@
-'use client'
+"use client";
 
-import { Mail, Phone, MapPin } from 'lucide-react'
-import { Vendor } from '@/types'
-import { formatPhone } from "@/lib/phone"
+import { Mail, Phone, MapPin } from "lucide-react";
+import { Vendor } from "@/types";
+import { formatPhone } from "@/lib/phone";
 
 interface Props {
-  vendor: Vendor
+  vendor: Vendor;
 }
 
 export default function VendorsSubRow({ vendor }: Props) {
-  const hasInfo = vendor.phone || vendor.email || vendor.address
+  const hasInfo = vendor.phone || vendor.email || vendor.address;
 
   if (!hasInfo) {
     return (
@@ -18,12 +18,11 @@ export default function VendorsSubRow({ vendor }: Props) {
           Sin información adicional
         </div>
       </div>
-    )
+    );
   }
 
   return (
     <div className="px-4 py-2 space-y-2">
-
       <div className="flex flex-col">
         <span className="text-s font-semibold text-slate-800 dark:text-slate-100">
           Información de contacto
@@ -31,7 +30,6 @@ export default function VendorsSubRow({ vendor }: Props) {
       </div>
 
       <div className="grid grid-cols-3 gap-2">
-
         <div className="rounded-md border border-slate-200/60 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 px-3 py-2">
           <div className="text-[10px] text-muted-foreground/60 uppercase tracking-wide">
             Teléfono
@@ -39,7 +37,7 @@ export default function VendorsSubRow({ vendor }: Props) {
           <div className="flex items-center gap-1.5 text-xs font-medium text-slate-800 dark:text-slate-200">
             <Phone className="size-3 opacity-60 shrink-0" />
             <span className="tabular-nums">
-              {formatPhone(vendor.phone) || '—'}
+              {formatPhone(vendor.phone) || "—"}
             </span>
           </div>
         </div>
@@ -50,9 +48,7 @@ export default function VendorsSubRow({ vendor }: Props) {
           </div>
           <div className="flex items-center gap-1.5 text-xs font-medium text-slate-800 dark:text-slate-200 break-all">
             <Mail className="size-3 opacity-60 shrink-0" />
-            <span>
-              {vendor.email ?? '—'}
-            </span>
+            <span>{vendor.email ?? "—"}</span>
           </div>
         </div>
 
@@ -62,13 +58,10 @@ export default function VendorsSubRow({ vendor }: Props) {
           </div>
           <div className="flex items-center gap-1.5 text-xs font-medium text-slate-800 dark:text-slate-200">
             <MapPin className="size-3 opacity-60 shrink-0" />
-            <span>
-              {vendor.address ?? '—'}
-            </span>
+            <span>{vendor.address ?? "—"}</span>
           </div>
         </div>
-
       </div>
     </div>
-  )
+  );
 }

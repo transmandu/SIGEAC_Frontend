@@ -33,12 +33,9 @@ export const buildRetailerSchema = (
         { message: "Ya existe un comercio con ese nombre." },
       ),
     phone: phoneSchema({ keep: keepPhone }),
-    address: z
-      .string()
-      .trim()
-      .max(255, {
-        message: "La ubicación no puede superar los 255 caracteres.",
-      }),
+    address: z.string().trim().max(255, {
+      message: "La ubicación no puede superar los 255 caracteres.",
+    }),
   });
 
 export type RetailerFormValues = z.infer<
