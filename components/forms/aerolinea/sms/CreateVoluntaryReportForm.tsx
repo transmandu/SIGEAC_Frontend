@@ -47,6 +47,8 @@ import { useEffect, useState } from "react";
 import { Label } from "@/components/ui/label";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import FolderSelect from "@/components/library/FolderSelect";
+import { PhoneInput } from "@/components/ui/PhoneInput";
+import { phoneSchema } from "@/lib/phone";
 
 interface FormProps {
   onClose: () => void;
@@ -136,12 +138,7 @@ export function CreateVoluntaryReportForm({
       })
       .max(40)
       .optional(),
-    reporter_phone: z
-      .string()
-      .regex(/^\d{11}$/, {
-        message: "El número telefónico debe tener almenos 11 dígitos",
-      })
-      .optional(),
+    reporter_phone: phoneSchema().optional(),
 
     reporter_email: z
       .string()
@@ -680,7 +677,13 @@ export function CreateVoluntaryReportForm({
                     <FormItem>
                       <FormLabel>Teléfono</FormLabel>
                       <FormControl>
-                        <Input placeholder="" {...field} />
+                        <PhoneInput
+                          name={field.name}
+                          ref={field.ref}
+                          value={field.value}
+                          onChange={field.onChange}
+                          onBlur={field.onBlur}
+                        />
                       </FormControl>
                       <FormMessage className="text-xs" />
                     </FormItem>

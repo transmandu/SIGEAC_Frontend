@@ -12,6 +12,7 @@ import VendorsToolBar from "./_components/VendorsToolBar";
 import VendorsSubRow from "./_components/VendorsSubRow";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { proveedoresSteps } from "@/components/tour/steps/ajustes/proveedores/proveedores";
+import { phoneMatches } from "@/lib/phone";
 
 const columns = getColumns();
 
@@ -47,7 +48,7 @@ const VendorsPage = () => {
         !q ||
         vendor.name?.toLowerCase?.().includes(q) ||
         vendor.email?.toLowerCase?.().includes(q) ||
-        vendor.phone?.toLowerCase?.().includes(q) ||
+        phoneMatches(vendor.phone, q) ||
         vendor.address?.toLowerCase?.().includes(q);
 
       const matchesType = type === "ALL" || vendor.type === type;

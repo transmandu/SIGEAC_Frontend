@@ -4,6 +4,7 @@ import { type AppColumnDef } from "@/lib/table";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { RetailerDropdownActions } from "@/components/dropdowns/general/RetailerDropdownActions";
 import { Retailer } from "@/types";
+import { formatPhone } from "@/lib/phone";
 
 export const columns: AppColumnDef<Retailer>[] = [
   {
@@ -35,7 +36,7 @@ export const columns: AppColumnDef<Retailer>[] = [
     cell: ({ row }) => (
       <div className="flex justify-center w-full">
         <span className="text-sm text-slate-600 dark:text-slate-300 text-center">
-          {row.original.phone || "—"}
+          {formatPhone(row.original.phone) || "—"}
         </span>
       </div>
     ),

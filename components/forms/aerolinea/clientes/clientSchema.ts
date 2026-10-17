@@ -1,9 +1,8 @@
 import type { AirlineClient } from "@/types";
 import { z } from "zod";
+import { phoneSchema, toPhoneValue } from "@/lib/phone";
 
 export const AIRLINE_DNI_TYPES = ["V", "J", "E"] as const;
-
-const phoneRegex = /^([+]?[\s0-9]+)?(\d{3}|[(]?[0-9]+[)])?([-]?[\s]?[0-9])+$/;
 
 const same = (a?: string | null, b?: string | null) =>
   (a ?? "").trim().toUpperCase() === (b ?? "").trim().toUpperCase();
@@ -18,6 +17,8 @@ const same = (a?: string | null, b?: string | null) =>
 export const buildAirlineClientSchema = (
   clients: AirlineClient[] | undefined,
   ignoreId?: number,
+  /** Teléfono ya guardado: se admite sin cambios aunque sea un dato antiguo inválido. */
+  keepPhone?: string | null,
 ) =>
   z
     .object({
@@ -43,13 +44,7 @@ export const buildAirlineClientSchema = (
           /^[\p{L}\p{N}\s.,&'-]+$/u,
           "El nombre solo admite letras, números, espacios y . , & ' -",
         ),
-      phone: z
-        .string()
-        .trim()
-        .min(1, { message: "Ingrese el teléfono." })
-        .min(10, { message: "El teléfono debe tener al menos 10 dígitos." })
-        .max(15, { message: "El teléfono no puede superar los 15 dígitos." })
-        .regex(phoneRegex, { message: "Número de teléfono inválido." }),
+      phone: phoneSchema({ required: true, keep: keepPhone }),
       email: z
         .string()
         .trim()
@@ -115,7 +110,7 @@ export const diffAirlineClient = (
     diff.dni_type = values.dni_type;
   }
   if (values.dni !== (client.dni ?? "").trim()) diff.dni = values.dni;
-  if (values.phone !== (client.phone ?? "").trim()) diff.phone = values.phone;
+  if (values.phone !== toPhoneValue(client.phone)) diff.phone = values.phone;
   if (values.email !== (client.email ?? "").trim()) diff.email = values.email;
   if (values.address !== (client.address ?? "").trim()) {
     diff.address = values.address;

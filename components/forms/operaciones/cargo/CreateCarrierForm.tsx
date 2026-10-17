@@ -15,6 +15,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { useCreateCarrier } from "@/actions/cargo/carrierActions";
 import { useParams } from "next/navigation";
+import { PhoneInput } from "@/components/ui/PhoneInput";
+import { phoneSchema } from "@/lib/phone";
 
 const formSchema = z.object({
   name: z
@@ -31,7 +33,7 @@ const formSchema = z.object({
     .string()
     .min(2, "El documento debe tener al menos 2 carácteres")
     .max(20),
-  phone: z.string().max(20).optional().or(z.literal("")),
+  phone: phoneSchema(),
 });
 
 interface Props {
@@ -152,8 +154,9 @@ export function CreateCarrierForm({ onClose, onCreated }: Props) {
           />
         </div>
 
-        {/* DOCUMENTO Y TELÉFONO */}
-        <div className="flex gap-2">
+        {/* DOCUMENTO Y TELÉFONO: uno bajo el otro, para que el teléfono tenga el
+            ancho que necesita su formato completo. */}
+        <div className="grid gap-3">
           <FormField
             control={form.control}
             name="dni"
@@ -179,7 +182,13 @@ export function CreateCarrierForm({ onClose, onCreated }: Props) {
               <FormItem className="flex-1">
                 <FormLabel>Teléfono</FormLabel>
                 <FormControl>
-                  <Input placeholder="Ej: 0412-1234567" {...field} />
+                  <PhoneInput
+                    name={field.name}
+                    ref={field.ref}
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                  />
                 </FormControl>
                 <FormMessage className="text-xs" />
               </FormItem>

@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import type { RetailerFormValues } from "./retailerSchema";
+import { PhoneInput } from "@/components/ui/PhoneInput";
 
 /** Campos compartidos por el alta y la edición de un comercio. */
 export function RetailerFormFields({
@@ -79,14 +80,13 @@ export function RetailerFormFields({
                   <FormLabel className={labelClass}>Teléfono</FormLabel>
                 </FieldLabelRow>
                 <FormControl>
-                  <Input
-                    placeholder="Ej: +584247000001"
-                    autoComplete="off"
-                    inputMode="tel"
-                    maxLength={50}
+                  <PhoneInput
                     disabled={disabled}
-                    className={fieldClass}
-                    {...field}
+                    name={field.name}
+                    ref={field.ref}
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
                   />
                 </FormControl>
                 <FormMessage />

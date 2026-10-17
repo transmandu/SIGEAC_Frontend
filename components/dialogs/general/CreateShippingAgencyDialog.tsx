@@ -41,7 +41,10 @@ export function CreateShippingAgencyDialog() {
         </ActionTriggerButton>
       </DialogTrigger>
 
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+      <DialogContent
+        className="max-h-[90vh] overflow-y-auto sm:max-w-2xl"
+        onInteractOutside={(e) => e.preventDefault()}
+      >
         <DialogHeader data-tour="agencias-envio-crear-header">
           <DialogTitle>Nueva agencia de envío</DialogTitle>
           <DialogDescription>

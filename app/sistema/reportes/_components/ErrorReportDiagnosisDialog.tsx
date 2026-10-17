@@ -44,6 +44,7 @@ import {
   sourceTone,
   httpStatusTone,
 } from "./errorReportChips";
+import { formatPhone } from "@/lib/phone";
 
 interface ErrorReportDiagnosisDialogProps {
   open: boolean;
@@ -437,7 +438,7 @@ export default function ErrorReportDiagnosisDialog({
                       Teléfono
                     </p>
                     <p className="truncate text-sm font-medium">
-                      {report.phone ?? "—"}
+                      {formatPhone(report.phone) || "—"}
                     </p>
                   </div>
                 </div>

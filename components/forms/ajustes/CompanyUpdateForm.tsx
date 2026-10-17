@@ -8,38 +8,45 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { zodResolver } from "@/lib/zod-resolver";
 import { Loader2, Upload, Trash2 } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { PhoneInput } from "@/components/ui/PhoneInput";
+import { phoneSchema, toPhoneValue } from "@/lib/phone";
 
 /* =========================
    SCHEMA
 ========================= */
-const FormSchema = z.object({
-  description: z.string(),
-  fiscal_address: z.string(),
-  rif: z.string(),
+const buildFormSchema = (keep: {
+  phone?: string | null;
+  alt?: string | null;
+}) =>
+  z.object({
+    description: z.string(),
+    fiscal_address: z.string(),
+    rif: z.string(),
 
-  cod_inac: z.string().optional(),
-  cod_iata: z.string().optional(),
-  cod_oaci: z.string().optional(),
+    cod_inac: z.string().optional(),
+    cod_iata: z.string().optional(),
+    cod_oaci: z.string().optional(),
 
-  phone_number: z.string(),
-  alt_phone_number: z.string().optional(),
+    phone_number: phoneSchema({ required: true, keep: keep.phone }),
+    alt_phone_number: phoneSchema({ keep: keep.alt }),
 
-  modules: z.array(z.string()),
-  locations: z.array(z.string()),
+    modules: z.array(z.string()),
+    locations: z.array(z.string()),
 
-  logo: z.any().optional(),
-});
+    logo: z.any().optional(),
+  });
 
-type FormValues = z.infer<typeof FormSchema>;
+type FormValues = z.infer<ReturnType<typeof buildFormSchema>>;
 
 interface Props {
   company: any;
@@ -52,8 +59,18 @@ export function CompanyUpdateForm({ company, onSuccess }: Props) {
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
 
+  // El teléfono guardado se admite sin cambios aunque sea un dato antiguo inválido.
+  const schema = useMemo(
+    () =>
+      buildFormSchema({
+        phone: company?.phone_number,
+        alt: company?.alt_phone_number,
+      }),
+    [company?.phone_number, company?.alt_phone_number],
+  );
+
   const form = useForm<FormValues>({
-    resolver: zodResolver(FormSchema),
+    resolver: zodResolver(schema),
     defaultValues: {
       description: "",
       fiscal_address: "",
@@ -79,8 +96,8 @@ export function CompanyUpdateForm({ company, onSuccess }: Props) {
       description: company.description ?? "",
       fiscal_address: company.fiscal_address ?? "",
       rif: company.rif ?? "",
-      phone_number: String(company.phone_number ?? ""),
-      alt_phone_number: String(company.alt_phone_number ?? ""),
+      phone_number: toPhoneValue(String(company.phone_number ?? "")),
+      alt_phone_number: toPhoneValue(String(company.alt_phone_number ?? "")),
       cod_inac: company.cod_inac ?? "",
       cod_iata: company.cod_iata ?? "",
       cod_oaci: company.cod_oaci ?? "",
@@ -124,8 +141,19 @@ export function CompanyUpdateForm({ company, onSuccess }: Props) {
     appendIfValid("description", values.description);
     appendIfValid("fiscal_address", values.fiscal_address);
     appendIfValid("rif", values.rif);
-    appendIfValid("phone_number", values.phone_number);
-    appendIfValid("alt_phone_number", values.alt_phone_number);
+    // Los teléfonos solo viajan si el usuario los cambió: reenviar uno antiguo
+    // que no cumple el formato haría que el servidor rechace toda la edición.
+    if (
+      values.phone_number !== toPhoneValue(String(company.phone_number ?? ""))
+    ) {
+      appendIfValid("phone_number", values.phone_number);
+    }
+    if (
+      values.alt_phone_number !==
+      toPhoneValue(String(company.alt_phone_number ?? ""))
+    ) {
+      appendIfValid("alt_phone_number", values.alt_phone_number);
+    }
     appendIfValid("cod_inac", values.cod_inac);
     appendIfValid("cod_iata", values.cod_iata);
     appendIfValid("cod_oaci", values.cod_oaci);
@@ -167,9 +195,7 @@ export function CompanyUpdateForm({ company, onSuccess }: Props) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
           {/* INFO */}
           <div className="border rounded-xl p-4 space-y-3">
             <FormField
@@ -221,8 +247,15 @@ export function CompanyUpdateForm({ company, onSuccess }: Props) {
                 <FormItem>
                   <FormLabel>Teléfono</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <PhoneInput
+                      name={field.name}
+                      ref={field.ref}
+                      value={field.value}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                    />
                   </FormControl>
+                  <FormMessage className="text-xs" />
                 </FormItem>
               )}
             />
@@ -234,8 +267,15 @@ export function CompanyUpdateForm({ company, onSuccess }: Props) {
                 <FormItem>
                   <FormLabel>Teléfono alterno</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <PhoneInput
+                      name={field.name}
+                      ref={field.ref}
+                      value={field.value}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                    />
                   </FormControl>
+                  <FormMessage className="text-xs" />
                 </FormItem>
               )}
             />
@@ -246,7 +286,13 @@ export function CompanyUpdateForm({ company, onSuccess }: Props) {
         <div className="flex justify-between items-center border rounded-xl p-4">
           <div className="relative size-16 border rounded-lg overflow-hidden">
             {logoSrc ? (
-              <Image src={logoSrc} alt="logo" fill unoptimized className="object-cover" />
+              <Image
+                src={logoSrc}
+                alt="logo"
+                fill
+                unoptimized
+                className="object-cover"
+              />
             ) : (
               <div className="text-xs flex items-center justify-center h-full">
                 Sin logo
@@ -285,7 +331,6 @@ export function CompanyUpdateForm({ company, onSuccess }: Props) {
             Guardar cambios
           </Button>
         </div>
-
       </form>
     </Form>
   );

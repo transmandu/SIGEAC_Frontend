@@ -29,6 +29,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { VENDOR_TYPE_LABELS, type VendorFormValues } from "./vendorSchema";
+import { PhoneInput } from "@/components/ui/PhoneInput";
 
 /** Campos compartidos por el alta y la edición de un proveedor. */
 export function VendorFormFields({
@@ -127,14 +128,13 @@ export function VendorFormFields({
                   </FormLabel>
                 </FieldLabelRow>
                 <FormControl>
-                  <Input
-                    placeholder="Ej: +584247000001"
-                    autoComplete="off"
-                    inputMode="tel"
-                    maxLength={20}
+                  <PhoneInput
                     disabled={disabled}
-                    className={fieldClass}
-                    {...field}
+                    name={field.name}
+                    ref={field.ref}
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
                   />
                 </FormControl>
                 <FormMessage />

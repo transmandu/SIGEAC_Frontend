@@ -47,6 +47,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useGetLocationsByCompany } from "@/hooks/sistema/useGetLocationsByCompany";
+import { PhoneInput } from "@/components/ui/PhoneInput";
+import { phoneSchema } from "@/lib/phone";
 
 interface FormProps {
   isEditing?: boolean;
@@ -68,7 +70,7 @@ export function CreateGenObliReport({
       description: z.string().min(1, "La descripción es obligatoria"),
       name: z.string().min(1, "El nombre es requerido"),
       last_name: z.string().min(1, "El apellido es requerido"),
-      phone: z.string().optional(),
+      phone: phoneSchema().optional(),
       email: z
         .string()
         .email("Formato de correo inválido")
@@ -178,7 +180,7 @@ export function CreateGenObliReport({
       report_location_id: initialData?.report_location?.id?.toString(),
       name: initialData?.name,
       last_name: initialData?.last_name,
-      phone: initialData?.phone,
+      phone: initialData?.phone_number ?? initialData?.phone,
       email: initialData?.email,
       incidents: initialData?.incidents
         ? JSON.parse(initialData.incidents)
@@ -198,7 +200,7 @@ export function CreateGenObliReport({
       report_location_id: data.report_location_id,
       name: data.name,
       last_name: data.last_name,
-      phone: data.phone,
+      phone_number: data.phone,
       email: data.email,
       incidents: data.incidents,
       other_incidents: data.other_incidents,
@@ -564,7 +566,13 @@ export function CreateGenObliReport({
                     Teléfono (Opcional)
                   </FormLabel>
                   <FormControl>
-                    <Input type="tel" placeholder="+58..." {...field} />
+                    <PhoneInput
+                      name={field.name}
+                      ref={field.ref}
+                      value={field.value}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

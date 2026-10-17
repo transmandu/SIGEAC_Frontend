@@ -1,5 +1,6 @@
 import type { Vendor } from "@/types";
 import { z } from "zod";
+import { phoneSchema, toPhoneValue } from "@/lib/phone";
 
 export type VendorType = Vendor["type"];
 
@@ -22,6 +23,8 @@ const same = (a: string, b: string) =>
 export const buildVendorSchema = (
   vendors: Vendor[] | undefined,
   ignoreId?: Vendor["id"],
+  /** Teléfono ya guardado: se admite sin cambios aunque sea un dato antiguo inválido. */
+  keepPhone?: string | null,
 ) =>
   z
     .object({
@@ -33,13 +36,7 @@ export const buildVendorSchema = (
         .max(255, {
           message: "El nombre no puede superar los 255 caracteres.",
         }),
-      phone: z
-        .string()
-        .trim()
-        .min(1, { message: "Ingrese el teléfono." })
-        .max(20, {
-          message: "El teléfono no puede superar los 20 caracteres.",
-        }),
+      phone: phoneSchema({ required: true, keep: keepPhone }),
       email: z
         .string()
         .trim()
@@ -91,7 +88,7 @@ export const diffVendor = (
 ): Partial<VendorFormValues> => {
   const diff: Partial<VendorFormValues> = {};
   if (values.name !== (vendor.name ?? "").trim()) diff.name = values.name;
-  if (values.phone !== (vendor.phone ?? "").trim()) diff.phone = values.phone;
+  if (values.phone !== toPhoneValue(vendor.phone)) diff.phone = values.phone;
   if (
     values.email.toLowerCase() !== (vendor.email ?? "").trim().toLowerCase()
   ) {

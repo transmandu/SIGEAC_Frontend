@@ -63,6 +63,8 @@ interface FormProps {
 }
 import { ScrollArea } from "@/components/ui/scroll-area";
 import FolderSelect from "@/components/library/FolderSelect";
+import { PhoneInput } from "@/components/ui/PhoneInput";
+import { phoneSchema } from "@/lib/phone";
 
 export function CreateObligatoryReportForm({
   onClose,
@@ -155,7 +157,7 @@ export function CreateObligatoryReportForm({
         z.string().optional(),
       ),
       email: z.string().email("Email inválido").optional().nullable(),
-      phone_number: z.string().optional().nullable(),
+      phone_number: phoneSchema().optional().nullable(),
       image: z
         .instanceof(File)
         .refine((file) => file.size <= 10 * 1024 * 1024, "Max 10MB")
@@ -576,11 +578,12 @@ export function CreateObligatoryReportForm({
               <FormItem className="w-full">
                 <FormLabel>Teléfono</FormLabel>
                 <FormControl>
-                  <Input
-                    type="tel"
-                    placeholder="Número de teléfono"
-                    {...field}
-                    value={field.value ?? ""}
+                  <PhoneInput
+                    name={field.name}
+                    ref={field.ref}
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
                   />
                 </FormControl>
                 <FormMessage className="text-xs" />

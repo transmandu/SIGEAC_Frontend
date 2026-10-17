@@ -132,7 +132,10 @@ export function ConditionCombobox({
 
       {/* Crear condición modal — auto-selects the new condition on success */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+        <DialogContent
+          className="max-h-[90vh] overflow-y-auto sm:max-w-lg"
+          onInteractOutside={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>Creación de Condición</DialogTitle>
             <DialogDescription>

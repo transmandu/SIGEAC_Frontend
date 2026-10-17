@@ -22,6 +22,7 @@ import {
   diffAirlineClient,
   type AirlineClientFormValues,
 } from "./clientSchema";
+import { toPhoneValue } from "@/lib/phone";
 
 interface EditClientFormProps {
   client: AirlineClient;
@@ -34,8 +35,8 @@ export function EditClientForm({ onClose, client }: EditClientFormProps) {
   const { updateClient } = useUpdateClient();
 
   const schema = useMemo(
-    () => buildAirlineClientSchema(clients, client.id),
-    [clients, client.id],
+    () => buildAirlineClientSchema(clients, client.id, client.phone),
+    [clients, client.id, client.phone],
   );
 
   // Los valores iniciales se fijan al montar: el diálogo desmonta su contenido
@@ -47,7 +48,7 @@ export function EditClientForm({ onClose, client }: EditClientFormProps) {
       dni_type: client.dni_type ?? "",
       dni: client.dni ?? "",
       name: client.name ?? "",
-      phone: client.phone ?? "",
+      phone: toPhoneValue(client.phone),
       email: client.email ?? "",
       address: client.address ?? "",
       pay_credit_days: String(client.pay_credit_days ?? 0),

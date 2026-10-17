@@ -56,6 +56,8 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
+import { PhoneInput } from "@/components/ui/PhoneInput";
+import { phoneSchema } from "@/lib/phone";
 interface FormProps {
   isEditing?: boolean;
   initialData?: ObligatoryReport;
@@ -132,7 +134,7 @@ export function CreateGeneralObligatoryReportForm({
         z.string().optional(),
       ),
       email: z.string().email("Email inválido").optional().nullable(),
-      phone_number: z.string().optional().nullable(),
+      phone_number: phoneSchema().optional().nullable(),
       image: z
         .instanceof(File)
         .refine((file) => file.size <= 10 * 1024 * 1024, "Max 10MB")
@@ -450,11 +452,12 @@ export function CreateGeneralObligatoryReportForm({
               <FormItem className="w-full">
                 <FormLabel>Teléfono</FormLabel>
                 <FormControl>
-                  <Input
-                    type="tel"
-                    placeholder="Número de teléfono"
-                    {...field}
-                    value={field.value ?? ""}
+                  <PhoneInput
+                    name={field.name}
+                    ref={field.ref}
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
                   />
                 </FormControl>
                 <FormMessage className="text-xs" />

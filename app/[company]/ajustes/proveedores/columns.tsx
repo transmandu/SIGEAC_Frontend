@@ -7,6 +7,7 @@ import { TagBadge } from "@/components/misc/TagBadge";
 import { cn } from "@/lib/utils";
 import { Vendor } from "@/types";
 import VendorDropdownActions from "@/components/dropdowns/general/VendorDropdownActions";
+import { formatPhone } from "@/lib/phone";
 
 export const getColumns = (selectedCompany?: {
   slug: string;
@@ -82,7 +83,7 @@ export const getColumns = (selectedCompany?: {
     cell: ({ row }) => (
       <div className="flex justify-center w-full">
         <span className="text-sm text-slate-600 dark:text-slate-300 text-center tabular-nums">
-          {row.original.phone ?? "—"}
+          {formatPhone(row.original.phone) || "—"}
         </span>
       </div>
     ),

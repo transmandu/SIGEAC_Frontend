@@ -44,6 +44,8 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useGetLocationsByCompany } from "@/hooks/sistema/useGetLocationsByCompany";
 import { VoluntaryReport } from "@/types/sms/mantenimiento";
+import { PhoneInput } from "@/components/ui/PhoneInput";
+import { phoneSchema } from "@/lib/phone";
 
 interface FormProps {
   onClose: () => void;
@@ -109,12 +111,7 @@ export function CreateGenVolReport({
 
       .max(40)
       .optional(),
-    reporter_phone: z
-      .string()
-      .regex(/^\d{11}$/, {
-        message: "El número telefónico debe tener almenos 11 dígitos",
-      })
-      .optional(),
+    reporter_phone: phoneSchema().optional(),
 
     reporter_email: z
       .string()
@@ -541,7 +538,13 @@ export function CreateGenVolReport({
                       Teléfono
                     </FormLabel>
                     <FormControl>
-                      <Input placeholder="Ej. 04141234567" {...field} />
+                      <PhoneInput
+                        name={field.name}
+                        ref={field.ref}
+                        value={field.value}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                      />
                     </FormControl>
                     <FormMessage className="text-xs" />
                   </FormItem>

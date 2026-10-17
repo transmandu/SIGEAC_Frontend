@@ -1,5 +1,6 @@
 import type { Retailer } from "@/types";
 import { z } from "zod";
+import { phoneSchema, toPhoneValue } from "@/lib/phone";
 
 const same = (a: string, b: string) =>
   a.trim().toUpperCase() === b.trim().toUpperCase();
@@ -13,6 +14,8 @@ const same = (a: string, b: string) =>
 export const buildRetailerSchema = (
   retailers: Retailer[] | undefined,
   ignoreId?: Retailer["id"],
+  /** Teléfono ya guardado: se admite sin cambios aunque sea un dato antiguo inválido. */
+  keepPhone?: string | null,
 ) =>
   z.object({
     name: z
@@ -29,16 +32,10 @@ export const buildRetailerSchema = (
           ),
         { message: "Ya existe un comercio con ese nombre." },
       ),
-    phone: z
-      .string()
-      .trim()
-      .max(50, { message: "El teléfono no puede superar los 50 caracteres." }),
-    address: z
-      .string()
-      .trim()
-      .max(255, {
-        message: "La ubicación no puede superar los 255 caracteres.",
-      }),
+    phone: phoneSchema({ keep: keepPhone }),
+    address: z.string().trim().max(255, {
+      message: "La ubicación no puede superar los 255 caracteres.",
+    }),
   });
 
 export type RetailerFormValues = z.infer<
@@ -58,7 +55,7 @@ export const diffRetailer = (
 ): Partial<RetailerFormValues> => {
   const diff: Partial<RetailerFormValues> = {};
   if (values.name !== (retailer.name ?? "").trim()) diff.name = values.name;
-  if (values.phone !== (retailer.phone ?? "").trim()) diff.phone = values.phone;
+  if (values.phone !== toPhoneValue(retailer.phone)) diff.phone = values.phone;
   if (values.address !== (retailer.address ?? "").trim()) {
     diff.address = values.address;
   }

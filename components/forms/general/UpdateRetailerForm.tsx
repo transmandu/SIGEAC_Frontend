@@ -22,6 +22,7 @@ import {
   RETAILER_FIELD_LABELS,
   type RetailerFormValues,
 } from "./retailerSchema";
+import { toPhoneValue } from "@/lib/phone";
 
 interface FormProps {
   retailer: Retailer;
@@ -34,8 +35,8 @@ export default function UpdateRetailerForm({ retailer, onClose }: FormProps) {
   const { updateRetailer } = useUpdateRetailer();
 
   const schema = useMemo(
-    () => buildRetailerSchema(retailers, retailer.id),
-    [retailers, retailer.id],
+    () => buildRetailerSchema(retailers, retailer.id, retailer.phone),
+    [retailers, retailer.id, retailer.phone],
   );
 
   // Los valores iniciales se fijan al montar: el diálogo desmonta su contenido
@@ -45,7 +46,7 @@ export default function UpdateRetailerForm({ retailer, onClose }: FormProps) {
     resolver: zodResolver(schema),
     defaultValues: {
       name: retailer.name ?? "",
-      phone: retailer.phone ?? "",
+      phone: toPhoneValue(retailer.phone),
       address: retailer.address ?? "",
     },
   });
