@@ -50,7 +50,10 @@ export function CreateVendorDialog({
         </ActionTriggerButton>
       </DialogTrigger>
 
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
+      <DialogContent
+        className="max-h-[90vh] overflow-y-auto sm:max-w-2xl"
+        onInteractOutside={(e) => e.preventDefault()}
+      >
         <DialogHeader data-tour="proveedores-dialog-header">
           <DialogTitle>Nuevo proveedor</DialogTitle>
           <DialogDescription>

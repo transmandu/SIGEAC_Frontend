@@ -31,6 +31,7 @@ import {
   AIRLINE_DNI_TYPES,
   type AirlineClientFormValues,
 } from "./clientSchema";
+import { PhoneInput } from "@/components/ui/PhoneInput";
 
 /**
  * Campos compartidos por el alta y la edición de un cliente de aerolínea.
@@ -163,14 +164,13 @@ export function ClientFormFields({
                   </FormLabel>
                 </FieldLabelRow>
                 <FormControl>
-                  <Input
-                    placeholder="Ej: +584247000001"
-                    autoComplete="off"
-                    inputMode="tel"
-                    maxLength={15}
+                  <PhoneInput
                     disabled={disabled}
-                    className={fieldClass}
-                    {...field}
+                    name={field.name}
+                    ref={field.ref}
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
                   />
                 </FormControl>
                 <FormMessage />

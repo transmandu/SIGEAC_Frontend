@@ -364,8 +364,8 @@ export type Company = {
   rif: string;
   cod_inac: string;
   fiscal_address: string;
-  phone_number: number;
-  alt_phone_number: number;
+  phone_number: string;
+  alt_phone_number: string | null;
   cod_iata: string;
   cod_oaci: string;
   acronym: string;

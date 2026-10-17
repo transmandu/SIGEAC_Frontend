@@ -16,6 +16,7 @@ import {
     RiskAnalysisLike,
     VoluntaryReportView,
 } from "./report-detail-types";
+import { formatPhone } from "@/lib/phone";
 
 const parseDelimitedDetailItems = (value?: string | null) => {
     if (!value) {
@@ -242,7 +243,7 @@ export const buildVoluntaryDetails = (report: VoluntaryReportView): DetailItem[]
     { label: "Area del peligro", value: report.danger_area || report.identification_area },
     { label: "Nombre", value: report.reporter_name || "N/A" },
     { label: "Apellido", value: report.reporter_last_name || "N/A" },
-    { label: "Telefono", value: report.reporter_phone || "N/A" },
+    { label: "Telefono", value: formatPhone(report.reporter_phone) || "N/A" },
     { label: "Correo", value: report.reporter_email || "N/A" },
     {
         label: "Descripcion",

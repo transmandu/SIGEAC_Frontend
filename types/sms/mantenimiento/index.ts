@@ -38,6 +38,7 @@ export type ObligatoryReport = {
     name: string;
     last_name: string;
     phone?: string;
+    phone_number?: string | null;
     email?: string;
     incidents: string;
     other_incidents: string;

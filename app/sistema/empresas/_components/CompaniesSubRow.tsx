@@ -31,6 +31,7 @@ import ManageCompanyModulesDialog from '@/components/dialogs/ajustes/ManageCompa
 
 import { Company } from '@/types'
 import { cn } from '@/lib/utils'
+import { formatPhone } from "@/lib/phone"
 
 interface Props {
     company: Company
@@ -211,7 +212,7 @@ export default function CompaniesSubRow({
                         <Phone className="h-4 w-4 text-slate-600 dark:text-slate-300" />
                     }
                     label="Teléfono principal"
-                    value={company.phone_number}
+                    value={formatPhone(company.phone_number)}
                 />
 
                 <Item
@@ -219,7 +220,7 @@ export default function CompaniesSubRow({
                         <Phone className="h-4 w-4 text-slate-600 dark:text-slate-300" />
                     }
                     label="Teléfono alternativo"
-                    value={company.alt_phone_number}
+                    value={formatPhone(company.alt_phone_number)}
                 />
 
                 <Item

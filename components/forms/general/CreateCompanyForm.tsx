@@ -19,6 +19,8 @@ import { z } from "zod"
 import { Separator } from "@/components/ui/separator"
 import { toast } from "sonner"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { PhoneInput } from "@/components/ui/PhoneInput"
+import { phoneSchema } from "@/lib/phone"
 
 const optionalCode = z.preprocess(
   (val) => {
@@ -56,8 +58,8 @@ const FormSchema = z.object({
   description: z.string().min(4, {
     message: "Debe proveer una descripcion minima."
   }),
-  phone_number: z.string(),
-  alt_phone_number: z.string().optional(),
+  phone_number: phoneSchema({ required: true }),
+  alt_phone_number: phoneSchema(),
   cod_inac: optionalCode,
   cod_iata: optionalCode,
   cod_oaci: optionalCode,
@@ -194,7 +196,7 @@ export function CreateCompanyForm({ onClose }: FormProps) {
                   </FormItem>
                 )}
               />
-              <div className="flex gap-2 items-center">
+              <div className="grid gap-3">
                 <FormField
                   control={form.control}
                   name="phone_number"
@@ -202,7 +204,13 @@ export function CreateCompanyForm({ onClose }: FormProps) {
                     <FormItem className="w-full">
                       <FormLabel>Teléfono</FormLabel>
                       <FormControl>
-                        <Input placeholder="Ej: +58424-2025399" {...field} />
+                        <PhoneInput
+                          name={field.name}
+                          ref={field.ref}
+                          value={field.value}
+                          onChange={field.onChange}
+                          onBlur={field.onBlur}
+                        />
                       </FormControl>
                       <FormMessage className="text-xs" />
                     </FormItem>
@@ -215,7 +223,13 @@ export function CreateCompanyForm({ onClose }: FormProps) {
                     <FormItem className="w-full">
                       <FormLabel >Teléfono 2 <span className="text-xs text-muted-foreground">(opcional)</span></FormLabel>
                       <FormControl>
-                        <Input placeholder="Ej: +58424-2025399" {...field} />
+                        <PhoneInput
+                          name={field.name}
+                          ref={field.ref}
+                          value={field.value}
+                          onChange={field.onChange}
+                          onBlur={field.onBlur}
+                        />
                       </FormControl>
                       <FormMessage className="text-xs" />
                     </FormItem>

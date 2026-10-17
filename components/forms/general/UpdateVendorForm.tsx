@@ -22,6 +22,7 @@ import {
   VENDOR_FIELD_LABELS,
   type VendorFormValues,
 } from "./vendorSchema";
+import { toPhoneValue } from "@/lib/phone";
 
 interface Props {
   vendor: Vendor;
@@ -34,8 +35,8 @@ export default function UpdateVendorForm({ vendor, onClose }: Props) {
   const updateVendor = useUpdateVendor(selectedCompany?.slug);
 
   const schema = useMemo(
-    () => buildVendorSchema(vendors, vendor.id),
-    [vendors, vendor.id],
+    () => buildVendorSchema(vendors, vendor.id, vendor.phone),
+    [vendors, vendor.id, vendor.phone],
   );
 
   // Los valores iniciales se fijan al montar: el diálogo desmonta su contenido
@@ -45,7 +46,7 @@ export default function UpdateVendorForm({ vendor, onClose }: Props) {
     resolver: zodResolver(schema),
     defaultValues: {
       name: vendor.name ?? "",
-      phone: vendor.phone ?? "",
+      phone: toPhoneValue(vendor.phone),
       email: vendor.email ?? "",
       address: vendor.address ?? "",
       type: vendor.type,

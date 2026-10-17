@@ -12,7 +12,7 @@ interface ObligatoryReportData {
     report_location_id: string;
     name: string;
     last_name: string;
-    phone?: string;
+    phone_number?: string;
     email?: string;
     incidents?: string[];
     other_incidents?: string;

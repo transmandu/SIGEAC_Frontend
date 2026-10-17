@@ -2,6 +2,7 @@
 
 import { Mail, Phone } from "lucide-react";
 import { ShippingAgency } from "@/types";
+import { formatPhone } from "@/lib/phone";
 
 interface Props {
   agency: ShippingAgency;
@@ -35,7 +36,9 @@ export default function ShippingAgenciesSubRow({ agency }: Props) {
           </div>
           <div className="flex items-center gap-1.5 text-xs font-medium text-slate-800 dark:text-slate-200">
             <Phone className="size-3 opacity-60 shrink-0" />
-            <span className="tabular-nums">{agency.phone ?? "—"}</span>
+            <span className="tabular-nums">
+              {formatPhone(agency.phone) || "—"}
+            </span>
           </div>
         </div>
 

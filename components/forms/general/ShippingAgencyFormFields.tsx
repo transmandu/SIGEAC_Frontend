@@ -30,6 +30,7 @@ import {
   SHIPPING_AGENCY_TYPE_LABELS,
   type ShippingAgencyFormValues,
 } from "./shippingAgencySchema";
+import { PhoneInput } from "@/components/ui/PhoneInput";
 
 /** Campos compartidos por el alta y la edición de una agencia de envío. */
 export function ShippingAgencyFormFields({
@@ -166,14 +167,13 @@ export function ShippingAgencyFormFields({
                   <FormLabel className={labelClass}>Teléfono</FormLabel>
                 </FieldLabelRow>
                 <FormControl>
-                  <Input
-                    placeholder="Ej: +1 305 123 4567"
-                    autoComplete="off"
-                    inputMode="tel"
-                    maxLength={50}
+                  <PhoneInput
                     disabled={disabled}
-                    className={fieldClass}
-                    {...field}
+                    name={field.name}
+                    ref={field.ref}
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
                   />
                 </FormControl>
                 <FormMessage />

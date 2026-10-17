@@ -22,6 +22,7 @@ import {
   SHIPPING_AGENCY_FIELD_LABELS,
   type ShippingAgencyFormValues,
 } from "./shippingAgencySchema";
+import { toPhoneValue } from "@/lib/phone";
 
 interface Props {
   agency: ShippingAgency;
@@ -34,8 +35,8 @@ export function UpdateShippingAgencyForm({ agency, onClose }: Props) {
   const updateAgency = useUpdateShippingAgency(selectedCompany?.slug);
 
   const schema = useMemo(
-    () => buildShippingAgencySchema(agencies, agency.id),
-    [agencies, agency.id],
+    () => buildShippingAgencySchema(agencies, agency.id, agency.phone),
+    [agencies, agency.id, agency.phone],
   );
 
   // Los valores iniciales se fijan al montar: el diálogo desmonta su contenido
@@ -48,7 +49,7 @@ export function UpdateShippingAgencyForm({ agency, onClose }: Props) {
       code: agency.code ?? "",
       description: agency.description ?? "",
       type: agency.type,
-      phone: agency.phone ?? "",
+      phone: toPhoneValue(agency.phone),
       email: agency.email ?? "",
     },
   });

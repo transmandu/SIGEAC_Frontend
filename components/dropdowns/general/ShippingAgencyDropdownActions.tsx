@@ -55,7 +55,10 @@ const ShippingAgencyDropdownActions = ({
       <SettingsRowActions actions={actions} tourId="agencias-envio-actions" />
 
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+        <DialogContent
+          className="max-h-[90vh] overflow-y-auto sm:max-w-2xl"
+          onInteractOutside={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>Editar agencia de envío</DialogTitle>
             <DialogDescription>

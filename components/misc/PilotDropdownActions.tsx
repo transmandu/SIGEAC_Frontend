@@ -61,7 +61,10 @@ const PilotDropdownActions = ({ pilot }: { pilot: Pilot }) => {
       <SettingsRowActions actions={actions} tourId="pilotos-actions" />
 
       <Dialog open={openEdit} onOpenChange={setOpenEdit}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+        <DialogContent
+          className="max-h-[90vh] overflow-y-auto sm:max-w-2xl"
+          onInteractOutside={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>Editar piloto</DialogTitle>
             <DialogDescription>

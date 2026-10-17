@@ -36,6 +36,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { formatPhone } from "@/lib/phone";
 
 const ShowObligatoryReport = () => {
   const { obligatory_id } = useParams<{ obligatory_id: string }>();
@@ -310,7 +311,7 @@ const ShowObligatoryReport = () => {
                   </span>
                 </div>
                 <p className="text-sm font-mono">
-                  {obligatoryReport.phone_number || (
+                  {formatPhone(obligatoryReport.phone_number) || (
                     <span className="text-muted-foreground/60">
                       No registrado
                     </span>

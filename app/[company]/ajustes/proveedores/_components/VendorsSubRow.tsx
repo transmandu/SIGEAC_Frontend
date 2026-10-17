@@ -2,6 +2,7 @@
 
 import { Mail, Phone, MapPin } from 'lucide-react'
 import { Vendor } from '@/types'
+import { formatPhone } from "@/lib/phone"
 
 interface Props {
   vendor: Vendor
@@ -38,7 +39,7 @@ export default function VendorsSubRow({ vendor }: Props) {
           <div className="flex items-center gap-1.5 text-xs font-medium text-slate-800 dark:text-slate-200">
             <Phone className="size-3 opacity-60 shrink-0" />
             <span className="tabular-nums">
-              {vendor.phone ?? '—'}
+              {formatPhone(vendor.phone) || '—'}
             </span>
           </div>
         </div>

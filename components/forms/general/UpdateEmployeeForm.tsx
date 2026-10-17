@@ -33,36 +33,39 @@ import { useGetUsers } from "@/hooks/sistema/useGetUsers";
 import { zodResolver } from "@/lib/zod-resolver";
 import { Loader2, Upload, Trash2 } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Department } from "@/types";
+import { PhoneInput } from "@/components/ui/PhoneInput";
+import { phoneSchema, toPhoneValue } from "@/lib/phone";
 
 /* =========================
    SCHEMA
 ========================= */
 
-const formSchema = z.object({
-  first_name: z.string().min(1),
-  middle_name: z.string().optional(),
-  last_name: z.string().min(1),
-  second_last_name: z.string().optional(),
-  dni: z.string(),
-  dni_type: z.string(),
-  blood_type: z.string(),
-  gender: z.enum(["MALE", "FEMALE"]),
-  job_title_id: z.string(),
-  department_id: z.string(),
-  location_id: z.string(),
-  user_id: z.string().optional(),
-  email: z.string().optional(),
-  phone: z.string().optional(),
-  address: z.string().optional(),
-  birth_date: z.string().optional(),
-  profile_photo: z.any().optional(),
-});
+const buildFormSchema = (keepPhone?: string | null) =>
+  z.object({
+    first_name: z.string().min(1),
+    middle_name: z.string().optional(),
+    last_name: z.string().min(1),
+    second_last_name: z.string().optional(),
+    dni: z.string(),
+    dni_type: z.string(),
+    blood_type: z.string(),
+    gender: z.enum(["MALE", "FEMALE"]),
+    job_title_id: z.string(),
+    department_id: z.string(),
+    location_id: z.string(),
+    user_id: z.string().optional(),
+    email: z.string().optional(),
+    phone: phoneSchema({ keep: keepPhone }),
+    address: z.string().optional(),
+    birth_date: z.string().optional(),
+    profile_photo: z.any().optional(),
+  });
 
-type FormValues = z.infer<typeof formSchema>;
+type FormValues = z.infer<ReturnType<typeof buildFormSchema>>;
 
 /* =========================
    TYPES
@@ -97,8 +100,14 @@ export function UpdateEmployeeForm({ employee, onSuccess }: Props) {
   const [preview, setPreview] = useState<string | null>(null);
   const imageSrc = preview || employee?.photo_url;
 
+  // El teléfono guardado se admite sin cambios aunque sea un dato antiguo inválido.
+  const schema = useMemo(
+    () => buildFormSchema(employee?.phone),
+    [employee?.phone],
+  );
+
   const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(schema),
     defaultValues: {
       first_name: "",
       middle_name: "",
@@ -142,7 +151,7 @@ export function UpdateEmployeeForm({ employee, onSuccess }: Props) {
       location_id: employee.location_id ? String(employee.location_id) : "",
       user_id: employee.user_id ? String(employee.user_id) : "",
       email: employee.email ?? "",
-      phone: employee.phone ?? "",
+      phone: toPhoneValue(employee.phone),
       address: employee.address ?? "",
       profile_photo: undefined,
       birth_date: employee.birth_date ?? "",
@@ -196,7 +205,10 @@ export function UpdateEmployeeForm({ employee, onSuccess }: Props) {
     ]);
 
     Object.entries(values).forEach(([key, value]) => {
-      const originalValue = original?.[key];
+      // El teléfono se compara ya normalizado: volver a mostrarlo en el formato
+      // estándar no es un cambio del usuario.
+      const originalValue =
+        key === "phone" ? toPhoneValue(original?.phone) : original?.[key];
 
       if (value === undefined || value === null) return;
       if (typeof value === "string" && value.trim() === "") {
@@ -589,7 +601,7 @@ export function UpdateEmployeeForm({ employee, onSuccess }: Props) {
               </div>
 
               {/* GRID */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   name="email"
                   control={form.control}
@@ -614,12 +626,15 @@ export function UpdateEmployeeForm({ employee, onSuccess }: Props) {
                     <FormItem>
                       <FormLabel>Teléfono</FormLabel>
                       <FormControl>
-                        <Input
-                          {...field}
-                          value={field.value ?? ""}
-                          placeholder="Ej. +58 412 1234567"
+                        <PhoneInput
+                          name={field.name}
+                          ref={field.ref}
+                          value={field.value}
+                          onChange={field.onChange}
+                          onBlur={field.onBlur}
                         />
                       </FormControl>
+                      <FormMessage className="text-xs" />
                     </FormItem>
                   )}
                 />
@@ -645,7 +660,7 @@ export function UpdateEmployeeForm({ employee, onSuccess }: Props) {
                   name="address"
                   control={form.control}
                   render={({ field }) => (
-                    <FormItem className="md:col-span-3">
+                    <FormItem className="md:col-span-2">
                       <FormLabel>Dirección</FormLabel>
                       <FormControl>
                         <Input

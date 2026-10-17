@@ -36,6 +36,7 @@ import {
 import { useTourContext } from "@/components/tour/TourProvider";
 import { cargoGuiaDetalleSteps } from "@/components/tour/steps/cargo/guia-detalle";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { formatPhone } from "@/lib/phone";
 
 export default function CargoDetailsPage() {
   const params = useParams();
@@ -216,7 +217,7 @@ export default function CargoDetailsPage() {
                   <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
                     Teléfono
                   </p>
-                  <p className="text-sm">{shipment.client?.phone || "N/A"}</p>
+                  <p className="text-sm">{formatPhone(shipment.client?.phone) || "N/A"}</p>
                 </div>
               </div>
             </CardContent>

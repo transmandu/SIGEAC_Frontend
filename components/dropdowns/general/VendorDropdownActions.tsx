@@ -51,7 +51,10 @@ const VendorDropdownActions = ({ vendor }: { vendor: Vendor }) => {
       <SettingsRowActions actions={actions} tourId="proveedores-actions" />
 
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
+        <DialogContent
+          className="max-h-[90vh] overflow-y-auto sm:max-w-2xl"
+          onInteractOutside={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>Editar proveedor</DialogTitle>
             <DialogDescription>

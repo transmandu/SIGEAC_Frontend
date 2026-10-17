@@ -3,6 +3,7 @@ import { ReactNode } from 'react';
 import { formatDate } from '@/lib/utils';
 import { HazardNotification, ObligatoryReport, VoluntaryReport } from '@/types/sms/mantenimiento';
 import { Location } from '@/types';
+import { formatPhone } from "@/lib/phone";
 
 export type ReportType = 'RVP' | 'ROS';
 
@@ -112,7 +113,7 @@ export const getVoluntaryReportDetails = (report: ReportWithHazard<VoluntaryRepo
         label: 'Reportante',
         value: formatContactName(report.reporter_name, report.reporter_last_name),
     },
-    { label: 'Telefono', value: report.reporter_phone },
+    { label: 'Telefono', value: formatPhone(report.reporter_phone) },
     { label: 'Correo', value: report.reporter_email },
     {
         label: 'Descripcion del reporte',
@@ -138,7 +139,7 @@ export const getObligatoryReportDetails = (report: ReportWithHazard<ObligatoryRe
     { label: 'Lugar del reporte', value: formatLocationLabel(report.report_location) },
     { label: 'Lugar del incidente', value: formatLocationLabel(report.incident_location) },
     { label: 'Reportante', value: formatContactName(report.name, report.last_name) },
-    { label: 'Telefono', value: report.phone },
+    { label: 'Telefono', value: formatPhone(report.phone_number ?? report.phone) },
     { label: 'Correo', value: report.email },
     {
         label: 'Incidentes registrados',

@@ -1,5 +1,6 @@
 import type { ShippingAgency } from "@/types";
 import { z } from "zod";
+import { phoneSchema, toPhoneValue } from "@/lib/phone";
 
 export const SHIPPING_AGENCY_TYPE_LABELS = {
   NATIONAL: "Nacional",
@@ -21,6 +22,8 @@ const same = (a?: string | null, b?: string | null) =>
 export const buildShippingAgencySchema = (
   agencies: ShippingAgency[] | undefined,
   ignoreId?: ShippingAgency["id"],
+  /** Teléfono ya guardado: se admite sin cambios aunque sea un dato antiguo inválido. */
+  keepPhone?: string | null,
 ) =>
   z
     .object({
@@ -42,12 +45,7 @@ export const buildShippingAgencySchema = (
         message: "La descripción no puede superar los 1000 caracteres.",
       }),
       type: z.enum(TYPES, { error: "Seleccione el tipo de agencia." }),
-      phone: z
-        .string()
-        .trim()
-        .max(50, {
-          message: "El teléfono no puede superar los 50 caracteres.",
-        }),
+      phone: phoneSchema({ keep: keepPhone }),
       email: z
         .string()
         .trim()
@@ -116,7 +114,7 @@ export const diffShippingAgency = (
     diff.description = values.description;
   }
   if (values.type !== agency.type) diff.type = values.type;
-  if (!same(values.phone, agency.phone)) diff.phone = values.phone;
+  if (values.phone !== toPhoneValue(agency.phone)) diff.phone = values.phone;
   if (!same(values.email, agency.email)) diff.email = values.email;
   return diff;
 };

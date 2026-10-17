@@ -9,6 +9,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { clientesSteps } from "@/components/tour/steps/ajustes/clientes/clientes";
 import { columns } from "./airline-columns";
+import { phoneMatches } from "@/lib/phone";
 
 export function AirlineClientsView() {
   const { selectedCompany } = useCompanyStore();
@@ -38,7 +39,7 @@ export function AirlineClientsView() {
       (c) =>
         c.name?.toLowerCase().includes(q) ||
         c.dni?.toLowerCase().includes(q) ||
-        c.phone?.toLowerCase().includes(q) ||
+        phoneMatches(c.phone, q) ||
         c.address?.toLowerCase().includes(q),
     );
   }, [clients, deferredSearch]);
