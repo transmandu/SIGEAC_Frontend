@@ -1,3 +1,7 @@
+## v4.70.0 — 2026-10-17
+
+- feat: implement phone input component and integrate into forms (#343)
+
 ## v4.69.0 — 2026-10-16
 
 - feat(client-forms): add ClientFormFields component and integrate into… (#342)
