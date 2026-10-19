@@ -1,3 +1,7 @@
+## v4.72.0 — 2026-10-19
+
+- feat: enhance maintenance forms with new features and validations (#346)
+
 ## v4.71.0 — 2026-10-19
 
 - feat: add button to download course document (#345)
