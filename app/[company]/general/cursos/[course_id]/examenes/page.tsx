@@ -52,10 +52,12 @@ const ExamAttendanceRow = ({
   attendance,
   company,
   examId,
+  readOnly = false,
 }: {
   attendance: any;
   company: string;
   examId: string;
+  readOnly?: boolean;
 }) => {
   const [score, setScore] = useState(attendance.score || "");
 
@@ -123,18 +125,23 @@ const ExamAttendanceRow = ({
             placeholder="Ej: 85"
             className="w-24"
             value={score}
+            disabled={readOnly}
             onChange={(e) => setScore(e.target.value)}
           />
         </td>
         <td className="px-6 py-4 whitespace-nowrap text-sm">
-          <Switch checked={approved} onCheckedChange={setApproved} />
+          <Switch
+            checked={approved}
+            disabled={readOnly}
+            onCheckedChange={setApproved}
+          />
         </td>
         <td className="px-6 py-4 whitespace-nowrap text-sm">
           <Input
             type="file"
             className="w-56 text-xs cursor-pointer file:cursor-pointer disabled:cursor-not-allowed"
             accept=".pdf,.jpg,.jpeg,.png,.webp"
-            disabled={!isAttended}
+            disabled={!isAttended || readOnly}
             onChange={(e) => setFile(e.target.files?.[0] || null)}
           />
           {!isAttended && (
@@ -167,17 +174,19 @@ const ExamAttendanceRow = ({
             )}
         </td>
         <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
-          <Button
-            size="sm"
-            onClick={handleSave}
-            disabled={updateCourseExamResult.isPending}
-          >
-            {updateCourseExamResult.isPending ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              "Guardar"
-            )}
-          </Button>
+          {!readOnly && (
+            <Button
+              size="sm"
+              onClick={handleSave}
+              disabled={updateCourseExamResult.isPending}
+            >
+              {updateCourseExamResult.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                "Guardar"
+              )}
+            </Button>
+          )}
         </td>
       </tr>
 
@@ -232,7 +241,7 @@ const ManageExamsPage = () => {
     (exam) => exam.id.toString() === selectedExamId,
   );
 
-  const isCourseClosed = course?.status === "CERRADO";
+  const isCourseClosed = course?.status === "CLOSED";
 
   const handleDeleteExam = async () => {
     if (!selectedExam) return;
@@ -383,6 +392,7 @@ const ManageExamsPage = () => {
                             attendance={attendance}
                             company={selectedCompany?.slug || ""}
                             examId={selectedExamId}
+                            readOnly={isCourseClosed}
                           />
                         ))}
                       </tbody>

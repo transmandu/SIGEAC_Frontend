@@ -84,6 +84,7 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
 
   const realnow = startOfDay(new Date());
   const CourseDate = startOfDay(course.end_date);
+  const isClosed = course.status === "CLOSED";
 
   return (
     <>
@@ -105,7 +106,7 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
               align="end"
               className="w-auto p-2 flex flex-row gap-2"
             >
-              {course.status !== "CERRADO" && (
+              {!isClosed && (
                 <Button
                   variant="ghost"
                   size="icon"
@@ -121,7 +122,7 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
                 </Button>
               )}
 
-              {course.status !== "CERRADO" && (
+              {!isClosed && (
                 <Button
                   variant="ghost"
                   size="icon"
@@ -155,7 +156,7 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
                 </Tooltip>
               </Button>
 
-              {course.status !== "CERRADO" && (
+              {!isClosed && (
                 <Button
                   variant="ghost"
                   size="icon"
@@ -173,7 +174,7 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
                 </Button>
               )}
 
-              {course.status !== "CERRADO" && (
+              {!isClosed && (
                 <Button
                   variant="ghost"
                   size="icon"
@@ -189,27 +190,29 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
                 </Button>
               )}
 
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => {
-                  router.push(
-                    `/${selectedCompany?.slug}/general/cursos/${course.id}/examenes`,
-                  );
-                }}
-              >
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <FileText className="h-4 w-4" />
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom">
-                    Gestionar Examenes
-                  </TooltipContent>
-                </Tooltip>
-              </Button>
+              {!isClosed && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => {
+                    router.push(
+                      `/${selectedCompany?.slug}/general/cursos/${course.id}/examenes`,
+                    );
+                  }}
+                >
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <FileText className="h-4 w-4" />
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">
+                      Gestionar Examenes
+                    </TooltipContent>
+                  </Tooltip>
+                </Button>
+              )}
 
-              {CourseDate <= realnow && course.status !== "CERRADO" && (
+              {CourseDate <= realnow && !isClosed && (
                 <Button
                   variant="ghost"
                   size="icon"
@@ -225,7 +228,7 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
                 </Button>
               )}
 
-              {course.status === "CERRADO" && (
+              {isClosed && (
                 <Button
                   variant="ghost"
                   size="icon"
