@@ -1,3 +1,7 @@
+## v4.70.1 — 2026-10-19
+
+- fix: duplicate attendance in course (#344)
+
 ## v4.70.0 — 2026-10-17
 
 - feat: implement phone input component and integrate into forms (#343)
