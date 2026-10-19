@@ -1,3 +1,7 @@
+## v4.71.0 — 2026-10-19
+
+- feat: add button to download course document (#345)
+
 ## v4.70.1 — 2026-10-19
 
 - fix: duplicate attendance in course (#344)
