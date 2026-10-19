@@ -75,18 +75,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setTokenChecked(true);
   }, []);
 
-  const { data: cachedUser = null, isLoading: userLoading } = useQuery<User | null>({
-    queryKey: AUTH_USER_QUERY_KEY,
-    queryFn: async () => {
-      const { data } = await axiosInstance.get<User>("/user");
-      return data;
-    },
-    enabled: tokenChecked && hasToken,
-    staleTime: 5 * 60 * 1000,
-    gcTime: 30 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    retry: false,
-  });
+  const { data: cachedUser = null, isLoading: userLoading } =
+    useQuery<User | null>({
+      queryKey: AUTH_USER_QUERY_KEY,
+      queryFn: async () => {
+        const { data } = await axiosInstance.get<User>("/user");
+        return data;
+      },
+      enabled: tokenChecked && hasToken,
+      staleTime: 5 * 60 * 1000,
+      gcTime: 30 * 60 * 1000,
+      refetchOnWindowFocus: false,
+      retry: false,
+    });
 
   // El usuario en caché sin cookie no es una sesión: el proxy ya no deja pasar
   // a ninguna ruta protegida. Tratarlo como sesión viva dejaba al login con un
