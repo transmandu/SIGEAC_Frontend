@@ -12,7 +12,11 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Dialog,
   DialogContent,
@@ -70,7 +74,7 @@ export function RetailerCombobox({
               "w-full min-w-0 justify-between bg-background/70 font-normal",
               !selected && "text-muted-foreground",
               invalid && "border-destructive/60 ring-1 ring-destructive/30",
-              triggerClassName
+              triggerClassName,
             )}
           >
             <span className="min-w-0 truncate">
@@ -121,13 +125,17 @@ export function RetailerCombobox({
                       className={cn(
                         "mr-2 size-4 shrink-0",
                         wrapOptions && "mt-0.5",
-                        retailer.id.toString() === value ? "opacity-100" : "opacity-0"
+                        retailer.id.toString() === value
+                          ? "opacity-100"
+                          : "opacity-0",
                       )}
                     />
                     <span
                       className={cn(
                         "min-w-0",
-                        wrapOptions ? "whitespace-normal wrap-break-word" : "truncate"
+                        wrapOptions
+                          ? "whitespace-normal wrap-break-word"
+                          : "truncate",
                       )}
                     >
                       {retailer.name}
@@ -142,11 +150,15 @@ export function RetailerCombobox({
 
       {/* Crear comercio modal — auto-selects the new retailer on success */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="sm:max-w-[490px]">
+        <DialogContent
+          className="max-h-[90vh] overflow-y-auto sm:max-w-lg"
+          onInteractOutside={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>Creación de Comercio</DialogTitle>
             <DialogDescription>
-              Registre un comercio o lugar de compra (tienda física o en línea) rellenando la información necesaria.
+              Registre un comercio o lugar de compra (tienda física o en línea)
+              rellenando la información necesaria.
             </DialogDescription>
           </DialogHeader>
           <CreateRetailerForm

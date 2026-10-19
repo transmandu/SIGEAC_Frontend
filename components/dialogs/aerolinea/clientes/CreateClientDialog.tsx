@@ -38,7 +38,10 @@ export function CreateClientDialog() {
           Crear cliente
         </ActionTriggerButton>
       </DialogTrigger>
-      <DialogContent onInteractOutside={(e) => e.preventDefault()}>
+      <DialogContent
+        className="max-h-[90vh] overflow-y-auto sm:max-w-3xl"
+        onInteractOutside={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle data-tour="clientes-crear-header">
             Crear Cliente

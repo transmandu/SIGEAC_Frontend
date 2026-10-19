@@ -9,7 +9,7 @@ import {
   SettingsRowActions,
   type RowAction,
 } from "@/components/dropdowns/SettingsRowActions";
-import { CreatePilotForm } from "@/components/forms/general/CreatePilotForm";
+import { UpdatePilotForm } from "@/components/forms/general/UpdatePilotForm";
 import {
   Dialog,
   DialogContent,
@@ -61,19 +61,19 @@ const PilotDropdownActions = ({ pilot }: { pilot: Pilot }) => {
       <SettingsRowActions actions={actions} tourId="pilotos-actions" />
 
       <Dialog open={openEdit} onOpenChange={setOpenEdit}>
-        <DialogContent className="sm:max-w-105">
+        <DialogContent
+          className="max-h-[90vh] overflow-y-auto sm:max-w-2xl"
+          onInteractOutside={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>Editar piloto</DialogTitle>
             <DialogDescription>
-              Modifique la licencia de{" "}
-              <span className="font-medium text-foreground">{fullName}</span>
+              Modifique lo necesario de{" "}
+              <span className="font-medium text-foreground">{fullName}</span>;
+              solo se guardará lo que cambie.
             </DialogDescription>
           </DialogHeader>
-          <CreatePilotForm
-            initialData={pilot}
-            isEditing
-            onClose={() => setOpenEdit(false)}
-          />
+          <UpdatePilotForm pilot={pilot} onClose={() => setOpenEdit(false)} />
         </DialogContent>
       </Dialog>
 
@@ -85,7 +85,8 @@ const PilotDropdownActions = ({ pilot }: { pilot: Pilot }) => {
         warning={
           <>
             Se eliminará su registro como piloto. El empleado <b>no</b> se
-            elimina.
+            elimina. Si el piloto tiene vuelos o envíos registrados, no podrá
+            ser eliminado.
           </>
         }
         isPending={deletePilot.isPending}

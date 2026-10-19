@@ -90,7 +90,11 @@ const intervalSchema = z.object({
 
 const formSchema = z
   .object({
-    maintenance_provider_id: z.string().min(1, "Seleccione quién lo realiza"),
+    // Obligatorio salvo "A realizar" (se exige al enviar).
+    maintenance_provider_id: z.string().optional(),
+    // "A realizar": nunca realizado; sin entidad, la fecha es el punto desde
+    // el que corre el límite.
+    never_performed: z.boolean().optional(),
     flags: z.array(z.enum(CONTROL_ITEM_FLAGS)).default([]),
     description: z.string().min(1, "Requerido"),
     declared_description: z.string().optional(),
@@ -299,6 +303,7 @@ export function AddComponentControlItemDialog({
     resolver: zodResolver(formSchema),
     defaultValues: {
       maintenance_provider_id: "",
+      never_performed: false,
       flags: [],
       description: "",
       declared_description: "",
@@ -317,6 +322,8 @@ export function AddComponentControlItemDialog({
 
   const { control } = form;
   const action = useWatch({ control, name: "action" });
+  const neverPerformed =
+    useWatch({ control, name: "never_performed" }) === true;
   const keepsConsumed = action !== "OVERHAUL";
   const {
     fields: intervalFields,
@@ -335,12 +342,20 @@ export function AddComponentControlItemDialog({
   };
 
   const onSubmit = async (values: FormValues) => {
+    if (!values.never_performed && !values.maintenance_provider_id) {
+      form.setError("maintenance_provider_id", {
+        message: "Seleccione quién lo realiza, o 'A realizar'",
+      });
+      return;
+    }
+
     await addComponentControlItem.mutateAsync({
       company: selectedCompany!.slug,
       controlId,
       data: {
         aircraft_part_id: aircraftPartId ? Number(aircraftPartId) : null,
-        maintenance_provider_id: values.maintenance_provider_id,
+        maintenance_provider_id: values.maintenance_provider_id || undefined,
+        never_performed: values.never_performed ?? false,
         flags: values.flags,
         description: values.description,
         declared_description: values.declared_description?.trim() || undefined,
@@ -511,6 +526,7 @@ export function AddComponentControlItemDialog({
                 <ProviderSelect
                   control={control as Control<any>}
                   name="maintenance_provider_id"
+                  neverPerformedName="never_performed"
                 />
               </FormItem>
             </div>
@@ -522,7 +538,9 @@ export function AddComponentControlItemDialog({
                 render={({ field }) => (
                   <FormItem className="w-full">
                     <DatePickerField
-                      label="1ra Aplicación"
+                      label={
+                        neverPerformed ? "Fecha de inicio" : "1ra Aplicación"
+                      }
                       value={field.value}
                       setValue={(date) => field.onChange(date ?? undefined)}
                       maxDate={new Date()}

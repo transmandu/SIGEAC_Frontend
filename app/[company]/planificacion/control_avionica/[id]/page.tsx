@@ -321,7 +321,12 @@ const AvionicsControlDetailPage = () => {
           noun="control de aviónica"
         />
 
-        <FormSection icon={Info} title="Información General">
+        <FormSection
+          icon={Info}
+          title="Información General"
+          collapsible
+          storageKey="ac:info"
+        >
           <div className="grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3 md:grid-cols-6">
             <InfoItem label="Matrícula" value={control.aircraft?.acronym} />
             <InfoItem
@@ -398,6 +403,8 @@ const AvionicsControlDetailPage = () => {
         <FormSection
           icon={Radio}
           title="Equipos de Aviónica"
+          collapsible
+          storageKey="ac:equipment"
           hint="Una fila por tarea; los equipos por condición no tienen plazo, solo se listan y se verifican."
           action={
             !controlRetired && (

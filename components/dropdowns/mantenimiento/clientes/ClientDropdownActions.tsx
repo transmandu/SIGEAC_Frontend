@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/dialog";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import type { AeronauticalClient } from "@/types";
+import { formatPhone } from "@/lib/phone";
 
 const Field = ({
   label,
@@ -84,7 +85,7 @@ const ClientDropdownActions = ({ client }: { client: AeronauticalClient }) => {
           </DialogHeader>
 
           <div className="grid grid-cols-2 gap-4 py-2">
-            <Field label="Teléfono" value={client.phone || "—"} />
+            <Field label="Teléfono" value={formatPhone(client.phone) || "—"} />
             <Field label="Correo" value={client.email || "—"} />
             <Field
               label="Tipo de cliente"
@@ -116,12 +117,16 @@ const ClientDropdownActions = ({ client }: { client: AeronauticalClient }) => {
       </Dialog>
 
       <Dialog open={openEdit} onOpenChange={setOpenEdit}>
-        <DialogContent onInteractOutside={(e) => e.preventDefault()}>
+        <DialogContent
+          className="max-h-[90vh] overflow-y-auto sm:max-w-3xl"
+          onInteractOutside={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>Editar cliente</DialogTitle>
             <DialogDescription>
-              Modifique la información de{" "}
+              Modifique lo necesario de{" "}
               <span className="font-medium text-foreground">{client.name}</span>
+              ; solo se guardará lo que cambie.
             </DialogDescription>
           </DialogHeader>
           <EditClientForm client={client} onClose={() => setOpenEdit(false)} />

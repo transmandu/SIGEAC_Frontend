@@ -1,158 +1,95 @@
 "use client";
-import {
-  useCreateRetailer,
-  useUpdateRetailer,
-} from "@/actions/ajustes/comercios/actions";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
 
-import { Input } from "@/components/ui/input";
-import { useCompanyStore } from "@/stores/CompanyStore";
-import { zodResolver } from "@/lib/zod-resolver";
-import { Loader2 } from "lucide-react";
+import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { Button } from "@/components/ui/button";
-import type { Retailer } from "@/types";
 
-const formSchema = z.object({
-  name: z.string().min(2, {
-    message: "El nombre debe tener al menos 2 carácteres.",
-  }),
-  address: z.string().optional(),
-  phone: z.string().optional(),
-});
+import { useCreateRetailer } from "@/actions/ajustes/comercios/actions";
+import {
+  applyServerFieldErrors,
+  invalidFormHandler,
+  serverFieldErrors,
+} from "@/components/forms/mantenimiento/almacen/_components/form-feedback";
+import { ArticleFormShell } from "@/components/forms/mantenimiento/almacen/articulos/ArticleFormShell";
+import { Form } from "@/components/ui/form";
+import { useGetRetailers } from "@/hooks/general/comercios/useGetRetailers";
+import { zodResolver } from "@/lib/zod-resolver";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import type { Retailer } from "@/types";
+import { RetailerFormFields } from "./RetailerFormFields";
+import {
+  buildRetailerSchema,
+  RETAILER_FIELD_LABELS,
+  type RetailerFormValues,
+} from "./retailerSchema";
 
 interface FormProps {
   onClose: () => void;
   /** Called with the newly created retailer after a successful creation. */
   onCreated?: (retailer: Retailer) => void;
-  /** Con comercio, el formulario edita en lugar de crear. */
-  retailer?: Retailer;
 }
 
-export default function CreateRetailerForm({
-  onClose,
-  onCreated,
-  retailer,
-}: FormProps) {
-  const { createRetailer } = useCreateRetailer();
-  const { updateRetailer } = useUpdateRetailer();
-  const mutation = retailer ? updateRetailer : createRetailer;
+export default function CreateRetailerForm({ onClose, onCreated }: FormProps) {
   const { selectedCompany } = useCompanyStore();
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: retailer?.name ?? "",
-      address: retailer?.address ?? "",
-      phone: retailer?.phone ?? "",
-    },
+  const { data: retailers, isSuccess: retailersLoaded } = useGetRetailers(
+    selectedCompany?.slug,
+  );
+  const { createRetailer } = useCreateRetailer();
+
+  const schema = useMemo(() => buildRetailerSchema(retailers), [retailers]);
+
+  const form = useForm<RetailerFormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: { name: "", phone: "", address: "" },
   });
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  // Los duplicados se validan contra el catálogo: si este llega después de que
+  // el usuario ya escribió, hay que volver a validar lo escrito.
+  useEffect(() => {
+    if (retailersLoaded && form.formState.dirtyFields.name) {
+      form.trigger("name");
+    }
+  }, [retailersLoaded, retailers, form]);
+
+  const onSubmit = async (values: RetailerFormValues) => {
     try {
-      if (retailer) {
-        await updateRetailer.mutateAsync({
-          ...values,
-          id: retailer.id,
-          company: selectedCompany!.slug,
-        });
-      } else {
-        const created = await createRetailer.mutateAsync({
-          ...values,
-          company: selectedCompany!.slug,
-        });
-        if (created) onCreated?.(created);
-      }
+      const created = await createRetailer.mutateAsync({
+        company: selectedCompany!.slug,
+        data: values,
+      });
+      if (created) onCreated?.(created);
       onClose();
-    } catch {
-      // El aviso lo muestra la mutación; el formulario queda abierto.
+    } catch (error) {
+      // El toast lo muestra la mutación; aquí se marca el campo rechazado.
+      const errors = serverFieldErrors(error);
+      if (errors) {
+        applyServerFieldErrors(form.setError, errors, RETAILER_FIELD_LABELS);
+      }
     }
   };
 
   return (
     <Form {...form}>
-      {/* stopPropagation: este form se renderiza dentro de otros formularios
-          (ej. cotización). React propaga el submit por su árbol aunque el
-          Dialog viva en un portal, y dispararía el submit del form padre. */}
-      <form
+      <ArticleFormShell
+        busy={createRetailer.isPending}
+        canSave
+        submitLabel="Crear comercio"
+        onCancel={onClose}
+        // stopPropagation: este form se renderiza dentro de otros formularios
+        // (ej. cotización). React propaga el submit por su árbol aunque el
+        // Dialog viva en un portal, y dispararía el submit del form padre.
         onSubmit={(e) => {
           e.stopPropagation();
-          form.handleSubmit(onSubmit)(e);
+          form.handleSubmit(
+            onSubmit,
+            invalidFormHandler(RETAILER_FIELD_LABELS),
+          )(e);
         }}
       >
-        <div className="flex flex-col gap-2 justify-center">
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem className="w-full">
-                <FormLabel>Nombre del Comercio</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="EJ: Ferretería EPA, Mercado Libre, etc..."
-                    {...field}
-                  />
-                </FormControl>
-                <FormDescription>
-                  Tienda física o sitio en línea donde se compra.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="phone"
-            render={({ field }) => (
-              <FormItem className="w-full">
-                <FormLabel>Nro. de TLF</FormLabel>
-                <FormControl>
-                  <Input placeholder="..." {...field} />
-                </FormControl>
-                <FormDescription>
-                  Número de contacto (opcional).
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="address"
-            render={({ field }) => (
-              <FormItem className="w-full">
-                <FormLabel>Ubicación</FormLabel>
-                <FormControl>
-                  <Input placeholder="..." {...field} />
-                </FormControl>
-                <FormDescription>
-                  Dirección física o URL del sitio (opcional).
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        <Button
-          className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70"
-          disabled={mutation.isPending}
-          type="submit"
-        >
-          {mutation.isPending ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <p>{retailer ? "Actualizar" : "Crear Comercio"}</p>
-          )}
-        </Button>
-      </form>
+        <RetailerFormFields
+          control={form.control}
+          disabled={createRetailer.isPending}
+        />
+      </ArticleFormShell>
     </Form>
   );
 }

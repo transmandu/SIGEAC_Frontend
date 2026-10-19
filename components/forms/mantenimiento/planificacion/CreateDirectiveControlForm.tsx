@@ -1248,6 +1248,7 @@ export default function CreateDirectiveControlForm({
               control={control}
               name="aircraft_id"
               excludeIds={excludeAircraftIds}
+              locked={isEditing}
               hint="Solo se listan las que aún no tienen un control de directivas."
             />
             <FormField

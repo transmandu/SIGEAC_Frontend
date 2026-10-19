@@ -1,154 +1,89 @@
 "use client";
 
 import { useState } from "react";
+import { Pencil, Trash2 } from "lucide-react";
+
+import { useDeleteCondition } from "@/actions/aerolinea/almacen/condiciones_articulos/actions";
+import { ConfirmDeleteDialog } from "@/components/dialogs/shared/ConfirmDeleteDialog";
+import {
+  SettingsRowActions,
+  type RowAction,
+} from "@/components/dropdowns/SettingsRowActions";
+import UpdateConditionForm from "@/components/forms/ajustes/UpdateConditionForm";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Condition } from "@/types";
 
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+const ConditionDropdownActions = ({ condition }: { condition: Condition }) => {
+  const [editOpen, setEditOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+  const { deleteCondition } = useDeleteCondition();
 
-import { Button } from "@/components/ui/button";
-
-import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
-
-import ConditionDropdownDialogs from "@/components/dialogs/ajustes/ConditionDropdownDialogs";
-
-const iconBase =
-  "size-4.5 transition-all duration-200 ease-out group-hover:scale-110";
-
-const itemBase = `
-  group
-  relative
-  flex
-  items-center
-  justify-center
-  size-9
-  rounded-xl
-  transition-all
-  duration-200
-  ease-out
-  hover:bg-muted
-  hover:shadow-xs
-  active:scale-95
-`;
-
-interface Props {
-  condition: Condition;
-}
-
-const ConditionDropdownActions = ({ condition }: Props) => {
-  const [openDropdown, setOpenDropdown] = useState(false);
-  const [openEdit, setOpenEdit] = useState(false);
-  const [openDelete, setOpenDelete] = useState(false);
+  const actions: RowAction[] = [
+    {
+      key: "edit",
+      label: "Editar condición",
+      icon: Pencil,
+      tone: "blue",
+      onSelect: () => setEditOpen(true),
+    },
+    {
+      key: "delete",
+      label: "Eliminar condición",
+      icon: Trash2,
+      tone: "red",
+      onSelect: () => setDeleteOpen(true),
+    },
+  ];
 
   return (
-    <TooltipProvider delayDuration={120}>
-      <>
-        <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="
-                size-8
-                rounded-xl
-                border border-transparent
-                transition-all duration-200
-                hover:bg-muted/70
-                hover:border-border/50
-                hover:shadow-xs
-                data-[state=open]:bg-muted
-              "
-              data-tour="condiciones-actions"
-            >
-              <MoreHorizontal className="size-4" />
-            </Button>
-          </DropdownMenuTrigger>
+    <>
+      <SettingsRowActions actions={actions} tourId="condiciones-actions" />
 
-          <DropdownMenuContent
-            align="center"
-            sideOffset={3}
-            className="
-              flex items-center justify-center gap-1.5
-              rounded-2xl
-              border border-border/50
-              bg-background/90
-              backdrop-blur-xl
-              shadow-xl
-              p-1.5
-              overflow-visible
-              animate-in fade-in zoom-in-95 duration-200
-            "
-          >
-            {/* EDIT */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span>
-                  <DropdownMenuItem
-                    asChild
-                    className="p-0 focus:bg-transparent"
-                  >
-                    <button
-                      onClick={() => {
-                        setOpenDropdown(false);
-                        setOpenEdit(true);
-                      }}
-                      className={`${itemBase} text-blue-600`}
-                    >
-                      <Pencil className={iconBase} />
-                    </button>
-                  </DropdownMenuItem>
-                </span>
-              </TooltipTrigger>
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent
+          className="max-h-[90vh] overflow-y-auto sm:max-w-lg"
+          onInteractOutside={(e) => e.preventDefault()}
+        >
+          <DialogHeader>
+            <DialogTitle>Editar condición</DialogTitle>
+            <DialogDescription>
+              Modifique lo necesario de{" "}
+              <span className="font-medium text-foreground">
+                {condition.name}
+              </span>
+              ; solo se guardará lo que cambie.
+            </DialogDescription>
+          </DialogHeader>
+          <UpdateConditionForm
+            condition={condition}
+            onClose={() => setEditOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
 
-              <TooltipContent>Editar condición</TooltipContent>
-            </Tooltip>
-
-            {/* DELETE */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span>
-                  <DropdownMenuItem
-                    asChild
-                    className="p-0 focus:bg-transparent"
-                  >
-                    <button
-                      onClick={() => {
-                        setOpenDropdown(false);
-                        setOpenDelete(true);
-                      }}
-                      className={`${itemBase} text-red-600`}
-                    >
-                      <Trash2 className={iconBase} />
-                    </button>
-                  </DropdownMenuItem>
-                </span>
-              </TooltipTrigger>
-
-              <TooltipContent>Eliminar condición</TooltipContent>
-            </Tooltip>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        <ConditionDropdownDialogs
-          condition={condition}
-          openEdit={openEdit}
-          setOpenEdit={setOpenEdit}
-          openDelete={openDelete}
-          setOpenDelete={setOpenDelete}
-        />
-      </>
-    </TooltipProvider>
+      <ConfirmDeleteDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        title="Eliminar condición"
+        entityName={condition.name}
+        warning={
+          <>
+            Esta acción es <b>irreversible</b>. Si la condición está en uso por
+            artículos, o excluye del costo y tiene salidas registradas, no podrá
+            ser eliminada.
+          </>
+        }
+        isPending={deleteCondition.isPending}
+        onConfirm={() => deleteCondition.mutateAsync(condition.id)}
+      />
+    </>
   );
 };
 

@@ -1,4 +1,5 @@
 import axiosInstance from "@/lib/axios";
+import { getApiErrorMessage } from "@/lib/api-error";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -26,9 +27,8 @@ export const useCreateThirdParty = () => {
     },
     onError: (error) => {
       toast.error("Oops!", {
-        description: "No se pudo crear el tercero...",
+        description: getApiErrorMessage(error, "No se pudo crear el tercero."),
       });
-      console.log(error);
     },
   });
   return {
@@ -47,6 +47,7 @@ export const useUpdateThirdParty = () => {
       data,
     }: {
       id: number | string;
+      /** Actualización parcial: solo viajan los campos que cambiaron. */
       data: Partial<ThirdPartySchema>;
     }) => {
       await axiosInstance.put(`/${slug}/third-parties/${id}`, data);
@@ -57,9 +58,12 @@ export const useUpdateThirdParty = () => {
         description: `El tercero ha sido actualizado correctamente.`,
       });
     },
-    onError: (e) => {
+    onError: (error) => {
       toast.error("Oops!", {
-        description: "¡Hubo un error al actualizar el tercero!",
+        description: getApiErrorMessage(
+          error,
+          "¡Hubo un error al actualizar el tercero!",
+        ),
       });
     },
   });
@@ -84,9 +88,12 @@ export const useDeleteThirdParty = () => {
         description: `¡El tercero ha sido eliminado correctamente!`,
       });
     },
-    onError: (e) => {
+    onError: (error) => {
       toast.error("Oops!", {
-        description: "¡Hubo un error al eliminar un tercero!",
+        description: getApiErrorMessage(
+          error,
+          "¡Hubo un error al eliminar el tercero!",
+        ),
       });
     },
   });

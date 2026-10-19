@@ -15,10 +15,8 @@ import { RetiredControlBanner } from "@/components/planificacion/controles/Retir
 const EditDirectiveControlPage = () => {
   const { id } = useParams<{ id: string }>();
   const { selectedCompany } = useCompanyStore();
-  const { data, isLoading, isError } = useGetDirectiveControl(
-    selectedCompany?.slug,
-    id,
-  );
+  const { data, isLoading, isError, isFetchedAfterMount } =
+    useGetDirectiveControl(selectedCompany?.slug, id);
 
   return (
     <ProtectedLayout roles={["SUPERUSER"]}>
@@ -39,7 +37,7 @@ const EditDirectiveControlPage = () => {
             </div>
           </div>
 
-          {isLoading && <LoadingPage />}
+          {(isLoading || (data && !isFetchedAfterMount)) && <LoadingPage />}
 
           {isError && (
             <Alert variant="destructive">
@@ -59,7 +57,7 @@ const EditDirectiveControlPage = () => {
             />
           )}
 
-          {data && !data.retired_at && (
+          {data && isFetchedAfterMount && !isError && !data.retired_at && (
             <CreateDirectiveControlForm initialData={data} />
           )}
         </div>

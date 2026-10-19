@@ -4,6 +4,7 @@ import { type AppColumnDef } from "@/lib/table";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import PilotDropdownActions from "@/components/misc/PilotDropdownActions";
 import { Pilot } from "@/types";
+import { formatPhone } from "@/lib/phone";
 
 export const columns: AppColumnDef<Pilot>[] = [
   {
@@ -72,7 +73,7 @@ export const columns: AppColumnDef<Pilot>[] = [
     cell: ({ row }) => (
       <div className="flex justify-center w-full">
         <span className="text-sm text-slate-600 dark:text-slate-300">
-          {row.original.employee?.phone || "—"}
+          {formatPhone(row.original.employee?.phone) || "—"}
         </span>
       </div>
     ),

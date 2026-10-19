@@ -9,6 +9,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { comerciosSteps } from "@/components/tour/steps/ajustes/comercios";
 import { columns } from "./columns";
+import { phoneMatches } from "@/lib/phone";
 
 const RetailersPage = () => {
   const { selectedCompany } = useCompanyStore();
@@ -38,7 +39,7 @@ const RetailersPage = () => {
     return retailers.filter(
       (r) =>
         r.name?.toLowerCase().includes(q) ||
-        r.phone?.toLowerCase().includes(q) ||
+        phoneMatches(r.phone, q) ||
         r.address?.toLowerCase().includes(q),
     );
   }, [retailers, deferredSearch]);

@@ -15,8 +15,9 @@ interface PilotSchema {
 interface updatePilotSchema {
   company: string;
   id: string;
+  /** Actualización parcial: solo viajan los campos que cambiaron. */
   data: {
-    license_number: string;
+    license_number?: string;
   };
 }
 

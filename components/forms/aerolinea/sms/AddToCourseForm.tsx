@@ -10,7 +10,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useGetCourseEnrollementStatus } from "@/hooks/curso/useGetCourseEnrollementStatus";
-import { useGetAllEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetAllEmployees";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Course } from "@/types";
@@ -83,8 +82,6 @@ export function AddToCourseForm({ onClose, initialData }: FormProps) {
   };
   const { data: employeesData, isLoading: isLoadingEnrolledEmployee } =
     useGetCourseEnrollementStatus(value);
-  const { data: allEmployees, isLoading: isLoadingAllEmployees } =
-    useGetAllEmployeesByCompany(selectedCompany?.slug);
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
@@ -146,20 +143,13 @@ export function AddToCourseForm({ onClose, initialData }: FormProps) {
       };
     };
 
-    const selections: EmployeeSelection[] = (allEmployees ?? []).map(
+    const selections: EmployeeSelection[] = [...enrolled, ...notEnrolled].map(
       toSelection,
-    );
-
-    const knownDni = new Set(selections.map((s) => s.dni));
-    selections.push(
-      ...[...enrolled, ...notEnrolled]
-        .filter((e) => !knownDni.has(e.dni))
-        .map(toSelection),
     );
 
     setEmployeeSelections(selections);
     updateFormValues(selections);
-  }, [allEmployees, employeesData, updateFormValues]);
+  }, [employeesData, updateFormValues]);
 
   const toggleEmployeeSelection = (dni: string) => {
     const newSelections = employeeSelections.map((emp) =>
@@ -210,7 +200,7 @@ export function AddToCourseForm({ onClose, initialData }: FormProps) {
     onClose();
   };
 
-  if (isLoadingEnrolledEmployee || isLoadingAllEmployees) {
+  if (isLoadingEnrolledEmployee) {
     return <div className="p-4 text-center">Cargando empleados...</div>;
   }
 

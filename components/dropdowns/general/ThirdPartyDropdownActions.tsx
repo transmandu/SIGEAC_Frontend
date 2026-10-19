@@ -1,154 +1,92 @@
 "use client";
 
 import { useState } from "react";
+import { Pencil, Trash2 } from "lucide-react";
+
+import { useDeleteThirdParty } from "@/actions/sistema/terceros/actions";
+import { ConfirmDeleteDialog } from "@/components/dialogs/shared/ConfirmDeleteDialog";
+import {
+  SettingsRowActions,
+  type RowAction,
+} from "@/components/dropdowns/SettingsRowActions";
+import UpdateThirdPartyForm from "@/components/forms/general/UpdateThirdPartyForm";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { ThirdParty } from "@/types";
 
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-
-import { Button } from "@/components/ui/button";
-
-import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
-
-import ThirdPartyDropdownDialogs from "@/components/dialogs/general/ThirdPartyDropdownDialogs";
-
-const iconBase =
-  "size-4.5 transition-all duration-200 ease-out group-hover:scale-110";
-
-const itemBase = `
-  group
-  relative
-  flex
-  items-center
-  justify-center
-  size-9
-  rounded-xl
-  transition-all
-  duration-200
-  ease-out
-  hover:bg-muted
-  hover:shadow-xs
-  active:scale-95
-`;
-
-interface Props {
+const ThirdPartyDropdownActions = ({
+  thirdParty,
+}: {
   thirdParty: ThirdParty;
-}
+}) => {
+  const [editOpen, setEditOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
-const ThirdPartyDropdownActions = ({ thirdParty }: Props) => {
-  const [openDropdown, setOpenDropdown] = useState(false);
-  const [openEdit, setOpenEdit] = useState(false);
-  const [openDelete, setOpenDelete] = useState(false);
+  const { deleteThirdParty } = useDeleteThirdParty();
+
+  const actions: RowAction[] = [
+    {
+      key: "edit",
+      label: "Editar tercero",
+      icon: Pencil,
+      tone: "blue",
+      onSelect: () => setEditOpen(true),
+    },
+    {
+      key: "delete",
+      label: "Eliminar tercero",
+      icon: Trash2,
+      tone: "red",
+      onSelect: () => setDeleteOpen(true),
+    },
+  ];
 
   return (
-    <TooltipProvider delayDuration={120}>
-      <>
-        <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="
-                size-8
-                rounded-xl
-                border border-transparent
-                transition-all duration-200
-                hover:bg-muted/70
-                hover:border-border/50
-                hover:shadow-xs
-                data-[state=open]:bg-muted
-              "
-              data-tour="terceros-actions"
-            >
-              <MoreHorizontal className="size-4" />
-            </Button>
-          </DropdownMenuTrigger>
+    <>
+      <SettingsRowActions actions={actions} tourId="terceros-actions" />
 
-          <DropdownMenuContent
-            align="center"
-            sideOffset={3}
-            className="
-              flex items-center justify-center gap-1.5
-              rounded-2xl
-              border border-border/50
-              bg-background/90
-              backdrop-blur-xl
-              shadow-xl
-              p-1.5
-              overflow-visible
-              animate-in fade-in zoom-in-95 duration-200
-            "
-          >
-            {/* EDIT */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span>
-                  <DropdownMenuItem
-                    asChild
-                    className="p-0 focus:bg-transparent"
-                  >
-                    <button
-                      onClick={() => {
-                        setOpenDropdown(false);
-                        setOpenEdit(true);
-                      }}
-                      className={`${itemBase} text-blue-600`}
-                    >
-                      <Pencil className={iconBase} />
-                    </button>
-                  </DropdownMenuItem>
-                </span>
-              </TooltipTrigger>
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent
+          className="max-h-[90vh] overflow-y-auto sm:max-w-lg"
+          onInteractOutside={(e) => e.preventDefault()}
+        >
+          <DialogHeader>
+            <DialogTitle>Editar tercero</DialogTitle>
+            <DialogDescription>
+              Modifique lo necesario de{" "}
+              <span className="font-medium text-foreground">
+                {thirdParty.name}
+              </span>
+              ; solo se guardará lo que cambie.
+            </DialogDescription>
+          </DialogHeader>
+          <UpdateThirdPartyForm
+            thirdParty={thirdParty}
+            onClose={() => setEditOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
 
-              <TooltipContent>Editar tercero</TooltipContent>
-            </Tooltip>
-
-            {/* DELETE */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span>
-                  <DropdownMenuItem
-                    asChild
-                    className="p-0 focus:bg-transparent"
-                  >
-                    <button
-                      onClick={() => {
-                        setOpenDropdown(false);
-                        setOpenDelete(true);
-                      }}
-                      className={`${itemBase} text-red-600`}
-                    >
-                      <Trash2 className={iconBase} />
-                    </button>
-                  </DropdownMenuItem>
-                </span>
-              </TooltipTrigger>
-
-              <TooltipContent>Eliminar tercero</TooltipContent>
-            </Tooltip>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        <ThirdPartyDropdownDialogs
-          thirdParty={thirdParty}
-          openEdit={openEdit}
-          setOpenEdit={setOpenEdit}
-          openDelete={openDelete}
-          setOpenDelete={setOpenDelete}
-        />
-      </>
-    </TooltipProvider>
+      <ConfirmDeleteDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        title="Eliminar tercero"
+        entityName={thirdParty.name}
+        warning={
+          <>
+            Esta acción es <b>irreversible</b>. Si el tercero está asociado a
+            despachos, requisiciones o movimientos, no podrá ser eliminado.
+          </>
+        }
+        isPending={deleteThirdParty.isPending}
+        onConfirm={() => deleteThirdParty.mutateAsync(thirdParty.id)}
+      />
+    </>
   );
 };
 

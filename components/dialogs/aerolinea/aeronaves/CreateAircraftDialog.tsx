@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Plus } from "lucide-react";
-import { AircraftForm } from "@/components/forms/aerolinea/aeronaves/AircraftForm";
+import { CreateAircraftForm } from "@/components/forms/aerolinea/aeronaves/CreateAircraftForm";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 import {
   Dialog,
@@ -25,7 +25,7 @@ export function CreateAircraftDialog() {
         </ActionTriggerButton>
       </DialogTrigger>
       <DialogContent
-        className="max-h-[90vh] overflow-y-auto sm:max-w-2xl"
+        className="max-h-[90vh] overflow-y-auto sm:max-w-4xl"
         onInteractOutside={(e) => e.preventDefault()}
       >
         <DialogHeader>
@@ -35,7 +35,7 @@ export function CreateAircraftDialog() {
             carga.
           </DialogDescription>
         </DialogHeader>
-        <AircraftForm onClose={() => setOpen(false)} />
+        <CreateAircraftForm onClose={() => setOpen(false)} />
       </DialogContent>
     </Dialog>
   );

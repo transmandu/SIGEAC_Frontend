@@ -1,3 +1,23 @@
+## v4.72.0 — 2026-10-19
+
+- feat: enhance maintenance forms with new features and validations (#346)
+
+## v4.71.0 — 2026-10-19
+
+- feat: add button to download course document (#345)
+
+## v4.70.1 — 2026-10-19
+
+- fix: duplicate attendance in course (#344)
+
+## v4.70.0 — 2026-10-17
+
+- feat: implement phone input component and integrate into forms (#343)
+
+## v4.69.0 — 2026-10-16
+
+- feat(client-forms): add ClientFormFields component and integrate into… (#342)
+
 ## v4.68.0 — 2026-10-15
 
 - feat: enhance form validation and error handling in article forms (#341)

@@ -25,10 +25,15 @@ export function CreateUnitDialog() {
           Crear unidad
         </ActionTriggerButton>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-105">
+      <DialogContent
+        className="max-h-[90vh] overflow-y-auto sm:max-w-lg"
+        onInteractOutside={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle>Creación de Unidad</DialogTitle>
-          <DialogDescription></DialogDescription>
+          <DialogDescription>
+            Registre una unidad de medida para los artículos del almacén.
+          </DialogDescription>
         </DialogHeader>
         <CreateUnitForm onClose={() => setOpen(false)} />
       </DialogContent>

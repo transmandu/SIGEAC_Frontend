@@ -25,8 +25,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import CreateVendorForm from "@/components/forms/general/CreateVendorForm";
-import { useCreateVendor } from "@/actions/ajustes/proveedores/actions";
-import { useCompanyStore } from "@/stores/CompanyStore";
 import type { Vendor } from "@/types";
 
 interface VendorComboboxProps {
@@ -52,8 +50,6 @@ export function VendorCombobox({
 }: VendorComboboxProps) {
   const [open, setOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
-  const { selectedCompany } = useCompanyStore();
-  const createVendor = useCreateVendor(selectedCompany?.slug);
 
   const selected = vendors?.find((v) => v.id.toString() === value);
 
@@ -136,7 +132,10 @@ export function VendorCombobox({
 
       {/* Crear proveedor modal — auto-selects the new vendor on success */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="sm:max-w-140">
+        <DialogContent
+          className="max-h-[90vh] overflow-y-auto sm:max-w-2xl"
+          onInteractOutside={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>Creación de Proveedor</DialogTitle>
             <DialogDescription>
@@ -146,11 +145,7 @@ export function VendorCombobox({
           </DialogHeader>
           <CreateVendorForm
             onClose={() => setCreateOpen(false)}
-            onSubmit={async (data) => {
-              const created = await createVendor.mutateAsync(data);
-              onChange(created.id.toString());
-            }}
-            isLoading={createVendor.isPending}
+            onCreated={(created) => onChange(created.id.toString())}
           />
         </DialogContent>
       </Dialog>

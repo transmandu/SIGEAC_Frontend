@@ -40,6 +40,8 @@ import {
   Truck,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { PhoneInput } from "@/components/ui/PhoneInput";
+import { PHONE_ERROR_MESSAGE, isValidPhone, toPhoneValue } from "@/lib/phone";
 
 interface Props {
   dispatchId: number;
@@ -171,7 +173,7 @@ export function WorkshopDispatchTimelineDialog({
       name: workshop.name ?? "",
       rif: workshop.rif ?? "",
       address: workshop.address ?? "",
-      phone: workshop.phone ?? "",
+      phone: toPhoneValue(workshop.phone),
       contact_name: workshop.contact_name ?? "",
     });
   }, [panelMode, workshopDispatch?.workshop]);
@@ -230,13 +232,28 @@ export function WorkshopDispatchTimelineDialog({
       workshopDetails.name.trim() !== (workshop.name ?? "") ||
       workshopDetails.rif.trim() !== (workshop.rif ?? "") ||
       workshopDetails.address.trim() !== (workshop.address ?? "") ||
-      workshopDetails.phone.trim() !== (workshop.phone ?? "") ||
+      workshopDetails.phone.trim() !== toPhoneValue(workshop.phone) ||
       workshopDetails.contact_name.trim() !== (workshop.contact_name ?? "")
     );
   }, [workshopDetails, workshopDispatch?.workshop]);
 
+  // Un teléfono antiguo que no cumple el formato se admite mientras no se toque.
+  const workshopPhoneInvalid = useMemo(() => {
+    const phone = workshopDetails.phone.trim();
+    const saved = workshopDispatch?.workshop?.phone;
+
+    return (
+      phone !== "" && phone !== toPhoneValue(saved) && !isValidPhone(phone)
+    );
+  }, [workshopDetails.phone, workshopDispatch?.workshop?.phone]);
+
   const handleUpdateWorkshopDetails = () => {
-    if (!hasWorkshopDetailsChanges || !workshopDetails.name.trim()) return;
+    if (
+      !hasWorkshopDetailsChanges ||
+      !workshopDetails.name.trim() ||
+      workshopPhoneInvalid
+    )
+      return;
 
     updateWorkshopDetails.mutate(
       {
@@ -246,7 +263,13 @@ export function WorkshopDispatchTimelineDialog({
           name: workshopDetails.name.trim(),
           rif: workshopDetails.rif.trim() || undefined,
           address: workshopDetails.address.trim() || undefined,
-          phone: workshopDetails.phone.trim() || undefined,
+          // Solo si cambió: reenviar uno antiguo que no cumple el formato haría
+          // que el servidor rechace la edición de los demás datos.
+          phone:
+            workshopDetails.phone.trim() !==
+            toPhoneValue(workshopDispatch?.workshop?.phone)
+              ? workshopDetails.phone.trim() || undefined
+              : undefined,
           contact_name: workshopDetails.contact_name.trim() || undefined,
         },
       },
@@ -556,16 +579,18 @@ export function WorkshopDispatchTimelineDialog({
                         <Label className="text-xs text-muted-foreground">
                           Teléfono
                         </Label>
-                        <Input
+                        <PhoneInput
                           value={workshopDetails.phone}
-                          onChange={(e) =>
-                            setWorkshopDetails((p) => ({
-                              ...p,
-                              phone: e.target.value,
-                            }))
+                          onChange={(phone) =>
+                            setWorkshopDetails((p) => ({ ...p, phone }))
                           }
-                          className="h-10 bg-background"
+                          aria-invalid={workshopPhoneInvalid}
                         />
+                        {workshopPhoneInvalid && (
+                          <p className="text-xs font-medium text-destructive">
+                            {PHONE_ERROR_MESSAGE}
+                          </p>
+                        )}
                       </div>
                       <div className="space-y-1.5">
                         <Label className="text-xs text-muted-foreground">
@@ -590,6 +615,7 @@ export function WorkshopDispatchTimelineDialog({
                         onClick={handleUpdateWorkshopDetails}
                         disabled={
                           !hasWorkshopDetailsChanges ||
+                          workshopPhoneInvalid ||
                           !workshopDetails.name.trim() ||
                           updateWorkshopDetails.isPending
                         }

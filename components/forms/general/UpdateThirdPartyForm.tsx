@@ -1,124 +1,94 @@
 "use client";
 
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { zodResolver } from "@/lib/zod-resolver";
-import { Loader2 } from "lucide-react";
+import { useMemo } from "react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { Button } from "@/components/ui/button";
-import { useUpdateThirdParty } from "@/actions/sistema/terceros/actions";
-import { ThirdParty } from "@/types";
 
-const formSchema = z.object({
-  name: z.string().min(3, {
-    message: "El nombre debe tener al menos 3 caracteres.",
-  }),
-  type: z.string({
-    error: "Debe seleccionar un tipo.",
-  }).min(1, { message: "Debe seleccionar un tipo." }),
-});
+import { useUpdateThirdParty } from "@/actions/sistema/terceros/actions";
+import {
+  applyServerFieldErrors,
+  invalidFormHandler,
+  serverFieldErrors,
+} from "@/components/forms/mantenimiento/almacen/_components/form-feedback";
+import { ArticleFormShell } from "@/components/forms/mantenimiento/almacen/articulos/ArticleFormShell";
+import { Form } from "@/components/ui/form";
+import { useGetThirdParties } from "@/hooks/general/terceros/useGetThirdParties";
+import { zodResolver } from "@/lib/zod-resolver";
+import { ThirdParty } from "@/types";
+import { ThirdPartyFormFields } from "./ThirdPartyFormFields";
+import {
+  buildThirdPartySchema,
+  diffThirdParty,
+  THIRD_PARTY_FIELD_LABELS,
+  type ThirdPartyFormValues,
+} from "./thirdPartySchema";
 
 interface FormProps {
   thirdParty: ThirdParty;
   onClose: () => void;
 }
 
-export default function UpdateThirdPartyForm({ thirdParty, onClose }: FormProps) {
+export default function UpdateThirdPartyForm({
+  thirdParty,
+  onClose,
+}: FormProps) {
+  const { data: thirdParties } = useGetThirdParties();
   const { updateThirdParty } = useUpdateThirdParty();
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const schema = useMemo(
+    () => buildThirdPartySchema(thirdParties, thirdParty),
+    [thirdParties, thirdParty],
+  );
+
+  // Los valores iniciales se fijan al montar: el diálogo desmonta su contenido
+  // al cerrarse, así que cada apertura parte de lo guardado y un refetch de la
+  // lista no pisa lo que el usuario está escribiendo.
+  const form = useForm<ThirdPartyFormValues>({
+    resolver: zodResolver(schema),
     defaultValues: {
-      name: thirdParty.name,
-      type: thirdParty.type,
+      name: thirdParty.name ?? "",
+      type: thirdParty.type ?? "",
     },
   });
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  const onSubmit = async (values: ThirdPartyFormValues) => {
+    const changes = diffThirdParty(thirdParty, values);
+
+    if (Object.keys(changes).length === 0) {
+      onClose();
+      return;
+    }
+
     try {
-      await updateThirdParty.mutateAsync({ id: thirdParty.id, data: values });
+      await updateThirdParty.mutateAsync({ id: thirdParty.id, data: changes });
       onClose();
     } catch (error) {
-      console.log(error);
+      const errors = serverFieldErrors(error);
+      if (errors) {
+        applyServerFieldErrors(form.setError, errors, THIRD_PARTY_FIELD_LABELS);
+      }
     }
   };
 
   return (
     <Form {...form}>
-      <form
+      <ArticleFormShell
+        isEditing
+        busy={updateThirdParty.isPending}
+        canSave={form.formState.isDirty}
+        onCancel={onClose}
         onSubmit={(e) => {
           e.stopPropagation();
-          form.handleSubmit(onSubmit)(e);
+          form.handleSubmit(
+            onSubmit,
+            invalidFormHandler(THIRD_PARTY_FIELD_LABELS),
+          )(e);
         }}
-        className="space-y-4"
       >
-        <FormField
+        <ThirdPartyFormFields
           control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Nombre</FormLabel>
-              <FormControl>
-                <Input placeholder="Ej: Empresa ABC S.A..." {...field} />
-              </FormControl>
-              <FormDescription>Nombre del tercero.</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="type"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Tipo</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccione el tipo..." />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="CLIENT_COMPANY">Cliente - Empresa</SelectItem>
-                  <SelectItem value="CLIENT_PERSON">Cliente - Persona</SelectItem>
-                  <SelectItem value="OTHER">Otro</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormDescription>Indique el tipo de tercero.</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <Button
-          className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70"
           disabled={updateThirdParty.isPending}
-          type="submit"
-        >
-          {updateThirdParty.isPending ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <p>Actualizar</p>
-          )}
-        </Button>
-      </form>
+        />
+      </ArticleFormShell>
     </Form>
   );
 }

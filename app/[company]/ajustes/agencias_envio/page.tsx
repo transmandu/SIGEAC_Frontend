@@ -12,6 +12,7 @@ import ShippingAgenciesToolBar from "./_components/ShippingAgenciesToolBar";
 import ShippingAgenciesSubRow from "./_components/ShippingAgenciesSubRow";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { agenciasEnvioSteps } from "@/components/tour/steps/ajustes/agencia-envios/agencia-envios";
+import { phoneMatches } from "@/lib/phone";
 
 const columns = getColumns();
 
@@ -49,7 +50,7 @@ const ShippingAgenciesPage = () => {
         agency.name?.toLowerCase?.().includes(q) ||
         agency.code?.toLowerCase?.().includes(q) ||
         agency.description?.toLowerCase?.().includes(q) ||
-        agency.phone?.toLowerCase?.().includes(q) ||
+        phoneMatches(agency.phone, q) ||
         agency.email?.toLowerCase?.().includes(q);
 
       const matchesType = type === "ALL" || agency.type === type;

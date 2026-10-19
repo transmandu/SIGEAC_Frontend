@@ -4,6 +4,7 @@ import { type AppColumnDef } from "@/lib/table";
 import type { AirlineClient } from "@/types";
 import ClientDropdownActions from "@/components/dropdowns/aerolinea/clientes/ClientDropdownActions";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
+import { formatPhone } from "@/lib/phone";
 
 export const columns: AppColumnDef<AirlineClient>[] = [
   {
@@ -52,7 +53,7 @@ export const columns: AppColumnDef<AirlineClient>[] = [
     cell: ({ row }) => (
       <div className="flex justify-center w-full">
         <span className="text-sm text-slate-600 dark:text-slate-300">
-          {row.original.phone || "—"}
+          {formatPhone(row.original.phone) || "—"}
         </span>
       </div>
     ),

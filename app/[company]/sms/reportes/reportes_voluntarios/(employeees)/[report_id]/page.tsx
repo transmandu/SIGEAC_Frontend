@@ -37,6 +37,7 @@ import Image from "next/image";
 import ImageZoom from "@/components/ui/ImageZoom";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { formatPhone } from "@/lib/phone";
 
 const ShowVoluntaryReport = () => {
   const { report_id } = useParams<{ report_id: string }>();
@@ -373,7 +374,7 @@ const ShowVoluntaryReport = () => {
                   <Phone className="w-3.5 h-3.5" /> Teléfono
                 </p>
                 <p className={`${fieldValue} font-mono`}>
-                  {voluntaryReport.reporter_phone || "N/A"}
+                  {formatPhone(voluntaryReport.reporter_phone) || "N/A"}
                 </p>
               </div>
             </div>

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Pencil, Trash2 } from "lucide-react";
 import { useDeleteRetailer } from "@/actions/ajustes/comercios/actions";
 import { ConfirmDeleteDialog } from "@/components/dialogs/shared/ConfirmDeleteDialog";
-import CreateRetailerForm from "@/components/forms/general/CreateRetailerForm";
+import UpdateRetailerForm from "@/components/forms/general/UpdateRetailerForm";
 import {
   SettingsRowActions,
   type RowAction,
@@ -47,17 +47,21 @@ export function RetailerDropdownActions({ retailer }: { retailer: Retailer }) {
       <SettingsRowActions actions={actions} tourId="comercios-actions" />
 
       <Dialog open={openEdit} onOpenChange={setOpenEdit}>
-        <DialogContent className="sm:max-w-[490px]">
+        <DialogContent
+          className="max-h-[90vh] overflow-y-auto sm:max-w-lg"
+          onInteractOutside={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>Editar comercio</DialogTitle>
             <DialogDescription>
-              Modifique la información de{" "}
+              Modifique lo necesario de{" "}
               <span className="font-medium text-foreground">
                 {retailer.name}
               </span>
+              ; solo se guardará lo que cambie.
             </DialogDescription>
           </DialogHeader>
-          <CreateRetailerForm
+          <UpdateRetailerForm
             retailer={retailer}
             onClose={() => setOpenEdit(false)}
           />

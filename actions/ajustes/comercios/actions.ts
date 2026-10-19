@@ -8,15 +8,20 @@ interface RetailerSchema {
   name: string;
   address?: string;
   phone?: string;
-  company: string;
 }
 
 export const useCreateRetailer = () => {
   const queryClient = useQueryClient();
 
   const createMutation = useMutation({
-    mutationFn: async (data: RetailerSchema): Promise<Retailer> => {
-      const res = await axiosInstance.post(`/${data.company}/retailers`, data);
+    mutationFn: async ({
+      company,
+      data,
+    }: {
+      company: string;
+      data: RetailerSchema;
+    }): Promise<Retailer> => {
+      const res = await axiosInstance.post(`/${company}/retailers`, data);
       return res.data?.data as Retailer;
     },
     onSuccess: () => {
@@ -42,10 +47,16 @@ export const useUpdateRetailer = () => {
 
   const updateMutation = useMutation({
     mutationFn: async ({
+      company,
       id,
-      ...data
-    }: RetailerSchema & { id: number | string }) => {
-      await axiosInstance.put(`/${data.company}/retailers/${id}`, data);
+      data,
+    }: {
+      company: string;
+      id: number | string;
+      /** Actualización parcial: solo viajan los campos que cambiaron. */
+      data: Partial<RetailerSchema>;
+    }) => {
+      await axiosInstance.put(`/${company}/retailers/${id}`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["retailers"] });

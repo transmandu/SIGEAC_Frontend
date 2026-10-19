@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { useAuth } from "@/contexts/AuthContext";
+import { hasAuthCookie } from "@/lib/cookie";
 import {
   isSafeInternalPath,
   setPostLoginRedirect,
@@ -50,6 +51,21 @@ export default function AuthRedirect() {
     // pertenezca al usuario actual. Saltárselo metía al usuario nuevo en la
     // empresa del anterior, o dejaba el login colgado si ya no tiene acceso.
     router.replace("/inicio");
+
+    // Si la transición de Next se pierde (otra navegación la pisa, o un
+    // prefetch cacheado del proxy la devuelve al login) la pantalla se quedaba
+    // fija hasta que el usuario hacía F5. Una carga completa es exactamente ese
+    // F5, y no puede ciclar: sin cookie el login se monta sin usuario y no
+    // vuelve a navegar.
+    // Sin cleanup a propósito: el efecto se re-ejecuta al cambiar searchParams
+    // y cancelaría justo el caso que cubre; el timer se valida solo al disparar.
+    window.setTimeout(() => {
+      // Sin cookie la sesión ya terminó (un 401 tardío): recargar solo sería
+      // un parpadeo hacia el mismo login.
+      if (window.location.pathname === "/login" && hasAuthCookie()) {
+        window.location.assign("/inicio");
+      }
+    }, 3000);
   }, [loading, loggingOut, user, searchParams, router]);
 
   return null;

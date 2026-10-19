@@ -73,7 +73,7 @@ import {
   appliedReadingOf,
   consumedAtStartOf,
 } from "@/lib/complianceFormMapping";
-import { partTypeLabel, partTypeRank } from "@/lib/maintenancePartTypes";
+import { comparePartsByOrder, partTypeLabel } from "@/lib/maintenancePartTypes";
 import {
   FormSection,
   fieldClass,
@@ -85,6 +85,7 @@ import {
   AircraftSelect,
   CatalogManualField,
   CompactDateField,
+  itemLabelClass,
   NumericInput,
   ProviderSelect,
   useSuggestedControlTitle,
@@ -139,6 +140,9 @@ const baseItemSchema = z.object({
   // Opcional solo para un ítem existente sin cumplimiento vigente (se deja
   // como está); en una fila nueva lo exige el superRefine de abajo.
   applied_date: z.date().optional(),
+  // "A realizar": el servicio nunca se ha realizado, así que no hay entidad y
+  // la fecha y lecturas son el punto desde el que corre el límite (ver ProviderSelect).
+  never_performed: z.boolean().optional(),
   intervals: z.array(intervalSchema).min(1, "Agregue al menos un intervalo"),
   remaining_percentage: optionalPercentage,
 });
@@ -146,13 +150,13 @@ const baseItemSchema = z.object({
 // Los certificados son documentos a bordo: algunos sí llevan una entidad
 // aeronáutica responsable y otros no, así que "Realizado por" siempre se
 // muestra pero es opcional. Los servicios (de aeronave y de parte) siempre
-// lo requieren.
+// lo requieren, salvo los "A realizar" (se exige en el superRefine del form).
 const certificateSchema = baseItemSchema.extend({
   maintenance_provider_id: z.string().optional(),
 });
 
 const itemSchema = baseItemSchema.extend({
-  maintenance_provider_id: z.string().min(1, "Seleccione quién lo realiza"),
+  maintenance_provider_id: z.string().optional(),
 });
 
 const partServiceSchema = itemSchema.extend({
@@ -265,6 +269,24 @@ const formSchema = z
     requireInitialReading(vals.certificates, ["certificates"]);
     requireInitialReading(vals.services, ["services"]);
     requireInitialReading(vals.part_services, ["part_services"]);
+
+    const requireProvider = (
+      items: { never_performed?: boolean; maintenance_provider_id?: string }[],
+      basePath: string,
+    ) => {
+      items.forEach((item, index) => {
+        if (!item.never_performed && !item.maintenance_provider_id) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Seleccione quién lo realiza, o 'A realizar'",
+            path: [basePath, index, "maintenance_provider_id"],
+          });
+        }
+      });
+    };
+
+    requireProvider(vals.services, "services");
+    requireProvider(vals.part_services, "part_services");
   });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -282,6 +304,7 @@ const emptyCertificate = () => ({
   description: "",
   declared_description: "",
   applied_date: undefined as unknown as Date,
+  never_performed: false,
   intervals: [emptyInterval()],
   maintenance_provider_id: "",
 });
@@ -291,44 +314,17 @@ const emptyServiceItem = () => ({
   maintenance_provider_id: "",
 });
 
-// Fila única: el rótulo de cada campo lo pone el encabezado de la lista
-// (ItemRowsHeader), así que acá adentro no vuelve a repetirse.
+// Cada ítem lleva sus propios rótulos: con la lista creciendo, un encabezado
+// fijo quedaría lejos de los ítems de más abajo.
 // La última columna pasó de un botón (quitar fila) a dos (límite secundario +
 // quitar fila): 32px alcanzaba para uno solo.
 const ITEM_ROW_GRID =
   "grid grid-cols-[minmax(200px,1fr)_92px_84px_96px_120px_88px_190px_64px] items-start gap-2";
 
-const ITEM_ROW_LABELS = [
-  "Descripción",
-  "Unidad",
-  "Límite",
-  "Lectura Inicial",
-  "1ra Fecha",
-  "% Alerta",
-  "Realizado Por",
-];
-
-function ItemRowsHeader() {
-  return (
-    <div className={cn(ITEM_ROW_GRID, "px-1")}>
-      {ITEM_ROW_LABELS.map((label) => (
-        <span
-          key={label}
-          className="truncate text-[11px] font-medium uppercase tracking-wide text-muted-foreground/70"
-        >
-          {label}
-        </span>
-      ))}
-      <span />
-    </div>
-  );
-}
-
 /** Celda "no aplica": mantiene el alto y el ancho de un campo real, para que
- * la fila no salte al cambiar de unidad de conteo. Sin rótulo propio: lo da
- * el encabezado de la lista. */
-function CompactPlaceholder() {
-  return (
+ * la fila no salte al cambiar de unidad de conteo. */
+function CompactPlaceholder({ label }: { label?: string }) {
+  const cell = (
     <div
       className={cn(
         fieldClass,
@@ -336,6 +332,13 @@ function CompactPlaceholder() {
       )}
     >
       —
+    </div>
+  );
+  if (!label) return cell;
+  return (
+    <div className="space-y-1">
+      <span className={itemLabelClass}>{label}</span>
+      {cell}
     </div>
   );
 }
@@ -357,11 +360,14 @@ function IntervalFields({
   control,
   namePrefix,
   usedMethods,
+  showLabels = false,
 }: {
   control: Control<any>;
   namePrefix: string;
   usedMethods: string[];
+  showLabels?: boolean;
 }) {
+  const itemClass = showLabels ? "space-y-1" : "space-y-0";
   const countingMethod = useWatch({
     control,
     name: `${namePrefix}.counting_method`,
@@ -377,7 +383,10 @@ function IntervalFields({
         control={control}
         name={`${namePrefix}.counting_method`}
         render={({ field }) => (
-          <FormItem className="space-y-0">
+          <FormItem className={itemClass}>
+            {showLabels && (
+              <FormLabel className={itemLabelClass}>Unidad</FormLabel>
+            )}
             <Select
               onValueChange={field.onChange}
               value={field.value || undefined}
@@ -404,7 +413,10 @@ function IntervalFields({
         control={control}
         name={`${namePrefix}.limit_value`}
         render={({ field }) => (
-          <FormItem className="space-y-0">
+          <FormItem className={itemClass}>
+            {showLabels && (
+              <FormLabel className={itemLabelClass}>Límite</FormLabel>
+            )}
             <FormControl>
               <NumericInput
                 placeholder="0"
@@ -425,7 +437,12 @@ function IntervalFields({
           control={control}
           name={`${namePrefix}.initial_value`}
           render={({ field }) => (
-            <FormItem className="space-y-0">
+            <FormItem className={itemClass}>
+              {showLabels && (
+                <FormLabel className={itemLabelClass}>
+                  Lectura inicial
+                </FormLabel>
+              )}
               <FormControl>
                 <NumericInput
                   placeholder="0"
@@ -441,7 +458,9 @@ function IntervalFields({
           )}
         />
       ) : (
-        <CompactPlaceholder />
+        <CompactPlaceholder
+          label={showLabels ? "Lectura inicial" : undefined}
+        />
       )}
     </>
   );
@@ -464,6 +483,8 @@ function ItemRow({
   const manualName = useWatch({ control, name: "reference_manual" });
   const name = useWatch({ control, name: `${namePrefix}.description` });
   const controlPercentage = useWatch({ control, name: "remaining_percentage" });
+  const neverPerformed =
+    useWatch({ control, name: `${namePrefix}.never_performed` }) === true;
 
   const {
     fields: intervalFields,
@@ -495,14 +516,15 @@ function ItemRow({
   };
 
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-2 rounded-lg border border-border/60 bg-muted/20 p-2">
       <div className={ITEM_ROW_GRID}>
-        <div className="flex items-center gap-1">
+        <div className="flex items-start gap-1">
           <FormField
             control={control}
             name={`${namePrefix}.description`}
             render={({ field }) => (
-              <FormItem className="w-full space-y-0">
+              <FormItem className="w-full space-y-1">
+                <FormLabel className={itemLabelClass}>Descripción</FormLabel>
                 <FormControl>
                   <Input
                     placeholder="EJ: Certificado de Aeronavegabilidad"
@@ -514,70 +536,76 @@ function ItemRow({
               </FormItem>
             )}
           />
-          <CatalogServicePicker
-            aircraftId={aircraftId}
-            category={category}
-            manualId={manualId}
-            manualName={manualName}
-            onSelectService={(service) => {
-              setValue(`${namePrefix}.description` as any, service.name, {
-                shouldValidate: true,
-              });
-              if (service.description) {
+          {/* mt-5.5: baja el botón al nivel del input (rótulo 16px + 6px). */}
+          <div className="mt-5.5">
+            <CatalogServicePicker
+              aircraftId={aircraftId}
+              category={category}
+              manualId={manualId}
+              manualName={manualName}
+              onSelectService={(service) => {
+                setValue(`${namePrefix}.description` as any, service.name, {
+                  shouldValidate: true,
+                });
+                if (service.description) {
+                  setValue(
+                    `${namePrefix}.declared_description` as any,
+                    service.description,
+                  );
+                }
                 setValue(
-                  `${namePrefix}.declared_description` as any,
-                  service.description,
+                  `${namePrefix}.maintenance_catalog_service_id` as any,
+                  service.id,
                 );
-              }
-              setValue(
-                `${namePrefix}.maintenance_catalog_service_id` as any,
-                service.id,
-              );
-              if (service.intervals?.length) {
-                // El catálogo aporta la periodicidad (unidad + límite), nunca
-                // la lectura inicial: esa es de ESTE ítem en ESTA aeronave. Se
-                // conserva la que el usuario ya hubiera cargado para la misma
-                // unidad, en vez de borrarla y dejar el formulario inválido.
-                const previousByMethod = new Map(
-                  (intervals ?? []).map((interval) => [
-                    interval.counting_method,
-                    interval.initial_value,
-                  ]),
-                );
-
-                // replaceIntervals (no setValue): el array lo gobierna
-                // useFieldArray, y escribirlo por fuera deja sus filas
-                // desincronizadas del valor real del formulario.
-                replaceIntervals(
-                  service.intervals.map((interval) => ({
-                    counting_method: interval.counting_method,
-                    limit_value: interval.interval_value,
-                    initial_value: previousByMethod.get(
+                if (service.intervals?.length) {
+                  // El catálogo aporta la periodicidad (unidad + límite), nunca
+                  // la lectura inicial: esa es de ESTE ítem en ESTA aeronave. Se
+                  // conserva la que el usuario ya hubiera cargado para la misma
+                  // unidad, en vez de borrarla y dejar el formulario inválido.
+                  const previousByMethod = new Map(
+                    (intervals ?? []).map((interval) => [
                       interval.counting_method,
-                    ),
-                  })),
-                );
-              }
-            }}
-          />
+                      interval.initial_value,
+                    ]),
+                  );
+
+                  // replaceIntervals (no setValue): el array lo gobierna
+                  // useFieldArray, y escribirlo por fuera deja sus filas
+                  // desincronizadas del valor real del formulario.
+                  replaceIntervals(
+                    service.intervals.map((interval) => ({
+                      counting_method: interval.counting_method,
+                      limit_value: interval.interval_value,
+                      initial_value: previousByMethod.get(
+                        interval.counting_method,
+                      ),
+                    })),
+                  );
+                }
+              }}
+            />
+          </div>
         </div>
 
         <IntervalFields
           control={control}
           namePrefix={`${namePrefix}.intervals.0`}
           usedMethods={usedMethods}
+          showLabels
         />
 
         <CompactDateField
           control={control}
           name={`${namePrefix}.applied_date`}
+          label={neverPerformed ? "Fecha de inicio" : "1ra fecha"}
         />
 
         <FormField
           control={control}
           name={`${namePrefix}.remaining_percentage`}
           render={({ field }) => (
-            <FormItem className="w-full space-y-0">
+            <FormItem className="w-full space-y-1">
+              <FormLabel className={itemLabelClass}>% Alerta</FormLabel>
               <FormControl>
                 <div className="relative">
                   <NumericInput
@@ -603,9 +631,13 @@ function ItemRow({
         <ProviderSelect
           control={control}
           name={`${namePrefix}.maintenance_provider_id`}
+          label="Realizado por"
+          neverPerformedName={
+            category === "SERVICE" ? `${namePrefix}.never_performed` : undefined
+          }
         />
 
-        <div className="flex items-center">
+        <div className="flex items-center self-end">
           <TooltipProvider disableHoverableContent>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -648,24 +680,6 @@ function ItemRow({
         </div>
       </div>
 
-      <FormField
-        control={control}
-        name={`${namePrefix}.declared_description`}
-        render={({ field }) => (
-          <FormItem className="space-y-0">
-            <FormControl>
-              <Input
-                placeholder="Descripción en formatos (opcional): cómo se redacta en la OT y los formatos INAC"
-                className={fieldClass}
-                {...field}
-                value={field.value ?? ""}
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
       {intervalFields.length > 1 && (
         <div className={cn(ITEM_ROW_GRID, "items-stretch gap-y-1.5")}>
           {/* Una sola vez, centrado entre todas las filas extra (grid-row:
@@ -692,10 +706,12 @@ function ItemRow({
                   usedMethods={usedMethods}
                 />
 
-                {/* Fecha y Realizado Por son del ítem completo (un solo
-                    cumplimiento resetea todos los intervalos a la vez), no
-                    se repiten por fila. */}
-                <div className="col-span-2" />
+                {/* Fecha, % Alerta y Realizado Por son del ítem completo (un
+                    solo cumplimiento resetea todos los intervalos a la vez),
+                    no se repiten por fila. Ocupan 3 columnas (no 2): cada fila
+                    debe sumar exactamente las 8 de la grilla (el rótulo "Ó"
+                    cubre la 1ª en todas), si no la siguiente arranca corrida. */}
+                <div className="col-span-3" />
                 <div className="flex items-center justify-end">
                   <Button
                     type="button"
@@ -713,6 +729,33 @@ function ItemRow({
           })}
         </div>
       )}
+
+      {/* Va después de TODAS las filas de intervalos: los límites ("lo que
+          ocurra primero") siguen pegados a la fila base y esta descripción
+          cierra el ítem. Misma grilla: el input termina donde termina
+          "Realizado por" (7 columnas) y deja libre la de los botones. */}
+      <div className={ITEM_ROW_GRID}>
+        <FormField
+          control={control}
+          name={`${namePrefix}.declared_description`}
+          render={({ field }) => (
+            <FormItem className="col-span-7 space-y-1">
+              <FormLabel className={itemLabelClass}>
+                Descripción en formatos (opcional)
+              </FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="Cómo se escribe en la OT y en los formatos INAC. Si se deja vacío, se usa la descripción."
+                  className={fieldClass}
+                  {...field}
+                  value={field.value ?? ""}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
     </div>
   );
 }
@@ -734,7 +777,6 @@ function MaintenanceItemRows({
 
   return (
     <div className="space-y-3 overflow-x-auto p-1">
-      {fields.length > 0 && <ItemRowsHeader />}
       <div className="space-y-2 [&>div]:min-w-225">
         {fields.map((field, index) => (
           <ItemRow
@@ -778,7 +820,6 @@ function PartServiceRows({
 }) {
   return (
     <div className="space-y-3 overflow-x-auto p-1">
-      {rows.length > 0 && <ItemRowsHeader />}
       <div className="space-y-2 [&>div]:min-w-225">
         {rows.map(({ id, index }) => (
           <ItemRow
@@ -830,15 +871,12 @@ function PartsSection({ control }: { control: Control<any> }) {
       (a) => String(a.id) === aircraftId,
     );
     return (selectedAircraft?.aircraft_assignments ?? [])
-      .map((assignment) => assignment.aircraft_part)
-      .filter((part): part is MaintenanceAircraftPart => !!part?.id)
-      .sort((a, b) => {
-        const rankDiff = partTypeRank(a.type) - partTypeRank(b.type);
-        if (rankDiff !== 0) return rankDiff;
-        return (a.part_name || a.part_number || "").localeCompare(
-          b.part_name || b.part_number || "",
-        );
-      });
+      .map((assignment) => ({
+        ...assignment.aircraft_part,
+        current_assignment: { part_order: assignment.part_order },
+      }))
+      .filter((part) => !!part.id)
+      .sort(comparePartsByOrder);
   }, [aircrafts, aircraftId]);
 
   // Al cambiar de aeronave, la selección de partes ya no aplica. Se usa
@@ -1011,6 +1049,7 @@ function mapToFormCertificate(
     // interpreta como medianoche UTC y en Venezuela (UTC-4) cae al día
     // anterior; parseISO lo toma en hora local.
     applied_date: appliedDateOf(item.current_compliance),
+    never_performed: item.current_compliance?.never_performed ?? false,
     intervals: item.intervals.map((interval) => ({
       id: interval.id,
       counting_method: interval.counting_method,
@@ -1152,15 +1191,14 @@ export default function CreateMaintenanceControlForm({
         limit_value: interval.limit_value,
         initial_value: interval.initial_value,
       })),
-      // En certificados es opcional (puede quedar sin elegir); los
-      // servicios lo sobreescriben más abajo con el suyo, que es obligatorio.
+      // En certificados es opcional (puede quedar sin elegir); en servicios
+      // es obligatorio salvo que estén "A realizar" (sin entidad).
       maintenance_provider_id: item.maintenance_provider_id || undefined,
+      never_performed: item.never_performed ?? false,
     });
 
-    const toServiceItem = (item: z.infer<typeof itemSchema>) => ({
-      ...toBaseItem(item),
-      maintenance_provider_id: item.maintenance_provider_id,
-    });
+    const toServiceItem = (item: z.infer<typeof itemSchema>) =>
+      toBaseItem(item);
 
     const payload = {
       aircraft_id: values.aircraft_id,
@@ -1256,6 +1294,7 @@ export default function CreateMaintenanceControlForm({
               control={control}
               name="aircraft_id"
               excludeIds={excludeAircraftIds}
+              locked={isEditing}
               hint="Solo se listan las que aún no tienen un control de mantenimiento."
             />
             <FormField

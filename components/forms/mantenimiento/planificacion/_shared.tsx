@@ -40,7 +40,7 @@ import { useGetMaintenanceAircrafts } from "@/hooks/mantenimiento/planificacion/
 import { useGetMaintenanceProviders } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceProviders";
 import { useGetCatalogManuals } from "@/hooks/mantenimiento/catalogo/useGetCatalogManuals";
 import { MaintenanceAircraftPart } from "@/types";
-import { partTypeLabel, partTypeRank } from "@/lib/maintenancePartTypes";
+import { comparePartsByOrder, partTypeLabel } from "@/lib/maintenancePartTypes";
 import { SearchableSelect, fieldClass, hintClass, labelClass } from "./_theme";
 
 /**
@@ -54,11 +54,13 @@ export function AircraftSelect({
   name,
   excludeIds = [],
   hint = "Solo se listan las que aún no tienen un control.",
+  locked = false,
 }: {
   control: Control<any>;
   name: string;
   excludeIds?: string[];
   hint?: string;
+  locked?: boolean;
 }) {
   const { selectedCompany } = useCompanyStore();
   const {
@@ -89,13 +91,17 @@ export function AircraftSelect({
             options={selectableAircrafts}
             value={field.value}
             loading={isLoading}
-            disabled={isError}
+            disabled={isError || locked}
             placeholder="Elige la aeronave..."
             searchPlaceholder="Busque una aeronave..."
             emptyLabel="No se ha encontrado ninguna aeronave."
             onSelect={(aircraft) => field.onChange(aircraft.id.toString())}
           />
-          <FormDescription className={hintClass}>{hint}</FormDescription>
+          <FormDescription className={hintClass}>
+            {locked
+              ? "La aeronave no se puede cambiar una vez creado el control."
+              : hint}
+          </FormDescription>
           <FormMessage />
         </FormItem>
       )}
@@ -191,19 +197,26 @@ export function NumericInput({
   );
 }
 
+/** Rótulo de un campo dentro de la fila de un ítem (cada ítem lleva los suyos). */
+export const itemLabelClass =
+  "block truncate text-[11px] font-medium uppercase tracking-wide text-muted-foreground/70";
+
 export function CompactDateField({
   control,
   name,
+  label,
 }: {
   control: Control<any>;
   name: string;
+  label?: string;
 }) {
   return (
     <FormField
       control={control}
       name={name}
       render={({ field }) => (
-        <FormItem className="space-y-0">
+        <FormItem className={label ? "space-y-1" : "space-y-0"}>
+          {label && <FormLabel className={itemLabelClass}>{label}</FormLabel>}
           <Popover>
             <PopoverTrigger asChild>
               <FormControl>
@@ -327,33 +340,82 @@ export function RemainingPercentageField({
   );
 }
 
+const NEVER_PERFORMED_OPTION_ID = "__NEVER_PERFORMED__";
+const NEVER_PERFORMED_OPTION = {
+  id: NEVER_PERFORMED_OPTION_ID,
+  name: "A realizar (nunca realizado)",
+};
+
+/**
+ * Con `neverPerformedName` el selector ofrece, arriba de las entidades, la
+ * opción "A realizar": el ítem nunca se ha realizado, así que no hay entidad y
+ * la fecha y lecturas son solo el punto desde el que corre el límite. Elegirla
+ * prende ese campo booleano y vacía la entidad; elegir una entidad lo apaga.
+ * Solo para los tipos de ítem donde la entidad es obligatoria (ver ProviderState
+ * en el backend); en los demás, vacío significa "no lleva entidad".
+ */
 export function ProviderSelect({
   control,
   name,
+  label,
+  neverPerformedName,
 }: {
   control: Control<any>;
   name: string;
+  label?: string;
+  neverPerformedName?: string;
 }) {
   const { selectedCompany } = useCompanyStore();
+  const { setValue } = useFormContext<any>();
   const { data: providers, isLoading } = useGetMaintenanceProviders(
     selectedCompany?.slug,
   );
-  const options = useMemo(() => providers ?? [], [providers]);
+  // Sin `neverPerformedName` se observa el propio campo (no vale un nombre vacío:
+  // useWatch observaría todo el formulario) y el resultado se descarta.
+  const watched = useWatch({ control, name: neverPerformedName ?? name });
+  const neverPerformed = neverPerformedName ? watched === true : false;
+  const options = useMemo<{ id: number | string; name: string }[]>(
+    () =>
+      neverPerformedName
+        ? [NEVER_PERFORMED_OPTION, ...(providers ?? [])]
+        : (providers ?? []),
+    [providers, neverPerformedName],
+  );
 
   return (
     <FormField
       control={control}
       name={name}
       render={({ field }) => (
-        <FormItem className="min-w-0 flex-1 space-y-0">
+        <FormItem
+          className={cn("min-w-0 flex-1", label ? "space-y-1" : "space-y-0")}
+        >
+          {label && <FormLabel className={itemLabelClass}>{label}</FormLabel>}
           <SearchableSelect
             options={options}
-            value={field.value}
+            value={neverPerformed ? NEVER_PERFORMED_OPTION_ID : field.value}
             loading={isLoading}
             placeholder="Seleccione..."
             searchPlaceholder="Buscar entidad..."
             emptyLabel="No se encontró ninguna entidad."
-            onSelect={(provider) => field.onChange(String(provider.id))}
+            renderLabel={(option) =>
+              option.id === NEVER_PERFORMED_OPTION_ID ? (
+                <span className="italic">{option.name}</span>
+              ) : (
+                option.name
+              )
+            }
+            onSelect={(provider) => {
+              const isNeverPerformed =
+                provider.id === NEVER_PERFORMED_OPTION_ID;
+              if (neverPerformedName) {
+                setValue(neverPerformedName, isNeverPerformed, {
+                  shouldDirty: true,
+                  shouldValidate: true,
+                });
+              }
+              field.onChange(isNeverPerformed ? "" : String(provider.id));
+            }}
           />
           <FormMessage />
         </FormItem>
@@ -471,9 +533,12 @@ export function useParentOptions(aircraftId?: string): ParentOption[] {
   return useMemo(() => {
     const aircraft = aircrafts?.find((a) => String(a.id) === aircraftId);
     const parts = (aircraft?.aircraft_assignments ?? [])
-      .map((assignment) => assignment.aircraft_part)
-      .filter((part): part is MaintenanceAircraftPart => !!part?.id)
-      .sort((a, b) => partTypeRank(a.type) - partTypeRank(b.type));
+      .map((assignment) => ({
+        ...assignment.aircraft_part,
+        current_assignment: { part_order: assignment.part_order },
+      }))
+      .filter((part) => !!part.id)
+      .sort(comparePartsByOrder);
 
     const counters: Record<string, number> = {};
     return [
@@ -542,6 +607,7 @@ export function notifyInvalidForm<T extends Record<string, any>>(
 
 const APPLICATION_KEYS = [
   "applied_date",
+  "never_performed",
   "maintenance_provider_id",
   "action",
   "initial_value",

@@ -3,6 +3,7 @@
 import { Employee } from "@/types";
 import { cn } from "@/lib/utils";
 import { formatCalendarDate } from "@/lib/date";
+import { formatPhone } from "@/lib/phone";
 
 interface Props {
   employee: Employee;
@@ -34,7 +35,7 @@ export function EmployeeExpandedRow({ employee }: Props) {
 
         <Item label="Email" value={employee.email} />
 
-        <Item label="Teléfono" value={employee.phone} />
+        <Item label="Teléfono" value={formatPhone(employee.phone)} />
 
         <Item label="Dirección" value={employee.address} />
 

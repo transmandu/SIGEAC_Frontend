@@ -14,10 +14,8 @@ import { RetiredControlBanner } from "@/components/planificacion/controles/Retir
 const EditMaintenanceControlPage = () => {
   const { id } = useParams<{ id: string }>();
   const { selectedCompany } = useCompanyStore();
-  const { data, isLoading, isError } = useGetMaintenanceControl(
-    selectedCompany?.slug,
-    id,
-  );
+  const { data, isLoading, isError, isFetchedAfterMount } =
+    useGetMaintenanceControl(selectedCompany?.slug, id);
 
   return (
     <ContentLayout title="Editar Control de Mantenimiento">
@@ -38,7 +36,7 @@ const EditMaintenanceControlPage = () => {
           </div>
         </div>
 
-        {isLoading && <LoadingPage />}
+        {(isLoading || (data && !isFetchedAfterMount)) && <LoadingPage />}
 
         {isError && (
           <Alert variant="destructive">
@@ -58,7 +56,7 @@ const EditMaintenanceControlPage = () => {
           />
         )}
 
-        {data && !data.retired_at && (
+        {data && isFetchedAfterMount && !isError && !data.retired_at && (
           <CreateMaintenanceControlForm initialData={data} />
         )}
       </div>

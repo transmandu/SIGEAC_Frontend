@@ -18,6 +18,8 @@ import { z } from "zod";
 import { useCreateWorkshop } from "@/actions/general/talleres/actions";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import type { Workshop } from "@/types";
+import { PhoneInput } from "@/components/ui/PhoneInput";
+import { phoneSchema } from "@/lib/phone";
 
 const FormSchema = z.object({
   name: z
@@ -25,7 +27,7 @@ const FormSchema = z.object({
     .min(3, { message: "El nombre debe tener al menos 3 caracteres." }),
   rif: z.string().optional(),
   address: z.string().optional(),
-  phone: z.string().optional(),
+  phone: phoneSchema(),
   contact_name: z.string().optional(),
 });
 
@@ -117,7 +119,13 @@ export function CreateWorkshopForm({ onClose, onSuccess }: FormProps) {
             <FormItem>
               <FormLabel>Teléfono</FormLabel>
               <FormControl>
-                <Input placeholder="Teléfono de contacto" {...field} />
+                <PhoneInput
+                  name={field.name}
+                  ref={field.ref}
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                />
               </FormControl>
               <FormMessage className="text-xs" />
             </FormItem>

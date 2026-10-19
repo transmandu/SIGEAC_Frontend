@@ -11,12 +11,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useGetCourseEnrolledEmployees } from "@/hooks/sms/useGetCourseEnrolledEmployees";
-import { useGetAllEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetAllEmployees";
+
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Course } from "@/types";
 import { zodResolver } from "@/lib/zod-resolver";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -83,8 +83,6 @@ export function AddCourseAttendanceForm({ onClose, initialData }: FormProps) {
   };
   const { data: employeesData, isLoading: isLoadingEnrolledEmployee } =
     useGetCourseEnrolledEmployees(value);
-  const { data: allEmployees, isLoading: isLoadingAllEmployees } =
-    useGetAllEmployeesByCompany(selectedCompany?.slug);
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
@@ -146,20 +144,13 @@ export function AddCourseAttendanceForm({ onClose, initialData }: FormProps) {
       };
     };
 
-    const selections: EmployeeSelection[] = (allEmployees ?? []).map(
+    const selections: EmployeeSelection[] = [...attended, ...notAttended].map(
       toSelection,
-    );
-
-    const knownDni = new Set(selections.map((s) => s.dni));
-    selections.push(
-      ...[...attended, ...notAttended]
-        .filter((e) => !knownDni.has(e.dni))
-        .map(toSelection),
     );
 
     setEmployeeSelections(selections);
     updateFormValues(selections);
-  }, [allEmployees, employeesData, updateFormValues]);
+  }, [employeesData, updateFormValues]);
 
   const toggleEmployeeSelection = (dni: string) => {
     const newSelections = employeeSelections.map((emp) =>
@@ -198,14 +189,14 @@ export function AddCourseAttendanceForm({ onClose, initialData }: FormProps) {
     onClose();
   };
 
-  if (isLoadingEnrolledEmployee || isLoadingAllEmployees) {
+  if (isLoadingEnrolledEmployee) {
     return <div className="p-4 text-center">Cargando empleados...</div>;
   }
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormLabel className="text-lg font-semibold">
+        <FormLabel className="text-lg font-light">
           Gestionar asistentes al curso
         </FormLabel>
 
@@ -291,7 +282,12 @@ export function AddCourseAttendanceForm({ onClose, initialData }: FormProps) {
           <Button variant="outline" onClick={onClose}>
             Cancelar
           </Button>
-          <Button type="submit">Guardar cambios</Button>
+          <Button type="submit" disabled={markCourseAttendance.isPending}>
+            {markCourseAttendance.isPending ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : null}
+            Guardar cambios
+          </Button>
         </div>
       </form>
     </Form>

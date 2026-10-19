@@ -24,7 +24,10 @@ export function CreateThirdPartyDialog() {
           Crear tercero
         </ActionTriggerButton>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-105">
+      <DialogContent
+        className="max-h-[90vh] overflow-y-auto sm:max-w-lg"
+        onInteractOutside={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle>Creación de Tercero</DialogTitle>
           <DialogDescription>

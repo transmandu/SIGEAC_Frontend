@@ -14,10 +14,8 @@ import { RetiredControlBanner } from "@/components/planificacion/controles/Retir
 const EditAvionicsControlPage = () => {
   const { id } = useParams<{ id: string }>();
   const { selectedCompany } = useCompanyStore();
-  const { data, isLoading, isError } = useGetAvionicsControl(
-    selectedCompany?.slug,
-    id,
-  );
+  const { data, isLoading, isError, isFetchedAfterMount } =
+    useGetAvionicsControl(selectedCompany?.slug, id);
 
   return (
     <ContentLayout title="Editar Control de Aviónica">
@@ -37,7 +35,7 @@ const EditAvionicsControlPage = () => {
           </div>
         </div>
 
-        {isLoading && <LoadingPage />}
+        {(isLoading || (data && !isFetchedAfterMount)) && <LoadingPage />}
 
         {isError && (
           <Alert variant="destructive">
@@ -57,7 +55,7 @@ const EditAvionicsControlPage = () => {
           />
         )}
 
-        {data && !data.retired_at && (
+        {data && isFetchedAfterMount && !isError && !data.retired_at && (
           <CreateAvionicsControlForm initialData={data} />
         )}
       </div>

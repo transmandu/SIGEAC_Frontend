@@ -1,7 +1,14 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { useEffect, useState } from "react";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 /**
  * Lenguaje visual compartido por los formularios de almacén, extraído del
@@ -128,19 +135,31 @@ export const SectionTitle = ({
   title,
   hint,
   action,
+  compact,
+  flush,
 }: {
   /** Sin icono, la viñeta queda como un punto neutro del mismo tamaño. */
   icon?: LucideIcon;
   title: React.ReactNode;
   hint?: string;
   action?: React.ReactNode;
+  /** Menos aire bajo el encabezado, para formularios cortos en un diálogo. */
+  compact?: boolean;
+  /** Sin margen inferior: lo pone quien envuelve el encabezado (sección plegable). */
+  flush?: boolean;
 }) => (
   // Con hint el bloque de texto tiene dos líneas: el icono se ancla arriba
   // (con un pequeño empuje) para que quede a la altura del título, no del
   // bloque entero. Sin hint es una sola línea, así que centrarlos es lo que
   // los deja alineados de verdad — "items-start" ahí dejaba el título
   // flotando por encima del icono.
-  <div className={cn("mb-5 flex gap-3", hint ? "items-start" : "items-center")}>
+  <div
+    className={cn(
+      "flex gap-3",
+      !flush && (compact ? "mb-3" : "mb-5"),
+      hint ? "items-start" : "items-center",
+    )}
+  >
     <span
       className={cn(
         "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary",
@@ -161,27 +180,157 @@ export const SectionTitle = ({
   </div>
 );
 
+/** Evento con el que SectionNav pide abrir la sección `detail` antes de saltar a ella. */
+export const SECTION_JUMP_EVENT = "section:jump";
+
+/**
+ * Abierto/plegado de una sección, recordado por navegador bajo `storageKey`:
+ * quien pliega "Información general" no debe tener que replegarla en cada
+ * visita. Arranca en `defaultOpen` y lee lo guardado al montar (no en el
+ * primer render, para no desajustar la hidratación). Sin `storageKey` no
+ * recuerda nada; el almacenamiento puede no estar disponible (modo privado).
+ */
+const useRememberedOpen = (
+  storageKey: string | undefined,
+  defaultOpen: boolean,
+) => {
+  const [open, setOpen] = useState(defaultOpen);
+  const fullKey = storageKey ? `section-open:${storageKey}` : undefined;
+
+  useEffect(() => {
+    if (!fullKey) return;
+    try {
+      const saved = window.localStorage.getItem(fullKey);
+      if (saved !== null) setOpen(saved === "1");
+    } catch {
+      // Sin almacenamiento: queda el valor por defecto.
+    }
+  }, [fullKey]);
+
+  const update = (next: boolean) => {
+    setOpen(next);
+    if (!fullKey) return;
+    try {
+      window.localStorage.setItem(fullKey, next ? "1" : "0");
+    } catch {
+      // Se pliega igual, solo que sin recordarlo.
+    }
+  };
+
+  return [open, update, setOpen] as const;
+};
+
 /** Sección con el cristal y el encabezado ya montados. */
 export const FormSection = ({
   icon,
   title,
   hint,
   action,
+  compact,
   className,
+  id,
+  collapsible,
+  defaultOpen = true,
+  storageKey,
   children,
 }: {
   icon?: LucideIcon;
   title: React.ReactNode;
   hint?: string;
   action?: React.ReactNode;
+  compact?: boolean;
   className?: string;
+  /** El encabezado pliega y despliega el contenido; `action` sigue activo aparte. */
+  collapsible?: boolean;
+  defaultOpen?: boolean;
+  /** Ancla de la sección: destino de los saltos del índice (SectionNav). */
+  id?: string;
+  /** Identifica la sección para recordar si el usuario la dejó plegada. */
+  storageKey?: string;
   children: React.ReactNode;
-}) => (
-  <section className={cn(sectionClass, className)}>
-    <SectionTitle icon={icon} title={title} hint={hint} action={action} />
-    {children}
-  </section>
-);
+}) => {
+  const [open, setOpen, showOpen] = useRememberedOpen(storageKey, defaultOpen);
+
+  // Un salto desde el índice de la página (SectionNav) a una sección plegada
+  // la despliega para que se vea a dónde llegó, sin cambiar lo que el usuario
+  // tenía recordado.
+  useEffect(() => {
+    if (!id) return;
+    const onJump = (event: Event) => {
+      if ((event as CustomEvent<string>).detail === id) showOpen(true);
+    };
+    window.addEventListener(SECTION_JUMP_EVENT, onJump);
+    return () => window.removeEventListener(SECTION_JUMP_EVENT, onJump);
+  }, [id, showOpen]);
+
+  if (!collapsible) {
+    return (
+      <section
+        id={id}
+        className={cn(
+          sectionClass,
+          "scroll-mt-20",
+          compact && "p-3.5",
+          className,
+        )}
+      >
+        <SectionTitle
+          icon={icon}
+          title={title}
+          hint={hint}
+          action={action}
+          compact={compact}
+        />
+        {children}
+      </section>
+    );
+  }
+
+  return (
+    <section
+      id={id}
+      className={cn(
+        sectionClass,
+        "scroll-mt-20",
+        compact && "p-3.5",
+        className,
+      )}
+    >
+      <Collapsible open={open} onOpenChange={setOpen}>
+        <div className="flex items-start gap-3">
+          <CollapsibleTrigger asChild>
+            <button
+              type="button"
+              aria-label={open ? "Plegar sección" : "Desplegar sección"}
+              className="group min-w-0 flex-1 rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+            >
+              <SectionTitle icon={icon} title={title} hint={hint} flush />
+            </button>
+          </CollapsibleTrigger>
+          {action && <div className="shrink-0">{action}</div>}
+          {/* Siempre lo último del encabezado. Muestra a dónde lleva el clic:
+              abajo si está plegada (se despliega), arriba si está abierta. */}
+          <CollapsibleTrigger asChild>
+            <button
+              type="button"
+              aria-label={open ? "Plegar sección" : "Desplegar sección"}
+              className="flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground outline-none transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary/40"
+            >
+              {open ? (
+                <ChevronUp className="size-4" />
+              ) : (
+                <ChevronDown className="size-4" />
+              )}
+            </button>
+          </CollapsibleTrigger>
+        </div>
+        <CollapsibleContent className={compact ? "pt-3" : "pt-5"}>
+          {children}
+        </CollapsibleContent>
+      </Collapsible>
+    </section>
+  );
+};
 
 /**
  * Deja solo dígitos y un punto decimal.

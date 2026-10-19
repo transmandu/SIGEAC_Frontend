@@ -1,114 +1,97 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-
-import { Input } from "@/components/ui/input";
-import { zodResolver } from "@/lib/zod-resolver";
+import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 
 import { useCreateInformationSource } from "@/actions/ajustes/tipos_fuente/actions";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Loader2 } from "lucide-react";
+  applyServerFieldErrors,
+  invalidFormHandler,
+  serverFieldErrors,
+} from "@/components/forms/mantenimiento/almacen/_components/form-feedback";
+import { ArticleFormShell } from "@/components/forms/mantenimiento/almacen/articulos/ArticleFormShell";
+import { Form } from "@/components/ui/form";
+import { useGetInformationSources } from "@/hooks/sms/useGetInformationSource";
+import { zodResolver } from "@/lib/zod-resolver";
 import { useCompanyStore } from "@/stores/CompanyStore";
-
-const FormSchema = z.object({
-  type: z.string().min(1, "Debe seleccionar un tipo."),
-  name: z.string().min(1, "Debe ingresar un nombre.").max(50),
-});
-
-type FormSchemaType = z.infer<typeof FormSchema>;
+import { InformationSourceFormFields } from "./InformationSourceFormFields";
+import {
+  buildInformationSourceSchema,
+  INFORMATION_SOURCE_FIELD_LABELS,
+  type InformationSourceFormValues,
+} from "./informationSourceSchema";
 
 interface FormProps {
   onClose: () => void;
 }
 
 export function CreateInformationSourceForm({ onClose }: FormProps) {
-  const { createInformationSource } = useCreateInformationSource();
   const { selectedCompany } = useCompanyStore();
-  const form = useForm<FormSchemaType>({
-    resolver: zodResolver(FormSchema),
-    defaultValues: { name: "", type: "" },
+  const { data: sources, isSuccess: sourcesLoaded } =
+    useGetInformationSources();
+  const { createInformationSource } = useCreateInformationSource();
+
+  const schema = useMemo(
+    () => buildInformationSourceSchema(sources),
+    [sources],
+  );
+
+  const form = useForm<InformationSourceFormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: { name: "", type: undefined },
   });
 
-  const onSubmit = async (data: FormSchemaType) => {
+  // Los duplicados se validan contra el catálogo: si este llega después de que
+  // el usuario ya escribió, hay que volver a validar lo escrito.
+  useEffect(() => {
+    if (sourcesLoaded && form.formState.dirtyFields.name) {
+      form.trigger("name");
+    }
+  }, [sourcesLoaded, sources, form]);
+
+  const onSubmit = async (values: InformationSourceFormValues) => {
     try {
       await createInformationSource.mutateAsync({
         company: selectedCompany!.slug,
-        data: data,
+        data: values,
       });
       onClose();
-    } catch {
-      // El aviso lo muestra la mutación; el formulario queda abierto.
+    } catch (error) {
+      // El toast lo muestra la mutación; aquí se marca el campo rechazado.
+      const errors = serverFieldErrors(error);
+      if (errors) {
+        applyServerFieldErrors(
+          form.setError,
+          errors,
+          INFORMATION_SOURCE_FIELD_LABELS,
+        );
+      }
     }
   };
 
   return (
     <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="flex flex-col space-y-3"
+      <ArticleFormShell
+        busy={createInformationSource.isPending}
+        canSave
+        submitLabel="Crear fuente"
+        onCancel={onClose}
+        // stopPropagation: este form puede renderizarse dentro de otros
+        // formularios. React propaga el submit por su árbol aunque el Dialog
+        // viva en un portal, y dispararía el submit del form padre.
+        onSubmit={(e) => {
+          e.stopPropagation();
+          form.handleSubmit(
+            onSubmit,
+            invalidFormHandler(INFORMATION_SOURCE_FIELD_LABELS),
+          )(e);
+        }}
       >
-        <div className="flex gap-2 items-start justify-center">
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Nombre de la Fuente</FormLabel>
-                <FormControl>
-                  <Input placeholder="" {...field} maxLength={50} />
-                </FormControl>
-                <FormMessage className="text-xs" />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="type"
-            render={({ field }) => (
-              <FormItem className="w-full">
-                <FormLabel>Seleccionar Tipo</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar Tipo" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="PROACTIVO">PROACTIVO</SelectItem>
-                    <SelectItem value="REACTIVO">REACTIVO</SelectItem>
-                    <SelectItem value="PREDICTIVO">PREDICTIVO</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <Button disabled={createInformationSource.isPending}>
-          {createInformationSource.isPending ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            "Crear fuente"
-          )}
-        </Button>
-      </form>
+        <InformationSourceFormFields
+          control={form.control}
+          disabled={createInformationSource.isPending}
+        />
+      </ArticleFormShell>
     </Form>
   );
 }

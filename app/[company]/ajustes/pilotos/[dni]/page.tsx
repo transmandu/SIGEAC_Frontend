@@ -6,6 +6,7 @@ import { ContentLayout } from "@/components/layout/ContentLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { useGetPilotByDni } from "@/hooks/ajustes/piloto/useGetPilotById";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { formatPhone } from "@/lib/phone";
 
 const Item = ({ label, value }: { label: string; value?: React.ReactNode }) => (
   <div className="flex flex-col gap-1 rounded-md border bg-muted/20 px-3 py-2">
@@ -56,7 +57,7 @@ const ShowPilot = () => {
             <Item label="Apellido" value={employee?.last_name} />
             <Item label="Cédula" value={pilot.employee_dni} />
             <Item label="Nº de licencia" value={pilot.license_number} />
-            <Item label="Teléfono" value={employee?.phone} />
+            <Item label="Teléfono" value={formatPhone(employee?.phone)} />
             <Item label="Correo electrónico" value={employee?.email} />
           </div>
         )}

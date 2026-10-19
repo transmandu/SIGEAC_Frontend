@@ -28,6 +28,7 @@ export interface AvionicsTaskData {
   action: AvionicsAction;
   is_on_condition: boolean;
   maintenance_provider_id?: string;
+  never_performed?: boolean;
   applied_date?: string;
   remaining_percentage?: number | null;
   intervals: AvionicsIntervalData[];
