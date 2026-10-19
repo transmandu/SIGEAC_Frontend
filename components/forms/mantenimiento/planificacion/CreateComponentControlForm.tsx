@@ -150,7 +150,11 @@ const itemSchema = z.object({
   position: z.string().optional(),
   action: actionEnum,
   reference_document: z.string().optional(),
-  maintenance_provider_id: z.string().min(1, "Seleccione quién lo realizó"),
+  // Obligatorio salvo "A realizar" (se exige en checkIntervals).
+  maintenance_provider_id: z.string().optional(),
+  // "A realizar": el componente nunca ha tenido este trabajo; sin entidad y
+  // con fecha y lecturas son el punto desde el que corre el límite (ver ProviderSelect).
+  never_performed: z.boolean().optional(),
   // Opcional solo para un componente existente sin cumplimiento vigente (se
   // deja como está); en una fila nueva lo exige el superRefine de abajo.
   applied_date: z.date().optional(),
@@ -203,6 +207,14 @@ const formSchema = z
       items.forEach((item, index) => {
         const existing = item.id !== undefined;
         if (existing && !item.applied_date) return;
+
+        if (!item.never_performed && !item.maintenance_provider_id) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Seleccione quién lo realizó, o 'A realizar'",
+            path: [basePath, index, "maintenance_provider_id"],
+          });
+        }
 
         if (!item.applied_date) {
           ctx.addIssue({
@@ -273,6 +285,7 @@ const emptyItem = (controlPercentage?: number | string) => ({
   action: "OVERHAUL",
   reference_document: "",
   maintenance_provider_id: "",
+  never_performed: false,
   applied_date: undefined as unknown as Date,
   remaining_percentage: controlPercentage,
   intervals: [emptyInterval()],
@@ -610,6 +623,8 @@ function ComponentCard({
     control,
     name: `${namePrefix}.description`,
   }) as string;
+  const neverPerformed =
+    useWatch({ control, name: `${namePrefix}.never_performed` }) === true;
 
   return (
     <div className="space-y-3 rounded-xl border border-slate-400/40 bg-linear-to-br from-background/70 to-background/40 p-4 backdrop-blur-md dark:border-slate-600/40">
@@ -688,6 +703,7 @@ function ComponentCard({
           <ProviderSelect
             control={control}
             name={`${namePrefix}.maintenance_provider_id`}
+            neverPerformedName={`${namePrefix}.never_performed`}
           />
         </FormItem>
         <TextField
@@ -698,8 +714,14 @@ function ComponentCard({
           optional
         />
         <FormItem className="min-w-0 space-y-1">
-          <FieldLabel tooltip="Fecha del último trabajo hecho a este componente (la instalación que está cargando, si es nueva). Desde ahí se cuenta el próximo vencimiento.">
-            Último cump.
+          <FieldLabel
+            tooltip={
+              neverPerformed
+                ? "Fecha desde la que se empieza a contar el límite: el trabajo aún no se ha realizado."
+                : "Fecha del último trabajo hecho a este componente (la instalación que está cargando, si es nueva). Desde ahí se cuenta el próximo vencimiento."
+            }
+          >
+            {neverPerformed ? "Fecha de inicio" : "Último cump."}
           </FieldLabel>
           <CompactDateField
             control={control}
@@ -935,6 +957,7 @@ function mapToFormItem(item: NonNullable<ComponentControl["items"]>[number]) {
     maintenance_provider_id: item.maintenance_provider_id
       ? String(item.maintenance_provider_id)
       : "",
+    never_performed: item.current_compliance?.never_performed ?? false,
     applied_date: appliedDateOf(item.current_compliance),
     remaining_percentage:
       item.remaining_percentage !== null &&
@@ -1075,7 +1098,8 @@ export default function CreateComponentControlForm({
             aircraft_part_id: item.aircraft_part_id
               ? Number(item.aircraft_part_id)
               : null,
-            maintenance_provider_id: item.maintenance_provider_id,
+            maintenance_provider_id: item.maintenance_provider_id || undefined,
+            never_performed: item.never_performed ?? false,
             flags: item.flags ?? [],
             description: item.description,
             declared_description:
@@ -1157,6 +1181,7 @@ export default function CreateComponentControlForm({
               control={control}
               name="aircraft_id"
               excludeIds={excludeAircraftIds}
+              locked={isEditing}
               hint="Solo se listan las que aún no tienen un control de componentes."
             />
             <FormField

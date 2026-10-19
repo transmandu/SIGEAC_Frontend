@@ -1,17 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 
-// 1. Definición centralizada de rutas protegidas
-const PROTECTED_ROUTES = [
-  '/inicio',
-  '/transmandu',
-  '/hangar74',
-  '/ajustes',
-  '/sistema',
-  '/cuenta',
-  '/planificacion',
-  '/administracion'
-];
+// Lo público se enumera y todo lo demás se protege. La empresa es el primer
+// segmento de la URL (/{slug}/...) y es dinámica: listar las protegidas dejaba
+// fuera a cualquier empresa nueva, sin proxy ni `from` hacia el login.
+const PUBLIC_ROUTES = ['/login', '/acceso_publico', '/not-authorized'];
 
+const isPublicRoute = (path: string) =>
+  path === '/' ||
+  PUBLIC_ROUTES.some(route => path === route || path.startsWith(`${route}/`));
 
 // Formato de Sanctum: "<id>|<hash>", con o sin el prefijo "Bearer ".
 const isUsableToken = (token: string) => {
@@ -23,11 +19,7 @@ const isUsableToken = (token: string) => {
 export default async function proxy(req: NextRequest) {
   const currentPath = req.nextUrl.pathname;
 
-  // 3. Verificación más eficiente de rutas
-  const isProtectedRoute = PROTECTED_ROUTES.some(route =>
-    currentPath.startsWith(route)
-  );
-
+  const isProtectedRoute = !isPublicRoute(currentPath);
 
   // 4. Redirección si está en ruta protegida sin autenticación
   if (isProtectedRoute) {
@@ -63,7 +55,10 @@ export const config = {
      * - favicon.ico (favicon file)
      * - public folder
      * - api/auth routes
+     * - cualquier ruta con extensión (los archivos de /public en la raíz, como
+     *   /logo.png): con la lógica invertida serían "protegidos" y un visitante
+     *   sin sesión recibiría el HTML del login en lugar de la imagen.
      */
-    '/((?!api/auth|_next/static|_next/image|_vercel|favicon.ico|images|icons|fonts).*)',
+    '/((?!api/auth|_next/static|_next/image|_vercel|favicon.ico|images|icons|fonts|.*\\..*).*)',
   ],
 };

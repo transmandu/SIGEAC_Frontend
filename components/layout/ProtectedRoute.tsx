@@ -1,5 +1,5 @@
 "use client";
-import { ReactNode } from "react";
+import { ReactNode, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import LoadingPage from "@/components/misc/LoadingPage";
@@ -20,12 +20,17 @@ const ProtectedRoute = ({
   const { user, loading } = useAuth();
   const router = useRouter();
 
+  // Navegar durante el render dispara el aviso de React por actualizar el
+  // Router mientras se pinta otro componente, y se repetía en cada render hasta
+  // que la ruta cambiaba. replace: la página protegida no debe quedar en el
+  // historial, o "atrás" rebota por el proxy hacia el login.
+  useEffect(() => {
+    if (!loading && !user) router.replace("/login");
+  }, [loading, user, router]);
+
   if (loading) return <LoadingPage />;
 
-  if (!user) {
-    router.push("/login");
-    return null;
-  }
+  if (!user) return null;
 
   // Guardas defensivas: roles o permissions pueden llegar como objeto `{}`
   // en lugar de `[]` si el localStorage tiene datos de una sesión antigua o

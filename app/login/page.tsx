@@ -10,7 +10,7 @@ import { motion, useReducedMotion } from "motion/react";
 import { Suspense, useEffect } from "react";
 
 const Login = () => {
-  const { clearLoggingOut } = useAuth();
+  const { clearLoggingOut, loggingOut } = useAuth();
   const reduceMotion = useReducedMotion();
 
   useDocumentTitle("Login");
@@ -18,7 +18,12 @@ const Login = () => {
   // El overlay de cierre se levanta cuando esta página ya está PINTADA, no al
   // montarse: el efecto corre antes del paint, así que destapaba la pantalla con
   // el login todavía en blanco. Los dos rAF esperan al primer frame real.
+  // `loggingOut` está en las dependencias porque esta página sobrevive a un
+  // logout que ocurre estando ya en ella (el login con `?from=` no se remonta):
+  // sin eso el candado de AuthRedirect se quedaba cerrado hasta el timeout.
   useEffect(() => {
+    if (!loggingOut) return;
+
     let raf2 = 0;
 
     const raf1 = requestAnimationFrame(() => {
@@ -29,7 +34,7 @@ const Login = () => {
       cancelAnimationFrame(raf1);
       cancelAnimationFrame(raf2);
     };
-  }, [clearLoggingOut]);
+  }, [clearLoggingOut, loggingOut]);
 
   /**
    * Solo opacidad y una escala mínima. Animar `filter: blur()` obligaba al

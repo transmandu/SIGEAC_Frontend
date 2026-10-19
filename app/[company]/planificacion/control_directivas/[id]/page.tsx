@@ -48,7 +48,7 @@ import {
   DIRECTIVE_AUTHORITY_LABELS,
   DIRECTIVE_COMPLIANCE_TYPE_LABELS,
 } from "@/lib/directiveControlLabels";
-import { partTypeLabel, partTypeRank } from "@/lib/maintenancePartTypes";
+import { comparePartsByOrder, partTypeLabel } from "@/lib/maintenancePartTypes";
 import {
   FormSection,
   selectTriggerClass,
@@ -60,6 +60,7 @@ import {
 } from "@/types";
 import { cn, formatDate } from "@/lib/utils";
 import { RecordAuditHistory } from "@/components/planificacion/auditoria/RecordAuditHistory";
+import { SectionNav } from "@/components/misc/SectionNav";
 import { RetiredControlBanner } from "@/components/planificacion/controles/RetiredControlBanner";
 import { RetiredItemsSection } from "@/components/planificacion/controles/RetiredItemsSection";
 import { RetireRecordButton } from "@/components/planificacion/controles/RetireRecordButton";
@@ -300,7 +301,7 @@ const DirectiveControlDetailPage = () => {
   });
   const counters: Record<string, number> = {};
   const parents = Array.from(parentsById.entries())
-    .sort(([, a], [, b]) => partTypeRank(a.type) - partTypeRank(b.type))
+    .sort(([, a], [, b]) => comparePartsByOrder(a, b))
     .map(([partId, part]) => {
       const type = (part.type ?? "").toUpperCase();
       counters[type] = (counters[type] ?? 0) + 1;
@@ -368,8 +369,25 @@ const DirectiveControlDetailPage = () => {
             recordType="directive_control"
             noun="control de directivas"
           />
+          <SectionNav
+            items={[
+              { id: "dc-info", label: "Información", icon: Info },
+              { id: "dc-aircraft", label: "Aeronave", icon: Plane },
+              ...parents.map(({ id: partId, label }) => ({
+                id: `dc-part-${partId}`,
+                label,
+                icon: Cog,
+              })),
+            ]}
+          />
 
-          <FormSection icon={Info} title="Información General">
+          <FormSection
+            icon={Info}
+            title="Información General"
+            collapsible
+            id="dc-info"
+            storageKey="dc:info"
+          >
             <div className="grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3 md:grid-cols-6">
               <InfoItem label="Matrícula" value={control.aircraft?.acronym} />
               <InfoItem
@@ -453,6 +471,9 @@ const DirectiveControlDetailPage = () => {
           <FormSection
             icon={Plane}
             title="Aeronave"
+            collapsible
+            id="dc-aircraft"
+            storageKey="dc:aircraft"
             hint="Directivas que afectan a la aeronave en su conjunto."
             action={
               !controlRetired && (
@@ -479,6 +500,9 @@ const DirectiveControlDetailPage = () => {
           {parents.map(({ id: partId, part, label, typeLabel }) => (
             <FormSection
               key={partId}
+              collapsible
+              id={`dc-part-${partId}`}
+              storageKey={`dc:part:${partId}`}
               icon={Cog}
               title={
                 <>

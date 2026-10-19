@@ -95,6 +95,9 @@ const taskSchema = z
     ]),
     is_on_condition: z.boolean().default(false),
     maintenance_provider_id: z.string().optional(),
+    // "A realizar": la tarea nunca se ha realizado; sin entidad, la fecha es
+    // el punto desde el que corre el límite.
+    never_performed: z.boolean().optional(),
     applied_date: z.date().optional(),
     remaining_percentage: optionalPercentage,
     intervals: z.array(intervalSchema).default([]),
@@ -109,10 +112,10 @@ const taskSchema = z
         path: ["applied_date"],
       });
     }
-    if (!vals.maintenance_provider_id) {
+    if (!vals.never_performed && !vals.maintenance_provider_id) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "Indique quién realizó esta tarea",
+        message: "Indique quién realizó esta tarea, o 'A realizar'",
         path: ["maintenance_provider_id"],
       });
     }
@@ -171,6 +174,7 @@ const emptyTask = () => ({
   action: "FUNCTIONAL_CHECK" as const,
   is_on_condition: false,
   maintenance_provider_id: "",
+  never_performed: false,
   applied_date: undefined,
   intervals: [emptyInterval()],
 });
@@ -297,6 +301,8 @@ function TaskRow({
     control,
     name: `${namePrefix}.is_on_condition`,
   });
+  const neverPerformed =
+    useWatch({ control, name: `${namePrefix}.never_performed` }) === true;
   const {
     fields: intervalFields,
     append: appendInterval,
@@ -375,7 +381,7 @@ function TaskRow({
               render={({ field }) => (
                 <FormItem className="w-full">
                   <DatePickerField
-                    label="Último Evento"
+                    label={neverPerformed ? "Fecha de inicio" : "Último Evento"}
                     value={field.value}
                     setValue={(date) => field.onChange(date ?? undefined)}
                     maxDate={new Date()}
@@ -390,6 +396,7 @@ function TaskRow({
               <ProviderSelect
                 control={control as Control<any>}
                 name={`${namePrefix}.maintenance_provider_id`}
+                neverPerformedName={`${namePrefix}.never_performed`}
               />
             </FormItem>
           </div>
@@ -507,7 +514,10 @@ export function AddAvionicsControlItemDialog({
           is_on_condition: task.is_on_condition,
           maintenance_provider_id: task.is_on_condition
             ? undefined
-            : task.maintenance_provider_id,
+            : task.maintenance_provider_id || undefined,
+          never_performed: task.is_on_condition
+            ? false
+            : (task.never_performed ?? false),
           applied_date: task.is_on_condition
             ? undefined
             : task.applied_date

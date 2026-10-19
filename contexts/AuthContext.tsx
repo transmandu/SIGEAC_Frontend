@@ -1,6 +1,9 @@
 "use client";
 
-import axiosInstance, { isAuthEndpoint } from "@/lib/axios";
+import axiosInstance, {
+  isAuthEndpoint,
+  isStaleSessionResponse,
+} from "@/lib/axios";
 import { createCookie, deleteCookie, hasAuthCookie } from "@/lib/cookie";
 import { resetEcho } from "@/lib/echo";
 import { setPostLoginRedirect } from "@/lib/postLoginRedirect";
@@ -72,7 +75,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setTokenChecked(true);
   }, []);
 
-  const { data: user = null, isLoading: userLoading } = useQuery<User | null>({
+  const { data: cachedUser = null, isLoading: userLoading } = useQuery<User | null>({
     queryKey: AUTH_USER_QUERY_KEY,
     queryFn: async () => {
       const { data } = await axiosInstance.get<User>("/user");
@@ -85,6 +88,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     retry: false,
   });
 
+  // El usuario en caché sin cookie no es una sesión: el proxy ya no deja pasar
+  // a ninguna ruta protegida. Tratarlo como sesión viva dejaba al login con un
+  // usuario que nadie podía usar y a AuthRedirect empujando hacia un rebote.
+  const user = hasToken ? cachedUser : null;
+
   // Sin cookie no hay consulta que esperar: la sesión se resuelve como ausente.
   const loading = !tokenChecked || (hasToken && userLoading);
 
@@ -93,7 +101,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   /* =========================================================
    * LOGOUT
    * ========================================================= */
+  // Una caída de sesión dispara decenas de 401 simultáneos, uno por query. Solo
+  // el primero cierra la sesión; el resto repetía replace(), toast y overlay, y
+  // los tardíos volvían a tapar un login que ya estaba pintado.
+  const sessionEndedRef = useRef(false);
+
   const logout = useCallback(async () => {
+    if (sessionEndedRef.current) return;
+
+    sessionEndedRef.current = true;
+
     setLoggingOut(true);
 
     try {
@@ -133,6 +150,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } catch (err) {
       // El overlay NO se apaga aquí: sigue tapando hasta que /login esté
       // pintado. Si el logout falla a medias, el timeout de abajo lo levanta.
+      // El candado se suelta para que el siguiente 401 pueda reintentar.
+      sessionEndedRef.current = false;
       console.error("Logout error:", err);
     }
   }, [router, queryClient, reset]);
@@ -168,7 +187,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       (error) => {
         if (
           error.response?.status !== 401 ||
-          isAuthEndpoint(error.config?.url)
+          isAuthEndpoint(error.config?.url) ||
+          isStaleSessionResponse(error.config?.headers)
         ) {
           return Promise.reject(error);
         }
@@ -218,6 +238,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       // El login ya devuelve el payload completo, así que se siembra la caché
       // en lugar de volver a pedir /user, que es la llamada más cara del flujo.
+      sessionEndedRef.current = false;
+
       queryClient.setQueryData(AUTH_USER_QUERY_KEY, userData);
       setHasToken(true);
 

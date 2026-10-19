@@ -50,7 +50,7 @@ import {
   ItemStatus,
   STATUS_META,
 } from "@/lib/maintenanceControlCalc";
-import { partTypeLabel, partTypeRank } from "@/lib/maintenancePartTypes";
+import { comparePartsByOrder, partTypeLabel } from "@/lib/maintenancePartTypes";
 import {
   COMPONENT_ACTION_LABELS,
   COMPONENT_LIMIT_KIND_LABELS,
@@ -62,6 +62,7 @@ import {
 import { ComponentControlItem, MaintenanceAircraftPart } from "@/types";
 import { cn } from "@/lib/utils";
 import { RecordAuditHistory } from "@/components/planificacion/auditoria/RecordAuditHistory";
+import { SectionNav } from "@/components/misc/SectionNav";
 import { RetiredControlBanner } from "@/components/planificacion/controles/RetiredControlBanner";
 import { RetiredItemsSection } from "@/components/planificacion/controles/RetiredItemsSection";
 import { RetireRecordButton } from "@/components/planificacion/controles/RetireRecordButton";
@@ -617,7 +618,7 @@ const ComponentControlDetailPage = () => {
   });
   const counters: Record<string, number> = {};
   const parents = Array.from(parentsById.entries())
-    .sort(([, a], [, b]) => partTypeRank(a.type) - partTypeRank(b.type))
+    .sort(([, a], [, b]) => comparePartsByOrder(a, b))
     .map(([partId, part]) => {
       const type = (part.type ?? "").toUpperCase();
       counters[type] = (counters[type] ?? 0) + 1;
@@ -684,8 +685,25 @@ const ComponentControlDetailPage = () => {
           recordType="component_control"
           noun="control de componentes"
         />
+        <SectionNav
+          items={[
+            { id: "cc-info", label: "Información", icon: Info },
+            { id: "cc-aircraft", label: "Fuselaje", icon: Plane },
+            ...parents.map(({ id: partId, label }) => ({
+              id: `cc-part-${partId}`,
+              label,
+              icon: Cog,
+            })),
+          ]}
+        />
 
-        <FormSection icon={Info} title="Información General">
+        <FormSection
+          icon={Info}
+          title="Información General"
+          collapsible
+          id="cc-info"
+          storageKey="cc:info"
+        >
           <div className="space-y-3">
             <InfoSection title="Control">
               <InfoItem
@@ -804,6 +822,9 @@ const ComponentControlDetailPage = () => {
         <FormSection
           icon={Plane}
           title="Fuselaje"
+          collapsible
+          id="cc-aircraft"
+          storageKey="cc:aircraft"
           hint="Componentes medidos contra las horas/ciclos de la aeronave."
           action={
             !controlRetired && (
@@ -831,6 +852,9 @@ const ComponentControlDetailPage = () => {
         {parents.map(({ id: partId, part, label, typeLabel }) => (
           <FormSection
             key={partId}
+            collapsible
+            id={`cc-part-${partId}`}
+            storageKey={`cc:part:${partId}`}
             icon={Cog}
             title={
               <>

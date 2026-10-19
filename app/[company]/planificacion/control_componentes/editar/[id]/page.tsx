@@ -14,10 +14,8 @@ import { RetiredControlBanner } from "@/components/planificacion/controles/Retir
 const EditComponentControlPage = () => {
   const { id } = useParams<{ id: string }>();
   const { selectedCompany } = useCompanyStore();
-  const { data, isLoading, isError } = useGetComponentControl(
-    selectedCompany?.slug,
-    id,
-  );
+  const { data, isLoading, isError, isFetchedAfterMount } =
+    useGetComponentControl(selectedCompany?.slug, id);
 
   return (
     <ContentLayout title="Editar Control de Componentes">
@@ -37,7 +35,7 @@ const EditComponentControlPage = () => {
           </div>
         </div>
 
-        {isLoading && <LoadingPage />}
+        {(isLoading || (data && !isFetchedAfterMount)) && <LoadingPage />}
 
         {isError && (
           <Alert variant="destructive">
@@ -57,7 +55,7 @@ const EditComponentControlPage = () => {
           />
         )}
 
-        {data && !data.retired_at && (
+        {data && isFetchedAfterMount && !isError && !data.retired_at && (
           <CreateComponentControlForm initialData={data} />
         )}
       </div>

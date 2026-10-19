@@ -259,7 +259,10 @@ const CompanyBootstrap = () => {
     const timeout = window.setTimeout(() => {
       navigatingRef.current = true;
       setIsNavigating(true);
-      router.replace(redirectTarget);
+
+      // redirectTarget es `/{slug}/dashboard`; el `from` guardado por el login
+      // solo se honra si pertenece a esa misma empresa.
+      router.replace(resolveLandingPath(redirectTarget.split("/")[1], redirectTarget));
     }, 1000);
 
     // Si la navegación no prospera —un 401 la interrumpe y la sesión vuelve a

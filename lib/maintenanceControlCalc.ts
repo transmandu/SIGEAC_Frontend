@@ -11,6 +11,8 @@ import {
 // NONE = el ítem no tiene cumplimiento vigente: sin reloj, no hay estado que afirmar.
 export type ItemStatus = MaintenanceItemStatus | "NONE";
 
+export const NEVER_PERFORMED_LABEL = "A realizar";
+
 /**
  * Las mismas 4 franjas en todos lados que muestran estado de un ítem (tabla
  * de gestión, snapshot histórico): color y qué significan en texto llano.
@@ -64,11 +66,20 @@ export interface ComputedMaintenanceItem {
   frequency: string;
   applied: string;
   appliedSub?: string;
+  /**
+   * "Aplicada" para mostrar: si el ítem se mide por horas o ciclos, lo
+   * principal es la lectura con que se aplicó (es lo que el usuario compara
+   * con el contador) y la fecha va debajo; por calendario, la fecha sola.
+   */
+  appliedPrimary: string;
+  appliedSecondary?: string;
   next: string;
   remaining: string;
   estimate: string;
   status: ItemStatus;
   providerName: string;
+  /** Nunca realizado ("A realizar"): `providerName` es la etiqueta, no una entidad. */
+  neverPerformed?: boolean;
   /**
    * Intervalos adicionales ("lo que ocurra primero" — ej. 6000 Hrs Ó 1825
    * Días Ó 3000 Ciclos): mismas cinco piezas que el intervalo principal, uno
@@ -193,6 +204,7 @@ export function computeMaintenanceItem(
     return {
       frequency: "—",
       applied: "—",
+      appliedPrimary: "—",
       next: "—",
       remaining: "Sin cumplimiento vigente",
       estimate: "—",
@@ -209,14 +221,22 @@ export function computeMaintenanceItem(
   const primary = formatInterval(primaryInterval);
   const extras = extraIntervals.map(formatInterval);
 
+  const appliedDate = fmtDate(parseISO(computed.applied_date));
+  const appliedReading =
+    computed.applied_value !== null && computed.applied_unit
+      ? `${fmtNumber(computed.applied_value)} ${UNIT_SHORT[computed.applied_unit]}`
+      : undefined;
+
   return {
     ...primary,
-    applied: fmtDate(parseISO(computed.applied_date)),
-    appliedSub:
-      computed.applied_value !== null && computed.applied_unit
-        ? `${fmtNumber(computed.applied_value)} ${UNIT_SHORT[computed.applied_unit]}`
-        : undefined,
-    providerName: computed.provider_name ?? "—",
+    applied: appliedDate,
+    appliedSub: appliedReading,
+    appliedPrimary: appliedReading ?? appliedDate,
+    appliedSecondary: appliedReading ? appliedDate : undefined,
+    providerName: computed.never_performed
+      ? NEVER_PERFORMED_LABEL
+      : (computed.provider_name ?? "—"),
+    neverPerformed: computed.never_performed ?? false,
     status: computed.status,
     extras,
   };
