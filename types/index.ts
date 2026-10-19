@@ -487,6 +487,8 @@ export type MaintenanceAircraftPart = {
   aircraft?: AeronauticalAircraft;
   type: string;
   description: string;
+  /** Solo en las respuestas de los controles; `part_order` fija su número ("Motor 1"). */
+  current_assignment?: { part_order?: number | null } | null;
 };
 
 export type MaintenanceCountingMethod = "HOURS" | "CYCLES" | "DAYS";
@@ -506,6 +508,8 @@ export type ComplianceStatus = "CURRENT" | "COMPLETED";
 export type ControlComplianceBase = {
   id: number;
   status: ComplianceStatus;
+  /** "A realizar": el ítem nunca se ha realizado; el cumplimiento es solo el punto de partida y no tiene entidad. */
+  never_performed?: boolean;
   maintenance_provider_id?: number | string | null;
   maintenance_provider?: MaintenanceProvider | null;
   applied_date: string;
@@ -577,6 +581,7 @@ export type MaintenanceControlItemComputed = {
   applied_value: number | null;
   applied_unit: MaintenanceCountingMethod | null;
   provider_name: string | null;
+  never_performed?: boolean;
   status: MaintenanceItemStatus;
   intervals: ComputedMaintenanceInterval[];
 };

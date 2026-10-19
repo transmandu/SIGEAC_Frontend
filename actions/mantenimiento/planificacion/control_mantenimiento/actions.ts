@@ -39,6 +39,7 @@ interface MaintenanceItemData {
   remaining_percentage?: number | null;
   intervals: MaintenanceControlItemInterval[];
   maintenance_provider_id?: string;
+  never_performed?: boolean;
 }
 
 interface MaintenanceControlPartData {

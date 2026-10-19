@@ -41,11 +41,12 @@ import {
   ItemStatus,
   STATUS_META,
 } from "@/lib/maintenanceControlCalc";
-import { partTypeLabel } from "@/lib/maintenancePartTypes";
+import { comparePartsByOrder, partTypeLabel } from "@/lib/maintenancePartTypes";
 import { FormSection } from "@/components/forms/mantenimiento/planificacion/_theme";
 import { MaintenanceAircraftPart, MaintenanceControlItem } from "@/types";
 import { cn } from "@/lib/utils";
 import { RecordAuditHistory } from "@/components/planificacion/auditoria/RecordAuditHistory";
+import { SectionNav } from "@/components/misc/SectionNav";
 import { RetiredControlBanner } from "@/components/planificacion/controles/RetiredControlBanner";
 import { RetiredItemsSection } from "@/components/planificacion/controles/RetiredItemsSection";
 import { RetireRecordButton } from "@/components/planificacion/controles/RetireRecordButton";
@@ -56,9 +57,10 @@ import {
   AlertTriangle,
   ClipboardList,
   Clock,
+  Cog,
   Info,
+  Plane,
   SquarePen,
-  Wrench,
 } from "lucide-react";
 
 function InfoItem({
@@ -184,11 +186,17 @@ const COL = {
 // Columnas como "Estimación" pueden llevar texto largo ("Sin vuelos en los
 // últimos 30 días") que el ancho fijo trunca; sin esto no hay forma de leer
 // qué decía sin ensanchar la columna.
-function TruncatedText({ children }: { children: string }) {
+function TruncatedText({
+  children,
+  className,
+}: {
+  children: string;
+  className?: string;
+}) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <span className="block truncate">{children}</span>
+        <span className={cn("block truncate", className)}>{children}</span>
       </TooltipTrigger>
       <TooltipContent side="top" className="max-w-xs wrap-break-word">
         {children}
@@ -382,12 +390,19 @@ function MaintenanceItemsTable({
                   ))}
                 </TableCell>
                 <TableCell className={COL.applied}>
-                  <span className="block truncate">{computed.applied}</span>
-                  {computed.appliedSub && (
-                    <span className="block truncate text-xs text-muted-foreground">
-                      {computed.appliedSub}
+                  {/* La segunda línea va fuera del flujo (absolute): así la
+                      principal queda a la misma altura que Frecuencia,
+                      Próximo y Remanente en vez de subir para hacerle sitio. */}
+                  <div className="relative">
+                    <span className="block truncate">
+                      {computed.appliedPrimary}
                     </span>
-                  )}
+                    {computed.appliedSecondary && (
+                      <span className="absolute left-0 top-full block w-full truncate text-muted-foreground">
+                        {computed.appliedSecondary}
+                      </span>
+                    )}
+                  </div>
                 </TableCell>
                 <TableCell className={cn(COL.next, "truncate")}>
                   <span className="block truncate">{computed.next}</span>
@@ -450,7 +465,15 @@ function MaintenanceItemsTable({
                   ))}
                 </TableCell>
                 <TableCell className={COL.provider}>
-                  <TruncatedText>{computed.providerName}</TruncatedText>
+                  <TruncatedText
+                    className={
+                      computed.neverPerformed
+                        ? "italic text-muted-foreground"
+                        : undefined
+                    }
+                  >
+                    {computed.providerName}
+                  </TruncatedText>
                 </TableCell>
                 <TableCell className={COL.workOrder}>
                   <WorkOrderCell
@@ -551,19 +574,21 @@ const MaintenanceControlDetailPage = () => {
       partsById.set(String(item.aircraft_part_id), item.aircraft_part);
     }
   });
-  const parts = Array.from(partsById.values()).map((aircraftPart) => {
-    const type = (aircraftPart.type ?? "").toUpperCase();
-    partTypeCounters[type] = (partTypeCounters[type] ?? 0) + 1;
-    const serial = aircraftPart.serial;
-    const typeLabel = `${partTypeLabel(aircraftPart.type)} ${partTypeCounters[type]}`;
-    return {
-      id: aircraftPart.id,
-      aircraft_part: aircraftPart,
-      typeLabel,
-      serial,
-      label: `${typeLabel}${serial ? ` - ${serial}` : ""}`,
-    };
-  });
+  const parts = Array.from(partsById.values())
+    .sort(comparePartsByOrder)
+    .map((aircraftPart) => {
+      const type = (aircraftPart.type ?? "").toUpperCase();
+      partTypeCounters[type] = (partTypeCounters[type] ?? 0) + 1;
+      const serial = aircraftPart.serial;
+      const typeLabel = `${partTypeLabel(aircraftPart.type)} ${partTypeCounters[type]}`;
+      return {
+        id: aircraftPart.id,
+        aircraft_part: aircraftPart,
+        typeLabel,
+        serial,
+        label: `${typeLabel}${serial ? ` - ${serial}` : ""}`,
+      };
+    });
 
   return (
     <ContentLayout title={control.title}>
@@ -615,8 +640,30 @@ const MaintenanceControlDetailPage = () => {
           recordType="maintenance_control"
           noun="control de mantenimiento"
         />
+        <SectionNav
+          items={[
+            { id: "mc-info", label: "Información", icon: Info },
+            {
+              id: "mc-certificates",
+              label: "Certificados",
+              icon: ClipboardList,
+            },
+            { id: "mc-aircraft", label: "Aeronave", icon: Plane },
+            ...parts.map((part) => ({
+              id: `mc-part-${part.id}`,
+              label: part.label,
+              icon: Cog,
+            })),
+          ]}
+        />
 
-        <FormSection icon={Info} title="Información General">
+        <FormSection
+          icon={Info}
+          title="Información General"
+          collapsible
+          id="mc-info"
+          storageKey="mc:info"
+        >
           <div className="space-y-3">
             <InfoSection title="Control">
               <InfoItem
@@ -701,6 +748,9 @@ const MaintenanceControlDetailPage = () => {
         <FormSection
           icon={ClipboardList}
           title="Certificados"
+          collapsible
+          id="mc-certificates"
+          storageKey="mc:certificates"
           action={
             !controlRetired && (
               <AddMaintenanceControlItemDialog
@@ -725,8 +775,11 @@ const MaintenanceControlDetailPage = () => {
         </FormSection>
 
         <FormSection
-          icon={Wrench}
+          icon={Plane}
           title="Aeronave"
+          collapsible
+          id="mc-aircraft"
+          storageKey="mc:aircraft"
           action={
             <div className="flex items-center gap-1">
               {!controlRetired && (
@@ -764,7 +817,10 @@ const MaintenanceControlDetailPage = () => {
           return (
             <FormSection
               key={part.id}
-              icon={Wrench}
+              collapsible
+              id={`mc-part-${part.id}`}
+              storageKey={`mc:part:${part.id}`}
+              icon={Cog}
               title={
                 <>
                   {part.typeLabel}

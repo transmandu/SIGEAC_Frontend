@@ -31,7 +31,8 @@ export interface ComponentItemData {
   id?: number;
   aircraft_part_id?: number | null;
   maintenance_catalog_service_id?: number | null;
-  maintenance_provider_id: string;
+  maintenance_provider_id?: string;
+  never_performed?: boolean;
   flags: ControlItemFlag[];
   description: string;
   declared_description?: string;

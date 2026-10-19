@@ -87,6 +87,8 @@ const formSchema = z
     applied_date: z.date({ error: "Seleccione una fecha" }),
     remaining_percentage: optionalPercentage,
     maintenance_provider_id: z.string().optional(),
+    // "A realizar": nunca se ha realizado; sin entidad; la fecha es el punto desde el que corre el límite.
+    never_performed: z.boolean().optional(),
     intervals: z.array(intervalSchema).min(1, "Agregue al menos un intervalo"),
   })
   .superRefine((vals, ctx) => {
@@ -265,11 +267,14 @@ export function AddMaintenanceControlItemDialog({
       applied_date: undefined,
       remaining_percentage: undefined,
       maintenance_provider_id: "",
+      never_performed: false,
       intervals: [emptyInterval()],
     },
   });
 
   const { control } = form;
+  const neverPerformed =
+    useWatch({ control, name: "never_performed" }) === true;
   const {
     fields: intervalFields,
     append: appendInterval,
@@ -287,9 +292,13 @@ export function AddMaintenanceControlItemDialog({
   };
 
   const onSubmit = async (values: FormValues) => {
-    if (itemType === "SERVICE" && !values.maintenance_provider_id) {
+    if (
+      itemType === "SERVICE" &&
+      !values.never_performed &&
+      !values.maintenance_provider_id
+    ) {
       form.setError("maintenance_provider_id", {
-        message: "Seleccione quién lo realiza",
+        message: "Seleccione quién lo realiza, o 'A realizar'",
       });
       return;
     }
@@ -305,6 +314,7 @@ export function AddMaintenanceControlItemDialog({
         applied_date: format(values.applied_date, "yyyy-MM-dd"),
         remaining_percentage: values.remaining_percentage ?? null,
         maintenance_provider_id: values.maintenance_provider_id || undefined,
+        never_performed: values.never_performed ?? false,
         intervals: values.intervals,
       },
     });
@@ -399,7 +409,9 @@ export function AddMaintenanceControlItemDialog({
                 render={({ field }) => (
                   <FormItem className="w-full">
                     <DatePickerField
-                      label="1ra Aplicación"
+                      label={
+                        neverPerformed ? "Fecha de inicio" : "1ra Aplicación"
+                      }
                       value={field.value}
                       setValue={(date) => field.onChange(date ?? undefined)}
                       maxDate={new Date()}
@@ -416,6 +428,9 @@ export function AddMaintenanceControlItemDialog({
                 <ProviderSelect
                   control={control as Control<any>}
                   name="maintenance_provider_id"
+                  neverPerformedName={
+                    itemType === "SERVICE" ? "never_performed" : undefined
+                  }
                 />
               </FormItem>
             </div>

@@ -131,6 +131,9 @@ const taskSchema = z.object({
   action: actionEnum,
   is_on_condition: z.boolean().default(false),
   maintenance_provider_id: z.string().optional(),
+  // "A realizar": la tarea nunca se ha realizado; sin entidad y con fecha y
+  // lecturas son el punto desde el que corre el límite (ver ProviderSelect).
+  never_performed: z.boolean().optional(),
   applied_date: z.date().optional(),
   remaining_percentage: optionalPercentage,
   intervals: z.array(intervalSchema).default([]),
@@ -187,10 +190,14 @@ const formSchema = z
             path: [...path, "applied_date"],
           });
         }
-        if (!unchanged && !task.maintenance_provider_id) {
+        if (
+          !unchanged &&
+          !task.never_performed &&
+          !task.maintenance_provider_id
+        ) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: "Indique quién la realizó",
+            message: "Indique quién la realizó, o 'A realizar'",
             path: [...path, "maintenance_provider_id"],
           });
         }
@@ -246,6 +253,7 @@ const emptyTask = (controlPercentage?: number | string) => ({
   action: "FUNCTIONAL_CHECK",
   is_on_condition: true,
   maintenance_provider_id: "",
+  never_performed: false,
   applied_date: undefined as unknown as Date,
   remaining_percentage: controlPercentage as number | undefined,
   intervals: [] as ReturnType<typeof emptyInterval>[],
@@ -581,6 +589,8 @@ function TaskCard({
     control,
     name: `${namePrefix}.is_on_condition`,
   }) as boolean;
+  const neverPerformed =
+    useWatch({ control, name: `${namePrefix}.never_performed` }) === true;
   const { fields, append, remove } = useFieldArray({
     control,
     name: `${namePrefix}.intervals`,
@@ -611,11 +621,18 @@ function TaskCard({
           <ProviderSelect
             control={control}
             name={`${namePrefix}.maintenance_provider_id`}
+            neverPerformedName={`${namePrefix}.never_performed`}
           />
         </FormItem>
         <FormItem className="min-w-0 space-y-1">
-          <FieldLabel tooltip="Fecha en que se cumplió esta tarea por última vez (el cumplimiento que está cargando, si es nuevo). Desde ahí se cuenta el próximo vencimiento.">
-            Último cump.
+          <FieldLabel
+            tooltip={
+              neverPerformed
+                ? "Fecha desde la que se empieza a contar el límite: la tarea aún no se ha realizado."
+                : "Fecha en que se cumplió esta tarea por última vez (el cumplimiento que está cargando, si es nuevo). Desde ahí se cuenta el próximo vencimiento."
+            }
+          >
+            {neverPerformed ? "Fecha de inicio" : "Último cump."}
           </FieldLabel>
           <CompactDateField
             control={control}
@@ -885,6 +902,7 @@ function mapToFormItem(item: NonNullable<AvionicsControl["items"]>[number]) {
         maintenance_provider_id: task.maintenance_provider_id
           ? String(task.maintenance_provider_id)
           : "",
+        never_performed: task.current_compliance?.never_performed ?? false,
         applied_date: appliedDateOf(task.current_compliance),
         remaining_percentage:
           task.remaining_percentage !== null &&
@@ -1008,6 +1026,7 @@ export default function CreateAvionicsControlForm({
               // eso el % de alerta y los intervalos sí quedan vacíos.
               maintenance_provider_id:
                 task.maintenance_provider_id || undefined,
+              never_performed: task.never_performed ?? false,
               applied_date: task.applied_date
                 ? format(task.applied_date, "yyyy-MM-dd")
                 : undefined,
@@ -1085,6 +1104,7 @@ export default function CreateAvionicsControlForm({
               control={control}
               name="aircraft_id"
               excludeIds={excludeAircraftIds}
+              locked={isEditing}
               hint="Solo se listan las que aún no tienen un control de aviónica."
             />
             <FormField
