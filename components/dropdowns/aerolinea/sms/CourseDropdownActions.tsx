@@ -6,6 +6,7 @@ import {
 import { AddCourseAttendanceForm } from "@/components/forms/aerolinea/sms/AddCourseAtendanceForm";
 import { AddToCourseForm } from "@/components/forms/aerolinea/sms/AddToCourseForm";
 import { CreateCourseForm } from "@/components/forms/aerolinea/sms/CreateCourseForm";
+import { PdfEndpointPreviewDialog } from "@/components/dialogs/shared/PdfEndpointPreviewDialog";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -31,6 +32,7 @@ import { Course } from "@/types";
 import { startOfDay } from "date-fns";
 import {
   ClipboardPenLine,
+  Download,
   EyeIcon,
   FileText,
   Loader2,
@@ -56,6 +58,12 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
   const [openStatus, setOpenStatus] = useState(false);
   const [openAttendance, setOpenAttendance] = useState(false);
   const [openReopen, setOpenReopen] = useState(false);
+  const [openDocument, setOpenDocument] = useState(false);
+
+  const hasLibraryDocument = Boolean(course.library_document_id);
+  const libraryDocumentEndpoint = selectedCompany?.slug
+    ? `/${selectedCompany.slug}/library/documents/${course.library_document_id}/download`
+    : "";
 
   const router = useRouter();
   const handleDelete = async () => {
@@ -134,6 +142,24 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
                       <ClipboardPenLine className="h-4 w-4" />
                     </TooltipTrigger>
                     <TooltipContent side="bottom">Editar</TooltipContent>
+                  </Tooltip>
+                </Button>
+              )}
+
+              {hasLibraryDocument && libraryDocumentEndpoint && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => setOpenDocument(true)}
+                >
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Download className="h-4 w-4 text-blue-400" />
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">
+                      Ver / Descargar documento
+                    </TooltipContent>
                   </Tooltip>
                 </Button>
               )}
@@ -400,6 +426,17 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {hasLibraryDocument && libraryDocumentEndpoint && (
+        <PdfEndpointPreviewDialog
+          open={openDocument}
+          onOpenChange={setOpenDocument}
+          endpoint={libraryDocumentEndpoint}
+          fileName={`curso_${course.id}`}
+          title="Documento asociado al curso"
+          description="Revisa el documento de la biblioteca digital asociado a este curso antes de descargarlo."
+        />
+      )}
     </>
   );
 };
