@@ -41,6 +41,7 @@ import { ContentLayout } from "@/components/layout/ContentLayout";
 import { useGetMaintenanceAircraftByAcronym } from "@/hooks/mantenimiento/planificacion/useGetMaitenanceAircraftByAcronym";
 import type { AeronauticalAircraft, MaintenanceAircraftPart } from "@/types";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { formatNumber } from "@/lib/formatNumber";
 
 // ---------- helpers ----------
 const labelFor = (obj: any): string => {
@@ -61,33 +62,8 @@ const formatDate = (iso?: string | null) => {
   }
 };
 
-// Formatear números con máximo 2 decimales, eliminando ceros innecesarios
-const fmtNumber = (n: unknown): string => {
-  if (n == null || n === "") return "—";
-
-  const str = String(n).trim();
-  if (!str) return "—";
-
-  const lastDot = str.lastIndexOf(".");
-  const lastComma = str.lastIndexOf(",");
-
-  // Determinar locale y parsear según posición de separadores
-  const isEuropean =
-    lastComma > lastDot || (lastComma !== -1 && lastDot === -1);
-  const num = isEuropean
-    ? Number(str.replace(/\./g, "").replace(",", "."))
-    : Number(str.replace(/,/g, ""));
-
-  if (isNaN(num)) return "—";
-
-  // Redondear a 2 decimales para evitar problemas de precisión de punto flotante
-  const rounded = Math.round(num * 100) / 100;
-
-  return rounded.toLocaleString(isEuropean ? "de-DE" : "en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-};
+const fmtNumber = (n: unknown) =>
+  formatNumber(n, { minDecimals: 2, maxDecimals: 2, fallback: "—" });
 
 const Stat = ({
   icon: Icon,

@@ -1,6 +1,7 @@
 import { Plane, Clock, Repeat2, Loader } from "lucide-react";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { formatNumber } from "@/lib/formatNumber";
 
 interface AircraftStatsBannerProps {
   title: string;
@@ -49,7 +50,7 @@ export const AircraftStatsBanner = ({
                 className="gap-1.5 px-2.5 py-1 font-medium text-foreground"
               >
                 <Clock className="h-3.5 w-3.5" />
-                {hours.toLocaleString()} h
+                {formatNumber(hours)} h
               </Badge>
 
               {/* Ciclos */}
@@ -58,7 +59,7 @@ export const AircraftStatsBanner = ({
                 className="gap-1.5 px-2.5 py-1 font-medium text-foreground"
               >
                 <Repeat2 className="h-3.5 w-3.5" />
-                {cycles.toLocaleString()} ciclos
+                {formatNumber(cycles)} ciclos
               </Badge>
             </div>
           )}

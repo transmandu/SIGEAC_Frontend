@@ -30,6 +30,7 @@ import {
 import { CloseComplianceDialog } from "@/components/dialogs/mantenimiento/planificacion/CloseComplianceDialog";
 import { StartComplianceDialog } from "@/components/dialogs/mantenimiento/planificacion/StartComplianceDialog";
 import { AddMaintenanceControlItemDialog } from "@/components/dialogs/mantenimiento/planificacion/AddMaintenanceControlItemDialog";
+import { useAuth } from "@/contexts/AuthContext";
 import { ImportComplianceHistoryDialog } from "@/components/dialogs/mantenimiento/planificacion/ImportComplianceHistoryDialog";
 import { DownloadMaintenanceFormatButton } from "@/components/dialogs/mantenimiento/planificacion/DownloadMaintenanceFormatButton";
 import { useGetMaintenanceControl } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceControl";
@@ -520,6 +521,8 @@ function MaintenanceItemsTable({
 const MaintenanceControlDetailPage = () => {
   const { id, company } = useParams<{ id: string; company: string }>();
   const { selectedCompany } = useCompanyStore();
+  const { user } = useAuth();
+  const isSuperuser = !!user?.roles?.some((r) => r.name === "SUPERUSER");
   const {
     data: control,
     isLoading,
@@ -618,10 +621,12 @@ const MaintenanceControlDetailPage = () => {
             />
             {!controlRetired && (
               <>
-                <ImportComplianceHistoryDialog
-                  controlId={control.id}
-                  items={items}
-                />
+                {isSuperuser && (
+                  <ImportComplianceHistoryDialog
+                    controlId={control.id}
+                    items={items}
+                  />
+                )}
                 <ActionTriggerButton asChild>
                   <Link
                     href={`/${company}/planificacion/control_mantenimiento/editar/${control.id}`}

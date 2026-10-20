@@ -105,7 +105,7 @@ const FlightControlPage = () => {
               <AircraftStatsBanner
                 title="Totales"
                 cycles={stats.totalCycles}
-                hours={stats.totalCycles}
+                hours={stats.totalHours}
                 flights={stats.count}
                 isVisible={true}
               />

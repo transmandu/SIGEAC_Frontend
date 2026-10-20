@@ -35,6 +35,7 @@ import { useGetClients } from "@/hooks/mantenimiento/clientes/useGetClients";
 import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufacturers";
 import { parseISO } from "date-fns";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { formatNumber } from "@/lib/formatNumber";
 
 interface AircraftPart {
   id?: number; // ID para actualizaciones
@@ -74,17 +75,8 @@ interface AircraftAssignment {
   aircraft_part?: any;
 }
 
-// Función para formatear números con locale español (coma decimal, punto miles)
-const fmtNumber = (n: any) => {
-  if (n === null || n === undefined) return "0";
-  const num = Number(n);
-  return isNaN(num)
-    ? "0"
-    : num.toLocaleString("es-ES", {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 3,
-      });
-};
+const fmtNumber = (n: unknown) =>
+  formatNumber(n, { maxDecimals: 3, fallback: "0" });
 
 // Función para parsear fecha ISO sin problemas de timezone
 const parseISODate = (dateString: string | Date | null | undefined): Date => {
@@ -606,14 +598,14 @@ export default function EditAircraftPage({
                           Horas de Vuelo
                         </div>
                         <div className="text-sm font-medium">
-                          {aircraftData?.flight_hours}
+                          {fmtNumber(aircraftData?.flight_hours)}
                         </div>
 
                         <div className="text-sm text-muted-foreground">
                           Ciclos de Vuelo
                         </div>
                         <div className="text-sm font-medium">
-                          {aircraftData?.flight_cycles}
+                          {fmtNumber(aircraftData?.flight_cycles)}
                         </div>
                       </div>
                     </CardContent>

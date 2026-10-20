@@ -34,6 +34,7 @@ import { useState } from "react";
 import TaskCard from "./TaskCard";
 import { AddRoutineTaskDialog } from "./AddRoutineTaskDialog";
 import { workOrderStatusLabelEsUpper } from "@/lib/planificacion/statuses";
+import { formatNumber } from "@/lib/formatNumber";
 
 type WorkOrderTask = WorkOrder["work_order_tasks"][0];
 
@@ -259,11 +260,15 @@ export const RoutineTasksList = ({
                   </TableCell>
                   <TableCell>
                     <Badge variant="secondary" className="font-mono">
-                      {task.assigned_technicians
-                        ?.reduce((sum, t) => sum + t.hours, 0)
-                        .toFixed(1) ||
-                        task.total_man_hours?.toFixed(1) ||
-                        "8.0"}
+                      {formatNumber(
+                        task.assigned_technicians?.reduce(
+                          (sum, t) => sum + t.hours,
+                          0,
+                        ) ??
+                          task.total_man_hours ??
+                          8,
+                        { minDecimals: 1, maxDecimals: 1 },
+                      )}
                     </Badge>
                   </TableCell>
                   <TableCell>
