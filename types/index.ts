@@ -2526,7 +2526,7 @@ export type ChangeStatus =
   | "EN_EJECUCION"
   | "CERRADO";
 
-export type TolerabilityLevel = "acceptable" | "tolerable" | "intolerable";
+export type TolerabilityLevel = "aceptable" | "tolerable" | "intolerable";
 
 export type PhotographicStage = "before" | "after";
 
