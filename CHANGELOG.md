@@ -1,3 +1,7 @@
+## v4.73.1 — 2026-10-20
+
+- fix: change risk label to spanish (#348)
+
 ## v4.73.0 — 2026-10-20
 
 - feat: add control snapshot dialogs for avionics, components, and dire… (#347)
