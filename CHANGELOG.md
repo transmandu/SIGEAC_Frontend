@@ -1,3 +1,7 @@
+## v4.74.0 — 2026-10-20
+
+- feat: show if the change is temporal (#349)
+
 ## v4.73.1 — 2026-10-20
 
 - fix: change risk label to spanish (#348)
