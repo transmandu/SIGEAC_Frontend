@@ -35,6 +35,7 @@ import {
 import { CloseComplianceDialog } from "@/components/dialogs/mantenimiento/planificacion/CloseComplianceDialog";
 import { StartComplianceDialog } from "@/components/dialogs/mantenimiento/planificacion/StartComplianceDialog";
 import { AddDirectiveControlItemDialog } from "@/components/dialogs/mantenimiento/planificacion/AddDirectiveControlItemDialog";
+import { useAuth } from "@/contexts/AuthContext";
 import { ImportDirectiveComplianceHistoryDialog } from "@/components/dialogs/mantenimiento/planificacion/ImportDirectiveComplianceHistoryDialog";
 import { useGetDirectiveControl } from "@/hooks/mantenimiento/planificacion/useGetDirectiveControl";
 import { useCompanyStore } from "@/stores/CompanyStore";
@@ -215,6 +216,8 @@ const COL = {
 const DirectiveControlDetailPage = () => {
   const { id, company } = useParams<{ id: string; company: string }>();
   const { selectedCompany } = useCompanyStore();
+  const { user } = useAuth();
+  const isSuperuser = !!user?.roles?.some((r) => r.name === "SUPERUSER");
   const {
     data: control,
     isLoading,
@@ -347,10 +350,12 @@ const DirectiveControlDetailPage = () => {
               />
               {!controlRetired && (
                 <>
-                  <ImportDirectiveComplianceHistoryDialog
-                    controlId={control.id}
-                    items={items}
-                  />
+                  {isSuperuser && (
+                    <ImportDirectiveComplianceHistoryDialog
+                      controlId={control.id}
+                      items={items}
+                    />
+                  )}
                   <ActionTriggerButton asChild>
                     <Link
                       href={`/${company}/planificacion/control_directivas/editar/${control.id}`}

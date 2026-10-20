@@ -46,17 +46,10 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import Link from "next/link";
 import axiosInstance from "@/lib/axios";
 import { toast } from "sonner";
+import { formatNumber } from "@/lib/formatNumber";
 
-const fmtNumber = (n: any) => {
-  if (n === null || n === undefined) return "N/A";
-  const num = Number(n);
-  return isNaN(num)
-    ? "N/A"
-    : num.toLocaleString("es-ES", {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 3,
-      });
-};
+const fmtNumber = (n: unknown) =>
+  formatNumber(n, { maxDecimals: 3, fallback: "N/A" });
 
 const fmtDate = (d?: string | null | Date) => {
   if (!d) return "—";

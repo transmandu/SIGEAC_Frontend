@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { InfoItem } from "./InfoItem";
+import { formatNumber } from "@/lib/formatNumber";
 
 
 export function PartSummaryCard({ part, index, level }: {
@@ -67,19 +68,19 @@ export function PartSummaryCard({ part, index, level }: {
                         <InfoItem label="Marca" value={part.brand} />
                         <InfoItem 
                             label="TSN (Time Since New)" 
-                            value={part.time_since_new ? `${part.time_since_new.toLocaleString('es-ES')} hrs` : "No especificado"} 
+                            value={part.time_since_new ? `${formatNumber(part.time_since_new, { maxDecimals: 3 })} hrs` : "No especificado"} 
                         />
                         <InfoItem 
                             label="TSO (Time Since Overhaul)" 
-                            value={part.time_since_overhaul ? `${part.time_since_overhaul.toLocaleString('es-ES')} hrs` : "No especificado"} 
+                            value={part.time_since_overhaul ? `${formatNumber(part.time_since_overhaul, { maxDecimals: 3 })} hrs` : "No especificado"} 
                         />
                         <InfoItem 
                             label="CSN (Cycles Since New)" 
-                            value={part.cycles_since_new ? part.cycles_since_new.toLocaleString('es-ES') : "No especificado"} 
+                            value={part.cycles_since_new ? formatNumber(part.cycles_since_new) : "No especificado"} 
                         />
                         <InfoItem 
                             label="CSO (Cycles Since Overhaul)" 
-                            value={part.cycles_since_overhaul ? part.cycles_since_overhaul.toLocaleString('es-ES') : "No especificado"} 
+                            value={part.cycles_since_overhaul ? formatNumber(part.cycles_since_overhaul) : "No especificado"} 
                         />
                     </div>
 

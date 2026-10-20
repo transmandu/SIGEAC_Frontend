@@ -1,6 +1,7 @@
 "use client";
 
 import { DataTablePagination } from "@/components/tables/DataTablePagination";
+import { AvionicsControlSnapshotDialog } from "@/components/dialogs/mantenimiento/planificacion/AvionicsControlSnapshotDialog";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -75,14 +76,18 @@ export function DataTable<TData extends RowData>({
   return (
     <div>
       <div className="flex items-center justify-between gap-3 py-4">
-        <ActionTriggerButton asChild>
-          <Link
-            href={`/${selectedCompany?.slug}/planificacion/control_avionica/crear`}
-          >
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Crear Control de Aviónica
-          </Link>
-        </ActionTriggerButton>
+        <div className="flex items-center gap-2">
+          <ActionTriggerButton asChild>
+            <Link
+              href={`/${selectedCompany?.slug}/planificacion/control_avionica/crear`}
+            >
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Crear Control de Aviónica
+            </Link>
+          </ActionTriggerButton>
+
+          <AvionicsControlSnapshotDialog />
+        </div>
 
         <div className="relative w-full sm:w-80">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />

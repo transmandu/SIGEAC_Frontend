@@ -23,17 +23,10 @@ import {
 import Link from "next/link";
 import { AeronauticalAircraft } from "@/types";
 import MaintenanceAircraftDropdownActions from "@/components/dropdowns/mantenimiento/ordenes_trabajo/MaintenanceAircraftDropdownActions";
+import { formatNumber } from "@/lib/formatNumber";
 
-const fmtNumber = (n: any) => {
-  if (n === null || n === undefined) return "0";
-  const num = Number(n);
-  return isNaN(num)
-    ? "0"
-    : num.toLocaleString("es-ES", {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 3,
-      });
-};
+const fmtNumber = (n: unknown) =>
+  formatNumber(n, { maxDecimals: 3, fallback: "0" });
 
 export const columns: AppColumnDef<AeronauticalAircraft>[] = [
   {

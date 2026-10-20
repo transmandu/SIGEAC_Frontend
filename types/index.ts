@@ -608,6 +608,8 @@ export type MaintenanceControlSnapshotItem = {
 export type MaintenanceControlSnapshotPart = {
   id: number;
   type: string | null;
+  /** Posición asignada en la aeronave; fija qué parte es "Motor 1". */
+  part_order: number | null;
   manufacturer: string | null;
   part_number: string | null;
   serial: string | null;
@@ -615,9 +617,21 @@ export type MaintenanceControlSnapshotPart = {
   csn: number | null;
 };
 
-export type MaintenanceControlSnapshot = {
+/** Lo común de los cuatro snapshots: corte, aeronave, partes y parámetros del control. */
+export type ControlSnapshotBase = {
   as_of: string;
-  control: { id: number; title: string };
+  control: {
+    id: number;
+    title: string;
+    remaining_percentage: number;
+    has_percentage_overrides: boolean;
+  };
+  /** Promedio diario de los 30 días previos al corte; null sin matrícula. */
+  daily_average: {
+    daily_average_hours: number;
+    daily_average_cycles: number;
+    days_considered: number;
+  } | null;
   aircraft: {
     acronym: string;
     manufacturer: string | null;
@@ -626,8 +640,85 @@ export type MaintenanceControlSnapshot = {
     flight_hours: number;
     flight_cycles: number;
   };
+  /** Ya en el orden del control en vivo (tipo, `part_order`, id). */
   parts: MaintenanceControlSnapshotPart[];
+};
+
+export type MaintenanceControlSnapshot = ControlSnapshotBase & {
   items: MaintenanceControlSnapshotItem[];
+};
+
+/** Una AD a la fecha consultada (DirectiveControlSnapshotService). */
+export type DirectiveControlSnapshotItem = {
+  id: number;
+  ad_number: string;
+  authority: DirectiveAuthority;
+  revision: string | null;
+  description: string;
+  declared_description?: string | null;
+  reference_document: string | null;
+  compliance_method: string | null;
+  compliance_type: DirectiveComplianceType;
+  remaining_percentage: number | string | null;
+  aircraft_part_id: number | null;
+  /** A esa fecha tenía un cumplimiento vigente (con o sin plazo). */
+  has_current_compliance: boolean;
+  /** null = sin reloj: cumplida (única vez), sin cumplimiento vigente o sin plazo. */
+  computed: MaintenanceControlItemComputed | null;
+  /** Fecha en que se cumplió, si era de única vez y ya estaba cumplida a esa fecha. */
+  complied_at: string | null;
+  complied_method: string | null;
+  complied_provider: string | null;
+};
+
+export type DirectiveControlSnapshot = ControlSnapshotBase & {
+  items: DirectiveControlSnapshotItem[];
+};
+
+/** Un componente a la fecha consultada (ComponentControlSnapshotService). */
+export type ComponentControlSnapshotItem = {
+  id: number;
+  description: string;
+  declared_description?: string | null;
+  part_number: string;
+  serial: string;
+  position: string | null;
+  action: ComponentAction;
+  flags: ControlItemFlag[];
+  remaining_percentage: number | string | null;
+  limit_kinds: ComponentLimitKind[];
+  aircraft_part_id: number | null;
+  computed: MaintenanceControlItemComputed | null;
+};
+
+export type ComponentControlSnapshot = ControlSnapshotBase & {
+  items: ComponentControlSnapshotItem[];
+};
+
+/** Una tarea de un equipo de aviónica a la fecha consultada. */
+export type AvionicsControlSnapshotTask = {
+  id: number;
+  action: AvionicsAction;
+  is_on_condition: boolean;
+  remaining_percentage: number | string | null;
+  /** null = por condición, o sin cumplimiento vigente a esa fecha. */
+  computed: MaintenanceControlItemComputed | null;
+};
+
+export type AvionicsControlSnapshotItem = {
+  id: number;
+  description: string;
+  declared_description?: string | null;
+  part_number: string;
+  serial: string;
+  position: string | null;
+  reference_document: string | null;
+  flags: ControlItemFlag[];
+  tasks: AvionicsControlSnapshotTask[];
+};
+
+export type AvionicsControlSnapshot = ControlSnapshotBase & {
+  items: AvionicsControlSnapshotItem[];
 };
 
 // ─── Bandeja de trabajo ─────────────────────────────────────────────────────

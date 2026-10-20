@@ -1,5 +1,6 @@
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
+import { formatNumber } from "@/lib/formatNumber";
 import {
   ComputedMaintenanceInterval,
   MaintenanceControlItemComputed,
@@ -93,20 +94,15 @@ const UNIT_LABEL: Record<string, string> = {
   CYCLES: "Ciclos",
   DAYS: "Días",
 };
-const UNIT_SHORT: Record<string, string> = {
+export const UNIT_SHORT: Record<string, string> = {
   HOURS: "hrs",
   CYCLES: "cic",
   DAYS: "días",
 };
 
-// Enteros sin separador de miles (26739, no 26.739 ni 26,739); si hay
-// decimales, van con coma (100,24). `toLocaleString` con "es-VE" agrupa de
-// más, así que se arma el string a mano.
-export const fmtNumber = (value: number) => {
-  const [intPart, decPart] = value.toFixed(2).split(".");
-  const trimmedDecimals = decPart === "00" ? "" : decPart.replace(/0+$/, "");
-  return trimmedDecimals ? `${intPart},${trimmedDecimals}` : intPart;
-};
+// Punto para los miles y coma para los decimales (17.970,81), con los ceros
+// sobrantes recortados (26.739, no 26.739,00): ver lib/formatNumber.ts.
+export const fmtNumber = (value: number) => formatNumber(value);
 export const fmtDate = (date: Date) =>
   format(date, "dd/MM/yyyy", { locale: es });
 

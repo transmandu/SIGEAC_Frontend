@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { type AppColumnDef } from "@/lib/table";
+import { formatNumber } from "@/lib/formatNumber";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
@@ -90,7 +91,7 @@ export const getColumns = (companySlug: string): AppColumnDef<FlightControl>[] =
     cell: ({ row }) => (
       <div className="flex items-center justify-center gap-2">
         <Clock className="h-4 w-4 text-muted-foreground" />
-        <span className="font-medium tabular-nums">{Number(row.original.flight_hours ?? 0).toFixed(3)}</span>
+        <span className="font-medium tabular-nums">{formatNumber(row.original.flight_hours ?? 0, { minDecimals: 3, maxDecimals: 3 })}</span>
         <span className="text-xs text-muted-foreground">h</span>
       </div>
     ),
@@ -102,7 +103,7 @@ export const getColumns = (companySlug: string): AppColumnDef<FlightControl>[] =
     cell: ({ row }) => (
       <div className="flex items-center justify-center gap-2">
         <Repeat2 className="h-4 w-4 text-muted-foreground" />
-        <span className="font-medium tabular-nums">{Number(row.original.flight_cycles ?? 0)}</span>
+        <span className="font-medium tabular-nums">{formatNumber(row.original.flight_cycles ?? 0)}</span>
       </div>
     ),
   },

@@ -35,6 +35,7 @@ import {
 import { CloseComplianceDialog } from "@/components/dialogs/mantenimiento/planificacion/CloseComplianceDialog";
 import { StartComplianceDialog } from "@/components/dialogs/mantenimiento/planificacion/StartComplianceDialog";
 import { AddAvionicsControlItemDialog } from "@/components/dialogs/mantenimiento/planificacion/AddAvionicsControlItemDialog";
+import { useAuth } from "@/contexts/AuthContext";
 import { ImportAvionicsComplianceHistoryDialog } from "@/components/dialogs/mantenimiento/planificacion/ImportAvionicsComplianceHistoryDialog";
 import { useGetAvionicsControl } from "@/hooks/mantenimiento/planificacion/useGetAvionicsControl";
 import { useCompanyStore } from "@/stores/CompanyStore";
@@ -192,6 +193,8 @@ const COL = {
 const AvionicsControlDetailPage = () => {
   const { id, company } = useParams<{ id: string; company: string }>();
   const { selectedCompany } = useCompanyStore();
+  const { user } = useAuth();
+  const isSuperuser = !!user?.roles?.some((r) => r.name === "SUPERUSER");
   const {
     data: control,
     isLoading,
@@ -298,10 +301,12 @@ const AvionicsControlDetailPage = () => {
             />
             {!controlRetired && (
               <>
-                <ImportAvionicsComplianceHistoryDialog
-                  controlId={control.id}
-                  items={activeItems}
-                />
+                {isSuperuser && (
+                  <ImportAvionicsComplianceHistoryDialog
+                    controlId={control.id}
+                    items={activeItems}
+                  />
+                )}
                 <ActionTriggerButton asChild>
                   <Link
                     href={`/${company}/planificacion/control_avionica/editar/${control.id}`}
