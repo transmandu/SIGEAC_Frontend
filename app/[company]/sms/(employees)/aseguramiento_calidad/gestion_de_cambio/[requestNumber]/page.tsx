@@ -89,7 +89,7 @@ const TOLERABILITY_LABELS: Record<
   string,
   { label: string; className: string }
 > = {
-  acceptable: {
+  aceptable: {
     label: "Aceptable",
     className:
       "bg-green-100 text-green-700 border-green-200 dark:bg-green-950/50 dark:text-green-400 dark:border-green-800",
