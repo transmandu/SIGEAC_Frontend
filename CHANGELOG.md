@@ -1,3 +1,7 @@
+## v4.73.0 — 2026-10-20
+
+- feat: add control snapshot dialogs for avionics, components, and dire… (#347)
+
 ## v4.72.0 — 2026-10-19
 
 - feat: enhance maintenance forms with new features and validations (#346)
