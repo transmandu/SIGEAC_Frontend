@@ -534,7 +534,7 @@ export default function GestionDeCambioDetailPage() {
               <div>
                 <SectionLabel>Temporal</SectionLabel>
                 <FieldValue>
-                  {changeRequest.is_temporary ? "Sí" : "No"}
+                  {changeRequest.is_temporary ? "TEMPORAL" : "PERMANENTE"}
                   {changeRequest.is_temporary &&
                     changeRequest.temporary_duration &&
                     ` (${changeRequest.temporary_duration})`}
