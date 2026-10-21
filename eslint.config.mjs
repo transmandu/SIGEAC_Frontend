@@ -2,7 +2,7 @@ import nextCoreWebVitals from "eslint-config-next/core-web-vitals";
 
 import { contratoDeErrores } from "./eslint/contrato-de-errores.mjs";
 
-export default [
+const config = [
   // Flat config solo ignora node_modules por su cuenta.
   {
     ignores: [".next/**", "next-env.d.ts", "public/**"],
@@ -37,3 +37,5 @@ export default [
     },
   },
 ];
+
+export default config;

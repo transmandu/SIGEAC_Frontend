@@ -23,10 +23,14 @@ export const useAutoScheduleGenerator = (
   selectedTask: WorkOrderTask,
   setValue: UseFormSetValue<any>
 ) => {
-  useEffect(() => {
-    if (!scheduling) return
+  // Los tres campos como valores propios: es lo que lee el efecto, y su lista de
+  // dependencias dice exactamente eso (dependiendo de `scheduling` entero se
+  // regeneraría la agenda cada vez que el formulario entrega un objeto nuevo).
+  const totalHours = scheduling?.totalHours
+  const hoursPerDay = scheduling?.hoursPerDay
+  const startDate = scheduling?.startDate
 
-    const { totalHours, hoursPerDay, startDate } = scheduling
+  useEffect(() => {
     if (!totalHours || !hoursPerDay || !startDate) return
 
     let remainingHours = totalHours
@@ -51,11 +55,5 @@ export const useAutoScheduleGenerator = (
     }
 
     setValue("scheduling.events", events)
-  }, [
-    scheduling?.startDate,
-    scheduling?.totalHours,
-    scheduling?.hoursPerDay,
-    selectedTask,
-    setValue
-  ])
+  }, [startDate, totalHours, hoursPerDay, selectedTask, setValue])
 }

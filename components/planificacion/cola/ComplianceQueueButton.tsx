@@ -371,7 +371,9 @@ export function ComplianceQueueButton() {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [panelWidth, setPanelWidth] = useState(PANEL_WIDTH);
 
-  const entries = queue?.entries ?? [];
+  // Memorizado: sin datos, `?? []` era un arreglo nuevo en cada render y
+  // arrastraba al `useMemo` y al `useEffect` que dependen de él.
+  const entries = useMemo(() => queue?.entries ?? [], [queue?.entries]);
   const blocks = useMemo(() => groupEntries(entries), [entries]);
 
   // Lo que se quitó de la bandeja (o se ató a una OT) ya no existe: dejarlo en
