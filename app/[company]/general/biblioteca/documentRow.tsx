@@ -106,31 +106,31 @@ export default function DocumentRow({
   folderPath,
 }: DocumentRowProps) {
   const latestVersion = useMemo(() => {
-    if (doc?.latest_version) return doc.latest_version;
-    if (!doc?.versions || doc.versions.length === 0) return null;
+    if (doc.latest_version) return doc.latest_version;
+    if (!doc.versions || doc.versions.length === 0) return null;
     return doc.versions[0];
-  }, [doc?.latest_version, doc?.versions]);
+  }, [doc.latest_version, doc.versions]);
 
   const activeFilePath = useMemo(() => {
-    return latestVersion ? latestVersion.file_path : doc?.document || "";
-  }, [latestVersion, doc?.document]);
+    return latestVersion ? latestVersion.file_path : doc.document || "";
+  }, [latestVersion, doc.document]);
 
   const activeFileType = useMemo(() => {
     if (activeFilePath) return activeFilePath.split(".").pop()?.toLowerCase();
-    return doc?.file_type?.toLowerCase() || "default";
-  }, [activeFilePath, doc?.file_type]);
+    return doc.file_type?.toLowerCase() || "default";
+  }, [activeFilePath, doc.file_type]);
 
   const activeExpirationDate = useMemo(() => {
     return latestVersion
       ? latestVersion.expiration_date
-      : doc?.expiration_date || null;
-  }, [latestVersion, doc?.expiration_date]);
+      : doc.expiration_date || null;
+  }, [latestVersion, doc.expiration_date]);
 
   const activeExpiryStatus = useMemo(() => {
     return latestVersion
       ? latestVersion.expiry_status
-      : doc?.expiry_status || "no_aplica";
-  }, [latestVersion, doc?.expiry_status]);
+      : doc.expiry_status || "no_aplica";
+  }, [latestVersion, doc.expiry_status]);
 
   const docWithVersionData = useMemo(
     () => ({
@@ -158,7 +158,7 @@ export default function DocumentRow({
     return fileTypeDetails.default;
   };
 
-  const fileDetails = getFileDetails(activeFileType, doc?.title);
+  const fileDetails = getFileDetails(activeFileType, doc.title);
   const statusInfo = getStatusDetails(activeExpiryStatus, activeExpirationDate);
 
   // Marca si el documento aparece en varias carpetas (réplicas) y si la carpeta

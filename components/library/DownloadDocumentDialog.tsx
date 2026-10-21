@@ -41,12 +41,16 @@ export const DownloadDocumentDialog = ({
   const [loadingVersions, setLoadingVersions] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // El id como valor propio: es lo único que lee el callback, y así su lista de
+  // dependencias dice exactamente eso (con `doc?.id` y `doc.id` mezclados no coincidía).
+  const docId = doc?.id;
+
   const handleFetchVersions = useCallback(async () => {
     setLoadingVersions(true);
 
     try {
       const response = await axiosInstance.get(
-        `/${company}/library/documents/${doc.id}/versions`,
+        `/${company}/library/documents/${docId}/versions`,
       );
 
       const fetchedVersions = response.data?.data?.versions || [];
@@ -57,7 +61,7 @@ export const DownloadDocumentDialog = ({
     } finally {
       setLoadingVersions(false);
     }
-  }, [company, doc?.id]);
+  }, [company, docId]);
 
   const { registerTour, unregisterTour } = useTourContext();
 
@@ -112,14 +116,14 @@ export const DownloadDocumentDialog = ({
   const availableVersions = useMemo(() => versionList, [versionList]);
 
   useEffect(() => {
-    if (isOpen && doc?.id) {
+    if (isOpen && docId) {
       handleFetchVersions();
     } else {
       setDownloadMode("document");
       setSelectedVersionToDownload("");
       setVersionList([]);
     }
-  }, [isOpen, doc?.id, handleFetchVersions]);
+  }, [isOpen, docId, handleFetchVersions]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
