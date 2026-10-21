@@ -118,14 +118,14 @@ export default function CreateAnalysisForm({
       };
       await updateAnalyses.mutateAsync(value);
     } else {
-      id = id.toString();
+      const entityId = id.toString();
       if (name === "mitigacion") {
         const values = {
           company: selectedCompany!.slug,
           data: {
             ...data,
             result: data.probability + data.severity,
-            mitigation_plan_id: id,
+            mitigation_plan_id: entityId,
           },
         };
         await createAnalysis.mutateAsync(values);
@@ -135,7 +135,7 @@ export default function CreateAnalysisForm({
           data: {
             ...data,
             result: data.probability + data.severity,
-            danger_identification_id: id,
+            danger_identification_id: entityId,
           },
         };
         try {

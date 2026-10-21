@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { zodResolver } from "@/lib/zod-resolver";
 import axios from "axios";
 import { Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
@@ -472,6 +473,8 @@ export function RiskAssessmentForm({
     {},
   );
 
+  const router = useRouter();
+
   const form = useForm<FormValues>({
     resolver: zodResolver(FORM_SCHEMA),
     defaultValues: {
@@ -630,9 +633,7 @@ export function RiskAssessmentForm({
         const status = error.response?.status;
 
         if (status === 401 || status === 403) {
-          if (typeof window !== "undefined") {
-            window.location.href = "/login?session=expired";
-          }
+          router.replace("/login?session=expired");
           return;
         }
 

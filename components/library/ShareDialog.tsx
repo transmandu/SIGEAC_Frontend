@@ -78,25 +78,6 @@ export default function ShareDialog({
     return () => unregisterTour("biblioteca-share");
   }, [isOpen, registerTour, unregisterTour]);
 
-  useEffect(() => {
-    if (isOpen && doc?.id) {
-      loadVersions();
-      loadActiveShares();
-      setGeneratedUrl("");
-      setConfirmed(false);
-      setSelectedShareUrl(null);
-      setActiveTab("form");
-      setReason("");
-      setSharedWithName("");
-      setDuration("24");
-      setCustomHours("");
-      setShowCustomDuration(false);
-      setVersionId("");
-      setReadOnly(true);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, doc]);
-
   const loadVersions = async () => {
     try {
       const res = await axiosInstance.get(
@@ -136,6 +117,25 @@ export default function ShareDialog({
       setLoadingShares(false);
     }
   };
+
+  useEffect(() => {
+    if (isOpen && doc?.id) {
+      loadVersions();
+      loadActiveShares();
+      setGeneratedUrl("");
+      setConfirmed(false);
+      setSelectedShareUrl(null);
+      setActiveTab("form");
+      setReason("");
+      setSharedWithName("");
+      setDuration("24");
+      setCustomHours("");
+      setShowCustomDuration(false);
+      setVersionId("");
+      setReadOnly(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, doc]);
 
   const getDurationValue = () => {
     if (showCustomDuration && customHours) {

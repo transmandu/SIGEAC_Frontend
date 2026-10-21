@@ -173,6 +173,59 @@ function PartsSummaryTree({
   );
 }
 
+/**
+ * Partes del API -> formato del formulario. Recursiva (las subpartes) y pura:
+ * no lee nada del componente, así que vive fuera de él. Dentro, como un
+ * `useCallback` que se llamaba a sí mismo, no podía referirse a su propio nombre
+ * mientras se declaraba.
+ */
+function transformExistingPartsToFormFormat(apiParts: any[]): AircraftPart[] {
+  return apiParts.map((part) => {
+    return {
+      ...(part.id && { id: part.id }),
+      part_name: part.part_name,
+      part_number: part.part_number,
+      serial: part.serial || "",
+      manufacturer_id: part.manufacturer_id?.toString() || "",
+      type: part.type
+        ? String(part.type).charAt(0).toUpperCase() +
+          String(part.type).slice(1).toLowerCase()
+        : "",
+      ata_chapter: part.ata_chapter || part.ata_number || part.ata || "",
+      position: part.position ?? (part as any).position ?? null,
+      part_order: part.part_order ?? null,
+      time_since_new:
+        (part.time_since_new ?? part.part_hours) != null
+          ? Math.round(
+              Number(part.time_since_new ?? part.part_hours) * 100,
+            ) / 100
+          : null,
+      time_since_overhaul:
+        part.time_since_overhaul != null
+          ? Math.round(Number(part.time_since_overhaul) * 100) / 100
+          : null,
+      cycles_since_new:
+        (part.cycles_since_new ?? part.part_cycles) != null
+          ? Math.round(Number(part.cycles_since_new ?? part.part_cycles))
+          : null,
+      cycles_since_overhaul:
+        part.cycles_since_overhaul != null
+          ? Math.round(Number(part.cycles_since_overhaul))
+          : null,
+      condition_type:
+        part.condition_type === "OVERHAULED" ? "OVERHAULED" : "NEW",
+      is_father:
+        typeof part.is_father === "boolean"
+          ? part.is_father
+          : Boolean(part.sub_parts?.length),
+      removed_date: part.removed_date || null,
+      sub_parts: part.sub_parts
+        ? transformExistingPartsToFormFormat(part.sub_parts)
+        : [],
+    } as AircraftPart;
+  });
+}
+
 export default function EditAircraftPage({
   params,
 }: {
@@ -201,57 +254,6 @@ export default function EditAircraftPage({
 
   // Obtener lista de fabricantes para mostrar el nombre en el resumen
   const { data: manufacturers } = useGetManufacturers(selectedCompany?.slug);
-
-  // Función para transformar partes del API al formato del formulario
-  const transformExistingPartsToFormFormat = useCallback(
-    (apiParts: any[]): AircraftPart[] => {
-      return apiParts.map((part) => {
-        return {
-          ...(part.id && { id: part.id }),
-          part_name: part.part_name,
-          part_number: part.part_number,
-          serial: part.serial || "",
-          manufacturer_id: part.manufacturer_id?.toString() || "",
-          type: part.type
-            ? String(part.type).charAt(0).toUpperCase() +
-              String(part.type).slice(1).toLowerCase()
-            : "",
-          ata_chapter: part.ata_chapter || part.ata_number || part.ata || "",
-          position: part.position ?? (part as any).position ?? null,
-          part_order: part.part_order ?? null,
-          time_since_new:
-            (part.time_since_new ?? part.part_hours) != null
-              ? Math.round(
-                  Number(part.time_since_new ?? part.part_hours) * 100,
-                ) / 100
-              : null,
-          time_since_overhaul:
-            part.time_since_overhaul != null
-              ? Math.round(Number(part.time_since_overhaul) * 100) / 100
-              : null,
-          cycles_since_new:
-            (part.cycles_since_new ?? part.part_cycles) != null
-              ? Math.round(Number(part.cycles_since_new ?? part.part_cycles))
-              : null,
-          cycles_since_overhaul:
-            part.cycles_since_overhaul != null
-              ? Math.round(Number(part.cycles_since_overhaul))
-              : null,
-          condition_type:
-            part.condition_type === "OVERHAULED" ? "OVERHAULED" : "NEW",
-          is_father:
-            typeof part.is_father === "boolean"
-              ? part.is_father
-              : Boolean(part.sub_parts?.length),
-          removed_date: part.removed_date || null,
-          sub_parts: part.sub_parts
-            ? transformExistingPartsToFormFormat(part.sub_parts)
-            : [],
-        } as AircraftPart;
-      });
-    },
-    [],
-  ); // Sin dependencias porque la función es pura
 
   const transformAssignmentsToFormFormat = useCallback(
     (assignments: AircraftAssignment[] = []): AircraftPart[] => {
@@ -289,7 +291,7 @@ export default function EditAircraftPage({
 
       return transformExistingPartsToFormFormat(uniqueRootParts);
     },
-    [transformExistingPartsToFormFormat],
+    [],
   );
 
   // Inicializar datos con la información existente de la aeronave
@@ -347,13 +349,7 @@ export default function EditAircraftPage({
 
     setPartsData({ parts: [] });
     setIsInitialized(true);
-  }, [
-    aircraft,
-    clients,
-    isInitialized,
-    transformAssignmentsToFormFormat,
-    transformExistingPartsToFormFormat,
-  ]);
+  }, [aircraft, clients, isInitialized, transformAssignmentsToFormFormat]);
 
   // Función para transformar las partes del formulario al formato API
   const transformPart = (part: AircraftPart, originalPart?: any): any => {
