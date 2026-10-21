@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { ArrowRight, BellRing, Loader2, PackageCheck, PlayCircle } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-import { useRef } from 'react'
+import { useState } from 'react'
 
 /** Transiciones que el badge de estado permite avanzar con un clic. */
 export const NEXT_REQUISITION_STATUS: Record<string, string> = {
@@ -124,16 +124,16 @@ export function AdvanceRequisitionStatusDialog({
    * retiene la última transición para que el contenido no desaparezca a media
    * animación de salida.
    */
-  const lastCopy = useRef<{ copy: StepCopy; from: string; to: string } | null>(null)
+  const [shown, setShown] = useState<{ copy: StepCopy; from: string; to: string } | null>(null)
 
   const copy = STEP_COPY[status ?? '']
   const nextStatus = NEXT_REQUISITION_STATUS[status ?? '']
 
-  if (copy && nextStatus) {
-    lastCopy.current = { copy, from: status!, to: nextStatus }
+  // Ajuste de estado al cambiar una prop (patrón documentado de React): se
+  // actualiza durante el render, solo cuando la transición realmente cambió.
+  if (copy && nextStatus && (!shown || shown.from !== status || shown.to !== nextStatus)) {
+    setShown({ copy, from: status!, to: nextStatus })
   }
-
-  const shown = lastCopy.current
 
   if (!shown) return null
 

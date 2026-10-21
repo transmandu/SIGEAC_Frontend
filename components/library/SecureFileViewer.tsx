@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useEffectEvent, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Loader2, ShieldCheck, Lock, Frown, RotateCcw } from 'lucide-react';
 import { SecurePdfViewer } from '@/components/library/SecurePdfViewer';
@@ -102,11 +102,10 @@ export default function SecureFileViewer({ isOpen, onClose, title, fetchBlobUrl,
 
   // OJO: defaultLayoutPlugin usa hooks internamente — debe llamarse directo
   // en el cuerpo del componente (nunca dentro de useMemo/useCallback).
-  // Ref a la última función de carga: evita que el efecto de abajo se
-  // re-dispare por un simple cambio de identidad de `fetchBlobUrl` cuando
-  // el caller la pasa inline (nueva función en cada render).
-  const fetchBlobUrlRef = useRef(fetchBlobUrl);
-  fetchBlobUrlRef.current = fetchBlobUrl;
+  // Siempre la última función de carga, sin ser una dependencia del efecto de
+  // abajo: así no se re-dispara por un simple cambio de identidad de
+  // `fetchBlobUrl` cuando el caller la pasa inline (nueva función en cada render).
+  const loadBlobUrl = useEffectEvent(() => fetchBlobUrl());
 
   // Se incrementa para forzar una recarga (botón "Reintentar").
   const [reloadKey, setReloadKey] = useState(0);
@@ -123,7 +122,7 @@ export default function SecureFileViewer({ isOpen, onClose, title, fetchBlobUrl,
     setError(null);
     setFileUrl(null);
 
-    fetchBlobUrlRef.current()
+    loadBlobUrl()
       .then((url) => {
         if (cancelled) {
           URL.revokeObjectURL(url);

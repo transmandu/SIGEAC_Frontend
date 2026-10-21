@@ -19,7 +19,7 @@ import "@schedule-x/theme-default/dist/index.css";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { ClockIcon, NotebookIcon, PencilLine } from "lucide-react";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type CalendarProps = {
   events: WorkOrderTaskEvent[];
@@ -84,7 +84,8 @@ function toScheduleXEvents(events: WorkOrderTaskEvent[]): scheduleXTaskEvent[] {
 }
 
 export const Calendar = ({ events, theme = "light" }: CalendarProps) => {
-  const eventsServiceRef = useRef(createEventsServicePlugin());
+  // Estado y no ref: el plugin se crea una vez y se lee al renderizar (en `plugins`).
+  const [eventsService] = useState(() => createEventsServicePlugin());
   const eventModal = useMemo(() => createEventModalPlugin(), []);
   const scheduleXEvents = useMemo(() => toScheduleXEvents(events), [events]);
 
@@ -98,7 +99,7 @@ export const Calendar = ({ events, theme = "light" }: CalendarProps) => {
     locale: "es-ES",
     defaultView: "month-grid",
     isResponsive: true,
-    plugins: [eventsServiceRef.current, eventModal],
+    plugins: [eventsService, eventModal],
     dayBoundaries: { start: "06:00", end: "18:00" },
   });
 
@@ -146,10 +147,10 @@ export const Calendar = ({ events, theme = "light" }: CalendarProps) => {
 
   // ✅ Refrescar eventos en el servicio solo cuando cambian
   useEffect(() => {
-    if (scheduleXEvents && eventsServiceRef.current) {
-      eventsServiceRef.current.set(scheduleXEvents);
+    if (scheduleXEvents) {
+      eventsService.set(scheduleXEvents);
     }
-  }, [scheduleXEvents]);
+  }, [scheduleXEvents, eventsService]);
 
   // ✅ Actualizar tema dinámicamente
   useEffect(() => {

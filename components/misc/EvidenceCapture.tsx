@@ -66,7 +66,17 @@ export function EvidenceCapture({
   const [openCamera, setOpenCamera] = useState(false);
   const [previews, setPreviews] = useState<string[]>([]);
 
-  const camera = useCameraCapture();
+  const {
+    videoRef,
+    devices,
+    deviceId,
+    isActive,
+    isStarting,
+    error: cameraError,
+    start: startCamera,
+    stop: stopCamera,
+    capture: captureFrame,
+  } = useCameraCapture();
 
   // Los llamadores pasan `files={mapa[clave] ?? []}`, y ese `?? []` crea un
   // array nuevo en cada render: dependiendo de la referencia, el efecto se
@@ -127,7 +137,7 @@ export function EvidenceCapture({
     onChange(files.filter((_, position) => position !== index));
 
   const handleCapture = async () => {
-    const file = await camera.capture();
+    const file = await captureFrame();
 
     if (!file) {
       toast.error("¡Ops! No se pudo tomar la foto", {
@@ -146,7 +156,7 @@ export function EvidenceCapture({
   };
 
   const closeCamera = (next: boolean) => {
-    if (!next) camera.stop();
+    if (!next) stopCamera();
     setOpenCamera(next);
   };
 
@@ -204,7 +214,7 @@ export function EvidenceCapture({
                 className="cursor-pointer gap-2"
                 onSelect={() => {
                   setOpenCamera(true);
-                  camera.start();
+                  startCamera();
                 }}
               >
                 <Camera className="size-4 text-muted-foreground" />
@@ -257,29 +267,29 @@ export function EvidenceCapture({
           <div className="space-y-3">
             <div className="relative aspect-video overflow-hidden rounded-lg border bg-muted">
               <video
-                ref={camera.videoRef}
+                ref={videoRef}
                 playsInline
                 muted
                 className="size-full object-cover"
               />
 
-              {camera.isStarting && (
+              {isStarting && (
                 <div className="absolute inset-0 flex items-center justify-center bg-background/60">
                   <Loader2 className="size-8 animate-spin text-muted-foreground" />
                 </div>
               )}
 
-              {camera.error && (
+              {cameraError && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-background/90 px-6 text-center">
                   <AlertTriangle className="size-6 text-amber-500" />
                   <p className="text-sm text-muted-foreground">
-                    {camera.error}
+                    {cameraError}
                   </p>
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => camera.start(camera.deviceId ?? undefined)}
+                    onClick={() => startCamera(deviceId ?? undefined)}
                   >
                     <RefreshCw className="mr-2 size-4" />
                     Reintentar
@@ -288,16 +298,16 @@ export function EvidenceCapture({
               )}
             </div>
 
-            {camera.devices.length > 1 && (
+            {devices.length > 1 && (
               <Select
-                value={camera.deviceId ?? undefined}
-                onValueChange={(value) => camera.start(value)}
+                value={deviceId ?? undefined}
+                onValueChange={(value) => startCamera(value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Seleccione una cámara" />
                 </SelectTrigger>
                 <SelectContent>
-                  {camera.devices.map((device) => (
+                  {devices.map((device) => (
                     <SelectItem key={device.deviceId} value={device.deviceId}>
                       {device.label}
                     </SelectItem>
@@ -315,7 +325,7 @@ export function EvidenceCapture({
             >
               Cerrar
             </Button>
-            {camera.isActive && (
+            {isActive && (
               <Button type="button" onClick={handleCapture}>
                 <Camera className="mr-2 size-4" />
                 Capturar

@@ -181,7 +181,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // `user` se lee por ref y no como dependencia: incluirlo re-registraba el
   // interceptor en cada cambio de sesión.
   const userRef = useRef<User | null>(null);
-  userRef.current = user;
+
+  useEffect(() => {
+    userRef.current = user;
+  }, [user]);
 
   useEffect(() => {
     const interceptor = axiosInstance.interceptors.response.use(

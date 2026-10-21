@@ -513,7 +513,9 @@ const CreateGeneralArticleForm = ({
           // fluye con el scroll del documento.
           inDialog && "flex-1",
         )}
-        onSubmit={form.handleSubmit(onSubmit, invalidFormHandler(FIELD_LABELS))}
+        onSubmit={(event) =>
+          form.handleSubmit(onSubmit, invalidFormHandler(FIELD_LABELS))(event)
+        }
       >
         <div
           className={cn("shrink-0 space-y-1", inDialog && "border-b px-6 py-4")}
