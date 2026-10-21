@@ -12,6 +12,26 @@ import { Check, FileText, FileUp, ImageIcon, Info, Loader2, Users } from "lucide
 import Image from "next/image";
 import { useParams } from "next/navigation";
 
+const EmployeeDetail = ({
+  employee,
+  bold = false,
+}: {
+  employee?: { first_name: string; last_name: string; job_title?: { name: string } } | null;
+  bold?: boolean;
+}) => {
+  if (!employee) return <p className="mt-1 text-sm">N/A</p>;
+  return (
+    <div className="mt-1">
+      <p className={`text-sm ${bold ? "font-medium" : ""}`}>
+        {employee.first_name} {employee.last_name}
+      </p>
+      {employee.job_title && (
+        <p className="text-xs text-muted-foreground">{employee.job_title.name}</p>
+      )}
+    </div>
+  );
+};
+
 const ShowMeetingMinute = () => {
   const { id } = useParams<{ id: string }>();
   const { selectedCompany, selectedStation } = useCompanyStore();
@@ -21,26 +41,6 @@ const ShowMeetingMinute = () => {
     selectedStation,
     selectedCompany?.slug,
   );
-
-  const EmployeeDetail = ({
-    employee,
-    bold = false,
-  }: {
-    employee?: { first_name: string; last_name: string; job_title?: { name: string } } | null;
-    bold?: boolean;
-  }) => {
-    if (!employee) return <p className="mt-1 text-sm">N/A</p>;
-    return (
-      <div className="mt-1">
-        <p className={`text-sm ${bold ? "font-medium" : ""}`}>
-          {employee.first_name} {employee.last_name}
-        </p>
-        {employee.job_title && (
-          <p className="text-xs text-muted-foreground">{employee.job_title.name}</p>
-        )}
-      </div>
-    );
-  };
 
   const dateLabel = (date: string) => {
     try {

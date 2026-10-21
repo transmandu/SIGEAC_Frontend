@@ -15,7 +15,7 @@ import { Switch } from "@/components/ui/switch";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useUpdateUniformItem } from "@/actions/sms/uniforms/actions";
 import { UniformItem } from "@/hooks/sms/useGetUniforms";
-import { getUniformTypeIcon } from "@/components/sms/uniform-meta";
+import { UniformTypeIcon } from "@/components/sms/uniform-meta";
 import { zodResolver } from "@/lib/zod-resolver";
 import { Loader2, Save } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -51,8 +51,6 @@ export const EditUniformItemForm = ({ item, onClose }: Props) => {
     );
   };
 
-  const TypeIcon = getUniformTypeIcon(undefined, item.type_label);
-
   return (
     <Form {...form}>
       <form
@@ -61,7 +59,7 @@ export const EditUniformItemForm = ({ item, onClose }: Props) => {
       >
         <div className="flex items-center gap-2.5 rounded-md border bg-muted/40 px-3 py-2">
           <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
-            <TypeIcon className="size-4" />
+            <UniformTypeIcon label={item.type_label} className="size-4" />
           </span>
           <span className="text-sm font-medium">
             {item.type_label}

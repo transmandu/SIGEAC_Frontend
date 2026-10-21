@@ -28,7 +28,7 @@ import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useDeleteUniformItem } from "@/actions/sms/uniforms/actions";
 import { UniformItem } from "@/hooks/sms/useGetUniforms";
-import { getUniformTypeIcon } from "@/components/sms/uniform-meta";
+import { UniformTypeIcon } from "@/components/sms/uniform-meta";
 import { uniformCompanyLabel, uniformGenderLabel } from "@/lib/sms/uniforms";
 
 import { InventoryRowActions } from "./row-actions";
@@ -443,7 +443,6 @@ function UniformStackCard({
 }) {
   const [open, setOpen] = useState(false);
   const reduce = useReducedMotion();
-  const Icon = getUniformTypeIcon(undefined, stack.type_label);
   const sizeCount = stack.items.length;
   const isStack = sizeCount > 1;
   const outOfStock = stack.items.filter((i) => i.current_stock === 0).length;
@@ -508,7 +507,7 @@ function UniformStackCard({
         >
           <div className="flex items-start gap-3 p-4 pb-3">
             <span className="grid size-10 shrink-0 place-items-center rounded-md border border-border/60 bg-muted/40 text-muted-foreground">
-              <Icon className="size-5" />
+              <UniformTypeIcon label={stack.type_label} className="size-5" />
             </span>
             <div className="min-w-0 flex-1">
               <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">

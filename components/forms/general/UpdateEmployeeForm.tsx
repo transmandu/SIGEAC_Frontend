@@ -34,7 +34,7 @@ import { zodResolver } from "@/lib/zod-resolver";
 import { Loader2, Upload, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useMemo, useState, useRef } from "react";
-import { useForm } from "react-hook-form";
+import { type Control, useForm } from "react-hook-form";
 import { z } from "zod";
 import { Department } from "@/types";
 import { PhoneInput } from "@/components/ui/PhoneInput";
@@ -66,6 +66,58 @@ const buildFormSchema = (keepPhone?: string | null) =>
   });
 
 type FormValues = z.infer<ReturnType<typeof buildFormSchema>>;
+
+const isEmpty = (v?: string) => !v || v === "";
+
+type SelectFieldProps = {
+  control: Control<FormValues>;
+  name: keyof FormValues;
+  label: string;
+  options: { id: string; label: string }[];
+  placeholder: string;
+};
+
+/**
+ * Fuera del formulario a propósito: definido dentro, cada render creaba un
+ * componente nuevo y los selects se desmontaban y volvían a montar (perdían el
+ * foco y el desplegable abierto cada vez que algo cambiaba en el formulario).
+ */
+const SelectField = ({
+  control,
+  name,
+  label,
+  options,
+  placeholder,
+}: SelectFieldProps) => (
+  <FormField
+    control={control}
+    name={name}
+    render={({ field }) => (
+      <FormItem>
+        <FormLabel>{label}</FormLabel>
+        <Select value={field.value || ""} onValueChange={field.onChange}>
+          <FormControl>
+            <SelectTrigger
+              className={
+                isEmpty(field.value) ? "text-muted-foreground opacity-60" : ""
+              }
+            >
+              <SelectValue placeholder={placeholder} />
+            </SelectTrigger>
+          </FormControl>
+
+          <SelectContent>
+            {options.map((o) => (
+              <SelectItem key={o.id} value={o.id}>
+                {o.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </FormItem>
+    )}
+  />
+);
 
 /* =========================
    TYPES
@@ -253,56 +305,12 @@ export function UpdateEmployeeForm({ employee, onSuccess }: Props) {
     }
   };
 
-  const isEmpty = (v?: string) => !v || v === "";
-
   const normalizeOptions = (data?: Option[]) =>
     data?.map((o) => ({
       id: String(o.id),
       label: o.name ?? o.address ?? "Sin nombre",
     })) ?? [];
 
-  type SelectFieldProps = {
-    name: keyof FormValues;
-    label: string;
-    options: { id: string; label: string }[];
-    placeholder: string;
-  };
-
-  const SelectField = ({
-    name,
-    label,
-    options,
-    placeholder,
-  }: SelectFieldProps) => (
-    <FormField
-      control={form.control}
-      name={name}
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>{label}</FormLabel>
-          <Select value={field.value || ""} onValueChange={field.onChange}>
-            <FormControl>
-              <SelectTrigger
-                className={
-                  isEmpty(field.value) ? "text-muted-foreground opacity-60" : ""
-                }
-              >
-                <SelectValue placeholder={placeholder} />
-              </SelectTrigger>
-            </FormControl>
-
-            <SelectContent>
-              {options.map((o) => (
-                <SelectItem key={o.id} value={o.id}>
-                  {o.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </FormItem>
-      )}
-    />
-  );
 
   /* =========================
      RENDER
@@ -688,6 +696,7 @@ export function UpdateEmployeeForm({ employee, onSuccess }: Props) {
               {/* GRID */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <SelectField
+                  control={form.control}
                   name="user_id"
                   label="Usuario"
                   placeholder="Sin usuario"
@@ -720,6 +729,7 @@ export function UpdateEmployeeForm({ employee, onSuccess }: Props) {
                 />
 
                 <SelectField
+                  control={form.control}
                   name="job_title_id"
                   label="Cargo"
                   placeholder="Sin cargo"
@@ -727,6 +737,7 @@ export function UpdateEmployeeForm({ employee, onSuccess }: Props) {
                 />
 
                 <SelectField
+                  control={form.control}
                   name="department_id"
                   label="Departamento"
                   placeholder="Sin departamento"
@@ -734,6 +745,7 @@ export function UpdateEmployeeForm({ employee, onSuccess }: Props) {
                 />
 
                 <SelectField
+                  control={form.control}
                   name="location_id"
                   label="Ubicación"
                   placeholder="Sin ubicación"
