@@ -74,14 +74,16 @@ const EditCertificateForm = ({
     ["JEFE_SMS", "ANALISTA_SMS", "SUPERUSER"].includes(role.name.toUpperCase()),
   );
 
-  const { register, handleSubmit, setValue, control } = useForm<EditFormValues>({
-    defaultValues: {
-      course_id: (certificate.course as any)?.id?.toString() || "",
-      completion_date: certificate.completion_date || "",
-      document: null,
-      employee_dni: certificate.employee?.dni || "",
+  const { register, handleSubmit, setValue, control } = useForm<EditFormValues>(
+    {
+      defaultValues: {
+        course_id: (certificate.course as any)?.id?.toString() || "",
+        completion_date: certificate.completion_date || "",
+        document: null,
+        employee_dni: certificate.employee?.dni || "",
+      },
     },
-  });
+  );
 
   const selectedDni = useWatch({ control, name: "employee_dni" });
   const selectedCourseId = useWatch({ control, name: "course_id" });
