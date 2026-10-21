@@ -196,9 +196,8 @@ function transformExistingPartsToFormFormat(apiParts: any[]): AircraftPart[] {
       part_order: part.part_order ?? null,
       time_since_new:
         (part.time_since_new ?? part.part_hours) != null
-          ? Math.round(
-              Number(part.time_since_new ?? part.part_hours) * 100,
-            ) / 100
+          ? Math.round(Number(part.time_since_new ?? part.part_hours) * 100) /
+            100
           : null,
       time_since_overhaul:
         part.time_since_overhaul != null
