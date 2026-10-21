@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { useParams } from "next/navigation";
 import {
   useGetSMSCoursesList,
@@ -74,7 +74,7 @@ const EditCertificateForm = ({
     ["JEFE_SMS", "ANALISTA_SMS", "SUPERUSER"].includes(role.name.toUpperCase()),
   );
 
-  const { register, handleSubmit, setValue, watch } = useForm<EditFormValues>({
+  const { register, handleSubmit, setValue, control } = useForm<EditFormValues>({
     defaultValues: {
       course_id: (certificate.course as any)?.id?.toString() || "",
       completion_date: certificate.completion_date || "",
@@ -83,7 +83,8 @@ const EditCertificateForm = ({
     },
   });
 
-  const selectedDni = watch("employee_dni");
+  const selectedDni = useWatch({ control, name: "employee_dni" });
+  const selectedCourseId = useWatch({ control, name: "course_id" });
 
   const onSubmit = async (data: EditFormValues) => {
     const formData = new FormData();
@@ -182,7 +183,7 @@ const EditCertificateForm = ({
         <Label>Curso / Capacitación</Label>
         <Select
           onValueChange={(v) => setValue("course_id", v)}
-          defaultValue={watch("course_id")}
+          defaultValue={selectedCourseId}
           disabled={isDataLoading}
         >
           <SelectTrigger>

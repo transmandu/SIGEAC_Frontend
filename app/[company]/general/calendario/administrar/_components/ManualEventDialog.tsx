@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format } from "date-fns";
@@ -98,7 +98,7 @@ export function ManualEventDialog({
     },
   });
 
-  const allDay = form.watch("all_day");
+  const allDay = useWatch({ control: form.control, name: "all_day" });
 
   useEffect(() => {
     if (!open) return;

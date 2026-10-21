@@ -897,7 +897,7 @@ const NonServiceWorkOrderForm = ({
                                   : "Tarea manual"}
                               </span>
                               <CatalogServicePicker
-                                aircraftId={form.watch("aircraft_id")}
+                                aircraftId={selectedAircraftId}
                                 onSelectTask={(catalogTask, service) => {
                                   const requirementsText =
                                     catalogTask.requirements

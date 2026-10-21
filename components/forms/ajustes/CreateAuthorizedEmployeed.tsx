@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@/lib/zod-resolver";
 import { useCompanyStore } from "@/stores/CompanyStore";
@@ -48,15 +48,15 @@ export function AuthorizedEmployeeForm({ onSuccess }: Props) {
   const {
     handleSubmit,
     setValue,
-    watch,
+    control,
     formState: { errors },
     reset,
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
   });
 
-  const selectedEmployee = watch("dni_employee");
-  const toCompany = watch("to_company_db");
+  const selectedEmployee = useWatch({ control, name: "dni_employee" });
+  const toCompany = useWatch({ control, name: "to_company_db" });
 
   const onSubmit = async (values: FormValues) => {
     if (!selectedCompany?.slug) return;
