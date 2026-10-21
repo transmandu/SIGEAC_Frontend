@@ -1,6 +1,7 @@
 import axiosInstance from "@/lib/axios"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
+import { notifyError } from "@/lib/notify-error";
 
 type BatchType = {
   part_number?: string,
@@ -31,9 +32,7 @@ export const useCreateBatch = () => {
             })
           },
         onError: (error) => {
-            toast.error('Oops!', {
-              description: 'No se pudo crear el lote...'
-            })
+            notifyError(error, { action: "crear el lote" })
             console.log(error)
           },
         }

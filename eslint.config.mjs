@@ -1,11 +1,15 @@
 import nextCoreWebVitals from "eslint-config-next/core-web-vitals";
 
+import { contratoDeErrores } from "./eslint/contrato-de-errores.mjs";
+
 export default [
   // Flat config solo ignora node_modules por su cuenta.
   {
     ignores: [".next/**", "next-env.d.ts", "public/**"],
   },
   ...nextCoreWebVitals,
+  // Cómo se avisa un fallo al usuario (docs/manejo-de-errores.md).
+  ...contratoDeErrores,
   {
     // eslint-plugin-react-hooks 7 sumó los diagnósticos del React Compiler, que
     // marcan 178 puntos de código que ya existía. Quedan en advertencia para no

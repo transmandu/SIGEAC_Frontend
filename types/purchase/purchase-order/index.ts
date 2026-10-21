@@ -281,6 +281,9 @@ export interface RegisterGeneralArticlesDeliveryResponse {
 // downloadable Nota de Entrega.
 export type GeneralArticleIntakeStatus = 'PENDING' | 'CONFIRMED' | 'REJECTED' | 'DELIVERED';
 
+/** Origen del intake: ciclo de compras, recepción administrativa o reclasificado desde aeronáuticos. */
+export type GeneralArticleIntakeEntryType = 'PURCHASE' | 'ADMINISTRATIVE' | 'RECLASSIFIED';
+
 // Shaped by GeneralArticleIntakeResource — only what the frontend needs from
 // each relation, not the full purchase_order/quote_order/requisition_order
 // or warehouse/unit models.
@@ -379,6 +382,7 @@ export interface GeneralArticleIntake {
   quantity: string | number;
   arrived_at: string;
   status: GeneralArticleIntakeStatus;
+  entry_type?: GeneralArticleIntakeEntryType;
   registered_by: string;
   confirmed_by?: string | null;
   confirmed_at?: string | null;

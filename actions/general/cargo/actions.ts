@@ -1,7 +1,7 @@
 import axiosInstance from "@/lib/axios";
-import { getApiErrorMessage } from "@/lib/api-error";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 interface JobTitleFormSchema {
   company: string;
@@ -27,12 +27,7 @@ export const useCreateJobTitle = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: getApiErrorMessage(
-          error,
-          "¡Hubo un error al crear el cargo!",
-        ),
-      });
+      notifyError(error, { action: "crear el cargo" });
     },
   });
 
@@ -56,12 +51,7 @@ export const useUpdateJobTitle = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: getApiErrorMessage(
-          error,
-          "¡Hubo un error al actualizar el cargo!",
-        ),
-      });
+      notifyError(error, { action: "actualizar el cargo" });
     },
   });
 
@@ -81,11 +71,7 @@ export const useDeleteJobTitle = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          error?.response?.data?.message ??
-          "¡Hubo un error al eliminar el cargo! Puede que tenga empleados asignados.",
-      });
+      notifyError(error, { action: "eliminar el cargo! Puede que tenga empleados asignados" });
     },
   });
 

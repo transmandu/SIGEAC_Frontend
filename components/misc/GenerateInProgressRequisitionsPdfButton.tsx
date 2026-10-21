@@ -7,6 +7,7 @@ import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 import { useCompanyStore } from '@/stores/CompanyStore'
 import { useDownloadInProgressRequisitionsPdf } from '@/hooks/mantenimiento/compras/useDownloadInProgressRequisitionsPdf'
 import { toCalendarPayload } from '@/lib/date'
+import { notifyError } from "@/lib/notify-error";
 
 /**
  * Botón que genera y descarga el PDF "Listado de Solicitudes en Proceso"
@@ -40,11 +41,7 @@ export function GenerateInProgressRequisitionsPdfButton() {
 
       toast.success('Listado de solicitudes en proceso generado')
     } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : 'No se pudo generar el listado de solicitudes en proceso.'
-      )
+      notifyError(error, { action: "generar el listado de solicitudes en proceso" })
     }
   }
 

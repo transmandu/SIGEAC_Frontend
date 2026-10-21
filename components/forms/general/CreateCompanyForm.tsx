@@ -45,6 +45,7 @@ import {
 } from "@/components/ui/select";
 import { PhoneInput } from "@/components/ui/PhoneInput";
 import { phoneSchema } from "@/lib/phone";
+import { notifyError } from "@/lib/notify-error";
 
 const optionalCode = z.preprocess((val) => {
   if (typeof val === "string" && val.trim() === "") {
@@ -146,7 +147,7 @@ export function CreateCompanyForm({ onClose }: FormProps) {
       toast.success("Empresa creada correctamente");
       onClose();
     } catch (error) {
-      toast.error("Ocurrió un error al crear la empresa");
+      notifyError(error, { action: "crear la empresa" });
     }
   };
 
@@ -474,7 +475,7 @@ export function CreateCompanyForm({ onClose }: FormProps) {
                   setStep("locations");
                 } else {
                   toast.error(
-                    "Completa todos los campos requeridos antes de continuar",
+                    "¡Ops! Completa todos los campos requeridos antes de continuar",
                   );
                 }
               }}

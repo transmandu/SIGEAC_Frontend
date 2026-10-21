@@ -1,6 +1,7 @@
 import axiosInstance from "@/lib/axios";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 interface VoluntaryReportData {
   company: string | null;
@@ -71,9 +72,7 @@ export const useCreateVoluntaryReport = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo crear el reporte...",
-      });
+      notifyError(error, { action: "crear el reporte" });
       console.log(error);
     },
   });
@@ -107,9 +106,7 @@ export const useDeleteVoluntaryReport = () => {
       });
     },
     onError: (e) => {
-      toast.error("Oops!", {
-        description: "¡Hubo un error al eliminar el reporte!",
-      });
+      notifyError(e, { action: "eliminar el reporte" });
     },
   });
 
@@ -143,9 +140,7 @@ export const useUpdateVoluntaryReport = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo actualizar el reporte voluntario...",
-      });
+      notifyError(error, { action: "actualizar el reporte voluntario" });
       console.log(error);
     },
   });
@@ -173,9 +168,7 @@ export const useAcceptVoluntaryReport = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo aceptar el reporte voluntario...",
-      });
+      notifyError(error, { action: "aceptar el reporte voluntario" });
       console.log(error);
     },
   });

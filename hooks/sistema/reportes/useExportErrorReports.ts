@@ -1,6 +1,6 @@
 import axiosInstance from "@/lib/axios";
-import { toast } from "sonner";
 import { ErrorReportFilters } from "./useGetErrorReports";
+import { notifyError } from "@/lib/notify-error";
 
 const buildParams = (filters: Omit<ErrorReportFilters, "page" | "per_page">) => {
   const params = new URLSearchParams();
@@ -36,9 +36,7 @@ export const useExportErrorReports = () => {
       link.remove();
       URL.revokeObjectURL(url);
     } catch (error) {
-      toast.error("Oops!", {
-        description: "No se pudo generar el archivo de exportacion...",
-      });
+      notifyError(error, { action: "generar el archivo de exportacion" });
     }
   };
 

@@ -32,13 +32,13 @@ import { zodResolver } from "@/lib/zod-resolver"
 import { Loader2, Printer } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
-import { toast } from "sonner"
 import { z } from "zod"
 import { columns } from "@/app/[company]/planificacion/ordenes_trabajo/[order_number]/columns"
 import { DataTable } from "@/app/[company]/planificacion/ordenes_trabajo/[order_number]/data-table"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { notifyError } from "@/lib/notify-error";
 
 type HoursMode = "auto" | "manual"
 
@@ -149,9 +149,7 @@ const PrelimInspecTable = ({ work_order }: { work_order: WorkOrder }) => {
 
       setIsPrintDialogOpen(false)
     } catch (error) {
-      toast.error("Error al descargar el PDF", {
-        description: "Hubo un problema al generar el PDF de la inspección preliminar.",
-      })
+      notifyError(error, { action: "descargar el PDF" })
       console.error("Error al descargar el PDF:", error)
     } finally {
       setIsDownloading(false)

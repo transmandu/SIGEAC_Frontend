@@ -1,6 +1,7 @@
 import axiosInstance from "@/lib/axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 interface MinuteMutationData {
   company: string;
@@ -24,9 +25,7 @@ export const useCreateMeetingMinute = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo crear la minuta de reunión.",
-      });
+      notifyError(error, { action: "crear la minuta de reunión" });
       console.error(error);
     },
   });
@@ -50,9 +49,7 @@ export const useUpdateMeetingMinute = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo actualizar la minuta de reunión.",
-      });
+      notifyError(error, { action: "actualizar la minuta de reunión" });
       console.error(error);
     },
   });
@@ -74,9 +71,7 @@ export const useDeleteMeetingMinute = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo eliminar la minuta de reunión.",
-      });
+      notifyError(error, { action: "eliminar la minuta de reunión" });
       console.error(error);
     },
   });

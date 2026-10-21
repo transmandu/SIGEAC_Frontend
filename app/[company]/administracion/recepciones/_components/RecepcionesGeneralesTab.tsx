@@ -1,6 +1,7 @@
 "use client";
 
 import { DownloadReportDialog } from "@/app/[company]/almacen/recepcion_articulos/_components/DownloadReportDialog";
+import { ENTRY_TYPE_OPTIONS } from "@/lib/intake-entry-type";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,7 +35,8 @@ const toApiDate = (date?: Date) =>
   date ? format(date, "yyyy-MM-dd") : undefined;
 
 /** Las compras generales se hacen a un comercio (retailer), no a un vendor. */
-const retailerOf = (intake: GeneralArticleIntake) => intake.retailer?.name ?? null;
+const retailerOf = (intake: GeneralArticleIntake) =>
+  intake.retailer?.name ?? null;
 
 export const RecepcionesGeneralesTab = () => {
   const timeZone = useCompanyTimezone();
@@ -102,7 +104,8 @@ export const RecepcionesGeneralesTab = () => {
           : (intake.description ?? "");
 
     return [...filtered].sort(
-      (a, b) => factor * valueOf(a).localeCompare(valueOf(b), "es", { numeric: true }),
+      (a, b) =>
+        factor * valueOf(a).localeCompare(valueOf(b), "es", { numeric: true }),
     );
   }, [filtered, sortColumn]);
 
@@ -117,7 +120,14 @@ export const RecepcionesGeneralesTab = () => {
   // Filtrar u ordenar cambia qué fila cae en cada página: volver al inicio.
   useEffect(() => {
     setPage(0);
-  }, [search, retailerFilter, statusFilter, descriptionFilter, sortColumn, period]);
+  }, [
+    search,
+    retailerFilter,
+    statusFilter,
+    descriptionFilter,
+    sortColumn,
+    period,
+  ]);
 
   const paginated = useMemo(
     () => sorted.slice(page * pageSize, page * pageSize + pageSize),
@@ -133,7 +143,10 @@ export const RecepcionesGeneralesTab = () => {
     for (const intake of rows) {
       if (intake.arrived_at) {
         // Se agrupa por el mes de la compañía, no el del navegador.
-        const key = instantToCalendarDay(intake.arrived_at, timeZone)?.slice(0, 7);
+        const key = instantToCalendarDay(intake.arrived_at, timeZone)?.slice(
+          0,
+          7,
+        );
         if (key) {
           byMonth[key] = (byMonth[key] ?? 0) + 1;
         }
@@ -251,6 +264,7 @@ export const RecepcionesGeneralesTab = () => {
             description="Genere el reporte de artículos generales recibidos en el rango de fechas."
             dateRangeLabel="Fecha de llegada"
             fileNamePrefix="entradas_generales"
+            entryTypeOptions={ENTRY_TYPE_OPTIONS}
           />
         </div>
       </div>
@@ -286,7 +300,9 @@ export const RecepcionesGeneralesTab = () => {
                   selected={retailerFilter}
                   onChange={setRetailerFilter}
                   sort={sortFor("retailer")}
-                  onSortChange={(direction) => changeSort("retailer", direction)}
+                  onSortChange={(direction) =>
+                    changeSort("retailer", direction)
+                  }
                 />
               </TableHead>
               <TableHead className="text-center">

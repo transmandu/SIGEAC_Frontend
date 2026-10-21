@@ -28,6 +28,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { QRCodeSVG } from "qrcode.react";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { bibliotecaSolicitudesSteps } from "@/components/tour/steps/general/biblioteca/biblioteca-solicitudes";
+import { notifyError } from "@/lib/notify-error";
 
 interface ShareRequestsPanelProps {
   company: string;
@@ -108,7 +109,7 @@ export default function ShareRequestsPanel({
     } catch (error) {
       console.error("Error al cargar solicitudes:", error);
       setRequests([]);
-      toast.error("No se pudieron cargar las solicitudes");
+      notifyError(error, { action: "cargar las solicitudes" });
     } finally {
       setLoading(false);
     }
@@ -139,7 +140,7 @@ export default function ShareRequestsPanel({
       await fetchRequests();
       onRefresh?.();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Error al aprobar");
+      notifyError(error, { action: "aprobar" });
     } finally {
       setActionLoading(null);
     }
@@ -147,7 +148,7 @@ export default function ShareRequestsPanel({
 
   const handleReject = async (id: number) => {
     if (!rejectReason.trim())
-      return toast.error("Debes indicar un motivo de rechazo");
+      return toast.error("¡Ops! Debes indicar un motivo de rechazo");
     setActionLoading(id);
     try {
       await libraryService.rejectShareRequest(company, id, rejectReason.trim());
@@ -157,7 +158,7 @@ export default function ShareRequestsPanel({
       await fetchRequests();
       onRefresh?.();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Error al rechazar");
+      notifyError(error, { action: "rechazar" });
     } finally {
       setActionLoading(null);
     }
@@ -171,7 +172,7 @@ export default function ShareRequestsPanel({
     // PNG en blanco de 1x1 y el usuario se quedaba con un archivo inservible.
     if (!svg) {
       toast.error(
-        "No se pudo generar la imagen del QR. Abre el detalle e inténtalo de nuevo.",
+        "¡Ops! No se pudo generar la imagen del QR. Abre el detalle e inténtalo de nuevo.",
       );
       return;
     }

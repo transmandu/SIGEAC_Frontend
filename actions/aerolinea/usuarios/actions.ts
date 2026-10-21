@@ -1,6 +1,7 @@
 import axiosInstance from "@/lib/axios"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
+import { notifyError } from "@/lib/notify-error";
 
 interface CreateFormSchema {
     first_name: string,
@@ -26,9 +27,7 @@ export const useCreateUser = () => {
             })
           },
         onError: (e) => {
-            toast.error("Oops!", {
-              description: "¡Hubo un error al crear el usuario!"
-          })
+            notifyError(e, { action: "crear el usuario" })
           },
         }
     )
@@ -53,9 +52,7 @@ export const useDeleteUser = () => {
           })
         },
       onError: (e) => {
-          toast.error("Oops!", {
-            description: "¡Hubo un error al eliminar el usuario!"
-        })
+          notifyError(e, { action: "eliminar el usuario" })
         },
       }
   )

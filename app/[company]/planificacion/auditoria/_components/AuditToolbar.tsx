@@ -21,7 +21,7 @@ import {
   ShieldQuestion,
 } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 /**
  * La cadena de hash se verifica bajo pedido: recalcula todas las entradas.
@@ -90,9 +90,7 @@ export function ExportExcelButton({
     try {
       await downloadAuditExcel(selectedCompany!.slug, filters);
     } catch (error) {
-      toast.error("Oops!", {
-        description: "No se pudo exportar la auditoría.",
-      });
+      notifyError(error, { action: "exportar la auditoría" });
       console.log(error);
     } finally {
       setIsExporting(false);

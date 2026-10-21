@@ -29,6 +29,7 @@ import {
   useGetRequisitionPdfReceivers,
   type RequisitionPdfReceiver,
 } from '@/hooks/mantenimiento/compras/useGetRequisitionPdfReceivers'
+import { notifyError } from "@/lib/notify-error";
 
 /**
  * Personal de compras: recibe sus propias requisiciones, así que no elige a
@@ -119,11 +120,7 @@ export default function DownloadRequisitionPdfDialog({
       toast.success(`Requisición ${req.order_number} generada`)
       onOpenChange(false)
     } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : 'No se pudo generar el PDF de la requisición.'
-      )
+      notifyError(error, { action: "generar el PDF de la requisición" })
     }
   }
 

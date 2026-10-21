@@ -27,6 +27,7 @@ import {
   useUploadSignedQuote,
 } from "@/hooks/mantenimiento/compras/useQuoteSignedDocument";
 import type { QuoteSignedDocument } from "@/types/purchase";
+import { notifyError } from "@/lib/notify-error";
 
 const ACCEPTED_TYPES = ["application/pdf", "image/jpeg", "image/png"];
 const MAX_SIZE_BYTES = 10 * 1024 * 1024;
@@ -75,12 +76,12 @@ export default function SignedQuoteDocumentDialog({
     if (!selected) return;
 
     if (!ACCEPTED_TYPES.includes(selected.type)) {
-      toast.error("Solo se admiten archivos PDF, JPG o PNG.");
+      toast.error("¡Ops! Solo se admiten archivos PDF, JPG o PNG.");
       return;
     }
 
     if (selected.size > MAX_SIZE_BYTES) {
-      toast.error("El archivo supera el máximo de 10 MB.");
+      toast.error("¡Ops! El archivo supera el máximo de 10 MB.");
       return;
     }
 
@@ -95,11 +96,7 @@ export default function SignedQuoteDocumentDialog({
       toast.success("Documento firmado guardado");
       handleOpenChange(false);
     } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "No se pudo guardar el documento firmado.",
-      );
+      notifyError(error, { action: "guardar el documento firmado" });
     }
   };
 
@@ -110,11 +107,7 @@ export default function SignedQuoteDocumentDialog({
       await remove({ company, quoteId: quote.id });
       toast.success("Documento firmado eliminado");
     } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "No se pudo eliminar el documento firmado.",
-      );
+      notifyError(error, { action: "eliminar el documento firmado" });
     }
   };
 
@@ -128,8 +121,8 @@ export default function SignedQuoteDocumentDialog({
       window.open(url, "_blank", "noopener");
       // La pestaña nueva necesita el blob vivo un momento para cargarlo.
       setTimeout(() => URL.revokeObjectURL(url), 60_000);
-    } catch {
-      toast.error("No se pudo abrir el documento firmado.");
+    } catch (error) {
+      notifyError(error, { action: "abrir el documento firmado" });
     } finally {
       setIsOpening(false);
     }

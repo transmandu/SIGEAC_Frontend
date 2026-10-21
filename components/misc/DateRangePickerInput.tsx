@@ -92,7 +92,7 @@ const DateRangePickerInput = ({
 
       //Evitar que el desde sea mayor que el hasta
       if (finalFrom && finalTo && finalFrom > finalTo) {
-        toast.error("Fechas inválidas", {
+        toast.error("¡Ops! Fechas inválidas", {
           description:
             "La fecha de inicio no puede ser mayor a la fecha de fin.",
         });

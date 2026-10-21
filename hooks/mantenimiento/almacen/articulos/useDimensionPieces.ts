@@ -1,6 +1,7 @@
 import axios from "@/lib/axios";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 export type DimensionCut = {
   id: number;
@@ -78,10 +79,7 @@ export const useScrapPiece = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          error?.response?.data?.message ?? "No se pudo dar de baja la pieza.",
-      });
+      notifyError(error, { action: "dar de baja la pieza" });
     },
   });
 

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import libraryService from "@/lib/libraryService";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 interface DeleteFolderDialogProps {
   open: boolean;
@@ -34,9 +35,7 @@ export default function DeleteFolderDialog({
       onSuccess();
       onClose();
     } catch (error: any) {
-      toast.error(
-        error.response?.data?.message || "Error al eliminar la carpeta",
-      );
+      notifyError(error, { action: "eliminar la carpeta" });
     } finally {
       setLoading(false);
     }

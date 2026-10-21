@@ -37,7 +37,7 @@ const WaitingToLocateArticleDropdownActions = ({
     const trimmedZone = zone.trim()
 
     if (!trimmedZone) {
-      toast.error("Ingrese una zona de almacén válida.")
+      toast.error("¡Ops! Ingrese una zona de almacén válida.")
       return
     }
 

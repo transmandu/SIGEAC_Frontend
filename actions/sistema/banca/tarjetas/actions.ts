@@ -1,6 +1,7 @@
 import axiosInstance from "@/lib/axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 interface BankCardData {
   name: string;
@@ -34,10 +35,7 @@ export const useCreateBankCard = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          error?.response?.data?.message || "No se pudo crear la tarjeta.",
-      });
+      notifyError(error, { action: "crear la tarjeta" });
     },
   });
 
@@ -60,10 +58,7 @@ export const useUpdateBankCard = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          error?.response?.data?.message || "No se pudo actualizar la tarjeta.",
-      });
+      notifyError(error, { action: "actualizar la tarjeta" });
     },
   });
 
@@ -86,10 +81,7 @@ export const useDeleteBankCard = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          error?.response?.data?.message || "¡Hubo un error al eliminar la tarjeta!",
-      });
+      notifyError(error, { action: "eliminar la tarjeta" });
     },
   });
 

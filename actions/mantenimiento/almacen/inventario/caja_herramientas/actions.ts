@@ -1,6 +1,7 @@
 import axiosInstance from "@/lib/axios"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
+import { notifyError } from "@/lib/notify-error";
 
 interface ToolBoxProps {
   id?: number,
@@ -32,9 +33,7 @@ export const useCreateToolBox = () => {
             })
           },
         onError: (error) => {
-            toast.error('Oops!', {
-              description: 'No se pudo crear la caja...'
-            })
+            notifyError(error, { action: "crear la caja" })
             console.log(error)
           },
         }
@@ -60,9 +59,7 @@ export const useUpdateToolBox = () => {
           })
         },
       onError: (error) => {
-          toast.error('Oops!', {
-            description: 'No se pudo actualizar la caja...'
-          })
+          notifyError(error, { action: "actualizar la caja" })
           console.log(error)
         },
       }
@@ -87,9 +84,7 @@ export const useDeleteToolBox = () => {
           })
         },
       onError: (e) => {
-          toast.error("Oops!", {
-            description: "¡Hubo un error al eliminar la caja!"
-        })
+          notifyError(e, { action: "eliminar la caja" })
         },
       }
   )

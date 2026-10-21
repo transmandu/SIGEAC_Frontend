@@ -3,6 +3,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import type { QuarantineRecord } from "@/types/quarantine";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 type SendToReinspectionPayload = {
   id: number;
@@ -133,12 +134,7 @@ export const useResolveQuarantine = () => {
     },
 
     onError: (error) => {
-      const message = (error as { response?: { data?: { message?: string } } })
-        ?.response?.data?.message;
-
-      toast.error("Oops!", {
-        description: message ?? "No se pudo resolver el artículo en cuarentena...",
-      });
+      notifyError(error, { action: "resolver el artículo en cuarentena" });
     },
   });
 
@@ -178,12 +174,7 @@ export const useSendToReinspection = () => {
     },
 
     onError: (error) => {
-      const message = (error as { response?: { data?: { message?: string } } })
-        ?.response?.data?.message;
-
-      toast.error("Oops!", {
-        description: message ?? "No se pudo enviar el artículo a re-inspección...",
-      });
+      notifyError(error, { action: "enviar el artículo a re-inspección" });
     },
   });
 
@@ -223,12 +214,7 @@ export const useRejectReinspection = () => {
     },
 
     onError: (error) => {
-      const message = (error as { response?: { data?: { message?: string } } })
-        ?.response?.data?.message;
-
-      toast.error("Oops!", {
-        description: message ?? "No se pudo devolver el artículo a cuarentena...",
-      });
+      notifyError(error, { action: "devolver el artículo a cuarentena" });
     },
   });
 

@@ -3,6 +3,7 @@ import type { CompanySettings } from "@/hooks/general/useCompanySettings";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 type UpdateCompanySettingsPayload = {
   quarantine_legal_days?: number;
@@ -46,12 +47,7 @@ export const useUpdateCompanySettings = () => {
     },
 
     onError: (error) => {
-      const message = (error as { response?: { data?: { message?: string } } })
-        ?.response?.data?.message;
-
-      toast.error("Oops!", {
-        description: message ?? "No se pudieron actualizar los ajustes...",
-      });
+      notifyError(error, { action: "actualizar los ajustes" });
     },
   });
 

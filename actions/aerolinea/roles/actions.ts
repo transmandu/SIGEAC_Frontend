@@ -1,6 +1,7 @@
 import axiosInstance from "@/lib/axios"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
+import { notifyError } from "@/lib/notify-error";
 
 interface CreateRoleSchema {
     name: string
@@ -49,9 +50,7 @@ export const useDeleteRole = () => {
           })
         },
       onError: (e) => {
-          toast.error("Oops!", {
-            description: "¡Hubo un error al eliminar el rol!"
-        })
+          notifyError(e, { action: "eliminar el rol" })
         },
       }
   )

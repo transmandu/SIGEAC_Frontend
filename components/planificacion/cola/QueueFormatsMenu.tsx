@@ -11,7 +11,7 @@ import { useGetControlQueueFormats } from "@/hooks/mantenimiento/planificacion/u
 import axiosInstance from "@/lib/axios";
 import { ChevronDown, FileDown, Loader2 } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 /**
  * Descarga de los formatos INAC con los ítems SELECCIONADOS.
@@ -60,13 +60,7 @@ export function QueueFormatsMenu({
       link.click();
       URL.revokeObjectURL(url);
     } catch (error: any) {
-      const errors = error?.response?.data?.errors;
-      toast.error("No se pudo emitir el formato", {
-        description:
-          (errors && (Object.values(errors).flat()[0] as string)) ??
-          error?.response?.data?.message ??
-          "Intente de nuevo.",
-      });
+      notifyError(error, { action: "emitir el formato" });
       console.log(error);
     } finally {
       setDownloading(null);

@@ -3,6 +3,7 @@ import { Convertion, Unit } from "@/types";
 import { ConversionDirection } from "@/types/supervisor";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 /**
  * Conversiones de UN artículo. Reemplaza al catálogo global de conversiones:
@@ -147,9 +148,7 @@ export const useMutateUnitConversionRow = (company?: string) => {
       });
     },
     onError: (error: any) => {
-      toast.error("No se pudo actualizar la conversión", {
-        description: error?.response?.data?.message,
-      });
+      notifyError(error, { action: "actualizar la conversión" });
     },
   });
 
@@ -168,9 +167,7 @@ export const useMutateUnitConversionRow = (company?: string) => {
       toast.success("Conversión eliminada");
     },
     onError: (error: any) => {
-      toast.error("No se pudo eliminar la conversión", {
-        description: error?.response?.data?.message,
-      });
+      notifyError(error, { action: "eliminar la conversión" });
     },
   });
 
@@ -207,7 +204,6 @@ export const useCreateArticleUnitConversion = (
     },
     onError: (error: any) => {
       const status = error?.response?.status;
-      const message = error?.response?.data?.message;
 
       if (status === 409) {
         toast.warning("Ya existe una conversión para esa unidad", {
@@ -216,7 +212,7 @@ export const useCreateArticleUnitConversion = (
         return;
       }
 
-      toast.error("No se pudo crear la conversión", { description: message });
+      notifyError(error, { action: "crear la conversión" });
     },
   });
 };
@@ -248,9 +244,7 @@ export const useUpdateArticleUnitConversion = (
       toast.success("Conversión actualizada", { description: data?.conversion?.lectura });
     },
     onError: (error: any) => {
-      toast.error("No se pudo actualizar la conversión", {
-        description: error?.response?.data?.message,
-      });
+      notifyError(error, { action: "actualizar la conversión" });
     },
   });
 };
@@ -274,9 +268,7 @@ export const useDeleteArticleUnitConversion = (
       toast.success("Conversión eliminada");
     },
     onError: (error: any) => {
-      toast.error("No se pudo eliminar la conversión", {
-        description: error?.response?.data?.message,
-      });
+      notifyError(error, { action: "eliminar la conversión" });
     },
   });
 };

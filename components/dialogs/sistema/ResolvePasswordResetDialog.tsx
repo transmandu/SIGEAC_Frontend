@@ -126,7 +126,7 @@ export default function ResolvePasswordResetDialog({
       await navigator.clipboard.writeText(value);
       toast.success("Contraseña copiada");
     } catch {
-      toast.error("No se pudo copiar", {
+      toast.error("¡Ops! No se pudo copiar", {
         description: "Cópiela manualmente del campo.",
       });
     }

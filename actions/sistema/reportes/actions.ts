@@ -2,27 +2,7 @@ import axiosInstance from "@/lib/axios";
 import { ErrorReportSeverity } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-
-// Prioriza el primer error de validación sobre el mensaje general: es el que
-// dice qué campo corregir.
-const getErrorMessage = (error: unknown, fallback: string) => {
-  const maybeAxiosError = error as {
-    response?: {
-      status?: number;
-      data?: { message?: string; errors?: Record<string, string[]> };
-    };
-  };
-  const errors = maybeAxiosError.response?.data?.errors;
-  const firstValidationMessage = errors
-    ? Object.values(errors)[0]?.[0]
-    : undefined;
-
-  return (
-    firstValidationMessage ||
-    maybeAxiosError.response?.data?.message ||
-    fallback
-  );
-};
+import { notifyError } from "@/lib/notify-error";
 
 interface CreateErrorReportData {
   description: string;
@@ -31,6 +11,10 @@ interface CreateErrorReportData {
   http_status?: number;
   /** Compañía desde la que se reporta: permite filtrar por empresa al atender. */
   company?: string;
+  /** Del aviso de error desde el que se reportó: une el reporte con el log. */
+  error_reference?: string;
+  error_code?: string;
+  page_url?: string;
   images?: File[];
 }
 
@@ -47,6 +31,9 @@ export const useCreateErrorReport = () => {
         if (data.severity) formData.append("severity", data.severity);
         if (data.http_status !== undefined) formData.append("http_status", String(data.http_status));
         if (data.company) formData.append("company", data.company);
+        if (data.error_reference) formData.append("error_reference", data.error_reference);
+        if (data.error_code) formData.append("error_code", data.error_code);
+        if (data.page_url) formData.append("page_url", data.page_url);
         images.forEach((image) => formData.append("images[]", image));
 
         const response = await axiosInstance.post("/error-reports", formData, {
@@ -65,9 +52,7 @@ export const useCreateErrorReport = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: getErrorMessage(error, "No se pudo registrar el reporte..."),
-      });
+      notifyError(error, { action: "registrar el reporte" });
     },
   });
 
@@ -89,9 +74,7 @@ export const useDeleteErrorReport = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: getErrorMessage(error, "No se pudo eliminar el reporte..."),
-      });
+      notifyError(error, { action: "eliminar el reporte" });
     },
   });
 
@@ -114,10 +97,8 @@ export const useSetErrorReportInProgress = () => {
         description: "El reporte ahora esta en progreso.",
       });
     },
-    onError: () => {
-      toast.error("Oops!", {
-        description: "No se pudo tomar el reporte...",
-      });
+    onError: (error) => {
+      notifyError(error, { action: "tomar el reporte" });
     },
   });
 
@@ -143,10 +124,8 @@ export const useResolveErrorReport = () => {
         description: "El reporte fue marcado como resuelto.",
       });
     },
-    onError: () => {
-      toast.error("Oops!", {
-        description: "No se pudo resolver el reporte...",
-      });
+    onError: (error) => {
+      notifyError(error, { action: "resolver el reporte" });
     },
   });
 
@@ -167,10 +146,8 @@ export const useMarkErrorReportDuplicate = () => {
         description: "El reporte fue marcado como duplicado.",
       });
     },
-    onError: () => {
-      toast.error("Oops!", {
-        description: "No se pudo marcar el reporte como duplicado...",
-      });
+    onError: (error) => {
+      notifyError(error, { action: "marcar el reporte como duplicado" });
     },
   });
 
@@ -198,10 +175,8 @@ export const useUpdateErrorReportDiagnosis = () => {
         description: "El diagnóstico técnico fue guardado correctamente.",
       });
     },
-    onError: () => {
-      toast.error("Oops!", {
-        description: "No se pudo actualizar el diagnóstico...",
-      });
+    onError: (error) => {
+      notifyError(error, { action: "actualizar el diagnóstico" });
     },
   });
 
@@ -232,10 +207,8 @@ export const useAddErrorReportImages = () => {
         description: "Las imágenes fueron adjuntadas al reporte.",
       });
     },
-    onError: () => {
-      toast.error("Oops!", {
-        description: "No se pudieron agregar las imágenes...",
-      });
+    onError: (error) => {
+      notifyError(error, { action: "agregar las imágenes" });
     },
   });
 
@@ -256,10 +229,8 @@ export const useDeleteErrorReportImage = () => {
         description: "La imagen fue eliminada del reporte.",
       });
     },
-    onError: () => {
-      toast.error("Oops!", {
-        description: "No se pudo eliminar la imagen...",
-      });
+    onError: (error) => {
+      notifyError(error, { action: "eliminar la imagen" });
     },
   });
 
@@ -297,10 +268,8 @@ export const useImportErrorReportHistory = () => {
         description: "La importacion del historico se esta procesando.",
       });
     },
-    onError: () => {
-      toast.error("Oops!", {
-        description: "No se pudo iniciar la importacion...",
-      });
+    onError: (error) => {
+      notifyError(error, { action: "iniciar la importacion" });
     },
   });
 

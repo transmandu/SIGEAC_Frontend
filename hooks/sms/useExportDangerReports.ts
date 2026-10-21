@@ -1,5 +1,5 @@
 import axiosInstance from "@/lib/axios";
-import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 export const useExportDangerReports = () => {
   const exportDangerReports = async (company: string) => {
@@ -20,9 +20,7 @@ export const useExportDangerReports = () => {
       link.remove();
       URL.revokeObjectURL(url);
     } catch (error) {
-      toast.error("Oops!", {
-        description: "No se pudo generar el archivo de exportación...",
-      });
+      notifyError(error, { action: "generar el archivo de exportación" });
     }
   };
 

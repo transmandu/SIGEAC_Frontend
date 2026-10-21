@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import axiosInstance from '@/lib/axios';
 import { broadcastQueryInvalidation } from '@/lib/cross-tab-sync';
 import { Notification } from '@/types/notifications/types';
+import { notifyError } from "@/lib/notify-error";
 
 // Marcar como leída se refleja al instante en la campana: se actualiza la caché
 // antes de que responda el servidor y solo se revierte si falla.
@@ -128,8 +129,8 @@ export const useClearAllNotifications = (company: string) => {
       toast.success('Todas las notificaciones eliminadas');
     },
 
-    onError: () => {
-      toast.error('Error al eliminar las notificaciones');
+    onError: (error) => {
+      notifyError(error, { action: "eliminar las notificaciones" });
     },
   });
 };
@@ -152,8 +153,8 @@ export const useClearReadNotifications = (company: string) => {
       toast.success('Notificaciones leídas eliminadas');
     },
 
-    onError: () => {
-      toast.error('Error al eliminar notificaciones leídas');
+    onError: (error) => {
+      notifyError(error, { action: "eliminar notificaciones leídas" });
     },
   });
 };

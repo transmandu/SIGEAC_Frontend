@@ -1,6 +1,7 @@
 import axiosInstance from "@/lib/axios"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
+import { notifyError } from "@/lib/notify-error";
 
 interface CreateFormSchema {
     first_name: string,
@@ -26,9 +27,7 @@ export const useCreateUser = () => {
             })
           },
         onError: (e) => {
-            toast.error("Oops!", {
-              description: "¡Hubo un error al crear el usuario!"
-          })
+            notifyError(e, { action: "crear el usuario" })
           },
         }
     )
@@ -63,9 +62,7 @@ export const useUpdateUser = () => {
           })
         },
       onError: (e) => {
-          toast.error("Oops!", {
-            description: "¡Hubo un error al actualizar el usuario!"
-        })
+          notifyError(e, { action: "actualizar el usuario" })
         },
       }
   )
@@ -97,8 +94,8 @@ export const useAddRoleToUser = () => {
       queryClient.invalidateQueries({ queryKey: ['user', userId] })
       toast.success("Rol asignado correctamente.")
     },
-    onError: () => {
-      toast.error("No se pudo asignar el rol.")
+    onError: (error) => {
+      notifyError(error, { action: "asignar el rol" })
     },
   })
 
@@ -126,8 +123,8 @@ export const useRemoveRoleFromUser = () => {
       queryClient.invalidateQueries({ queryKey: ['user', userId] })
       toast.success("Rol removido correctamente.")
     },
-    onError: () => {
-      toast.error("No se pudo remover el rol.")
+    onError: (error) => {
+      notifyError(error, { action: "remover el rol" })
     },
   })
 
@@ -156,8 +153,8 @@ export const useAddCompanyToUser = () => {
       queryClient.invalidateQueries({ queryKey: ['user', userId] })
       toast.success("Empresa asignada correctamente.")
     },
-    onError: () => {
-      toast.error("No se pudo asignar la empresa.")
+    onError: (error) => {
+      notifyError(error, { action: "asignar la empresa" })
     },
   })
 
@@ -175,8 +172,8 @@ export const useRemoveCompanyFromUser = () => {
       queryClient.invalidateQueries({ queryKey: ['user', userId] })
       toast.success("Empresa removida correctamente.")
     },
-    onError: () => {
-      toast.error("No se pudo remover la empresa.")
+    onError: (error) => {
+      notifyError(error, { action: "remover la empresa" })
     },
   })
 
@@ -207,8 +204,8 @@ export const useAddModulesToUser = () => {
       toast.success("Módulos asignados correctamente.")
     },
 
-    onError: () => {
-      toast.error("No se pudieron asignar los módulos.")
+    onError: (error) => {
+      notifyError(error, { action: "asignar los módulos" })
     },
   })
 
@@ -241,8 +238,8 @@ export const useRemoveModulesFromUser = () => {
       toast.success("Módulos removidos correctamente.")
     },
 
-    onError: () => {
-      toast.error("No se pudieron remover los módulos.")
+    onError: (error) => {
+      notifyError(error, { action: "remover los módulos" })
     },
   })
 

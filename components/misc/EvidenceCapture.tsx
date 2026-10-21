@@ -90,14 +90,14 @@ export function EvidenceCapture({
 
       for (const file of incoming) {
         if (!ACCEPTED.includes(file.type)) {
-          toast.error("Formato no admitido", {
+          toast.error("¡Ops! Formato no admitido", {
             description: `${file.name}: solo se aceptan JPG, PNG o WEBP.`,
           });
           continue;
         }
 
         if (file.size > MAX_BYTES) {
-          toast.error("Imagen muy pesada", {
+          toast.error("¡Ops! Imagen muy pesada", {
             description: `${file.name} supera los 8 MB.`,
           });
           continue;
@@ -128,7 +128,7 @@ export function EvidenceCapture({
     const file = await camera.capture();
 
     if (!file) {
-      toast.error("No se pudo tomar la foto", {
+      toast.error("¡Ops! No se pudo tomar la foto", {
         description: "Espere a que la imagen aparezca y vuelva a intentarlo.",
       });
       return;

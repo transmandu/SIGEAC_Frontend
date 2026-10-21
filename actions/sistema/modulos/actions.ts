@@ -1,6 +1,7 @@
 import axiosInstance from "@/lib/axios"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
+import { notifyError } from "@/lib/notify-error";
 
 export const useCreateModule = () => {
     const queryClient = useQueryClient()
@@ -40,9 +41,7 @@ export const useDeleteModule = () => {
           })
         },
       onError: (e) => {
-          toast.error("Oops!", {
-            description: "¡Hubo un error al eliminar el modulo!"
-        })
+          notifyError(e, { action: "eliminar el modulo" })
         },
       }
   )
@@ -64,9 +63,7 @@ export const useUpdateModule = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: `Hubo un error al actualizar el modulo: ${error}`,
-      });
+      notifyError(error, { action: "actualizar el módulo" });
     },
   });
 

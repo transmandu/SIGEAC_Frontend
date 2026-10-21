@@ -6,10 +6,10 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { toast } from "@/components/ui/use-toast"
 import { cn } from "@/lib/utils"
 import { Eye, Printer, Loader2, FileDown } from "lucide-react"
 import axiosInstance from "@/lib/axios"
+import { notifyError } from "@/lib/notify-error";
 
 type HoursMode = "auto" | "manual"
 
@@ -113,8 +113,8 @@ export function PdfPreviewDialog({
         setPreviewUrl(url)
         setPreviewBlob(blob)
       }
-    } catch {
-      toast({ variant: "destructive", title: "Error", description: "No se pudo generar el PDF." })
+    } catch (error) {
+      notifyError(error, { action: "generar el PDF" })
     } finally {
       setIsDownloading(false)
       setIsPreviewing(false)

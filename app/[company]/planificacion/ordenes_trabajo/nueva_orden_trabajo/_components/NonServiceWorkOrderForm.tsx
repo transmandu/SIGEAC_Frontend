@@ -418,7 +418,7 @@ const NonServiceWorkOrderForm = ({
         : taskErrors?.message) ??
       Object.values(errors).find((e) => e?.message)?.message ??
       "Revise los campos obligatorios.";
-    toast.error("Faltan datos", { description: String(message) });
+    toast.error("¡Ops! Faltan datos", { description: String(message) });
   };
 
   const onSubmit = async (data: ManualWorkOrderFormValues) => {

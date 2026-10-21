@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "@/lib/axios";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 // Autoriza a un empleado de otra empresa a operar en la destino, sin copiarlo
 // como empleado propio. El 204 significa que ya pertenecía a la destino y no
@@ -37,13 +38,10 @@ export const useCreateAuthorizedEmployee = () => {
 
     onError: (error: any) => {
       if (error.response?.status === 422) {
-        toast.error(
-          error.response?.data?.message ??
-            "Datos inválidos. Verifique la información ingresada.",
-        );
+        notifyError(error);
         return;
       }
-      toast.error("Ha ocurrido un error al crear la autorización.");
+      notifyError(error, { action: "crear la autorización" });
     },
   });
 };
@@ -65,13 +63,12 @@ export const useDeleteAuthorizedEmployee = (companySlug?: string) => {
     },
 
     onError: (error: any) => {
-      if (error.response?.status === 403) {
-        toast.error(
-          "Solo la empresa de origen puede eliminar esta autorización.",
-        );
-        return;
-      }
-      toast.error("Ha ocurrido un error al eliminar la autorización.");
+      notifyError(error, {
+        action: "eliminar la autorización",
+        messages: {
+          forbidden: "Solo la empresa de origen puede eliminar esta autorización.",
+        },
+      });
     },
   });
 };

@@ -2,6 +2,7 @@ import axiosInstance from "@/lib/axios";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 interface EmployeeSelected {
   dni: string | null;
@@ -70,9 +71,7 @@ export const useCreateSMSActivityAttendance = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo actualizar los inscritos en la actividad...",
-      });
+      notifyError(error, { action: "actualizar los inscritos en la actividad" });
       console.log(error);
     },
   });
@@ -116,9 +115,7 @@ export const useMarkSMSActivityAttendance = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo actualizar la asistencia...",
-      });
+      notifyError(error, { action: "actualizar la asistencia" });
       console.log(error);
     },
   });

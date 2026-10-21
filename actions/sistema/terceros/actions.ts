@@ -1,8 +1,8 @@
 import axiosInstance from "@/lib/axios";
-import { getApiErrorMessage } from "@/lib/api-error";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 interface ThirdPartySchema {
   name: string;
@@ -26,9 +26,7 @@ export const useCreateThirdParty = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: getApiErrorMessage(error, "No se pudo crear el tercero."),
-      });
+      notifyError(error, { action: "crear el tercero" });
     },
   });
   return {
@@ -59,12 +57,7 @@ export const useUpdateThirdParty = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: getApiErrorMessage(
-          error,
-          "¡Hubo un error al actualizar el tercero!",
-        ),
-      });
+      notifyError(error, { action: "actualizar el tercero" });
     },
   });
 
@@ -89,12 +82,7 @@ export const useDeleteThirdParty = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: getApiErrorMessage(
-          error,
-          "¡Hubo un error al eliminar el tercero!",
-        ),
-      });
+      notifyError(error, { action: "eliminar el tercero" });
     },
   });
 

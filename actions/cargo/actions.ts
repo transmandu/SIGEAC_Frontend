@@ -1,6 +1,7 @@
 import axiosInstance from "@/lib/axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 export const useCreateCargoShipment = (company: string) => {
   const queryClient = useQueryClient();
@@ -20,9 +21,7 @@ export const useCreateCargoShipment = (company: string) => {
       });
     },
     onError: (error) => {
-      toast.error("Error", {
-        description: `Ha ocurrido un errror al intentar agregar el registro ${error}.`,
-      });
+      notifyError(error, { action: "agregar el registro" });
     },
   });
 
@@ -46,11 +45,8 @@ export const useDeleteCargoShipment = (company: string) => {
         description: "Registro eliminado correctamente.",
       });
     },
-    onError: () => {
-      toast.error("Error", {
-        description:
-          "Ha ocurrido un problema al intentar eliminar el registro.",
-      });
+    onError: (error) => {
+      notifyError(error, { action: "eliminar el registro" });
     },
   });
   return { deleteCargoShipment: deleteMutation };
@@ -75,9 +71,7 @@ export const useUpdateCargoShipment = (company: string) => {
       });
     },
     onError: (error) => {
-      toast.error("Error", {
-        description: `Ha ocurrido una error al intentar actualizar el registro: ${error}.`,
-      });
+      notifyError(error, { action: "actualizar el registro" });
     },
   });
 

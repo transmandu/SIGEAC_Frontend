@@ -8,11 +8,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { toast } from "@/components/ui/use-toast";
 import axiosInstance from "@/lib/axios";
 import { cn } from "@/lib/utils";
 import { FileDown, Loader2 } from "lucide-react";
 import { useEffect, useState, useCallback } from "react";
+import { notifyError } from "@/lib/notify-error";
 
 interface PdfEndpointPreviewDialogProps {
   open: boolean;
@@ -81,12 +81,8 @@ export function PdfEndpointPreviewDialog({
     setIsLoading(true);
     try {
       await ensurePreview();
-    } catch {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "No se pudo cargar la vista previa del PDF.",
-      });
+    } catch (error) {
+      notifyError(error, { action: "cargar la vista previa del PDF" });
     } finally {
       setIsLoading(false);
     }
@@ -116,12 +112,8 @@ export function PdfEndpointPreviewDialog({
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
-    } catch {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "No se pudo descargar el PDF.",
-      });
+    } catch (error) {
+      notifyError(error, { action: "descargar el PDF" });
     } finally {
       setIsDownloading(false);
     }

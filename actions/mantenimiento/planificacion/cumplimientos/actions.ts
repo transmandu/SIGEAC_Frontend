@@ -1,6 +1,7 @@
 import axiosInstance from "@/lib/axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 export interface ImportComplianceHistorySkippedRow {
   row: number;
@@ -45,16 +46,14 @@ export const useImportMaintenanceComplianceHistory = () => {
           description: `${result.imported} cumplimiento(s) cargado(s)${result.skipped.length ? `, ${result.skipped.length} fila(s) omitida(s).` : "."}`,
         });
       } else {
-        toast.error("Nada para importar", {
+        toast.error("¡Ops! Nada para importar", {
           description:
             "Ninguna fila coincidió con un certificado/servicio de este control.",
         });
       }
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo importar el archivo...",
-      });
+      notifyError(error, { action: "importar el archivo" });
       console.log(error);
     },
   });

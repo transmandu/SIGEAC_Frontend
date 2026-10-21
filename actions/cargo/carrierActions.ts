@@ -1,6 +1,7 @@
 import axiosInstance from "@/lib/axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 interface CreateCarrierData {
   name: string;
@@ -32,9 +33,7 @@ export const useCreateCarrier = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Error", {
-        description: `No se pudo crear el transportista: ${error.message}`,
-      });
+      notifyError(error, { action: "crear el transportista" });
     },
   });
 

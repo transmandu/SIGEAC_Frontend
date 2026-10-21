@@ -303,7 +303,7 @@ export function PayPurchaseOrderForm({
     );
     if (missingJustification) {
       toast.error(
-        "Debe justificar los artículos cuyo total difiere del monto cotizado.",
+        "¡Ops! Debe justificar los artículos cuyo total difiere del monto cotizado.",
       );
       return;
     }
@@ -315,7 +315,7 @@ export function PayPurchaseOrderForm({
     );
 
     if (filledInvoices.some((invoice) => !invoice.file)) {
-      toast.error("Cada factura debe tener su archivo adjunto.");
+      toast.error("¡Ops! Cada factura debe tener su archivo adjunto.");
       return;
     }
 

@@ -15,7 +15,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { Download, History, PencilLine, Loader2 } from "lucide-react";
 import { format as formatDate } from "date-fns";
 import { es } from "date-fns/locale";
-import { toast } from "sonner";
 import {
   useGetIssuedIncomingFormats,
   useReprintIncomingFormat,
@@ -23,6 +22,7 @@ import {
 } from "@/actions/mantenimiento/control_calidad/actions";
 import { GenerateReceptionFormButton } from "./GenerateReceptionFormButton";
 import { IncomingArticle } from "@/app/[company]/control_calidad/incoming/IncomingTypes";
+import { notifyError } from "@/lib/notify-error";
 
 /**
  * Identifica al formato por su fecha de emisión, no por la OC: esa se teclea a
@@ -59,7 +59,7 @@ export function IssuedFormatsDialog() {
     try {
       await reprint.mutateAsync(f);
     } catch (e: any) {
-      toast.error(e?.message ?? "No se pudo descargar el formato.");
+      notifyError(e, { action: "descargar el formato" });
     } finally {
       setDownloadingId(null);
     }

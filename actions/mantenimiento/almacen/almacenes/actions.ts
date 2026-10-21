@@ -1,7 +1,7 @@
 import axiosInstance from "@/lib/axios";
-import { getApiErrorMessage } from "@/lib/api-error";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 interface WarehouseSchema {
   name: string;
@@ -28,9 +28,7 @@ export const useCreateWarehouse = () => {
       });
     },
     onError: (error) => {
-      toast.error("Error", {
-        description: getApiErrorMessage(error, "No se creó correctamente."),
-      });
+      notifyError(error, { action: "crear el registro" });
     },
   });
 
@@ -61,12 +59,7 @@ export const useUpdateWarehouse = () => {
       });
     },
     onError: (error) => {
-      toast.error("Error", {
-        description: getApiErrorMessage(
-          error,
-          "No se actualizó correctamente.",
-        ),
-      });
+      notifyError(error, { action: "actualizar el registro" });
     },
   });
 
@@ -95,11 +88,7 @@ export const useDeleteWarehouse = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          error?.response?.data?.message ??
-          "¡Hubo un error al eliminar el almacén!",
-      });
+      notifyError(error, { action: "eliminar el almacén" });
     },
   });
 

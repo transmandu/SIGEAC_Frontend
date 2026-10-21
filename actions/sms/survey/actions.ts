@@ -3,6 +3,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { Survey } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 export type Option = {
   text: string;
@@ -63,9 +64,7 @@ export const useCreateSurvey = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo crear la encuesta",
-      });
+      notifyError(error, { action: "crear la encuesta" });
       console.log(error);
     },
   });
@@ -90,9 +89,7 @@ export const useCreateSurveyAnswers = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo enviar las respuestas",
-      });
+      notifyError(error, { action: "enviar las respuestas" });
       console.log(error);
     },
   });
@@ -125,9 +122,7 @@ export const useDeleteSurvey = () => {
       });
     },
     onError: (e) => {
-      toast.error("Oops!", {
-        description: "¡Hubo un error al eliminar la encuesta!",
-      });
+      notifyError(e, { action: "eliminar la encuesta" });
     },
   });
 
@@ -167,25 +162,8 @@ export const useUpdateSurvey = () => {
         description: "Encuesta actualizada exitosamente",
       });
     },
-    onError: (error: any) => {
-      // Extraer mensaje y error del backend
-      const backendMessage = error?.response?.data?.message || "";
-      const backendError = error?.response?.data?.error || "";
-
-      // Determinar el título y descripción según el tipo de error
-      const isAnsweredSurvey = backendMessage?.toLowerCase().includes("no se puede editar");
-
-      if (isAnsweredSurvey) {
-        toast.error("No se puede editar", {
-          description: backendError || "Esta encuesta ya ha sido respondida y no se puede modificar",
-        });
-      } else {
-        toast.error("Error al actualizar", {
-          description: backendMessage || "No se pudo actualizar la encuesta",
-        });
-      }
-
-      console.log(error);
+    onError: (error) => {
+      notifyError(error, { action: "actualizar la encuesta" });
     },
   });
 
@@ -237,23 +215,8 @@ export const useUpdateQuestion = () => {
         description: "Pregunta actualizada exitosamente",
       });
     },
-    onError: (error: any) => {
-      const backendMessage = error?.response?.data?.message || "";
-      const backendError = error?.response?.data?.error || "";
-
-      const isAnsweredSurvey = backendMessage?.toLowerCase().includes("no se puede editar");
-
-      if (isAnsweredSurvey) {
-        toast.error("No se puede editar", {
-          description: backendError || "Esta encuesta ya ha sido respondida",
-        });
-      } else {
-        toast.error("Error al actualizar", {
-          description: backendMessage || "No se pudo actualizar la pregunta",
-        });
-      }
-
-      console.log(error);
+    onError: (error) => {
+      notifyError(error, { action: "actualizar la pregunta" });
     },
   });
 
@@ -292,25 +255,8 @@ export const useDeleteQuestion = () => {
         description: "Pregunta eliminada exitosamente",
       });
     },
-    onError: (error: any) => {
-      const backendMessage = error?.response?.data?.message || "";
-      const backendError = error?.response?.data?.error || "";
-
-      if (backendError.includes("al menos una pregunta")) {
-        toast.error("No se puede eliminar", {
-          description: "Una encuesta debe tener al menos una pregunta",
-        });
-      } else if (backendMessage?.toLowerCase().includes("no se puede eliminar")) {
-        toast.error("No se puede eliminar", {
-          description: backendError || "Esta encuesta ya ha sido respondida",
-        });
-      } else {
-        toast.error("Error al eliminar", {
-          description: backendMessage || "No se pudo eliminar la pregunta",
-        });
-      }
-
-      console.log(error);
+    onError: (error) => {
+      notifyError(error, { action: "eliminar la pregunta" });
     },
   });
 
@@ -358,23 +304,8 @@ export const useCreateQuestion = () => {
         description: "Pregunta agregada exitosamente",
       });
     },
-    onError: (error: any) => {
-      const backendMessage = error?.response?.data?.message || "";
-      const backendError = error?.response?.data?.error || "";
-
-      const isAnsweredSurvey = backendMessage?.toLowerCase().includes("no se puede agregar");
-
-      if (isAnsweredSurvey) {
-        toast.error("No se puede agregar", {
-          description: backendError || "Esta encuesta ya ha sido respondida",
-        });
-      } else {
-        toast.error("Error al crear", {
-          description: backendMessage || "No se pudo crear la pregunta",
-        });
-      }
-
-      console.log(error);
+    onError: (error) => {
+      notifyError(error, { action: "crear la pregunta" });
     },
   });
 
@@ -418,23 +349,8 @@ export const useUpdateSurveyInfo = () => {
         description: "Información actualizada exitosamente",
       });
     },
-    onError: (error: any) => {
-      const backendMessage = error?.response?.data?.message || "";
-      const backendError = error?.response?.data?.error || "";
-
-      const isAnsweredSurvey = backendMessage?.toLowerCase().includes("no se puede editar");
-
-      if (isAnsweredSurvey) {
-        toast.error("No se puede editar", {
-          description: backendError || "Esta encuesta ya ha sido respondida",
-        });
-      } else {
-        toast.error("Error al actualizar", {
-          description: backendMessage || "No se pudo actualizar la información",
-        });
-      }
-
-      console.log(error);
+    onError: (error) => {
+      notifyError(error, { action: "actualizar la información de la encuesta" });
     },
   });
 
@@ -477,10 +393,7 @@ export const useLinkSurveyToActivity = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description:
-          "No se pudo vincular la encuesta a la actividad...",
-      });
+      notifyError(error, { action: "vincular la encuesta a la actividad" });
       console.log(error);
     },
   });
@@ -517,9 +430,7 @@ export const useUpdateSurveySetting = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo configurar la encuesta...",
-      });
+      notifyError(error, { action: "configurar la encuesta" });
       console.log(error);
     },
   });

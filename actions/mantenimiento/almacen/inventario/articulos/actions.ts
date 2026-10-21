@@ -9,7 +9,7 @@ import {
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { apiErrorMessage } from "@/lib/apiErrorMessage";
+import { notifyError } from "@/lib/notify-error";
 
 interface ArticleData {
   serial?: string | string[];
@@ -278,12 +278,7 @@ export const useCreateArticle = () => {
       });
     },
     onError: (error) => {
-      toast.error("No se pudo crear el artículo", {
-        description: apiErrorMessage(
-          error,
-          "Intente de nuevo en unos instantes.",
-        ),
-      });
+      notifyError(error, { action: "crear el artículo" });
       console.log(error);
     },
   });
@@ -321,12 +316,7 @@ export const useCreateToReviewArticle = () => {
       });
     },
     onError: (error) => {
-      toast.error("No se pudo crear el artículo", {
-        description: apiErrorMessage(
-          error,
-          "Intente de nuevo en unos instantes.",
-        ),
-      });
+      notifyError(error, { action: "crear el artículo" });
       console.log(error);
     },
   });
@@ -375,11 +365,7 @@ export const useAssignArticleDocumentRequirements = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          error?.response?.data?.message ??
-          "No se pudo registrar la documentación requerida...",
-      });
+      notifyError(error, { action: "registrar la documentación requerida" });
     },
   });
 
@@ -425,9 +411,7 @@ export const useSyncArticleDocumentRequirements = () => {
       invalidateArticleDocuments(queryClient);
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo actualizar la documentación esperada...",
-      });
+      notifyError(error, { action: "actualizar la documentación esperada" });
       console.log(error);
     },
   });
@@ -435,31 +419,6 @@ export const useSyncArticleDocumentRequirements = () => {
   return {
     syncArticleDocumentRequirements: syncMutation,
   };
-};
-
-/**
- * El 422 de Laravel trae el motivo real (tipo de archivo no permitido, pesa
- * más de 10 MB...). Sin esto el usuario solo veía "no se pudo guardar" y no
- * había forma de saber por qué el archivo fue rechazado.
- */
-const describeDocumentUploadError = (error: any): string => {
-  const response = error?.response;
-
-  if (response?.status === 413) {
-    return "El archivo es demasiado grande. El máximo permitido es 10 MB.";
-  }
-
-  const validationErrors = response?.data?.errors;
-
-  if (validationErrors && typeof validationErrors === "object") {
-    const first = Object.values(validationErrors).flat()[0];
-    if (typeof first === "string") return first;
-  }
-
-  const message = response?.data?.message;
-  if (typeof message === "string" && message.length > 0) return message;
-
-  return "No se pudo guardar la documentación del artículo...";
 };
 
 export const useUploadArticleDocuments = () => {
@@ -530,10 +489,14 @@ export const useUploadArticleDocuments = () => {
       invalidateArticleDocuments(queryClient);
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: describeDocumentUploadError(error),
+      // El 413 lo corta el servidor antes de que Laravel valide nada: solo aquí
+      // se sabe cuál es el límite de un documento.
+      notifyError(error, {
+        action: "guardar la documentación del artículo",
+        messages: {
+          tooLarge: "El archivo es demasiado grande. El máximo permitido es 10 MB.",
+        },
       });
-      console.log(error);
     },
   });
 
@@ -583,9 +546,7 @@ export const useConsignRequirementDocuments = () => {
       invalidateArticleDocuments(queryClient);
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo consignar la documentación del artículo...",
-      });
+      notifyError(error, { action: "consignar la documentación del artículo" });
       console.log(error);
     },
   });
@@ -617,9 +578,7 @@ export const useDeleteArticleDocument = () => {
       invalidateArticleDocuments(queryClient);
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo eliminar el documento consignado...",
-      });
+      notifyError(error, { action: "eliminar el documento consignado" });
       console.log(error);
     },
   });
@@ -653,9 +612,7 @@ export const useDeleteArticle = () => {
       });
     },
     onError: (e) => {
-      toast.error("Oops!", {
-        description: "¡Hubo un error al eliminar el articulo!",
-      });
+      notifyError(e, { action: "eliminar el articulo" });
     },
   });
 
@@ -740,13 +697,7 @@ export const useUpdateArticleStatus = () => {
       });
     },
     onError: (error: any) => {
-      // El rechazo del incoming llega con lo que falta por artículo. Sin
-      // enumerarlo el usuario solo ve "no se pudo" y no qué resolver.
-      const data = error?.response?.data;
-
-      toast.error("Oops!", {
-        description: data?.message ?? "No se pudo actualizar el articulo...",
-      });
+      notifyError(error, { action: "actualizar el articulo" });
       console.log(error);
     },
   });
@@ -788,11 +739,7 @@ export const useReportIncomingBlocked = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          error?.response?.data?.message ??
-          "No se pudo enviar la notificación...",
-      });
+      notifyError(error, { action: "enviar la notificación" });
     },
   });
 
@@ -863,10 +810,16 @@ export const useStoreArticleDirectly = () => {
         .map((doc: { document_type?: string | null }) => doc.document_type)
         .filter(Boolean);
 
-      toast.error("Oops!", {
-        description: pending.length
-          ? `${data.message} Pendiente: ${pending.join(", ")}.`
-          : (data?.message ?? "No se pudo pasar el artículo al inventario..."),
+      // Sin documentos pendientes es un error común; con ellos, lo útil es la
+      // lista de lo que falta consignar.
+      if (pending.length === 0) {
+        notifyError(error, { action: "pasar el artículo al inventario" });
+        return;
+      }
+
+      // eslint-disable-next-line no-restricted-syntax -- aviso con la lista de documentos que faltan: notifyError no la conoce.
+      toast.error("¡Ops! Faltan documentos por consignar", {
+        description: `${data.message} Pendiente: ${pending.join(", ")}.`,
       });
     },
   });
@@ -922,9 +875,7 @@ export const useConfirmIncomingArticle = () => {
     },
 
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo registrar la inspección...",
-      });
+      notifyError(error, { action: "registrar la inspección" });
 
       console.error(error);
     },
@@ -974,9 +925,7 @@ export const useEditArticle = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo actualizar el articulo...",
-      });
+      notifyError(error, { action: "actualizar el articulo" });
       console.log(error);
     },
   });
@@ -1025,12 +974,7 @@ export const useUpdateArticle = () => {
     },
 
     onError: (error) => {
-      toast.error("No se pudo actualizar el artículo", {
-        description: apiErrorMessage(
-          error,
-          "Intente de nuevo en unos instantes.",
-        ),
-      });
+      notifyError(error, { action: "actualizar el artículo" });
 
       console.log(error);
     },
@@ -1062,10 +1006,7 @@ export const useLocateArticle = () => {
     onError: (error: any) => {
       // El backend rechaza ubicar un artículo que ya salió de espera de
       // ubicación; ese motivo hay que mostrarlo, no taparlo con el genérico.
-      toast.error("Oops!", {
-        description:
-          error?.response?.data?.message ?? "No se pudo ubicar el articulo...",
-      });
+      notifyError(error, { action: "ubicar el articulo" });
       console.log(error);
     },
   });
@@ -1116,9 +1057,7 @@ export const useSendToQuarantine = () => {
     },
 
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo registrar el artículo en cuarentena...",
-      });
+      notifyError(error, { action: "registrar el artículo en cuarentena" });
 
       console.error(error);
     },
@@ -1158,9 +1097,7 @@ export const useUpdateToolArticleStatus = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo actualizar el articulo...",
-      });
+      notifyError(error, { action: "actualizar el articulo" });
       console.log(error);
     },
   });
@@ -1235,11 +1172,7 @@ export const useDetermineArticleDestination = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          error?.response?.data?.message ||
-          "No se pudo determinar el destino del artículo.",
-      });
+      notifyError(error, { action: "determinar el destino del artículo" });
     },
   });
 

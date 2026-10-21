@@ -1,6 +1,7 @@
 import axiosInstance from "@/lib/axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 interface BulletinData {
   company: string;
@@ -45,9 +46,7 @@ export const useCreateBulletin = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo crear el boletin...",
-      });
+      notifyError(error, { action: "crear el boletin" });
       console.log(error);
     },
   });
@@ -71,9 +70,7 @@ export const useDeleteSafetyBulletin = () => {
       });
     },
     onError: (e) => {
-      toast.error("Oops!", {
-        description: "¡Hubo un error al eliminar un boletin!",
-      });
+      notifyError(e, { action: "eliminar un boletin" });
     },
   });
 
@@ -96,10 +93,8 @@ export const useDeleteBulletinDocument = () => {
         description: "El documento ha sido eliminado correctamente.",
       });
     },
-    onError: () => {
-      toast.error("Oops!", {
-        description: "No se pudo eliminar el documento.",
-      });
+    onError: (error) => {
+      notifyError(error, { action: "eliminar el documento" });
     },
   });
   return {
@@ -127,9 +122,7 @@ export const useUpdateBulletin = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo actualizar el boletin...",
-      });
+      notifyError(error, { action: "actualizar el boletin" });
       console.log(error);
     },
   });

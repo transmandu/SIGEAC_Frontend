@@ -1,8 +1,8 @@
 import axiosInstance from "@/lib/axios";
-import { getApiErrorMessage } from "@/lib/api-error";
 import type { AirlineAircraft } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 export interface AirlineAircraftPayload {
   brand: string;
@@ -53,9 +53,7 @@ export const useCreateAircraft = () => {
       });
     },
     onError: (error) => {
-      toast.error("No se pudo crear la aeronave", {
-        description: getApiErrorMessage(error, "Inténtelo de nuevo."),
-      });
+      notifyError(error, { action: "crear la aeronave" });
     },
   });
 
@@ -90,9 +88,7 @@ export const useUpdateAircraft = () => {
       });
     },
     onError: (error) => {
-      toast.error("No se pudo actualizar la aeronave", {
-        description: getApiErrorMessage(error, "Inténtelo de nuevo."),
-      });
+      notifyError(error, { action: "actualizar la aeronave" });
     },
   });
 
@@ -119,9 +115,7 @@ export const useDeleteAircraft = () => {
       });
     },
     onError: (error) => {
-      toast.error("No se pudo eliminar la aeronave", {
-        description: getApiErrorMessage(error, "Inténtelo de nuevo."),
-      });
+      notifyError(error, { action: "eliminar la aeronave" });
     },
   });
 

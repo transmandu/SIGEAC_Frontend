@@ -55,7 +55,7 @@ const DoubleDateFilter = ({
 
   const pushToUrl = () => {
     if (!firstRange.from || !secondRange.from) {
-      toast.error("Debes seleccionar al menos un mes en cada selector");
+      toast.error("¡Ops! Debes seleccionar al menos un mes en cada selector");
       return;
     }
 

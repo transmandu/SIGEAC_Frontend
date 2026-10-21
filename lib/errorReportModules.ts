@@ -79,6 +79,39 @@ export function getAvailableErrorReportModules(
   );
 }
 
+/** Sección de la ruta -> módulo de reportes. Lo que no figura no tiene módulo propio. */
+const PATH_SECTION_TO_ERROR_REPORT_MODULE: Record<string, string> = {
+  almacen: "ALMACEN",
+  supervisor: "ALMACEN",
+  compras: "COMPRAS",
+  control_calidad: "CALIDAD",
+  ingenieria: "INGENIERIA",
+  planificacion: "PLANIFICACION",
+  administracion: "ADMINISTRACION",
+  sms: "SMS",
+  ajustes: "AJUSTES",
+  general: "GENERAL",
+  cuenta: "PERFIL",
+  sistema: "SISTEMA",
+};
+
+/** Rutas que no llevan la compañía por delante (`/sistema`, `/cuenta`). */
+const COMPANYLESS_SECTIONS = new Set(["sistema", "cuenta"]);
+
+/**
+ * El módulo al que pertenece una pantalla, por su ruta. Un reporte que nace de
+ * un aviso de error ya sabe dónde ocurrió: preguntárselo al usuario era la
+ * única fricción que quedaba entre el aviso y el envío.
+ */
+export function guessErrorReportModuleFromPath(
+  pathname: string,
+): string | undefined {
+  const [first, second] = pathname.split("/").filter(Boolean);
+  const section = first && COMPANYLESS_SECTIONS.has(first) ? first : second;
+
+  return section ? PATH_SECTION_TO_ERROR_REPORT_MODULE[section] : undefined;
+}
+
 /** Deduce el módulo por defecto de un usuario a partir del nombre de sus roles (p. ej. "JEFE_ALMACEN" -> "ALMACEN"). */
 export function getDefaultErrorReportModule(
   roles?: { name: string }[],

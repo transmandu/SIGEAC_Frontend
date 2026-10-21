@@ -3,6 +3,7 @@
 import axiosInstance from "@/lib/axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 // Las aeronaves externas no son una entidad: viven como texto libre en cada
 // guía. Por eso renombrarlas o borrarlas es una operación masiva acotada a un
@@ -36,10 +37,7 @@ export const useManageExternalAircraft = (company?: string) => {
       });
     },
     onError: (error: any) => {
-      toast.error(
-        error.response?.data?.message ||
-          "Ha ocurrido un error al intentar actualizar la información",
-      );
+      notifyError(error, { action: "actualizar la información" });
     },
   });
 
@@ -64,10 +62,7 @@ export const useManageExternalAircraft = (company?: string) => {
       queryClient.invalidateQueries({ queryKey: ["cargo-stats-by-aircraft"] });
     },
     onError: (error: any) => {
-      toast.error(
-        error.response?.data?.message ||
-          "Ha ocurrido un error al intentar eliminar la aeronave",
-      );
+      notifyError(error, { action: "eliminar la aeronave" });
     },
   });
 

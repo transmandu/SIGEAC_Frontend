@@ -18,7 +18,6 @@ import {
   YAxis,
   CartesianGrid,
 } from "recharts";
-import { toast } from "sonner";
 import {
   Tooltip,
   TooltipContent,
@@ -27,6 +26,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { bibliotecaDashboardSteps } from "@/components/tour/steps/general/biblioteca/biblioteca-dashboard";
+import { notifyError } from "@/lib/notify-error";
 
 interface DashboardModalProps {
   open: boolean;
@@ -462,7 +462,7 @@ export default function DashboardModal({
         setShareRequests(Array.isArray(reqRes) ? reqRes : reqRes.data || []);
       } catch (error) {
         console.error("Error al cargar el panel:", error);
-        toast.error("No se pudieron cargar los datos del panel");
+        notifyError(error, { action: "cargar los datos del panel" });
         setDocuments({});
         setTraceability([]);
         setShareRequests([]);

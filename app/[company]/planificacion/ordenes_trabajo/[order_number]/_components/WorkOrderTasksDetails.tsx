@@ -15,6 +15,7 @@ import PrelimInspecTable from "./PrelimInspecTable";
 import ReportTable from "./ReportTable";
 import { RoutineTasksList } from "./RoutineTasksList";
 import { TaskDetailsDialog } from "./TaskDetailsDialog";
+import { notifyError } from "@/lib/notify-error";
 // Esquema del formulario para asignar técnicos/inspectores
 const assignmentFormSchema = z.object({
   task_id: z.number(),
@@ -68,7 +69,7 @@ const WorkOrderTasksDetails = ({ work_order }: { work_order: WorkOrder }) => {
 
   const handleCheckTaskItems = async () => {
     if (!selectedCompany?.slug) {
-      toast.error("No hay una compañía seleccionada");
+      toast.error("¡Ops! No hay una compañía seleccionada");
       return;
     }
 
@@ -84,7 +85,7 @@ const WorkOrderTasksDetails = ({ work_order }: { work_order: WorkOrder }) => {
         toast.warning("Ningún artículo disponible en almacén");
       }
     } catch (error) {
-      toast.error("Error al verificar artículos");
+      notifyError(error, { action: "verificar artículos" });
     }
   };
 

@@ -9,6 +9,7 @@ import {
   type QueryClient,
 } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 // Un ítem cargado a mano crea además su entrada en el catálogo (sin manual,
 // incompleta): hay que refrescar el catálogo, no solo el control.
@@ -23,13 +24,6 @@ const invalidateCatalog = (queryClient: QueryClient) => {
  * caía en el texto genérico y el usuario no tenía forma de saber qué
  * corregir.
  */
-const firstBackendError = (error: any): string | undefined => {
-  const errors = error?.response?.data?.errors;
-  const firstMessage = errors && Object.values(errors).flat()[0];
-
-  return (firstMessage as string | undefined) ?? error?.response?.data?.message;
-};
-
 interface MaintenanceItemData {
   id?: number;
   maintenance_catalog_service_id?: number;
@@ -81,11 +75,7 @@ export const useCreateMaintenanceControl = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          firstBackendError(error) ||
-          "No se pudo registrar el control de mantenimiento...",
-      });
+      notifyError(error, { action: "registrar el control de mantenimiento" });
       console.log(error);
     },
   });
@@ -119,11 +109,7 @@ export const useUpdateMaintenanceControl = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          firstBackendError(error) ||
-          "No se pudo actualizar el control de mantenimiento...",
-      });
+      notifyError(error, { action: "actualizar el control de mantenimiento" });
       console.log(error);
     },
   });
@@ -167,10 +153,7 @@ export const useAddMaintenanceControlItem = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          firstBackendError(error) || "No se pudo agregar el ítem...",
-      });
+      notifyError(error, { action: "agregar el ítem" });
       console.log(error);
     },
   });
@@ -211,11 +194,7 @@ export const useLinkPendingWorkOrder = () => {
     // realmente crítico, sin otra orden ya atendiéndolo) y devuelve el motivo
     // exacto: mostrarlo importa más que un mensaje genérico.
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          error?.response?.data?.message ??
-          "No se pudo asociar la Orden de Trabajo al ítem...",
-      });
+      notifyError(error, { action: "asociar la Orden de Trabajo al ítem" });
       console.log(error);
     },
   });

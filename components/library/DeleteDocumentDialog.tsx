@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { useCallback } from "react";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { bibliotecaEliminarSteps } from "@/components/tour/steps/general/biblioteca/biblioteca-eliminar";
+import { notifyError } from "@/lib/notify-error";
 
 interface Version {
   id: number;
@@ -56,7 +57,7 @@ export const DeleteDocumentDialog = ({
     } catch (error) {
       console.error("Error al cargar versiones:", error);
       setVersionList([]);
-      toast.error("No se pudo obtener el historial de versiones");
+      notifyError(error, { action: "obtener el historial de versiones" });
     } finally {
       setLoadingVersions(false);
     }
@@ -89,7 +90,7 @@ export const DeleteDocumentDialog = ({
         toast.success("Documento eliminado correctamente");
       } else {
         if (!selectedVersionToDelete) {
-          toast.error("Selecciona la versión que quieres eliminar");
+          toast.error("¡Ops! Selecciona la versión que quieres eliminar");
           return;
         }
         await axiosInstance.delete(
@@ -99,9 +100,7 @@ export const DeleteDocumentDialog = ({
       }
       isActuallyDeleted = true;
     } catch (error: any) {
-      const msg =
-        error.response?.data?.message || "Error al conectar con el servidor";
-      toast.error(msg);
+      notifyError(error, { action: "eliminar el documento" });
     } finally {
       setIsProcessing(false);
       if (isActuallyDeleted) {

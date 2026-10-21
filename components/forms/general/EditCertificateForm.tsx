@@ -13,7 +13,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, FileCheck, User, Check, ChevronsUpDown } from "lucide-react";
-import { toast } from "sonner";
 import {
   Command,
   CommandEmpty,
@@ -37,6 +36,7 @@ import {
 import { cn } from "@/lib/utils";
 import { CertificateColumn } from "@/app/[company]/sms/(employees)/certificados/columns";
 import { formatCalendarDate } from "@/lib/date";
+import { notifyError } from "@/lib/notify-error";
 
 interface EditFormValues {
   course_id: string;
@@ -106,7 +106,7 @@ const EditCertificateForm = ({
       onClose();
     } catch (error) {
       console.error(error);
-      toast.error("Error al actualizar");
+      notifyError(error, { action: "actualizar" });
     }
   };
 

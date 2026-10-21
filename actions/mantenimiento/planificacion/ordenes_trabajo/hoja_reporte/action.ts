@@ -2,6 +2,7 @@ import axiosInstance from "@/lib/axios"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { AxiosError } from "axios";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 interface CreateWorkOrderReportData {
   work_order_id: string,
@@ -25,8 +26,7 @@ export const useCreateReportPage = () => {
         },
       onError: (error: AxiosError) => {
         console.log(error)
-          toast.error('Oops!', {
-            description: 'No se pudo crear la hoja de reporte...'})
+          notifyError(error, { action: "crear la hoja de reporte" })
         },
       }
   )
@@ -58,9 +58,7 @@ export const useAddReport = () => {
           })
         },
       onError: (error) => {
-          toast.error('Oops!', {
-            description: 'No se pudo actualizada la hoja de reporte...'
-          })
+          notifyError(error)
         },
       }
   )
@@ -88,9 +86,7 @@ export const useUpdatePrelimInspection = () => {
           })
         },
       onError: (error) => {
-          toast.error('Oops!', {
-            description: 'No se pudo actualizada la inspección...'
-          })
+          notifyError(error)
         },
       }
   )

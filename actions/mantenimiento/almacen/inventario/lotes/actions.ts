@@ -3,6 +3,7 @@ import { useCompanyStore } from "@/stores/CompanyStore"
 import { Batch } from "@/types"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
+import { notifyError } from "@/lib/notify-error";
 
 type BatchType = {
   name: string,
@@ -36,9 +37,7 @@ export const useCreateBatch = () => {
             })
           },
         onError: (error) => {
-            toast.error('Oops!', {
-              description: 'No se pudo crear el renglon...'
-            })
+            notifyError(error, { action: "crear el renglon" })
             console.log(error)
           },
         }
@@ -81,9 +80,7 @@ export const useUpdateBatch = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo actulizar el renglon...",
-      });
+      notifyError(error, { action: "actulizar el renglon" });
       console.log(error);
     },
   });
@@ -108,9 +105,7 @@ export const useDeleteBatch = () => {
           })
         },
       onError: (e) => {
-          toast.error("Oops!", {
-            description: "¡Hubo un error al eliminar el renglon!"
-        })
+          notifyError(e, { action: "eliminar el renglon" })
         },
       }
   )

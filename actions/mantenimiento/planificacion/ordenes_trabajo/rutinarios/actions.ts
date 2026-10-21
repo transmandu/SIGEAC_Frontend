@@ -3,6 +3,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { string } from "zod";
+import { notifyError } from "@/lib/notify-error";
 
 export const useUpdateWorkOrderTaskStatus = () => {
   const queryClient = useQueryClient();
@@ -29,9 +30,7 @@ export const useUpdateWorkOrderTaskStatus = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo cerrar la tarea...",
-      });
+      notifyError(error, { action: "cerrar la tarea" });
       console.log(error);
     },
   });
@@ -72,9 +71,7 @@ export const useUpdateWorkOrderTask = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo actualizada la tarea...",
-      });
+      notifyError(error);
     },
   });
   return {
@@ -121,9 +118,7 @@ export const useAddWorkOrderTask = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo actualizada la tarea...",
-      });
+      notifyError(error);
     },
   });
   return {
@@ -165,9 +160,7 @@ export const useCreateTaskEvents = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo actualizada la tarea...",
-      });
+      notifyError(error);
     },
   });
   return {

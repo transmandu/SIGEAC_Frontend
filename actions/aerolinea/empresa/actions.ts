@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import axiosInstance from "@/lib/axios"
+import { notifyError } from "@/lib/notify-error";
 
 export const useCreateAdministrationCompany = () => {
 
@@ -44,9 +45,7 @@ export const useDeleteAdministrationCompany = () => {
           })
         },
       onError: (e) => {
-          toast.error("Oops!", {
-            description: "¡Hubo un error al eliminar la empresa!"
-        })
+          notifyError(e, { action: "eliminar la empresa" })
         },
       }
   )
@@ -70,9 +69,7 @@ export const useUpdateAdministrationCompany = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: `Hubo un error al actualizar la empresa: ${error}`,
-      });
+      notifyError(error, { action: "actualizar la empresa" });
     },
   });
 

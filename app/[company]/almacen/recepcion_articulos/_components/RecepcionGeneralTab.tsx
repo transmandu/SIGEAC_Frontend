@@ -27,6 +27,13 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -54,6 +61,7 @@ import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
 import { formatInstant } from "@/lib/date";
 import type {
   GeneralArticleIntake,
+  GeneralArticleIntakeEntryType,
   GeneralArticleIntakeStatus,
 } from "@/types/purchase";
 import { format } from "date-fns";
@@ -74,6 +82,10 @@ import { memo, useEffect, useMemo, useState } from "react";
 import { PAGE_SIZES, TablePagination } from "@/components/misc/TablePagination";
 import { DownloadReportDialog } from "./DownloadReportDialog";
 import {
+  ENTRY_TYPE_OPTIONS,
+  ENTRY_TYPE_ROW_LABEL,
+} from "@/lib/intake-entry-type";
+import {
   EMPTY_INTAKE_DIMENSION,
   IntakeExtrasPanel,
   extraConversionsPayload,
@@ -84,6 +96,7 @@ import {
 } from "./IntakeExtrasPanel";
 
 type StatusFilter = "ALL" | GeneralArticleIntakeStatus;
+type EntryTypeFilter = "ALL" | GeneralArticleIntakeEntryType;
 
 // ── Detección de discrepancia solicitado vs comprado ────────────────────
 // Solo hay algo que mostrar si la línea de compra viene de una requisición
@@ -851,7 +864,10 @@ const IntakeRow = memo(function IntakeRow({
               {requisitionOrderNumber}
             </Link>
           ) : (
-            <span className="text-xs text-muted-foreground">—</span>
+            <span className="text-xs text-muted-foreground">
+              {(intake.entry_type && ENTRY_TYPE_ROW_LABEL[intake.entry_type]) ??
+                "—"}
+            </span>
           )}
         </TableCell>
 
@@ -928,6 +944,8 @@ const IntakeRow = memo(function IntakeRow({
 // ── Tab ──────────────────────────────────────────────────────────────────
 export function RecepcionGeneralTab() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
+  const [entryTypeFilter, setEntryTypeFilter] =
+    useState<EntryTypeFilter>("ALL");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(PAGE_SIZES[0]);
@@ -941,10 +959,14 @@ export function RecepcionGeneralTab() {
 
   const filtered = useMemo(() => {
     const all = intakes ?? [];
+    const byEntryType =
+      entryTypeFilter === "ALL"
+        ? all
+        : all.filter((i) => i.entry_type === entryTypeFilter);
     const byStatus =
       statusFilter === "ALL"
-        ? all
-        : all.filter((i) => i.status === statusFilter);
+        ? byEntryType
+        : byEntryType.filter((i) => i.status === statusFilter);
 
     if (!search.trim()) return byStatus;
 
@@ -958,12 +980,12 @@ export function RecepcionGeneralTab() {
           .includes(q) ||
         i.registered_by?.toLowerCase().includes(q),
     );
-  }, [intakes, statusFilter, search]);
+  }, [intakes, statusFilter, entryTypeFilter, search]);
 
   // Cambiar de estado o buscar reordena el conjunto: volver a la primera página.
   useEffect(() => {
     setPage(0);
-  }, [statusFilter, search]);
+  }, [statusFilter, entryTypeFilter, search]);
 
   const paginated = useMemo(
     () => filtered.slice(page * pageSize, page * pageSize + pageSize),
@@ -1011,6 +1033,7 @@ export function RecepcionGeneralTab() {
               { value: "CONFIRMED", label: "Confirmadas" },
               { value: "REJECTED", label: "Rechazadas" },
             ]}
+            entryTypeOptions={ENTRY_TYPE_OPTIONS}
           />
         </div>
       </div>
@@ -1063,14 +1086,32 @@ export function RecepcionGeneralTab() {
           ))}
         </div>
 
-        <div className="relative ml-auto">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
-          <Input
-            placeholder="Buscar descripción, orden, responsable..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-8 h-8 text-xs w-72"
-          />
+        <div className="ml-auto flex items-center gap-2">
+          <Select
+            value={entryTypeFilter}
+            onValueChange={(v) => setEntryTypeFilter(v as EntryTypeFilter)}
+          >
+            <SelectTrigger className="h-8 w-52 border-border text-xs">
+              <SelectValue placeholder="Origen" />
+            </SelectTrigger>
+            <SelectContent>
+              {ENTRY_TYPE_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
+            <Input
+              placeholder="Buscar descripción, orden, responsable..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-8 h-8 text-xs w-72 border-border"
+            />
+          </div>
         </div>
       </div>
 

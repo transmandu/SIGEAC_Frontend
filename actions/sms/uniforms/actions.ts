@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axiosInstance from "@/lib/axios";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 interface CreateItemPayload {
   company: string;
@@ -90,11 +91,7 @@ export const useCreateUniformItem = () => {
       toast.success("Artículo creado con éxito");
     },
     onError: (error: any) => {
-      toast.error(
-        error.response?.data?.message?.size?.[0] ||
-          error.response?.data?.message ||
-          "Error al crear el artículo"
-      );
+      notifyError(error, { action: "crear el artículo" });
     },
   });
 };
@@ -115,7 +112,7 @@ export const useUpdateUniformItem = () => {
       toast.success("Artículo actualizado");
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Error al actualizar");
+      notifyError(error, { action: "actualizar" });
     },
   });
 };
@@ -135,10 +132,7 @@ export const useDeleteUniformItem = () => {
       toast.success("Artículo eliminado");
     },
     onError: (error: any) => {
-      toast.error(
-        error.response?.data?.message ||
-          "No se pudo eliminar el artículo"
-      );
+      notifyError(error, { action: "eliminar el artículo" });
     },
   });
 };
@@ -159,11 +153,7 @@ export const useCreateUniformArticleType = () => {
       toast.success("Tipo de artículo creado");
     },
     onError: (error: any) => {
-      toast.error(
-        error.response?.data?.message?.name?.[0] ||
-          error.response?.data?.message ||
-          "Error al crear el tipo de artículo"
-      );
+      notifyError(error, { action: "crear el tipo de artículo" });
     },
   });
 };
@@ -183,11 +173,7 @@ export const useUpdateUniformArticleType = () => {
       toast.success("Tipo de artículo actualizado");
     },
     onError: (error: any) => {
-      toast.error(
-        error.response?.data?.message?.name?.[0] ||
-          error.response?.data?.message ||
-          "Error al actualizar el tipo"
-      );
+      notifyError(error, { action: "actualizar el tipo" });
     },
   });
 };
@@ -206,10 +192,7 @@ export const useDeleteUniformArticleType = () => {
       toast.success("Tipo de artículo eliminado");
     },
     onError: (error: any) => {
-      toast.error(
-        error.response?.data?.message ||
-          "No se pudo eliminar el tipo de artículo"
-      );
+      notifyError(error, { action: "eliminar el tipo de artículo" });
     },
   });
 };
@@ -230,11 +213,7 @@ export const useCreateUniformBrand = () => {
       toast.success("Marca creada");
     },
     onError: (error: any) => {
-      toast.error(
-        error.response?.data?.message?.name?.[0] ||
-          error.response?.data?.message ||
-          "Error al crear la marca"
-      );
+      notifyError(error, { action: "crear la marca" });
     },
   });
 };
@@ -254,11 +233,7 @@ export const useUpdateUniformBrand = () => {
       toast.success("Marca actualizada");
     },
     onError: (error: any) => {
-      toast.error(
-        error.response?.data?.message?.name?.[0] ||
-          error.response?.data?.message ||
-          "Error al actualizar la marca"
-      );
+      notifyError(error, { action: "actualizar la marca" });
     },
   });
 };
@@ -277,10 +252,7 @@ export const useDeleteUniformBrand = () => {
       toast.success("Marca eliminada");
     },
     onError: (error: any) => {
-      toast.error(
-        error.response?.data?.message ||
-          "No se pudo eliminar la marca"
-      );
+      notifyError(error, { action: "eliminar la marca" });
     },
   });
 };
@@ -301,14 +273,7 @@ export const useCreateUniformMovement = () => {
       toast.success("Movimiento registrado");
     },
     onError: (error: any) => {
-      const msg = error.response?.data?.message;
-      const text =
-        typeof msg === "string"
-          ? msg
-          : typeof msg === "object" && msg !== null
-            ? Object.values(msg).flat().join(". ")
-            : "Error al registrar el movimiento";
-      toast.error(text);
+      notifyError(error, { action: "registrar el movimiento" });
     },
   });
 };

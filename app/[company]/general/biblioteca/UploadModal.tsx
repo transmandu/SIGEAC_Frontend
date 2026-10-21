@@ -17,6 +17,7 @@ import {
 import { toast } from "sonner";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { bibliotecaUploadSteps } from "@/components/tour/steps/general/biblioteca/biblioteca-upload";
+import { notifyError } from "@/lib/notify-error";
 
 interface UploadModalProps {
   company: string;
@@ -126,7 +127,7 @@ export default function UploadModal({
           }
         } catch (error) {
           console.error("Error al cargar datos:", error);
-          toast.error("No se pudieron cargar departamentos y categorías");
+          notifyError(error, { action: "cargar departamentos y categorías" });
         } finally {
           setLoadingData(false);
         }
@@ -173,7 +174,7 @@ export default function UploadModal({
       if (["pdf", "xlsx", "xls"].includes(ext || "")) {
         setFile(droppedFile);
       } else {
-        toast.error("Solo se permiten archivos PDF o Excel.");
+        toast.error("¡Ops! Solo se permiten archivos PDF o Excel.");
       }
     }
   };
@@ -181,7 +182,7 @@ export default function UploadModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!file || !formData.category_id || !formData.department_id) {
-      toast.error("Completa los campos obligatorios.");
+      toast.error("¡Ops! Completa los campos obligatorios.");
       return;
     }
 
@@ -205,9 +206,7 @@ export default function UploadModal({
       onSuccess();
       handleInternalClose();
     } catch (error: any) {
-      toast.error(
-        error.response?.data?.message || "No se pudo guardar el documento",
-      );
+      notifyError(error, { action: "guardar el documento" });
     } finally {
       setLoading(false);
     }

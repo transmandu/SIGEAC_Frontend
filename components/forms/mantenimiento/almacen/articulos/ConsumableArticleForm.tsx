@@ -143,14 +143,14 @@ const apiDate = (date?: Date | null) => {
  * La fecha de recepción distingue "No aplica" de "sin indicar", cosa que el
  * resto de las fechas no necesita.
  *
- * El picker manda `null` al marcar la casilla y `undefined` al no tocarla, y
- * desde que el backend rellena la recepción ausente con la de hoy, colapsar
- * ambos casos guardaría justo lo contrario de lo que pidió quien marcó la
- * casilla. Vive aparte porque `apiDate` lo comparten fabricación, caducidad y
- * shelf life, donde `null` y `undefined` sí significan lo mismo.
+ * El picker manda `null` al marcar la casilla y `undefined` al no tocarla.
+ * "No aplica" viaja como cadena vacía —multipart no transporta null— y el
+ * backend la guarda como NULL; omitir el campo, en cambio, lo rellena con hoy.
+ * Vive aparte porque `apiDate` lo comparten fabricación, caducidad y shelf
+ * life, donde `null` y `undefined` sí significan lo mismo.
  */
 const receptionApiDate = (date?: Date | null) =>
-  date === null ? NOT_APPLICABLE : apiDate(date);
+  date === null ? "" : apiDate(date);
 
 /**
  * Registro de consumibles, para cualquier destino.
@@ -198,7 +198,11 @@ export default function ConsumableArticleForm({
     initialData?.reception_date
       ? parseISO(initialData.reception_date)
       : isEditing
-        ? undefined
+        ? // Guardado como null = "No aplica"; si el campo ni llegó, no se sabe
+          // qué hay y el guardado no debe tocarlo.
+          initialData?.reception_date === null
+          ? null
+          : undefined
         : new Date(),
   );
 
@@ -427,7 +431,7 @@ export default function ConsumableArticleForm({
         setFabricationDate(null);
         setExpirationDate(null);
         setShelfLifeDate(null);
-        setReceptionDate(null);
+        setReceptionDate(new Date());
       },
     });
 

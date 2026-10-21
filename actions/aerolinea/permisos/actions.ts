@@ -1,6 +1,7 @@
 import axiosInstance from "@/lib/axios"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
+import { notifyError } from "@/lib/notify-error";
 
 interface createPermissionSchema {
     name: string,
@@ -51,9 +52,7 @@ export const useDeletePermission = () => {
           })
         },
       onError: (e) => {
-          toast.error("Oops!", {
-            description: "¡Hubo un error al eliminar el permiso!"
-        })
+          notifyError(e, { action: "eliminar el permiso" })
         },
       }
   )

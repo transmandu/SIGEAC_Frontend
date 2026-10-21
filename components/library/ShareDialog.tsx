@@ -25,6 +25,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { bibliotecaShareSteps } from "@/components/tour/steps/general/biblioteca/biblioteca-share";
+import { notifyError } from "@/lib/notify-error";
 
 interface ShareDialogProps {
   isOpen: boolean;
@@ -111,7 +112,7 @@ export default function ShareDialog({
     } catch (error) {
       console.error("Error al cargar versiones:", error);
       setVersions([]);
-      toast.error("No se pudieron cargar las versiones del documento");
+      notifyError(error, { action: "cargar las versiones del documento" });
     }
   };
 
@@ -145,7 +146,7 @@ export default function ShareDialog({
 
   const handleSubmit = async () => {
     if (!isReasonValid) {
-      return toast.error("El motivo debe tener al menos 10 caracteres.");
+      return toast.error("¡Ops! El motivo debe tener al menos 10 caracteres.");
     }
 
     const durationValue = getDurationValue();
@@ -153,7 +154,7 @@ export default function ShareDialog({
       showCustomDuration &&
       (!customHours || durationValue < 24 || durationValue > 168)
     ) {
-      return toast.error("La duración debe estar entre 24 y 168 horas.");
+      return toast.error("¡Ops! La duración debe estar entre 24 y 168 horas.");
     }
 
     setLoading(true);
@@ -187,9 +188,7 @@ export default function ShareDialog({
         );
       }
     } catch (error: any) {
-      toast.error(
-        error.response?.data?.message || "Error al procesar la solicitud",
-      );
+      notifyError(error, { action: "procesar la solicitud" });
     } finally {
       setLoading(false);
     }

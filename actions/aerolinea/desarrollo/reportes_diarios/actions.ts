@@ -1,6 +1,7 @@
 import axiosInstance from "@/lib/axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 interface CreateActivitySchema {
   description: string;
@@ -41,10 +42,8 @@ export const useCreateActivityReport = () => {
         description: "El reporte se ha creado correctamente.",
       });
     },
-    onError: () => {
-      toast.error("Oops!", {
-        description: "Hubo un error al crear el reporte.",
-      });
+    onError: (error) => {
+      notifyError(error, { action: "crear el reporte" });
     },
   });
 
@@ -64,10 +63,8 @@ export const useRegisterActivity = () => {
         description: "La actividad se ha registrado correctamente.",
       });
     },
-    onError: () => {
-      toast.error("Oops!", {
-        description: "Hubo un error al crear la actividad.",
-      });
+    onError: (error) => {
+      notifyError(error, { action: "crear la actividad" });
     },
   });
 
@@ -87,10 +84,8 @@ export const useDeleteActivity = () => {
         description: "La actividad se ha eliminado correctamente.",
       });
     },
-    onError: () => {
-      toast.error("Oops!", {
-        description: "Hubo un error al eliminar la actividad.",
-      });
+    onError: (error) => {
+      notifyError(error, { action: "eliminar la actividad" });
     },
   });
 
@@ -111,10 +106,8 @@ export const useEditActivity = () => {
         description: "La actividad se ha editado correctamente.",
       });
     },
-    onError: () => {
-      toast.error("Oops!", {
-        description: "Hubo un error al editar la actividad.",
-      });
+    onError: (error) => {
+      notifyError(error, { action: "editar la actividad" });
     },
   });
 
@@ -134,10 +127,8 @@ export const useUpdateFinalHour = () => {
         description: "La actividad se ha actualizado correctamente.",
       });
     },
-    onError: () => {
-      toast.error("Oops!", {
-        description: "Hubo un error al actualizar la actividad.",
-      });
+    onError: (error) => {
+      notifyError(error, { action: "actualizar la actividad" });
     },
   });
 
@@ -157,10 +148,8 @@ export const useUpdateObservation = () => {
         description: "La observación se ha añadido correctamente.",
       });
     },
-    onError: () => {
-      toast.error("Oops!", {
-        description: "Hubo un error al añadir la observación.",
-      });
+    onError: (error) => {
+      notifyError(error, { action: "añadir la observación" });
     },
   });
 

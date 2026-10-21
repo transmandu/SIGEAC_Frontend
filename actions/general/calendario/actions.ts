@@ -5,6 +5,7 @@ import {
 } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 export interface ManualCalendarEventData {
   calendar_event_type_id?: number | null;
@@ -49,10 +50,8 @@ export const useCreateCalendarEvent = () => {
         description: "El evento ha sido registrado correctamente.",
       });
     },
-    onError: () => {
-      toast.error("Oops!", {
-        description: "No se pudo registrar el evento...",
-      });
+    onError: (error) => {
+      notifyError(error, { action: "registrar el evento" });
     },
   });
 
@@ -84,10 +83,8 @@ export const useUpdateCalendarEvent = () => {
         description: "El evento ha sido actualizado correctamente.",
       });
     },
-    onError: () => {
-      toast.error("Oops!", {
-        description: "No se pudo actualizar el evento...",
-      });
+    onError: (error) => {
+      notifyError(error, { action: "actualizar el evento" });
     },
   });
 
@@ -113,8 +110,8 @@ export const useDeleteCalendarEvent = () => {
         description: "El evento ha sido eliminado correctamente.",
       });
     },
-    onError: () => {
-      toast.error("Oops!", { description: "No se pudo eliminar el evento..." });
+    onError: (error) => {
+      notifyError(error, { action: "eliminar el evento" });
     },
   });
 
@@ -153,10 +150,8 @@ export const useCreateCalendarEventType = () => {
         description: "El tipo de evento ha sido registrado correctamente.",
       });
     },
-    onError: () => {
-      toast.error("Oops!", {
-        description: "No se pudo registrar el tipo de evento...",
-      });
+    onError: (error) => {
+      notifyError(error, { action: "registrar el tipo de evento" });
     },
   });
 
@@ -195,10 +190,8 @@ export const useUpdateCalendarEventType = () => {
         description: "El tipo de evento ha sido actualizado correctamente.",
       });
     },
-    onError: () => {
-      toast.error("Oops!", {
-        description: "No se pudo actualizar el tipo de evento...",
-      });
+    onError: (error) => {
+      notifyError(error, { action: "actualizar el tipo de evento" });
     },
   });
 
@@ -231,11 +224,7 @@ export const useDeleteCalendarEventType = () => {
       });
     },
     onError: (error: any) => {
-      const backendMessage = error?.response?.data?.errors?.id?.[0];
-      toast.error("Oops!", {
-        description:
-          backendMessage || "No se pudo eliminar el tipo de evento...",
-      });
+      notifyError(error, { action: "eliminar el tipo de evento" });
     },
   });
 
@@ -280,14 +269,7 @@ export const useCreateCalendarVisibilityRule = () => {
       });
     },
     onError: (error: any) => {
-      const backendMessage = Object.values(
-        error?.response?.data?.errors ?? {},
-      )[0] as string[] | undefined;
-      toast.error("Oops!", {
-        description:
-          backendMessage?.[0] ||
-          "No se pudo registrar la regla de visibilidad...",
-      });
+      notifyError(error, { action: "registrar la regla de visibilidad" });
     },
   });
 
@@ -317,10 +299,8 @@ export const useDeleteCalendarVisibilityRule = () => {
         description: "La regla de visibilidad ha sido eliminada correctamente.",
       });
     },
-    onError: () => {
-      toast.error("Oops!", {
-        description: "No se pudo eliminar la regla de visibilidad...",
-      });
+    onError: (error) => {
+      notifyError(error, { action: "eliminar la regla de visibilidad" });
     },
   });
 

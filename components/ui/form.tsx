@@ -9,14 +9,36 @@ import {
   FieldPath,
   FieldValues,
   FormProvider,
+  FormProviderProps,
   useFormContext,
 } from "react-hook-form";
 
 import { cn } from "@/lib/utils";
+import { registerActiveForm } from "@/lib/form-error-bridge";
 import { collectIssues } from "@/lib/formErrors";
 import { Label } from "@/components/ui/label";
 
-const Form = FormProvider;
+/**
+ * FormProvider que además se anuncia como formulario activo: así, cuando el
+ * servidor rechaza campos concretos, `notifyError` los marca bajo su input aunque
+ * la mutación no sepa qué formulario la originó.
+ */
+const Form = <
+  TFieldValues extends FieldValues,
+  TContext = any,
+  TTransformedValues = TFieldValues,
+>(
+  props: FormProviderProps<TFieldValues, TContext, TTransformedValues>,
+) => {
+  const { setError, getValues } = props;
+
+  React.useEffect(
+    () => registerActiveForm({ setError, getValues } as never),
+    [setError, getValues],
+  );
+
+  return <FormProvider {...props} />;
+};
 
 type FormFieldContextValue<
   TFieldValues extends FieldValues = FieldValues,

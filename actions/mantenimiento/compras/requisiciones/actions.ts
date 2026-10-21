@@ -3,10 +3,8 @@ import { isAxiosError } from "axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { CreateRequisitionData } from "@/types/purchase";
-import {
-  buildRequisitionFormData,
-  getRequisitionErrorMessage,
-} from "@/lib/purchases/build-requisition-form-data";
+import { buildRequisitionFormData } from "@/lib/purchases/build-requisition-form-data";
+import { notifyError } from "@/lib/notify-error";
 
 export const useCreateRequisition = () => {
   const queryClient = useQueryClient();
@@ -38,12 +36,7 @@ export const useCreateRequisition = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: getRequisitionErrorMessage(
-          error,
-          "No se pudo crear la requisicion...",
-        ),
-      });
+      notifyError(error, { action: "crear la requisicion" });
       console.log(error);
     },
   });
@@ -89,12 +82,7 @@ export const useUpdateRequisition = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: getRequisitionErrorMessage(
-          error,
-          "No se pudo actualizar la requisicion...",
-        ),
-      });
+      notifyError(error, { action: "actualizar la requisicion" });
       console.log(error);
     },
   });
@@ -161,12 +149,7 @@ export const useCreateRequisitionFromLowStockAlert = () => {
         return;
       }
 
-      toast.error("Oops!", {
-        description: getRequisitionErrorMessage(
-          error,
-          "No se pudo crear la solicitud de compra...",
-        ),
-      });
+      notifyError(error, { action: "crear la solicitud de compra" });
     },
   });
   return {
@@ -193,13 +176,8 @@ export const useDeleteRequisition = () => {
     },
     onError: (e) => {
       // El backend rechaza el borrado con 422 y explica el motivo (p. ej. la
-      // solicitud ya paso de RECIBIDA); tragarselo dejaba al usuario sin saber
-      // por que no se elimino.
-      const message = isAxiosError(e) ? e.response?.data?.message : undefined;
-
-      toast.error("Oops!", {
-        description: message || "¡Hubo un error al eliminar la requisición!",
-      });
+      // solicitud ya paso de RECIBIDA); notifyError lo muestra tal cual.
+      notifyError(e, { action: "eliminar la requisición" });
     },
   });
 
@@ -242,11 +220,7 @@ export const useCascadeDeleteRequisition = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          error?.response?.data?.message ||
-          "¡Hubo un error al eliminar en cascada la requisición!",
-      });
+      notifyError(error, { action: "eliminar en cascada la requisición" });
     },
   });
 
@@ -288,9 +262,7 @@ export const useUpdateRequisitionPriority = () => {
       });
     },
     onError: (e) => {
-      toast.error("Oops!", {
-        description: "¡Hubo un error al actualizar la prioridad!",
-      });
+      notifyError(e, { action: "actualizar la prioridad" });
     },
   });
 
@@ -332,9 +304,7 @@ export const useUpdateRequisitionStatus = () => {
       });
     },
     onError: (e) => {
-      toast.error("Oops!", {
-        description: "¡Hubo un error al confirmar la requisición!",
-      });
+      notifyError(e, { action: "confirmar la requisición" });
     },
   });
 

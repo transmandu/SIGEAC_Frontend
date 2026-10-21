@@ -38,7 +38,7 @@ export const UniformArticleTypeForm = ({ onClose, articleType }: Props) => {
     const value = sizeInput.trim().toUpperCase();
     if (!value) return;
     if (sizes.some((s) => s.toUpperCase() === value)) {
-      toast.error("Esa talla ya está en la lista.");
+      toast.error("¡Ops! Esa talla ya está en la lista.");
       return;
     }
     setSizes((prev) => [...prev, value]);
@@ -58,11 +58,11 @@ export const UniformArticleTypeForm = ({ onClose, articleType }: Props) => {
 
   const handleSubmit = () => {
     if (!name.trim()) {
-      toast.error("El nombre es obligatorio.");
+      toast.error("¡Ops! El nombre es obligatorio.");
       return;
     }
     if (sizes.length === 0) {
-      toast.error("Debe indicar al menos una talla.");
+      toast.error("¡Ops! Debe indicar al menos una talla.");
       return;
     }
 

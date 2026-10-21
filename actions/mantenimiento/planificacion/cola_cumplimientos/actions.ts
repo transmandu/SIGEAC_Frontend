@@ -11,13 +11,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { toast } from "sonner";
-
-const firstBackendError = (error: any): string | undefined => {
-  const errors = error?.response?.data?.errors;
-  const firstMessage = errors && Object.values(errors).flat()[0];
-
-  return (firstMessage as string | undefined) ?? error?.response?.data?.message;
-};
+import { notifyError } from "@/lib/notify-error";
 
 /**
  * La bandeja toca los cuatro controles: la OT que sale de acá queda como
@@ -72,10 +66,7 @@ export const useAddToControlQueue = () => {
     // aeronave con su matrícula en el mensaje): eso le dice al usuario qué
     // hacer, un texto genérico no.
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          firstBackendError(error) || "No se pudo agregar a la bandeja...",
-      });
+      notifyError(error, { action: "agregar a la bandeja" });
       console.log(error);
     },
   });
@@ -100,10 +91,7 @@ export const useRemoveFromControlQueue = () => {
       invalidateQueueAndControls(queryClient);
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          firstBackendError(error) || "No se pudo quitar de la bandeja...",
-      });
+      notifyError(error, { action: "quitar de la bandeja" });
       console.log(error);
     },
   });
@@ -133,10 +121,7 @@ export const useClearControlQueue = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          firstBackendError(error) || "No se pudo vaciar la bandeja...",
-      });
+      notifyError(error, { action: "vaciar la bandeja" });
       console.log(error);
     },
   });
@@ -187,11 +172,7 @@ export const useAttachWorkOrderToQueue = () => {
       }
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          firstBackendError(error) ||
-          "No se pudo asociar la Orden de Trabajo a lo seleccionado...",
-      });
+      notifyError(error, { action: "asociar la Orden de Trabajo a lo seleccionado" });
       console.log(error);
     },
   });

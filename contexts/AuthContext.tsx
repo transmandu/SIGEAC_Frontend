@@ -24,6 +24,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
 import LogoutOverlay from "@/components/misc/LogoutOverlay";
+import { describeApiError } from "@/lib/api-error";
 
 /* ---------------- TYPES ---------------- */
 
@@ -266,13 +267,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // Credenciales inválidas u otros errores de validación controlados por el backend
       const isExpectedAuthError = status === 401 || status === 422;
 
+      // Lo que no es "credenciales inválidas" ya no se reduce a un genérico: sin
+      // internet, servidor caído o falla del sistema cada uno dice lo suyo.
+      const described = describeApiError(err);
+
       const message = isExpectedAuthError
         ? rawMessage || "Credenciales inválidas"
-        : "Ha ocurrido un problema. Por favor contacte al equipo de Desarrollo para resolverlo a la brevedad posible.";
+        : described.reference
+          ? `${described.description} (Código: ${described.reference})`
+          : described.description;
 
       setError(message);
 
-      toast.error("Error de autenticación", {
+      // eslint-disable-next-line no-restricted-syntax -- el login ya clasificó el error con describeApiError y lo muestra en la parte inferior, sin botón Reportar (aún no hay sesión).
+      toast.error(isExpectedAuthError ? "Error de autenticación" : described.title, {
         description: message,
         position: "bottom-center",
       });

@@ -16,6 +16,7 @@ import { Building2, FileText, Handshake, Loader2, Pencil, User, UserCog, Warehou
 import { useAuth } from '@/contexts/AuthContext'
 import EditIntakeDialog from './_components/EditIntakeDialog'
 import type { GeneralArticleIntake } from '@/types/purchase'
+import { notifyError } from "@/lib/notify-error";
 
 // Destino del intake, derivado de cuál referencia venga poblada (excluyentes
 // entre sí): almacén para el flujo normal, o la entidad de una entrega directa.
@@ -66,8 +67,8 @@ const DeliveryNoteButton = ({ intake }: { intake: GeneralArticleIntake }) => {
       a.click()
       a.remove()
       window.URL.revokeObjectURL(url)
-    } catch {
-      // silent
+    } catch (error) {
+      notifyError(error, { action: "descargar la nota de entrega" })
     } finally {
       setDownloading(false)
     }

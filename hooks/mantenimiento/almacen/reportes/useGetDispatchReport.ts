@@ -2,7 +2,7 @@
 
 import axiosInstance from "@/lib/axios";
 import { useMutation } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 interface DispatchReportParams {
   location_id: number | string;
@@ -93,10 +93,7 @@ export const useGetDispatchReport = () => {
     },
 
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          error.message || "Ocurrió un problema al generar el reporte.",
-      });
+      notifyError(error, { action: "generar el reporte" });
     },
   });
 };

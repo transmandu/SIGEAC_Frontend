@@ -1,0 +1,50 @@
+name: Calidad
+
+# Lo que un PR no puede romper.
+#
+# Hasta ahora el CI del frontend solo formateaba (format.yml); nada comprobaba
+# que el código compilara ni que respetara las reglas del proyecto. Aquí van
+# dos barreras que hoy están en verde, así que un PR nuevo no puede ponerlas
+# en rojo sin enterarse:
+#
+#  - Lint: `eslint .` sin errores. Las advertencias (que hay muchas, de los
+#    diagnósticos del compilador de React) no cuentan; solo los errores. Incluye
+#    el contrato de errores: cómo se avisa un fallo al usuario
+#    (docs/manejo-de-errores.md).
+#  - Tipos: `tsc` sin un solo error.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: calidad-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  calidad:
+    name: Lint y tipos
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Tipos
+        run: pnpm typecheck

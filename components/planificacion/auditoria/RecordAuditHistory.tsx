@@ -20,8 +20,8 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import type { AuditSubjectType } from "@/types/planification/audit";
 import { FileDown, History, Loader2 } from "lucide-react";
 import { useMemo, useState } from "react";
-import { toast } from "sonner";
 import { OperationList } from "./OperationList";
+import { notifyError } from "@/lib/notify-error";
 
 interface RecordAuditHistoryProps {
   subjectType: AuditSubjectType;
@@ -62,9 +62,7 @@ export function RecordAuditHistory({
         `${filename}.pdf`,
       );
     } catch (error) {
-      toast.error("Oops!", {
-        description: "No se pudo generar el historial en PDF.",
-      });
+      notifyError(error, { action: "generar el historial en PDF" });
       console.log(error);
     } finally {
       setIsDownloading(false);

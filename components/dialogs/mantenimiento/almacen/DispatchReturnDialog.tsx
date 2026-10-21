@@ -254,7 +254,7 @@ const DispatchReturnDialog = ({
     );
 
     if (totalFiles > MAX_EVIDENCE_FILES_PER_REQUEST) {
-      toast.error("Demasiadas evidencias", {
+      toast.error("¡Ops! Demasiadas evidencias", {
         description: `Adjuntó ${totalFiles} imágenes y el servidor admite ${MAX_EVIDENCE_FILES_PER_REQUEST} por envío. Quite algunas y vuelva a intentar.`,
       });
       return;

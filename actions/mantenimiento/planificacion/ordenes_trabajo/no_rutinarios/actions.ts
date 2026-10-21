@@ -2,6 +2,7 @@ import axiosInstance from "@/lib/axios"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { AxiosError } from "axios";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 interface CreateNoRutineData {
   description: string,
@@ -40,8 +41,7 @@ export const useCreateNoRutine = () => {
         },
       onError: (error: AxiosError) => {
         console.log(error)
-          toast.error('Oops!', {
-            description: 'No se pudo registrar la orden no rutinaria...'})
+          notifyError(error, { action: "registrar la orden no rutinaria" })
         },
       }
   )
@@ -72,9 +72,7 @@ export const useUpdateNoRoutineTask = () => {
           })
         },
       onError: (error) => {
-          toast.error('Oops!', {
-            description: 'No se pudo actualizada la tarea...'
-          })
+          notifyError(error)
         },
       }
   )

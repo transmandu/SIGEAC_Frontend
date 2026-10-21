@@ -3,8 +3,8 @@ import axiosInstance from "@/lib/axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { EditReasonValue } from "@/components/forms/mantenimiento/planificacion/EditReasonFields";
-import { editReasonErrorFrom } from "@/components/forms/mantenimiento/planificacion/EditReasonFields";
 import { invalidatePlanificationAudit } from "@/hooks/mantenimiento/planificacion/useGetPlanificationAuditStats";
+import { notifyError } from "@/lib/notify-error";
 
 interface CreateFlightControlData {
   aircraft_id: string;
@@ -38,9 +38,7 @@ export const useCreateFlightControl = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo registrar el/los vuelo(s)...",
-      });
+      notifyError(error, { action: "registrar el/los vuelo(s)" });
       console.log(error);
     },
   });
@@ -72,10 +70,7 @@ export const useUpdateFlightControl = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description:
-          editReasonErrorFrom(error) ?? "No se pudo actualizar el vuelo...",
-      });
+      notifyError(error, { action: "actualizar el vuelo" });
       console.log(error);
     },
   });

@@ -2,6 +2,7 @@ import axiosInstance from "@/lib/axios"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { AxiosError } from "axios";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 interface CreatePrelimInspection {
   work_order_id: string,
@@ -26,8 +27,7 @@ export const useCreatePrelimInspection = () => {
         },
       onError: (error: AxiosError) => {
         console.log(error)
-          toast.error('Oops!', {
-            description: 'No se pudo crear la inspección preliminar...'})
+          notifyError(error, { action: "crear la inspección preliminar" })
         },
       }
   )
@@ -58,9 +58,7 @@ export const useAddPrelimItem = () => {
           })
         },
       onError: (error) => {
-          toast.error('Oops!', {
-            description: 'No se pudo actualizada la tarea...'
-          })
+          notifyError(error)
         },
       }
   )
@@ -88,9 +86,7 @@ export const useUpdatePrelimInspection = () => {
           })
         },
       onError: (error) => {
-          toast.error('Oops!', {
-            description: 'No se pudo actualizada la inspección...'
-          })
+          notifyError(error)
         },
       }
   )

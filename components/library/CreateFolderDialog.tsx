@@ -5,6 +5,7 @@ import { ChevronDown, Building2 } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import libraryService, { FolderNode } from "@/lib/libraryService";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 interface CreateFolderDialogProps {
   open: boolean;
@@ -84,7 +85,7 @@ export default function CreateFolderDialog({
       onSuccess(deptId);
       onClose();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Error al crear la carpeta");
+      notifyError(error, { action: "crear la carpeta" });
     } finally {
       setLoading(false);
     }

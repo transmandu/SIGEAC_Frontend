@@ -205,11 +205,11 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
     if (!selectedCompany) return;
 
     if (file.size > 10 * 1024 * 1024) {
-      toast.error("El archivo excede los 10MB permitidos.");
+      toast.error("¡Ops! El archivo excede los 10MB permitidos.");
       return;
     }
     if (file.type !== "application/pdf") {
-      toast.error("Solo se permiten archivos PDF.");
+      toast.error("¡Ops! Solo se permiten archivos PDF.");
       return;
     }
 
@@ -235,7 +235,7 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
     if (!selectedCompany) return;
 
     if (isClosed) {
-      toast.error("Orden cerrada", {
+      toast.error("¡Ops! Orden cerrada", {
         description: "No se puede editar una orden de trabajo cerrada.",
       });
       return;

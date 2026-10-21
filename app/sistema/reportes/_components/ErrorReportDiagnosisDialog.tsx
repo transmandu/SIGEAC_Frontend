@@ -45,6 +45,7 @@ import {
   httpStatusTone,
 } from "./errorReportChips";
 import { formatPhone } from "@/lib/phone";
+import ErrorReferenceBlock from "./ErrorReferenceBlock";
 
 interface ErrorReportDiagnosisDialogProps {
   open: boolean;
@@ -453,6 +454,8 @@ export default function ErrorReportDiagnosisDialog({
                   </Chip>
                 )}
               </div>
+
+              <ErrorReferenceBlock report={report} />
 
               <div className="space-y-1.5">
                 <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">

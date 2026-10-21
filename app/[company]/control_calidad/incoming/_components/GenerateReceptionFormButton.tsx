@@ -18,6 +18,7 @@ import {
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 import { IncomingArticle } from "@/app/[company]/control_calidad/incoming/IncomingTypes";
+import { notifyError } from "@/lib/notify-error";
 
 export function GenerateReceptionFormButton({
   selected,
@@ -111,7 +112,7 @@ export function GenerateReceptionFormButton({
         setOpen(false);
         onDone?.();
       } catch (e: any) {
-        toast.error(e?.message ?? "No se pudo generar el formato.");
+        notifyError(e, { action: "generar el formato" });
       }
     };
 

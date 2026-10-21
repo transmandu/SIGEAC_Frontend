@@ -8,6 +8,7 @@ import { downloadDocumentFile } from "@/lib/Library/download-helper";
 import { toast } from "sonner";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { bibliotecaDescargaSteps } from "@/components/tour/steps/general/biblioteca/biblioteca-descarga";
+import { notifyError } from "@/lib/notify-error";
 
 interface Version {
   id: number;
@@ -52,7 +53,7 @@ export const DownloadDocumentDialog = ({
       setVersionList(Array.isArray(fetchedVersions) ? fetchedVersions : []);
     } catch (error) {
       console.error("Error al cargar versiones:", error);
-      toast.error("No se pudo obtener el historial para la descarga");
+      notifyError(error, { action: "obtener el historial para la descarga" });
     } finally {
       setLoadingVersions(false);
     }
@@ -102,10 +103,7 @@ export const DownloadDocumentDialog = ({
       toast.success("Descarga iniciada");
       onClose();
     } catch (error: any) {
-      const msg =
-        error.response?.data?.message ||
-        "No tienes permisos o el archivo no existe.";
-      toast.error(msg);
+      notifyError(error, { action: "descargar el documento" });
     } finally {
       setIsProcessing(false);
     }

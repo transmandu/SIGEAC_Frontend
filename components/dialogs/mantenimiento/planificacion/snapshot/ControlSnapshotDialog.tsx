@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { format, startOfDay } from "date-fns";
 import { Download, History, Loader2 } from "lucide-react";
-import { toast } from "sonner";
 
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 import { SearchableCombobox } from "@/components/misc/SearchableCombobox";
@@ -39,6 +38,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { ControlSnapshotBase } from "@/types";
 
 import type { SnapshotGroup } from "./snapshotGroups";
+import { notifyError } from "@/lib/notify-error";
 
 /** Lo mínimo que el diálogo necesita de cada control para ofrecerlo en la lista. */
 export interface SnapshotControlOption {
@@ -216,9 +216,9 @@ export function ControlSnapshotDialog<
       link.click();
       link.remove();
       window.URL.revokeObjectURL(objectUrl);
-    } catch {
-      toast.error("Oops!", {
-        description: "No se pudo generar el PDF del estado a esa fecha.",
+    } catch (error) {
+      notifyError(error, {
+        action: "generar el PDF del estado a esa fecha",
       });
     } finally {
       setIsDownloading(false);

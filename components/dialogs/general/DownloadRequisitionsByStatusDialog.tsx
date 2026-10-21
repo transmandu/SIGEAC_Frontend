@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useDownloadRequisitionsByStatusPdf } from "@/hooks/mantenimiento/compras/useDownloadRequisitionsByStatusPdf";
 import { toCalendarPayload } from "@/lib/date";
+import { notifyError } from "@/lib/notify-error";
 
 /**
  * Estados ofrecidos. Se omiten APROBADA y NO APROBADA a propósito: son
@@ -83,7 +84,7 @@ export function DownloadRequisitionsByStatusDialog() {
     // compañía, así que puede faltar sin que el usuario lo note: sin avisar,
     // el botón simplemente no hacía nada.
     if (!selectedStation) {
-      toast.error("Seleccione una estación para generar el reporte.");
+      toast.error("¡Ops! Seleccione una estación para generar el reporte.");
       return;
     }
 
@@ -112,11 +113,7 @@ export function DownloadRequisitionsByStatusDialog() {
       toast.success("Reporte de solicitudes generado");
       setOpen(false);
     } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "No se pudo generar el reporte de solicitudes por estado.",
-      );
+      notifyError(error, { action: "generar el reporte de solicitudes por estado" });
     }
   };
 

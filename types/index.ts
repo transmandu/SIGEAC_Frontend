@@ -2482,6 +2482,11 @@ export type ErrorReport = {
   severity: ErrorReportSeverity | null;
   http_status: number | null;
   http_status_label: string | null;
+  /** Código del aviso de error desde el que se reportó (`ERR-XXXXXX`); es el mismo del log. */
+  error_reference: string | null;
+  error_code: string | null;
+  /** Pantalla donde ocurrió, sin dominio. */
+  page_url: string | null;
   technical_cause: string | null;
   diagnostic_steps: string[] | null;
   duplicate_count: number;

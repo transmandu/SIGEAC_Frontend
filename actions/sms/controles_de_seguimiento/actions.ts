@@ -2,6 +2,7 @@ import axiosInstance from "@/lib/axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { toCalendarPayload } from "@/lib/date";
+import { notifyError } from "@/lib/notify-error";
 
 /**
  * Convierte un objeto plano a FormData.
@@ -85,9 +86,7 @@ export const useCreateFollowUpControl = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo crear el control de seguimiento...",
-      });
+      notifyError(error, { action: "crear el control de seguimiento" });
       console.log(error);
     },
   });
@@ -115,9 +114,7 @@ export const useDeleteFollowUpControl = () => {
       });
     },
     onError: (e) => {
-      toast.error("Oops!", {
-        description: "¡Hubo un error al eliminar el control de seguimiento!",
-      });
+      notifyError(e, { action: "eliminar el control de seguimiento" });
     },
   });
 
@@ -144,9 +141,7 @@ export const useUpdateFollowUpControl = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo actualizar el control de seguimiento...",
-      });
+      notifyError(error, { action: "actualizar el control de seguimiento" });
       console.log(error);
     },
   });

@@ -1,6 +1,7 @@
 import axiosInstance from "@/lib/axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 interface EmployeeSelected {
   dni: string;
@@ -48,9 +49,7 @@ export const useCreateCourseAttendance = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo modificar...",
-      });
+      notifyError(error, { action: "modificar" });
       console.log(error);
     },
   });
@@ -93,9 +92,7 @@ export const useMarkCourseAttendance = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo actualizar la asistencia...",
-      });
+      notifyError(error, { action: "actualizar la asistencia" });
       console.log(error);
     },
   });

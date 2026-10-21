@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useCallback } from 'react';
 
 import libraryService from '@/lib/libraryService';
-import { toast } from 'sonner';
+import { notifyError } from "@/lib/notify-error";
 
 export default function PublicNativeViewerPage() {
   const params = useParams();
@@ -98,7 +98,7 @@ export default function PublicNativeViewerPage() {
       a.click();
       URL.revokeObjectURL(blobUrl);
     } catch (err: any) {
-      toast.error(err?.message || 'No se pudo descargar el documento.');
+      notifyError(err, { action: "descargar el documento" });
     }
   };
 

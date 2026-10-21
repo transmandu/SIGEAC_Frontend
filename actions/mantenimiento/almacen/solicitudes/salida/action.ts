@@ -3,6 +3,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 interface IDispatchRequestAction {
   justification: string;
@@ -135,11 +136,7 @@ export const useCreateDispatchRequest = () => {
         queryClient.invalidateQueries({ queryKey: ["general-articles"] });
       }
 
-      toast.error("Oops!", {
-        description:
-          error?.response?.data?.message ||
-          "No se pudo crear la solicitud...",
-      });
+      notifyError(error, { action: "crear la solicitud" });
       console.log(error);
     },
   });
@@ -191,11 +188,7 @@ export const useUpdateStatusDispatchRequest = () => {
         queryClient.invalidateQueries({ queryKey: ["general-articles"] });
       }
 
-      toast.error("Oops!", {
-        description:
-          error?.response?.data?.message ||
-          "No se pudo actualizar la solicitud...",
-      });
+      notifyError(error, { action: "actualizar la solicitud" });
       console.log(error);
     },
   });
@@ -232,9 +225,7 @@ export const useDeleteDispatchRequest = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo eliminar la solicitud...",
-      });
+      notifyError(error, { action: "eliminar la solicitud" });
       console.log(error);
     },
   });
@@ -325,11 +316,7 @@ export const useCreateDispatchReturn = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          error?.response?.data?.message ||
-          "No se pudo registrar la devolución...",
-      });
+      notifyError(error, { action: "registrar la devolución" });
       console.log(error);
     },
   });
@@ -362,11 +349,7 @@ export const useDeleteDispatchEvidence = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          error?.response?.data?.message ||
-          "No se pudo eliminar la evidencia...",
-      });
+      notifyError(error, { action: "eliminar la evidencia" });
       console.log(error);
     },
   });
@@ -464,11 +447,7 @@ export const useAcknowledgeTransfer = () => {
       );
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          error?.response?.data?.message ||
-          "No se pudo registrar el acuse del traslado.",
-      });
+      notifyError(error, { action: "registrar el acuse del traslado" });
     },
   });
 

@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axiosInstance from "@/lib/axios";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 // --- CREAR ---
 export const useCreateSMSCertificate = () => {
@@ -16,8 +17,8 @@ export const useCreateSMSCertificate = () => {
       queryClient.invalidateQueries({ queryKey: ["sms-certificates"] });
       toast.success("Certificado cargado con éxito");
     },
-    onError: () => {
-      toast.error("Error al subir el certificado");
+    onError: (error) => {
+      notifyError(error, { action: "subir el certificado" });
     }
   });
 };
@@ -37,8 +38,7 @@ export const useDeleteSMSCertificate = () => {
       toast.success("Certificado eliminado correctamente");
     },
     onError: (error: any) => {
-      const message = error.response?.data?.message || "Error al eliminar el certificado";
-      toast.error(message);
+      notifyError(error, { action: "eliminar el certificado" });
     }
   });
 };
@@ -60,7 +60,7 @@ export const useUpdateSMSCertificate = () => {
       toast.success("Certificado actualizado con éxito");
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Error al actualizar el certificado");
+      notifyError(error, { action: "actualizar el certificado" });
     }
   });
 };

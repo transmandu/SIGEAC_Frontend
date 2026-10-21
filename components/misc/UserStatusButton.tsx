@@ -16,6 +16,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { notifyError } from "@/lib/notify-error";
 
 interface Props {
   userId: number
@@ -49,7 +50,7 @@ export default function UserStatusButton({ userId, isActive }: Props) {
       if (context?.previousUsers) {
         queryClient.setQueryData(["users"], context.previousUsers)
       }
-      toast.error("No se pudo actualizar el usuario")
+      notifyError(_, { action: "actualizar el usuario" })
     },
     onSuccess: (newStatus) => {
       toast.success(

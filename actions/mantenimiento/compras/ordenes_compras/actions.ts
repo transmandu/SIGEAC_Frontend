@@ -2,6 +2,7 @@ import axiosInstance from "@/lib/axios"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import type { CreatePurchaseOrderData, UpdatePurchaseOrderData, RegisterGeneralArticlesDeliveryResponse } from "@/types/purchase"
+import { notifyError } from "@/lib/notify-error";
 
 export const useCreatePurchaseOrder = () => {
 
@@ -44,10 +45,7 @@ export const useCreatePurchaseOrder = () => {
             return
           }
 
-          toast.error('Oops!', {
-            description: error?.response?.data?.message
-              || 'No se pudo crear la orden de compra...'
-          })
+          notifyError(error, { action: "crear la orden de compra" })
         },
       }
   )
@@ -119,10 +117,8 @@ export const useCompletePurchase = () => {
               description: `¡La orden de compra ha sido actualizada correctamente!`
           })
         },
-      onError: () => {
-          toast.error("Oops!", {
-            description: "¡Hubo un error al actualizar la orden de compra!"
-        })
+      onError: (error) => {
+          notifyError(error, { action: "actualizar la orden de compra" })
         },
       }
   )
@@ -152,10 +148,8 @@ export const useMarkPurchaseOrderAsPaid = () => {
               description: `La orden de compra ha sido marcada como pagada.`
           })
         },
-      onError: () => {
-          toast.error("Oops!", {
-            description: "¡Hubo un error al marcar la orden de compra como pagada!"
-        })
+      onError: (error) => {
+          notifyError(error, { action: "marcar la orden de compra como pagada" })
         },
       }
   )
@@ -212,9 +206,7 @@ export const useRegisterGeneralArticlesDelivery = () => {
           })
         },
       onError: (error: any) => {
-          toast.error("Oops!", {
-            description: error?.response?.data?.message || "¡Hubo un error al registrar la entrega de los artículos generales!"
-        })
+          notifyError(error, { action: "registrar la entrega de los artículos generales" })
         },
       }
   )
@@ -247,9 +239,7 @@ export const useCascadeDeletePurchaseOrder = () => {
           })
         },
       onError: (error: any) => {
-          toast.error("Oops!", {
-            description: error?.response?.data?.message || "¡Hubo un error al eliminar en cascada la orden de compra!"
-        })
+          notifyError(error, { action: "eliminar en cascada la orden de compra" })
         },
       }
   )
@@ -279,10 +269,8 @@ export const useMarkPurchaseOrderAsCompleted = () => {
               description: `La orden de compra ha sido marcada como completada.`
           })
         },
-      onError: () => {
-          toast.error("Oops!", {
-            description: "¡Hubo un error al marcar la orden de compra como completada!"
-        })
+      onError: (error) => {
+          notifyError(error, { action: "marcar la orden de compra como completada" })
         },
       }
   )

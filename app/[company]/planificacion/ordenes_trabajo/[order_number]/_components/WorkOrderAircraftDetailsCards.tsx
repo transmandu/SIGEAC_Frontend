@@ -25,6 +25,7 @@ import {
 import axiosInstance from "@/lib/axios"
 import { toast } from "sonner"
 import { workOrderStatusLabelEsUpper } from "@/lib/planificacion/statuses"
+import { notifyError } from "@/lib/notify-error";
 
   type HoursMode = "auto" | "manual";
   const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }) => {
@@ -105,9 +106,7 @@ import { workOrderStatusLabelEsUpper } from "@/lib/planificacion/statuses"
         setPreviewBlob(blob);
       }
     } catch (error) {
-      toast.error("Error", {
-        description: "No se pudo generar el PDF.",
-      });
+      notifyError(error, { action: "generar el PDF" });
     } finally {
       setIsDownloading(false);
       setIsPreviewing(false);
@@ -118,11 +117,11 @@ import { workOrderStatusLabelEsUpper } from "@/lib/planificacion/statuses"
     if (!selectedCompany) return;
 
     if (file.size > 10 * 1024 * 1024) {
-      toast.error("El archivo excede los 10MB permitidos.");
+      toast.error("¡Ops! El archivo excede los 10MB permitidos.");
       return;
     }
     if (file.type !== "application/pdf") {
-      toast.error("Solo se permiten archivos PDF.");
+      toast.error("¡Ops! Solo se permiten archivos PDF.");
       return;
     }
 

@@ -14,6 +14,7 @@ import type {
 } from "@/types/supervisor";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 /**
  * Hooks del módulo SUPERVISOR (exclusivo de SUPERUSER).
@@ -100,11 +101,7 @@ export const useMergePreview = () => {
             return data;
         },
         onError: (error: any) => {
-            toast.error("Error", {
-                description:
-                    error?.response?.data?.message ||
-                    "No se pudo calcular el resultado de la fusión.",
-            });
+            notifyError(error, { action: "calcular el resultado de la fusión" });
         },
     });
 
@@ -137,10 +134,7 @@ export const useMergeGeneralArticles = () => {
             });
         },
         onError: (error: any) => {
-            toast.error("Error", {
-                description:
-                    error?.response?.data?.message || "No se pudieron fusionar los artículos.",
-            });
+            notifyError(error, { action: "fusionar los artículos" });
         },
     });
 
@@ -173,10 +167,7 @@ export const useUpdateSupervisorArticle = () => {
             })
         },
         onError: (error: any) => {
-            toast.error("Error", {
-                description:
-                    error?.response?.data?.message || "No se pudo actualizar el artículo.",
-            })
+            notifyError(error, { action: "actualizar el artículo" })
         },
     })
 
@@ -227,10 +218,7 @@ export const useBulkEditArticles = () => {
             })
         },
         onError: (error: any) => {
-            toast.error("Error", {
-                description:
-                    error?.response?.data?.message || "No se pudieron actualizar los artículos.",
-            })
+            notifyError(error, { action: "actualizar los artículos" })
         },
     })
 
@@ -296,10 +284,7 @@ export const useUndoMerge = () => {
             });
         },
         onError: (error: any) => {
-            toast.error("Error", {
-                description:
-                    error?.response?.data?.message || "No se pudo deshacer la fusión.",
-            });
+            notifyError(error, { action: "deshacer la fusión" });
         },
     });
 

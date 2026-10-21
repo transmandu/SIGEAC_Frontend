@@ -2,6 +2,7 @@ import { useState } from "react";
 import { format } from "date-fns";
 import axiosInstance from "@/lib/axios";
 import { toast } from "sonner";
+import { notifyBlobError } from "@/lib/notify-error";
 
 /**
  * Hook personalizado para la generación y descarga del reporte PDF de SMS.
@@ -76,32 +77,14 @@ export function useSmsReport(onSuccess?: () => void, company: string = "transman
     } catch (error: any) {
       console.error("Error al generar reporte:", error);
 
-      // Manejo inteligente de errores basado en la respuesta del servidor
-      if (error.response) {
-        const status = error.response.status;
-
-        if (status === 404) {
-          toast.error("Sin resultados", {
-            description: "No hay reportes dentro de esas fechas. Intenta con otro rango.",
-            id: "report-error",
-          });
-        } else if (status === 401) {
-          toast.error("Sesión expirada", {
-            description: "Tu sesión ha terminado. Por favor, inicia sesión de nuevo.",
-            id: "report-error",
-          });
-        } else {
-          toast.error("Error del servidor", {
-            description: "Hubo un problema al procesar el PDF. Intenta más tarde.",
-            id: "report-error",
-          });
-        }
-      } else {
-        // Error de red o falta de conexión
-        toast.error("Error de conexión", {
-          description: "No se pudo conectar con el servidor.",
+      if (error.response?.status === 404) {
+        toast.error("Sin resultados", {
+          description:
+            "No hay reportes dentro de esas fechas. Intenta con otro rango.",
           id: "report-error",
         });
+      } else {
+        await notifyBlobError(error, { action: "generar el reporte" });
       }
     } finally {
       setIsGenerating(false);

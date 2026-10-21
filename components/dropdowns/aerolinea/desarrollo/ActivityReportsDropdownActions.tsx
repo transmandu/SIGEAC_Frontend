@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Input } from "@/components/ui/input";
 import { useUpdateObservation } from "@/actions/aerolinea/desarrollo/reportes_diarios/actions";
 import { useToast } from "@/components/ui/use-toast";
+import { notifyError } from "@/lib/notify-error";
 
 interface ActivityReportsDropdownActionsProps {
     id: string;
@@ -52,11 +53,7 @@ const ActivityReportsDropdownActions = ({ id, existingObservation }: ActivityRep
             setHasObservation(true);
             router.refresh();
         } catch (error) {
-            toast({
-                title: "Error",
-                description: "No se pudo guardar la observación",
-                variant: "destructive",
-            });
+            notifyError(error, { action: "guardar la observación" });
         } finally {
             setIsSubmitting(false);
         }

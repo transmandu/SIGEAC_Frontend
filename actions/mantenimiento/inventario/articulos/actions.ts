@@ -2,6 +2,7 @@ import axiosInstance from "@/lib/axios"
 import { Article, ConsumableArticle } from "@/types"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
+import { notifyError } from "@/lib/notify-error";
 
 
 export const useCreateArticle = () => {
@@ -20,9 +21,7 @@ export const useCreateArticle = () => {
             })
         },
         onError: (error) => {
-            toast.error('Oops!', {
-                description: 'No se pudo crear el articulo...'
-            })
+            notifyError(error, { action: "crear el articulo" })
             console.log(error)
         },
     }
@@ -54,9 +53,7 @@ export const useDeleteGeneralArticle = () => {
             });
         },
         onError: (e) => {
-            toast.error("Oops!", {
-                description: "¡Hubo un error al eliminar el reporte!",
-            });
+            notifyError(e, { action: "eliminar el reporte" });
         },
     });
 

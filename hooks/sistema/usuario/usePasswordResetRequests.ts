@@ -1,19 +1,7 @@
 import axiosInstance from "@/lib/axios";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-
-const getMessage = (error: unknown, fallback: string) => {
-  const e = error as {
-    response?: {
-      data?: { message?: string; errors?: Record<string, string[]> };
-    };
-  };
-  const firstValidation = e.response?.data?.errors
-    ? Object.values(e.response.data.errors)[0]?.[0]
-    : undefined;
-
-  return firstValidation || e.response?.data?.message || fallback;
-};
+import { notifyError } from "@/lib/notify-error";
 
 export interface PasswordResetRequest {
   id: number;
@@ -59,9 +47,7 @@ export const useRequestPasswordReset = () => {
       return response.data;
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: getMessage(error, "No se pudo enviar la solicitud..."),
-      });
+      notifyError(error, { action: "enviar la solicitud" });
     },
   });
 };
@@ -123,9 +109,7 @@ export const useResolvePasswordReset = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: getMessage(error, "No se pudo restablecer la contraseña..."),
-      });
+      notifyError(error, { action: "restablecer la contraseña" });
     },
   });
 };
@@ -146,9 +130,7 @@ export const useRejectPasswordReset = () => {
       toast.success("Solicitud descartada");
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: getMessage(error, "No se pudo descartar la solicitud..."),
-      });
+      notifyError(error, { action: "descartar la solicitud" });
     },
   });
 };

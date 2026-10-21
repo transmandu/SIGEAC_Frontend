@@ -24,7 +24,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import type { ArticleDocument } from "@/types";
 import { Check, Eye, FileDown, Loader2, Minus } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 /**
  * Documentación consignada de un artículo: checklist de lo que se le exige y,
@@ -68,8 +68,8 @@ const ArticleDocumentsDialog = ({
       link.click();
       link.remove();
       URL.revokeObjectURL(url);
-    } catch {
-      toast.error("No se pudo descargar el documento");
+    } catch (error) {
+      notifyError(error, { action: "descargar el documento" });
     }
   };
 

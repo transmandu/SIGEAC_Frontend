@@ -4,8 +4,8 @@ import axiosInstance from "@/lib/axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { EditReasonValue } from "@/components/forms/mantenimiento/planificacion/EditReasonFields";
-import { editReasonErrorFrom } from "@/components/forms/mantenimiento/planificacion/EditReasonFields";
 import { invalidatePlanificationAudit } from "@/hooks/mantenimiento/planificacion/useGetPlanificationAuditStats";
+import { notifyError } from "@/lib/notify-error";
 
 interface event {
   title: string;
@@ -64,9 +64,7 @@ export const useCreateWorkOrder = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo registrar la orden de trabajo...",
-      });
+      notifyError(error, { action: "registrar la orden de trabajo" });
       console.log(error);
     },
   });
@@ -157,11 +155,7 @@ export const useUpdateWorkOrder = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description:
-          editReasonErrorFrom(error) ??
-          "No se pudo actualizar la orden de trabajo...",
-      });
+      notifyError(error, { action: "actualizar la orden de trabajo" });
       console.log(error);
     },
   });
@@ -198,10 +192,7 @@ export const useUpdateWorkOrderTask = () => {
       invalidatePlanificationAudit(queryClient);
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description:
-          editReasonErrorFrom(error) ?? "No se pudo actualizar la tarea...",
-      });
+      notifyError(error, { action: "actualizar la tarea" });
       console.log(error);
     },
   });
@@ -278,7 +269,7 @@ export const useAddWorkOrderTask = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", { description: "No se pudo agregar la tarea..." });
+      notifyError(error, { action: "agregar la tarea" });
       console.log(error);
     },
   });
@@ -312,10 +303,8 @@ export const useCloseWorkOrder = () => {
         description: "La orden de trabajo ha sido cerrada correctamente.",
       });
     },
-    onError: () => {
-      toast.error("Oops!", {
-        description: "No se pudo cerrar la orden de trabajo.",
-      });
+    onError: (error) => {
+      notifyError(error, { action: "cerrar la orden de trabajo" });
     },
   });
 

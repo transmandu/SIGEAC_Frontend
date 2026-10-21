@@ -106,6 +106,9 @@ export default function MyReportDetailDialog({
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Módulo" value={report.module ?? "No especificado"} />
               <Field label="Fecha del reporte" value={formatDate(report.reported_at)} />
+              {report.error_reference && (
+                <Field label="Código de error" value={report.error_reference} />
+              )}
               {isResolved && (
                 <>
                   <Field label="Resuelto por" value={report.resolved_by ?? "—"} />

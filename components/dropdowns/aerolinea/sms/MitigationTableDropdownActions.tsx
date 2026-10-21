@@ -253,7 +253,7 @@ const MitigationTableDropdownActions = ({
                 onClick={() =>
                   mitigationTable.mitigation_plan?.id
                     ? handleDelete(mitigationTable.mitigation_plan.id)
-                    : toast.error("Este registro no tiene plan de mitigación asociado.")
+                    : toast.error("¡Ops! Este registro no tiene plan de mitigación asociado.")
                 }
               >
                 {deleteMitigationPlan.isPending ? (
@@ -398,7 +398,7 @@ const MitigationTableDropdownActions = ({
                       mitigationTable.mitigation_plan.id,
                       mitigationTable.mitigation_plan.analysis.result
                     )
-                    : toast.error("Este registro no tiene plan de mitigación asociado.")
+                    : toast.error("¡Ops! Este registro no tiene plan de mitigación asociado.")
                 }
               >
                 {closeReportByMitigationId.isPending ? (
@@ -441,7 +441,7 @@ const MitigationTableDropdownActions = ({
                       mitigationTable.mitigation_plan.id,
                       mitigationTable.mitigation_plan.analysis.result
                     )
-                    : toast.error("Este registro no tiene plan de mitigación asociado.")
+                    : toast.error("¡Ops! Este registro no tiene plan de mitigación asociado.")
                 }
               >
                 {openReportByMitigationId.isPending ? (

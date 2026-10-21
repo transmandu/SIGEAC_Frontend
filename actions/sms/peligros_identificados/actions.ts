@@ -1,6 +1,7 @@
 import axiosInstance from "@/lib/axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 interface DangerIdentificationData {
   company: string | null;
@@ -68,9 +69,7 @@ export const useCreateDangerIdentification = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo crear la identificacion de peligro...",
-      });
+      notifyError(error, { action: "crear la identificacion de peligro" });
       console.log(error);
     },
   });
@@ -106,9 +105,7 @@ export const useDeleteDangerIdentification = () => {
       });
     },
     onError: (e) => {
-      toast.error("Oops!", {
-        description: "¡Hubo un error al eliminar la identificacion de peligro!",
-      });
+      notifyError(e, { action: "eliminar la identificacion de peligro" });
     },
   });
 
@@ -138,9 +135,7 @@ export const useUpdateDangerIdentification = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo actualizar la identificacion de peligro...",
-      });
+      notifyError(error, { action: "actualizar la identificacion de peligro" });
       console.log(error);
     },
   });

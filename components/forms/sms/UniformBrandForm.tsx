@@ -35,7 +35,7 @@ export const UniformBrandForm = ({ onClose, brand, onCreated }: Props) => {
 
   const handleSubmit = () => {
     if (!name.trim()) {
-      toast.error("El nombre es obligatorio.");
+      toast.error("¡Ops! El nombre es obligatorio.");
       return;
     }
 

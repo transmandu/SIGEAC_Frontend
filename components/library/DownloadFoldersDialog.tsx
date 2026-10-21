@@ -21,6 +21,7 @@ import { DepartmentFolderGroup } from "@/components/library/FolderTree";
 import type { Document, FolderNode } from "@/lib/libraryService";
 import axiosInstance from "@/lib/axios";
 import { toast } from "sonner";
+import { notifyBlobError } from "@/lib/notify-error";
 
 /**
  * Nombre con el que se guarda el ZIP. Lo pone el cliente porque la respuesta
@@ -401,7 +402,7 @@ export default function DownloadFoldersDialog({
    */
   const handleStart = () => {
     if (plan.documents.length === 0) {
-      toast.error("Las carpetas seleccionadas no contienen documentos");
+      toast.error("¡Ops! Las carpetas seleccionadas no contienen documentos");
       return;
     }
     setPasswordError(null);
@@ -419,7 +420,7 @@ export default function DownloadFoldersDialog({
 
   const handleDownload = async () => {
     if (plan.documents.length === 0) {
-      toast.error("Las carpetas seleccionadas no contienen documentos");
+      toast.error("¡Ops! Las carpetas seleccionadas no contienen documentos");
       return;
     }
 
@@ -521,17 +522,9 @@ export default function DownloadFoldersDialog({
         (error as { response?: { status?: number } })?.response?.status === 429
       ) {
         // Demasiados intentos: se vuelve a la selección para que espere.
-        console.error("Límite de intentos alcanzado:", error);
-        toast.error(
-          (await messageFromError(error)) ??
-            "Demasiados intentos. Espera un momento y vuelve a probar",
-        );
+        await notifyBlobError(error, { action: "descargar las carpetas" });
       } else {
-        console.error("Error al descargar el ZIP:", error);
-        toast.error(
-          (await messageFromError(error)) ??
-            "No se pudo generar el archivo ZIP",
-        );
+        await notifyBlobError(error, { action: "generar el archivo ZIP" });
       }
     } finally {
       abortRef.current = null;

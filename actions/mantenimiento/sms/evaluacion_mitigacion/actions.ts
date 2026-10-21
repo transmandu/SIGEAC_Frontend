@@ -3,6 +3,7 @@
 import axiosInstance from "@/lib/axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 interface CreateMitigationPlanData {
     company: string | null;
@@ -154,9 +155,7 @@ export const useCreateMitigationPlan = () => {
             });
         },
         onError: (error) => {
-            toast.error("No se pudo crear el plan", {
-                description: "Verifique los datos del plan de mitigación.",
-            });
+            notifyError(error, { action: "crear el plan" });
             console.log(error);
         },
     });
@@ -185,9 +184,7 @@ export const useUpdateMitigationPlan = () => {
             });
         },
         onError: (error) => {
-            toast.error("No se pudo actualizar el plan", {
-                description: "Ocurrió un error al actualizar el plan de mitigación.",
-            });
+            notifyError(error, { action: "actualizar el plan" });
             console.log(error);
         },
     });
@@ -221,9 +218,7 @@ export const useCreateMitigationAnalysis = () => {
             });
         },
         onError: (error) => {
-            toast.error("No se pudo crear el análisis", {
-                description: "Ocurrió un error al registrar el análisis.",
-            });
+            notifyError(error, { action: "crear el análisis" });
             console.log(error);
         },
     });
@@ -252,9 +247,7 @@ export const useUpdateMitigationAnalysis = () => {
             });
         },
         onError: (error) => {
-            toast.error("No se pudo actualizar el análisis", {
-                description: "Ocurrió un error al actualizar el análisis.",
-            });
+            notifyError(error, { action: "actualizar el análisis" });
             console.log(error);
         },
     });
@@ -283,9 +276,7 @@ export const useCreateRiskAssessment = () => {
             });
         },
         onError: (error) => {
-            toast.error("No se pudo guardar la evaluación", {
-                description: "Revise la probabilidad y las respuestas del formulario.",
-            });
+            notifyError(error, { action: "guardar la evaluación" });
             console.log(error);
         },
     });
@@ -314,9 +305,7 @@ export const useUpdateRiskAssessment = () => {
             });
         },
         onError: (error) => {
-            toast.error("No se pudo actualizar la evaluación", {
-                description: "Revise los datos enviados a la evaluación del riesgo.",
-            });
+            notifyError(error, { action: "actualizar la evaluación" });
             console.log(error);
         },
     });
@@ -350,9 +339,7 @@ export const useCreateMitigationMeasure = () => {
             });
         },
         onError: (error) => {
-            toast.error("No se pudo crear la medida", {
-                description: "Ocurrió un error al registrar la medida.",
-            });
+            notifyError(error, { action: "crear la medida" });
             console.log(error);
         },
     });
@@ -381,9 +368,7 @@ export const useUpdateMitigationMeasure = () => {
             });
         },
         onError: (error) => {
-            toast.error("No se pudo actualizar la medida", {
-                description: "Ocurrió un error al actualizar la medida de mitigación.",
-            });
+            notifyError(error, { action: "actualizar la medida" });
             console.log(error);
         },
     });
@@ -417,9 +402,7 @@ export const useCreateFollowUpControl = () => {
             });
         },
         onError: (error) => {
-            toast.error("No se pudo crear el control", {
-                description: "Ocurrió un error al registrar el control de seguimiento.",
-            });
+            notifyError(error, { action: "crear el control" });
             console.log(error);
         },
     });
@@ -453,9 +436,7 @@ export const useUpdateFollowUpControl = () => {
             });
         },
         onError: (error) => {
-            toast.error("No se pudo actualizar el control", {
-                description: "Ocurrió un error al actualizar el control de seguimiento.",
-            });
+            notifyError(error, { action: "actualizar el control" });
             console.log(error);
         },
     });

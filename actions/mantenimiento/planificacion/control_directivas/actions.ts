@@ -13,6 +13,7 @@ import {
   type QueryClient,
 } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 // Un ítem cargado a mano crea además su entrada en el catálogo (sin manual,
 // incompleta): hay que refrescar el catálogo, no solo el control.
@@ -20,13 +21,6 @@ const invalidateCatalog = (queryClient: QueryClient) => {
   queryClient.invalidateQueries({ queryKey: ["maintenance-catalog-services"] });
   queryClient.invalidateQueries({ queryKey: ["maintenance-catalog-manuals"] });
 };
-const firstBackendError = (error: any): string | undefined => {
-  const errors = error?.response?.data?.errors;
-  const firstMessage = errors && Object.values(errors).flat()[0];
-
-  return (firstMessage as string | undefined) ?? error?.response?.data?.message;
-};
-
 export interface DirectiveIntervalData {
   counting_method: MaintenanceCountingMethod;
   limit_value: number;
@@ -85,11 +79,7 @@ export const useCreateDirectiveControl = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          firstBackendError(error) ||
-          "No se pudo registrar el control de directivas...",
-      });
+      notifyError(error, { action: "registrar el control de directivas" });
       console.log(error);
     },
   });
@@ -126,11 +116,7 @@ export const useUpdateDirectiveControl = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          firstBackendError(error) ||
-          "No se pudo actualizar el control de directivas...",
-      });
+      notifyError(error, { action: "actualizar el control de directivas" });
       console.log(error);
     },
   });
@@ -170,9 +156,7 @@ export const useAddDirectiveControlItem = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description: firstBackendError(error) || "No se pudo agregar la AD...",
-      });
+      notifyError(error, { action: "agregar la AD" });
       console.log(error);
     },
   });
@@ -242,11 +226,7 @@ export const useLinkDirectivePendingWorkOrder = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          error?.response?.data?.message ??
-          "No se pudo asociar la Orden de Trabajo a la AD...",
-      });
+      notifyError(error, { action: "asociar la Orden de Trabajo a la AD" });
       console.log(error);
     },
   });
@@ -297,16 +277,14 @@ export const useImportDirectiveComplianceHistory = () => {
           description: `${result.imported} cumplimiento(s) cargado(s)${result.skipped.length ? `, ${result.skipped.length} fila(s) omitida(s).` : "."}`,
         });
       } else {
-        toast.error("Nada para importar", {
+        toast.error("¡Ops! Nada para importar", {
           description:
             "Ninguna fila coincidió con el N° AD de ninguna directiva de este control.",
         });
       }
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo importar el archivo...",
-      });
+      notifyError(error, { action: "importar el archivo" });
       console.log(error);
     },
   });

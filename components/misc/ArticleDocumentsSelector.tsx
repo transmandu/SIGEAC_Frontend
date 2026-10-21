@@ -100,7 +100,7 @@ const ArticleDocumentsSelector = ({
         if (file) {
             const error = validateDocumentFile(file);
             if (error) {
-                toast.error("Archivo no válido", { description: error });
+                toast.error("¡Ops! Archivo no válido", { description: error });
                 return;
             }
         }

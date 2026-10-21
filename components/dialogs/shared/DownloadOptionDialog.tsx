@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import axiosInstance from "@/lib/axios";
 import { toast } from "sonner";
 import { FileDown, FileText, FolderOpen, Loader2 } from "lucide-react";
+import { notifyError } from "@/lib/notify-error";
 
 type DownloadMode = "template" | "document";
 
@@ -90,19 +91,7 @@ const DownloadOptionContent = ({
       toast.success("Descarga iniciada");
       onOpenChange(false);
     } catch (error) {
-      let message = "No se pudo descargar el documento asociado.";
-      const data = (error as { response?: { data?: unknown } })?.response?.data;
-      if (data instanceof Blob) {
-        try {
-          const parsed = JSON.parse(await data.text());
-          if (parsed?.message) message = parsed.message;
-        } catch {
-          // respuesta no JSON (HTML de error), se usa el mensaje por defecto
-        }
-      } else if (data && typeof data === "object" && "message" in data) {
-        message = String((data as { message: unknown }).message);
-      }
-      toast.error(message);
+      notifyError(error, { action: "descargar el documento asociado" });
     } finally {
       setIsDownloading(false);
     }

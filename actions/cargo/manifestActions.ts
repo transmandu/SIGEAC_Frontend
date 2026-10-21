@@ -1,6 +1,7 @@
 import axiosInstance from "@/lib/axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 
 export interface ManifestItemPayload {
@@ -53,10 +54,7 @@ export const useCreateCargoManifest = (company: string) => {
       });
     },
     onError: (error: any) => {
-      const message =
-      error?.response?.data?.message ||
-      "Ha ocurrido un error al crear el manifiesto.";
-      toast.error("Error", { description: message });
+      notifyError(error, { action: "crear el manifiesto" });
     },
   });
   return { createCargoManifest: createMutation };
@@ -86,10 +84,7 @@ export const useUpdateCargoManifest = (company: string) => {
       });
     },
     onError: (error: any) => {
-      const message =
-        error?.response?.data?.message ||
-        "Ha ocurrido un error al actualizar el manifiesto.";
-      toast.error("Error", { description: message });
+      notifyError(error, { action: "actualizar el manifiesto" });
     },
   });
   return { updateCargoManifest: updateMutation };
@@ -108,11 +103,8 @@ export const useDeleteCargoManifest = (company: string) => {
         description: "Manifiesto de carga eliminado correctamente.",
       });
     },
-    onError: () => {
-      toast.error("Error", {
-        description:
-          "Ha ocurrido un problema al intentar eliminar el manifiesto.",
-      });
+    onError: (error) => {
+      notifyError(error, { action: "eliminar el manifiesto" });
     },
   });
   return { deleteCargoManifest: deleteMutation };
@@ -131,11 +123,8 @@ export const useReprintCargoManifest = (company: string) => {
         description: "Manifiesto de carga marcado para reimpresión.",
       });
     },
-    onError: () => {
-      toast.error("Error", {
-        description:
-          "Ha ocurrido un error al intentar reimprimir el manifiesto.",
-      });
+    onError: (error) => {
+      notifyError(error, { action: "reimprimir el manifiesto" });
     },
   });
   return { reprintCargoManifest: reprintMutation };
@@ -159,8 +148,6 @@ export const downloadManifestPdf = async (company: string, id: number) => {
     window.URL.revokeObjectURL(url);
   } catch (error) {
     console.error("Error al descargar el PDF", error);
-    toast.error("Error", {
-      description: "No se pudo descargar el PDF del manifiesto.",
-    });
+    notifyError(error, { action: "descargar el PDF del manifiesto" });
   }
 };

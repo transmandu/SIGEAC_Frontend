@@ -2,6 +2,7 @@ import { useState } from "react";
 import { format, startOfYear } from "date-fns";
 import axiosInstance from "@/lib/axios";
 import { toast } from "sonner";
+import { notifyBlobError } from "@/lib/notify-error";
 
 /**
  * Hook para generar y descargar el reporte PDF de "Capacitación de empleados
@@ -75,32 +76,14 @@ export function useEmployeeTrainingReport(
     } catch (error: any) {
       console.error("Error al generar reporte:", error);
 
-      if (error.response) {
-        const status = error.response.status;
-        if (status === 404) {
-          toast.error("Sin resultados", {
-            description:
-              "No hay datos dentro de esas fechas. Intenta con otro rango.",
-            id: "report-error",
-          });
-        } else if (status === 401) {
-          toast.error("Sesión expirada", {
-            description:
-              "Tu sesión ha terminado. Por favor, inicia sesión de nuevo.",
-            id: "report-error",
-          });
-        } else {
-          toast.error("Error del servidor", {
-            description:
-              "Hubo un problema al procesar el PDF. Intenta más tarde.",
-            id: "report-error",
-          });
-        }
-      } else {
-        toast.error("Error de conexión", {
-          description: "No se pudo conectar con el servidor.",
+      if (error.response?.status === 404) {
+        toast.error("Sin resultados", {
+          description:
+            "No hay datos dentro de esas fechas. Intenta con otro rango.",
           id: "report-error",
         });
+      } else {
+        await notifyBlobError(error, { action: "generar el reporte" });
       }
     } finally {
       setIsGenerating(false);

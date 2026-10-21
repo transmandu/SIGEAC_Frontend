@@ -2,6 +2,7 @@ import axiosInstance from "@/lib/axios"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import type { UpdateCostPayload, BulkUpdateItem, BulkUpdatePayload } from "@/types/purchase"
+import { notifyError } from "@/lib/notify-error";
 
 const invalidateArticles = (queryClient: any) => {
   queryClient.invalidateQueries({
@@ -63,8 +64,8 @@ export const useUpdateArticleCost = () => {
       toast.success("Costo actualizado correctamente")
       invalidateArticles(queryClient)
     },
-    onError: () => {
-      toast.error("Error al actualizar costo")
+    onError: (error) => {
+      notifyError(error, { action: "actualizar costo" })
     },
   })
 }
@@ -78,8 +79,8 @@ export const useBulkUpdateArticleCost = () => {
       toast.success("Costos actualizados correctamente")
       invalidateArticles(queryClient)
     },
-    onError: () => {
-      toast.error("Error en actualización masiva")
+    onError: (error) => {
+      notifyError(error, { action: "actualizar los costos en lote" })
     },
   })
 }
@@ -94,7 +95,7 @@ export const useUpdateGeneralCost = () => {
       invalidateGeneral(queryClient)
     },
     onError: (error: any) => {
-      toast.error(error?.response?.data?.error ?? "Error al registrar costo")
+      notifyError(error, { action: "registrar costo" })
     },
   })
 }
@@ -114,7 +115,7 @@ export const useBulkUpdateGeneralCost = () => {
       invalidateGeneral(queryClient)
     },
     onError: (error: any) => {
-      toast.error(error?.response?.data?.error ?? "Error en actualización masiva")
+      notifyError(error)
     },
   })
 }

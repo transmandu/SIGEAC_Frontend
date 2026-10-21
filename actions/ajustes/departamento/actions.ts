@@ -1,6 +1,7 @@
 import axiosInstance from "@/lib/axios"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
+import { notifyError } from "@/lib/notify-error";
 
 interface DepartmentFormSchema {
   acronym: string
@@ -24,10 +25,8 @@ export const useCreateDepartment = () => {
       })
     },
 
-    onError: () => {
-      toast.error("Oops!", {
-        description: "Hubo un error al crear el departamento!",
-      })
+    onError: (error) => {
+      notifyError(error, { action: "crear el departamento" })
     },
   })
 
@@ -56,10 +55,8 @@ export const useUpdateDepartment = () => {
       })
     },
 
-    onError: () => {
-      toast.error("Oops!", {
-        description: "Hubo un error al actualizar el departamento!",
-      })
+    onError: (error) => {
+      notifyError(error, { action: "actualizar el departamento" })
     },
   })
 
@@ -81,10 +78,8 @@ export const useDeleteDepartment = () => {
       })
     },
 
-    onError: () => {
-      toast.error("Oops!", {
-        description: "Hubo un error al eliminar el departamento!",
-      })
+    onError: (error) => {
+      notifyError(error, { action: "eliminar el departamento" })
     },
   })
 

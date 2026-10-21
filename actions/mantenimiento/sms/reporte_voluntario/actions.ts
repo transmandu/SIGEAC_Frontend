@@ -1,6 +1,7 @@
 import axiosInstance from "@/lib/axios";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 interface VoluntaryReportData {
   company: string | null;
@@ -75,9 +76,7 @@ export const useCreateVoluntaryReport = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo crear el reporte...",
-      });
+      notifyError(error, { action: "crear el reporte" });
       console.log(error);
     },
   });
@@ -106,9 +105,7 @@ export const useDeleteVoluntaryReport = () => {
       });
     },
     onError: (e) => {
-      toast.error("Oops!", {
-        description: "¡Hubo un error al eliminar el reporte!",
-      });
+      notifyError(e, { action: "eliminar el reporte" });
     },
   });
 
@@ -142,9 +139,7 @@ export const useUpdateVoluntaryReport = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo actualizar el reporte voluntario...",
-      });
+      notifyError(error, { action: "actualizar el reporte voluntario" });
       console.log(error);
     },
   });
@@ -194,10 +189,8 @@ export const useAcceptVoluntaryReport = () => {
         description: `¡El reporte ha sido aceptado correctamente!`,
       });
     },
-    onError: () => {
-      toast.error("Oops!", {
-        description: "¡Hubo un error al aceptar el reporte!",
-      });
+    onError: (error) => {
+      notifyError(error, { action: "aceptar el reporte" });
     },
   });
 
@@ -228,11 +221,7 @@ export const useCloseVoluntaryReport = () => {
     },
     onError: (error: any) => {
       // Extraemos el mensaje directamente de la respuesta del backend
-      const serverMessage = error.response?.data?.error || "Error al cerrar el reporte";
-
-      toast.error("Oops", {
-        description: serverMessage,
-      });
+      notifyError(error, { action: "cerrar el reporte" });
 
       console.log(error);
     },
@@ -261,10 +250,7 @@ export const useOpenVoluntaryReport = () => {
       });
     },
     onError: (error: any) => {
-      const serverMessage = error.response?.data?.error || "Error al abrir el reporte";
-      toast.error("Oops", {
-        description: serverMessage,
-      });
+      notifyError(error, { action: "abrir el reporte" });
       console.log(error);
     },
   });
