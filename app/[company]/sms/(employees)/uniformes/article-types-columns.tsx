@@ -74,8 +74,8 @@ const ArticleTypeRowActions = ({
           <AlertDialogHeader>
             <AlertDialogTitle>¿Eliminar tipo de artículo?</AlertDialogTitle>
             <AlertDialogDescription>
-              Sólo se puede eliminar un tipo sin artículos asociados. Si ya tiene
-              artículos, desactívelo en su lugar.
+              Sólo se puede eliminar un tipo sin artículos asociados. Si ya
+              tiene artículos, desactívelo en su lugar.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -99,7 +99,7 @@ const ArticleTypeRowActions = ({
 };
 
 export const getArticleTypesColumns = (
-  handlers: Handlers
+  handlers: Handlers,
 ): AppColumnDef<UniformArticleType>[] => [
   {
     accessorKey: "name",

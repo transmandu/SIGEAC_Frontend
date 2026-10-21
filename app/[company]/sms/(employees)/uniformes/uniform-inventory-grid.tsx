@@ -111,7 +111,7 @@ export function UniformInventoryGrid({
   const categories = useMemo(() => {
     const map = new Map<string, string>();
     items.forEach((i) =>
-      map.set(String(i.uniform_article_type_id), i.type_label)
+      map.set(String(i.uniform_article_type_id), i.type_label),
     );
     return Array.from(map, ([value, label]) => ({ value, label }));
   }, [items]);
@@ -123,7 +123,7 @@ export function UniformInventoryGrid({
         ? items
         : items.filter((i) => String(i.uniform_article_type_id) === category);
     return Array.from(new Set(pool.map((i) => i.size))).sort(
-      (a, b) => sizeRank(a) - sizeRank(b) || a.localeCompare(b)
+      (a, b) => sizeRank(a) - sizeRank(b) || a.localeCompare(b),
     );
   }, [items, category]);
 
@@ -176,13 +176,13 @@ export function UniformInventoryGrid({
       stack.items.sort(
         (a, b) =>
           sizeRank(a.size) - sizeRank(b.size) ||
-          a.size.localeCompare(b.size, undefined, { numeric: true })
-      )
+          a.size.localeCompare(b.size, undefined, { numeric: true }),
+      ),
     );
     list.sort(
       (a, b) =>
         a.company_label.localeCompare(b.company_label) ||
-        a.type_label.localeCompare(b.type_label)
+        a.type_label.localeCompare(b.type_label),
     );
     return list;
   }, [filteredItems]);
@@ -199,7 +199,7 @@ export function UniformInventoryGrid({
 
   const visibleStacks = stacks.slice(0, visibleCount);
   const activeCategoryLabel = categories.find(
-    (c) => c.value === category
+    (c) => c.value === category,
   )?.label;
   const hasActiveFilters = category !== "all" || size || lowStockOnly;
 
@@ -220,7 +220,7 @@ export function UniformInventoryGrid({
               "whitespace-nowrap px-6 py-3 text-xs font-bold uppercase tracking-wider transition-colors hover:bg-muted/50",
               category === "all"
                 ? "border-b-2 border-primary text-primary"
-                : "text-muted-foreground"
+                : "text-muted-foreground",
             )}
           >
             Todos
@@ -233,7 +233,7 @@ export function UniformInventoryGrid({
                 "whitespace-nowrap px-6 py-3 text-xs font-bold uppercase tracking-wider transition-colors hover:bg-muted/50",
                 category === cat.value
                   ? "border-b-2 border-primary text-primary"
-                  : "text-muted-foreground"
+                  : "text-muted-foreground",
               )}
             >
               {cat.label}
@@ -257,7 +257,7 @@ export function UniformInventoryGrid({
                       "rounded border px-2.5 py-1 font-mono text-xs transition-colors",
                       size === s
                         ? "border-2 border-primary bg-primary/5 font-medium text-primary"
-                        : "border-border bg-background text-foreground hover:border-primary hover:text-primary"
+                        : "border-border bg-background text-foreground hover:border-primary hover:text-primary",
                     )}
                   >
                     {s}
@@ -300,7 +300,7 @@ export function UniformInventoryGrid({
               className={cn(
                 "h-9 gap-2",
                 lowStockOnly &&
-                  "bg-destructive text-white hover:bg-destructive/90"
+                  "bg-destructive text-white hover:bg-destructive/90",
               )}
             >
               <AlertTriangle className="h-4 w-4" />
@@ -495,7 +495,7 @@ function UniformStackCard({
       <div
         className={cn(
           "overflow-hidden rounded-lg border bg-card transition-colors duration-200",
-          open ? "border-primary/40" : "group-hover:border-primary/40"
+          open ? "border-primary/40" : "group-hover:border-primary/40",
         )}
       >
         {/* Trigger: identity + summary */}
@@ -618,7 +618,6 @@ function UniformStackCard({
   );
 }
 
-
 /** Compact at-a-glance pill: talla + units, tinted by stock status. */
 function SizePill({ item }: { item: UniformItem }) {
   const status = getStockStatus(item);
@@ -630,12 +629,10 @@ function SizePill({ item }: { item: UniformItem }) {
         status === "low" &&
           "border-amber-300 text-amber-700 dark:border-amber-800 dark:text-amber-400",
         status === "ok" && "border-border/60 text-foreground",
-        !item.active && "opacity-50"
+        !item.active && "opacity-50",
       )}
     >
-      <span
-        className={cn("size-1.5 rounded-full", STOCK_SIGNAL[status].dot)}
-      />
+      <span className={cn("size-1.5 rounded-full", STOCK_SIGNAL[status].dot)} />
       <span className="font-semibold tracking-wide">{item.size}</span>
       <span className="tabular-nums text-muted-foreground">
         {item.current_stock}
@@ -661,7 +658,7 @@ function SizeRow({
     <div
       className={cn(
         "grid grid-cols-[44px_1fr_auto] items-center gap-3 border-t border-border/30 px-4 py-2 transition-colors hover:bg-muted/20",
-        !item.active && "opacity-60"
+        !item.active && "opacity-60",
       )}
     >
       <Badge

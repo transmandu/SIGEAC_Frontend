@@ -47,7 +47,7 @@ export const EditUniformItemForm = ({ item, onClose }: Props) => {
   const onSubmit = (data: z.infer<typeof formSchema>) => {
     updateItem.mutate(
       { company: selectedCompany!.slug, id: item.id, data },
-      { onSuccess: () => onClose() }
+      { onSuccess: () => onClose() },
     );
   };
 

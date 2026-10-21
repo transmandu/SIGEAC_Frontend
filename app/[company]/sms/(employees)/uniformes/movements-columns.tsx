@@ -18,9 +18,7 @@ import { formatCalendarDate } from "@/lib/date";
 
 const formatDate = (value?: string) => formatCalendarDate(value, "date", "---");
 
-const employeeFullName = (
-  emp: NonNullable<UniformMovement["employee"]>
-) =>
+const employeeFullName = (emp: NonNullable<UniformMovement["employee"]>) =>
   [emp.first_name, emp.middle_name, emp.last_name, emp.second_last_name]
     .filter(Boolean)
     .join(" ");
