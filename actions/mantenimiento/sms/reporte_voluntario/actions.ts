@@ -96,10 +96,14 @@ export const useDeleteVoluntaryReport = () => {
       company: string | null;
       id: string | number;
     }) => {
-      await axiosInstance.delete(`/${company}/sms/aeronautical/voluntary-reports/${id}`);
+      await axiosInstance.delete(
+        `/${company}/sms/aeronautical/voluntary-reports/${id}`,
+      );
     },
     onSuccess: (_, { company }) => {
-      queryClient.invalidateQueries({ queryKey: ["voluntary-reports", company] });
+      queryClient.invalidateQueries({
+        queryKey: ["voluntary-reports", company],
+      });
       toast.success("¡Eliminado!", {
         description: `¡El reporte ha sido eliminada correctamente!`,
       });
@@ -148,8 +152,6 @@ export const useUpdateVoluntaryReport = () => {
   };
 };
 
-
-
 export const useGetNextReportNumber = (company: string | null) => {
   return useQuery<NextNumberResponse>({
     queryKey: ["next-voluntary-report-number", company],
@@ -165,8 +167,6 @@ export const useGetNextReportNumber = (company: string | null) => {
   });
 };
 
-
-
 // En tu archivo de actions.ts
 export const useAcceptVoluntaryReport = () => {
   const queryClient = useQueryClient();
@@ -181,7 +181,9 @@ export const useAcceptVoluntaryReport = () => {
       id: string | number;
     }) => {
       // Asegúrate de que el endpoint sea el correcto
-      await axiosInstance.patch(`/${company}/sms/aeronautical/accept-report/${id}`);
+      await axiosInstance.patch(
+        `/${company}/sms/aeronautical/accept-report/${id}`,
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["voluntary-reports"] });
@@ -206,15 +208,25 @@ export const useCloseVoluntaryReport = () => {
   const closeMutation = useMutation({
     mutationKey: ["close-voluntary-report"],
     mutationFn: async ({ company, id, data }: CloseVoluntaryReportData) => {
-      const response = await axiosInstance.post(`/${company}/sms/aeronautical/close-rvp/${id}`, data, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const response = await axiosInstance.post(
+        `/${company}/sms/aeronautical/close-rvp/${id}`,
+        data,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        },
+      );
       return response.data; // Retorna { report_number: ... }
     },
     onSuccess: (_data, { company }) => {
-      queryClient.invalidateQueries({ queryKey: ["voluntary-reports", company] });
-      queryClient.invalidateQueries({ queryKey: ["hazard-notifications", company] });
-      queryClient.invalidateQueries({ queryKey: ["hazard-notification-by-report", company] });
+      queryClient.invalidateQueries({
+        queryKey: ["voluntary-reports", company],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["hazard-notifications", company],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["hazard-notification-by-report", company],
+      });
       toast.success("¡Reporte cerrado!", {
         description: "El reporte voluntario ha sido cerrado correctamente.",
       });
@@ -237,14 +249,28 @@ export const useOpenVoluntaryReport = () => {
 
   const openMutation = useMutation({
     mutationKey: ["open-voluntary-report"],
-    mutationFn: async ({ company, id }: { company: string | null; id: string | number }) => {
-      const response = await axiosInstance.patch(`/${company}/sms/aeronautical/open-rvp/${id}`);
+    mutationFn: async ({
+      company,
+      id,
+    }: {
+      company: string | null;
+      id: string | number;
+    }) => {
+      const response = await axiosInstance.patch(
+        `/${company}/sms/aeronautical/open-rvp/${id}`,
+      );
       return response.data;
     },
     onSuccess: (_data, { company }) => {
-      queryClient.invalidateQueries({ queryKey: ["voluntary-reports", company] });
-      queryClient.invalidateQueries({ queryKey: ["hazard-notifications", company] });
-      queryClient.invalidateQueries({ queryKey: ["hazard-notification-by-report", company] });
+      queryClient.invalidateQueries({
+        queryKey: ["voluntary-reports", company],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["hazard-notifications", company],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["hazard-notification-by-report", company],
+      });
       toast.success("¡Reporte abierto!", {
         description: "El reporte voluntario ha sido reabierto correctamente.",
       });

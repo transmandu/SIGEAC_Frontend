@@ -6,442 +6,444 @@ import { toast } from "sonner";
 import { notifyError } from "@/lib/notify-error";
 
 interface CreateMitigationPlanData {
-    company: string | null;
-    data: {
-        hazard_notification_id: string;
-        area_responsible: string;
-        possible_consequences: string;
-        consequence_to_evaluate: string;
-        description: string;
-        analysis: {
-            probability: string;
-            severity: string;
-            result: string;
-        };
+  company: string | null;
+  data: {
+    hazard_notification_id: string;
+    area_responsible: string;
+    possible_consequences: string;
+    consequence_to_evaluate: string;
+    description: string;
+    analysis: {
+      probability: string;
+      severity: string;
+      result: string;
     };
+  };
 }
 
 interface UpdateMitigationPlanData {
-    company: string | null;
-    id: number | string;
-    data: {
-        area_responsible: string;
-        possible_consequences: string;
-        consequence_to_evaluate: string;
-        description: string;
-    };
+  company: string | null;
+  id: number | string;
+  data: {
+    area_responsible: string;
+    possible_consequences: string;
+    consequence_to_evaluate: string;
+    description: string;
+  };
 }
 
 interface CreateMitigationAnalysisData {
-    company: string | null;
-    data: {
-        probability: string;
-        severity: string;
-        result: string;
-        mitigation_plan_id: string;
-    };
+  company: string | null;
+  data: {
+    probability: string;
+    severity: string;
+    result: string;
+    mitigation_plan_id: string;
+  };
 }
 
 interface UpdateMitigationAnalysisData {
-    company: string | null;
-    id: number | string;
-    data: {
-        probability: string;
-        severity: string;
-        result: string;
-    };
+  company: string | null;
+  id: number | string;
+  data: {
+    probability: string;
+    severity: string;
+    result: string;
+  };
 }
 
 interface RiskAssessmentAnswerPayload {
-    question_code: string;
-    answer: string;
+  question_code: string;
+  answer: string;
 }
 
 interface CreateRiskAssessmentData {
-    company: string | null;
-    data: {
-        hazard_notification_id: number;
-        probability: number;
-        answers?: RiskAssessmentAnswerPayload[];
-    };
+  company: string | null;
+  data: {
+    hazard_notification_id: number;
+    probability: number;
+    answers?: RiskAssessmentAnswerPayload[];
+  };
 }
 
 interface UpdateRiskAssessmentData {
-    company: string | null;
-    id: number | string;
-    data: {
-        hazard_notification_id: number;
-        probability: number;
-        answers?: RiskAssessmentAnswerPayload[];
-    };
+  company: string | null;
+  id: number | string;
+  data: {
+    hazard_notification_id: number;
+    probability: number;
+    answers?: RiskAssessmentAnswerPayload[];
+  };
 }
 
 interface CreateMitigationMeasureData {
-    company?: string;
-    data: {
-        description: string;
-        implementation_supervisor: string;
-        implementation_responsible: string;
-        estimated_date: string;
-        execution_date?: string;
-        mitigation_plan_id: string;
-    };
+  company?: string;
+  data: {
+    description: string;
+    implementation_supervisor: string;
+    implementation_responsible: string;
+    estimated_date: string;
+    execution_date?: string;
+    mitigation_plan_id: string;
+  };
 }
 
 interface UpdateMitigationMeasureData {
-    company?: string;
-    id: number | string;
-    data: {
-        description: string;
-        implementation_supervisor: string;
-        implementation_responsible: string;
-        estimated_date: string;
-        execution_date?: string;
-    };
+  company?: string;
+  id: number | string;
+  data: {
+    description: string;
+    implementation_supervisor: string;
+    implementation_responsible: string;
+    estimated_date: string;
+    execution_date?: string;
+  };
 }
 
 interface CreateFollowUpControlData {
-    company: string | null;
-    data: {
-        description: string;
-        date: string;
-        mitigation_measure_id: string;
-        image?: File;
-        document?: File;
-    };
+  company: string | null;
+  data: {
+    description: string;
+    date: string;
+    mitigation_measure_id: string;
+    image?: File;
+    document?: File;
+  };
 }
 
 interface UpdateFollowUpControlData {
-    company: string | null;
-    id: number | string;
-    data: {
-        description: string;
-        date: string;
-        mitigation_measure_id: string;
-        image?: File;
-        document?: File;
-    };
+  company: string | null;
+  id: number | string;
+  data: {
+    description: string;
+    date: string;
+    mitigation_measure_id: string;
+    image?: File;
+    document?: File;
+  };
 }
 
 const invalidateWorkflowQueries = (
-    queryClient: ReturnType<typeof useQueryClient>,
-    company: string | null
+  queryClient: ReturnType<typeof useQueryClient>,
+  company: string | null,
 ) => {
-    queryClient.invalidateQueries({ queryKey: ["hazard-notifications", company] });
+  queryClient.invalidateQueries({
+    queryKey: ["hazard-notifications", company],
+  });
 };
 
 export const useCreateMitigationPlan = () => {
-    const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
-    const createMutation = useMutation({
-        mutationFn: async ({ company, data }: CreateMitigationPlanData) => {
-            const response = await axiosInstance.post(
-                `/${company}/sms/aeronautical/mitigation-plans`,
-                data,
-                {
-                    headers: {
-                        "Content-Type": "multipart/form-data",
-                    },
-                }
-            );
+  const createMutation = useMutation({
+    mutationFn: async ({ company, data }: CreateMitigationPlanData) => {
+      const response = await axiosInstance.post(
+        `/${company}/sms/aeronautical/mitigation-plans`,
+        data,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        },
+      );
 
-            return response.data;
-        },
-        onSuccess: (_, variables) => {
-            invalidateWorkflowQueries(queryClient, variables.company);
-            queryClient.invalidateQueries({ queryKey: ["analysis"] });
-            toast.success("Plan creado", {
-                description: "El plan de mitigación fue registrado correctamente.",
-            });
-        },
-        onError: (error) => {
-            notifyError(error, { action: "crear el plan" });
-            console.log(error);
-        },
-    });
+      return response.data;
+    },
+    onSuccess: (_, variables) => {
+      invalidateWorkflowQueries(queryClient, variables.company);
+      queryClient.invalidateQueries({ queryKey: ["analysis"] });
+      toast.success("Plan creado", {
+        description: "El plan de mitigación fue registrado correctamente.",
+      });
+    },
+    onError: (error) => {
+      notifyError(error, { action: "crear el plan" });
+      console.log(error);
+    },
+  });
 
-    return {
-        createMitigationPlan: createMutation,
-    };
+  return {
+    createMitigationPlan: createMutation,
+  };
 };
 
 export const useUpdateMitigationPlan = () => {
-    const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
-    const updateMutation = useMutation({
-        mutationFn: async ({ company, data, id }: UpdateMitigationPlanData) => {
-            const response = await axiosInstance.patch(
-                `/${company}/sms/aeronautical/mitigation-plans/${id}`,
-                data
-            );
+  const updateMutation = useMutation({
+    mutationFn: async ({ company, data, id }: UpdateMitigationPlanData) => {
+      const response = await axiosInstance.patch(
+        `/${company}/sms/aeronautical/mitigation-plans/${id}`,
+        data,
+      );
 
-            return response.data;
-        },
-        onSuccess: (_, variables) => {
-            invalidateWorkflowQueries(queryClient, variables.company);
-            toast.success("Plan actualizado", {
-                description: "El plan de mitigación fue actualizado correctamente.",
-            });
-        },
-        onError: (error) => {
-            notifyError(error, { action: "actualizar el plan" });
-            console.log(error);
-        },
-    });
+      return response.data;
+    },
+    onSuccess: (_, variables) => {
+      invalidateWorkflowQueries(queryClient, variables.company);
+      toast.success("Plan actualizado", {
+        description: "El plan de mitigación fue actualizado correctamente.",
+      });
+    },
+    onError: (error) => {
+      notifyError(error, { action: "actualizar el plan" });
+      console.log(error);
+    },
+  });
 
-    return {
-        updateMitigationPlan: updateMutation,
-    };
+  return {
+    updateMitigationPlan: updateMutation,
+  };
 };
 
 export const useCreateMitigationAnalysis = () => {
-    const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
-    const createMutation = useMutation({
-        mutationFn: async ({ company, data }: CreateMitigationAnalysisData) => {
-            const response = await axiosInstance.post(
-                `/${company}/sms/aeronautical/analysis`,
-                data,
-                {
-                    headers: {
-                        "Content-Type": "multipart/form-data",
-                    },
-                }
-            );
+  const createMutation = useMutation({
+    mutationFn: async ({ company, data }: CreateMitigationAnalysisData) => {
+      const response = await axiosInstance.post(
+        `/${company}/sms/aeronautical/analysis`,
+        data,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        },
+      );
 
-            return response.data;
-        },
-        onSuccess: (_, variables) => {
-            invalidateWorkflowQueries(queryClient, variables.company);
-            toast.success("Análisis creado", {
-                description: "El análisis de riesgo fue registrado correctamente.",
-            });
-        },
-        onError: (error) => {
-            notifyError(error, { action: "crear el análisis" });
-            console.log(error);
-        },
-    });
+      return response.data;
+    },
+    onSuccess: (_, variables) => {
+      invalidateWorkflowQueries(queryClient, variables.company);
+      toast.success("Análisis creado", {
+        description: "El análisis de riesgo fue registrado correctamente.",
+      });
+    },
+    onError: (error) => {
+      notifyError(error, { action: "crear el análisis" });
+      console.log(error);
+    },
+  });
 
-    return {
-        createMitigationAnalysis: createMutation,
-    };
+  return {
+    createMitigationAnalysis: createMutation,
+  };
 };
 
 export const useUpdateMitigationAnalysis = () => {
-    const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
-    const updateMutation = useMutation({
-        mutationFn: async ({ company, data, id }: UpdateMitigationAnalysisData) => {
-            const response = await axiosInstance.patch(
-                `/${company}/sms/aeronautical/analysis/${id}`,
-                data
-            );
+  const updateMutation = useMutation({
+    mutationFn: async ({ company, data, id }: UpdateMitigationAnalysisData) => {
+      const response = await axiosInstance.patch(
+        `/${company}/sms/aeronautical/analysis/${id}`,
+        data,
+      );
 
-            return response.data;
-        },
-        onSuccess: (_, variables) => {
-            invalidateWorkflowQueries(queryClient, variables.company);
-            toast.success("Análisis actualizado", {
-                description: "El análisis de riesgo fue actualizado correctamente.",
-            });
-        },
-        onError: (error) => {
-            notifyError(error, { action: "actualizar el análisis" });
-            console.log(error);
-        },
-    });
+      return response.data;
+    },
+    onSuccess: (_, variables) => {
+      invalidateWorkflowQueries(queryClient, variables.company);
+      toast.success("Análisis actualizado", {
+        description: "El análisis de riesgo fue actualizado correctamente.",
+      });
+    },
+    onError: (error) => {
+      notifyError(error, { action: "actualizar el análisis" });
+      console.log(error);
+    },
+  });
 
-    return {
-        updateMitigationAnalysis: updateMutation,
-    };
+  return {
+    updateMitigationAnalysis: updateMutation,
+  };
 };
 
 export const useCreateRiskAssessment = () => {
-    const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
-    const createMutation = useMutation({
-        mutationFn: async ({ company, data }: CreateRiskAssessmentData) => {
-            const response = await axiosInstance.post(
-                `/${company}/sms/aeronautical/risk-assessments`,
-                data
-            );
+  const createMutation = useMutation({
+    mutationFn: async ({ company, data }: CreateRiskAssessmentData) => {
+      const response = await axiosInstance.post(
+        `/${company}/sms/aeronautical/risk-assessments`,
+        data,
+      );
 
-            return response.data;
-        },
-        onSuccess: (_, variables) => {
-            invalidateWorkflowQueries(queryClient, variables.company);
-            toast.success("Evaluación registrada", {
-                description: "La estimación del riesgo fue guardada correctamente.",
-            });
-        },
-        onError: (error) => {
-            notifyError(error, { action: "guardar la evaluación" });
-            console.log(error);
-        },
-    });
+      return response.data;
+    },
+    onSuccess: (_, variables) => {
+      invalidateWorkflowQueries(queryClient, variables.company);
+      toast.success("Evaluación registrada", {
+        description: "La estimación del riesgo fue guardada correctamente.",
+      });
+    },
+    onError: (error) => {
+      notifyError(error, { action: "guardar la evaluación" });
+      console.log(error);
+    },
+  });
 
-    return {
-        createRiskAssessment: createMutation,
-    };
+  return {
+    createRiskAssessment: createMutation,
+  };
 };
 
 export const useUpdateRiskAssessment = () => {
-    const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
-    const updateMutation = useMutation({
-        mutationFn: async ({ company, data, id }: UpdateRiskAssessmentData) => {
-            const response = await axiosInstance.patch(
-                `/${company}/sms/aeronautical/risk-assessments/${id}`,
-                data
-            );
+  const updateMutation = useMutation({
+    mutationFn: async ({ company, data, id }: UpdateRiskAssessmentData) => {
+      const response = await axiosInstance.patch(
+        `/${company}/sms/aeronautical/risk-assessments/${id}`,
+        data,
+      );
 
-            return response.data;
-        },
-        onSuccess: (_, variables) => {
-            invalidateWorkflowQueries(queryClient, variables.company);
-            toast.success("Evaluación actualizada", {
-                description: "La estimación del riesgo fue actualizada correctamente.",
-            });
-        },
-        onError: (error) => {
-            notifyError(error, { action: "actualizar la evaluación" });
-            console.log(error);
-        },
-    });
+      return response.data;
+    },
+    onSuccess: (_, variables) => {
+      invalidateWorkflowQueries(queryClient, variables.company);
+      toast.success("Evaluación actualizada", {
+        description: "La estimación del riesgo fue actualizada correctamente.",
+      });
+    },
+    onError: (error) => {
+      notifyError(error, { action: "actualizar la evaluación" });
+      console.log(error);
+    },
+  });
 
-    return {
-        updateRiskAssessment: updateMutation,
-    };
+  return {
+    updateRiskAssessment: updateMutation,
+  };
 };
 
 export const useCreateMitigationMeasure = () => {
-    const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
-    const createMutation = useMutation({
-        mutationFn: async ({ company, data }: CreateMitigationMeasureData) => {
-            const response = await axiosInstance.post(
-                `/${company}/sms/aeronautical/mitigation-measures`,
-                data,
-                {
-                    headers: {
-                        "Content-Type": "multipart/form-data",
-                    },
-                }
-            );
+  const createMutation = useMutation({
+    mutationFn: async ({ company, data }: CreateMitigationMeasureData) => {
+      const response = await axiosInstance.post(
+        `/${company}/sms/aeronautical/mitigation-measures`,
+        data,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        },
+      );
 
-            return response.data;
-        },
-        onSuccess: (_, variables) => {
-            invalidateWorkflowQueries(queryClient, variables.company ?? null);
-            toast.success("Medida agregada", {
-                description: "La medida de mitigación fue registrada correctamente.",
-            });
-        },
-        onError: (error) => {
-            notifyError(error, { action: "crear la medida" });
-            console.log(error);
-        },
-    });
+      return response.data;
+    },
+    onSuccess: (_, variables) => {
+      invalidateWorkflowQueries(queryClient, variables.company ?? null);
+      toast.success("Medida agregada", {
+        description: "La medida de mitigación fue registrada correctamente.",
+      });
+    },
+    onError: (error) => {
+      notifyError(error, { action: "crear la medida" });
+      console.log(error);
+    },
+  });
 
-    return {
-        createMitigationMeasure: createMutation,
-    };
+  return {
+    createMitigationMeasure: createMutation,
+  };
 };
 
 export const useUpdateMitigationMeasure = () => {
-    const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
-    const updateMutation = useMutation({
-        mutationFn: async ({ company, data, id }: UpdateMitigationMeasureData) => {
-            const response = await axiosInstance.patch(
-                `/${company}/sms/aeronautical/mitigation-measures/${id}`,
-                data
-            );
+  const updateMutation = useMutation({
+    mutationFn: async ({ company, data, id }: UpdateMitigationMeasureData) => {
+      const response = await axiosInstance.patch(
+        `/${company}/sms/aeronautical/mitigation-measures/${id}`,
+        data,
+      );
 
-            return response.data;
-        },
-        onSuccess: (_, variables) => {
-            invalidateWorkflowQueries(queryClient, variables.company ?? null);
-            toast.success("Medida actualizada", {
-                description: "La medida de mitigación fue actualizada correctamente.",
-            });
-        },
-        onError: (error) => {
-            notifyError(error, { action: "actualizar la medida" });
-            console.log(error);
-        },
-    });
+      return response.data;
+    },
+    onSuccess: (_, variables) => {
+      invalidateWorkflowQueries(queryClient, variables.company ?? null);
+      toast.success("Medida actualizada", {
+        description: "La medida de mitigación fue actualizada correctamente.",
+      });
+    },
+    onError: (error) => {
+      notifyError(error, { action: "actualizar la medida" });
+      console.log(error);
+    },
+  });
 
-    return {
-        updateMitigationMeasure: updateMutation,
-    };
+  return {
+    updateMitigationMeasure: updateMutation,
+  };
 };
 
 export const useCreateFollowUpControl = () => {
-    const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
-    const createMutation = useMutation({
-        mutationFn: async ({ company, data }: CreateFollowUpControlData) => {
-            const response = await axiosInstance.post(
-                `/${company}/sms/aeronautical/follow-up-controls`,
-                data,
-                {
-                    headers: {
-                        "Content-Type": "multipart/form-data",
-                    },
-                }
-            );
+  const createMutation = useMutation({
+    mutationFn: async ({ company, data }: CreateFollowUpControlData) => {
+      const response = await axiosInstance.post(
+        `/${company}/sms/aeronautical/follow-up-controls`,
+        data,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        },
+      );
 
-            return response.data;
-        },
-        onSuccess: (_, variables) => {
-            invalidateWorkflowQueries(queryClient, variables.company);
-            toast.success("Control agregado", {
-                description: "El control de seguimiento fue registrado correctamente.",
-            });
-        },
-        onError: (error) => {
-            notifyError(error, { action: "crear el control" });
-            console.log(error);
-        },
-    });
+      return response.data;
+    },
+    onSuccess: (_, variables) => {
+      invalidateWorkflowQueries(queryClient, variables.company);
+      toast.success("Control agregado", {
+        description: "El control de seguimiento fue registrado correctamente.",
+      });
+    },
+    onError: (error) => {
+      notifyError(error, { action: "crear el control" });
+      console.log(error);
+    },
+  });
 
-    return {
-        createFollowUpControl: createMutation,
-    };
+  return {
+    createFollowUpControl: createMutation,
+  };
 };
 
 export const useUpdateFollowUpControl = () => {
-    const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
-    const updateMutation = useMutation({
-        mutationFn: async ({ company, data, id }: UpdateFollowUpControlData) => {
-            const response = await axiosInstance.post(
-                `/${company}/sms/aeronautical/update-follow-up-controls/${id}`,
-                data,
-                {
-                    headers: {
-                        "Content-Type": "multipart/form-data",
-                    },
-                }
-            );
+  const updateMutation = useMutation({
+    mutationFn: async ({ company, data, id }: UpdateFollowUpControlData) => {
+      const response = await axiosInstance.post(
+        `/${company}/sms/aeronautical/update-follow-up-controls/${id}`,
+        data,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        },
+      );
 
-            return response.data;
-        },
-        onSuccess: (_, variables) => {
-            invalidateWorkflowQueries(queryClient, variables.company);
-            toast.success("Control actualizado", {
-                description: "El control de seguimiento fue actualizado correctamente.",
-            });
-        },
-        onError: (error) => {
-            notifyError(error, { action: "actualizar el control" });
-            console.log(error);
-        },
-    });
+      return response.data;
+    },
+    onSuccess: (_, variables) => {
+      invalidateWorkflowQueries(queryClient, variables.company);
+      toast.success("Control actualizado", {
+        description: "El control de seguimiento fue actualizado correctamente.",
+      });
+    },
+    onError: (error) => {
+      notifyError(error, { action: "actualizar el control" });
+      console.log(error);
+    },
+  });
 
-    return {
-        updateFollowUpControl: updateMutation,
-    };
+  return {
+    updateFollowUpControl: updateMutation,
+  };
 };

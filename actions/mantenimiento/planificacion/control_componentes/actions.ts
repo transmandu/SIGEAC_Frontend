@@ -219,7 +219,9 @@ export const useLinkComponentPendingWorkOrder = () => {
     },
     // El backend valida coherencia y devuelve el motivo exacto.
     onError: (error: any) => {
-      notifyError(error, { action: "asociar la Orden de Trabajo al componente" });
+      notifyError(error, {
+        action: "asociar la Orden de Trabajo al componente",
+      });
       console.log(error);
     },
   });

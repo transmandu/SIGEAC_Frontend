@@ -1,61 +1,57 @@
-import axiosInstance from "@/lib/axios"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
+import axiosInstance from "@/lib/axios";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { notifyError } from "@/lib/notify-error";
 
 interface CreateRoleSchema {
-    name: string
-    label: string,
-  }
-
-export const useCreateRole = () => {
-
-    const queryClient = useQueryClient()
-
-    const createMutation = useMutation({
-        mutationFn: async (data: CreateRoleSchema) => {
-            await axiosInstance.post('/role', data)
-          },
-        onSuccess: () => {
-            queryClient.invalidateQueries({queryKey: ['roles']})
-            toast("¡Creado!", {
-                description: `¡El rol se ha creado correctamente!`
-            })
-          },
-        onError: (error) => {
-            toast('Hey', {
-              description: `No se creo correctamente: ${error}`
-            })
-          },
-        }
-    )
-
-    return {
-      createRole: createMutation,
-    }
+  name: string;
+  label: string;
 }
 
-export const useDeleteRole = () => {
+export const useCreateRole = () => {
+  const queryClient = useQueryClient();
 
-  const queryClient = useQueryClient()
+  const createMutation = useMutation({
+    mutationFn: async (data: CreateRoleSchema) => {
+      await axiosInstance.post("/role", data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["roles"] });
+      toast("¡Creado!", {
+        description: `¡El rol se ha creado correctamente!`,
+      });
+    },
+    onError: (error) => {
+      toast("Hey", {
+        description: `No se creo correctamente: ${error}`,
+      });
+    },
+  });
+
+  return {
+    createRole: createMutation,
+  };
+};
+
+export const useDeleteRole = () => {
+  const queryClient = useQueryClient();
 
   const deleteMutation = useMutation({
-      mutationFn: async (id: number | string) => {
-          await axiosInstance.delete(`/role/${id}`)
-        },
-      onSuccess: () => {
-          queryClient.invalidateQueries({queryKey: ['roles']})
-          toast.success("¡Eliminado!", {
-              description: `¡El rol ha sido eliminado correctamente!`
-          })
-        },
-      onError: (e) => {
-          notifyError(e, { action: "eliminar el rol" })
-        },
-      }
-  )
+    mutationFn: async (id: number | string) => {
+      await axiosInstance.delete(`/role/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["roles"] });
+      toast.success("¡Eliminado!", {
+        description: `¡El rol ha sido eliminado correctamente!`,
+      });
+    },
+    onError: (e) => {
+      notifyError(e, { action: "eliminar el rol" });
+    },
+  });
 
   return {
     deleteRole: deleteMutation,
-  }
-}
+  };
+};

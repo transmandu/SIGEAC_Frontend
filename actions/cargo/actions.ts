@@ -11,8 +11,12 @@ export const useCreateCargoShipment = (company: string) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["cargo-shipments"] });
-      queryClient.invalidateQueries({ queryKey: ["cargo-shipments-by-aircraft"] });
-      queryClient.invalidateQueries({ queryKey: ["cargo-shipments-by-external-aircraft"] });
+      queryClient.invalidateQueries({
+        queryKey: ["cargo-shipments-by-aircraft"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["cargo-shipments-by-external-aircraft"],
+      });
       queryClient.invalidateQueries({ queryKey: ["cargo-stats-by-aircraft"] });
       queryClient.invalidateQueries({ queryKey: ["cargoNextGuide"] });
       queryClient.invalidateQueries({ queryKey: ["product-suggestions"] });
@@ -36,8 +40,12 @@ export const useDeleteCargoShipment = (company: string) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["cargo-shipments"] });
-      queryClient.invalidateQueries({ queryKey: ["cargo-shipments-by-aircraft"] });
-      queryClient.invalidateQueries({ queryKey: ["cargo-shipments-by-external-aircraft"] });
+      queryClient.invalidateQueries({
+        queryKey: ["cargo-shipments-by-aircraft"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["cargo-shipments-by-external-aircraft"],
+      });
       queryClient.invalidateQueries({ queryKey: ["cargo-stats-by-aircraft"] });
       queryClient.invalidateQueries({ queryKey: ["cargoNextGuide"] });
       queryClient.invalidateQueries({ queryKey: ["product-suggestions"] });
@@ -60,8 +68,12 @@ export const useUpdateCargoShipment = (company: string) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["cargo-shipments"] });
-      queryClient.invalidateQueries({ queryKey: ["cargo-shipments-by-aircraft"] });
-      queryClient.invalidateQueries({ queryKey: ["cargo-shipments-by-external-aircraft"] });
+      queryClient.invalidateQueries({
+        queryKey: ["cargo-shipments-by-aircraft"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["cargo-shipments-by-external-aircraft"],
+      });
       queryClient.invalidateQueries({ queryKey: ["cargo-stats-by-aircraft"] });
       queryClient.invalidateQueries({ queryKey: ["cargo-shipment"] });
       queryClient.invalidateQueries({ queryKey: ["cargoNextGuide"] });

@@ -172,7 +172,9 @@ export const useAttachWorkOrderToQueue = () => {
       }
     },
     onError: (error: any) => {
-      notifyError(error, { action: "asociar la Orden de Trabajo a lo seleccionado" });
+      notifyError(error, {
+        action: "asociar la Orden de Trabajo a lo seleccionado",
+      });
       console.log(error);
     },
   });

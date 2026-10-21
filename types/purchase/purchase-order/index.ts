@@ -1,8 +1,21 @@
-import type { Unit, Location, BankAccount, BankCard, PaymentMethod, ShippingAgency, GeneralArticle, Retailer, Vendor } from '@/types';
-import type { ArticleRequisitionOrderRef, GeneralArticleRequisitionOrderRef } from '@/types/purchase/quote';
+import type {
+  Unit,
+  Location,
+  BankAccount,
+  BankCard,
+  PaymentMethod,
+  ShippingAgency,
+  GeneralArticle,
+  Retailer,
+  Vendor,
+} from "@/types";
+import type {
+  ArticleRequisitionOrderRef,
+  GeneralArticleRequisitionOrderRef,
+} from "@/types/purchase/quote";
 
 // ── Purchase order status ───────────────────────────────────────────────────
-export type PurchaseOrderStatus = 'PENDING' | 'PAID' | 'COMPLETED';
+export type PurchaseOrderStatus = "PENDING" | "PAID" | "COMPLETED";
 
 // ── Quote article snapshot nested under an article_purchase_order ──────────
 export interface PurchaseOrderArticleQuoteOrder {
@@ -279,10 +292,12 @@ export interface RegisterGeneralArticlesDeliveryResponse {
 // department/employee/authorized/third party (never a warehouse), so there is
 // no confirmation step and it never reaches inventory — its receipt is the
 // downloadable Nota de Entrega.
-export type GeneralArticleIntakeStatus = 'PENDING' | 'CONFIRMED' | 'REJECTED' | 'DELIVERED';
+export type GeneralArticleIntakeStatus =
+  "PENDING" | "CONFIRMED" | "REJECTED" | "DELIVERED";
 
 /** Origen del intake: ciclo de compras, recepción administrativa o reclasificado desde aeronáuticos. */
-export type GeneralArticleIntakeEntryType = 'PURCHASE' | 'ADMINISTRATIVE' | 'RECLASSIFIED';
+export type GeneralArticleIntakeEntryType =
+  "PURCHASE" | "ADMINISTRATIVE" | "RECLASSIFIED";
 
 // Shaped by GeneralArticleIntakeResource — only what the frontend needs from
 // each relation, not the full purchase_order/quote_order/requisition_order

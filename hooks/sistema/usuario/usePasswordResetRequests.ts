@@ -42,7 +42,7 @@ export const useRequestPasswordReset = () => {
     mutationFn: async (data: { email: string; note?: string }) => {
       const response = await axiosInstance.post(
         "/password-reset-requests",
-        data
+        data,
       );
       return response.data;
     },
@@ -62,7 +62,7 @@ export const usePendingPasswordResets = (enabled = true) => {
     queryKey: ["password-reset-requests", "pending"],
     queryFn: async () => {
       const response = await axiosInstance.get(
-        "/password-reset-requests/pending"
+        "/password-reset-requests/pending",
       );
       return response.data;
     },
@@ -98,7 +98,7 @@ export const useResolvePasswordReset = () => {
     }) => {
       const response = await axiosInstance.post(
         `/password-reset-requests/${id}/resolve`,
-        data
+        data,
       );
       return response.data;
     },
@@ -118,10 +118,16 @@ export const useRejectPasswordReset = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, resolution }: { id: number; resolution?: string }) => {
+    mutationFn: async ({
+      id,
+      resolution,
+    }: {
+      id: number;
+      resolution?: string;
+    }) => {
       const response = await axiosInstance.post(
         `/password-reset-requests/${id}/reject`,
-        { resolution }
+        { resolution },
       );
       return response.data;
     },

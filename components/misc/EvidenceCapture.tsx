@@ -72,7 +72,9 @@ export function EvidenceCapture({
   // array nuevo en cada render: dependiendo de la referencia, el efecto se
   // dispararía en bucle creando y revocando URLs que la vista está usando.
   // La identidad de los File sí es estable, así que se compara por ellos.
-  const filesKey = files.map((file) => `${file.name}:${file.size}:${file.lastModified}`).join("|");
+  const filesKey = files
+    .map((file) => `${file.name}:${file.size}:${file.lastModified}`)
+    .join("|");
 
   useEffect(() => {
     const urls = files.map((file) => URL.createObjectURL(file));
@@ -118,7 +120,7 @@ export function EvidenceCapture({
 
       onChange([...files, ...accepted]);
     },
-    [files, max, onChange, remaining]
+    [files, max, onChange, remaining],
   );
 
   const removeAt = (index: number) =>
@@ -184,7 +186,9 @@ export function EvidenceCapture({
                 </DropdownMenuTrigger>
               </TooltipTrigger>
               <TooltipContent>
-                {files.length > 0 ? "Añadir otra evidencia" : "Adjuntar evidencia"}
+                {files.length > 0
+                  ? "Añadir otra evidencia"
+                  : "Adjuntar evidencia"}
               </TooltipContent>
             </Tooltip>
 
@@ -237,7 +241,6 @@ export function EvidenceCapture({
             ))}
           </div>
         )}
-
       </div>
 
       <Dialog open={openCamera} onOpenChange={closeCamera}>
@@ -269,7 +272,9 @@ export function EvidenceCapture({
               {camera.error && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-background/90 px-6 text-center">
                   <AlertTriangle className="size-6 text-amber-500" />
-                  <p className="text-sm text-muted-foreground">{camera.error}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {camera.error}
+                  </p>
                   <Button
                     type="button"
                     variant="outline"

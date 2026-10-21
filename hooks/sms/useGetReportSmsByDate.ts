@@ -9,7 +9,10 @@ import { notifyBlobError } from "@/lib/notify-error";
  * @param onSuccess Callback que se ejecuta tras una descarga exitosa (ej. cerrar el modal).
  * @param company El identificador de la empresa (por defecto 'transmandu').
  */
-export function useSmsReport(onSuccess?: () => void, company: string = "transmandu") {
+export function useSmsReport(
+  onSuccess?: () => void,
+  company: string = "transmandu",
+) {
   const [reportFrom, setReportFrom] = useState<Date | undefined>();
   const [reportTo, setReportTo] = useState<Date | undefined>();
   const [isGenerating, setIsGenerating] = useState(false);
@@ -26,7 +29,8 @@ export function useSmsReport(onSuccess?: () => void, company: string = "transman
     // Validación lógica: evitar que 'Hasta' sea menor que 'Desde'
     if (reportTo! < reportFrom!) {
       toast.warning("Rango inválido", {
-        description: "La fecha 'Hasta' no puede ser anterior a la fecha 'Desde'.",
+        description:
+          "La fecha 'Hasta' no puede ser anterior a la fecha 'Desde'.",
         id: "date-validation", // ID único para evitar múltiples toasts iguales
       });
       return;
@@ -35,21 +39,21 @@ export function useSmsReport(onSuccess?: () => void, company: string = "transman
     setIsGenerating(true);
 
     try {
-      const token = localStorage.getItem('token');
-      
+      const token = localStorage.getItem("token");
+
       const response = await axiosInstance.get(
-        `/${company}/sms-report-by-date`, 
-        { 
-          params: { 
-            from: format(reportFrom!, "yyyy-MM-dd"), 
-            to: format(reportTo!, "yyyy-MM-dd") 
+        `/${company}/sms-report-by-date`,
+        {
+          params: {
+            from: format(reportFrom!, "yyyy-MM-dd"),
+            to: format(reportTo!, "yyyy-MM-dd"),
           },
           headers: {
             Authorization: `Bearer ${token}`,
             Accept: "application/pdf",
           },
           responseType: "blob", // Importante para manejar archivos
-        }
+        },
       );
 
       const blob = new Blob([response.data], { type: "application/pdf" });
@@ -60,7 +64,7 @@ export function useSmsReport(onSuccess?: () => void, company: string = "transman
       const link = document.createElement("a");
       link.href = downloadUrl;
       link.download = `cronograma_sms_${company}_${format(reportFrom!, "yyyy-MM-dd")}.pdf`;
-      
+
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -68,12 +72,11 @@ export function useSmsReport(onSuccess?: () => void, company: string = "transman
 
       toast.success("Reporte descargado", {
         description: "El cronograma se ha generado correctamente.",
-        id: "report-status"
+        id: "report-status",
       });
 
       // Ejecutar el cierre del modal si se proporcionó la función
       if (onSuccess) onSuccess();
-
     } catch (error: any) {
       console.error("Error al generar reporte:", error);
 
@@ -91,13 +94,13 @@ export function useSmsReport(onSuccess?: () => void, company: string = "transman
     }
   };
 
-  return { 
-    reportFrom, 
-    setReportFrom, 
-    reportTo, 
-    setReportTo, 
-    isGenerating, 
+  return {
+    reportFrom,
+    setReportFrom,
+    reportTo,
+    setReportTo,
+    isGenerating,
     handleGenerate,
-    canGenerate // Úsalo para la propiedad 'disabled' del botón
+    canGenerate, // Úsalo para la propiedad 'disabled' del botón
   };
-}
+}

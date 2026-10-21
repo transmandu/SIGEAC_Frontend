@@ -44,7 +44,7 @@ export const UniformBrandForm = ({ onClose, brand, onCreated }: Props) => {
     if (isEdit) {
       updateBrand.mutate(
         { company, id: brand!.id, data: { name: name.trim(), active } },
-        { onSuccess: () => onClose() }
+        { onSuccess: () => onClose() },
       );
     } else {
       createBrand.mutate(
@@ -55,7 +55,7 @@ export const UniformBrandForm = ({ onClose, brand, onCreated }: Props) => {
             if (newId) onCreated?.(newId);
             onClose();
           },
-        }
+        },
       );
     }
   };

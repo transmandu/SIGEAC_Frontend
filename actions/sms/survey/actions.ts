@@ -51,7 +51,7 @@ export const useCreateSurvey = () => {
     mutationFn: async (surveyData: surveyData) => {
       const response = await axiosInstance.post(
         `/${selectedCompany?.slug}/${selectedStation}/sms/survey`,
-        surveyData
+        surveyData,
       );
       return response.data;
     },
@@ -79,7 +79,7 @@ export const useCreateSurveyAnswers = () => {
     mutationFn: async ({ answers, company }: surveyAnswerData) => {
       const response = await axiosInstance.post(
         `/${company}/sms/survey-answer`,
-        answers
+        answers,
       );
       return response.data;
     },
@@ -112,11 +112,13 @@ export const useDeleteSurvey = () => {
       survey_number: string;
     }) => {
       await axiosInstance.delete(
-        `/${company}/${location_id}/sms/survey/${survey_number}`
+        `/${company}/${location_id}/sms/survey/${survey_number}`,
       );
     },
     onSuccess: (_, data) => {
-      queryClient.invalidateQueries({ queryKey: ["surveys", data.company, data.location_id] });
+      queryClient.invalidateQueries({
+        queryKey: ["surveys", data.company, data.location_id],
+      });
       toast.success("¡Eliminado!", {
         description: `¡La encuesta ha sido eliminada correctamente!`,
       });
@@ -150,7 +152,7 @@ export const useUpdateSurvey = () => {
     }: UpdateSurveyData) => {
       const response = await axiosInstance.put(
         `/${company}/${location_id}/sms/survey/${survey_number}`,
-        data
+        data,
       );
       return response.data;
     },
@@ -203,7 +205,7 @@ export const useUpdateQuestion = () => {
     }: UpdateQuestionData) => {
       const response = await axiosInstance.patch(
         `/${company}/${location_id}/sms/survey/${survey_number}/question/${question_id}`,
-        data
+        data,
       );
       return response.data;
     },
@@ -243,7 +245,7 @@ export const useDeleteQuestion = () => {
       question_id,
     }: DeleteQuestionData) => {
       const response = await axiosInstance.delete(
-        `/${company}/${location_id}/sms/survey/${survey_number}/question/${question_id}`
+        `/${company}/${location_id}/sms/survey/${survey_number}/question/${question_id}`,
       );
       return response.data;
     },
@@ -292,7 +294,7 @@ export const useCreateQuestion = () => {
     }: CreateQuestionData) => {
       const response = await axiosInstance.post(
         `/${company}/${location_id}/sms/survey/${survey_number}/question`,
-        data
+        data,
       );
       return response.data;
     },
@@ -337,7 +339,7 @@ export const useUpdateSurveyInfo = () => {
     }: UpdateSurveyInfoData) => {
       const response = await axiosInstance.patch(
         `/${company}/${location_id}/sms/survey/${survey_number}/info`,
-        data
+        data,
       );
       return response.data;
     },
@@ -350,7 +352,9 @@ export const useUpdateSurveyInfo = () => {
       });
     },
     onError: (error) => {
-      notifyError(error, { action: "actualizar la información de la encuesta" });
+      notifyError(error, {
+        action: "actualizar la información de la encuesta",
+      });
     },
   });
 
@@ -382,10 +386,7 @@ export const useLinkSurveyToActivity = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["sms-activities"] });
       queryClient.invalidateQueries({
-        queryKey: [
-          "surveys-without-activity",
-          selectedCompany?.slug,
-        ],
+        queryKey: ["surveys-without-activity", selectedCompany?.slug],
       });
       toast.success("¡Vinculado!", {
         description:
@@ -419,7 +420,7 @@ export const useUpdateSurveySetting = () => {
           headers: {
             "Content-Type": "multipart/form-data",
           },
-        }
+        },
       );
       return response.data;
     },

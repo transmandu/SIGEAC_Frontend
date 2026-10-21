@@ -1,17 +1,17 @@
-'use client'
+"use client";
 
-import { useEffect, useMemo, useState } from 'react'
-import { toast } from 'sonner'
-import { Download, FileText, Loader2 } from 'lucide-react'
+import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
+import { Download, FileText, Loader2 } from "lucide-react";
 
-import { Button } from '@/components/ui/button'
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -20,15 +20,15 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { useCompanyStore } from '@/stores/CompanyStore'
-import { useAuth } from '@/contexts/AuthContext'
-import { useMyEmployee } from '@/hooks/sistema/usuario/useMyEmployee'
-import { useDownloadRequisitionPdf } from '@/hooks/mantenimiento/compras/useDownloadRequisitionPdf'
+} from "@/components/ui/select";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { useAuth } from "@/contexts/AuthContext";
+import { useMyEmployee } from "@/hooks/sistema/usuario/useMyEmployee";
+import { useDownloadRequisitionPdf } from "@/hooks/mantenimiento/compras/useDownloadRequisitionPdf";
 import {
   useGetRequisitionPdfReceivers,
   type RequisitionPdfReceiver,
-} from '@/hooks/mantenimiento/compras/useGetRequisitionPdfReceivers'
+} from "@/hooks/mantenimiento/compras/useGetRequisitionPdfReceivers";
 import { notifyError } from "@/lib/notify-error";
 
 /**
@@ -37,19 +37,19 @@ import { notifyError } from "@/lib/notify-error";
  * compañía distinta a la de la requisición.
  */
 const SELF_RECEIVER_ROLES = [
-  'JEFE_COMPRAS',
-  'ANALISTA_COMPRAS',
-  'ASISTENTE_COMPRAS',
-]
+  "JEFE_COMPRAS",
+  "ANALISTA_COMPRAS",
+  "ASISTENTE_COMPRAS",
+];
 
 type Props = {
   req: {
-    id: number
-    order_number: string
-  }
-  open: boolean
-  onOpenChange: (open: boolean) => void
-}
+    id: number;
+    order_number: string;
+  };
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+};
 
 /**
  * Diálogo de descarga del formato "REQUISICION" (PDF generado en el backend).
@@ -62,44 +62,44 @@ export default function DownloadRequisitionPdfDialog({
   open,
   onOpenChange,
 }: Props) {
-  const { selectedCompany } = useCompanyStore()
-  const { user } = useAuth()
-  const [receiverId, setReceiverId] = useState<string>('')
+  const { selectedCompany } = useCompanyStore();
+  const { user } = useAuth();
+  const [receiverId, setReceiverId] = useState<string>("");
 
-  const userRoles = user?.roles?.map((role) => role.name) ?? []
+  const userRoles = user?.roles?.map((role) => role.name) ?? [];
   const isSelfReceiver = SELF_RECEIVER_ROLES.some((role) =>
-    userRoles.includes(role)
-  )
+    userRoles.includes(role),
+  );
 
   // La selección no se conserva entre aperturas: cada descarga debe elegir
   // conscientemente al receptor.
   useEffect(() => {
-    if (!open) setReceiverId('')
-  }, [open])
+    if (!open) setReceiverId("");
+  }, [open]);
 
-  const { data: myEmployee, isLoading: isMyEmployeeLoading } = useMyEmployee()
+  const { data: myEmployee, isLoading: isMyEmployeeLoading } = useMyEmployee();
 
   const { data: receivers, isLoading: isReceiversLoading } =
     useGetRequisitionPdfReceivers(
-      open && !isSelfReceiver ? selectedCompany?.slug : undefined
-    )
+      open && !isSelfReceiver ? selectedCompany?.slug : undefined,
+    );
 
-  const { mutateAsync: downloadPdf, isPending } = useDownloadRequisitionPdf()
+  const { mutateAsync: downloadPdf, isPending } = useDownloadRequisitionPdf();
 
   // Agrupados por departamento para el select
   const receiversByDepartment = useMemo(() => {
-    const groups = new Map<string, RequisitionPdfReceiver[]>()
+    const groups = new Map<string, RequisitionPdfReceiver[]>();
     for (const receiver of receivers ?? []) {
-      const department = receiver.department?.name ?? 'Sin departamento'
-      groups.set(department, [...(groups.get(department) ?? []), receiver])
+      const department = receiver.department?.name ?? "Sin departamento";
+      groups.set(department, [...(groups.get(department) ?? []), receiver]);
     }
-    return Array.from(groups.entries())
-  }, [receivers])
+    return Array.from(groups.entries());
+  }, [receivers]);
 
-  const canDownload = isSelfReceiver ? !!myEmployee : !!receiverId
+  const canDownload = isSelfReceiver ? !!myEmployee : !!receiverId;
 
   const handleDownload = async () => {
-    if (!selectedCompany?.slug || !canDownload || isPending) return
+    if (!selectedCompany?.slug || !canDownload || isPending) return;
 
     try {
       const blob = await downloadPdf({
@@ -108,21 +108,21 @@ export default function DownloadRequisitionPdfDialog({
         ...(isSelfReceiver
           ? ({ receiverSelf: true } as const)
           : { receiverEmployeeId: Number(receiverId) }),
-      })
+      });
 
-      const url = URL.createObjectURL(blob)
-      const anchor = document.createElement('a')
-      anchor.href = url
-      anchor.download = `${req.order_number}.pdf`
-      anchor.click()
-      URL.revokeObjectURL(url)
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `${req.order_number}.pdf`;
+      anchor.click();
+      URL.revokeObjectURL(url);
 
-      toast.success(`Requisición ${req.order_number} generada`)
-      onOpenChange(false)
+      toast.success(`Requisición ${req.order_number} generada`);
+      onOpenChange(false);
     } catch (error) {
-      notifyError(error, { action: "generar el PDF de la requisición" })
+      notifyError(error, { action: "generar el PDF de la requisición" });
     }
-  }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

@@ -113,7 +113,9 @@ export function DownloadRequisitionsByStatusDialog() {
       toast.success("Reporte de solicitudes generado");
       setOpen(false);
     } catch (error) {
-      notifyError(error, { action: "generar el reporte de solicitudes por estado" });
+      notifyError(error, {
+        action: "generar el reporte de solicitudes por estado",
+      });
     }
   };
 

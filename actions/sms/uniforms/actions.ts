@@ -104,7 +104,7 @@ export const useUpdateUniformItem = () => {
     mutationFn: async ({ company, id, data }: UpdateItemPayload) => {
       return await axiosInstance.patch(
         `/${company}/sms/uniforms/items/${id}`,
-        data
+        data,
       );
     },
     onSuccess: () => {
@@ -123,9 +123,7 @@ export const useDeleteUniformItem = () => {
 
   return useMutation({
     mutationFn: async ({ company, id }: { company: string; id: number }) => {
-      return await axiosInstance.delete(
-        `/${company}/sms/uniforms/items/${id}`
-      );
+      return await axiosInstance.delete(`/${company}/sms/uniforms/items/${id}`);
     },
     onSuccess: () => {
       invalidate(queryClient);
@@ -145,7 +143,7 @@ export const useCreateUniformArticleType = () => {
     mutationFn: async ({ company, data }: CreateArticleTypePayload) => {
       return await axiosInstance.post(
         `/${company}/sms/uniforms/article-types`,
-        data
+        data,
       );
     },
     onSuccess: () => {
@@ -165,7 +163,7 @@ export const useUpdateUniformArticleType = () => {
     mutationFn: async ({ company, id, data }: UpdateArticleTypePayload) => {
       return await axiosInstance.patch(
         `/${company}/sms/uniforms/article-types/${id}`,
-        data
+        data,
       );
     },
     onSuccess: () => {
@@ -184,7 +182,7 @@ export const useDeleteUniformArticleType = () => {
   return useMutation({
     mutationFn: async ({ company, id }: { company: string; id: number }) => {
       return await axiosInstance.delete(
-        `/${company}/sms/uniforms/article-types/${id}`
+        `/${company}/sms/uniforms/article-types/${id}`,
       );
     },
     onSuccess: () => {
@@ -203,10 +201,7 @@ export const useCreateUniformBrand = () => {
 
   return useMutation({
     mutationFn: async ({ company, data }: CreateBrandPayload) => {
-      return await axiosInstance.post(
-        `/${company}/sms/uniforms/brands`,
-        data
-      );
+      return await axiosInstance.post(`/${company}/sms/uniforms/brands`, data);
     },
     onSuccess: () => {
       invalidateBrands(queryClient);
@@ -225,7 +220,7 @@ export const useUpdateUniformBrand = () => {
     mutationFn: async ({ company, id, data }: UpdateBrandPayload) => {
       return await axiosInstance.patch(
         `/${company}/sms/uniforms/brands/${id}`,
-        data
+        data,
       );
     },
     onSuccess: () => {
@@ -244,7 +239,7 @@ export const useDeleteUniformBrand = () => {
   return useMutation({
     mutationFn: async ({ company, id }: { company: string; id: number }) => {
       return await axiosInstance.delete(
-        `/${company}/sms/uniforms/brands/${id}`
+        `/${company}/sms/uniforms/brands/${id}`,
       );
     },
     onSuccess: () => {
@@ -265,7 +260,7 @@ export const useCreateUniformMovement = () => {
     mutationFn: async ({ company, data }: CreateMovementPayload) => {
       return await axiosInstance.post(
         `/${company}/sms/uniforms/movements`,
-        data
+        data,
       );
     },
     onSuccess: () => {

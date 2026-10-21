@@ -70,13 +70,17 @@ export const UniformArticleTypeForm = ({ onClose, articleType }: Props) => {
 
     if (isEdit) {
       updateType.mutate(
-        { company, id: articleType!.id, data: { name: name.trim(), sizes, active } },
-        { onSuccess: () => onClose() }
+        {
+          company,
+          id: articleType!.id,
+          data: { name: name.trim(), sizes, active },
+        },
+        { onSuccess: () => onClose() },
       );
     } else {
       createType.mutate(
         { company, data: { name: name.trim(), sizes, active } },
-        { onSuccess: () => onClose() }
+        { onSuccess: () => onClose() },
       );
     }
   };
@@ -103,7 +107,12 @@ export const UniformArticleTypeForm = ({ onClose, articleType }: Props) => {
             onChange={(e) => setSizeInput(e.target.value)}
             onKeyDown={onSizeKeyDown}
           />
-          <Button type="button" variant="outline" onClick={addSize} className="gap-1">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={addSize}
+            className="gap-1"
+          >
             <Plus className="size-4" />
             Agregar
           </Button>

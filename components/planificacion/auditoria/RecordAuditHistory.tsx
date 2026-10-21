@@ -104,8 +104,7 @@ export function RecordAuditHistory({
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              Descargar el historial completo, con la verificación de la
-              cadena
+              Descargar el historial completo, con la verificación de la cadena
             </TooltipContent>
           </Tooltip>
 

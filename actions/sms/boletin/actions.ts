@@ -82,7 +82,13 @@ export const useDeleteSafetyBulletin = () => {
 export const useDeleteBulletinDocument = () => {
   const queryClient = useQueryClient();
   const mutation = useMutation({
-    mutationFn: async ({ company, id }: { company: string; id: string | number }) => {
+    mutationFn: async ({
+      company,
+      id,
+    }: {
+      company: string;
+      id: string | number;
+    }) => {
       await axiosInstance.delete(`/${company}/sms/bulletin/${id}/document`);
     },
     onSuccess: (_, variables) => {

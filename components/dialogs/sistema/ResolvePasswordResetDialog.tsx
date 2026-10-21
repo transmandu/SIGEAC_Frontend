@@ -42,9 +42,7 @@ import {
 
 const FormSchema = z
   .object({
-    password: z
-      .string()
-      .min(8, { message: "Mínimo 8 caracteres." }),
+    password: z.string().min(8, { message: "Mínimo 8 caracteres." }),
     password_confirmation: z.string(),
   })
   .refine((d) => d.password === d.password_confirmation, {

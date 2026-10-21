@@ -14,7 +14,11 @@ export const useUpdateCompanySettings = () => {
   const { selectedCompany } = useCompanyStore();
   const queryClient = useQueryClient();
 
-  const mutation = useMutation<CompanySettings, Error, UpdateCompanySettingsPayload>({
+  const mutation = useMutation<
+    CompanySettings,
+    Error,
+    UpdateCompanySettingsPayload
+  >({
     mutationKey: ["update-company-settings"],
 
     mutationFn: async (payload) => {

@@ -54,7 +54,7 @@ const ArticleDocumentsDialog = ({
     try {
       const { data } = await axiosInstance.get(
         `/${selectedCompany?.slug}/article-documents/${doc.id}/download`,
-        { responseType: "blob" }
+        { responseType: "blob" },
       );
 
       const url = URL.createObjectURL(new Blob([data]));
@@ -62,7 +62,7 @@ const ArticleDocumentsDialog = ({
       link.href = url;
       link.setAttribute(
         "download",
-        doc.file_path?.split("/").pop() ?? `documento-${doc.id}`
+        doc.file_path?.split("/").pop() ?? `documento-${doc.id}`,
       );
       document.body.appendChild(link);
       link.click();
@@ -105,7 +105,7 @@ const ArticleDocumentsDialog = ({
                       "flex flex-wrap items-center justify-between gap-2 rounded-lg border px-3 py-2",
                       consigned
                         ? "border-emerald-300/60 bg-emerald-50/50 dark:border-emerald-700/40 dark:bg-emerald-950/20"
-                        : "border-border bg-muted/30"
+                        : "border-border bg-muted/30",
                     )}
                   >
                     <div className="flex min-w-0 items-center gap-2">
@@ -129,7 +129,10 @@ const ArticleDocumentsDialog = ({
                     <TooltipProvider>
                       <div className="flex flex-wrap items-center gap-1">
                         {req.documents.map((doc) => (
-                          <span key={doc.id} className="flex items-center gap-1">
+                          <span
+                            key={doc.id}
+                            className="flex items-center gap-1"
+                          >
                             <DocumentSupportBadge doc={doc} />
                             {doc.file_path && (
                               <>
@@ -193,7 +196,7 @@ const ArticleDocumentsDialog = ({
           fetchBlobUrl={async () => {
             const { data } = await axiosInstance.get(
               `/${selectedCompany?.slug}/article-documents/${previewDoc.id}/view`,
-              { responseType: "blob" }
+              { responseType: "blob" },
             );
             return URL.createObjectURL(data);
           }}

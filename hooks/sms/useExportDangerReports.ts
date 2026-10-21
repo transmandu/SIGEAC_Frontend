@@ -8,7 +8,7 @@ export const useExportDangerReports = () => {
         `/${company}/sms/danger-identifications/export`,
         {
           responseType: "blob",
-        }
+        },
       );
 
       const url = URL.createObjectURL(response.data);

@@ -71,7 +71,9 @@ export const useDeleteJobTitle = () => {
       });
     },
     onError: (error: any) => {
-      notifyError(error, { action: "eliminar el cargo! Puede que tenga empleados asignados" });
+      notifyError(error, {
+        action: "eliminar el cargo! Puede que tenga empleados asignados",
+      });
     },
   });
 

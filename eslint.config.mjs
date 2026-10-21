@@ -28,7 +28,8 @@ export default [
           patterns: [
             {
               group: ["../*"],
-              message: "Usa imports absolutos con @/ en vez de subir de directorio.",
+              message:
+                "Usa imports absolutos con @/ en vez de subir de directorio.",
             },
           ],
         },

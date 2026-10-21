@@ -1,163 +1,238 @@
-import axiosInstance from "@/lib/axios"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
-import type { CreatePurchaseOrderData, UpdatePurchaseOrderData, RegisterGeneralArticlesDeliveryResponse } from "@/types/purchase"
+import axiosInstance from "@/lib/axios";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import type {
+  CreatePurchaseOrderData,
+  UpdatePurchaseOrderData,
+  RegisterGeneralArticlesDeliveryResponse,
+} from "@/types/purchase";
 import { notifyError } from "@/lib/notify-error";
 
 export const useCreatePurchaseOrder = () => {
-
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   const createMutation = useMutation({
-      // Sin reintentos: un POST repetido de esta ruta crea órdenes duplicadas.
-      retry: false,
-      mutationFn: async ({data, company}: {data: CreatePurchaseOrderData, company: string}) => {
-          await axiosInstance.post(`/${company}/purchase-order`, data)
-        },
-      onSuccess: () => {
-          queryClient.invalidateQueries({queryKey: ['purchase-orders']})
-          queryClient.invalidateQueries({queryKey: ['purchase-order'], exact: false})
-          queryClient.invalidateQueries({queryKey: ['purchaseOrderByQuote'], exact: false})
-          // Crear la OC aprueba la cotización y avanza la requisición en el backend.
-          queryClient.invalidateQueries({queryKey: ['quotes']})
-          queryClient.invalidateQueries({queryKey: ['quote'], exact: false})
-          queryClient.invalidateQueries({queryKey: ['requisitions-orders']})
-          queryClient.invalidateQueries({queryKey: ['requisition-order'], exact: false})
-          toast.success("¡Creado!", {
-              description: `La orden de compra ha sido creada correctamente.`
-          })
-        },
-      onError: (error: any) => {
-          // 409 = la cotización ya generó sus órdenes (doble clic o request repetido).
-          // No es un fallo: el trabajo ya está hecho, así que se refresca para que
-          // la vista muestre las órdenes que sí existen.
-          if (error?.response?.status === 409) {
-            queryClient.invalidateQueries({queryKey: ['purchase-orders']})
-            queryClient.invalidateQueries({queryKey: ['purchaseOrderByQuote'], exact: false})
-            queryClient.invalidateQueries({queryKey: ['quotes']})
-            queryClient.invalidateQueries({queryKey: ['quote'], exact: false})
+    // Sin reintentos: un POST repetido de esta ruta crea órdenes duplicadas.
+    retry: false,
+    mutationFn: async ({
+      data,
+      company,
+    }: {
+      data: CreatePurchaseOrderData;
+      company: string;
+    }) => {
+      await axiosInstance.post(`/${company}/purchase-order`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["purchase-orders"] });
+      queryClient.invalidateQueries({
+        queryKey: ["purchase-order"],
+        exact: false,
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["purchaseOrderByQuote"],
+        exact: false,
+      });
+      // Crear la OC aprueba la cotización y avanza la requisición en el backend.
+      queryClient.invalidateQueries({ queryKey: ["quotes"] });
+      queryClient.invalidateQueries({ queryKey: ["quote"], exact: false });
+      queryClient.invalidateQueries({ queryKey: ["requisitions-orders"] });
+      queryClient.invalidateQueries({
+        queryKey: ["requisition-order"],
+        exact: false,
+      });
+      toast.success("¡Creado!", {
+        description: `La orden de compra ha sido creada correctamente.`,
+      });
+    },
+    onError: (error: any) => {
+      // 409 = la cotización ya generó sus órdenes (doble clic o request repetido).
+      // No es un fallo: el trabajo ya está hecho, así que se refresca para que
+      // la vista muestre las órdenes que sí existen.
+      if (error?.response?.status === 409) {
+        queryClient.invalidateQueries({ queryKey: ["purchase-orders"] });
+        queryClient.invalidateQueries({
+          queryKey: ["purchaseOrderByQuote"],
+          exact: false,
+        });
+        queryClient.invalidateQueries({ queryKey: ["quotes"] });
+        queryClient.invalidateQueries({ queryKey: ["quote"], exact: false });
 
-            toast.warning("Esta cotización ya fue aprobada", {
-              description: error?.response?.data?.message
-                || "La cotización ya tiene sus órdenes de compra generadas."
-            })
+        toast.warning("Esta cotización ya fue aprobada", {
+          description:
+            error?.response?.data?.message ||
+            "La cotización ya tiene sus órdenes de compra generadas.",
+        });
 
-            return
-          }
-
-          notifyError(error, { action: "crear la orden de compra" })
-        },
+        return;
       }
-  )
+
+      notifyError(error, { action: "crear la orden de compra" });
+    },
+  });
   return {
     createPurchaseOrder: createMutation,
-  }
-}
+  };
+};
 
 export const useCompletePurchase = () => {
-
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   const completePurchaseMutation = useMutation({
-      mutationFn: async ({id, data, company}: {id: number, data: UpdatePurchaseOrderData, company: string}) => {
-          const formData = new FormData()
-          formData.append("_method", "PUT")
+    mutationFn: async ({
+      id,
+      data,
+      company,
+    }: {
+      id: number;
+      data: UpdatePurchaseOrderData;
+      company: string;
+    }) => {
+      const formData = new FormData();
+      formData.append("_method", "PUT");
 
-          if (data.tax != null) formData.append("tax", String(data.tax))
-          if (data.wire_fee != null) formData.append("wire_fee", String(data.wire_fee))
-          if (data.handling_fee != null) formData.append("handling_fee", String(data.handling_fee))
-          if (data.sub_total != null) formData.append("sub_total", String(data.sub_total))
-          formData.append("total", String(data.total))
-          // Con payment_method_id el backend deriva la cuenta; bank_account_id
-          // suelto es compatibilidad con órdenes anteriores al rediseño de pagos.
-          if (data.payment_method_id != null) formData.append("payment_method_id", String(data.payment_method_id))
-          if (data.bank_account_id != null) formData.append("bank_account_id", String(data.bank_account_id))
-          if (data.bank_card_id != null) formData.append("bank_card_id", String(data.bank_card_id))
-          if (data.shipping_fee != null) formData.append("shipping_fee", String(data.shipping_fee))
-          if (data.shipping_agency_id != null) formData.append("shipping_agency_id", String(data.shipping_agency_id))
-          if (data.international_shipping != null) formData.append("international_shipping", String(data.international_shipping))
-          if (data.observation != null) formData.append("observation", data.observation)
+      if (data.tax != null) formData.append("tax", String(data.tax));
+      if (data.wire_fee != null)
+        formData.append("wire_fee", String(data.wire_fee));
+      if (data.handling_fee != null)
+        formData.append("handling_fee", String(data.handling_fee));
+      if (data.sub_total != null)
+        formData.append("sub_total", String(data.sub_total));
+      formData.append("total", String(data.total));
+      // Con payment_method_id el backend deriva la cuenta; bank_account_id
+      // suelto es compatibilidad con órdenes anteriores al rediseño de pagos.
+      if (data.payment_method_id != null)
+        formData.append("payment_method_id", String(data.payment_method_id));
+      if (data.bank_account_id != null)
+        formData.append("bank_account_id", String(data.bank_account_id));
+      if (data.bank_card_id != null)
+        formData.append("bank_card_id", String(data.bank_card_id));
+      if (data.shipping_fee != null)
+        formData.append("shipping_fee", String(data.shipping_fee));
+      if (data.shipping_agency_id != null)
+        formData.append("shipping_agency_id", String(data.shipping_agency_id));
+      if (data.international_shipping != null)
+        formData.append(
+          "international_shipping",
+          String(data.international_shipping),
+        );
+      if (data.observation != null)
+        formData.append("observation", data.observation);
 
-          // Se envía el estado completo: lo que no viaje con su id el backend
-          // lo da por eliminado. El array vacío también debe llegar, por eso
-          // se marca su presencia aparte del bucle.
-          if (data.invoices) {
-            formData.append("invoices_present", "1")
+      // Se envía el estado completo: lo que no viaje con su id el backend
+      // lo da por eliminado. El array vacío también debe llegar, por eso
+      // se marca su presencia aparte del bucle.
+      if (data.invoices) {
+        formData.append("invoices_present", "1");
 
-            data.invoices.forEach((invoice, index) => {
-              if (invoice.id != null) {
-                formData.append(`invoices[${index}][id]`, String(invoice.id))
-                formData.append("kept_invoice_ids[]", String(invoice.id))
-              }
-              formData.append(`invoices[${index}][invoice_number]`, invoice.invoice_number ?? "")
-              if (invoice.file) formData.append(`invoices[${index}][file]`, invoice.file)
-            })
+        data.invoices.forEach((invoice, index) => {
+          if (invoice.id != null) {
+            formData.append(`invoices[${index}][id]`, String(invoice.id));
+            formData.append("kept_invoice_ids[]", String(invoice.id));
           }
-
-          data.articles_purchase_orders?.forEach((article, index) => {
-            formData.append(`articles_purchase_orders[${index}][article_purchase_order_id]`, String(article.article_purchase_order_id))
-            if (article.total != null) formData.append(`articles_purchase_orders[${index}][total]`, String(article.total))
-            if (article.total_justification != null) formData.append(`articles_purchase_orders[${index}][total_justification]`, article.total_justification)
-            if (article.shipping_tracking != null) formData.append(`articles_purchase_orders[${index}][shipping_tracking]`, article.shipping_tracking)
-            if (article.international_shipping_tracking != null) formData.append(`articles_purchase_orders[${index}][international_shipping_tracking]`, article.international_shipping_tracking)
-          })
-
-          await axiosInstance.post(`/${company}/purchase-order/${id}`, formData, {
-            headers: { "Content-Type": "multipart/form-data" },
-          })
-        },
-      onSuccess: () => {
-          queryClient.invalidateQueries({queryKey: ['purchase-orders']})
-          queryClient.invalidateQueries({queryKey: ['purchase-order'], exact: false})
-          queryClient.invalidateQueries({queryKey: ['quotes']})
-          queryClient.invalidateQueries({queryKey: ['quote'], exact: false})
-          queryClient.invalidateQueries({queryKey: ['requisitions-orders']})
-          queryClient.invalidateQueries({queryKey: ['requisition-order'], exact: false})
-          toast.success("¡Confirmada!", {
-              description: `¡La orden de compra ha sido actualizada correctamente!`
-          })
-        },
-      onError: (error) => {
-          notifyError(error, { action: "actualizar la orden de compra" })
-        },
+          formData.append(
+            `invoices[${index}][invoice_number]`,
+            invoice.invoice_number ?? "",
+          );
+          if (invoice.file)
+            formData.append(`invoices[${index}][file]`, invoice.file);
+        });
       }
-  )
+
+      data.articles_purchase_orders?.forEach((article, index) => {
+        formData.append(
+          `articles_purchase_orders[${index}][article_purchase_order_id]`,
+          String(article.article_purchase_order_id),
+        );
+        if (article.total != null)
+          formData.append(
+            `articles_purchase_orders[${index}][total]`,
+            String(article.total),
+          );
+        if (article.total_justification != null)
+          formData.append(
+            `articles_purchase_orders[${index}][total_justification]`,
+            article.total_justification,
+          );
+        if (article.shipping_tracking != null)
+          formData.append(
+            `articles_purchase_orders[${index}][shipping_tracking]`,
+            article.shipping_tracking,
+          );
+        if (article.international_shipping_tracking != null)
+          formData.append(
+            `articles_purchase_orders[${index}][international_shipping_tracking]`,
+            article.international_shipping_tracking,
+          );
+      });
+
+      await axiosInstance.post(`/${company}/purchase-order/${id}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["purchase-orders"] });
+      queryClient.invalidateQueries({
+        queryKey: ["purchase-order"],
+        exact: false,
+      });
+      queryClient.invalidateQueries({ queryKey: ["quotes"] });
+      queryClient.invalidateQueries({ queryKey: ["quote"], exact: false });
+      queryClient.invalidateQueries({ queryKey: ["requisitions-orders"] });
+      queryClient.invalidateQueries({
+        queryKey: ["requisition-order"],
+        exact: false,
+      });
+      toast.success("¡Confirmada!", {
+        description: `¡La orden de compra ha sido actualizada correctamente!`,
+      });
+    },
+    onError: (error) => {
+      notifyError(error, { action: "actualizar la orden de compra" });
+    },
+  });
 
   return {
     completePurchase: completePurchaseMutation,
-  }
-}
+  };
+};
 
 export const useMarkPurchaseOrderAsPaid = () => {
-
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   const markAsPaidMutation = useMutation({
-      mutationFn: async ({id, company}: {id: number, company: string}) => {
-          const {data} = await axiosInstance.put(`/${company}/purchase-order/${id}/pay`)
-          return data
-        },
-      onSuccess: () => {
-          queryClient.invalidateQueries({queryKey: ['purchase-orders']})
-          queryClient.invalidateQueries({queryKey: ['purchase-order'], exact: false})
-          queryClient.invalidateQueries({queryKey: ['quotes']})
-          queryClient.invalidateQueries({queryKey: ['quote'], exact: false})
-          queryClient.invalidateQueries({queryKey: ['requisitions-orders']})
-          queryClient.invalidateQueries({queryKey: ['requisition-order'], exact: false})
-          toast.success("¡Pagada!", {
-              description: `La orden de compra ha sido marcada como pagada.`
-          })
-        },
-      onError: (error) => {
-          notifyError(error, { action: "marcar la orden de compra como pagada" })
-        },
-      }
-  )
+    mutationFn: async ({ id, company }: { id: number; company: string }) => {
+      const { data } = await axiosInstance.put(
+        `/${company}/purchase-order/${id}/pay`,
+      );
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["purchase-orders"] });
+      queryClient.invalidateQueries({
+        queryKey: ["purchase-order"],
+        exact: false,
+      });
+      queryClient.invalidateQueries({ queryKey: ["quotes"] });
+      queryClient.invalidateQueries({ queryKey: ["quote"], exact: false });
+      queryClient.invalidateQueries({ queryKey: ["requisitions-orders"] });
+      queryClient.invalidateQueries({
+        queryKey: ["requisition-order"],
+        exact: false,
+      });
+      toast.success("¡Pagada!", {
+        description: `La orden de compra ha sido marcada como pagada.`,
+      });
+    },
+    onError: (error) => {
+      notifyError(error, { action: "marcar la orden de compra como pagada" });
+    },
+  });
 
   return {
     markPurchaseOrderAsPaid: markAsPaidMutation,
-  }
-}
+  };
+};
 
 // Destino de la entrega: por defecto el almacén (warehouseId, de tipo GENERAL
 // en la estación activa) — intake PENDING que el almacén confirma. Si en
@@ -165,117 +240,168 @@ export const useMarkPurchaseOrderAsPaid = () => {
 // entidades que la requisición general), la entrega es directa: el intake nace
 // DELIVERED, nunca entra al inventario y su comprobante es la Nota de Entrega.
 export type GeneralArticlesDeliveryDestination = {
-  locationId?: string | number
-  warehouseId?: number
-  departmentId?: number
-  employeeId?: number
-  authorizedEmployeeId?: number
-  thirdPartyId?: number
-}
+  locationId?: string | number;
+  warehouseId?: number;
+  departmentId?: number;
+  employeeId?: number;
+  authorizedEmployeeId?: number;
+  thirdPartyId?: number;
+};
 
 // Lo llama quien trae la mercancía cuando los artículos generales llegan.
 // Crea un intake por cada ítem que aún no tenga uno, así que es seguro repetirlo
 // sobre la misma orden (entregas parciales). Pagar la orden ya no lo dispara solo.
 export const useRegisterGeneralArticlesDelivery = () => {
-
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   const registerDeliveryMutation = useMutation({
-      mutationFn: async ({id, company, arrivedAt, generalArticlePurchaseOrderIds, destination}: {id: number, company: string, arrivedAt?: Date, generalArticlePurchaseOrderIds?: number[], destination?: GeneralArticlesDeliveryDestination}) => {
-          const {data} = await axiosInstance.patch<RegisterGeneralArticlesDeliveryResponse>(
-            `/${company}/purchase-order/${id}/register-general-articles-delivery`,
-            {
-              ...(arrivedAt ? { arrived_at: arrivedAt.toISOString() } : {}),
-              ...(generalArticlePurchaseOrderIds ? { general_article_purchase_order_ids: generalArticlePurchaseOrderIds } : {}),
-              ...(destination?.locationId ? { location_id: Number(destination.locationId) } : {}),
-              ...(destination?.warehouseId ? { warehouse_id: destination.warehouseId } : {}),
-              ...(destination?.departmentId ? { department_id: destination.departmentId } : {}),
-              ...(destination?.employeeId ? { employee_id: destination.employeeId } : {}),
-              ...(destination?.authorizedEmployeeId ? { authorized_employee_id: destination.authorizedEmployeeId } : {}),
-              ...(destination?.thirdPartyId ? { third_party_id: destination.thirdPartyId } : {}),
-            }
-          )
-          return data
-        },
-      onSuccess: () => {
-          queryClient.invalidateQueries({queryKey: ['purchase-orders']})
-          queryClient.invalidateQueries({queryKey: ['purchase-order'], exact: false})
-          queryClient.invalidateQueries({queryKey: ['general-article-intakes'], exact: false})
-          toast.success("¡Entrega registrada!", {
-              description: `Se registró la entrega de los artículos generales de la orden de compra.`
-          })
-        },
-      onError: (error: any) => {
-          notifyError(error, { action: "registrar la entrega de los artículos generales" })
-        },
-      }
-  )
+    mutationFn: async ({
+      id,
+      company,
+      arrivedAt,
+      generalArticlePurchaseOrderIds,
+      destination,
+    }: {
+      id: number;
+      company: string;
+      arrivedAt?: Date;
+      generalArticlePurchaseOrderIds?: number[];
+      destination?: GeneralArticlesDeliveryDestination;
+    }) => {
+      const { data } =
+        await axiosInstance.patch<RegisterGeneralArticlesDeliveryResponse>(
+          `/${company}/purchase-order/${id}/register-general-articles-delivery`,
+          {
+            ...(arrivedAt ? { arrived_at: arrivedAt.toISOString() } : {}),
+            ...(generalArticlePurchaseOrderIds
+              ? {
+                  general_article_purchase_order_ids:
+                    generalArticlePurchaseOrderIds,
+                }
+              : {}),
+            ...(destination?.locationId
+              ? { location_id: Number(destination.locationId) }
+              : {}),
+            ...(destination?.warehouseId
+              ? { warehouse_id: destination.warehouseId }
+              : {}),
+            ...(destination?.departmentId
+              ? { department_id: destination.departmentId }
+              : {}),
+            ...(destination?.employeeId
+              ? { employee_id: destination.employeeId }
+              : {}),
+            ...(destination?.authorizedEmployeeId
+              ? { authorized_employee_id: destination.authorizedEmployeeId }
+              : {}),
+            ...(destination?.thirdPartyId
+              ? { third_party_id: destination.thirdPartyId }
+              : {}),
+          },
+        );
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["purchase-orders"] });
+      queryClient.invalidateQueries({
+        queryKey: ["purchase-order"],
+        exact: false,
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["general-article-intakes"],
+        exact: false,
+      });
+      toast.success("¡Entrega registrada!", {
+        description: `Se registró la entrega de los artículos generales de la orden de compra.`,
+      });
+    },
+    onError: (error: any) => {
+      notifyError(error, {
+        action: "registrar la entrega de los artículos generales",
+      });
+    },
+  });
 
   return {
     registerGeneralArticlesDelivery: registerDeliveryMutation,
-  }
-}
+  };
+};
 
 // Solo SUPERUSER. Borra la orden en cualquier estado: si ya generó inventario
 // (Articles o un intake confirmado), lo revierte en vez de bloquear.
 export const useCascadeDeletePurchaseOrder = () => {
-
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   const cascadeDeleteMutation = useMutation({
-      mutationFn: async ({id, company}: {id: number, company: string}) => {
-          await axiosInstance.delete(`/${company}/purchase-order/${id}/cascade`)
-        },
-      onSuccess: () => {
-          queryClient.invalidateQueries({queryKey: ['purchase-orders']})
-          queryClient.invalidateQueries({queryKey: ['purchase-order'], exact: false})
-          queryClient.invalidateQueries({queryKey: ['quotes']})
-          queryClient.invalidateQueries({queryKey: ['quote'], exact: false})
-          queryClient.invalidateQueries({queryKey: ['requisitions-orders']})
-          queryClient.invalidateQueries({queryKey: ['requisition-order'], exact: false})
-          queryClient.invalidateQueries({queryKey: ['general-article-intakes'], exact: false})
-          toast.success("¡Eliminada en cascada!", {
-              description: `La orden de compra y todo su inventario asociado fue eliminado, revirtiendo el stock correspondiente.`
-          })
-        },
-      onError: (error: any) => {
-          notifyError(error, { action: "eliminar en cascada la orden de compra" })
-        },
-      }
-  )
+    mutationFn: async ({ id, company }: { id: number; company: string }) => {
+      await axiosInstance.delete(`/${company}/purchase-order/${id}/cascade`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["purchase-orders"] });
+      queryClient.invalidateQueries({
+        queryKey: ["purchase-order"],
+        exact: false,
+      });
+      queryClient.invalidateQueries({ queryKey: ["quotes"] });
+      queryClient.invalidateQueries({ queryKey: ["quote"], exact: false });
+      queryClient.invalidateQueries({ queryKey: ["requisitions-orders"] });
+      queryClient.invalidateQueries({
+        queryKey: ["requisition-order"],
+        exact: false,
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["general-article-intakes"],
+        exact: false,
+      });
+      toast.success("¡Eliminada en cascada!", {
+        description: `La orden de compra y todo su inventario asociado fue eliminado, revirtiendo el stock correspondiente.`,
+      });
+    },
+    onError: (error: any) => {
+      notifyError(error, { action: "eliminar en cascada la orden de compra" });
+    },
+  });
 
   return {
     cascadeDeletePurchaseOrder: cascadeDeleteMutation,
-  }
-}
+  };
+};
 
 export const useMarkPurchaseOrderAsCompleted = () => {
-
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   const markAsCompletedMutation = useMutation({
-      mutationFn: async ({id, company}: {id: number, company: string}) => {
-          const {data} = await axiosInstance.put(`/${company}/purchase-order/${id}/complete`)
-          return data
-        },
-      onSuccess: () => {
-          queryClient.invalidateQueries({queryKey: ['purchase-orders']})
-          queryClient.invalidateQueries({queryKey: ['purchase-order'], exact: false})
-          queryClient.invalidateQueries({queryKey: ['quotes']})
-          queryClient.invalidateQueries({queryKey: ['quote'], exact: false})
-          queryClient.invalidateQueries({queryKey: ['requisitions-orders']})
-          queryClient.invalidateQueries({queryKey: ['requisition-order'], exact: false})
-          toast.success("¡Completada!", {
-              description: `La orden de compra ha sido marcada como completada.`
-          })
-        },
-      onError: (error) => {
-          notifyError(error, { action: "marcar la orden de compra como completada" })
-        },
-      }
-  )
+    mutationFn: async ({ id, company }: { id: number; company: string }) => {
+      const { data } = await axiosInstance.put(
+        `/${company}/purchase-order/${id}/complete`,
+      );
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["purchase-orders"] });
+      queryClient.invalidateQueries({
+        queryKey: ["purchase-order"],
+        exact: false,
+      });
+      queryClient.invalidateQueries({ queryKey: ["quotes"] });
+      queryClient.invalidateQueries({ queryKey: ["quote"], exact: false });
+      queryClient.invalidateQueries({ queryKey: ["requisitions-orders"] });
+      queryClient.invalidateQueries({
+        queryKey: ["requisition-order"],
+        exact: false,
+      });
+      toast.success("¡Completada!", {
+        description: `La orden de compra ha sido marcada como completada.`,
+      });
+    },
+    onError: (error) => {
+      notifyError(error, {
+        action: "marcar la orden de compra como completada",
+      });
+    },
+  });
 
   return {
     markPurchaseOrderAsCompleted: markAsCompletedMutation,
-  }
-}
+  };
+};

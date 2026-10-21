@@ -158,7 +158,7 @@ export const useMutateUnitConversionRow = (company?: string) => {
   const remove = useMutation({
     mutationFn: async (row: UnitConversionRow) => {
       const { data } = await axios.delete(
-        row.orphaned ? `/${company}/unit-conversions/${row.id}` : pathFor(row)
+        row.orphaned ? `/${company}/unit-conversions/${row.id}` : pathFor(row),
       );
       return data;
     },
@@ -200,7 +200,9 @@ export const useCreateArticleUnitConversion = (
     },
     onSuccess: (data) => {
       invalidateConversions(queryClient, company);
-      toast.success("Conversión creada", { description: data?.conversion?.lectura });
+      toast.success("Conversión creada", {
+        description: data?.conversion?.lectura,
+      });
     },
     onError: (error: any) => {
       const status = error?.response?.status;
@@ -241,7 +243,9 @@ export const useUpdateArticleUnitConversion = (
     },
     onSuccess: (data) => {
       invalidateConversions(queryClient, company);
-      toast.success("Conversión actualizada", { description: data?.conversion?.lectura });
+      toast.success("Conversión actualizada", {
+        description: data?.conversion?.lectura,
+      });
     },
     onError: (error: any) => {
       notifyError(error, { action: "actualizar la conversión" });

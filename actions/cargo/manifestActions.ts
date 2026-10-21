@@ -3,7 +3,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { notifyError } from "@/lib/notify-error";
 
-
 export interface ManifestItemPayload {
   shipment_id: number;
   shipment_item_id: number;
@@ -18,7 +17,6 @@ export interface ManifestItemUpdatePayload {
   units_in_manifest: number;
 }
 
-
 const invalidateAll = (queryClient: ReturnType<typeof useQueryClient>) => {
   queryClient.invalidateQueries({ queryKey: ["cargo-manifests"] });
   queryClient.invalidateQueries({
@@ -29,7 +27,6 @@ const invalidateAll = (queryClient: ReturnType<typeof useQueryClient>) => {
     queryKey: ["cargo-shipments-by-external-aircraft"],
   });
 };
-
 
 export const useCreateCargoManifest = (company: string) => {
   const queryClient = useQueryClient();
@@ -60,7 +57,6 @@ export const useCreateCargoManifest = (company: string) => {
   return { createCargoManifest: createMutation };
 };
 
-
 export const useUpdateCargoManifest = (company: string) => {
   const queryClient = useQueryClient();
   const updateMutation = useMutation({
@@ -90,7 +86,6 @@ export const useUpdateCargoManifest = (company: string) => {
   return { updateCargoManifest: updateMutation };
 };
 
-
 export const useDeleteCargoManifest = (company: string) => {
   const queryClient = useQueryClient();
   const deleteMutation = useMutation({
@@ -110,7 +105,6 @@ export const useDeleteCargoManifest = (company: string) => {
   return { deleteCargoManifest: deleteMutation };
 };
 
-
 export const useReprintCargoManifest = (company: string) => {
   const queryClient = useQueryClient();
   const reprintMutation = useMutation({
@@ -129,7 +123,6 @@ export const useReprintCargoManifest = (company: string) => {
   });
   return { reprintCargoManifest: reprintMutation };
 };
-
 
 export const downloadManifestPdf = async (company: string, id: number) => {
   try {

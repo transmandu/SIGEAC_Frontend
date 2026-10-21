@@ -280,10 +280,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setError(message);
 
       // eslint-disable-next-line no-restricted-syntax -- el login ya clasificó el error con describeApiError y lo muestra en la parte inferior, sin botón Reportar (aún no hay sesión).
-      toast.error(isExpectedAuthError ? "Error de autenticación" : described.title, {
-        description: message,
-        position: "bottom-center",
-      });
+      toast.error(
+        isExpectedAuthError ? "Error de autenticación" : described.title,
+        {
+          description: message,
+          position: "bottom-center",
+        },
+      );
     },
   });
 

@@ -144,7 +144,9 @@ export function DownloadPurchaseRequisitionsByStatusDialog({ type }: Props) {
       toast.success("Reporte de requisiciones generado");
       setOpen(false);
     } catch (error) {
-      notifyError(error, { action: "generar el reporte de requisiciones por estado" });
+      notifyError(error, {
+        action: "generar el reporte de requisiciones por estado",
+      });
     }
   };
 

@@ -20,14 +20,14 @@ interface DoubleDateFilterProps {
     firstRange: { start: string; end: string };
     secondRange: { start: string; end: string };
   }) => void;
-  onReset?: () => void; 
+  onReset?: () => void;
 }
 
 const DoubleDateFilter = ({
   initialFirstRange,
   initialSecondRange,
   onDateChange,
-  onReset, 
+  onReset,
 }: DoubleDateFilterProps) => {
   const [firstRange, setFirstRange] = useState<{ from?: Date; to?: Date }>(
     () => {
@@ -38,7 +38,7 @@ const DoubleDateFilter = ({
         };
       }
       return {};
-    }
+    },
   );
 
   const [secondRange, setSecondRange] = useState<{ from?: Date; to?: Date }>(
@@ -50,7 +50,7 @@ const DoubleDateFilter = ({
         };
       }
       return {};
-    }
+    },
   );
 
   const pushToUrl = () => {

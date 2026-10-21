@@ -29,9 +29,11 @@ export const useCreateErrorReport = () => {
         formData.append("description", data.description);
         if (data.module) formData.append("module", data.module);
         if (data.severity) formData.append("severity", data.severity);
-        if (data.http_status !== undefined) formData.append("http_status", String(data.http_status));
+        if (data.http_status !== undefined)
+          formData.append("http_status", String(data.http_status));
         if (data.company) formData.append("company", data.company);
-        if (data.error_reference) formData.append("error_reference", data.error_reference);
+        if (data.error_reference)
+          formData.append("error_reference", data.error_reference);
         if (data.error_code) formData.append("error_code", data.error_code);
         if (data.page_url) formData.append("page_url", data.page_url);
         images.forEach((image) => formData.append("images[]", image));
@@ -88,7 +90,9 @@ export const useSetErrorReportInProgress = () => {
 
   const setInProgressMutation = useMutation({
     mutationFn: async (id: number) => {
-      const response = await axiosInstance.post(`/error-reports/${id}/in-progress`);
+      const response = await axiosInstance.post(
+        `/error-reports/${id}/in-progress`,
+      );
       return response.data;
     },
     onSuccess: () => {
@@ -115,7 +119,10 @@ export const useResolveErrorReport = () => {
 
   const resolveMutation = useMutation({
     mutationFn: async ({ id, resolution }: ResolveErrorReportData) => {
-      const response = await axiosInstance.post(`/error-reports/${id}/resolve`, { resolution });
+      const response = await axiosInstance.post(
+        `/error-reports/${id}/resolve`,
+        { resolution },
+      );
       return response.data;
     },
     onSuccess: () => {
@@ -137,7 +144,9 @@ export const useMarkErrorReportDuplicate = () => {
 
   const markDuplicateMutation = useMutation({
     mutationFn: async (id: number) => {
-      const response = await axiosInstance.post(`/error-reports/${id}/duplicate`);
+      const response = await axiosInstance.post(
+        `/error-reports/${id}/duplicate`,
+      );
       return response.data;
     },
     onSuccess: () => {
@@ -166,7 +175,10 @@ export const useUpdateErrorReportDiagnosis = () => {
 
   const updateDiagnosisMutation = useMutation({
     mutationFn: async ({ id, ...data }: UpdateErrorReportDiagnosisData) => {
-      const response = await axiosInstance.patch(`/error-reports/${id}/diagnosis`, data);
+      const response = await axiosInstance.patch(
+        `/error-reports/${id}/diagnosis`,
+        data,
+      );
       return response.data;
     },
     onSuccess: () => {
@@ -196,9 +208,13 @@ export const useAddErrorReportImages = () => {
       const formData = new FormData();
       images.forEach((image) => formData.append("images[]", image));
 
-      const response = await axiosInstance.post(`/error-reports/${id}/images`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const response = await axiosInstance.post(
+        `/error-reports/${id}/images`,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        },
+      );
       return response.data;
     },
     onSuccess: () => {
@@ -220,7 +236,9 @@ export const useDeleteErrorReportImage = () => {
 
   const deleteImageMutation = useMutation({
     mutationFn: async ({ id, imageId }: { id: number; imageId: number }) => {
-      const response = await axiosInstance.delete(`/error-reports/${id}/images/${imageId}`);
+      const response = await axiosInstance.delete(
+        `/error-reports/${id}/images/${imageId}`,
+      );
       return response.data;
     },
     onSuccess: () => {
@@ -250,16 +268,25 @@ export const useImportErrorReportHistory = () => {
   const queryClient = useQueryClient();
 
   const importMutation = useMutation({
-    mutationFn: async ({ file, from, dry_run, delay }: ImportErrorReportHistoryData) => {
+    mutationFn: async ({
+      file,
+      from,
+      dry_run,
+      delay,
+    }: ImportErrorReportHistoryData) => {
       const formData = new FormData();
       formData.append("file", file);
       if (from) formData.append("from", from);
       if (dry_run !== undefined) formData.append("dry_run", String(dry_run));
       if (delay !== undefined) formData.append("delay", String(delay));
 
-      const response = await axiosInstance.post("/error-reports/import-history", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const response = await axiosInstance.post(
+        "/error-reports/import-history",
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        },
+      );
       return response.data;
     },
     onSuccess: () => {

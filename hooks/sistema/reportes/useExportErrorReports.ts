@@ -2,7 +2,9 @@ import axiosInstance from "@/lib/axios";
 import { ErrorReportFilters } from "./useGetErrorReports";
 import { notifyError } from "@/lib/notify-error";
 
-const buildParams = (filters: Omit<ErrorReportFilters, "page" | "per_page">) => {
+const buildParams = (
+  filters: Omit<ErrorReportFilters, "page" | "per_page">,
+) => {
   const params = new URLSearchParams();
   if (filters.status) params.set("status", filters.status);
   if (filters.module) params.set("module", filters.module);
@@ -21,10 +23,13 @@ export const useExportErrorReports = () => {
   ) => {
     try {
       const params = buildParams(filters);
-      const response = await axiosInstance.get(`/error-reports/export/${format}`, {
-        params,
-        responseType: "blob",
-      });
+      const response = await axiosInstance.get(
+        `/error-reports/export/${format}`,
+        {
+          params,
+          responseType: "blob",
+        },
+      );
 
       const extension = format === "excel" ? "xlsx" : "pdf";
       const url = URL.createObjectURL(response.data);

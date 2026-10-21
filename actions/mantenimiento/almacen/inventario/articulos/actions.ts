@@ -494,7 +494,8 @@ export const useUploadArticleDocuments = () => {
       notifyError(error, {
         action: "guardar la documentación del artículo",
         messages: {
-          tooLarge: "El archivo es demasiado grande. El máximo permitido es 10 MB.",
+          tooLarge:
+            "El archivo es demasiado grande. El máximo permitido es 10 MB.",
         },
       });
     },

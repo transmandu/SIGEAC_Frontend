@@ -13,7 +13,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Chip, STATUS_CHIP } from "@/app/sistema/reportes/_components/errorReportChips";
+import {
+  Chip,
+  STATUS_CHIP,
+} from "@/app/sistema/reportes/_components/errorReportChips";
 import { normalizeAssetUrl } from "@/lib/utils";
 import type { ErrorReport } from "@/types";
 
@@ -64,7 +67,9 @@ export default function MyReportDetailDialog({
     .filter((image): image is { id: number; url: string } => !!image.url);
 
   const formatDate = (value: string | null) =>
-    value ? format(new Date(value), "d 'de' MMMM yyyy, h:mm a", { locale: es }) : "—";
+    value
+      ? format(new Date(value), "d 'de' MMMM yyyy, h:mm a", { locale: es })
+      : "—";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -89,7 +94,8 @@ export default function MyReportDetailDialog({
                   Solución
                 </p>
                 <p className="whitespace-pre-wrap text-sm">
-                  {report.resolution?.trim() || "El equipo no registró un detalle de la solución."}
+                  {report.resolution?.trim() ||
+                    "El equipo no registró un detalle de la solución."}
                 </p>
               </div>
             )}
@@ -104,15 +110,27 @@ export default function MyReportDetailDialog({
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Módulo" value={report.module ?? "No especificado"} />
-              <Field label="Fecha del reporte" value={formatDate(report.reported_at)} />
+              <Field
+                label="Módulo"
+                value={report.module ?? "No especificado"}
+              />
+              <Field
+                label="Fecha del reporte"
+                value={formatDate(report.reported_at)}
+              />
               {report.error_reference && (
                 <Field label="Código de error" value={report.error_reference} />
               )}
               {isResolved && (
                 <>
-                  <Field label="Resuelto por" value={report.resolved_by ?? "—"} />
-                  <Field label="Fecha de resolución" value={formatDate(report.resolved_at)} />
+                  <Field
+                    label="Resuelto por"
+                    value={report.resolved_by ?? "—"}
+                  />
+                  <Field
+                    label="Fecha de resolución"
+                    value={formatDate(report.resolved_at)}
+                  />
                 </>
               )}
             </div>

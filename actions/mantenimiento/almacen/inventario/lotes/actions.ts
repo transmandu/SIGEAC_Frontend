@@ -1,53 +1,56 @@
-import axiosInstance from "@/lib/axios"
-import { useCompanyStore } from "@/stores/CompanyStore"
-import { Batch } from "@/types"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
+import axiosInstance from "@/lib/axios";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { Batch } from "@/types";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { notifyError } from "@/lib/notify-error";
 
 type BatchType = {
-  name: string,
-  slug: string,
-  description?: string,
-  ata_code?: string,
-  brand?: string,
-  is_hazardous?: boolean,
-  medition_unit?: string,
+  name: string;
+  slug: string;
+  description?: string;
+  ata_code?: string;
+  brand?: string;
+  is_hazardous?: boolean;
+  medition_unit?: string;
   /** Dispara la alerta al caer por debajo, contra la suma de sus lotes. */
-  min_quantity?: number,
+  min_quantity?: number;
   /** Nivel objetivo de reposición, no un tope de existencia. */
-  maximum_quantity?: number,
-  zone?: string,
-  warehouse_id?: number,
-  category?: string,
-}
+  maximum_quantity?: number;
+  zone?: string;
+  warehouse_id?: number;
+  category?: string;
+};
 
 export const useCreateBatch = () => {
+  const queryClient = useQueryClient();
 
-    const queryClient = useQueryClient()
+  const createMutation = useMutation({
+    mutationFn: async ({
+      data,
+      company,
+    }: {
+      data: BatchType;
+      company: string;
+    }) => {
+      await axiosInstance.post(`/${company}/batches`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["batches"] });
+      toast.success("¡Creado!", {
+        description: `El renglon ha sido creado correctamente.`,
+      });
+    },
+    onError: (error) => {
+      notifyError(error, { action: "crear el renglon" });
+      console.log(error);
+    },
+  });
 
-    const createMutation = useMutation({
-        mutationFn: async ({data, company}: {data: BatchType, company: string}) => {
-            await axiosInstance.post(`/${company}/batches`, data)
-          },
-        onSuccess: () => {
-            queryClient.invalidateQueries({queryKey: ['batches']})
-            toast.success("¡Creado!", {
-                description: `El renglon ha sido creado correctamente.`
-            })
-          },
-        onError: (error) => {
-            notifyError(error, { action: "crear el renglon" })
-            console.log(error)
-          },
-        }
-    )
-
-    return {
-      createBatch: createMutation,
-    }
-}
-
+  return {
+    createBatch: createMutation,
+  };
+};
 
 export const useUpdateBatch = () => {
   const queryClient = useQueryClient();
@@ -65,7 +68,6 @@ export const useUpdateBatch = () => {
       await axiosInstance.put(`/${company}/batches/${id}`, data);
     },
     onSuccess: (_, data) => {
-
       queryClient.invalidateQueries({ queryKey: ["batches"] });
       queryClient.invalidateQueries({
         queryKey: [
@@ -91,26 +93,30 @@ export const useUpdateBatch = () => {
 };
 
 export const useDeleteBatch = () => {
-
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   const deleteMutation = useMutation({
-      mutationFn: async ({id, company}: {id: number | string, company: string}) => {
-          await axiosInstance.delete(`/${company}/batches/${id}`)
-        },
-      onSuccess: () => {
-          queryClient.invalidateQueries({queryKey: ['batches']})
-          toast.success("¡Eliminado!", {
-              description: `¡El renglon ha sido eliminado correctamente!`
-          })
-        },
-      onError: (e) => {
-          notifyError(e, { action: "eliminar el renglon" })
-        },
-      }
-  )
+    mutationFn: async ({
+      id,
+      company,
+    }: {
+      id: number | string;
+      company: string;
+    }) => {
+      await axiosInstance.delete(`/${company}/batches/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["batches"] });
+      toast.success("¡Eliminado!", {
+        description: `¡El renglon ha sido eliminado correctamente!`,
+      });
+    },
+    onError: (e) => {
+      notifyError(e, { action: "eliminar el renglon" });
+    },
+  });
 
   return {
     deleteBatch: deleteMutation,
-  }
-}
+  };
+};

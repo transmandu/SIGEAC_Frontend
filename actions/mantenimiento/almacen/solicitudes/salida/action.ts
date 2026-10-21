@@ -39,8 +39,8 @@ interface IDispatchRequestAction {
    * en el acto como el resto de las salidas.
    */
   destination_location_id?: string;
-  approved_by?: string
-  delivered_by?: string
+  approved_by?: string;
+  delivered_by?: string;
   /**
    * Fotos de la entrega, indexadas por la clave de la fila del formulario
    * ("aero:0", "general:1"): al capturarlas la línea de la salida todavía no
@@ -79,7 +79,11 @@ function buildDispatchFormData(data: IDispatchRequestAction): FormData {
     // String(false) es truthy en PHP y la regla `boolean` no lo acepta.
     form.append(
       key,
-      typeof value === "boolean" ? (value ? "1" : "0") : (value as string | File),
+      typeof value === "boolean"
+        ? value
+          ? "1"
+          : "0"
+        : (value as string | File),
     );
   };
 
@@ -122,10 +126,10 @@ export const useCreateDispatchRequest = () => {
         queryKey: ["dispatches-requests", data.company, selectedStation],
       });
 
-      toast.success("¡Creado!", {
+      (toast.success("¡Creado!", {
         description: `La solicitud ha sido creado correctamente.`,
       }),
-        router.refresh();
+        router.refresh());
     },
     onError: (error: any) => {
       // Ver nota en useUpdateStatusDispatchRequest: el stock en pantalla quedó
@@ -169,14 +173,14 @@ export const useUpdateStatusDispatchRequest = () => {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({
+      (queryClient.invalidateQueries({
         queryKey: ["dispatches-requests-in-process"],
       }),
         queryClient.invalidateQueries({ queryKey: ["dispatched-articles"] }),
-        queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
-        toast.success("¡Actualizado!", {
-          description: "¡La solicitud ha sido actualizada!",
-        });
+        queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] }));
+      toast.success("¡Actualizado!", {
+        description: "¡La solicitud ha sido actualizada!",
+      });
     },
     onError: (error: any) => {
       // Un 422 con `insufficient_stock` significa que la existencia cambió
@@ -216,9 +220,15 @@ export const useDeleteDispatchRequest = () => {
         queryKey: ["dispatches-requests", variables.company, selectedStation],
       });
       queryClient.invalidateQueries({
-        queryKey: ["dispatches-requests-in-process", variables.company, selectedStation],
+        queryKey: [
+          "dispatches-requests-in-process",
+          variables.company,
+          selectedStation,
+        ],
       });
-      queryClient.invalidateQueries({ queryKey: ["dispatched-articles", variables.company] });
+      queryClient.invalidateQueries({
+        queryKey: ["dispatched-articles", variables.company],
+      });
       queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
       toast.success("Â¡Eliminado!", {
         description: "La solicitud ha sido eliminada correctamente.",
@@ -263,7 +273,7 @@ function buildReturnFormData(data: IDispatchReturnAction): FormData {
   data.items.forEach((item, index) => {
     form.append(
       `items[${index}][article_dispatch_order_id]`,
-      String(item.article_dispatch_order_id)
+      String(item.article_dispatch_order_id),
     );
     form.append(`items[${index}][quantity]`, String(item.quantity));
     form.append(`items[${index}][condition]`, item.condition);
@@ -295,7 +305,7 @@ export const useCreateDispatchReturn = () => {
       const response = await axiosInstance.post(
         `/${company}/dispatch-order/${id}/returns`,
         buildReturnFormData(data),
-        { headers: { "Content-Type": "multipart/form-data" } }
+        { headers: { "Content-Type": "multipart/form-data" } },
       );
       return response.data;
     },
@@ -331,13 +341,7 @@ export const useDeleteDispatchEvidence = () => {
   const { selectedStation } = useCompanyStore();
 
   const deleteMutation = useMutation({
-    mutationFn: async ({
-      id,
-      company,
-    }: {
-      id: number;
-      company: string;
-    }) => {
+    mutationFn: async ({ id, company }: { id: number; company: string }) => {
       await axiosInstance.delete(`/${company}/dispatch-evidences/${id}`);
     },
     onSuccess: (_, variables) => {
@@ -367,7 +371,7 @@ export const useReturnToWarehouse = (company?: string) => {
     mutationKey: ["update-status", company],
     mutationFn: async (article_id: number) => {
       const { data } = await axiosInstance.put(
-        `/${company}/update-status-items/${article_id}`
+        `/${company}/update-status-items/${article_id}`,
       );
       return data;
     },

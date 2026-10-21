@@ -20,7 +20,7 @@ export const useUpdateWorkOrderTaskStatus = () => {
     }) => {
       await axiosInstance.put(
         `/${company}/update-status-work-order-task/${task_id}`,
-        { status }
+        { status },
       );
     },
     onSuccess: () => {
@@ -57,7 +57,7 @@ export const useUpdateWorkOrderTask = () => {
     }) => {
       await axiosInstance.put(
         `/${company}/update-work-order-task/${data.id}`,
-        data
+        data,
       );
     },
     onSuccess: () => {
@@ -104,7 +104,7 @@ export const useAddWorkOrderTask = () => {
     }) => {
       await axiosInstance.post(
         `/${selectedCompany?.slug}/${work_order_id}/store-work-order-task`,
-        data
+        data,
       );
     },
     onSuccess: () => {
@@ -146,7 +146,7 @@ export const useCreateTaskEvents = () => {
     }) => {
       await axiosInstance.post(
         `/${selectedCompany?.slug}/${task_id}/store-work-order-task-event`,
-        data
+        data,
       );
     },
     onSuccess: () => {

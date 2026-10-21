@@ -30,10 +30,7 @@ export type PieceCutsResponse = {
 };
 
 /** Trazos cortados de una pieza: explica por qué le queda lo que le queda. */
-export const useGetPieceCuts = (
-  piece_id: number | null,
-  company?: string,
-) => {
+export const useGetPieceCuts = (piece_id: number | null, company?: string) => {
   return useQuery<PieceCutsResponse, Error>({
     queryKey: ["dimension-piece-cuts", company, piece_id],
     queryFn: async () => {

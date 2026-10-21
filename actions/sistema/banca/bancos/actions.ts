@@ -35,7 +35,13 @@ export const useUpdateBank = () => {
   const queryClient = useQueryClient();
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: number | string; data: Partial<BankData> }) => {
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: number | string;
+      data: Partial<BankData>;
+    }) => {
       await axiosInstance.put(`/banks/${id}`, data);
     },
     onSuccess: () => {

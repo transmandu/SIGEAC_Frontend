@@ -33,8 +33,12 @@ const useQuarantineInvalidation = () => {
     queryClient.invalidateQueries({ queryKey: ["article-status-history"] });
 
     if (company) {
-      queryClient.invalidateQueries({ queryKey: ["articles", company, "QUARANTINE"] });
-      queryClient.invalidateQueries({ queryKey: ["articles", company, "PENDING_REINSPECTION"] });
+      queryClient.invalidateQueries({
+        queryKey: ["articles", company, "QUARANTINE"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["articles", company, "PENDING_REINSPECTION"],
+      });
     }
   };
 };
@@ -44,8 +48,13 @@ const useQuarantineInvalidation = () => {
  * aún guarda por separado (el formulario embebido); `useResolveQuarantine` no lo
  * necesita porque hace todo en una transacción.
  */
-export const assertCanSendToReinspection = async (company: string, id: number) => {
-  await axiosInstance.get(`/${company}/quarantine-articles/${id}/can-send-to-reinspection`);
+export const assertCanSendToReinspection = async (
+  company: string,
+  id: number,
+) => {
+  await axiosInstance.get(
+    `/${company}/quarantine-articles/${id}/can-send-to-reinspection`,
+  );
 };
 
 export type ResolveQuarantineDocument = {
@@ -79,7 +88,11 @@ export const useResolveQuarantine = () => {
   const { selectedCompany } = useCompanyStore();
   const invalidate = useQuarantineInvalidation();
 
-  const mutation = useMutation<QuarantineRecord, Error, ResolveQuarantinePayload>({
+  const mutation = useMutation<
+    QuarantineRecord,
+    Error,
+    ResolveQuarantinePayload
+  >({
     mutationKey: ["quarantine-resolve"],
 
     mutationFn: async ({ id, resolutionNotes, articleFields, documents }) => {
@@ -102,15 +115,27 @@ export const useResolveQuarantine = () => {
         if (!doc.file && !doc.isPhysical) return;
 
         if (doc.requirementId) {
-          formData.append(`documents[${index}][requirement_id]`, String(doc.requirementId));
+          formData.append(
+            `documents[${index}][requirement_id]`,
+            String(doc.requirementId),
+          );
         }
         if (doc.documentTypeId) {
-          formData.append(`documents[${index}][document_type_id]`, String(doc.documentTypeId));
+          formData.append(
+            `documents[${index}][document_type_id]`,
+            String(doc.documentTypeId),
+          );
         }
         if (doc.replaceDocumentId) {
-          formData.append(`documents[${index}][replace_document_id]`, String(doc.replaceDocumentId));
+          formData.append(
+            `documents[${index}][replace_document_id]`,
+            String(doc.replaceDocumentId),
+          );
         }
-        formData.append(`documents[${index}][is_physical]`, doc.isPhysical ? "1" : "0");
+        formData.append(
+          `documents[${index}][is_physical]`,
+          doc.isPhysical ? "1" : "0",
+        );
         if (doc.file) {
           formData.append(`documents[${index}][file]`, doc.file);
         }
@@ -149,7 +174,11 @@ export const useSendToReinspection = () => {
   const { selectedCompany } = useCompanyStore();
   const invalidate = useQuarantineInvalidation();
 
-  const mutation = useMutation<QuarantineRecord, Error, SendToReinspectionPayload>({
+  const mutation = useMutation<
+    QuarantineRecord,
+    Error,
+    SendToReinspectionPayload
+  >({
     mutationKey: ["quarantine-send-to-reinspection"],
 
     mutationFn: async ({ id, resolution_notes }) => {
@@ -189,7 +218,11 @@ export const useRejectReinspection = () => {
   const { selectedCompany } = useCompanyStore();
   const invalidate = useQuarantineInvalidation();
 
-  const mutation = useMutation<QuarantineRecord, Error, RejectReinspectionPayload>({
+  const mutation = useMutation<
+    QuarantineRecord,
+    Error,
+    RejectReinspectionPayload
+  >({
     mutationKey: ["quarantine-reject"],
 
     mutationFn: async ({ id, reason }) => {

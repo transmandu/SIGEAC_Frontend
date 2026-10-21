@@ -24,7 +24,10 @@ function objectToFormData(obj: Record<string, unknown>): FormData {
           } else if (item === null) {
             formData.append(`${key}[]`, "");
           } else {
-            formData.append(`${key}[]`, item instanceof File ? item : String(item));
+            formData.append(
+              `${key}[]`,
+              item instanceof File ? item : String(item),
+            );
           }
         });
     } else if (value instanceof File) {
@@ -67,7 +70,6 @@ interface updateFolllowUpControlData {
   };
 }
 
-
 export const useCreateFollowUpControl = () => {
   const queryClient = useQueryClient();
   const createMutation = useMutation({
@@ -75,7 +77,7 @@ export const useCreateFollowUpControl = () => {
       await axiosInstance.post(
         `/${company}/sms/follow-up-controls`,
         objectToFormData(data as Record<string, unknown>),
-        { headers: { "Content-Type": "multipart/form-data" } }
+        { headers: { "Content-Type": "multipart/form-data" } },
       );
     },
     onSuccess: () => {
@@ -131,7 +133,7 @@ export const useUpdateFollowUpControl = () => {
       await axiosInstance.post(
         `/${company}/sms/update-follow-up-controls/${id}`,
         objectToFormData(data as Record<string, unknown>),
-        { headers: { "Content-Type": "multipart/form-data" } }
+        { headers: { "Content-Type": "multipart/form-data" } },
       );
     },
     onSuccess: () => {

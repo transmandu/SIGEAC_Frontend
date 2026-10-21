@@ -8,7 +8,13 @@ export const useCreateSMSCertificate = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ company, data }: { company: string; data: FormData }) => {
+    mutationFn: async ({
+      company,
+      data,
+    }: {
+      company: string;
+      data: FormData;
+    }) => {
       return await axiosInstance.post(`/${company}/sms/certificates`, data, {
         headers: { "Content-Type": "multipart/form-data" },
       });
@@ -19,7 +25,7 @@ export const useCreateSMSCertificate = () => {
     },
     onError: (error) => {
       notifyError(error, { action: "subir el certificado" });
-    }
+    },
   });
 };
 
@@ -39,7 +45,7 @@ export const useDeleteSMSCertificate = () => {
     },
     onError: (error: any) => {
       notifyError(error, { action: "eliminar el certificado" });
-    }
+    },
   });
 };
 
@@ -47,13 +53,25 @@ export const useUpdateSMSCertificate = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ company, id, data }: { company: string; id: number; data: FormData }) => {
+    mutationFn: async ({
+      company,
+      id,
+      data,
+    }: {
+      company: string;
+      id: number;
+      data: FormData;
+    }) => {
       // multipart no admite PUT real: se envía POST y Laravel lo reinterpreta con _method.
       data.append("_method", "PUT");
-      
-      return await axiosInstance.post(`/${company}/sms/certificates/${id}`, data, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+
+      return await axiosInstance.post(
+        `/${company}/sms/certificates/${id}`,
+        data,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        },
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["sms-certificates"] });
@@ -61,6 +79,6 @@ export const useUpdateSMSCertificate = () => {
     },
     onError: (error: any) => {
       notifyError(error, { action: "actualizar el certificado" });
-    }
+    },
   });
 };

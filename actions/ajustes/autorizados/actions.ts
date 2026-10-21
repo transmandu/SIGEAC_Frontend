@@ -66,7 +66,8 @@ export const useDeleteAuthorizedEmployee = (companySlug?: string) => {
       notifyError(error, {
         action: "eliminar la autorización",
         messages: {
-          forbidden: "Solo la empresa de origen puede eliminar esta autorización.",
+          forbidden:
+            "Solo la empresa de origen puede eliminar esta autorización.",
         },
       });
     },

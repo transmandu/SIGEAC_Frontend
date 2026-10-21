@@ -123,7 +123,9 @@ export const useMutateUnitConversionPreset = (company?: string) => {
     },
     onSuccess: (data) => {
       invalidate();
-      toast.success("Equivalencia agregada", { description: data?.preset?.lectura });
+      toast.success("Equivalencia agregada", {
+        description: data?.preset?.lectura,
+      });
     },
     onError: (error: any) => {
       if (error?.response?.status === 409) {
@@ -167,7 +169,9 @@ export const useMutateUnitConversionPreset = (company?: string) => {
 
   const remove = useMutation({
     mutationFn: async (id: number) => {
-      const { data } = await axios.delete(`/${company}/unit-conversion-presets/${id}`);
+      const { data } = await axios.delete(
+        `/${company}/unit-conversion-presets/${id}`,
+      );
       return data;
     },
     onSuccess: () => {

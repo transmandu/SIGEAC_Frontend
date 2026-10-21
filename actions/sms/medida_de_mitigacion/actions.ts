@@ -92,7 +92,7 @@ export const useUpdateMitigationMeasure = () => {
     mutationFn: async ({ data, company, id }: UpdateMitigationMeasureData) => {
       await axiosInstance.patch(
         `/${company}/sms/mitigation-measures/${id}`,
-        data
+        data,
       );
     },
     onSuccess: () => {

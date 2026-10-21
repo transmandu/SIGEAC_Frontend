@@ -14,7 +14,9 @@ interface BankCardData {
   company_ids?: number[];
 }
 
-const invalidateBankCardQueries = (queryClient: ReturnType<typeof useQueryClient>) => {
+const invalidateBankCardQueries = (
+  queryClient: ReturnType<typeof useQueryClient>,
+) => {
   queryClient.invalidateQueries({ queryKey: ["bank-cards"] });
   queryClient.invalidateQueries({ queryKey: ["payment-methods"] });
   queryClient.invalidateQueries({ queryKey: ["bank-accounts"] });
@@ -48,7 +50,13 @@ export const useUpdateBankCard = () => {
   const queryClient = useQueryClient();
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: number | string; data: Partial<BankCardData> }) => {
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: number | string;
+      data: Partial<BankCardData>;
+    }) => {
       await axiosInstance.put(`/bank-cards/${id}`, data);
     },
     onSuccess: () => {

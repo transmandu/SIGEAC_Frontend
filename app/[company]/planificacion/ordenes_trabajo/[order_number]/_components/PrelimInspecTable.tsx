@@ -1,10 +1,13 @@
-"use client"
+"use client";
 
-import { useCreatePrelimInspection, useUpdatePrelimInspection } from "@/actions/mantenimiento/planificacion/ordenes_trabajo/inspecccion_preliminar/actions"
-import { PrelimInspectItemDialog } from "@/components/dialogs/mantenimiento/ordenes_trabajo/PrelimInspecItemDialog"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  useCreatePrelimInspection,
+  useUpdatePrelimInspection,
+} from "@/actions/mantenimiento/planificacion/ordenes_trabajo/inspecccion_preliminar/actions";
+import { PrelimInspectItemDialog } from "@/components/dialogs/mantenimiento/ordenes_trabajo/PrelimInspecItemDialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -13,7 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -21,50 +24,56 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import axiosInstance from "@/lib/axios"
-import { cn } from "@/lib/utils"
-import { useCompanyStore } from "@/stores/CompanyStore"
-import { WorkOrder } from "@/types"
-import { zodResolver } from "@/lib/zod-resolver"
-import { Loader2, Printer } from "lucide-react"
-import { useEffect, useState } from "react"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
-import { columns } from "@/app/[company]/planificacion/ordenes_trabajo/[order_number]/columns"
-import { DataTable } from "@/app/[company]/planificacion/ordenes_trabajo/[order_number]/data-table"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import axiosInstance from "@/lib/axios";
+import { cn } from "@/lib/utils";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { WorkOrder } from "@/types";
+import { zodResolver } from "@/lib/zod-resolver";
+import { Loader2, Printer } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { columns } from "@/app/[company]/planificacion/ordenes_trabajo/[order_number]/columns";
+import { DataTable } from "@/app/[company]/planificacion/ordenes_trabajo/[order_number]/data-table";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { notifyError } from "@/lib/notify-error";
 
-type HoursMode = "auto" | "manual"
+type HoursMode = "auto" | "manual";
 
 // Esquema de validación con Zod
 const createPrelimnSchema = z.object({
   authorizing: z.string().min(1, "El código ATA es requerido"),
   observation: z.string(),
-})
+});
 
 const PrelimInspecTable = ({ work_order }: { work_order: WorkOrder }) => {
-  const { createPrelimInspection } = useCreatePrelimInspection()
-  const { updatePrelimInspection } = useUpdatePrelimInspection()
-  const { selectedCompany } = useCompanyStore()
-  const companySlug = selectedCompany?.slug || "hangar74"
+  const { createPrelimInspection } = useCreatePrelimInspection();
+  const { updatePrelimInspection } = useUpdatePrelimInspection();
+  const { selectedCompany } = useCompanyStore();
+  const companySlug = selectedCompany?.slug || "hangar74";
 
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [isFinishOpen, setIsFinishOpen] = useState(false)
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isFinishOpen, setIsFinishOpen] = useState(false);
 
   // ✅ Dialog de impresión (igual que WO/Reportes)
-  const [isPrintDialogOpen, setIsPrintDialogOpen] = useState(false)
-  const [isDownloading, setIsDownloading] = useState(false)
+  const [isPrintDialogOpen, setIsPrintDialogOpen] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   // ✅ Horas auto/manual
-  const [hoursMode, setHoursMode] = useState<HoursMode>("auto")
-  const [manualHours, setManualHours] = useState<string>("") // vacío => PDF vacío
-  const [manualError, setManualError] = useState<string | null>(null)
+  const [hoursMode, setHoursMode] = useState<HoursMode>("auto");
+  const [manualHours, setManualHours] = useState<string>(""); // vacío => PDF vacío
+  const [manualError, setManualError] = useState<string | null>(null);
 
   const form = useForm<z.infer<typeof createPrelimnSchema>>({
     resolver: zodResolver(createPrelimnSchema),
@@ -72,36 +81,36 @@ const PrelimInspecTable = ({ work_order }: { work_order: WorkOrder }) => {
       observation: "",
       authorizing: "",
     },
-  })
+  });
 
   const validateManualHours = () => {
-    if (hoursMode !== "manual") return true
+    if (hoursMode !== "manual") return true;
 
     // ✅ Permitir vacío: en el PDF debe salir vacío
     if (manualHours.trim() === "") {
-      setManualError(null)
-      return true
+      setManualError(null);
+      return true;
     }
 
     // Acepta coma o punto
-    const normalized = manualHours.replace(",", ".")
-    const n = Number(normalized)
+    const normalized = manualHours.replace(",", ".");
+    const n = Number(normalized);
 
     if (!Number.isFinite(n)) {
-      setManualError("Ingresa un número válido.")
-      return false
+      setManualError("Ingresa un número válido.");
+      return false;
     }
     if (n < 0) {
-      setManualError("Las horas no pueden ser negativas.")
-      return false
+      setManualError("Las horas no pueden ser negativas.");
+      return false;
     }
 
-    setManualError(null)
-    return true
-  }
+    setManualError(null);
+    return true;
+  };
 
   const handleFinishInspection = async () => {
-    if (!work_order?.preliminary_inspection) return
+    if (!work_order?.preliminary_inspection) return;
 
     await updatePrelimInspection.mutateAsync({
       data: {
@@ -109,63 +118,68 @@ const PrelimInspecTable = ({ work_order }: { work_order: WorkOrder }) => {
         status: "FINALIZADO",
       },
       company: selectedCompany!.slug,
-    })
+    });
 
-    setIsFinishOpen(false)
-  }
+    setIsFinishOpen(false);
+  };
 
   const handlePrint = async () => {
-    if (!validateManualHours()) return
+    if (!validateManualHours()) return;
 
     const params: Record<string, any> = {
       aircraft_hours_mode: hoursMode,
-    }
+    };
 
     // ✅ Solo enviar aircraft_hours si hay valor
     if (hoursMode === "manual" && manualHours.trim() !== "") {
-      params.aircraft_hours = Number(manualHours.replace(",", "."))
+      params.aircraft_hours = Number(manualHours.replace(",", "."));
     }
 
     try {
-      setIsDownloading(true)
+      setIsDownloading(true);
 
       const response = await axiosInstance.get(
         `/${companySlug}/work-order-prelim-inspection/${work_order.order_number}`,
         {
           responseType: "blob",
           params,
-        }
-      )
+        },
+      );
 
-      const url = window.URL.createObjectURL(new Blob([response.data]))
-      const link = document.createElement("a")
-      link.href = url
-      link.setAttribute("download", `PRELIM_INSPECTION_WO-${work_order.order_number}.pdf`)
-      document.body.appendChild(link)
-      link.click()
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute(
+        "download",
+        `PRELIM_INSPECTION_WO-${work_order.order_number}.pdf`,
+      );
+      document.body.appendChild(link);
+      link.click();
 
-      link.parentNode?.removeChild(link)
-      window.URL.revokeObjectURL(url)
+      link.parentNode?.removeChild(link);
+      window.URL.revokeObjectURL(url);
 
-      setIsPrintDialogOpen(false)
+      setIsPrintDialogOpen(false);
     } catch (error) {
-      notifyError(error, { action: "descargar el PDF" })
-      console.error("Error al descargar el PDF:", error)
+      notifyError(error, { action: "descargar el PDF" });
+      console.error("Error al descargar el PDF:", error);
     } finally {
-      setIsDownloading(false)
+      setIsDownloading(false);
     }
-  }
+  };
 
-  const handleCreateInspection = async (values: z.infer<typeof createPrelimnSchema>) => {
+  const handleCreateInspection = async (
+    values: z.infer<typeof createPrelimnSchema>,
+  ) => {
     await createPrelimInspection.mutateAsync({
       data: {
         ...values,
         work_order_id: work_order.id.toString(),
       },
       company: selectedCompany!.slug,
-    })
-    setIsDialogOpen(false)
-  }
+    });
+    setIsDialogOpen(false);
+  };
 
   return (
     <Card>
@@ -180,7 +194,7 @@ const PrelimInspecTable = ({ work_order }: { work_order: WorkOrder }) => {
                     "text-center text-xl",
                     work_order?.preliminary_inspection.status === "PROCESO"
                       ? "bg-yellow-500"
-                      : "bg-red-500"
+                      : "bg-red-500",
                   )}
                 >
                   {work_order?.preliminary_inspection.status}
@@ -188,7 +202,9 @@ const PrelimInspecTable = ({ work_order }: { work_order: WorkOrder }) => {
 
                 {work_order?.preliminary_inspection.status === "PROCESO" && (
                   <div className="flex gap-2">
-                    <PrelimInspectItemDialog id={work_order.preliminary_inspection.id.toString()} />
+                    <PrelimInspectItemDialog
+                      id={work_order.preliminary_inspection.id.toString()}
+                    />
 
                     <Dialog open={isFinishOpen} onOpenChange={setIsFinishOpen}>
                       <DialogTrigger asChild>
@@ -206,7 +222,8 @@ const PrelimInspecTable = ({ work_order }: { work_order: WorkOrder }) => {
                             ¿Desea dar por finalizada la inspección?
                           </DialogTitle>
                           <DialogDescription className="text-center">
-                            Se da por finalizada la inspección preliminar y se da la opción de su impresión.
+                            Se da por finalizada la inspección preliminar y se
+                            da la opción de su impresión.
                           </DialogDescription>
                         </DialogHeader>
 
@@ -228,9 +245,16 @@ const PrelimInspecTable = ({ work_order }: { work_order: WorkOrder }) => {
                 )}
 
                 {/* ✅ Dialog para imprimir con horas auto/manual */}
-                <Dialog open={isPrintDialogOpen} onOpenChange={setIsPrintDialogOpen}>
+                <Dialog
+                  open={isPrintDialogOpen}
+                  onOpenChange={setIsPrintDialogOpen}
+                >
                   <DialogTrigger asChild>
-                    <Button variant="ghost" disabled={isDownloading} className="gap-2">
+                    <Button
+                      variant="ghost"
+                      disabled={isDownloading}
+                      className="gap-2"
+                    >
                       {isDownloading ? (
                         <Loader2 className="size-4 animate-spin" />
                       ) : (
@@ -244,7 +268,8 @@ const PrelimInspecTable = ({ work_order }: { work_order: WorkOrder }) => {
                     <DialogHeader>
                       <DialogTitle>Imprimir inspección preliminar</DialogTitle>
                       <DialogDescription>
-                        Selecciona cómo quieres mostrar las horas de la aeronave en el PDF.
+                        Selecciona cómo quieres mostrar las horas de la aeronave
+                        en el PDF.
                       </DialogDescription>
                     </DialogHeader>
 
@@ -254,21 +279,27 @@ const PrelimInspecTable = ({ work_order }: { work_order: WorkOrder }) => {
                         <RadioGroup
                           value={hoursMode}
                           onValueChange={(v) => {
-                            setHoursMode(v as HoursMode)
-                            setManualError(null)
+                            setHoursMode(v as HoursMode);
+                            setManualError(null);
                           }}
                           className="grid gap-2"
                         >
                           <div className="flex items-center gap-2 rounded-md border p-3">
                             <RadioGroupItem value="auto" id="hours-auto" />
-                            <Label htmlFor="hours-auto" className="cursor-pointer">
+                            <Label
+                              htmlFor="hours-auto"
+                              className="cursor-pointer"
+                            >
                               Automáticas (del sistema)
                             </Label>
                           </div>
 
                           <div className="flex items-center gap-2 rounded-md border p-3">
                             <RadioGroupItem value="manual" id="hours-manual" />
-                            <Label htmlFor="hours-manual" className="cursor-pointer">
+                            <Label
+                              htmlFor="hours-manual"
+                              className="cursor-pointer"
+                            >
                               Manuales (definir valor)
                             </Label>
                           </div>
@@ -283,13 +314,17 @@ const PrelimInspecTable = ({ work_order }: { work_order: WorkOrder }) => {
                             inputMode="decimal"
                             value={manualHours}
                             onChange={(e) => {
-                              setManualHours(e.target.value)
-                              setManualError(null)
+                              setManualHours(e.target.value);
+                              setManualError(null);
                             }}
                             onBlur={validateManualHours}
                             placeholder="Déjalo vacío para imprimir sin horas"
                           />
-                          {manualError && <p className="text-sm text-destructive">{manualError}</p>}
+                          {manualError && (
+                            <p className="text-sm text-destructive">
+                              {manualError}
+                            </p>
+                          )}
                           <p className="text-xs text-muted-foreground">
                             Tip: puedes escribir decimales con coma o punto.
                           </p>
@@ -313,7 +348,9 @@ const PrelimInspecTable = ({ work_order }: { work_order: WorkOrder }) => {
                 </Dialog>
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground italic">No hay inspección registrada...</p>
+              <p className="text-sm text-muted-foreground italic">
+                No hay inspección registrada...
+              </p>
             )}
           </>
         </CardTitle>
@@ -324,9 +361,12 @@ const PrelimInspecTable = ({ work_order }: { work_order: WorkOrder }) => {
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <div className="flex flex-col items-center justify-center py-12 space-y-4">
-                <h2 className="text-2xl font-semibold">Crear Inspección Preliminar</h2>
+                <h2 className="text-2xl font-semibold">
+                  Crear Inspección Preliminar
+                </h2>
                 <p className="text-muted-foreground text-center max-w-md">
-                  Presione el botón para iniciar una nueva inspección preliminar.
+                  Presione el botón para iniciar una nueva inspección
+                  preliminar.
                 </p>
                 <Button className="mt-4">Crear Inspección</Button>
               </div>
@@ -338,7 +378,10 @@ const PrelimInspecTable = ({ work_order }: { work_order: WorkOrder }) => {
               </DialogHeader>
 
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(handleCreateInspection)} className="space-y-6">
+                <form
+                  onSubmit={form.handleSubmit(handleCreateInspection)}
+                  className="space-y-6"
+                >
                   <div className="flex flex-col gap-2">
                     <FormField
                       control={form.control}
@@ -347,15 +390,22 @@ const PrelimInspecTable = ({ work_order }: { work_order: WorkOrder }) => {
                         <FormItem>
                           <FormLabel>Autorización</FormLabel>
                           <FormControl>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <Select
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                            >
                               <FormControl>
                                 <SelectTrigger>
                                   <SelectValue placeholder="Seleccione..." />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="PROPIETARIO">Propietario</SelectItem>
-                                <SelectItem value="EXPLOTADOR">Explotador</SelectItem>
+                                <SelectItem value="PROPIETARIO">
+                                  Propietario
+                                </SelectItem>
+                                <SelectItem value="EXPLOTADOR">
+                                  Explotador
+                                </SelectItem>
                               </SelectContent>
                             </Select>
                           </FormControl>
@@ -371,7 +421,10 @@ const PrelimInspecTable = ({ work_order }: { work_order: WorkOrder }) => {
                         <FormItem>
                           <FormLabel>Observaciones</FormLabel>
                           <FormControl>
-                            <Textarea placeholder="Ej. Ala derecha" {...field} />
+                            <Textarea
+                              placeholder="Ej. Ala derecha"
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -380,10 +433,17 @@ const PrelimInspecTable = ({ work_order }: { work_order: WorkOrder }) => {
                   </div>
 
                   <div className="flex justify-end gap-4">
-                    <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setIsDialogOpen(false)}
+                    >
                       Cancelar
                     </Button>
-                    <Button disabled={createPrelimInspection.isPending} type="submit">
+                    <Button
+                      disabled={createPrelimInspection.isPending}
+                      type="submit"
+                    >
                       {createPrelimInspection.isPending ? (
                         <Loader2 className="animate-spin" />
                       ) : (
@@ -400,13 +460,16 @@ const PrelimInspecTable = ({ work_order }: { work_order: WorkOrder }) => {
         {work_order?.preliminary_inspection && (
           <div className="flex flex-col items-center justify-center">
             <div className="w-full">
-              <DataTable columns={columns} data={work_order.preliminary_inspection.pre_inspection_items} />
+              <DataTable
+                columns={columns}
+                data={work_order.preliminary_inspection.pre_inspection_items}
+              />
             </div>
           </div>
         )}
       </CardContent>
     </Card>
-  )
-}
+  );
+};
 
-export default PrelimInspecTable
+export default PrelimInspecTable;

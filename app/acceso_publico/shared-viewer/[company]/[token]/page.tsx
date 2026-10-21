@@ -1,13 +1,20 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useRef } from 'react';
-import { useParams } from 'next/navigation';
-import { Loader2, ShieldCheck, Lock, Frown, RotateCcw, Download } from 'lucide-react';
-import { SecurePdfViewer } from '@/components/library/SecurePdfViewer';
+import { useState, useEffect, useRef } from "react";
+import { useParams } from "next/navigation";
+import {
+  Loader2,
+  ShieldCheck,
+  Lock,
+  Frown,
+  RotateCcw,
+  Download,
+} from "lucide-react";
+import { SecurePdfViewer } from "@/components/library/SecurePdfViewer";
 import { Button } from "@/components/ui/button";
-import { useCallback } from 'react';
+import { useCallback } from "react";
 
-import libraryService from '@/lib/libraryService';
+import libraryService from "@/lib/libraryService";
 import { notifyError } from "@/lib/notify-error";
 
 export default function PublicNativeViewerPage() {
@@ -19,7 +26,7 @@ export default function PublicNativeViewerPage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [readOnly, setReadOnly] = useState<boolean>(true);
-  const [docTitle, setDocTitle] = useState<string>('');
+  const [docTitle, setDocTitle] = useState<string>("");
   const activeUrlRef = useRef<string | null>(null);
 
   // --- 🛡️ BLOQUEO DE SEGURIDAD AMPLIADO (PERMITE SUBRAYAR, NIEGA COPIAR/CORTAR) ---
@@ -28,7 +35,7 @@ export default function PublicNativeViewerPage() {
       const isControl = e.ctrlKey || e.metaKey;
 
       // Bloqueamos Ctrl+S (guardar), P (imprimir), U (ver código), C (copiar), X (cortar)
-      const forbiddenKeys = ['s', 'p', 'u', 'c', 'x'];
+      const forbiddenKeys = ["s", "p", "u", "c", "x"];
       if (isControl && forbiddenKeys.includes(e.key.toLowerCase())) {
         e.preventDefault();
       }
@@ -39,18 +46,21 @@ export default function PublicNativeViewerPage() {
 
       // Sobrescribimos el portapapeles con una advertencia en lugar del texto real
       if (e.clipboardData) {
-        e.clipboardData.setData('text/plain', '⚠️ Contenido Protegido por SIGEAC Library');
+        e.clipboardData.setData(
+          "text/plain",
+          "⚠️ Contenido Protegido por SIGEAC Library",
+        );
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('copy', handleCopyCut);
-    window.addEventListener('cut', handleCopyCut); // Bloqueo de cortar
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("copy", handleCopyCut);
+    window.addEventListener("cut", handleCopyCut); // Bloqueo de cortar
 
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('copy', handleCopyCut);
-      window.removeEventListener('cut', handleCopyCut);
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("copy", handleCopyCut);
+      window.removeEventListener("cut", handleCopyCut);
     };
   }, []);
 
@@ -69,11 +79,11 @@ export default function PublicNativeViewerPage() {
 
       const isReadOnly =
         info.read_only === true ||
-        info.read_only === '1' ||
+        info.read_only === "1" ||
         info.read_only === 1;
 
       setReadOnly(isReadOnly);
-      setDocTitle(info.title || '');
+      setDocTitle(info.title || "");
 
       if (activeUrlRef.current) {
         URL.revokeObjectURL(activeUrlRef.current);
@@ -82,7 +92,9 @@ export default function PublicNativeViewerPage() {
       activeUrlRef.current = fileUrlResult;
       setFileUrl(fileUrlResult);
     } catch {
-      setError("No pudimos validar este documento. Es posible que el enlace haya expirado o no sea válido.");
+      setError(
+        "No pudimos validar este documento. Es posible que el enlace haya expirado o no sea válido.",
+      );
     } finally {
       setLoading(false);
     }
@@ -92,9 +104,9 @@ export default function PublicNativeViewerPage() {
     try {
       // Pasa por el endpoint de descarga: es el backend quien comprueba el flag.
       const blobUrl = await libraryService.downloadSharedFile(company, token);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = blobUrl;
-      a.download = `${docTitle || 'documento'}.pdf`;
+      a.download = `${docTitle || "documento"}.pdf`;
       a.click();
       URL.revokeObjectURL(blobUrl);
     } catch (err: any) {
@@ -121,8 +133,10 @@ export default function PublicNativeViewerPage() {
 
   return (
     // 🔥 CAMBIO CLAVE: Cambiado 'select-none' por 'select-text' para permitir subrayar con el mouse
-    <div className="h-screen w-screen flex flex-col bg-[#111214] text-white overflow-hidden select-text" onContextMenu={(e) => e.preventDefault()}>
-
+    <div
+      className="h-screen w-screen flex flex-col bg-[#111214] text-white overflow-hidden select-text"
+      onContextMenu={(e) => e.preventDefault()}
+    >
       {/* HEADER NATIVO */}
       <div className="p-4 border-b border-gray-800 flex justify-between items-center bg-[#1a1c1e]">
         <div className="flex items-center gap-3">
@@ -133,7 +147,9 @@ export default function PublicNativeViewerPage() {
             <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white">
               Visualizador Seguro
             </h3>
-            <p className="text-[9px] text-gray-500 font-bold uppercase">Transmisión Protegida por SIGEAC</p>
+            <p className="text-[9px] text-gray-500 font-bold uppercase">
+              Transmisión Protegida por SIGEAC
+            </p>
           </div>
         </div>
 
