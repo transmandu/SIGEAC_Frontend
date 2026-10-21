@@ -282,9 +282,7 @@ export function EvidenceCapture({
               {cameraError && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-background/90 px-6 text-center">
                   <AlertTriangle className="size-6 text-amber-500" />
-                  <p className="text-sm text-muted-foreground">
-                    {cameraError}
-                  </p>
+                  <p className="text-sm text-muted-foreground">{cameraError}</p>
                   <Button
                     type="button"
                     variant="outline"

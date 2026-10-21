@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import {
   AlertDialog,
@@ -8,101 +8,109 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
-import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
-import { ArrowRight, BellRing, Loader2, PackageCheck, PlayCircle } from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
-import { useState } from 'react'
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import {
+  ArrowRight,
+  BellRing,
+  Loader2,
+  PackageCheck,
+  PlayCircle,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { useState } from "react";
 
 /** Transiciones que el badge de estado permite avanzar con un clic. */
 export const NEXT_REQUISITION_STATUS: Record<string, string> = {
-  CREATED: 'RECEIVED',
-  RECEIVED: 'IN_PROGRESS',
-}
+  CREATED: "RECEIVED",
+  RECEIVED: "IN_PROGRESS",
+};
 
 export const ADVANCE_REQUISITION_TOOLTIP: Record<string, string> = {
-  CREATED: 'Marcar esta requisición como recibida',
-  RECEIVED: 'Iniciar proceso de atención / ejecución',
-}
+  CREATED: "Marcar esta requisición como recibida",
+  RECEIVED: "Iniciar proceso de atención / ejecución",
+};
 
 interface StepCopy {
-  icon: LucideIcon
-  accent: string
-  title: string
+  icon: LucideIcon;
+  accent: string;
+  title: string;
   /** Qué significa el estado nuevo, en los términos del solicitante. */
-  meaning: string
+  meaning: string;
   /** Lo que el estado nuevo NO significa: es el equívoco que se busca evitar. */
-  caveat: string
-  notice: string
-  action: string
+  caveat: string;
+  notice: string;
+  action: string;
 }
 
 const STEP_COPY: Record<string, StepCopy> = {
   CREATED: {
     icon: PackageCheck,
-    accent: 'text-sky-500',
-    title: 'Marcar la requisición como recibida',
+    accent: "text-sky-500",
+    title: "Marcar la requisición como recibida",
     meaning:
-      'Compras confirma que la solicitud llegó y queda bajo su resguardo.',
+      "Compras confirma que la solicitud llegó y queda bajo su resguardo.",
     caveat:
-      'No implica que se haya iniciado la gestión ni que esté cotizada: solo acusa la recepción.',
+      "No implica que se haya iniciado la gestión ni que esté cotizada: solo acusa la recepción.",
     notice:
-      'Se notificará a quien creó la solicitud que ya fue recibida por Compras.',
-    action: 'Sí, marcar como recibida',
+      "Se notificará a quien creó la solicitud que ya fue recibida por Compras.",
+    action: "Sí, marcar como recibida",
   },
   RECEIVED: {
     icon: PlayCircle,
-    accent: 'text-yellow-500',
-    title: 'Iniciar el proceso de la requisición',
+    accent: "text-yellow-500",
+    title: "Iniciar el proceso de la requisición",
     meaning:
-      'Compras empezó a gestionar esta solicitud: pasa a estar en proceso frente a las demás recibidas.',
+      "Compras empezó a gestionar esta solicitud: pasa a estar en proceso frente a las demás recibidas.",
     caveat:
-      'No implica que ya esté cotizada ni aprobada: la cotización es un paso posterior.',
+      "No implica que ya esté cotizada ni aprobada: la cotización es un paso posterior.",
     notice:
-      'Se notificará a quien creó la solicitud que su requisición está en proceso.',
-    action: 'Sí, iniciar el proceso',
+      "Se notificará a quien creó la solicitud que su requisición está en proceso.",
+    action: "Sí, iniciar el proceso",
   },
-}
+};
 
 const STATUS_PILL: Record<string, { label: string; className: string }> = {
   CREATED: {
-    label: 'CREADA',
-    className: 'border-slate-500/30 bg-slate-500/10 text-slate-700 dark:text-slate-300',
+    label: "CREADA",
+    className:
+      "border-slate-500/30 bg-slate-500/10 text-slate-700 dark:text-slate-300",
   },
   RECEIVED: {
-    label: 'RECIBIDA',
-    className: 'border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300',
+    label: "RECIBIDA",
+    className: "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300",
   },
   IN_PROGRESS: {
-    label: 'EN PROCESO',
-    className: 'border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300',
+    label: "EN PROCESO",
+    className:
+      "border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300",
   },
-}
+};
 
 const StatusPill = ({ status }: { status: string }) => {
-  const pill = STATUS_PILL[status]
+  const pill = STATUS_PILL[status];
 
   return (
     <span
       className={cn(
-        'select-none whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-xs',
+        "select-none whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-xs",
         pill?.className,
       )}
     >
       {pill?.label ?? status}
     </span>
-  )
-}
+  );
+};
 
 interface Props {
   /** Estado actual; determina qué transición se está confirmando. */
-  status?: string
-  orderNumber?: string
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onConfirm: () => void
-  isPending?: boolean
+  status?: string;
+  orderNumber?: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onConfirm: () => void;
+  isPending?: boolean;
 }
 
 /**
@@ -124,34 +132,48 @@ export function AdvanceRequisitionStatusDialog({
    * retiene la última transición para que el contenido no desaparezca a media
    * animación de salida.
    */
-  const [shown, setShown] = useState<{ copy: StepCopy; from: string; to: string } | null>(null)
+  const [shown, setShown] = useState<{
+    copy: StepCopy;
+    from: string;
+    to: string;
+  } | null>(null);
 
-  const copy = STEP_COPY[status ?? '']
-  const nextStatus = NEXT_REQUISITION_STATUS[status ?? '']
+  const copy = STEP_COPY[status ?? ""];
+  const nextStatus = NEXT_REQUISITION_STATUS[status ?? ""];
 
   // Ajuste de estado al cambiar una prop (patrón documentado de React): se
   // actualiza durante el render, solo cuando la transición realmente cambió.
-  if (copy && nextStatus && (!shown || shown.from !== status || shown.to !== nextStatus)) {
-    setShown({ copy, from: status!, to: nextStatus })
+  if (
+    copy &&
+    nextStatus &&
+    (!shown || shown.from !== status || shown.to !== nextStatus)
+  ) {
+    setShown({ copy, from: status!, to: nextStatus });
   }
 
-  if (!shown) return null
+  if (!shown) return null;
 
-  const Icon = shown.copy.icon
+  const Icon = shown.copy.icon;
 
   return (
-    <AlertDialog open={open} onOpenChange={(next) => !isPending && onOpenChange(next)}>
+    <AlertDialog
+      open={open}
+      onOpenChange={(next) => !isPending && onOpenChange(next)}
+    >
       <AlertDialogContent className="max-w-md gap-3 p-5">
         <AlertDialogHeader className="space-y-1.5">
           <AlertDialogTitle className="flex items-center gap-2 text-base">
-            <Icon className={cn('size-5', shown.copy.accent)} />
+            <Icon className={cn("size-5", shown.copy.accent)} />
             {shown.copy.title}
           </AlertDialogTitle>
           <AlertDialogDescription className="text-xs">
             {orderNumber ? (
               <>
-                Requisición{' '}
-                <span className="font-mono font-medium text-foreground">{orderNumber}</span>.{' '}
+                Requisición{" "}
+                <span className="font-mono font-medium text-foreground">
+                  {orderNumber}
+                </span>
+                .{" "}
               </>
             ) : null}
             {shown.copy.meaning}
@@ -197,5 +219,5 @@ export function AdvanceRequisitionStatusDialog({
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
-  )
+  );
 }
