@@ -15,6 +15,8 @@ interface CreateErrorReportData {
   error_reference?: string;
   error_code?: string;
   page_url?: string;
+  /** Lo técnico del aviso, ya como JSON: el backend solo guarda claves conocidas. */
+  error_context?: string;
   images?: File[];
 }
 
@@ -36,6 +38,8 @@ export const useCreateErrorReport = () => {
           formData.append("error_reference", data.error_reference);
         if (data.error_code) formData.append("error_code", data.error_code);
         if (data.page_url) formData.append("page_url", data.page_url);
+        if (data.error_context)
+          formData.append("error_context", data.error_context);
         images.forEach((image) => formData.append("images[]", image));
 
         const response = await axiosInstance.post("/error-reports", formData, {

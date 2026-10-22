@@ -2470,6 +2470,18 @@ export type ErrorReportImage = {
   image_url: string;
 };
 
+export type ErrorReportContextData = {
+  title?: string;
+  message?: string;
+  hint?: string;
+  kind?: string;
+  request?: string;
+  user_agent?: string;
+  viewport?: string;
+  language?: string;
+  online?: boolean;
+};
+
 export type ErrorReport = {
   id: number;
   reported_by: string;
@@ -2487,6 +2499,8 @@ export type ErrorReport = {
   error_code: string | null;
   /** Pantalla donde ocurrió, sin dominio. */
   page_url: string | null;
+  /** Lo técnico del aviso (solo lo devuelve la API a SUPERUSER). */
+  error_context?: ErrorReportContextData | null;
   technical_cause: string | null;
   diagnostic_steps: string[] | null;
   duplicate_count: number;

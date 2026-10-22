@@ -3,7 +3,21 @@
 import { useState } from "react";
 import { Check, Copy } from "lucide-react";
 
-import type { ErrorReport } from "@/types";
+import type { ErrorReport, ErrorReportContextData } from "@/types";
+
+const DETAIL_ROWS: {
+  key: Exclude<keyof ErrorReportContextData, "online">;
+  label: string;
+}[] = [
+  { key: "title", label: "Aviso mostrado" },
+  { key: "message", label: "Mensaje al usuario" },
+  { key: "hint", label: "Detalle técnico" },
+  { key: "request", label: "Petición" },
+  { key: "kind", label: "Tipo" },
+  { key: "viewport", label: "Ventana" },
+  { key: "language", label: "Idioma" },
+  { key: "user_agent", label: "Navegador" },
+];
 
 /**
  * El código con que el backend dejó la entrada en el log, más la pantalla donde
@@ -14,11 +28,21 @@ import type { ErrorReport } from "@/types";
 export default function ErrorReferenceBlock({
   report,
 }: {
-  report: Pick<ErrorReport, "error_reference" | "error_code" | "page_url">;
+  report: Pick<
+    ErrorReport,
+    "error_reference" | "error_code" | "page_url" | "error_context"
+  >;
 }) {
   const [copied, setCopied] = useState(false);
 
-  if (!report.error_reference && !report.page_url) return null;
+  const context = report.error_context;
+  const details = context
+    ? DETAIL_ROWS.filter(({ key }) => context[key])
+    : [];
+
+  if (!report.error_reference && !report.page_url && details.length === 0) {
+    return null;
+  }
 
   const copy = async () => {
     if (!report.error_reference) return;
@@ -67,6 +91,23 @@ export default function ErrorReferenceBlock({
             Pantalla
           </span>
           <span className="break-all font-mono">{report.page_url}</span>
+        </div>
+      )}
+      {context &&
+        details.map(({ key, label }) => (
+          <div key={key} className="flex flex-wrap items-baseline gap-x-2">
+            <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
+              {label}
+            </span>
+            <span className="break-all font-mono">{context[key]}</span>
+          </div>
+        ))}
+      {context?.online !== undefined && (
+        <div className="flex flex-wrap items-baseline gap-x-2">
+          <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
+            Con conexión
+          </span>
+          <span>{context.online ? "Sí" : "No"}</span>
         </div>
       )}
     </div>

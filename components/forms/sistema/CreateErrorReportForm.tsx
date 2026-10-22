@@ -209,6 +209,13 @@ export default function CreateErrorReportForm({
         error_reference: draft?.errorReference,
         error_code: draft?.errorCode,
         page_url: draft?.pageUrl,
+        error_context: draft?.context
+          ? JSON.stringify({
+              ...draft.context,
+              user_agent: draft.context.userAgent,
+              userAgent: undefined,
+            })
+          : undefined,
         // Deja constancia de desde qué empresa se reportó: sin esto, un
         // soporte asignado por compañía no puede filtrar lo que le toca.
         company: selectedCompany?.slug,

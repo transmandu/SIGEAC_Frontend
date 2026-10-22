@@ -1,6 +1,7 @@
 "use client";
 
 import type { FieldValues, UseFormSetError } from "react-hook-form";
+import { isAxiosError } from "axios";
 import { toast } from "sonner";
 
 import {
@@ -17,7 +18,10 @@ import {
   type DescribeOptions,
 } from "@/lib/api-error";
 import { guessErrorReportModuleFromPath } from "@/lib/errorReportModules";
-import { useErrorReportDraftStore } from "@/stores/ErrorReportDraftStore";
+import {
+  useErrorReportDraftStore,
+  type ErrorReportContext,
+} from "@/stores/ErrorReportDraftStore";
 
 /**
  * Fallos de conectividad: cuando una pantalla lanza varias peticiones a la vez
@@ -74,10 +78,62 @@ const copyReference = async (reference: string) => {
 /** Los títulos llevan "¡Ops!" o "¡Error!"; dentro de una frase estorban. */
 const plainTitle = (title: string) => title.replace(/^¡(?:Ops|Error)!\s*/, "");
 
-const reportDraft = (error: DescribedError, action?: string) => ({
-  description: action
-    ? `Al intentar ${action} me apareció un error del sistema.`
-    : `Me apareció el aviso "${plainTitle(error.title)}".`,
+/**
+ * Texto con que arranca el reporte: lo mismo que vio el usuario en el aviso
+ * (qué intentaba, qué le dijo el sistema) y la pregunta que el desarrollador
+ * necesita que responda. El código y la pantalla viajan aparte.
+ */
+const reportDescription = (error: DescribedError, action?: string) => {
+  const title = plainTitle(error.title);
+  const intro = action
+    ? `Al intentar ${action} me apareció el aviso "${title}".`
+    : `Me apareció el aviso "${title}".`;
+
+  return [
+    intro,
+    `El sistema me dijo: ${error.description}`,
+    "¿Qué estabas haciendo cuando ocurrió? ",
+  ].join("\n\n");
+};
+
+/** "POST /api/articles" de la petición que falló, si el error vino de una. */
+const failedRequest = (error: unknown): string | undefined => {
+  if (!isAxiosError(error) || !error.config?.url) return undefined;
+
+  const base = error.config.baseURL?.replace(/\/+$/, "") ?? "";
+  const path = error.config.url.startsWith("http")
+    ? error.config.url
+    : `${base}/${error.config.url.replace(/^\/+/, "")}`;
+
+  return `${(error.config.method ?? "get").toUpperCase()} ${path}`;
+};
+
+const reportContext = (
+  error: DescribedError,
+  raw: unknown,
+): ErrorReportContext => ({
+  title: plainTitle(error.title),
+  message: error.description,
+  hint: error.hint,
+  kind: error.kind,
+  request: failedRequest(raw),
+  ...(typeof window === "undefined"
+    ? {}
+    : {
+        userAgent: navigator.userAgent,
+        viewport: `${window.innerWidth}x${window.innerHeight}`,
+        language: navigator.language,
+        online: navigator.onLine,
+      }),
+});
+
+const reportDraft = (
+  error: DescribedError,
+  raw: unknown,
+  action?: string,
+) => ({
+  context: reportContext(error, raw),
+  description: reportDescription(error, action),
   errorTitle: plainTitle(error.title),
   errorReference: error.reference,
   errorCode: error.code,
@@ -92,11 +148,17 @@ const reportDraft = (error: DescribedError, action?: string) => ({
       : guessErrorReportModuleFromPath(window.location.pathname),
 });
 
-function ErrorBody({ error }: { error: DescribedError }) {
+function ErrorBody({
+  error,
+  showHint,
+}: {
+  error: DescribedError;
+  showHint: boolean;
+}) {
   return (
     <div className="space-y-1">
       <p>{error.description}</p>
-      {error.hint && (
+      {showHint && error.hint && (
         <p className="font-mono text-xs opacity-80">{error.hint}</p>
       )}
       {error.reference && (
@@ -181,16 +243,16 @@ export function notifyError<T extends FieldValues = FieldValues>(
 
   // Reportar solo tiene sentido con sesión (quien monta el formulario lo
   // avisa en la tienda) y para fallos que le tocan al desarrollador.
-  const canReport =
-    REPORTABLE.has(described.kind) &&
-    useErrorReportDraftStore.getState().canReport;
+  const { canReport: sessionCanReport, isSuperUser } =
+    useErrorReportDraftStore.getState();
+  const canReport = REPORTABLE.has(described.kind) && sessionCanReport;
 
   toast.error(described.title, {
     id:
       options.dedupe || ONE_AT_A_TIME.has(described.kind)
         ? `error:${described.kind}`
         : undefined,
-    description: <ErrorBody error={described} />,
+    description: <ErrorBody error={described} showHint={isSuperUser} />,
     duration: described.reference ? DURATION_WITH_REFERENCE : undefined,
     // "Reportar" abre el formulario con el código y la pantalla ya cargados.
     action: canReport
@@ -199,7 +261,7 @@ export function notifyError<T extends FieldValues = FieldValues>(
           onClick: () =>
             useErrorReportDraftStore
               .getState()
-              .openDraft(reportDraft(described, options.action)),
+              .openDraft(reportDraft(described, error, options.action)),
         }
       : undefined,
   });

@@ -17,7 +17,8 @@ import { useErrorReportDraftStore } from "@/stores/ErrorReportDraftStore";
  */
 export default function ErrorReportDraftHost() {
   const { user } = useAuth();
-  const { open, draft, closeDraft, setCanReport } = useErrorReportDraftStore();
+  const { open, draft, closeDraft, setCanReport, setIsSuperUser } =
+    useErrorReportDraftStore();
 
   const isSuperUser = !!user?.roles?.some((role) => role.name === "SUPERUSER");
   const allowed =
@@ -28,6 +29,12 @@ export default function ErrorReportDraftHost() {
 
     return () => setCanReport(false);
   }, [allowed, setCanReport]);
+
+  useEffect(() => {
+    setIsSuperUser(isSuperUser);
+
+    return () => setIsSuperUser(false);
+  }, [isSuperUser, setIsSuperUser]);
 
   if (!allowed) return null;
 
