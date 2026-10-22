@@ -1,3 +1,7 @@
+## v4.75.0 — 2026-10-22
+
+- feat: implement error handling improvements and reporting features (#350)
+
 ## v4.74.0 — 2026-10-20
 
 - feat: show if the change is temporal (#349)
