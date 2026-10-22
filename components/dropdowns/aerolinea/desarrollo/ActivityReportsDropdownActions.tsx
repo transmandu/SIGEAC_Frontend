@@ -14,7 +14,7 @@ import {
   Check,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -27,6 +27,7 @@ import { Input } from "@/components/ui/input";
 import { useUpdateObservation } from "@/actions/aerolinea/desarrollo/reportes_diarios/actions";
 import { useToast } from "@/components/ui/use-toast";
 import { notifyError } from "@/lib/notify-error";
+import { useResettingState } from "@/hooks/useResettingState";
 
 interface ActivityReportsDropdownActionsProps {
   id: string;
@@ -45,11 +46,10 @@ const ActivityReportsDropdownActions = ({
   const [observation, setObservation] = useState("");
   const [isObservationOpen, setIsObservationOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [hasObservation, setHasObservation] = useState(!!existingObservation);
-
-  useEffect(() => {
-    setHasObservation(!!existingObservation);
-  }, [existingObservation]);
+  const [hasObservation, setHasObservation] = useResettingState(
+    !!existingObservation,
+    [existingObservation],
+  );
 
   const handleUpdateObservation = async () => {
     setIsSubmitting(true);

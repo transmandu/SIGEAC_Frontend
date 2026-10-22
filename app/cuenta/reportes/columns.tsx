@@ -44,7 +44,7 @@ export const getColumns = (
         <TooltipProvider disableHoverableContent>
           <Tooltip delayDuration={200}>
             <TooltipTrigger asChild>
-              <p className="max-w-[280px] truncate text-sm">{description}</p>
+              <p className="max-w-70 truncate text-sm">{description}</p>
             </TooltipTrigger>
             <TooltipContent className="max-w-sm whitespace-pre-wrap">
               {description}

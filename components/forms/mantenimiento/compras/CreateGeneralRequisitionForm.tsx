@@ -39,6 +39,7 @@ import { isHigherPriority, type Priority } from "./_components/priorityUtils";
 import { getStoragePathFromUrl } from "./_components/imageUtils";
 import { canAddRequisitionArticle } from "@/lib/purchases/requisition-article-limit";
 import { toCalendarPayload } from "@/lib/date";
+import { useResettingState } from "@/hooks/useResettingState";
 
 /* -------------------------------------------------------------------------- */
 /*                                   SCHEMA                                   */
@@ -129,7 +130,10 @@ export function CreateGeneralRequisitionForm({
   const { createRequisition } = useCreateRequisition();
   const { updateRequisition } = useUpdateRequisition();
 
-  const [selectedGeneralArticles, setSelectedGeneralArticles] = useState<RequisitionGeneralArticleForm[]>([]);
+  const [selectedGeneralArticles, setSelectedGeneralArticles] = useResettingState<RequisitionGeneralArticleForm[]>(
+    () => (initialData?.general_articles ?? []) as RequisitionGeneralArticleForm[],
+    [initialData],
+  );
   // Datos validados, en espera de que el usuario confirme los duplicados.
   const [pendingSubmit, setPendingSubmit] = useState<FormSchemaType | null>(null);
 
@@ -174,9 +178,6 @@ export function CreateGeneralRequisitionForm({
     }
     if (initialData) {
       form.reset(initialData);
-      if (initialData.general_articles?.length) {
-        setSelectedGeneralArticles(initialData.general_articles as RequisitionGeneralArticleForm[]);
-      }
     }
   }, [user, selectedCompany, selectedStation, initialData, form]);
 

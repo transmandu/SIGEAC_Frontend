@@ -10,7 +10,7 @@ import { useGetFlightControl } from "@/hooks/mantenimiento/planificacion/useGetF
 import { useGetMaintenanceAircrafts } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { AlertTriangle, Plane } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { getColumns } from "./columns";
 import { DataTable } from "./data-table";
 import { AircraftStatsBanner } from "./_components/AircraftStatsBanner";
@@ -29,18 +29,17 @@ const FlightControlPage = () => {
   const { data: aircrafts, isLoading: isAircraftsLoading } =
     useGetMaintenanceAircrafts(companySlug);
 
-  const [activeAircraftId, setActiveAircraftId] = useState<string>("");
+  const [selectedAircraftId, setActiveAircraftId] = useState<string>("");
+
+  // Sin una elección del usuario, la primera aeronave.
+  const activeAircraftId =
+    selectedAircraftId || (aircrafts?.length ? String(aircrafts[0].id) : "");
 
   const activeAircraftAcronym = useMemo(() => {
     const selected = aircrafts?.find((a) => String(a.id) === activeAircraftId);
     return selected?.acronym ?? "";
   }, [aircrafts, activeAircraftId]);
 
-  useEffect(() => {
-    if (!activeAircraftId && aircrafts?.length) {
-      setActiveAircraftId(String(aircrafts[0].id));
-    }
-  }, [aircrafts, activeAircraftId]);
   const {
     data: averageStats,
     isLoading: isLoadingAverageStats,

@@ -1,9 +1,10 @@
 'use client'
 
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo } from 'react';
 
 import GroupRow from './GroupRow'
 import GroupPagination from '@/components/misc/GroupPagination'
+import { useResettingState } from "@/hooks/useResettingState"
 
 type GroupableKey =
   | 'retailer'
@@ -58,10 +59,12 @@ const GroupedQuotesTable = <T extends Record<string, any>>({
     }))
   }, [data, groupBy])
 
-  const [pagination, setPagination] = useState({
-    pageIndex: 0,
-    pageSize: PAGE_SIZE,
-  })
+  // Cambiar los datos (o la agrupación) devuelve la tabla a la primera página
+  // con todos los grupos cerrados.
+  const [pagination, setPagination] = useResettingState(
+    { pageIndex: 0, pageSize: PAGE_SIZE },
+    [groupBy, data],
+  )
 
   const totalPages = useMemo(() => {
     return Math.max(1, Math.ceil(groups.length / pagination.pageSize))
@@ -76,7 +79,10 @@ const GroupedQuotesTable = <T extends Record<string, any>>({
     )
   }, [groups, pagination])
 
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({})
+  const [expanded, setExpanded] = useResettingState<Record<string, boolean>>(
+    {},
+    [groupBy, data],
+  )
 
   const toggleGroup = (key: string) => {
     setExpanded((prev) => ({
@@ -85,14 +91,6 @@ const GroupedQuotesTable = <T extends Record<string, any>>({
     }))
   }
 
-  useEffect(() => {
-    setPagination({
-      pageIndex: 0,
-      pageSize: PAGE_SIZE,
-    })
-
-    setExpanded({})
-  }, [groupBy, data])
 
   if (!groups.length) {
     return (

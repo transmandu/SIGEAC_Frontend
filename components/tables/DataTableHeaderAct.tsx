@@ -10,7 +10,8 @@ import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
-import { useState, useEffect } from "react"
+import { useResettingState } from "@/hooks/useResettingState"
+
 
 interface DataTableColumnHeaderProps<TData extends RowData, TValue> extends React.HTMLAttributes<HTMLDivElement> {
   column: AppColumn<TData, TValue>
@@ -26,26 +27,20 @@ export function DataTableColumnHeaderAct<TData extends RowData, TValue>({
   isDate = false,
   className,
 }: DataTableColumnHeaderProps<TData, TValue>) {
-    const [localFilterValue, setLocalFilterValue] = useState<string>("")
     const {getFilterValue} = column
-    // Initialize local filter value from column filter
-    useEffect(() => {
-      if (isDate && getFilterValue()) {
-        // Convert yyyy-mm-dd to Spanish format for display
-        try {
-          const date = parse(getFilterValue() as string, "yyyy-MM-dd", new Date())
-          if (isValid(date)) {
-            setLocalFilterValue(format(date, "PPP", { locale: es }))
-          } else {
-            setLocalFilterValue(getFilterValue() as string)
-          }
-        } catch (error) {
-          setLocalFilterValue(getFilterValue() as string)
-        }
-      } else {
-        setLocalFilterValue((getFilterValue() as string) || "")
+    // El texto del campo parte del filtro de la columna; las fechas se muestran
+    // en español aunque el filtro viaje como yyyy-MM-dd.
+    const [localFilterValue, setLocalFilterValue] = useResettingState<string>(() => {
+      const filterValue = getFilterValue() as string | undefined
+      if (!isDate || !filterValue) return filterValue || ""
+
+      try {
+        const date = parse(filterValue, "yyyy-MM-dd", new Date())
+        return isValid(date) ? format(date, "PPP", { locale: es }) : filterValue
+      } catch (error) {
+        return filterValue
       }
-    }, [getFilterValue, isDate, column])
+    }, [column, isDate])
 
     // Handle filter input change
     const handleFilterChange = (value: string) => {

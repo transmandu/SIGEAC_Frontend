@@ -1,5 +1,5 @@
 import axios from '@/lib/axios';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 interface locationsByCompanyId {
     id: number,
@@ -19,5 +19,14 @@ const fetchLocationsByCompanyId = async (company_id: number): Promise<locationsB
 export const useGetLocationsByCompanyId = () => {
     return useMutation<locationsByCompanyId[], Error, number>({
         mutationFn: fetchLocationsByCompanyId,
+    });
+};
+
+/** Sedes de una compañía como consulta: se pide en cuanto hay una compañía elegida. */
+export const useLocationsOfCompany = (companyId?: number) => {
+    return useQuery<locationsByCompanyId[], Error>({
+        queryKey: ['locations-by-company-id', companyId],
+        queryFn: () => fetchLocationsByCompanyId(companyId!),
+        enabled: !!companyId,
     });
 };

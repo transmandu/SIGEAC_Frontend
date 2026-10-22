@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useId, useState } from "react";
 import { format, startOfDay } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarIcon, X } from "lucide-react";
@@ -20,6 +20,7 @@ import {
   hintClass,
   labelClass,
 } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
+import { useResettingState } from "@/hooks/useResettingState";
 
 interface DatePickerFieldProps {
   label: string;
@@ -71,7 +72,11 @@ export function DatePickerField({
   maxDate,
 }: DatePickerFieldProps) {
   const [touched, setTouched] = useState(false);
-  const [inputValue, setInputValue] = useState("");
+  // El texto que se ve; sigue a `value` cuando este cambia desde fuera.
+  const [inputValue, setInputValue] = useResettingState(
+    () => (value && value instanceof Date ? format(value, "dd/MM/yyyy") : ""),
+    [value],
+  );
   const [isInputMode, setIsInputMode] = useState(false);
   const [validationError, setValidationError] = useState("");
   // El id no puede salir del rótulo: hay formularios con dos fechas homónimas
@@ -111,14 +116,6 @@ export function DatePickerField({
     (isInvalid
       ? "Este campo es obligatorio. Debe seleccionar una fecha o marcar 'No aplica'."
       : undefined);
-
-  useEffect(() => {
-    if (value && value instanceof Date) {
-      setInputValue(format(value, "dd/MM/yyyy"));
-    } else {
-      setInputValue("");
-    }
-  }, [value]);
 
   const isValidDate = (day: number, month: number, year: number): boolean => {
     if (year < 1900 || year > 2100) return false;

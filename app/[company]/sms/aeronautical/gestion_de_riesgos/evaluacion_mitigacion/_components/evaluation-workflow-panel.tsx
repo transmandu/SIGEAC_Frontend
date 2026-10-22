@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import { Card, CardContent } from '@/components/ui/card';
 import { RiskAssessment } from '@/types/sms/mantenimiento';
@@ -48,17 +48,6 @@ export function EvaluationWorkflowPanel({
         selectedNotification.risk_assessment ||
         null;
     const hasRiskAssessment = Boolean(currentRiskAssessment);
-
-    useEffect(() => {
-        setIsPlanFormOpen(false);
-        setIsRiskAssessmentFormOpen(false);
-        setIsPostAnalysisFormOpen(false);
-        setMeasureEditorId(null);
-        setControlEditorKey(null);
-        setExpandedMeasureIds([]);
-        setExpandedControlIds([]);
-        setAssessmentDraft(null);
-    }, [selectedNotification.id]);
 
     return (
         <Card>

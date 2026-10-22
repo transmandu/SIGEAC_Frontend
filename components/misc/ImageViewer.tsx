@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import { X } from 'lucide-react';
+import { useIsClient } from '@/hooks/useIsClient';
 
 interface ImageViewerProps {
   openImage: string | null;
@@ -14,9 +15,7 @@ interface ImageViewerProps {
 // un contexto de apilamiento y dejaría el overlay debajo del navbar/sidebar y
 // posicionado contra el contenedor en vez del viewport.
 const ImageViewer = ({ openImage, onClose }: ImageViewerProps) => {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => setMounted(true), []);
+  const mounted = useIsClient();
 
   useEffect(() => {
     if (!openImage) return;

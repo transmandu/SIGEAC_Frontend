@@ -36,10 +36,11 @@ import {
   UserCheck,
   ListChecks,
 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Badge } from "@/components/ui/badge";
+import { useResettingState } from "@/hooks/useResettingState";
 
 const normalizeAuthorizedEmployeeId = (
   value: unknown
@@ -95,9 +96,6 @@ export function AddSMSActivityAttendanceForm({
   const [open, setOpen] = useState(false);
   const { selectedCompany } = useCompanyStore();
   const { markSMSActivityAttendance } = useMarkSMSActivityAttendance();
-  const [employeeSelections, setEmployeeSelections] = useState<
-    EmployeeSelection[]
-  >([]);
   const [searchQuery, setSearchQuery] = useState("");
 
   const value = {
@@ -146,51 +144,43 @@ export function AddSMSActivityAttendanceForm({
     []
   );
 
-  const updateFormValues = useCallback(
-    (selections: EmployeeSelection[]) => {
-      const added = selections.filter((e) => e.isSelected && !e.wasEnrolled);
-      const removed = selections.filter((e) => !e.isSelected && e.wasEnrolled);
+  // Quién se agrega y quién se quita respecto de lo que ya estaba guardado.
+  const toAttendanceLists = (selections: EmployeeSelection[]) => {
+    const added = selections.filter((e) => e.isSelected && !e.wasEnrolled);
+    const removed = selections.filter((e) => !e.isSelected && e.wasEnrolled);
 
-      form.setValue(
-        "addedEmployees",
-        added.map((e) => ({
-          dni: e.employee_type === "local" ? e.dni : null,
-          first_name: e.first_name,
-          last_name: e.last_name,
-          authorized_employee_id:
-            e.employee_type === "authorized"
-              ? (e.authorized_employee_id ?? null)
-              : null,
-        }))
-      );
+    return {
+      addedEmployees: added.map((e) => ({
+        dni: e.employee_type === "local" ? e.dni : null,
+        first_name: e.first_name,
+        last_name: e.last_name,
+        authorized_employee_id:
+          e.employee_type === "authorized"
+            ? (e.authorized_employee_id ?? null)
+            : null,
+      })),
+      removedEmployees: removed.map((e) => ({
+        dni: e.employee_type === "local" ? e.dni : null,
+        first_name: e.first_name,
+        last_name: e.last_name,
+        authorized_employee_id:
+          e.employee_type === "authorized"
+            ? (e.authorized_employee_id ?? null)
+            : null,
+      })),
+    };
+  };
 
-      form.setValue(
-        "removedEmployees",
-        removed.map((e) => ({
-          dni: e.employee_type === "local" ? e.dni : null,
-          first_name: e.first_name,
-          last_name: e.last_name,
-          authorized_employee_id:
-            e.employee_type === "authorized"
-              ? (e.authorized_employee_id ?? null)
-              : null,
-        }))
-      );
-    },
-    [form]
-  );
+  const [employeeSelections, setEmployeeSelections] = useResettingState<
+    EmployeeSelection[]
+  >(() => {
+    if (!employeesData) return [];
 
-  useEffect(() => {
-    if (employeesData) {
-      const selections: EmployeeSelection[] = [
-        ...mapToSelection(employeesData.attended || [], true),
-        ...mapToSelection(employeesData.not_attended || [], false),
-      ];
-
-      setEmployeeSelections(selections);
-      updateFormValues(selections);
-    }
-  }, [employeesData, updateFormValues, mapToSelection]);
+    return [
+      ...mapToSelection(employeesData.attended || [], true),
+      ...mapToSelection(employeesData.not_attended || [], false),
+    ];
+  }, [employeesData]);
 
   const toggleEmployeeSelection = (key: string) => {
     const newSelections = employeeSelections.map((emp) => {
@@ -202,7 +192,6 @@ export function AddSMSActivityAttendanceForm({
     });
 
     setEmployeeSelections(newSelections);
-    updateFormValues(newSelections);
   };
 
   const toggleAllEmployees = () => {
@@ -214,7 +203,6 @@ export function AddSMSActivityAttendanceForm({
     }));
 
     setEmployeeSelections(newSelections);
-    updateFormValues(newSelections);
   };
 
   const allSelected =
@@ -243,12 +231,14 @@ export function AddSMSActivityAttendanceForm({
     (e) => !e.isSelected && e.wasEnrolled
   ).length;
 
-  const onSubmit = async (data: FormSchemaType) => {
+  const onSubmit = async () => {
+    const { addedEmployees, removedEmployees } =
+      toAttendanceLists(employeeSelections);
     const value = {
       activity_number: initialData?.activity_number,
       employees_list: {
-        addedEmployees: data.addedEmployees,
-        removedEmployees: data.removedEmployees,
+        addedEmployees,
+        removedEmployees,
       },
     };
     try {

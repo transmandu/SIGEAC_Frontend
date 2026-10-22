@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { PanelLeftOpen, ShieldAlert } from 'lucide-react';
 import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
 
@@ -19,6 +19,7 @@ import {
   sortByNewestDate,
 } from './_components/workflow-helpers';
 import { PageHeader } from "@/components/layout/PageHeader";
+import { useOnChange } from "@/hooks/useOnChange";
 
 const EvaluationMitigationPage = () => {
   const params = useParams<{ company: string }>();
@@ -46,14 +47,10 @@ const EvaluationMitigationPage = () => {
 
   const sortedNotifications = useMemo(() => sortByNewestDate(notifications || []), [notifications]);
 
-  useEffect(() => {
-    if (
-      notificationFromUrl?.id &&
-      notificationFromUrl.id !== selectedNotificationId
-    ) {
-      setSelectedNotificationId(notificationFromUrl.id);
-    }
-  }, [notificationFromUrl, selectedNotificationId]);
+  const notificationFromUrlId = notificationFromUrl?.id;
+  useOnChange([notificationFromUrlId], () => {
+    if (notificationFromUrlId) setSelectedNotificationId(notificationFromUrlId);
+  });
 
   const selectedNotification =
     sortedNotifications.find((notification) => notification.id === selectedNotificationId) ||
@@ -153,6 +150,7 @@ const EvaluationMitigationPage = () => {
           </div>
         ) : (
           <EvaluationWorkflowPanel
+            key={selectedNotification.id}
             company={companySlug}
             selectedNotification={selectedNotification}
             currentMitigationPlan={currentMitigationPlan}

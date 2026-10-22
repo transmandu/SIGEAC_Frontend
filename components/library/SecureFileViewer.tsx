@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect, useEffectEvent, useRef } from "react";
+import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { X, Loader2, ShieldCheck, Lock, Frown, RotateCcw } from "lucide-react";
 import { SecurePdfViewer } from "@/components/library/SecurePdfViewer";
 import { Button } from "@/components/ui/button";
+import { useBlobUrlLoader } from "@/hooks/useBlobUrlLoader";
 
 interface SecureFileViewerProps {
   isOpen: boolean;
@@ -21,6 +22,9 @@ interface SecureFileViewerProps {
   isImage?: boolean;
 }
 
+const LOAD_ERROR =
+  "No pudimos establecer una conexión segura para cargar este documento.";
+
 /**
  * Visor seguro de documentos (fork genérico de components/library/SecureVisualizer,
  * desacoplado de libraryService): recibe cómo resolver el blob en vez de asumir
@@ -33,12 +37,15 @@ export default function SecureFileViewer({
   fetchBlobUrl,
   isImage,
 }: SecureFileViewerProps) {
-  const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [currentTheme, setCurrentTheme] = useState<"light" | "dark">("dark");
-  const activeUrlRef = useRef<string | null>(null);
 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    url: fileUrl,
+    loading,
+    failed,
+    retry,
+  } = useBlobUrlLoader(fetchBlobUrl, isOpen ? "open" : null);
+  const error = failed ? LOAD_ERROR : null;
 
   useEffect(() => {
     const updateTheme = () => {
@@ -107,57 +114,6 @@ export default function SecureFileViewer({
       window.removeEventListener("copy", handleCopy);
     };
   }, [isOpen]);
-
-  // OJO: defaultLayoutPlugin usa hooks internamente — debe llamarse directo
-  // en el cuerpo del componente (nunca dentro de useMemo/useCallback).
-  // Siempre la última función de carga, sin ser una dependencia del efecto de
-  // abajo: así no se re-dispara por un simple cambio de identidad de
-  // `fetchBlobUrl` cuando el caller la pasa inline (nueva función en cada render).
-  const loadBlobUrl = useEffectEvent(() => fetchBlobUrl());
-
-  // Se incrementa para forzar una recarga (botón "Reintentar").
-  const [reloadKey, setReloadKey] = useState(0);
-
-  useEffect(() => {
-    if (!isOpen) return;
-
-    // Bandera de cancelación: si el efecto se re-ejecuta (StrictMode monta
-    // dos veces en dev) o el visor se cierra, la carga vieja se descarta sin
-    // revocar ni pisar la URL que el Viewer ya está mostrando.
-    let cancelled = false;
-
-    setLoading(true);
-    setError(null);
-    setFileUrl(null);
-
-    loadBlobUrl()
-      .then((url) => {
-        if (cancelled) {
-          URL.revokeObjectURL(url);
-          return;
-        }
-        activeUrlRef.current = url;
-        setFileUrl(url);
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setError(
-            "No pudimos establecer una conexión segura para cargar este documento.",
-          );
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-      if (activeUrlRef.current) {
-        URL.revokeObjectURL(activeUrlRef.current);
-        activeUrlRef.current = null;
-      }
-    };
-  }, [isOpen, reloadKey]);
 
   if (!isOpen) return null;
 
@@ -245,7 +201,7 @@ export default function SecureFileViewer({
 
               <div className="flex flex-col sm:flex-row gap-4 w-full max-w-sm justify-center">
                 <Button
-                  onClick={() => setReloadKey((k) => k + 1)}
+                  onClick={retry}
                   variant="default"
                   className="bg-emerald-600 hover:bg-emerald-700 w-full sm:w-auto flex items-center gap-2 group transition-all active:scale-95"
                 >

@@ -7,9 +7,12 @@ import {
 } from "@/components/ui/dialog";
 import { CheckCircle2, XCircle, PartyPopper, Lightbulb } from "lucide-react";
 import Confetti from "react-confetti";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
+import { useIsClient } from "@/hooks/useIsClient";
+import { useWindowSize } from "@/hooks/useWindowSize";
+import { useResettingState } from "@/hooks/useResettingState";
 
 export type QuizDetail = {
   question_id: number;
@@ -40,33 +43,22 @@ export function QuizResultsDialog({
   open,
   onOpenChange,
 }: QuizResultsDialogProps) {
-  const [showConfetti, setShowConfetti] = useState(false);
-  const [windowDimensions, setWindowDimensions] = useState({
-    width: 0,
-    height: 0,
-  });
-  const [mounted, setMounted] = useState(false);
+  const windowDimensions = useWindowSize();
+  const mounted = useIsClient();
+
+  // El confeti dura 5 segundos desde que se abre con puntaje perfecto.
+  const [confettiExpired, setConfettiExpired] = useResettingState(false, [
+    open,
+    results.score,
+  ]);
+  const showConfetti = open && results.score === 100 && !confettiExpired;
 
   useEffect(() => {
-    setMounted(true);
+    if (!showConfetti) return;
 
-    if (open && results.score === 100) {
-      setShowConfetti(true);
-
-      setWindowDimensions({
-        width: window.innerWidth,
-        height: window.innerHeight,
-      });
-
-      const timer = setTimeout(() => {
-        setShowConfetti(false);
-      }, 5000);
-
-      return () => clearTimeout(timer);
-    } else {
-      setShowConfetti(false);
-    }
-  }, [open, results.score]);
+    const timer = setTimeout(() => setConfettiExpired(true), 5000);
+    return () => clearTimeout(timer);
+  }, [showConfetti, setConfettiExpired]);
 
   const isPerfectScore = results.score === 100;
 

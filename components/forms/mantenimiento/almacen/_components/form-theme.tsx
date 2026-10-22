@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import {
   Collapsible,
   CollapsibleContent,
@@ -186,26 +186,36 @@ export const SECTION_JUMP_EVENT = "section:jump";
 /**
  * Abierto/plegado de una sección, recordado por navegador bajo `storageKey`:
  * quien pliega "Información general" no debe tener que replegarla en cada
- * visita. Arranca en `defaultOpen` y lee lo guardado al montar (no en el
- * primer render, para no desajustar la hidratación). Sin `storageKey` no
- * recuerda nada; el almacenamiento puede no estar disponible (modo privado).
+ * visita. Arranca en `defaultOpen`; lo guardado se lee solo en el navegador
+ * (el servidor y la hidratación no lo ven, para no desajustarla). Sin
+ * `storageKey` no recuerda nada; el almacenamiento puede no estar disponible
+ * (modo privado).
  */
+const noSubscription = () => () => {};
+
+const readRememberedOpen = (fullKey: string | undefined) => {
+  if (!fullKey) return null;
+  try {
+    return window.localStorage.getItem(fullKey);
+  } catch {
+    return null;
+  }
+};
+
 const useRememberedOpen = (
   storageKey: string | undefined,
   defaultOpen: boolean,
 ) => {
-  const [open, setOpen] = useState(defaultOpen);
   const fullKey = storageKey ? `section-open:${storageKey}` : undefined;
+  const saved = useSyncExternalStore(
+    noSubscription,
+    () => readRememberedOpen(fullKey),
+    () => null,
+  );
 
-  useEffect(() => {
-    if (!fullKey) return;
-    try {
-      const saved = window.localStorage.getItem(fullKey);
-      if (saved !== null) setOpen(saved === "1");
-    } catch {
-      // Sin almacenamiento: queda el valor por defecto.
-    }
-  }, [fullKey]);
+  // Lo que el usuario hizo en esta visita manda sobre lo guardado.
+  const [chosen, setOpen] = useState<boolean | null>(null);
+  const open = chosen ?? (saved === null ? defaultOpen : saved === "1");
 
   const update = (next: boolean) => {
     setOpen(next);

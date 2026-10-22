@@ -1,6 +1,8 @@
 "use client";
 
-import { FC, useEffect, useState } from "react";
+import { FC } from "react";
+import { useIsClient } from "@/hooks/useIsClient";
+import { useResettingState } from "@/hooks/useResettingState";
 
 interface RiskMatrixProps {
   onCellClick: (probability: string, severity: string) => void;
@@ -23,12 +25,8 @@ const RiskMatrix: FC<RiskMatrixProps> = ({
   selectedProbability,
   selectedSeverity,
 }) => {
-  const [mounted, setMounted] = useState(false);
-
   // Evitar hidratación incorrecta del tema
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useIsClient();
 
   const severities: Severity[] = [
     { code: "A", name: "Catastrófico" },
@@ -46,14 +44,14 @@ const RiskMatrix: FC<RiskMatrixProps> = ({
     { value: 1, name: "Extremadamente Improbable" },
   ];
 
-  const [selectedCell, setSelectedCell] = useState<string>("");
-
-  // Actualizar la celda seleccionada cuando cambian los valores
-  useEffect(() => {
-    if (selectedProbability && selectedSeverity) {
-      setSelectedCell(`${selectedProbability}${selectedSeverity}`);
-    }
-  }, [selectedProbability, selectedSeverity]);
+  // La celda marcada sigue a los valores que llegan; un clic la mueve de inmediato.
+  const [selectedCell, setSelectedCell] = useResettingState<string>(
+    () =>
+      selectedProbability && selectedSeverity
+        ? `${selectedProbability}${selectedSeverity}`
+        : "",
+    [selectedProbability, selectedSeverity],
+  );
 
   const getRiskColor = (severity: string, probability: number): string => {
     const riskCode = `${probability}${severity}`;

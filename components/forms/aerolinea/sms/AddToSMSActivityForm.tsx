@@ -25,7 +25,7 @@ import {
   UserPlus,
   ListChecks,
 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import {
@@ -43,6 +43,7 @@ import {
 } from "@/components/ui/popover";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Badge } from "@/components/ui/badge";
+import { useResettingState } from "@/hooks/useResettingState";
 
 interface FormProps {
   onClose: () => void;
@@ -87,9 +88,6 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
   const { selectedCompany } = useCompanyStore();
   const [open, setOpen] = useState(false);
   const { createSMSActivityAttendance } = useCreateSMSActivityAttendance();
-  const [employeeSelections, setEmployeeSelections] = useState<
-    EmployeeSelection[]
-  >([]);
   const [searchQuery, setSearchQuery] = useState("");
 
   const { data: employeesData, isLoading: isLoadingEnrolledEmployee } =
@@ -125,51 +123,43 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
     []
   );
 
-  const updateFormValues = useCallback(
-    (selections: EmployeeSelection[]) => {
-      const added = selections.filter((e) => e.isSelected && !e.wasEnrolled);
-      const removed = selections.filter((e) => !e.isSelected && e.wasEnrolled);
+  // Quién se agrega y quién se quita respecto de lo que ya estaba guardado.
+  const toAttendanceLists = (selections: EmployeeSelection[]) => {
+    const added = selections.filter((e) => e.isSelected && !e.wasEnrolled);
+    const removed = selections.filter((e) => !e.isSelected && e.wasEnrolled);
 
-      form.setValue(
-        "addedEmployees",
-        added.map((e) => ({
-          dni: e.employee_type === "local" ? e.dni : null,
-          first_name: e.first_name,
-          last_name: e.last_name,
-          authorized_employee_id:
-            e.employee_type === "authorized"
-              ? (e.authorized_employee_id ?? null)
-              : null,
-        }))
-      );
+    return {
+      addedEmployees: added.map((e) => ({
+        dni: e.employee_type === "local" ? e.dni : null,
+        first_name: e.first_name,
+        last_name: e.last_name,
+        authorized_employee_id:
+          e.employee_type === "authorized"
+            ? (e.authorized_employee_id ?? null)
+            : null,
+      })),
+      removedEmployees: removed.map((e) => ({
+        dni: e.employee_type === "local" ? e.dni : null,
+        first_name: e.first_name,
+        last_name: e.last_name,
+        authorized_employee_id:
+          e.employee_type === "authorized"
+            ? (e.authorized_employee_id ?? null)
+            : null,
+      })),
+    };
+  };
 
-      form.setValue(
-        "removedEmployees",
-        removed.map((e) => ({
-          dni: e.employee_type === "local" ? e.dni : null,
-          first_name: e.first_name,
-          last_name: e.last_name,
-          authorized_employee_id:
-            e.employee_type === "authorized"
-              ? (e.authorized_employee_id ?? null)
-              : null,
-        }))
-      );
-    },
-    [form]
-  );
+  const [employeeSelections, setEmployeeSelections] = useResettingState<
+    EmployeeSelection[]
+  >(() => {
+    if (!employeesData) return [];
 
-  useEffect(() => {
-    if (employeesData) {
-      const selections: EmployeeSelection[] = [
-        ...mapToSelection(employeesData.enrolled || [], true),
-        ...mapToSelection(employeesData.not_enrolled || [], false),
-      ];
-
-      setEmployeeSelections(selections);
-      updateFormValues(selections);
-    }
-  }, [employeesData, updateFormValues, mapToSelection]);
+    return [
+      ...mapToSelection(employeesData.enrolled || [], true),
+      ...mapToSelection(employeesData.not_enrolled || [], false),
+    ];
+  }, [employeesData]);
 
   const toggleEmployeeSelection = (key: string) => {
     const newSelections = employeeSelections.map((emp) => {
@@ -181,7 +171,6 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
     });
 
     setEmployeeSelections(newSelections);
-    updateFormValues(newSelections);
   };
 
   const toggleAllEmployees = () => {
@@ -193,7 +182,6 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
     }));
 
     setEmployeeSelections(newSelections);
-    updateFormValues(newSelections);
   };
 
   const filteredEmployees = employeeSelections.filter((employee) => {
@@ -217,13 +205,15 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
 
   const allSelected = employeeSelections.length > 0 && employeeSelections.every((emp) => emp.isSelected);
 
-  const onSubmit = async (data: FormSchemaType) => {
+  const onSubmit = async () => {
+    const { addedEmployees, removedEmployees } =
+      toAttendanceLists(employeeSelections);
     const value = {
       company: selectedCompany!.slug,
       activity_number: initialData?.activity_number,
       data: {
-        addedEmployees: data.addedEmployees,
-        removedEmployees: data.removedEmployees,
+        addedEmployees,
+        removedEmployees,
       },
     };
     try {

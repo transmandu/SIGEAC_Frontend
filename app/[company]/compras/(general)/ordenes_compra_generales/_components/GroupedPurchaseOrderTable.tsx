@@ -1,10 +1,11 @@
 'use client'
 
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo } from 'react';
 
 import PurchaseOrderGroupRow from './PurchaseOrderGroupRow'
 import GroupPagination from '@/components/misc/GroupPagination'
 import type { PurchaseOrder } from '@/types/purchase'
+import { useResettingState } from "@/hooks/useResettingState"
 
 type GroupableKey = 'quote' | 'retailer'
 
@@ -53,10 +54,12 @@ const GroupedPurchaseOrderTable = ({ data, groupBy, renderTable }: Props) => {
     }))
   }, [data, groupBy])
 
-  const [pagination, setPagination] = useState({
-    pageIndex: 0,
-    pageSize: PAGE_SIZE,
-  })
+  // Cambiar los datos (o la agrupación) devuelve la tabla a la primera página
+  // con todos los grupos cerrados.
+  const [pagination, setPagination] = useResettingState(
+    { pageIndex: 0, pageSize: PAGE_SIZE },
+    [groupBy, data],
+  )
 
   const totalPages = useMemo(() => {
     return Math.max(1, Math.ceil(groups.length / pagination.pageSize))
@@ -67,7 +70,10 @@ const GroupedPurchaseOrderTable = ({ data, groupBy, renderTable }: Props) => {
     return groups.slice(start, start + pagination.pageSize)
   }, [groups, pagination])
 
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({})
+  const [expanded, setExpanded] = useResettingState<Record<string, boolean>>(
+    {},
+    [groupBy, data],
+  )
 
   const toggleGroup = (key: string) => {
     setExpanded((prev) => ({
@@ -76,14 +82,6 @@ const GroupedPurchaseOrderTable = ({ data, groupBy, renderTable }: Props) => {
     }))
   }
 
-  useEffect(() => {
-    setPagination({
-      pageIndex: 0,
-      pageSize: PAGE_SIZE,
-    })
-
-    setExpanded({})
-  }, [groupBy, data])
 
   if (!groups.length) {
     return (

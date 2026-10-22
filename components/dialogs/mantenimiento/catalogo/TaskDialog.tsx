@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+
 import { ClipboardList, Loader2 } from "lucide-react";
 
 import {
@@ -24,6 +24,7 @@ import {
   useUpdateCatalogTask,
 } from "@/actions/mantenimiento/catalogo/tareas/actions";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { useResettingState } from "@/hooks/useResettingState";
 
 interface TaskDialogProps {
   open: boolean;
@@ -41,12 +42,10 @@ export function TaskDialog({
   const { selectedCompany } = useCompanyStore();
   const { createCatalogTask } = useCreateCatalogTask();
   const { updateCatalogTask } = useUpdateCatalogTask();
-  const [form, setForm] = useState<TaskFormData>(emptyTask);
-
-  useEffect(() => {
-    if (!open) return;
-    setForm(task ? toTaskFormData(task) : emptyTask);
-  }, [open, task]);
+  const [form, setForm] = useResettingState<TaskFormData>(
+    () => (task ? toTaskFormData(task) : emptyTask),
+    [open, task],
+  );
 
   const isPending = createCatalogTask.isPending || updateCatalogTask.isPending;
 

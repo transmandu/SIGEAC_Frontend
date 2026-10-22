@@ -62,6 +62,7 @@ import Image from "next/image";
 import { z } from "zod";
 import { ActivityCategoriesForm } from "./ActivityCategoriesForm";
 import FolderSelect from "@/components/library/FolderSelect";
+import { useResettingState } from "@/hooks/useResettingState";
 
 const FormSchema = z
   .object({
@@ -134,7 +135,16 @@ export default function CreateSMSActivityForm({
   const { createSMSActivity } = useCreateSMSActivity();
   const { updateSMSActivity } = useUpdateSMSActivity();
 
-  const [topics, setTopics] = useState<string[]>([]);
+  const [topics, setTopics] = useResettingState<string[]>(
+    () =>
+      initialData?.topics
+        ? initialData.topics
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean)
+        : [],
+    [initialData],
+  );
   const [newTopic, setNewTopic] = useState("");
   const [openCategories, setOpenCategories] = useState(false);
 
@@ -203,16 +213,6 @@ export default function CreateSMSActivityForm({
       form.setValue("activity_number", nextNumberData.next_number);
     }
   }, [isEditing, initialData, employees, nextNumberData, form]);
-  useEffect(() => {
-    if (initialData?.topics) {
-      const initialTopics = initialData.topics
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean);
-      setTopics(initialTopics);
-    }
-  }, [initialData]);
-
   const addTopic = () => {
     if (newTopic.trim()) {
       const updated = [...topics, newTopic.trim()];

@@ -1,15 +1,41 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import Confetti from "react-confetti";
 import { toast } from "sonner";
 
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useGetMyBirthdayToday } from "@/hooks/sistema/usuario/useGetMyBirthdayToday";
+import { useWindowSize } from "@/hooks/useWindowSize";
 
 const SESSION_KEY = "sigeac_birthday_confetti_shown";
 const DURATION_MS = 6000;
+
+// El confeti dura un rato fijo desde que arranca, esté o no montado el
+// componente; React solo lo lee.
+const celebration = (() => {
+  let active = false;
+  const listeners = new Set<() => void>();
+  const set = (value: boolean) => {
+    active = value;
+    listeners.forEach((notify) => notify());
+  };
+
+  return {
+    subscribe: (notify: () => void) => {
+      listeners.add(notify);
+      return () => {
+        listeners.delete(notify);
+      };
+    },
+    isActive: () => active,
+    start: () => {
+      set(true);
+      setTimeout(() => set(false), DURATION_MS);
+    },
+  };
+})();
 
 /**
  * Saludo al usuario cuando entra en su cumpleaños: dos cañones de confeti
@@ -20,8 +46,14 @@ const DURATION_MS = 6000;
 export default function BirthdayConfetti() {
   const { selectedCompany } = useCompanyStore();
   const { data } = useGetMyBirthdayToday(selectedCompany?.slug);
-  const [show, setShow] = useState(false);
-  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  const show = useSyncExternalStore(
+    celebration.subscribe,
+    celebration.isActive,
+    () => false,
+  );
+  // Si la ventana cambia de tamaño los cañones se recalculan: no quedan pegados
+  // a la medida del primer instante.
+  const dimensions = useWindowSize();
 
   useEffect(() => {
     if (!data?.is_birthday) return;
@@ -29,8 +61,7 @@ export default function BirthdayConfetti() {
     if (sessionStorage.getItem(SESSION_KEY)) return;
 
     sessionStorage.setItem(SESSION_KEY, "1");
-    setDimensions({ width: window.innerWidth, height: window.innerHeight });
-    setShow(true);
+    celebration.start();
 
     toast.success(
       `¡Feliz cumpleaños${data.first_name ? `, ${data.first_name}` : ""}! 🎉`,
@@ -41,23 +72,6 @@ export default function BirthdayConfetti() {
       },
     );
   }, [data]);
-
-  // Mientras se muestra: si la ventana cambia de tamaño, los cañones se
-  // recalculan — no quedan pegados a la medida del primer instante.
-  useEffect(() => {
-    if (!show) return;
-
-    const handleResize = () =>
-      setDimensions({ width: window.innerWidth, height: window.innerHeight });
-    window.addEventListener("resize", handleResize);
-
-    const hideTimer = setTimeout(() => setShow(false), DURATION_MS);
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-      clearTimeout(hideTimer);
-    };
-  }, [show]);
 
   if (!show || typeof document === "undefined") return null;
 

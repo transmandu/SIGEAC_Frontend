@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@/lib/zod-resolver";
@@ -41,6 +41,7 @@ import { HazardNotification } from "@/types/sms/mantenimiento";
 import { UpdateHazardNotification, useCreateHazardNotification } from "@/actions/mantenimiento/sms/notificacion_peligro/actions";
 import { useGetLocationsByCompany } from "@/hooks/sistema/useGetLocationsByCompany";
 import { InformationSource } from "@/types";
+import { useResettingState } from "@/hooks/useResettingState";
 
 const FormSchema = z.object({
     reception_date: z.date({
@@ -91,7 +92,13 @@ export default function CreateHazardNotification({
 
     // const [consequences, setConsequences] = useState<string[]>([]);
     // const [newConsequence, setNewConsequence] = useState("");
-    const [analyses, setAnalyses] = useState<string[]>([]);
+    const [analyses, setAnalyses] = useResettingState<string[]>(
+        () =>
+            initialData?.analysis_of_root_causes
+                ? initialData.analysis_of_root_causes.split(",").map(s => s.trim()).filter(Boolean)
+                : [],
+        [initialData],
+    );
     const [newAnalysis, setNewAnalysis] = useState("");
 
     const AREAS = ["MANTENIMIENTO", "TALLER", "OFICINA", "OTROS"];
@@ -113,14 +120,6 @@ export default function CreateHazardNotification({
             location_id: initialData?.location?.id.toString() || "",
         },
     });
-
-    useEffect(() => {
-        if (initialData) {
-            const splitStr = (str: string) => str ? str.split(",").map(s => s.trim()).filter(Boolean) : [];
-            //setConsequences(splitStr(initialData.possible_consequences));
-            setAnalyses(splitStr(initialData.analysis_of_root_causes));
-        }
-    }, [initialData]);
 
     // const addConsequence = () => {
     //     if (newConsequence.trim()) {

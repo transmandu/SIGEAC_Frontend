@@ -13,6 +13,7 @@ import Image from "next/image";
 import { FileImage, Loader2, Download } from "lucide-react";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useGetImage } from "@/hooks/general/archivos/UseGetImage";
+import { useReleaseUrl } from "@/hooks/useObjectUrl";
 
 interface ImageDisplayDialogProps {
   fileName: string;
@@ -33,7 +34,6 @@ function ImageDisplayDialog({
 }: ImageDisplayDialogProps) {
   const { selectedCompany } = useCompanyStore();
   const [isOpen, setIsOpen] = useState(false);
-  const [localImageUrl, setLocalImageUrl] = useState<string | null>(null);
 
   const {
     data: imageUrl,
@@ -52,22 +52,9 @@ function ImageDisplayDialog({
     }
   }, [isOpen, selectedCompany?.slug, fileName, refetch]);
 
-  useEffect(() => {
-    if (imageUrl) {
-      if (localImageUrl && localImageUrl !== imageUrl) {
-        URL.revokeObjectURL(localImageUrl);
-      }
-      setLocalImageUrl(imageUrl);
-    }
-  }, [imageUrl, localImageUrl]);
-
-  useEffect(() => {
-    return () => {
-      if (localImageUrl) {
-        URL.revokeObjectURL(localImageUrl);
-      }
-    };
-  }, [localImageUrl]);
+  // Cada apertura pide una imagen nueva (arriba), así que la anterior se libera.
+  useReleaseUrl(imageUrl);
+  const localImageUrl = imageUrl ?? null;
 
   const downloadImage = () => {
     if (!localImageUrl) return;

@@ -7,6 +7,7 @@ import axiosInstance, {
 import { createCookie, deleteCookie, hasAuthCookie } from "@/lib/cookie";
 import { resetEcho } from "@/lib/echo";
 import { setPostLoginRedirect } from "@/lib/postLoginRedirect";
+import { useIsClient } from "@/hooks/useIsClient";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { User } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -17,6 +18,7 @@ import {
   useEffect,
   useMemo,
   useState,
+  useSyncExternalStore,
   useCallback,
   useRef,
 } from "react";
@@ -54,6 +56,8 @@ interface LoginResponse {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const noSubscription = () => () => {};
+
 export const AUTH_USER_QUERY_KEY = ["auth", "user"] as const;
 
 /* ---------------- PROVIDER ---------------- */
@@ -68,13 +72,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // La cookie sólo dice si vale la pena preguntar por el usuario; la respuesta
   // de /user sigue siendo la única fuente de verdad de la sesión.
-  const [hasToken, setHasToken] = useState(false);
-  const [tokenChecked, setTokenChecked] = useState(false);
-
-  useEffect(() => {
-    setHasToken(hasAuthCookie());
-    setTokenChecked(true);
-  }, []);
+  // La cookie se lee solo en el navegador; el login y el logout la cambian
+  // explícitamente, y eso manda sobre lo que se leyó al montar.
+  const cookieToken = useSyncExternalStore(
+    noSubscription,
+    hasAuthCookie,
+    () => false,
+  );
+  const [tokenOverride, setHasToken] = useState<boolean | null>(null);
+  const hasToken = tokenOverride ?? cookieToken;
+  const tokenChecked = useIsClient();
 
   const { data: cachedUser = null, isLoading: userLoading } =
     useQuery<User | null>({

@@ -47,22 +47,17 @@ const OperationalSettingsPage = () => {
   const { data: settings, isLoading } = useCompanySettings()
   const { updateCompanySettings } = useUpdateCompanySettings()
 
-  const [legalDays, setLegalDays] = useState<string>('')
-  const [timezone, setTimezone] = useState<string>('')
+  // Lo que el usuario escribió; mientras no toque el campo se muestra el valor
+  // guardado, que llega de forma asíncrona.
+  const [legalDaysEdit, setLegalDays] = useState<string | null>(null)
+  const [timezoneEdit, setTimezone] = useState<string | null>(null)
 
-  // El valor guardado llega asíncrono; sincroniza el campo cuando aparece sin
-  // pisar lo que el usuario esté escribiendo (solo si el campo está vacío).
-  useEffect(() => {
-    if (settings?.quarantine_legal_days !== undefined && legalDays === '') {
-      setLegalDays(String(settings.quarantine_legal_days))
-    }
-  }, [settings?.quarantine_legal_days, legalDays])
-
-  useEffect(() => {
-    if (settings?.timezone !== undefined && timezone === '') {
-      setTimezone(settings.timezone)
-    }
-  }, [settings?.timezone, timezone])
+  const legalDays =
+    legalDaysEdit ??
+    (settings?.quarantine_legal_days !== undefined
+      ? String(settings.quarantine_legal_days)
+      : '')
+  const timezone = timezoneEdit ?? settings?.timezone ?? ''
 
   // La vista previa debe avanzar sola: una hora congelada no sirve para
   // confirmar que la zona elegida es la correcta.

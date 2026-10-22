@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 
 import { ContentLayout } from '@/components/layout/ContentLayout';
@@ -23,6 +23,7 @@ import {
 import { ReportDetailsPanel } from '@/app/[company]/sms/aeronautical/gestion_de_riesgos/_components/report-details-panel';
 import { ReportSelectionPanel } from '@/app/[company]/sms/aeronautical/gestion_de_riesgos/_components/report-selection-panel';
 import { PageHeader } from "@/components/layout/PageHeader";
+import { useOnChange } from "@/hooks/useOnChange";
 
 const Identification = () => {
     const params = useParams<{ company: string }>();
@@ -107,11 +108,11 @@ const Identification = () => {
             ? getObligatoryMeta(currentObligatoryReport)
             : '';
 
-    useEffect(() => {
+    useOnChange([selectedReport?.id, selectedReport?.type], () => {
         setIsReportDetailsOpen(false);
         setIsNotificationDetailsOpen(false);
         setIsFormOpen(false);
-    }, [selectedReport?.id, selectedReport?.type]);
+    });
 
     return (
         <ContentLayout title="Notificación de peligro">

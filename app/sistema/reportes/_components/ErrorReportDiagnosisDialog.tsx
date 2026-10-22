@@ -46,6 +46,7 @@ import {
 } from "./errorReportChips";
 import { formatPhone } from "@/lib/phone";
 import ErrorReferenceBlock from "./ErrorReferenceBlock";
+import { useOnChange } from "@/hooks/useOnChange";
 
 interface ErrorReportDiagnosisDialogProps {
   open: boolean;
@@ -308,7 +309,7 @@ export default function ErrorReportDiagnosisDialog({
   const { addErrorReportImages } = useAddErrorReportImages();
   const { deleteErrorReportImage } = useDeleteErrorReportImage();
 
-  useEffect(() => {
+  useOnChange([open, report], () => {
     if (open) {
       setHttpStatus(report.http_status?.toString() ?? "");
       setTechnicalCause(report.technical_cause ?? "");
@@ -316,7 +317,7 @@ export default function ErrorReportDiagnosisDialog({
       setActiveTab("resumen");
       setLightboxIndex(null);
     }
-  }, [open, report]);
+  });
 
   const canEdit = report.status === "OPEN" || report.status === "IN_PROGRESS";
   const diagnosticSteps = Array.isArray(report.diagnostic_steps)

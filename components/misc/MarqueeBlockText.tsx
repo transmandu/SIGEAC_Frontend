@@ -24,16 +24,7 @@ export function MarqueeBlockText({ text, className }: Props) {
   const pausedRef = useRef(false)
 
   useEffect(() => {
-    if (!hovered) {
-      offsetRef.current = 0
-      setOffset(0)
-      pausedRef.current = false
-
-      if (rafRef.current) cancelAnimationFrame(rafRef.current)
-      if (timeoutRef.current) clearTimeout(timeoutRef.current)
-
-      return
-    }
+    if (!hovered) return
 
     const container = containerRef.current!
     const content = contentRef.current!
@@ -78,9 +69,14 @@ export function MarqueeBlockText({ text, className }: Props) {
 
     rafRef.current = requestAnimationFrame(step)
 
+    // Al soltar el cursor (o cambiar el texto) el texto vuelve al inicio.
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current)
       if (timeoutRef.current) clearTimeout(timeoutRef.current)
+
+      offsetRef.current = 0
+      pausedRef.current = false
+      setOffset(0)
     }
   }, [hovered, text])
 

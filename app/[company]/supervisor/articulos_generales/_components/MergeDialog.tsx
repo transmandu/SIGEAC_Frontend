@@ -40,11 +40,12 @@ import type {
     SupervisorGeneralArticle,
 } from "@/types/supervisor"
 import { AlertTriangle, ArrowRight, Loader2, Merge, ReceiptText } from "lucide-react"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import { CostHistoryDialog } from "./CostHistoryDialog"
 import { DecimalInput } from "./DecimalInput"
 import SupervisorActionButton from "./SupervisorActionButton"
 import { dependencyBadgeCls, formatQuantity } from "./utils/uiHelpers"
+import { useOnChange } from "@/hooks/useOnChange"
 
 const CHILD_TABLE_LABELS: Record<string, string> = {
     general_article_intakes: "Entradas de compra",
@@ -172,7 +173,7 @@ export function MergeDialog({
     // Al abrir, propone como superviviente el artículo con más entradas
     // confirmadas: es el que más historial real acumula y por tanto el que
     // menos se pierde de vista si algo sale mal.
-    useEffect(() => {
+    useOnChange([open, articles, adoptAsBase], () => {
         if (!open || articles.length === 0) return
 
         const best = [...articles].sort((a, b) => b.intakes_count - a.intakes_count)[0]
@@ -183,17 +184,17 @@ export function MergeDialog({
         // sigue siendo el mismo grupo aunque cambie cuál fila sobrevive.
         setCostEdits({})
         setIntakeUnitEdits([])
-    }, [open, articles, adoptAsBase])
+    })
 
     // Cambiar la definición del resultado invalida el preview: obliga a
     // recalcular antes de confirmar, para que nunca se ejecute algo distinto a
     // lo visto. Las equivalencias declaradas NO entran aquí a propósito —
     // teclear un valor no debe borrar el preview bajo los pies del usuario;
     // ese caso lo maneja conversionsDirty más abajo.
-    useEffect(() => {
+    useOnChange([description, brandModel, variantType, unitId], () => {
         setPreview(null)
         setAppliedConversions({})
-    }, [description, brandModel, variantType, unitId])
+    })
 
     const units = useMemo(() => {
         const map = new Map<number, string>()

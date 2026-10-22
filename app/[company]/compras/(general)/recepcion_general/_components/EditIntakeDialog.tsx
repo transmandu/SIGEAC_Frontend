@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useMemo } from "react"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import { AlertTriangle, Calendar as CalendarIcon, Loader2, Save } from "lucide-react"
@@ -26,6 +26,7 @@ import { useGetWarehousesByLocation } from "@/hooks/administracion/useGetWarehou
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { cn } from "@/lib/utils"
 import type { GeneralArticleIntake, UpdateGeneralArticleIntakePayload } from "@/types/purchase"
+import { useResettingState } from "@/hooks/useResettingState"
 
 // Estado editable del formulario. Las fechas viven como Date|null y el resto
 // como string para que los inputs sean controlados sin saltos de cursor.
@@ -78,7 +79,11 @@ export default function EditIntakeDialog({
   const { updateGeneralArticleIntake } = useUpdateGeneralArticleIntake()
   const { selectedCompany, selectedStation } = useCompanyStore()
 
-  const [form, setForm] = useState<FormState>(() => toFormState(intake))
+  // Cada vez que se abre (o llega otro registro) el formulario parte de los datos del registro.
+  const [form, setForm] = useResettingState<FormState>(
+    () => toFormState(intake),
+    [open, intake],
+  )
 
   const { data: units, isLoading: isUnitsLoading } = useGetUnits(open ? selectedCompany?.slug : undefined)
   const { data: warehouses, isLoading: isWarehousesLoading } = useGetWarehousesByLocation({
@@ -90,11 +95,6 @@ export default function EditIntakeDialog({
     () => (warehouses ?? []).filter((warehouse) => warehouse.type?.toUpperCase() === "GENERAL"),
     [warehouses]
   )
-
-  useEffect(() => {
-    if (!open) return
-    setForm(toFormState(intake))
-  }, [open, intake])
 
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) =>
     setForm((prev) => ({ ...prev, [key]: value }))

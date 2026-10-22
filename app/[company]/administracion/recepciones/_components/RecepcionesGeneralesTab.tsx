@@ -25,11 +25,12 @@ import type { GeneralArticleIntake } from "@/types/purchase";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { ListRestart, Loader2, PackageSearch, Search } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { ColumnFilter, type SortDirection } from "./ColumnFilter";
 import { formatPeriodRange, PeriodFilter, type Period } from "./PeriodFilter";
 import { ReceptionStats } from "./ReceptionStats";
 import { PAGE_SIZES, TablePagination } from "@/components/misc/TablePagination";
+import { useResettingState } from "@/hooks/useResettingState";
 
 const toApiDate = (date?: Date) =>
   date ? format(date, "yyyy-MM-dd") : undefined;
@@ -49,7 +50,15 @@ export const RecepcionesGeneralesTab = () => {
     key: "description" | "retailer" | "status";
     direction: SortDirection;
   } | null>(null);
-  const [page, setPage] = useState(0);
+  // Filtrar u ordenar cambia qué fila cae en cada página: volver al inicio.
+  const [page, setPage] = useResettingState(0, [
+    search,
+    retailerFilter,
+    statusFilter,
+    descriptionFilter,
+    sortColumn,
+    period,
+  ]);
   const [pageSize, setPageSize] = useState(PAGE_SIZES[0]);
 
   const {
@@ -116,18 +125,6 @@ export const RecepcionesGeneralesTab = () => {
     key: "description" | "retailer" | "status",
     direction: SortDirection,
   ) => setSortColumn(direction ? { key, direction } : null);
-
-  // Filtrar u ordenar cambia qué fila cae en cada página: volver al inicio.
-  useEffect(() => {
-    setPage(0);
-  }, [
-    search,
-    retailerFilter,
-    statusFilter,
-    descriptionFilter,
-    sortColumn,
-    period,
-  ]);
 
   const paginated = useMemo(
     () => sorted.slice(page * pageSize, page * pageSize + pageSize),

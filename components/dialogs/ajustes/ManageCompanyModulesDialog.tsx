@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { Boxes, Loader2, TriangleAlert } from 'lucide-react'
 
 import {
@@ -19,6 +19,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { useGetModules } from '@/hooks/sistema/useGetModules'
 import { useSyncCompanyModules } from '@/actions/sistema/empresas/actions'
 import { Company } from '@/types'
+import { useResettingState } from "@/hooks/useResettingState"
 
 interface Props {
     company: Company
@@ -39,13 +40,12 @@ const ManageCompanyModulesDialog = ({
         [company.modules]
     )
 
-    const [selected, setSelected] = useState<number[]>(assignedIds)
-
     // Al reabrir, la selección parte de lo que la compañía tiene guardado: sin
     // esto el diálogo conservaría los checkboxes de una edición cancelada.
-    useEffect(() => {
-        if (open) setSelected(assignedIds)
-    }, [open, assignedIds])
+    const [selected, setSelected] = useResettingState<number[]>(assignedIds, [
+        open,
+        assignedIds,
+    ])
 
     const toggle = (id: number) => {
         setSelected((prev) =>

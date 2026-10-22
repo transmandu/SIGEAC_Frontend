@@ -14,7 +14,7 @@ import { formatLiters, getFuelMovementLabel } from "@/lib/fuel";
 import { FuelMovement, FuelVehicle } from "@/types";
 import { format } from "date-fns";
 import { ChevronLeft, ChevronRight, Route } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 const DISPATCHES_PER_PAGE = 15;
 
@@ -33,14 +33,12 @@ export function FuelTraceabilityPanel({
     ),
   );
 
-  const [page, setPage] = useState(1);
+  const [requestedPage, setPage] = useState(1);
   const lastPage = Math.max(1, Math.ceil(dispatches.length / DISPATCHES_PER_PAGE));
 
-  // Si el listado de despachos cambia (filtros, refetch) y la pagina actual
-  // queda fuera de rango, se vuelve a la primera.
-  useEffect(() => {
-    setPage((current) => Math.min(current, lastPage));
-  }, [lastPage]);
+  // Si el listado de despachos cambia (filtros, refetch) y la página pedida
+  // queda fuera de rango, se muestra la última que existe.
+  const page = Math.min(requestedPage, lastPage);
 
   const paginatedDispatches = dispatches.slice(
     (page - 1) * DISPATCHES_PER_PAGE,

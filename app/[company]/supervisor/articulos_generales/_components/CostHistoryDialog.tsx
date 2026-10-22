@@ -29,11 +29,12 @@ import type { CostChangeEdits, IntakeUnitEdits, SupervisorCostHistoryEntry } fro
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import { CalendarIcon, Lock, Plus, RotateCcw, Trash2 } from "lucide-react"
-import { useEffect, useMemo, useState } from "react"
+import { useMemo, useState } from "react"
 import { DecimalInput } from "./DecimalInput"
 import SupervisorActionButton from "./SupervisorActionButton"
 import { dependencyBadgeCls, formatSupervisorDateTime } from "./utils/uiHelpers"
 import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone"
+import { useOnChange } from "@/hooks/useOnChange"
 
 /**
  * Editor del historial de costo combinado del grupo en fusión.
@@ -87,7 +88,7 @@ export function CostHistoryDialog({
     // base propuesta). El supervisor la ajusta si el costo es de otra unidad.
     const defaultUnitId = units[0]?.id ?? null
 
-    useEffect(() => {
+    useOnChange([open, edits, intakeUnits, defaultUnitId], () => {
         if (!open) return
 
         setUpdated(
@@ -113,7 +114,7 @@ export function CostHistoryDialog({
         setIntakeUnitById(
             Object.fromEntries(intakeUnits.map((row) => [row.id, row.unit_id])),
         )
-    }, [open, edits, intakeUnits, defaultUnitId])
+    })
 
     const changeIdOf = (entry: SupervisorCostHistoryEntry): number | null =>
         entry.entry_id.startsWith("change:")

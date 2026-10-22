@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Dialog,
   DialogTrigger,
@@ -24,7 +24,7 @@ function DocumentDisplayDialog({
 }: DocumentDisplayDialogProps) {
   const { selectedCompany } = useCompanyStore();
   const [isOpen, setIsOpen] = useState(false);
-  const [hasFetched, setHasFetched] = useState(false);
+  const hasFetched = useRef(false);
 
   const actualFileName = typeof fileName === "string" ? fileName.trim() : null;
 
@@ -54,23 +54,16 @@ function DocumentDisplayDialog({
       !isPublic &&
       actualFileName &&
       selectedCompany?.slug &&
-      !hasFetched
+      !hasFetched.current
     ) {
       refetch();
-      setHasFetched(true);
+      hasFetched.current = true;
     }
 
     if (!isOpen) {
-      setHasFetched(false);
+      hasFetched.current = false;
     }
-  }, [
-    isOpen,
-    isPublic,
-    actualFileName,
-    selectedCompany?.slug,
-    refetch,
-    hasFetched,
-  ]);
+  }, [isOpen, isPublic, actualFileName, selectedCompany?.slug, refetch]);
 
   const documentUrl = isPublic
     ? getPublicDocumentUrl()

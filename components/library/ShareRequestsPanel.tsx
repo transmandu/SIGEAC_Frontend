@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo } from "react";
 import libraryService from "@/lib/libraryService";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
@@ -29,6 +29,9 @@ import { QRCodeSVG } from "qrcode.react";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { bibliotecaSolicitudesSteps } from "@/components/tour/steps/general/biblioteca/biblioteca-solicitudes";
 import { notifyError } from "@/lib/notify-error";
+import { useQuery } from "@tanstack/react-query";
+
+const NO_REQUESTS: any[] = [];
 
 interface ShareRequestsPanelProps {
   company: string;
@@ -49,8 +52,27 @@ export default function ShareRequestsPanel({
 }: ShareRequestsPanelProps) {
   const { user } = useAuth();
   const timeZone = useCompanyTimezone();
-  const [requests, setRequests] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    data: requests = NO_REQUESTS,
+    isLoading: loading,
+    error: requestsError,
+    refetch: fetchRequests,
+  } = useQuery<any[]>({
+    queryKey: ["library-share-requests", company],
+    queryFn: async () => {
+      const res = await libraryService.getShareRequests(company);
+      return Array.isArray(res) ? res : res.data || [];
+    },
+    staleTime: 0,
+    meta: { silent: true },
+  });
+
+  useEffect(() => {
+    if (requestsError) {
+      console.error("Error al cargar solicitudes:", requestsError);
+      notifyError(requestsError, { action: "cargar las solicitudes" });
+    }
+  }, [requestsError]);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [rejectingId, setRejectingId] = useState<number | null>(null);
@@ -99,25 +121,6 @@ export default function ShareRequestsPanel({
       }) ?? false
     );
   }, [user]);
-
-  const fetchRequests = useCallback(async () => {
-    setLoading(true);
-
-    try {
-      const res = await libraryService.getShareRequests(company);
-      setRequests(Array.isArray(res) ? res : res.data || []);
-    } catch (error) {
-      console.error("Error al cargar solicitudes:", error);
-      setRequests([]);
-      notifyError(error, { action: "cargar las solicitudes" });
-    } finally {
-      setLoading(false);
-    }
-  }, [company]);
-
-  useEffect(() => {
-    fetchRequests();
-  }, [company, fetchRequests]);
 
   const counts = useMemo(
     () => ({

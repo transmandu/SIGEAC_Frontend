@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { toast } from "sonner";
 import { Download, FileText, Loader2 } from "lucide-react";
 
@@ -30,6 +30,7 @@ import {
   type RequisitionPdfReceiver,
 } from "@/hooks/mantenimiento/compras/useGetRequisitionPdfReceivers";
 import { notifyError } from "@/lib/notify-error";
+import { useResettingState } from "@/hooks/useResettingState";
 
 /**
  * Personal de compras: recibe sus propias requisiciones, así que no elige a
@@ -64,18 +65,14 @@ export default function DownloadRequisitionPdfDialog({
 }: Props) {
   const { selectedCompany } = useCompanyStore();
   const { user } = useAuth();
-  const [receiverId, setReceiverId] = useState<string>("");
+  // La selección no se conserva entre aperturas: cada descarga debe elegir
+  // conscientemente al receptor.
+  const [receiverId, setReceiverId] = useResettingState<string>("", [open]);
 
   const userRoles = user?.roles?.map((role) => role.name) ?? [];
   const isSelfReceiver = SELF_RECEIVER_ROLES.some((role) =>
     userRoles.includes(role),
   );
-
-  // La selección no se conserva entre aperturas: cada descarga debe elegir
-  // conscientemente al receptor.
-  useEffect(() => {
-    if (!open) setReceiverId("");
-  }, [open]);
 
   const { data: myEmployee, isLoading: isMyEmployeeLoading } = useMyEmployee();
 

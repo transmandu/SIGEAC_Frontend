@@ -1,6 +1,5 @@
 "use client"
 
-import React, { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -13,17 +12,18 @@ import { ChevronDown, ChevronRight, Folder, FolderOpen, MinusCircle, PlusCircle,
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { usePartValue, PART_TYPES, POSITION_TYPES } from "./constants";
 import IdentificationFields from "./IdentificationFields";
+import { useResettingState } from "@/hooks/useResettingState";
 
 function NumberInput({ field, placeholder }: { field: any; placeholder?: string }) {
-  const [displayValue, setDisplayValue] = useState<string>(() =>
-    field.value !== null && field.value !== undefined ? String(field.value) : ""
+  // Lo que se ve en el campo: el texto que el usuario va escribiendo ("1." aún no
+  // es un número), que se vuelve a alinear con el valor cuando este cambia.
+  const [displayValue, setDisplayValue] = useResettingState<string>(
+    () =>
+      field.value !== null && field.value !== undefined
+        ? String(field.value)
+        : "",
+    [field.value],
   );
-
-  useEffect(() => {
-    const fv = field.value;
-    const next = fv !== null && fv !== undefined ? String(fv) : "";
-    setDisplayValue(next);
-  }, [field.value]);
 
   const commitValue = (raw: string) => {
     const trimmed = raw.trim();

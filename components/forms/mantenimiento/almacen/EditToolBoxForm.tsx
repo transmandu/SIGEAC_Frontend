@@ -20,6 +20,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { useResettingState } from "@/hooks/useResettingState"
 
 const FormSchema = z.object({
   name: z.string().min(3, {
@@ -56,7 +57,10 @@ export function EditToolBoxForm({ onClose, initialData }: FormProps) {
 
   const { user } = useAuth()
 
-  const [selectedTools, setSelectedTools] = useState<string[]>([])
+  const [selectedTools, setSelectedTools] = useResettingState<string[]>(
+    () => initialData.tool?.map((tool) => tool.article.id!.toString()) ?? [],
+    [initialData.tool],
+  )
 
   const [openArticles, setOpenArticles] = useState(false);
 
@@ -100,13 +104,6 @@ export function EditToolBoxForm({ onClose, initialData }: FormProps) {
   useEffect(() => {
     form.setValue('tool_id', selectedTools);
   }, [selectedTools, form]);
-
-  useEffect(() => {
-    if (initialData.tool) {
-      const preselectedTools = initialData.tool.map((tool) => tool.article.id!.toString());
-      setSelectedTools(preselectedTools);
-    }
-  }, [initialData.tool]);
 
   const onSubmit = async (data: FormSchemaType) => {
     const formattedData = {

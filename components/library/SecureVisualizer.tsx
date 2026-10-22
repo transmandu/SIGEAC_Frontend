@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { X, Loader2, ShieldCheck, Lock, Frown, RotateCcw } from "lucide-react";
 import { SecurePdfViewer } from "@/components/library/SecurePdfViewer";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,10 @@ import { useTourContext } from "@/components/tour/TourProvider";
 import { bibliotecaVisualizadorSteps } from "@/components/tour/steps/general/biblioteca/biblioteca-visualizador";
 
 import libraryService from "@/lib/libraryService";
+import { useBlobUrlLoader } from "@/hooks/useBlobUrlLoader";
+
+const LOAD_ERROR =
+  "No pudimos establecer una conexión segura para cargar este documento.";
 
 export default function SecureViewer({
   company,
@@ -16,13 +20,20 @@ export default function SecureViewer({
   onClose,
   isVersionHistory = false,
 }: any) {
-  const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [currentTheme, setCurrentTheme] = useState<"light" | "dark">("dark");
-  const activeUrlRef = useRef<string | null>(null);
 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
+  // Al saltar de un documento a otro, la respuesta lenta del primero se ignora
+  // en vez de mostrarse sobre el segundo.
+  const {
+    url: fileUrl,
+    loading,
+    failed,
+    retry,
+  } = useBlobUrlLoader(
+    () => libraryService.getFileBlob(company, documentId, isVersionHistory),
+    isOpen && documentId ? `${company}|${documentId}|${isVersionHistory}` : null,
+  );
+  const error = failed ? LOAD_ERROR : null;
 
   const { registerTour, unregisterTour } = useTourContext();
 
@@ -74,60 +85,6 @@ export default function SecureViewer({
       window.removeEventListener("copy", handleCopy);
     };
   }, [isOpen]);
-
-  useEffect(() => {
-    if (!isOpen || !documentId) return;
-
-    // Al saltar de un documento a otro, la respuesta lenta del primero llegaba
-    // después y revocaba el blob del segundo, mostrando el documento anterior.
-    let cancelled = false;
-
-    setLoading(true);
-    setError(null);
-    setFileUrl(null);
-
-    (async () => {
-      try {
-        const url = await libraryService.getFileBlob(
-          company,
-          documentId,
-          isVersionHistory,
-        );
-
-        if (cancelled) {
-          URL.revokeObjectURL(url);
-          return;
-        }
-
-        if (activeUrlRef.current) {
-          URL.revokeObjectURL(activeUrlRef.current);
-        }
-
-        activeUrlRef.current = url;
-        setFileUrl(url);
-      } catch {
-        if (!cancelled) {
-          setError(
-            "No pudimos establecer una conexión segura para cargar este documento.",
-          );
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-
-      if (activeUrlRef.current) {
-        URL.revokeObjectURL(activeUrlRef.current);
-        activeUrlRef.current = null;
-      }
-
-      setFileUrl(null);
-      setLoading(true);
-    };
-  }, [isOpen, documentId, company, isVersionHistory, retryCount]);
 
   if (!isOpen) return null;
 
@@ -207,7 +164,7 @@ export default function SecureViewer({
 
               <div className="flex flex-col sm:flex-row gap-4 w-full max-w-sm justify-center">
                 <Button
-                  onClick={() => setRetryCount((n) => n + 1)}
+                  onClick={retry}
                   variant="default"
                   className="bg-emerald-600 hover:bg-emerald-700 w-full sm:w-auto flex items-center gap-2 group transition-all active:scale-95"
                 >

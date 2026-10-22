@@ -37,6 +37,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { cn } from "@/lib/utils";
 import { ChipTone } from "@/app/sistema/reportes/_components/errorReportChips";
 import type { ErrorReportDraft } from "@/stores/ErrorReportDraftStore";
+import { useResettingState } from "@/hooks/useResettingState";
 
 const formSchema = z.object({
   description: z.string().min(10, {
@@ -117,7 +118,6 @@ export default function CreateErrorReportForm({
   const [images, setImages] = useState<File[]>([]);
   const [reportKind, setReportKind] = useState<ReportKind>("bug");
   const [isDragging, setIsDragging] = useState(false);
-  const [customHttpOpen, setCustomHttpOpen] = useState(false);
 
   // El panel de gestión (superuser) siempre puede reportar/reclasificar cualquier módulo.
   const availableModules = showAdvancedFields
@@ -147,6 +147,9 @@ export default function CreateErrorReportForm({
 
   const showSeverity = showAdvancedFields;
   const showHttpStatus = showAdvancedFields && reportKind === "bug";
+  const [customHttpOpen, setCustomHttpOpen] = useResettingState(false, [
+    showHttpStatus,
+  ]);
   const severity = useWatch({ control: form.control, name: "severity" });
   const httpStatus = useWatch({ control: form.control, name: "http_status" });
 
@@ -167,7 +170,6 @@ export default function CreateErrorReportForm({
   useEffect(() => {
     if (!showHttpStatus) {
       form.setValue("http_status", "");
-      setCustomHttpOpen(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showHttpStatus]);

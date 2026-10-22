@@ -36,8 +36,9 @@ import {
   RefreshCw,
   X,
 } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useObjectUrls } from "@/hooks/useObjectUrl";
 
 interface EvidenceCaptureProps {
   files: File[];
@@ -64,7 +65,6 @@ export function EvidenceCapture({
 }: EvidenceCaptureProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [openCamera, setOpenCamera] = useState(false);
-  const [previews, setPreviews] = useState<string[]>([]);
 
   const {
     videoRef,
@@ -79,20 +79,8 @@ export function EvidenceCapture({
   } = useCameraCapture();
 
   // Los llamadores pasan `files={mapa[clave] ?? []}`, y ese `?? []` crea un
-  // array nuevo en cada render: dependiendo de la referencia, el efecto se
-  // dispararía en bucle creando y revocando URLs que la vista está usando.
-  // La identidad de los File sí es estable, así que se compara por ellos.
-  const filesKey = files
-    .map((file) => `${file.name}:${file.size}:${file.lastModified}`)
-    .join("|");
-
-  useEffect(() => {
-    const urls = files.map((file) => URL.createObjectURL(file));
-    setPreviews(urls);
-
-    return () => urls.forEach((url) => URL.revokeObjectURL(url));
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- filesKey identifica el contenido; `files` cambia de referencia en cada render
-  }, [filesKey]);
+  // arreglo nuevo en cada render; `useObjectUrls` mira qué archivos lo componen.
+  const previews = useObjectUrls(files);
 
   const remaining = max - files.length;
 

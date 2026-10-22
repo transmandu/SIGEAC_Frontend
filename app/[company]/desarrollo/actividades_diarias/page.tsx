@@ -7,7 +7,7 @@ import { columns } from "./columns";
 import { DataTable } from "./data-table";
 import { useGetRegisterWithActivities } from "@/hooks/aerolinea/desarrollo/useGetRegisterWithActivities";
 import LoadingPage from "@/components/misc/LoadingPage";
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import { ActivityReport } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -15,17 +15,10 @@ import { PageHeader } from "@/components/layout/PageHeader";
 const DailyActivitiesPage = () => {
   const { data: activity_report, isLoading } = useGetRegisterWithActivities();
   const { user, loading } = useAuth()
-  const [filteredReport, setFilteredReport] = useState<ActivityReport[]>([]);
-
-  useEffect(() => {
-    if (activity_report && user) {
-      const reports = activity_report.filter((r) => r.user.id === user.id);
-      if ((user.username === 'JMORILLO')) {
-        setFilteredReport(activity_report);
-        return;
-      }
-      setFilteredReport(reports);
-    }
+  const filteredReport = useMemo<ActivityReport[]>(() => {
+    if (!activity_report || !user) return [];
+    if (user.username === 'JMORILLO') return activity_report;
+    return activity_report.filter((r) => r.user.id === user.id);
   }, [user, activity_report]);
 
   if (isLoading || loading) {

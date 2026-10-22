@@ -1,9 +1,10 @@
 'use client'
 
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo } from 'react';
 import RequisitionGroupRow from './RequisitionGroupRow'
 import GroupPagination from '@/components/misc/GroupPagination'
 import type { Requisition } from '@/types/purchase/requisition'
+import { useResettingState } from "@/hooks/useResettingState"
 
 type Props = {
   data: Requisition[]
@@ -43,10 +44,12 @@ const GroupedRequisitionTable = ({ data, renderTable }: Props) => {
     }))
   }, [data])
 
-  const [pagination, setPagination] = useState({
-    pageIndex: 0,
-    pageSize: PAGE_SIZE,
-  })
+  // Cambiar los datos (o la agrupación) devuelve la tabla a la primera página
+  // con todos los grupos cerrados.
+  const [pagination, setPagination] = useResettingState(
+    { pageIndex: 0, pageSize: PAGE_SIZE },
+    [data],
+  )
 
   const totalPages = useMemo(() => {
     return Math.max(1, Math.ceil(groups.length / PAGE_SIZE))
@@ -57,7 +60,10 @@ const GroupedRequisitionTable = ({ data, renderTable }: Props) => {
     return groups.slice(start, start + pagination.pageSize)
   }, [groups, pagination])
 
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({})
+  const [expanded, setExpanded] = useResettingState<Record<string, boolean>>(
+    {},
+    [data],
+  )
 
   const toggleGroup = (key: string) => {
     setExpanded((prev) => ({
@@ -66,13 +72,6 @@ const GroupedRequisitionTable = ({ data, renderTable }: Props) => {
     }))
   }
 
-  useEffect(() => {
-    setPagination({
-      pageIndex: 0,
-      pageSize: PAGE_SIZE,
-    })
-    setExpanded({})
-  }, [data])
 
   if (!groups.length) {
     return (

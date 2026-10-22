@@ -78,7 +78,7 @@ import {
   XCircle,
 } from "lucide-react";
 import Link from "next/link";
-import { memo, useEffect, useMemo, useState } from "react";
+import { memo, useMemo, useState } from "react";
 import { PAGE_SIZES, TablePagination } from "@/components/misc/TablePagination";
 import { DownloadReportDialog } from "./DownloadReportDialog";
 import {
@@ -94,6 +94,7 @@ import {
   type IntakeDimensionDraft,
   type IntakeExtra,
 } from "./IntakeExtrasPanel";
+import { useResettingState } from "@/hooks/useResettingState";
 
 type StatusFilter = "ALL" | GeneralArticleIntakeStatus;
 type EntryTypeFilter = "ALL" | GeneralArticleIntakeEntryType;
@@ -947,7 +948,12 @@ export function RecepcionGeneralTab() {
   const [entryTypeFilter, setEntryTypeFilter] =
     useState<EntryTypeFilter>("ALL");
   const [search, setSearch] = useState("");
-  const [page, setPage] = useState(0);
+  // Cambiar de estado o buscar reordena el conjunto: volver a la primera página.
+  const [page, setPage] = useResettingState(0, [
+    statusFilter,
+    entryTypeFilter,
+    search,
+  ]);
   const [pageSize, setPageSize] = useState(PAGE_SIZES[0]);
 
   // Solo entradas destinadas a un almacén: las entregas directas a
@@ -981,11 +987,6 @@ export function RecepcionGeneralTab() {
         i.registered_by?.toLowerCase().includes(q),
     );
   }, [intakes, statusFilter, entryTypeFilter, search]);
-
-  // Cambiar de estado o buscar reordena el conjunto: volver a la primera página.
-  useEffect(() => {
-    setPage(0);
-  }, [statusFilter, entryTypeFilter, search]);
 
   const paginated = useMemo(
     () => filtered.slice(page * pageSize, page * pageSize + pageSize),

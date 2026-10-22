@@ -39,9 +39,10 @@ import {
   Repeat,
   Truck,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { PhoneInput } from "@/components/ui/PhoneInput";
 import { PHONE_ERROR_MESSAGE, isValidPhone, toPhoneValue } from "@/lib/phone";
+import { useOnChange } from "@/hooks/useOnChange";
 
 interface Props {
   dispatchId: number;
@@ -165,7 +166,7 @@ export function WorkshopDispatchTimelineDialog({
 
   // Al entrar a editar, precarga con lo que el taller tiene hoy: el usuario
   // corrige solo lo que cambió, no reescribe todo desde cero.
-  useEffect(() => {
+  useOnChange([panelMode, workshopDispatch?.workshop], () => {
     if (panelMode !== "editingWorkshop" || !workshopDispatch?.workshop) return;
 
     const workshop = workshopDispatch.workshop;
@@ -176,7 +177,7 @@ export function WorkshopDispatchTimelineDialog({
       phone: toPhoneValue(workshop.phone),
       contact_name: workshop.contact_name ?? "",
     });
-  }, [panelMode, workshopDispatch?.workshop]);
+  });
 
   const resetEventForm = () => {
     setEventType("");

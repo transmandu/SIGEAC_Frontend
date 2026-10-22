@@ -49,6 +49,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import FolderSelect from "@/components/library/FolderSelect";
 import { PhoneInput } from "@/components/ui/PhoneInput";
 import { phoneSchema } from "@/lib/phone";
+import { useResettingState } from "@/hooks/useResettingState";
 
 interface FormProps {
   onClose: () => void;
@@ -64,9 +65,28 @@ export function CreateVoluntaryReportForm({
   const { selectedCompany } = useCompanyStore();
   const { createVoluntaryReport } = useCreateVoluntaryReport();
   const { updateVoluntaryReport } = useUpdateVoluntaryReport();
-  const [isAnonymous, setIsAnonymous] = useState(true);
+  // Al editar, parten de lo que ya trae el reporte.
+  const [isAnonymous, setIsAnonymous] = useResettingState(
+    !(
+      initialData &&
+      isEditing &&
+      initialData.reporter_email &&
+      initialData.reporter_name &&
+      initialData.reporter_last_name &&
+      initialData.reporter_phone
+    ),
+    [initialData, isEditing],
+  );
   const router = useRouter();
-  const [consequences, setConsequences] = useState<string[]>([]);
+  const [consequences, setConsequences] = useResettingState<string[]>(
+    () =>
+      initialData && isEditing && initialData.possible_consequences
+        ? initialData.possible_consequences
+            .split(",")
+            .filter((item) => item.trim() !== "")
+        : [],
+    [initialData, isEditing],
+  );
   const [newConsequence, setNewConsequence] = useState("");
 
   const [previewImage, setPreviewImage] = useState<string | null>(null);
@@ -210,22 +230,6 @@ export function CreateVoluntaryReportForm({
 
   useEffect(() => {
     if (initialData && isEditing) {
-      if (
-        initialData.reporter_email &&
-        initialData.reporter_name &&
-        initialData.reporter_last_name &&
-        initialData.reporter_phone
-      ) {
-        setIsAnonymous(false);
-      }
-
-      if (initialData.possible_consequences) {
-        const initialConsequences = initialData.possible_consequences
-          .split(",")
-          .filter((item) => item.trim() !== "");
-        setConsequences(initialConsequences);
-      }
-
       if (initialData.report_number) {
         form.setValue("report_number", initialData.report_number);
       }

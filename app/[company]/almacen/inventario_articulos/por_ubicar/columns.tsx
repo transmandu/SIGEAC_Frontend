@@ -32,7 +32,7 @@ export const columns: AppColumnDef<WaitingToLocateQueueArticle>[] = [
     meta: { title: "Descripción" },
     cell: ({ row }) => (
       <div className="flex items-center justify-center">
-        <span className="max-w-[280px] truncate font-semibold">
+        <span className="max-w-70 truncate font-semibold">
           {row.original.batch?.name ?? "—"}
         </span>
       </div>

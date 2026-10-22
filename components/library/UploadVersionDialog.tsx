@@ -14,6 +14,7 @@ import axiosInstance from "@/lib/axios";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { bibliotecaUploadVersionSteps } from "@/components/tour/steps/general/biblioteca/biblioteca-upload-version";
 import { notifyError } from "@/lib/notify-error";
+import { useOnChange } from "@/hooks/useOnChange";
 
 export const UploadVersionDialog = ({
   isOpen,
@@ -48,7 +49,7 @@ export const UploadVersionDialog = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // CAMBIO CLAVE: Inicialización reactiva al abrir el diálogo
-  useEffect(() => {
+  useOnChange([isOpen, doc], () => {
     if (isOpen) {
       setSelectedFile(null);
       setChangeLog("");
@@ -70,7 +71,7 @@ export const UploadVersionDialog = ({
         setManualRequiresExpiry(null);
       }
     }
-  }, [isOpen, doc]);
+  });
 
   const isOriginalExpiry = useMemo(() => {
     const status = String(doc?.expiry_status || "")

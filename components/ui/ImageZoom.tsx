@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react'
 import Image from "next/image"
+import { useResettingState } from '@/hooks/useResettingState'
 
 interface ImageZoomProps {
   src: string
@@ -33,8 +34,11 @@ export default function ImageZoom({
   controlsOffset = 40,
 }: ImageZoomProps) {
   const [zoom, setZoom] = useState<number>(minZoom)
-  const [tx, setTx] = useState<number>(0)
-  const [ty, setTy] = useState<number>(0)
+  // Sin zoom la imagen no se desplaza: el desplazamiento vuelve a cero al llegar
+  // al zoom mínimo.
+  const atMinZoom = zoom <= minZoom
+  const [tx, setTx] = useResettingState<number>(0, [atMinZoom])
+  const [ty, setTy] = useResettingState<number>(0, [atMinZoom])
   const [dragging, setDragging] = useState(false)
   const wrapperRef = useRef<HTMLDivElement | null>(null)
   const pointerRef = useRef<{ id: number; x: number; y: number } | null>(null)
@@ -59,14 +63,7 @@ export default function ImageZoom({
   }, [step, minZoom, maxZoom])
 
   const dec = useCallback(() => {
-    setZoom((z) => {
-      const newZ = clamp(+((z - step).toFixed(3)), minZoom, maxZoom)
-      if (newZ <= minZoom) {
-        setTx(0)
-        setTy(0)
-      }
-      return newZ
-    })
+    setZoom((z) => clamp(+((z - step).toFixed(3)), minZoom, maxZoom))
   }, [step, minZoom, maxZoom])
   // Inicia captura de pointer para panning (solo si zoom > 1)
   const onPointerDown = (e: React.PointerEvent) => {
@@ -160,21 +157,12 @@ export default function ImageZoom({
       } else if (ev.key === 'Escape') {
         ev.preventDefault()
         setZoom(minZoom)
-        setTx(0)
-        setTy(0)
       }
     }
     const node = wrapperRef.current
     node?.addEventListener('keydown', handler)
     return () => node?.removeEventListener('keydown', handler)
   }, [minZoom, dec, inc])
-
-  useEffect(() => {
-    if (zoom <= minZoom) {
-      setTx(0)
-      setTy(0)
-    }
-  }, [zoom, minZoom])
 
   const transform = `translate3d(${tx}px, ${ty}px, 0) scale(${zoom})`
   const cursorClass = zoom > 1 ? (dragging ? 'cursor-grabbing' : 'cursor-grab') : 'cursor-zoom-in'

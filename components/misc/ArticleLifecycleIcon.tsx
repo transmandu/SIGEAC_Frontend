@@ -70,7 +70,7 @@ const ArticleLifecycleIcon = ({
         </span>
       </TooltipTrigger>
 
-      <TooltipContent side="top" className="max-w-[280px] text-xs">
+      <TooltipContent side="top" className="max-w-70 text-xs">
         {text}
       </TooltipContent>
     </Tooltip>

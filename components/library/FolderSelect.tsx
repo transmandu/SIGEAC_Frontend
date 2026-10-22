@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Check,
   ChevronDown,
@@ -15,6 +15,7 @@ import {
 import { LibraryFolderNode } from "@/types";
 import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment";
 import libraryService from "@/lib/libraryService";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -23,6 +24,7 @@ import {
 } from "@/components/ui/popover";
 import { FormControl } from "@/components/ui/form";
 import { cn } from "@/lib/utils";
+import { useOnChange } from "@/hooks/useOnChange";
 
 interface FolderSelectProps {
   company: string | null | undefined;
@@ -206,9 +208,6 @@ export default function FolderSelect({
   single = false,
 }: FolderSelectProps) {
   const [open, setOpen] = useState(false);
-  const [departmentId, setDepartmentId] = useState<number | null>(null);
-  const [folders, setFolders] = useState<LibraryFolderNode[]>([]);
-  const [loadingFolders, setLoadingFolders] = useState(false);
   const [expanded, setExpanded] = useState<ExpandedSet>(() => {
     // Por defecto la raíz viene expandida.
     return includeRoot ? new Set(["/"]) : new Set<string>();
@@ -230,34 +229,27 @@ export default function FolderSelect({
     [departments, departmentAcronym],
   );
 
-  useEffect(() => {
-    if (smsDepartment && smsDepartment.id !== departmentId) {
-      setDepartmentId(smsDepartment.id);
-    }
-  }, [smsDepartment, departmentId]);
-
-  useEffect(() => {
-    if (!smsDepartment) return;
-
-    setLoadingFolders(true);
-    libraryService
-      .getFolders(company ?? "", smsDepartment.id)
-      .then((res) => setFolders(res.folders || []))
-      .catch(() => setFolders([]))
-      .finally(() => setLoadingFolders(false));
-  }, [smsDepartment, company]);
+  const { data: foldersData, isLoading: loadingFolders } = useQuery({
+    queryKey: ["library-folders", company, smsDepartment?.id],
+    queryFn: () => libraryService.getFolders(company ?? "", smsDepartment!.id),
+    enabled: !!smsDepartment,
+    meta: { silent: true },
+  });
+  const folders: LibraryFolderNode[] = useMemo(
+    () => foldersData?.folders || [],
+    [foldersData],
+  );
 
   // Al abrir el popover, expandir el árbol hasta las carpetas seleccionadas y
   // tomar como borrador la selección vigente. La carpeta principal es la que
   // ocupa el índice [0] del array (convención: principal primero).
-  useEffect(() => {
+  useOnChange([open], () => {
     if (open) {
       setExpanded(new Set([...ancestorPaths(value)]));
       setDraft(new Set(value));
       setPrimary(value[0] ?? null);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+  });
 
   const toggle = (path: string) => {
     setExpanded((prev) => {

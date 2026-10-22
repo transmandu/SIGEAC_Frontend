@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import {
   AlertTriangle,
@@ -32,6 +32,7 @@ import { UniformTypeIcon } from "@/components/sms/uniform-meta";
 import { uniformCompanyLabel, uniformGenderLabel } from "@/lib/sms/uniforms";
 
 import { InventoryRowActions } from "./row-actions";
+import { useResettingState } from "@/hooks/useResettingState";
 
 interface Props {
   items: UniformItem[];
@@ -87,10 +88,10 @@ export function UniformInventoryGrid({
   onRegisterMovement,
 }: Props) {
   const [category, setCategory] = useState<string>("all");
-  const [size, setSize] = useState<string | null>(null);
+  // La talla que eligió el usuario; la vigente se deriva abajo (`size`).
+  const [sizeChoice, setSize] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [lowStockOnly, setLowStockOnly] = useState(false);
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   // The delete confirmation lives here, outside the cards' AnimatePresence
   // subtree: a row being removed by the post-delete refetch must not be able
@@ -126,6 +127,10 @@ export function UniformInventoryGrid({
       (a, b) => sizeRank(a) - sizeRank(b) || a.localeCompare(b),
     );
   }, [items, category]);
+
+  // Una talla que no existe en la categoría elegida deja de aplicarse. Se deriva
+  // en vez de limpiar el estado con un efecto, que filtraba un render con ella.
+  const size = sizeChoice && sizes.includes(sizeChoice) ? sizeChoice : null;
 
   const filteredItems = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -187,15 +192,13 @@ export function UniformInventoryGrid({
     return list;
   }, [filteredItems]);
 
-  // Reset pagination whenever the active filter set changes.
-  useEffect(() => {
-    setVisibleCount(PAGE_SIZE);
-  }, [category, size, lowStockOnly, search]);
-
-  // Drop a selected size that no longer exists in the chosen category.
-  useEffect(() => {
-    if (size && !sizes.includes(size)) setSize(null);
-  }, [sizes, size]);
+  // Cambiar el filtro activo vuelve a mostrar solo la primera tanda.
+  const [visibleCount, setVisibleCount] = useResettingState(PAGE_SIZE, [
+    category,
+    size,
+    lowStockOnly,
+    search,
+  ]);
 
   const visibleStacks = stacks.slice(0, visibleCount);
   const activeCategoryLabel = categories.find(

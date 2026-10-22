@@ -80,6 +80,7 @@ import {
   type ArticleFormProps,
 } from "./types";
 import { useArticleForm, useReportFormState } from "./useArticleForm";
+import { useResettingState } from "@/hooks/useResettingState";
 
 const formSchema = z
   .object({
@@ -207,9 +208,6 @@ export default function ConsumableArticleForm({
   );
 
   // Conversiones y dimensiones son listas, no campos: viajan junto al payload.
-  const [conversions, setConversions] = useState<ConsumableConversionInput[]>(
-    [],
-  );
   const [dimension, setDimension] = useState<DimensionDraft>(EMPTY_DIMENSION);
 
   // Al editar hay que partir de las equivalencias ya guardadas: el backend
@@ -221,18 +219,25 @@ export default function ConsumableArticleForm({
     selectedCompany?.slug,
   );
 
-  useEffect(() => {
-    if (!existingConversions) return;
-
-    setConversions(
-      existingConversions.conversions.map((row) => ({
+  const [conversions, setConversions] = useResettingState<
+    ConsumableConversionInput[]
+  >(
+    () =>
+      existingConversions?.conversions.map((row) => ({
         unit_id: Number(row.unit.id),
         direction: "base_per_unit" as const,
         value: row.base_per_unit,
-      })),
-    );
-  }, [existingConversions]);
-  const [baseUnit, setBaseUnit] = useState<Unit | null>(null);
+      })) ?? [],
+    [existingConversions],
+  );
+
+  // Al editar, la unidad base ya está fijada por el consumible existente.
+  const [baseUnit, setBaseUnit] = useResettingState<Unit | null>(() => {
+    const unitId = initialData?.consumable?.primary_unit_id;
+    if (!unitId || !units) return null;
+
+    return units.find((unit) => `${unit.id}` === `${unitId}`) ?? null;
+  }, [initialData, units]);
   const [unitChange, setUnitChange] = useState<BaseUnitChangeValue>(
     EMPTY_BASE_UNIT_CHANGE,
   );
@@ -279,13 +284,6 @@ export default function ConsumableArticleForm({
     mode: "onBlur",
   });
 
-  // Al editar, la unidad base ya está fijada por el consumible existente.
-  useEffect(() => {
-    const unitId = initialData?.consumable?.primary_unit_id;
-    if (!unitId || !units) return;
-
-    setBaseUnit(units.find((unit) => `${unit.id}` === `${unitId}`) ?? null);
-  }, [initialData, units]);
 
   const originalUnit = useMemo(
     () =>

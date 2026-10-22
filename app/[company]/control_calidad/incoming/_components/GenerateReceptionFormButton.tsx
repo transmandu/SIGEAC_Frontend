@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -30,6 +30,7 @@ import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 import { IncomingArticle } from "@/app/[company]/control_calidad/incoming/IncomingTypes";
 import { notifyError } from "@/lib/notify-error";
+import { useOnChange } from "@/hooks/useOnChange";
 
 export function GenerateReceptionFormButton({
   selected,
@@ -97,7 +98,7 @@ export function GenerateReceptionFormButton({
    * volvería a pisar lo que el usuario ya escribió.
    */
   const correctingId = correcting?.id;
-  useEffect(() => {
+  useOnChange([open, correctingId, suggestedOrderNumber], () => {
     if (!open) return;
     setPurchaseOrderCode(
       correcting?.purchase_order_code ?? suggestedOrderNumber,
@@ -107,8 +108,7 @@ export function GenerateReceptionFormButton({
     setVoidReason("");
     if (correcting?.inspection_date)
       setInspectionDate(new Date(correcting.inspection_date));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, correctingId, suggestedOrderNumber]);
+  });
 
   const confirm = async () => {
     if (!validation.ok) return;

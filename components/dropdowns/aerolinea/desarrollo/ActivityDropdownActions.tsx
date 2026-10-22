@@ -2,7 +2,7 @@
 import { useUpdateFinalHour, useDeleteActivity, useEditActivity } from '@/actions/aerolinea/desarrollo/reportes_diarios/actions';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Clock, MoreHorizontal, Trash2, Edit, Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { useGetUserActivity } from "@/hooks/aerolinea/desarrollo/useGetUserActivities";
 import { useRouter } from "next/navigation";
 import { Activity } from '@/types';
+import { useOnChange } from "@/hooks/useOnChange";
 
 interface ActivityDropdownActionsProps {
   finished: boolean;
@@ -41,15 +42,15 @@ export const ActivityDropdownActions = ({ initialData, finished }: ActivityDropd
   });
 
   // Set default end time when dialog opens
-  useEffect(() => {
+  useOnChange([dialogOpen, manualEndTime], () => {
     if (!manualEndTime && dialogOpen) {
       const now = new Date();
       setEndTime(now.toTimeString().slice(0, 5));
     }
-  }, [dialogOpen, manualEndTime]);
+  });
 
   // Load correct activity data when edit dialog opens
-  useEffect(() => {
+  useOnChange([editDialogOpen, initialData], () => {
     if (editDialogOpen && initialData) {
       if (initialData) {
         setStartTime(initialData.start_hour || "");
@@ -64,7 +65,7 @@ export const ActivityDropdownActions = ({ initialData, finished }: ActivityDropd
         });
       }
     }
-  }, [editDialogOpen, initialData]);
+  });
 
   const hasChanges = () => {
     return (

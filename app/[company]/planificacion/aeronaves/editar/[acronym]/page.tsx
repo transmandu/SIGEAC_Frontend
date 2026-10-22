@@ -25,7 +25,7 @@ import {
   Settings,
   ChevronDown,
 } from "lucide-react";
-import { use, useState, useEffect, useCallback } from "react";
+import { use, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { AircraftInfoForm } from "@/components/forms/mantenimiento/aeronaves/AircraftInfoForm";
 import { AircraftPartsInfoForm } from "@/components/forms/mantenimiento/aeronaves/AircraftPartsForm";
@@ -36,6 +36,7 @@ import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufactu
 import { parseISO } from "date-fns";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { formatNumber } from "@/lib/formatNumber";
+import { useOnChange } from "@/hooks/useOnChange"
 
 interface AircraftPart {
   id?: number; // ID para actualizaciones
@@ -294,7 +295,7 @@ export default function EditAircraftPage({
   );
 
   // Inicializar datos con la información existente de la aeronave
-  useEffect(() => {
+  useOnChange([aircraft, clients, isInitialized, transformAssignmentsToFormFormat], () => {
     if (!aircraft || isInitialized) return;
     if ((aircraft as any).client_id && !clients) return;
 
@@ -348,7 +349,7 @@ export default function EditAircraftPage({
 
     setPartsData({ parts: [] });
     setIsInitialized(true);
-  }, [aircraft, clients, isInitialized, transformAssignmentsToFormFormat]);
+  });
 
   // Función para transformar las partes del formulario al formato API
   const transformPart = (part: AircraftPart, originalPart?: any): any => {

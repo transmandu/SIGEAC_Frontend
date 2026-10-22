@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ContentLayout } from '@/components/layout/ContentLayout';
 import { DailyReportForm } from '@/components/forms/aerolinea/desarollo/DailyReportForm';
@@ -15,15 +15,12 @@ const DailyActivitiesPage = () => {
   const { user, loading } = useAuth();
   const router = useRouter();
   const params = useParams<{ date: string }>();
-  const [showDialog, setShowDialog] = useState(false);
+  const [dialogDismissed, setDialogDismissed] = useState(false);
   const { createActivityReport } = useCreateActivityReport();
   const { data: report, isLoading: isReportLoading } = useGetDailyActivityReport({ date: params.date, user_id: user?.id?.toString() ?? null });
 
-  useEffect(() => {
-    if (!isReportLoading && !report) {
-      setShowDialog(true);
-    }
-  }, [report, isReportLoading]);
+  // Sin reporte del día, se ofrece crearlo hasta que el usuario lo descarte.
+  const showDialog = !dialogDismissed && !isReportLoading && !report;
 
   if (isReportLoading || loading) {
     return <LoadingPage />;
@@ -54,7 +51,7 @@ const DailyActivitiesPage = () => {
         ) : (
           <ConfirmCreateActivityReportDialog
             open={showDialog}
-            onClose={() => setShowDialog(false)}
+            onClose={() => setDialogDismissed(true)}
             onConfirm={handleCreateActivityReport}
             loading={createActivityReport.isPending}
           />

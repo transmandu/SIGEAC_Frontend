@@ -2,11 +2,12 @@
 
 import { useAddCompanyToUser, useRemoveCompanyFromUser } from '@/actions/sistema/usuarios/actions'
 import { useGetCompanies } from '@/hooks/sistema/useGetCompanies'
-import { useGetLocationsByCompanyId } from '@/hooks/sistema/useGetLocationsByCompanyId'
+import { useLocationsOfCompany } from '@/hooks/sistema/useGetLocationsByCompanyId'
+import { useResettingState } from '@/hooks/useResettingState'
 import { User } from '@/types'
 import { cn } from '@/lib/utils'
 import { Building2, Loader2, MapPin, Plus, X } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
@@ -30,30 +31,21 @@ const UserCompaniesTab = ({ user }: { user: User }) => {
   const { data: allCompanies, isLoading: loadingCompanies } = useGetCompanies()
   const { addCompany } = useAddCompanyToUser()
   const { removeCompany } = useRemoveCompanyFromUser()
-  const { mutateAsync: fetchLocations, isPending: loadingLocations } = useGetLocationsByCompanyId()
 
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>('')
-  const [availableLocations, setAvailableLocations] = useState<
-    { id: number; address: string; cod_iata?: string; isMainBase?: boolean }[]
-  >([])
-  const [selectedLocationIds, setSelectedLocationIds] = useState<number[]>([])
+  const { data: locations, isFetching: loadingLocations } = useLocationsOfCompany(
+    selectedCompanyId ? Number(selectedCompanyId) : undefined,
+  )
+  const availableLocations = locations ?? []
+  // Las sedes elegidas pertenecen a la compañía elegida: al cambiarla se vacían.
+  const [selectedLocationIds, setSelectedLocationIds] = useResettingState<number[]>(
+    [],
+    [selectedCompanyId],
+  )
 
   const userCompanies = (user.companies as unknown as UserCompany[]) ?? []
   const userCompanyIds = new Set(userCompanies.map((c) => c.id))
   const assignableCompanies = allCompanies?.filter((c) => !userCompanyIds.has(c.id)) ?? []
-
-  useEffect(() => {
-    if (!selectedCompanyId) {
-      setAvailableLocations([])
-      setSelectedLocationIds([])
-      return
-    }
-
-    fetchLocations(Number(selectedCompanyId)).then((locs) => {
-      setAvailableLocations(locs ?? [])
-      setSelectedLocationIds([])
-    })
-  }, [selectedCompanyId, fetchLocations])
 
   const toggleLocation = (id: number) => {
     setSelectedLocationIds((prev) =>
@@ -73,7 +65,6 @@ const UserCompaniesTab = ({ user }: { user: User }) => {
       {
         onSuccess: () => {
           setSelectedCompanyId('')
-          setAvailableLocations([])
           setSelectedLocationIds([])
         },
       }

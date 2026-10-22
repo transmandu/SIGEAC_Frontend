@@ -40,12 +40,13 @@ import type {
     SupervisorGeneralArticle,
 } from "@/types/supervisor"
 import { AlertTriangle, Loader2, PencilLine } from "lucide-react"
-import { useEffect, useMemo, useState } from "react"
+import { useMemo, useState } from "react"
 import { ConversionsPanel } from "./ConversionsPanel"
 import { CostHistoryPanel } from "./CostHistoryPanel"
 import { DecimalInput } from "./DecimalInput"
 import SupervisorActionButton from "./SupervisorActionButton"
 import { formatQuantity } from "./utils/uiHelpers"
+import { useOnChange } from "@/hooks/useOnChange"
 
 /**
  * Edición individual de un artículo general.
@@ -85,7 +86,7 @@ export function EditArticleDialog({
     // Conversiones e historial solo se piden con el diálogo abierto.
     const { data: detail, isLoading } = useGetArticleDetail(open ? (article?.id ?? null) : null)
 
-    useEffect(() => {
+    useOnChange([open, article], () => {
         if (!open || !article) return
 
         setDescription(article.description ?? "")
@@ -100,7 +101,7 @@ export function EditArticleDialog({
         setConversionEdits({})
         setCostEdits({})
         setIntakeUnitEdits([])
-    }, [open, article])
+    })
 
     /**
      * Solo los campos que cambiaron. Enviar la fila completa haría que el

@@ -358,7 +358,7 @@ function EntryRow({
  */
 export function ComplianceQueueButton() {
   const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState<number[]>([]);
+  const [selectedIds, setSelected] = useState<number[]>([]);
   const [collapsed, setCollapsed] = useState<string[]>([]);
   const { selectedCompany } = useCompanyStore();
   const company = selectedCompany?.slug;
@@ -378,13 +378,10 @@ export function ComplianceQueueButton() {
 
   // Lo que se quitó de la bandeja (o se ató a una OT) ya no existe: dejarlo en
   // la selección mandaría ids fantasma al emitir.
-  useEffect(() => {
+  const selected = useMemo(() => {
     const ids = new Set(entries.map((entry) => entry.id));
-    setSelected((prev) => {
-      const next = prev.filter((id) => ids.has(id));
-      return next.length === prev.length ? prev : next;
-    });
-  }, [entries]);
+    return selectedIds.filter((id) => ids.has(id));
+  }, [selectedIds, entries]);
 
   useEffect(() => {
     if (!open) return;

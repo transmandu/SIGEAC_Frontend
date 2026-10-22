@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { zodResolver } from "@/lib/zod-resolver";
 import axios from "axios";
 import { Loader2 } from "lucide-react";
@@ -41,6 +41,7 @@ import {
 } from "@/types/sms/mantenimiento";
 
 import { getNotificationSource } from "./workflow-helpers";
+import { useResettingState } from "@/hooks/useResettingState";
 
 const FORM_SCHEMA = z.object({
   hazard_notification_id: z.coerce
@@ -468,10 +469,13 @@ export function RiskAssessmentForm({
     isError,
     refetch,
   } = useGetAssessmentQuestions(company);
-  const [answers, setAnswers] = useState<AnswerRecord>({});
-  const [questionErrors, setQuestionErrors] = useState<Record<string, string>>(
-    {},
+  const [answers, setAnswers] = useResettingState<AnswerRecord>(
+    () => normalizeAssessmentAnswers(currentAssessment),
+    [currentAssessment, selectedNotification.id],
   );
+  const [questionErrors, setQuestionErrors] = useResettingState<
+    Record<string, string>
+  >({}, [currentAssessment, selectedNotification.id]);
 
   const router = useRouter();
 
@@ -544,8 +548,6 @@ export function RiskAssessmentForm({
         ? Number(currentAssessment.probability)
         : undefined,
     });
-    setAnswers(normalizeAssessmentAnswers(currentAssessment));
-    setQuestionErrors({});
   }, [currentAssessment, form, selectedNotification.id]);
 
   useEffect(() => {

@@ -44,12 +44,13 @@ import {
   X,
 } from "lucide-react";
 import { motion } from "motion/react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { FuelMovementsTable } from "./_components/FuelMovementsTable";
 import { FuelSummaryCards } from "./_components/FuelSummaryCards";
 import { FuelTraceabilityPanel } from "./_components/FuelTraceabilityPanel";
 import { FuelVehiclesTable } from "./_components/FuelVehiclesTable";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { useResettingState } from "@/hooks/useResettingState";
 
 const movementFilterOptions: Array<{
   value: FuelMovementType;
@@ -87,7 +88,8 @@ export default function FuelWarehousePage() {
   const company = selectedCompany?.slug;
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
-  const [vehicleId, setVehicleId] = useState("all");
+  // Lo que eligió el usuario; el vehículo en uso se deriva abajo (`vehicleId`).
+  const [vehicleChoice, setVehicleId] = useState("all");
   const [thirdPartyId, setThirdPartyId] = useState("all");
   const [movementType, setMovementType] = useState<FuelMovementType | "all">(
     "all",
@@ -95,8 +97,34 @@ export default function FuelWarehousePage() {
   const [movementFuelType, setMovementFuelType] = useState<FuelType | "all">(
     "all",
   );
-  const [movementPage, setMovementPage] = useState(1);
   const [activeFuelTab, setActiveFuelTab] = useState("movements");
+
+  const { data: vehicles, isLoading: vehiclesLoading } =
+    useGetFuelVehicles(company);
+  const fuelVehicles = useMemo(() => vehicles ?? [], [vehicles]);
+
+  // El select de vehiculo del filtro solo debe ofrecer los vehiculos del
+  // combustible elegido en el filtro de Combustible.
+  const vehicleOptionsForFilter = useMemo(
+    () =>
+      movementFuelType === "all"
+        ? fuelVehicles
+        : fuelVehicles.filter(
+            (vehicle) => vehicle.fuel_type === movementFuelType,
+          ),
+    [fuelVehicles, movementFuelType],
+  );
+
+  // Si el vehículo elegido deja de pertenecer al combustible filtrado, el filtro
+  // pasa a "todos" para no dejar un filtro invisible o inconsistente. Se deriva:
+  // corregir el estado con un efecto dejaba un render con el filtro inválido.
+  const vehicleId =
+    vehicleChoice === "all" ||
+    vehicleOptionsForFilter.some(
+      (vehicle) => vehicle.id.toString() === vehicleChoice,
+    )
+      ? vehicleChoice
+      : "all";
 
   const userRoles = user?.roles?.map((role) => role.name) ?? [];
   const canAccess = FUEL_ALLOWED_ROLES.some((role) => userRoles.includes(role));
@@ -131,11 +159,8 @@ export default function FuelWarehousePage() {
         "border-emerald-400/70 ring-1 ring-emerald-400/20 dark:border-emerald-500/50",
     );
 
-  // Se resetea a la primera pagina cada vez que cambia algun filtro (no al
-  // cambiar solo de pagina).
-  useEffect(() => {
-    setMovementPage(1);
-  }, [
+  // Cambiar cualquier filtro (no solo de página) vuelve a la primera página.
+  const [movementPage, setMovementPage] = useResettingState(1, [
     dateFrom,
     dateTo,
     vehicleId,
@@ -170,8 +195,6 @@ export default function FuelWarehousePage() {
     isLoading: summaryLoading,
     isError: summaryError,
   } = useGetFuelSummary(company);
-  const { data: vehicles, isLoading: vehiclesLoading } =
-    useGetFuelVehicles(company);
   const { data: movementsPage, isLoading: movementsLoading } =
     useGetFuelMovements(company, movementFilters);
   // Trazabilidad necesita ver todos los despachos, no solo la pagina actual
@@ -181,35 +204,9 @@ export default function FuelWarehousePage() {
   });
   const { data: thirdParties } = useGetThirdParties();
 
-  const fuelVehicles = useMemo(() => vehicles ?? [], [vehicles]);
   const fuelMovements = movementsPage?.movements ?? [];
   const movementsPagination = movementsPage?.pagination;
   const traceabilityMovements = traceabilityMovementsPage?.movements ?? [];
-
-  // El select de vehiculo del filtro solo debe ofrecer los vehiculos del
-  // combustible elegido en el filtro de Combustible.
-  const vehicleOptionsForFilter = useMemo(
-    () =>
-      movementFuelType === "all"
-        ? fuelVehicles
-        : fuelVehicles.filter(
-            (vehicle) => vehicle.fuel_type === movementFuelType,
-          ),
-    [fuelVehicles, movementFuelType],
-  );
-
-  // Si el vehiculo seleccionado deja de pertenecer al combustible filtrado,
-  // se limpia la seleccion para no dejar un filtro invisible/inconsistente.
-  useEffect(() => {
-    if (
-      vehicleId !== "all" &&
-      !vehicleOptionsForFilter.some(
-        (vehicle) => vehicle.id.toString() === vehicleId,
-      )
-    ) {
-      setVehicleId("all");
-    }
-  }, [vehicleId, vehicleOptionsForFilter]);
 
   if (authLoading || summaryLoading || vehiclesLoading) return <LoadingPage />;
 

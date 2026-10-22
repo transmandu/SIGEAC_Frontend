@@ -54,6 +54,7 @@ import {
 import { ItemActions } from "./ItemActions";
 import type { ManualAction } from "./ManualList";
 import { ServiceCard } from "./ServiceCard";
+import { useOnChange } from "@/hooks/useOnChange"
 
 /** Lo que está abierto sobre el panel: un único diálogo a la vez. */
 type Overlay =
@@ -145,12 +146,17 @@ export function ManualPanel({
 
   // Una acción pedida desde el menú de la lista espera a que el detalle de ese
   // manual esté cargado: los diálogos de edición y de revisión parten de él.
-  useEffect(() => {
-    if (!request || manual?.id !== request.id) return;
+  const requestReady = !!request && manual?.id === request.id;
+
+  useOnChange([request, requestReady], () => {
+    if (!request || !requestReady) return;
     setOverlayState({ kind: `manual-${request.kind}` });
     setVisible(true);
-    onRequestHandled();
-  }, [request, manual, onRequestHandled]);
+  });
+
+  useEffect(() => {
+    if (requestReady) onRequestHandled();
+  }, [requestReady, onRequestHandled]);
 
   const unassigned = unassignedServices !== null;
 

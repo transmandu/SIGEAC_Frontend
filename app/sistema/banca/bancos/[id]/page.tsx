@@ -6,7 +6,7 @@ import { columns } from './columns';
 import { DataTable } from './data-table';
 import { useGetBankAccounts } from '@/hooks/general/cuentas_bancarias/useGetBankAccounts';
 import { useParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
 import { BankAccount } from '@/types';
 import LoadingPage from '@/components/misc/LoadingPage';
 import { useCompanyStore } from '@/stores/CompanyStore';
@@ -22,14 +22,13 @@ const BankAccountsPage = () => {
     isLoading,
     error,
   } = useGetBankAccounts(selectedCompany?.id);
-  const [filteredAccounts, setFilteredAccounts] = useState<BankAccount[]>([]);
-
-  useEffect(() => {
-    if (accounts && id) {
-      const filterAcc = accounts.filter((acc) => acc.bank.id.toString() === id);
-      setFilteredAccounts(filterAcc);
-    }
-  }, [accounts, id]); // Se ejecutará cada vez que `accounts` o `id` cambien
+  const filteredAccounts = useMemo<BankAccount[]>(
+    () =>
+      accounts && id
+        ? accounts.filter((acc) => acc.bank.id.toString() === id)
+        : [],
+    [accounts, id],
+  );
 
   if (selectedCompany && isLoading) {
     return <LoadingPage />;

@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Image as ImageIcon, X } from "lucide-react";
 
 import { FormDescription, FormItem, FormLabel } from "@/components/ui/form";
 import { cn } from "@/lib/utils";
 
 import { fieldClass, hintClass, labelClass } from "./form-theme";
+import { useObjectUrl } from "@/hooks/useObjectUrl";
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB, el mismo tope que valida el backend.
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
@@ -34,23 +35,8 @@ export const ArticleImageField = ({
 }) => {
     const [error, setError] = useState<string | null>(null);
     const [isDragging, setIsDragging] = useState(false);
-    const [preview, setPreview] = useState<string | null>(null);
+    const preview = useObjectUrl(value);
     const inputRef = useRef<HTMLInputElement>(null);
-
-    // El URL se crea y se revoca dentro del mismo efecto: con useMemo, el doble
-    // montaje de StrictMode revocaba el blob de la primera pasada y la
-    // miniatura quedaba rota.
-    useEffect(() => {
-        if (!value) {
-            setPreview(null);
-            return;
-        }
-
-        const url = URL.createObjectURL(value);
-        setPreview(url);
-
-        return () => URL.revokeObjectURL(url);
-    }, [value]);
 
     // El archivo recién elegido tiene prioridad sobre la imagen ya guardada.
     const shownImage = preview ?? currentImageUrl ?? null;

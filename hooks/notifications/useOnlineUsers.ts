@@ -31,11 +31,7 @@ export const useOnlineUsers = (company?: string, enabled: boolean = true) => {
   const normalizedCompany = company?.trim() ?? ''
 
   useEffect(() => {
-    if (!enabled || !normalizedCompany) {
-      setOnlineUsers([])
-      setFocusedUserIds(new Set())
-      return
-    }
+    if (!enabled || !normalizedCompany) return
 
     const echoInstance = getEcho()
     if (!echoInstance) return

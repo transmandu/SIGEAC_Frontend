@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { PlaneTakeoff, Settings2 } from "lucide-react";
@@ -9,7 +9,6 @@ import { motion } from "motion/react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useGetUserLocationsByCompanyId } from "@/hooks/sistema/usuario/useGetUserLocationsByCompanyId";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { User } from "@/types";
 
 import { resolveLandingPath } from "@/lib/postLoginRedirect";
 import CompanySelect from "@/components/selects/CompanySelect";
@@ -17,7 +16,24 @@ import PlaneCheckMorph from "@/components/misc/PlaneCheckMorph";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
+// Next mantiene /inicio montado entre sesiones, así que refs y estado
+// sobrevivían al logout: el usuario siguiente entraba con navigatingRef ya en
+// true y se quedaba en el loading para siempre, con el efecto de bootstrap
+// cortocircuitado. Cambiar de usuario devuelve el componente a cero, y la
+// `key` es lo que lo remonta.
 const CompanyBootstrap = () => {
+  const { user } = useAuth();
+
+  return <CompanyBootstrapSession key={user?.id ?? "anonymous"} />;
+};
+
+const subscribeToCompanyStore = (notify: () => void) =>
+  useCompanyStore.persist?.onFinishHydration(notify) ?? (() => {});
+
+const isCompanyStoreHydrated = () =>
+  useCompanyStore.persist?.hasHydrated() ?? true;
+
+const CompanyBootstrapSession = () => {
   const router = useRouter();
 
   const navigatingRef = useRef(false);
@@ -38,45 +54,14 @@ const CompanyBootstrap = () => {
 
   const { mutateAsync: getLocations } = useGetUserLocationsByCompanyId();
 
-  const [hydrated, setHydrated] = useState(
-    () => useCompanyStore.persist?.hasHydrated() ?? false,
+  const hydrated = useSyncExternalStore(
+    subscribeToCompanyStore,
+    isCompanyStoreHydrated,
+    () => false,
   );
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [redirectTarget, setRedirectTarget] = useState<string | null>(null);
   const [isNavigating, setIsNavigating] = useState(false);
-
-  // Next mantiene /inicio montado entre sesiones, así que refs y estado
-  // sobrevivían al logout: el usuario siguiente entraba con navigatingRef ya en
-  // true y se quedaba en el loading para siempre, con el efecto de bootstrap
-  // cortocircuitado. Cambiar de usuario devuelve el componente a cero.
-  const sessionUserRef = useRef<User["id"] | null>(null);
-
-  useEffect(() => {
-    if (!user || user.id === sessionUserRef.current) return;
-
-    sessionUserRef.current = user.id;
-
-    navigatingRef.current = false;
-    resolvedRef.current = false;
-    companyAutoSelectedRef.current = false;
-
-    setIsNavigating(false);
-    setIsRedirecting(false);
-    setRedirectTarget(null);
-  }, [user]);
-
-  useEffect(() => {
-    if (!useCompanyStore.persist) {
-      setHydrated(true);
-      return;
-    }
-
-    const unsub = useCompanyStore.persist.onFinishHydration(() =>
-      setHydrated(true),
-    );
-
-    return () => unsub();
-  }, []);
 
   useEffect(() => {
     if (!hydrated || userLoading || !user) return;
