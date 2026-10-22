@@ -6,8 +6,8 @@ import {
 } from "@/types/maintenanceCatalog";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { apiErrorMessage } from "@/lib/apiErrorMessage";
 import { TaskFormData } from "@/actions/mantenimiento/catalogo/tareas/actions";
+import { notifyError } from "@/lib/notify-error";
 
 export interface ManualFormData {
   name: string;
@@ -135,12 +135,7 @@ export const useCreateCatalogManual = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: apiErrorMessage(
-          error,
-          "No se pudo registrar el manual...",
-        ),
-      });
+      notifyError(error, { action: "registrar el manual" });
     },
   });
 
@@ -177,12 +172,7 @@ export const useUpdateCatalogManual = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: apiErrorMessage(
-          error,
-          "No se pudo actualizar el manual...",
-        ),
-      });
+      notifyError(error, { action: "actualizar el manual" });
     },
   });
 
@@ -229,12 +219,7 @@ export const useCreateManualRevision = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: apiErrorMessage(
-          error,
-          "No se pudo registrar la nueva revisión...",
-        ),
-      });
+      notifyError(error, { action: "registrar la nueva revisión" });
     },
   });
 
@@ -263,9 +248,7 @@ export const useDeleteCatalogManual = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: apiErrorMessage(error, "No se pudo eliminar el manual..."),
-      });
+      notifyError(error, { action: "eliminar el manual" });
     },
   });
 

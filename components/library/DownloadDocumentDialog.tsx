@@ -1,22 +1,15 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { FileText, ChevronDown, Clock } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import axiosInstance from "@/lib/axios";
 import { downloadDocumentFile } from "@/lib/Library/download-helper";
 import { toast } from "sonner";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { bibliotecaDescargaSteps } from "@/components/tour/steps/general/biblioteca/biblioteca-descarga";
-
-interface Version {
-  id: number;
-  version_number: string;
-  version_label?: string;
-  file_path?: string;
-  change_log: string;
-  created_at: string;
-}
+import { notifyError } from "@/lib/notify-error";
+import { useResettingState } from "@/hooks/useResettingState";
+import { useGetDocumentVersions } from "@/hooks/general/archivos/useGetDocumentVersions";
 
 interface DownloadProps {
   isOpen: boolean;
@@ -31,32 +24,27 @@ export const DownloadDocumentDialog = ({
   doc,
   company,
 }: DownloadProps) => {
-  const [downloadMode, setDownloadMode] = useState<"document" | "version">(
-    "document",
-  );
-  const [versionList, setVersionList] = useState<Version[]>([]);
-  const [selectedVersionToDownload, setSelectedVersionToDownload] =
-    useState<string>("");
-  const [loadingVersions, setLoadingVersions] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const handleFetchVersions = useCallback(async () => {
-    setLoadingVersions(true);
+  // El id como valor propio: es lo único que lee el callback, y así su lista de
+  // dependencias dice exactamente eso (con `doc?.id` y `doc.id` mezclados no coincidía).
+  const docId = doc?.id;
 
-    try {
-      const response = await axiosInstance.get(
-        `/${company}/library/documents/${doc.id}/versions`,
-      );
+  const { versions: versionList, isFetching: loadingVersions } =
+    useGetDocumentVersions({
+      company,
+      documentId: docId,
+      enabled: isOpen,
+      action: "obtener el historial para la descarga",
+    });
 
-      const fetchedVersions = response.data?.data?.versions || [];
-      setVersionList(Array.isArray(fetchedVersions) ? fetchedVersions : []);
-    } catch (error) {
-      console.error("Error al cargar versiones:", error);
-      toast.error("No se pudo obtener el historial para la descarga");
-    } finally {
-      setLoadingVersions(false);
-    }
-  }, [company, doc?.id]);
+  // Cada vez que se abre (o llega otro documento) el diálogo parte de descargar
+  // la versión vigente, sin versión elegida.
+  const [downloadMode, setDownloadMode] = useResettingState<
+    "document" | "version"
+  >("document", [isOpen, docId]);
+  const [selectedVersionToDownload, setSelectedVersionToDownload] =
+    useResettingState<string>("", [isOpen, docId]);
 
   const { registerTour, unregisterTour } = useTourContext();
 
@@ -102,26 +90,13 @@ export const DownloadDocumentDialog = ({
       toast.success("Descarga iniciada");
       onClose();
     } catch (error: any) {
-      const msg =
-        error.response?.data?.message ||
-        "No tienes permisos o el archivo no existe.";
-      toast.error(msg);
+      notifyError(error, { action: "descargar el documento" });
     } finally {
       setIsProcessing(false);
     }
   };
 
   const availableVersions = useMemo(() => versionList, [versionList]);
-
-  useEffect(() => {
-    if (isOpen && doc?.id) {
-      handleFetchVersions();
-    } else {
-      setDownloadMode("document");
-      setSelectedVersionToDownload("");
-      setVersionList([]);
-    }
-  }, [isOpen, doc?.id, handleFetchVersions]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

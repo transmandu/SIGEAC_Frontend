@@ -123,33 +123,6 @@ export const FUEL_MOVEMENT_DESCRIPTIONS: Record<FuelMovementType, string> = {
   annulment: "Reverso auditable de un movimiento.",
 };
 
-export const FUEL_ERROR_MESSAGES: Record<string, string> = {
-  INSUFFICIENT_WAREHOUSE_STOCK:
-    "No hay suficiente combustible disponible en almacen.",
-  INSUFFICIENT_VEHICLE_BALANCE:
-    "El vehiculo no tiene saldo suficiente para esta operacion.",
-  VEHICLE_CAPACITY_EXCEEDED:
-    "La operacion supera la capacidad del tanque del vehiculo.",
-  MOVEMENT_ALREADY_ANNULLED: "Este movimiento ya fue anulado.",
-  MOVEMENT_NOT_ANNULABLE: "Este movimiento no puede anularse.",
-  FIFO_ENTRY_ALREADY_CONSUMED:
-    "No se puede anular porque la entrada ya fue usada en despachos posteriores.",
-  DUPLICATE_VEHICLE_PLATE: "Ya existe un vehiculo con esta placa.",
-  INACTIVE_VEHICLE: "El vehiculo esta inactivo y no acepta nuevos movimientos.",
-  INVALID_THIRD_PARTY: "El tercero seleccionado no es valido.",
-  INVALID_LITERS: "La cantidad de litros debe ser mayor a 0.",
-  INVALID_TANK_CAPACITY: "La capacidad del tanque debe ser mayor a 0.",
-  MISSING_KM_PER_LITER:
-    "El vehiculo no tiene configurado el rendimiento (km/L).",
-  INVALID_ODOMETER: "El kilometraje debe ser mayor al ultimo registrado.",
-  CONCURRENT_STOCK_CONFLICT:
-    "El saldo cambio mientras registrabas la operacion. Actualiza e intenta de nuevo.",
-  CAPACITY_BELOW_BALANCE:
-    "La capacidad no puede ser menor al saldo actual del vehiculo.",
-  MOVEMENT_NOT_ANNULLED:
-    "Solo se pueden eliminar movimientos anulados. Anule el movimiento primero.",
-};
-
 export const formatLiters = (value?: number | string | null) => {
   const numericValue = Number(value ?? 0);
   return `${new Intl.NumberFormat("es-VE", {
@@ -213,20 +186,6 @@ export const getFuelStatusLabel = (
   if (status === "inactive") return "Inactivo";
   if (status === "annulled") return "Anulado";
   return "Sin estado";
-};
-
-export const getFuelErrorMessage = (error: unknown) => {
-  const maybeAxiosError = error as {
-    response?: { status?: number; data?: { code?: string; message?: string } };
-    message?: string;
-  };
-  const code = maybeAxiosError.response?.data?.code;
-  const backendMessage = maybeAxiosError.response?.data?.message;
-  // El backend ya devuelve un mensaje especifico por error (incluidos los 422),
-  // asi que se prioriza sobre el texto generico mapeado por codigo.
-  if (backendMessage) return backendMessage;
-  if (code && FUEL_ERROR_MESSAGES[code]) return FUEL_ERROR_MESSAGES[code];
-  return maybeAxiosError.message || "No se pudo completar la operacion.";
 };
 
 // Mapea errores de validacion 422 del backend ({ errors: { campo: [mensaje] } })

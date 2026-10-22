@@ -1,7 +1,7 @@
 import axiosInstance from "@/lib/axios";
-import { getApiErrorMessage } from "@/lib/api-error";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 interface InformationSourceSchema {
   company: string;
@@ -35,9 +35,7 @@ export const useCreateInformationSource = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: getApiErrorMessage(error, "No se pudo crear la fuente..."),
-      });
+      notifyError(error, { action: "crear la fuente" });
     },
   });
   return {
@@ -65,12 +63,7 @@ export const useDeleteInformationSource = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: getApiErrorMessage(
-          error,
-          "¡Hubo un error al eliminar la fuente!",
-        ),
-      });
+      notifyError(error, { action: "eliminar la fuente" });
     },
   });
 
@@ -98,12 +91,7 @@ export const useUpdateInformationSource = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: getApiErrorMessage(
-          error,
-          "No se pudo actualizar la fuente...",
-        ),
-      });
+      notifyError(error, { action: "actualizar la fuente" });
     },
   });
   return {

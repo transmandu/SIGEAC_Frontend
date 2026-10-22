@@ -682,7 +682,7 @@ export function CreateQuoteForm({
     );
 
     if (quotedArticles.length === 0 && quotedGeneralArticles.length === 0) {
-      toast.error("Debe cotizar al menos un artículo.");
+      toast.error("¡Ops! Debe cotizar al menos un artículo.");
       return;
     }
 
@@ -695,14 +695,14 @@ export function CreateQuoteForm({
       );
     if (missingJustification) {
       toast.error(
-        "Debe justificar los artículos no cotizados o con cambios en cantidad/unidad.",
+        "¡Ops! Debe justificar los artículos no cotizados o con cambios en cantidad/unidad.",
       );
       return;
     }
 
     if (data.articles.some((a) => !a.article_requisition_order_id)) {
       toast.error(
-        "Uno o más artículos no tienen un identificador válido de la requisición. Recargue la página e intente de nuevo.",
+        "¡Ops! Uno o más artículos no tienen un identificador válido de la requisición. Recargue la página e intente de nuevo.",
       );
       return;
     }
@@ -711,7 +711,7 @@ export function CreateQuoteForm({
       data.general_articles.some((a) => !a.general_article_requisition_order_id)
     ) {
       toast.error(
-        "Uno o más artículos generales no tienen un identificador válido de la requisición. Recargue la página e intente de nuevo.",
+        "¡Ops! Uno o más artículos generales no tienen un identificador válido de la requisición. Recargue la página e intente de nuevo.",
       );
       return;
     }
@@ -776,7 +776,7 @@ export function CreateQuoteForm({
 
   const onInvalid = () => {
     toast.error(
-      "Hay campos obligatorios sin completar. Revise los artículos marcados con *.",
+      "¡Ops! Hay campos obligatorios sin completar. Revise los artículos marcados con *.",
     );
   };
 

@@ -5,7 +5,7 @@ import { useGetBankCards } from "@/hooks/general/tarjetas/useGetBankCards";
 import { Loader2 } from "lucide-react";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import { useParams } from "next/navigation";
 import { BankCard } from "@/types";
 import { useCompanyStore } from "@/stores/CompanyStore";
@@ -19,18 +19,18 @@ const BankAccountsPage = () => {
     isLoading,
     error,
   } = useGetBankCards(selectedCompany?.id);
-  const [filteredCards, setFilteredCards] = useState<BankCard[]>([]);
   const params = useParams();
   const account_number = params?.account_number ?? ""; // Asegurar que siempre haya un valor
 
-  useEffect(() => {
-    if (cards && account_number) {
-      const filterCards = cards.filter(
-        (card) => card.bank_account?.account_number === account_number
-      );
-      setFilteredCards(filterCards);
-    }
-  }, [cards, account_number]); // Se ejecutará cada vez que `accounts` o `id` cambien
+  const filteredCards = useMemo<BankCard[]>(
+    () =>
+      cards && account_number
+        ? cards.filter(
+            (card) => card.bank_account?.account_number === account_number,
+          )
+        : [],
+    [cards, account_number],
+  );
 
   return (
     <ContentLayout title="Detalle de Cuenta">

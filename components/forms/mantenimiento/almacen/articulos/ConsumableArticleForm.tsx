@@ -80,6 +80,7 @@ import {
   type ArticleFormProps,
 } from "./types";
 import { useArticleForm, useReportFormState } from "./useArticleForm";
+import { useResettingState } from "@/hooks/useResettingState";
 
 const formSchema = z
   .object({
@@ -143,14 +144,14 @@ const apiDate = (date?: Date | null) => {
  * La fecha de recepción distingue "No aplica" de "sin indicar", cosa que el
  * resto de las fechas no necesita.
  *
- * El picker manda `null` al marcar la casilla y `undefined` al no tocarla, y
- * desde que el backend rellena la recepción ausente con la de hoy, colapsar
- * ambos casos guardaría justo lo contrario de lo que pidió quien marcó la
- * casilla. Vive aparte porque `apiDate` lo comparten fabricación, caducidad y
- * shelf life, donde `null` y `undefined` sí significan lo mismo.
+ * El picker manda `null` al marcar la casilla y `undefined` al no tocarla.
+ * "No aplica" viaja como cadena vacía —multipart no transporta null— y el
+ * backend la guarda como NULL; omitir el campo, en cambio, lo rellena con hoy.
+ * Vive aparte porque `apiDate` lo comparten fabricación, caducidad y shelf
+ * life, donde `null` y `undefined` sí significan lo mismo.
  */
 const receptionApiDate = (date?: Date | null) =>
-  date === null ? NOT_APPLICABLE : apiDate(date);
+  date === null ? "" : apiDate(date);
 
 /**
  * Registro de consumibles, para cualquier destino.
@@ -198,14 +199,15 @@ export default function ConsumableArticleForm({
     initialData?.reception_date
       ? parseISO(initialData.reception_date)
       : isEditing
-        ? undefined
+        ? // Guardado como null = "No aplica"; si el campo ni llegó, no se sabe
+          // qué hay y el guardado no debe tocarlo.
+          initialData?.reception_date === null
+          ? null
+          : undefined
         : new Date(),
   );
 
   // Conversiones y dimensiones son listas, no campos: viajan junto al payload.
-  const [conversions, setConversions] = useState<ConsumableConversionInput[]>(
-    [],
-  );
   const [dimension, setDimension] = useState<DimensionDraft>(EMPTY_DIMENSION);
 
   // Al editar hay que partir de las equivalencias ya guardadas: el backend
@@ -217,18 +219,25 @@ export default function ConsumableArticleForm({
     selectedCompany?.slug,
   );
 
-  useEffect(() => {
-    if (!existingConversions) return;
-
-    setConversions(
-      existingConversions.conversions.map((row) => ({
+  const [conversions, setConversions] = useResettingState<
+    ConsumableConversionInput[]
+  >(
+    () =>
+      existingConversions?.conversions.map((row) => ({
         unit_id: Number(row.unit.id),
         direction: "base_per_unit" as const,
         value: row.base_per_unit,
-      })),
-    );
-  }, [existingConversions]);
-  const [baseUnit, setBaseUnit] = useState<Unit | null>(null);
+      })) ?? [],
+    [existingConversions],
+  );
+
+  // Al editar, la unidad base ya está fijada por el consumible existente.
+  const [baseUnit, setBaseUnit] = useResettingState<Unit | null>(() => {
+    const unitId = initialData?.consumable?.primary_unit_id;
+    if (!unitId || !units) return null;
+
+    return units.find((unit) => `${unit.id}` === `${unitId}`) ?? null;
+  }, [initialData, units]);
   const [unitChange, setUnitChange] = useState<BaseUnitChangeValue>(
     EMPTY_BASE_UNIT_CHANGE,
   );
@@ -274,14 +283,6 @@ export default function ConsumableArticleForm({
     defaultValues: defaults,
     mode: "onBlur",
   });
-
-  // Al editar, la unidad base ya está fijada por el consumible existente.
-  useEffect(() => {
-    const unitId = initialData?.consumable?.primary_unit_id;
-    if (!unitId || !units) return;
-
-    setBaseUnit(units.find((unit) => `${unit.id}` === `${unitId}`) ?? null);
-  }, [initialData, units]);
 
   const originalUnit = useMemo(
     () =>
@@ -427,7 +428,7 @@ export default function ConsumableArticleForm({
         setFabricationDate(null);
         setExpirationDate(null);
         setShelfLifeDate(null);
-        setReceptionDate(null);
+        setReceptionDate(new Date());
       },
     });
 

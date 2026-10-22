@@ -121,13 +121,13 @@ const MitigationTableDropdownActions = ({
     return Boolean(
       mitigationTable.mitigation_plan?.id &&
       mitigationTable.mitigation_plan?.analysis === null &&
-      mitigationTable.mitigation_plan.measures.length > 0
+      mitigationTable.mitigation_plan.measures.length > 0,
     );
   };
 
   const canEditAnalysis = () => {
     return Boolean(
-      mitigationTable.mitigation_plan?.analysis && !isReportClosed()
+      mitigationTable.mitigation_plan?.analysis && !isReportClosed(),
     );
   };
 
@@ -139,7 +139,7 @@ const MitigationTableDropdownActions = ({
       result &&
       (getResult(result) === "ACEPTABLE" ||
         getResult(result) === "TOLERABLE") &&
-      isReportOpen()
+      isReportOpen(),
     );
   };
 
@@ -161,8 +161,9 @@ const MitigationTableDropdownActions = ({
             {mitigationTable.mitigation_plan?.id && isReportOpen() && (
               <DropdownMenuItem onClick={() => setOpenCreateMeasure(true)}>
                 <Plus
-                  className={`size-5 ${theme === "light" ? "text-black" : "text-white"
-                    }`}
+                  className={`size-5 ${
+                    theme === "light" ? "text-black" : "text-white"
+                  }`}
                 />
                 <p className="pl-2">Crear Medida</p>
               </DropdownMenuItem>
@@ -253,7 +254,9 @@ const MitigationTableDropdownActions = ({
                 onClick={() =>
                   mitigationTable.mitigation_plan?.id
                     ? handleDelete(mitigationTable.mitigation_plan.id)
-                    : toast.error("Este registro no tiene plan de mitigación asociado.")
+                    : toast.error(
+                        "¡Ops! Este registro no tiene plan de mitigación asociado.",
+                      )
                 }
               >
                 {deleteMitigationPlan.isPending ? (
@@ -359,7 +362,8 @@ const MitigationTableDropdownActions = ({
                 ¿Seguro que desea cerrar el reporte?
               </DialogTitle>
               <DialogDescription className="text-center p-2 mb-0 pb-0">
-                Esta acción es irreversible. Por favor, seleccione la fecha de cierre para completar el proceso.
+                Esta acción es irreversible. Por favor, seleccione la fecha de
+                cierre para completar el proceso.
               </DialogDescription>
             </DialogHeader>
 
@@ -395,10 +399,12 @@ const MitigationTableDropdownActions = ({
                 onClick={() =>
                   mitigationTable.mitigation_plan?.id
                     ? handleCloseReport(
-                      mitigationTable.mitigation_plan.id,
-                      mitigationTable.mitigation_plan.analysis.result
-                    )
-                    : toast.error("Este registro no tiene plan de mitigación asociado.")
+                        mitigationTable.mitigation_plan.id,
+                        mitigationTable.mitigation_plan.analysis.result,
+                      )
+                    : toast.error(
+                        "¡Ops! Este registro no tiene plan de mitigación asociado.",
+                      )
                 }
               >
                 {closeReportByMitigationId.isPending ? (
@@ -438,10 +444,12 @@ const MitigationTableDropdownActions = ({
                 onClick={() =>
                   mitigationTable.mitigation_plan?.id
                     ? handleOpenReport(
-                      mitigationTable.mitigation_plan.id,
-                      mitigationTable.mitigation_plan.analysis.result
-                    )
-                    : toast.error("Este registro no tiene plan de mitigación asociado.")
+                        mitigationTable.mitigation_plan.id,
+                        mitigationTable.mitigation_plan.analysis.result,
+                      )
+                    : toast.error(
+                        "¡Ops! Este registro no tiene plan de mitigación asociado.",
+                      )
                 }
               >
                 {openReportByMitigationId.isPending ? (

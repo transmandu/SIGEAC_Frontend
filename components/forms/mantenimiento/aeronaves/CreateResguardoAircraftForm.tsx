@@ -35,6 +35,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import axiosInstance from "@/lib/axios";
+import { notifyError } from "@/lib/notify-error";
 
 const formSchema = z.object({
   acronym: z.string().min(2, "La matrícula debe tener al menos 2 caracteres"),
@@ -121,9 +122,7 @@ export function CreateResguardoAircraftForm({
       });
     } catch (error) {
       console.error("Error creating aircraft:", error);
-      toast.error("Error", {
-        description: "No se pudo crear la aeronave.",
-      });
+      notifyError(error, { action: "crear la aeronave" });
     }
   };
 

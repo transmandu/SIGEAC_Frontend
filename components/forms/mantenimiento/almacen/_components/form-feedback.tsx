@@ -60,8 +60,8 @@ export const invalidFormHandler =
 
     toast.error(
       issues.length === 1
-        ? "Hay un dato por corregir"
-        : `Hay ${issues.length} datos por corregir`,
+        ? "¡Ops! Hay un dato por corregir"
+        : `¡Ops! Hay ${issues.length} datos por corregir`,
       {
         description: (
           <ul className="mt-1 list-disc space-y-0.5 pl-4">

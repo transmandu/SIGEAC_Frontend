@@ -1,100 +1,98 @@
-'use client'
+"use client";
 
-import { useMemo, useState, useEffect } from 'react'
-import RequisitionGroupRow from './RequisitionGroupRow'
-import GroupPagination from '@/components/misc/GroupPagination'
-import type { Requisition } from '@/types/purchase/requisition'
+import { useMemo } from "react";
+import RequisitionGroupRow from "./RequisitionGroupRow";
+import GroupPagination from "@/components/misc/GroupPagination";
+import type { Requisition } from "@/types/purchase/requisition";
+import { useResettingState } from "@/hooks/useResettingState";
 
 type Props = {
-  data: Requisition[]
-  renderTable: (rows: Requisition[]) => React.ReactNode
-}
+  data: Requisition[];
+  renderTable: (rows: Requisition[]) => React.ReactNode;
+};
 
 type Group = {
-  key: string
-  rows: Requisition[]
-}
+  key: string;
+  rows: Requisition[];
+};
 
-const PAGE_SIZE = 15
+const PAGE_SIZE = 15;
 
 const formatGroupLabel = (value?: string | null) => {
-  if (!value || value.trim() === '') return 'Sin solicitante'
-  return value
-}
+  if (!value || value.trim() === "") return "Sin solicitante";
+  return value;
+};
 
 const GroupedRequisitionTable = ({ data, renderTable }: Props) => {
-
   const groups = useMemo<Group[]>(() => {
-    const groupedMap = new Map<string, Requisition[]>()
+    const groupedMap = new Map<string, Requisition[]>();
 
     for (const item of data) {
-      const key = item.requested_by?.trim() || 'Sin solicitante'
+      const key = item.requested_by?.trim() || "Sin solicitante";
 
       if (!groupedMap.has(key)) {
-        groupedMap.set(key, [])
+        groupedMap.set(key, []);
       }
 
-      groupedMap.get(key)!.push(item)
+      groupedMap.get(key)!.push(item);
     }
 
     return Array.from(groupedMap.entries()).map(([key, rows]) => ({
       key,
       rows,
-    }))
-  }, [data])
+    }));
+  }, [data]);
 
-  const [pagination, setPagination] = useState({
-    pageIndex: 0,
-    pageSize: PAGE_SIZE,
-  })
+  // Cambiar los datos (o la agrupación) devuelve la tabla a la primera página
+  // con todos los grupos cerrados.
+  const [pagination, setPagination] = useResettingState(
+    { pageIndex: 0, pageSize: PAGE_SIZE },
+    [data],
+  );
 
   const totalPages = useMemo(() => {
-    return Math.max(1, Math.ceil(groups.length / PAGE_SIZE))
-  }, [groups.length])
+    return Math.max(1, Math.ceil(groups.length / PAGE_SIZE));
+  }, [groups.length]);
 
   const paginatedGroups = useMemo(() => {
-    const start = pagination.pageIndex * pagination.pageSize
-    return groups.slice(start, start + pagination.pageSize)
-  }, [groups, pagination])
+    const start = pagination.pageIndex * pagination.pageSize;
+    return groups.slice(start, start + pagination.pageSize);
+  }, [groups, pagination]);
 
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({})
+  const [expanded, setExpanded] = useResettingState<Record<string, boolean>>(
+    {},
+    [data],
+  );
 
   const toggleGroup = (key: string) => {
     setExpanded((prev) => ({
       ...prev,
       [key]: !(prev[key] ?? false),
-    }))
-  }
-
-  useEffect(() => {
-    setPagination({
-      pageIndex: 0,
-      pageSize: PAGE_SIZE,
-    })
-    setExpanded({})
-  }, [data])
+    }));
+  };
 
   if (!groups.length) {
     return (
-      <div className="
+      <div
+        className="
         rounded-xl border
         bg-white dark:bg-slate-900/60
         border-slate-200 dark:border-slate-700/60
         px-6 py-10
         text-center
-      ">
+      "
+      >
         <p className="text-sm text-muted-foreground">
           No hay requisiciones agrupadas disponibles.
         </p>
       </div>
-    )
+    );
   }
 
   return (
     <div className="flex flex-col gap-4">
-
       {paginatedGroups.map((group) => {
-        const isOpen = expanded[group.key] ?? false
+        const isOpen = expanded[group.key] ?? false;
 
         return (
           <div
@@ -119,12 +117,10 @@ const GroupedRequisitionTable = ({ data, renderTable }: Props) => {
             />
 
             {isOpen && (
-              <div className="p-2 md:p-3">
-                {renderTable(group.rows)}
-              </div>
+              <div className="p-2 md:p-3">{renderTable(group.rows)}</div>
             )}
           </div>
-        )
+        );
       })}
 
       <GroupPagination
@@ -146,7 +142,7 @@ const GroupedRequisitionTable = ({ data, renderTable }: Props) => {
         totalGroups={groups.length}
       />
     </div>
-  )
-}
+  );
+};
 
-export default GroupedRequisitionTable
+export default GroupedRequisitionTable;

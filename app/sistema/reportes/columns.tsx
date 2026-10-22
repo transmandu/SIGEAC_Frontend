@@ -13,7 +13,11 @@ import { ErrorReport } from "@/types";
 import { format } from "date-fns";
 import { AlertTriangle, CheckCircle2, Clock, Stethoscope } from "lucide-react";
 import { getErrorReportSeverityLabel } from "@/lib/errorReportSeverity";
-import { Chip, STATUS_CHIP, httpStatusTone } from "./_components/errorReportChips";
+import {
+  Chip,
+  STATUS_CHIP,
+  httpStatusTone,
+} from "./_components/errorReportChips";
 import ErrorReportActionsDropdown from "./_components/ErrorReportActionsDropdown";
 
 const STATUS_ICON: Record<ErrorReport["status"], typeof AlertTriangle> = {
@@ -24,7 +28,7 @@ const STATUS_ICON: Record<ErrorReport["status"], typeof AlertTriangle> = {
 
 export function getColumns(
   onViewDiagnosis: (report: ErrorReport) => void,
-  isSuperUser: boolean
+  isSuperUser: boolean,
 ): AppColumnDef<ErrorReport>[] {
   const columns: AppColumnDef<ErrorReport>[] = [
     {
@@ -48,7 +52,7 @@ export function getColumns(
           <TooltipProvider disableHoverableContent>
             <Tooltip delayDuration={200}>
               <TooltipTrigger asChild>
-                <p className="max-w-[280px] truncate text-sm">{description}</p>
+                <p className="max-w-70 truncate text-sm">{description}</p>
               </TooltipTrigger>
               <TooltipContent className="max-w-sm whitespace-pre-wrap">
                 {description}
@@ -78,20 +82,26 @@ export function getColumns(
       accessorKey: "module",
       header: "Módulo",
       cell: ({ row }) => (
-        <span className="text-sm text-muted-foreground">{row.original.module ?? "—"}</span>
+        <span className="text-sm text-muted-foreground">
+          {row.original.module ?? "—"}
+        </span>
       ),
     },
     {
       accessorKey: "severity",
       header: "Severidad",
       cell: ({ row }) => {
-        const severityLabel = getErrorReportSeverityLabel(row.original.severity);
+        const severityLabel = getErrorReportSeverityLabel(
+          row.original.severity,
+        );
         return (
           <div className="flex justify-center">
             {severityLabel ? (
               <Chip tone="indigo">{severityLabel}</Chip>
             ) : (
-              <span className="text-xs text-muted-foreground">Sin clasificar</span>
+              <span className="text-xs text-muted-foreground">
+                Sin clasificar
+              </span>
             )}
           </div>
         );
@@ -139,7 +149,9 @@ export function getColumns(
                       </Chip>
                     </span>
                   </TooltipTrigger>
-                  <TooltipContent className="max-w-sm whitespace-pre-wrap">{label}</TooltipContent>
+                  <TooltipContent className="max-w-sm whitespace-pre-wrap">
+                    {label}
+                  </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
             ) : (
@@ -152,7 +164,9 @@ export function getColumns(
     {
       accessorKey: "reported_by",
       header: "Reportado por",
-      cell: ({ row }) => <span className="text-sm">{row.original.reported_by}</span>,
+      cell: ({ row }) => (
+        <span className="text-sm">{row.original.reported_by}</span>
+      ),
     },
   ];
 

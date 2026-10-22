@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import {
   AlertTriangle,
@@ -28,10 +28,11 @@ import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useDeleteUniformItem } from "@/actions/sms/uniforms/actions";
 import { UniformItem } from "@/hooks/sms/useGetUniforms";
-import { getUniformTypeIcon } from "@/components/sms/uniform-meta";
+import { UniformTypeIcon } from "@/components/sms/uniform-meta";
 import { uniformCompanyLabel, uniformGenderLabel } from "@/lib/sms/uniforms";
 
 import { InventoryRowActions } from "./row-actions";
+import { useResettingState } from "@/hooks/useResettingState";
 
 interface Props {
   items: UniformItem[];
@@ -87,10 +88,10 @@ export function UniformInventoryGrid({
   onRegisterMovement,
 }: Props) {
   const [category, setCategory] = useState<string>("all");
-  const [size, setSize] = useState<string | null>(null);
+  // La talla que eligió el usuario; la vigente se deriva abajo (`size`).
+  const [sizeChoice, setSize] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [lowStockOnly, setLowStockOnly] = useState(false);
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   // The delete confirmation lives here, outside the cards' AnimatePresence
   // subtree: a row being removed by the post-delete refetch must not be able
@@ -111,7 +112,7 @@ export function UniformInventoryGrid({
   const categories = useMemo(() => {
     const map = new Map<string, string>();
     items.forEach((i) =>
-      map.set(String(i.uniform_article_type_id), i.type_label)
+      map.set(String(i.uniform_article_type_id), i.type_label),
     );
     return Array.from(map, ([value, label]) => ({ value, label }));
   }, [items]);
@@ -123,9 +124,13 @@ export function UniformInventoryGrid({
         ? items
         : items.filter((i) => String(i.uniform_article_type_id) === category);
     return Array.from(new Set(pool.map((i) => i.size))).sort(
-      (a, b) => sizeRank(a) - sizeRank(b) || a.localeCompare(b)
+      (a, b) => sizeRank(a) - sizeRank(b) || a.localeCompare(b),
     );
   }, [items, category]);
+
+  // Una talla que no existe en la categoría elegida deja de aplicarse. Se deriva
+  // en vez de limpiar el estado con un efecto, que filtraba un render con ella.
+  const size = sizeChoice && sizes.includes(sizeChoice) ? sizeChoice : null;
 
   const filteredItems = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -176,30 +181,28 @@ export function UniformInventoryGrid({
       stack.items.sort(
         (a, b) =>
           sizeRank(a.size) - sizeRank(b.size) ||
-          a.size.localeCompare(b.size, undefined, { numeric: true })
-      )
+          a.size.localeCompare(b.size, undefined, { numeric: true }),
+      ),
     );
     list.sort(
       (a, b) =>
         a.company_label.localeCompare(b.company_label) ||
-        a.type_label.localeCompare(b.type_label)
+        a.type_label.localeCompare(b.type_label),
     );
     return list;
   }, [filteredItems]);
 
-  // Reset pagination whenever the active filter set changes.
-  useEffect(() => {
-    setVisibleCount(PAGE_SIZE);
-  }, [category, size, lowStockOnly, search]);
-
-  // Drop a selected size that no longer exists in the chosen category.
-  useEffect(() => {
-    if (size && !sizes.includes(size)) setSize(null);
-  }, [sizes, size]);
+  // Cambiar el filtro activo vuelve a mostrar solo la primera tanda.
+  const [visibleCount, setVisibleCount] = useResettingState(PAGE_SIZE, [
+    category,
+    size,
+    lowStockOnly,
+    search,
+  ]);
 
   const visibleStacks = stacks.slice(0, visibleCount);
   const activeCategoryLabel = categories.find(
-    (c) => c.value === category
+    (c) => c.value === category,
   )?.label;
   const hasActiveFilters = category !== "all" || size || lowStockOnly;
 
@@ -220,7 +223,7 @@ export function UniformInventoryGrid({
               "whitespace-nowrap px-6 py-3 text-xs font-bold uppercase tracking-wider transition-colors hover:bg-muted/50",
               category === "all"
                 ? "border-b-2 border-primary text-primary"
-                : "text-muted-foreground"
+                : "text-muted-foreground",
             )}
           >
             Todos
@@ -233,7 +236,7 @@ export function UniformInventoryGrid({
                 "whitespace-nowrap px-6 py-3 text-xs font-bold uppercase tracking-wider transition-colors hover:bg-muted/50",
                 category === cat.value
                   ? "border-b-2 border-primary text-primary"
-                  : "text-muted-foreground"
+                  : "text-muted-foreground",
               )}
             >
               {cat.label}
@@ -257,7 +260,7 @@ export function UniformInventoryGrid({
                       "rounded border px-2.5 py-1 font-mono text-xs transition-colors",
                       size === s
                         ? "border-2 border-primary bg-primary/5 font-medium text-primary"
-                        : "border-border bg-background text-foreground hover:border-primary hover:text-primary"
+                        : "border-border bg-background text-foreground hover:border-primary hover:text-primary",
                     )}
                   >
                     {s}
@@ -300,7 +303,7 @@ export function UniformInventoryGrid({
               className={cn(
                 "h-9 gap-2",
                 lowStockOnly &&
-                  "bg-destructive text-white hover:bg-destructive/90"
+                  "bg-destructive text-white hover:bg-destructive/90",
               )}
             >
               <AlertTriangle className="h-4 w-4" />
@@ -443,7 +446,6 @@ function UniformStackCard({
 }) {
   const [open, setOpen] = useState(false);
   const reduce = useReducedMotion();
-  const Icon = getUniformTypeIcon(undefined, stack.type_label);
   const sizeCount = stack.items.length;
   const isStack = sizeCount > 1;
   const outOfStock = stack.items.filter((i) => i.current_stock === 0).length;
@@ -496,7 +498,7 @@ function UniformStackCard({
       <div
         className={cn(
           "overflow-hidden rounded-lg border bg-card transition-colors duration-200",
-          open ? "border-primary/40" : "group-hover:border-primary/40"
+          open ? "border-primary/40" : "group-hover:border-primary/40",
         )}
       >
         {/* Trigger: identity + summary */}
@@ -508,7 +510,7 @@ function UniformStackCard({
         >
           <div className="flex items-start gap-3 p-4 pb-3">
             <span className="grid size-10 shrink-0 place-items-center rounded-md border border-border/60 bg-muted/40 text-muted-foreground">
-              <Icon className="size-5" />
+              <UniformTypeIcon label={stack.type_label} className="size-5" />
             </span>
             <div className="min-w-0 flex-1">
               <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
@@ -619,7 +621,6 @@ function UniformStackCard({
   );
 }
 
-
 /** Compact at-a-glance pill: talla + units, tinted by stock status. */
 function SizePill({ item }: { item: UniformItem }) {
   const status = getStockStatus(item);
@@ -631,12 +632,10 @@ function SizePill({ item }: { item: UniformItem }) {
         status === "low" &&
           "border-amber-300 text-amber-700 dark:border-amber-800 dark:text-amber-400",
         status === "ok" && "border-border/60 text-foreground",
-        !item.active && "opacity-50"
+        !item.active && "opacity-50",
       )}
     >
-      <span
-        className={cn("size-1.5 rounded-full", STOCK_SIGNAL[status].dot)}
-      />
+      <span className={cn("size-1.5 rounded-full", STOCK_SIGNAL[status].dot)} />
       <span className="font-semibold tracking-wide">{item.size}</span>
       <span className="tabular-nums text-muted-foreground">
         {item.current_stock}
@@ -662,7 +661,7 @@ function SizeRow({
     <div
       className={cn(
         "grid grid-cols-[44px_1fr_auto] items-center gap-3 border-t border-border/30 px-4 py-2 transition-colors hover:bg-muted/20",
-        !item.active && "opacity-60"
+        !item.active && "opacity-60",
       )}
     >
       <Badge

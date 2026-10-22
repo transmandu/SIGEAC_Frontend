@@ -3,6 +3,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 interface BulletinPayload {
   title?: string;
@@ -159,9 +160,7 @@ export const useCreateSMSActivity = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo crear la actividad...",
-      });
+      notifyError(error, { action: "crear la actividad" });
       console.log(error);
     },
   });
@@ -190,9 +189,7 @@ export const useDeleteSMSActivity = () => {
       });
     },
     onError: (e) => {
-      toast.error("Oops!", {
-        description: "¡Hubo un error al eliminar la actividad!",
-      });
+      notifyError(e, { action: "eliminar la actividad" });
     },
   });
 
@@ -261,9 +258,7 @@ export const useUpdateSMSActivity = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo actualizar la actividad...",
-      });
+      notifyError(error, { action: "actualizar la actividad" });
       console.log(error);
     },
   });
@@ -303,9 +298,7 @@ export const useUpdateCalendarSMSActivity = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo actualizar la actividad...",
-      });
+      notifyError(error, { action: "actualizar la actividad" });
       console.log(error);
     },
   });
@@ -331,9 +324,7 @@ export const useCloseSMSActivity = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo cerrar la actividad...",
-      });
+      notifyError(error, { action: "cerrar la actividad" });
       console.log(error);
     },
   });
@@ -361,9 +352,7 @@ export const useOpenSMSActivity = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo reabrir la actividad...",
-      });
+      notifyError(error, { action: "reabrir la actividad" });
       console.log(error);
     },
   });
@@ -417,9 +406,7 @@ export const useLinkBulletinToActivity = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo vincular el boletín a la actividad...",
-      });
+      notifyError(error, { action: "vincular el boletín a la actividad" });
       console.log(error);
     },
   });

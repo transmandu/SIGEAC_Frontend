@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTransitQueue } from "@/hooks/mantenimiento/almacen/inventario/useArticleQueues";
 import type { TransitArticle } from "@/types/purchase/in-transit";
 
-import { DataTable } from "../incoming/data-table";
+import { DataTable } from "@/app/[company]/control_calidad/incoming/data-table";
 import { columns } from "./columns";
 
 /**

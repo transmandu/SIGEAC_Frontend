@@ -20,6 +20,11 @@ export type SectionNavItem = { id: string; label: string; icon: LucideIcon };
  * que dure.
  */
 const JUMP_START_MS = 500;
+
+/** Bloquea el seguimiento del scroll hasta dentro de `ms`. */
+const lockUntil = (ref: { current: number }, ms: number) => {
+  ref.current = Date.now() + ms;
+};
 const JUMP_QUIET_MS = 150;
 
 /** Primer ancestro que hace scroll (o el documento): donde mirar si se llegó al final. */
@@ -137,7 +142,7 @@ export function SectionNav({ items }: { items: SectionNavItem[] }) {
   const jumpTo = (id: string) => {
     window.dispatchEvent(new CustomEvent(SECTION_JUMP_EVENT, { detail: id }));
     pinned.current = id;
-    lockedUntil.current = Date.now() + JUMP_START_MS;
+    lockUntil(lockedUntil, JUMP_START_MS);
     setActive(id);
     // Tras desplegar, para que el scroll cuente con la altura ya final.
     window.setTimeout(() => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { BookOpen, Loader2 } from "lucide-react";
 
 import {
@@ -38,6 +38,7 @@ import { STATUS_LABELS } from "@/lib/maintenanceCatalogLabels";
 import { parseCalendarDate, toCalendarPayload } from "@/lib/date";
 import { CatalogManual, CatalogStatus } from "@/types/maintenanceCatalog";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { useOnChange } from "@/hooks/useOnChange";
 
 interface ManualDialogProps {
   open: boolean;
@@ -67,7 +68,7 @@ export function ManualDialog({
   const [form, setForm] = useState(emptyState);
   const [file, setFile] = useState<File | null>(null);
 
-  useEffect(() => {
+  useOnChange([open, manual], () => {
     if (!open) return;
     setForm(
       manual
@@ -83,7 +84,7 @@ export function ManualDialog({
         : emptyState,
     );
     setFile(null);
-  }, [open, manual]);
+  });
 
   const isPending =
     createCatalogManual.isPending || updateCatalogManual.isPending;

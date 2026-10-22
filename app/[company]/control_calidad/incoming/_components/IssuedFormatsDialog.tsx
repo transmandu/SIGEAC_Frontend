@@ -11,11 +11,14 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Download, History, PencilLine, Loader2 } from "lucide-react";
 import { format as formatDate } from "date-fns";
 import { es } from "date-fns/locale";
-import { toast } from "sonner";
 import {
   useGetIssuedIncomingFormats,
   useReprintIncomingFormat,
@@ -23,6 +26,7 @@ import {
 } from "@/actions/mantenimiento/control_calidad/actions";
 import { GenerateReceptionFormButton } from "./GenerateReceptionFormButton";
 import { IncomingArticle } from "@/app/[company]/control_calidad/incoming/IncomingTypes";
+import { notifyError } from "@/lib/notify-error";
 
 /**
  * Identifica al formato por su fecha de emisión, no por la OC: esa se teclea a
@@ -37,7 +41,9 @@ function formatoLabel(f: IssuedIncomingFormat, todos: IssuedIncomingFormat[]) {
     .filter((o) => o.inspection_date.slice(0, 10) === dia)
     .sort((a, b) => a.id - b.id);
 
-  const fecha = formatDate(new Date(f.inspection_date), "dd/MM/yyyy", { locale: es });
+  const fecha = formatDate(new Date(f.inspection_date), "dd/MM/yyyy", {
+    locale: es,
+  });
 
   if (mismoDia.length < 2) return fecha;
 
@@ -47,7 +53,9 @@ function formatoLabel(f: IssuedIncomingFormat, todos: IssuedIncomingFormat[]) {
 export function IssuedFormatsDialog() {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [correcting, setCorrecting] = useState<IssuedIncomingFormat | null>(null);
+  const [correcting, setCorrecting] = useState<IssuedIncomingFormat | null>(
+    null,
+  );
   // Cuál fila está descargando: isPending es del hook y pondría spinner en todas.
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
 
@@ -59,7 +67,7 @@ export function IssuedFormatsDialog() {
     try {
       await reprint.mutateAsync(f);
     } catch (e: any) {
-      toast.error(e?.message ?? "No se pudo descargar el formato.");
+      notifyError(e, { action: "descargar el formato" });
     } finally {
       setDownloadingId(null);
     }
@@ -88,8 +96,9 @@ export function IssuedFormatsDialog() {
           <DialogHeader>
             <DialogTitle>Formatos H74-036 emitidos</DialogTitle>
             <DialogDescription>
-              Vuelve a descargar el PDF tal como se emitió, o corrígelo si lleva datos
-              equivocados. Al corregir se emite uno nuevo y el anterior queda anulado.
+              Vuelve a descargar el PDF tal como se emitió, o corrígelo si lleva
+              datos equivocados. Al corregir se emite uno nuevo y el anterior
+              queda anulado.
             </DialogDescription>
           </DialogHeader>
 
@@ -101,7 +110,9 @@ export function IssuedFormatsDialog() {
 
           <div className="max-h-[55vh] overflow-y-auto pr-1 space-y-2">
             {isLoading ? (
-              <p className="text-sm text-muted-foreground py-6 text-center">Cargando…</p>
+              <p className="text-sm text-muted-foreground py-6 text-center">
+                Cargando…
+              </p>
             ) : !formats?.length ? (
               <p className="text-sm text-muted-foreground py-6 text-center">
                 Aún no hay formatos emitidos.
@@ -117,7 +128,9 @@ export function IssuedFormatsDialog() {
                   >
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium">H74-036 · {formatoLabel(f, formats)}</span>
+                        <span className="font-medium">
+                          H74-036 · {formatoLabel(f, formats)}
+                        </span>
                         {anulado ? (
                           <Badge variant="destructive">Anulado</Badge>
                         ) : (

@@ -1,6 +1,7 @@
 import axiosInstance from "@/lib/axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 interface WorkshopSchema {
   name: string;
@@ -33,10 +34,7 @@ export const useCreateWorkshop = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          error?.response?.data?.message || "No se pudo crear el taller...",
-      });
+      notifyError(error, { action: "crear el taller" });
     },
   });
 

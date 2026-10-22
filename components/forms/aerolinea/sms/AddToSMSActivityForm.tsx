@@ -25,7 +25,7 @@ import {
   UserPlus,
   ListChecks,
 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import {
@@ -43,6 +43,7 @@ import {
 } from "@/components/ui/popover";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Badge } from "@/components/ui/badge";
+import { useResettingState } from "@/hooks/useResettingState";
 
 interface FormProps {
   onClose: () => void;
@@ -69,7 +70,7 @@ const FormSchema = z.object({
       first_name: z.string(),
       last_name: z.string(),
       authorized_employee_id: z.number().nullable(),
-    })
+    }),
   ),
   removedEmployees: z.array(
     z.object({
@@ -77,7 +78,7 @@ const FormSchema = z.object({
       first_name: z.string(),
       last_name: z.string(),
       authorized_employee_id: z.number().nullable(),
-    })
+    }),
   ),
 });
 
@@ -87,9 +88,6 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
   const { selectedCompany } = useCompanyStore();
   const [open, setOpen] = useState(false);
   const { createSMSActivityAttendance } = useCreateSMSActivityAttendance();
-  const [employeeSelections, setEmployeeSelections] = useState<
-    EmployeeSelection[]
-  >([]);
   const [searchQuery, setSearchQuery] = useState("");
 
   const { data: employeesData, isLoading: isLoadingEnrolledEmployee } =
@@ -122,54 +120,46 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
         authorized_employee_id: e.authorized_employee_id ?? null,
         from_company_db: e.from_company_db,
       })),
-    []
+    [],
   );
 
-  const updateFormValues = useCallback(
-    (selections: EmployeeSelection[]) => {
-      const added = selections.filter((e) => e.isSelected && !e.wasEnrolled);
-      const removed = selections.filter((e) => !e.isSelected && e.wasEnrolled);
+  // Quién se agrega y quién se quita respecto de lo que ya estaba guardado.
+  const toAttendanceLists = (selections: EmployeeSelection[]) => {
+    const added = selections.filter((e) => e.isSelected && !e.wasEnrolled);
+    const removed = selections.filter((e) => !e.isSelected && e.wasEnrolled);
 
-      form.setValue(
-        "addedEmployees",
-        added.map((e) => ({
-          dni: e.employee_type === "local" ? e.dni : null,
-          first_name: e.first_name,
-          last_name: e.last_name,
-          authorized_employee_id:
-            e.employee_type === "authorized"
-              ? (e.authorized_employee_id ?? null)
-              : null,
-        }))
-      );
+    return {
+      addedEmployees: added.map((e) => ({
+        dni: e.employee_type === "local" ? e.dni : null,
+        first_name: e.first_name,
+        last_name: e.last_name,
+        authorized_employee_id:
+          e.employee_type === "authorized"
+            ? (e.authorized_employee_id ?? null)
+            : null,
+      })),
+      removedEmployees: removed.map((e) => ({
+        dni: e.employee_type === "local" ? e.dni : null,
+        first_name: e.first_name,
+        last_name: e.last_name,
+        authorized_employee_id:
+          e.employee_type === "authorized"
+            ? (e.authorized_employee_id ?? null)
+            : null,
+      })),
+    };
+  };
 
-      form.setValue(
-        "removedEmployees",
-        removed.map((e) => ({
-          dni: e.employee_type === "local" ? e.dni : null,
-          first_name: e.first_name,
-          last_name: e.last_name,
-          authorized_employee_id:
-            e.employee_type === "authorized"
-              ? (e.authorized_employee_id ?? null)
-              : null,
-        }))
-      );
-    },
-    [form]
-  );
+  const [employeeSelections, setEmployeeSelections] = useResettingState<
+    EmployeeSelection[]
+  >(() => {
+    if (!employeesData) return [];
 
-  useEffect(() => {
-    if (employeesData) {
-      const selections: EmployeeSelection[] = [
-        ...mapToSelection(employeesData.enrolled || [], true),
-        ...mapToSelection(employeesData.not_enrolled || [], false),
-      ];
-
-      setEmployeeSelections(selections);
-      updateFormValues(selections);
-    }
-  }, [employeesData, updateFormValues, mapToSelection]);
+    return [
+      ...mapToSelection(employeesData.enrolled || [], true),
+      ...mapToSelection(employeesData.not_enrolled || [], false),
+    ];
+  }, [employeesData]);
 
   const toggleEmployeeSelection = (key: string) => {
     const newSelections = employeeSelections.map((emp) => {
@@ -181,7 +171,6 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
     });
 
     setEmployeeSelections(newSelections);
-    updateFormValues(newSelections);
   };
 
   const toggleAllEmployees = () => {
@@ -193,7 +182,6 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
     }));
 
     setEmployeeSelections(newSelections);
-    updateFormValues(newSelections);
   };
 
   const filteredEmployees = employeeSelections.filter((employee) => {
@@ -209,21 +197,25 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
 
   const selectedCount = employeeSelections.filter((e) => e.isSelected).length;
   const newlyAddedCount = employeeSelections.filter(
-    (e) => e.isSelected && !e.wasEnrolled
+    (e) => e.isSelected && !e.wasEnrolled,
   ).length;
   const removedCount = employeeSelections.filter(
-    (e) => !e.isSelected && e.wasEnrolled
+    (e) => !e.isSelected && e.wasEnrolled,
   ).length;
 
-  const allSelected = employeeSelections.length > 0 && employeeSelections.every((emp) => emp.isSelected);
+  const allSelected =
+    employeeSelections.length > 0 &&
+    employeeSelections.every((emp) => emp.isSelected);
 
-  const onSubmit = async (data: FormSchemaType) => {
+  const onSubmit = async () => {
+    const { addedEmployees, removedEmployees } =
+      toAttendanceLists(employeeSelections);
     const value = {
       company: selectedCompany!.slug,
       activity_number: initialData?.activity_number,
       data: {
-        addedEmployees: data.addedEmployees,
-        removedEmployees: data.removedEmployees,
+        addedEmployees,
+        removedEmployees,
       },
     };
     try {
@@ -352,9 +344,7 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
                         </Button>
                       </div>
                       <CommandList>
-                        <CommandEmpty>
-                          No se encontraron empleados
-                        </CommandEmpty>
+                        <CommandEmpty>No se encontraron empleados</CommandEmpty>
 
                         <CommandGroup heading="Todos los empleados">
                           {filteredEmployees.map((employee) => {
@@ -375,14 +365,13 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
                                     "mr-2 h-4 w-4 shrink-0",
                                     employee.isSelected
                                       ? "opacity-100 text-emerald-600 dark:text-emerald-400"
-                                      : "opacity-0"
+                                      : "opacity-0",
                                   )}
                                 />
                                 <div className="flex flex-col gap-0.5 min-w-0 flex-1">
                                   <div className="flex items-center gap-2 flex-wrap">
                                     <span className="text-sm font-medium truncate">
-                                      {employee.first_name}{" "}
-                                      {employee.last_name}
+                                      {employee.first_name} {employee.last_name}
                                     </span>
                                     <span className="font-mono text-xs text-muted-foreground">
                                       {employee.dni}
@@ -406,8 +395,7 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
                                     )}
                                   </div>
                                   <span className="text-xs text-muted-foreground truncate">
-                                    {employee.job_title} ·{" "}
-                                    {employee.department}
+                                    {employee.job_title} · {employee.department}
                                   </span>
                                 </div>
                               </CommandItem>

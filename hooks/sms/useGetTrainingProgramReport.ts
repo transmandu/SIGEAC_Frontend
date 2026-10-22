@@ -1,6 +1,7 @@
 import { useState } from "react";
 import axiosInstance from "@/lib/axios";
 import { toast } from "sonner";
+import { notifyBlobError } from "@/lib/notify-error";
 
 export type TrainingProgramSignatures = {
   elaborated?: string;
@@ -78,32 +79,11 @@ export function useGetTrainingProgramReport(
     } catch (error: any) {
       console.error("Error al generar el programa de capacitación:", error);
 
-      // Con responseType blob los errores llegan como Blob: el JSON del
-      // backend hay que leerlo a mano para poder mostrar su mensaje.
-      const message = await readErrorMessage(error);
-
-      if (error.response) {
-        const status = error.response.status;
-        if (status === 401) {
-          toast.error("Sesión expirada", {
-            description:
-              "Tu sesión ha terminado. Por favor, inicia sesión de nuevo.",
-            id: "training-program-report-error",
-          });
-        } else {
-          toast.error("Error del servidor", {
-            description:
-              message ||
-              "Hubo un problema al procesar el PDF. Intenta más tarde.",
-            id: "training-program-report-error",
-          });
-        }
-      } else {
-        toast.error("Error de conexión", {
-          description: "No se pudo conectar con el servidor.",
-          id: "training-program-report-error",
-        });
-      }
+      // Con responseType blob los errores llegan como Blob: notifyBlobError
+      // lee el JSON del backend para mostrar su mensaje.
+      await notifyBlobError(error, {
+        action: "generar el programa de capacitación",
+      });
     } finally {
       setIsGenerating(false);
     }
@@ -122,19 +102,4 @@ export function useGetTrainingProgramReport(
     handleGenerate,
     canGenerate,
   };
-}
-
-/**
- * Extrae el `message` de una respuesta de error que axios devolvió como Blob.
- */
-async function readErrorMessage(error: any): Promise<string | undefined> {
-  const data = error?.response?.data;
-  if (!data || typeof data === "string") return undefined;
-
-  try {
-    const text = await data.text();
-    return JSON.parse(text)?.message;
-  } catch {
-    return undefined;
-  }
 }

@@ -36,8 +36,9 @@ import {
   RefreshCw,
   X,
 } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useObjectUrls } from "@/hooks/useObjectUrl";
 
 interface EvidenceCaptureProps {
   files: File[];
@@ -64,23 +65,22 @@ export function EvidenceCapture({
 }: EvidenceCaptureProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [openCamera, setOpenCamera] = useState(false);
-  const [previews, setPreviews] = useState<string[]>([]);
 
-  const camera = useCameraCapture();
+  const {
+    videoRef,
+    devices,
+    deviceId,
+    isActive,
+    isStarting,
+    error: cameraError,
+    start: startCamera,
+    stop: stopCamera,
+    capture: captureFrame,
+  } = useCameraCapture();
 
   // Los llamadores pasan `files={mapa[clave] ?? []}`, y ese `?? []` crea un
-  // array nuevo en cada render: dependiendo de la referencia, el efecto se
-  // dispararía en bucle creando y revocando URLs que la vista está usando.
-  // La identidad de los File sí es estable, así que se compara por ellos.
-  const filesKey = files.map((file) => `${file.name}:${file.size}:${file.lastModified}`).join("|");
-
-  useEffect(() => {
-    const urls = files.map((file) => URL.createObjectURL(file));
-    setPreviews(urls);
-
-    return () => urls.forEach((url) => URL.revokeObjectURL(url));
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- filesKey identifica el contenido; `files` cambia de referencia en cada render
-  }, [filesKey]);
+  // arreglo nuevo en cada render; `useObjectUrls` mira qué archivos lo componen.
+  const previews = useObjectUrls(files);
 
   const remaining = max - files.length;
 
@@ -90,14 +90,14 @@ export function EvidenceCapture({
 
       for (const file of incoming) {
         if (!ACCEPTED.includes(file.type)) {
-          toast.error("Formato no admitido", {
+          toast.error("¡Ops! Formato no admitido", {
             description: `${file.name}: solo se aceptan JPG, PNG o WEBP.`,
           });
           continue;
         }
 
         if (file.size > MAX_BYTES) {
-          toast.error("Imagen muy pesada", {
+          toast.error("¡Ops! Imagen muy pesada", {
             description: `${file.name} supera los 8 MB.`,
           });
           continue;
@@ -118,17 +118,17 @@ export function EvidenceCapture({
 
       onChange([...files, ...accepted]);
     },
-    [files, max, onChange, remaining]
+    [files, max, onChange, remaining],
   );
 
   const removeAt = (index: number) =>
     onChange(files.filter((_, position) => position !== index));
 
   const handleCapture = async () => {
-    const file = await camera.capture();
+    const file = await captureFrame();
 
     if (!file) {
-      toast.error("No se pudo tomar la foto", {
+      toast.error("¡Ops! No se pudo tomar la foto", {
         description: "Espere a que la imagen aparezca y vuelva a intentarlo.",
       });
       return;
@@ -144,7 +144,7 @@ export function EvidenceCapture({
   };
 
   const closeCamera = (next: boolean) => {
-    if (!next) camera.stop();
+    if (!next) stopCamera();
     setOpenCamera(next);
   };
 
@@ -184,7 +184,9 @@ export function EvidenceCapture({
                 </DropdownMenuTrigger>
               </TooltipTrigger>
               <TooltipContent>
-                {files.length > 0 ? "Añadir otra evidencia" : "Adjuntar evidencia"}
+                {files.length > 0
+                  ? "Añadir otra evidencia"
+                  : "Adjuntar evidencia"}
               </TooltipContent>
             </Tooltip>
 
@@ -200,7 +202,7 @@ export function EvidenceCapture({
                 className="cursor-pointer gap-2"
                 onSelect={() => {
                   setOpenCamera(true);
-                  camera.start();
+                  startCamera();
                 }}
               >
                 <Camera className="size-4 text-muted-foreground" />
@@ -237,7 +239,6 @@ export function EvidenceCapture({
             ))}
           </div>
         )}
-
       </div>
 
       <Dialog open={openCamera} onOpenChange={closeCamera}>
@@ -254,27 +255,27 @@ export function EvidenceCapture({
           <div className="space-y-3">
             <div className="relative aspect-video overflow-hidden rounded-lg border bg-muted">
               <video
-                ref={camera.videoRef}
+                ref={videoRef}
                 playsInline
                 muted
                 className="size-full object-cover"
               />
 
-              {camera.isStarting && (
+              {isStarting && (
                 <div className="absolute inset-0 flex items-center justify-center bg-background/60">
                   <Loader2 className="size-8 animate-spin text-muted-foreground" />
                 </div>
               )}
 
-              {camera.error && (
+              {cameraError && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-background/90 px-6 text-center">
                   <AlertTriangle className="size-6 text-amber-500" />
-                  <p className="text-sm text-muted-foreground">{camera.error}</p>
+                  <p className="text-sm text-muted-foreground">{cameraError}</p>
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => camera.start(camera.deviceId ?? undefined)}
+                    onClick={() => startCamera(deviceId ?? undefined)}
                   >
                     <RefreshCw className="mr-2 size-4" />
                     Reintentar
@@ -283,16 +284,16 @@ export function EvidenceCapture({
               )}
             </div>
 
-            {camera.devices.length > 1 && (
+            {devices.length > 1 && (
               <Select
-                value={camera.deviceId ?? undefined}
-                onValueChange={(value) => camera.start(value)}
+                value={deviceId ?? undefined}
+                onValueChange={(value) => startCamera(value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Seleccione una cámara" />
                 </SelectTrigger>
                 <SelectContent>
-                  {camera.devices.map((device) => (
+                  {devices.map((device) => (
                     <SelectItem key={device.deviceId} value={device.deviceId}>
                       {device.label}
                     </SelectItem>
@@ -310,7 +311,7 @@ export function EvidenceCapture({
             >
               Cerrar
             </Button>
-            {camera.isActive && (
+            {isActive && (
               <Button type="button" onClick={handleCapture}>
                 <Camera className="mr-2 size-4" />
                 Capturar

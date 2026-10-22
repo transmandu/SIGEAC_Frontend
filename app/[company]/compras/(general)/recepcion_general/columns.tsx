@@ -1,77 +1,99 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
+import { useState } from "react";
 import { type AppColumnDef } from "@/lib/table";
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { DataTableColumnHeader } from '@/components/tables/DataTableHeader'
-import axiosInstance from '@/lib/axios'
-import { cn } from '@/lib/utils'
-import { useCompanyStore } from '@/stores/CompanyStore'
-import { format } from 'date-fns'
-import { es } from 'date-fns/locale'
-import { DEFAULT_TIMEZONE, formatInstant } from '@/lib/date'
-import { Building2, FileText, Handshake, Loader2, Pencil, User, UserCog, Warehouse } from 'lucide-react'
-import { useAuth } from '@/contexts/AuthContext'
-import EditIntakeDialog from './_components/EditIntakeDialog'
-import type { GeneralArticleIntake } from '@/types/purchase'
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
+import axiosInstance from "@/lib/axios";
+import { cn } from "@/lib/utils";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { DEFAULT_TIMEZONE, formatInstant } from "@/lib/date";
+import {
+  Building2,
+  FileText,
+  Handshake,
+  Loader2,
+  Pencil,
+  User,
+  UserCog,
+  Warehouse,
+} from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import EditIntakeDialog from "./_components/EditIntakeDialog";
+import type { GeneralArticleIntake } from "@/types/purchase";
+import { notifyError } from "@/lib/notify-error";
 
 // Destino del intake, derivado de cuál referencia venga poblada (excluyentes
 // entre sí): almacén para el flujo normal, o la entidad de una entrega directa.
 const getDestination = (intake: GeneralArticleIntake) => {
   if (intake.warehouse) {
-    return { label: intake.warehouse.name, type: 'Almacén', Icon: Warehouse }
+    return { label: intake.warehouse.name, type: "Almacén", Icon: Warehouse };
   }
   if (intake.department) {
-    return { label: intake.department.name, type: 'Departamento', Icon: Building2 }
+    return {
+      label: intake.department.name,
+      type: "Departamento",
+      Icon: Building2,
+    };
   }
   if (intake.employee) {
     return {
       label: `${intake.employee.first_name} ${intake.employee.last_name}`,
-      type: 'Empleado',
+      type: "Empleado",
       Icon: User,
-    }
+    };
   }
   if (intake.authorized_employee) {
-    return { label: intake.authorized_employee.full_name, type: 'Solicitante externo', Icon: UserCog }
+    return {
+      label: intake.authorized_employee.full_name,
+      type: "Solicitante externo",
+      Icon: UserCog,
+    };
   }
   if (intake.third_party) {
-    return { label: intake.third_party.name, type: 'Tercero', Icon: Handshake }
+    return { label: intake.third_party.name, type: "Tercero", Icon: Handshake };
   }
-  return null
-}
+  return null;
+};
 
 // Botón azul de la Nota de Entrega: comprobante de una entrega directa (el
 // intake nunca pasó por almacén, así que este PDF es su único soporte).
 const DeliveryNoteButton = ({ intake }: { intake: GeneralArticleIntake }) => {
-  const { selectedCompany } = useCompanyStore()
-  const [downloading, setDownloading] = useState(false)
+  const { selectedCompany } = useCompanyStore();
+  const [downloading, setDownloading] = useState(false);
 
   const handleDownload = async () => {
-    if (!selectedCompany?.slug || downloading) return
-    setDownloading(true)
+    if (!selectedCompany?.slug || downloading) return;
+    setDownloading(true);
 
     try {
       const res = await axiosInstance.get(
         `/${selectedCompany.slug}/general-article-intakes/${intake.id}/delivery-note-pdf`,
-        { responseType: 'blob' }
-      )
+        { responseType: "blob" },
+      );
 
-      const url = window.URL.createObjectURL(res.data)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `nota_entrega_${intake.id}.pdf`
-      document.body.appendChild(a)
-      a.click()
-      a.remove()
-      window.URL.revokeObjectURL(url)
-    } catch {
-      // silent
+      const url = window.URL.createObjectURL(res.data);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `nota_entrega_${intake.id}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      notifyError(error, { action: "descargar la nota de entrega" });
     } finally {
-      setDownloading(false)
+      setDownloading(false);
     }
-  }
+  };
 
   return (
     <Tooltip>
@@ -89,24 +111,30 @@ const DeliveryNoteButton = ({ intake }: { intake: GeneralArticleIntake }) => {
             dark:hover:bg-blue-400/20 dark:hover:text-blue-200
           "
         >
-          {downloading ? <Loader2 className="size-4 animate-spin" /> : <FileText className="size-4" />}
+          {downloading ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <FileText className="size-4" />
+          )}
         </Button>
       </TooltipTrigger>
       <TooltipContent>Descargar Nota de Entrega</TooltipContent>
     </Tooltip>
-  )
-}
+  );
+};
 
 // Corrección administrativa del registro (fechas mal cargadas, sobre todo).
 // Solo SUPERUSER, pero para él aparece en TODA fila: cualquier estado, almacén
 // o entrega directa. El backend repite el gate en la ruta.
 const EditIntakeButton = ({ intake }: { intake: GeneralArticleIntake }) => {
-  const { user } = useAuth()
-  const [open, setOpen] = useState(false)
+  const { user } = useAuth();
+  const [open, setOpen] = useState(false);
 
-  const isSuperUser = (user?.roles?.map((role) => role.name) || []).includes('SUPERUSER')
+  const isSuperUser = (user?.roles?.map((role) => role.name) || []).includes(
+    "SUPERUSER",
+  );
 
-  if (!isSuperUser) return null
+  if (!isSuperUser) return null;
 
   return (
     <>
@@ -130,17 +158,18 @@ const EditIntakeButton = ({ intake }: { intake: GeneralArticleIntake }) => {
         <TooltipContent>Corregir recepción</TooltipContent>
       </Tooltip>
 
-      {open && <EditIntakeDialog intake={intake} open={open} onOpenChange={setOpen} />}
+      {open && (
+        <EditIntakeDialog intake={intake} open={open} onOpenChange={setOpen} />
+      )}
     </>
-  )
-}
+  );
+};
 
 export const getColumns = (
-  timeZone: string = DEFAULT_TIMEZONE
+  timeZone: string = DEFAULT_TIMEZONE,
 ): AppColumnDef<GeneralArticleIntake>[] => [
-
   {
-    accessorKey: 'description',
+    accessorKey: "description",
     size: 300,
 
     header: ({ column }) => (
@@ -150,7 +179,7 @@ export const getColumns = (
     ),
 
     cell: ({ row }) => {
-      const { description, brand_model, variant_type } = row.original
+      const { description, brand_model, variant_type } = row.original;
 
       return (
         <div className="flex w-full justify-start">
@@ -168,12 +197,12 @@ export const getColumns = (
             )}
           </div>
         </div>
-      )
+      );
     },
   },
 
   {
-    accessorKey: 'quantity',
+    accessorKey: "quantity",
     size: 140,
 
     header: ({ column }) => (
@@ -183,7 +212,7 @@ export const getColumns = (
     ),
 
     cell: ({ row }) => {
-      const { quantity, unit } = row.original
+      const { quantity, unit } = row.original;
 
       return (
         <div className="flex justify-center w-full">
@@ -196,12 +225,12 @@ export const getColumns = (
             )}
           </span>
         </div>
-      )
+      );
     },
   },
 
   {
-    accessorKey: 'purchase_order',
+    accessorKey: "purchase_order",
     size: 180,
 
     header: ({ column }) => (
@@ -211,20 +240,22 @@ export const getColumns = (
     ),
 
     cell: ({ row }) => {
-      const orderNumber = row.original.purchase_order?.quote_order?.requisition_order?.order_number
+      const orderNumber =
+        row.original.purchase_order?.quote_order?.requisition_order
+          ?.order_number;
 
       return (
         <div className="flex justify-center w-full">
           <span className="text-xs text-muted-foreground">
-            {orderNumber ?? '—'}
+            {orderNumber ?? "—"}
           </span>
         </div>
-      )
+      );
     },
   },
 
   {
-    accessorKey: 'arrived_at',
+    accessorKey: "arrived_at",
     size: 180,
 
     header: ({ column }) => (
@@ -234,20 +265,20 @@ export const getColumns = (
     ),
 
     cell: ({ row }) => {
-      const { arrived_at } = row.original
+      const { arrived_at } = row.original;
 
       return (
         <div className="flex justify-center w-full">
           <span className="text-xs text-muted-foreground">
-            {arrived_at ? formatInstant(arrived_at, timeZone, 'dateTime') : '—'}
+            {arrived_at ? formatInstant(arrived_at, timeZone, "dateTime") : "—"}
           </span>
         </div>
-      )
+      );
     },
   },
 
   {
-    accessorKey: 'registered_by',
+    accessorKey: "registered_by",
     size: 180,
 
     header: ({ column }) => (
@@ -266,7 +297,7 @@ export const getColumns = (
   },
 
   {
-    accessorKey: 'status',
+    accessorKey: "status",
     size: 160,
 
     header: ({ column }) => (
@@ -276,35 +307,41 @@ export const getColumns = (
     ),
 
     cell: ({ row }) => {
-      const { status } = row.original
-      const isPending = status === 'PENDING'
-      const isRejected = status === 'REJECTED'
-      const isDelivered = status === 'DELIVERED'
+      const { status } = row.original;
+      const isPending = status === "PENDING";
+      const isRejected = status === "REJECTED";
+      const isDelivered = status === "DELIVERED";
 
       return (
         <div className="flex justify-center w-full">
           <Badge
             variant="outline"
             className={cn(
-              'whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-xs transition-colors duration-150 cursor-default uppercase',
+              "whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-xs transition-colors duration-150 cursor-default uppercase",
               isPending
-                ? 'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300'
+                ? "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300"
                 : isRejected
-                  ? 'border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300'
+                  ? "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300"
                   : isDelivered
-                    ? 'border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-300'
-                    : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
+                    ? "border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-300"
+                    : "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
             )}
           >
-            {isPending ? 'PENDIENTE' : isRejected ? 'RECHAZADA' : isDelivered ? 'ENTREGADA' : 'CONFIRMADA'}
+            {isPending
+              ? "PENDIENTE"
+              : isRejected
+                ? "RECHAZADA"
+                : isDelivered
+                  ? "ENTREGADA"
+                  : "CONFIRMADA"}
           </Badge>
         </div>
-      )
+      );
     },
   },
 
   {
-    accessorKey: 'confirmed_by',
+    accessorKey: "confirmed_by",
     size: 200,
 
     header: ({ column }) => (
@@ -314,32 +351,41 @@ export const getColumns = (
     ),
 
     cell: ({ row }) => {
-      const { status, confirmed_by, confirmed_at, rejected_by, rejected_at, rejection_reason } = row.original
+      const {
+        status,
+        confirmed_by,
+        confirmed_at,
+        rejected_by,
+        rejected_at,
+        rejection_reason,
+      } = row.original;
 
-      if (status === 'DELIVERED') {
-        const destination = getDestination(row.original)
+      if (status === "DELIVERED") {
+        const destination = getDestination(row.original);
 
         return (
           <div className="flex flex-col items-center justify-center gap-1.5 w-full">
             <span className="text-[11px] text-muted-foreground text-center leading-snug">
               Entrega directa
               <br />
-              <span className="text-muted-foreground/70">{destination?.label ?? 'Sin paso por almacén'}</span>
+              <span className="text-muted-foreground/70">
+                {destination?.label ?? "Sin paso por almacén"}
+              </span>
             </span>
             <DeliveryNoteButton intake={row.original} />
           </div>
-        )
+        );
       }
 
-      if (status === 'PENDING') {
+      if (status === "PENDING") {
         return (
           <div className="flex justify-center w-full">
             <span className="text-muted-foreground/40 text-xs">—</span>
           </div>
-        )
+        );
       }
 
-      if (status === 'REJECTED') {
+      if (status === "REJECTED") {
         return (
           <div className="flex justify-center w-full">
             <span className="text-[11px] text-muted-foreground text-center leading-snug">
@@ -349,7 +395,7 @@ export const getColumns = (
               {rejected_at && (
                 <>
                   <br />
-                  El {formatInstant(rejected_at, timeZone, 'dateTime')}
+                  El {formatInstant(rejected_at, timeZone, "dateTime")}
                 </>
               )}
               {rejection_reason && (
@@ -362,7 +408,7 @@ export const getColumns = (
               )}
             </span>
           </div>
-        )
+        );
       }
 
       return (
@@ -374,20 +420,24 @@ export const getColumns = (
             {confirmed_at && (
               <>
                 <br />
-                El {formatInstant(confirmed_at, timeZone, 'dateTime')}
+                El {formatInstant(confirmed_at, timeZone, "dateTime")}
               </>
             )}
           </span>
         </div>
-      )
+      );
     },
   },
 
   {
-    id: 'actions',
+    id: "actions",
     size: 80,
 
-    header: () => <div className="flex justify-center w-full text-xs font-medium">Acciones</div>,
+    header: () => (
+      <div className="flex justify-center w-full text-xs font-medium">
+        Acciones
+      </div>
+    ),
 
     cell: ({ row }) => (
       <div className="flex justify-center w-full">
@@ -395,4 +445,4 @@ export const getColumns = (
       </div>
     ),
   },
-]
+];

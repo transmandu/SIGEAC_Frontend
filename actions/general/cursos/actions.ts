@@ -2,6 +2,7 @@ import axiosInstance from "@/lib/axios";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 interface CourseData {
   company: string;
@@ -60,9 +61,7 @@ export const useCreateCourse = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo crear el curso...",
-      });
+      notifyError(error, { action: "crear el curso" });
       console.log(error);
     },
   });
@@ -90,9 +89,7 @@ export const useDeleteCourse = () => {
       });
     },
     onError: (e) => {
-      toast.error("Oops!", {
-        description: "¡Hubo un error al eliminar un curso!",
-      });
+      notifyError(e, { action: "eliminar un curso" });
     },
   });
 
@@ -115,9 +112,7 @@ export const useFinishCourse = () => {
       });
     },
     onError: (e) => {
-      toast.error("Oops!", {
-        description: "¡Hubo un error al finalizar un curso!",
-      });
+      notifyError(e, { action: "finalizar un curso" });
     },
   });
 
@@ -138,10 +133,8 @@ export const useReopenCourse = () => {
         description: `¡El curso ha sido reabierto correctamente!`,
       });
     },
-    onError: () => {
-      toast.error("Oops!", {
-        description: "¡Hubo un error al reabrir el curso!",
-      });
+    onError: (error) => {
+      notifyError(error, { action: "reabrir el curso" });
     },
   });
 
@@ -198,9 +191,7 @@ export const useUpdateCourse = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo actualizar el curso...",
-      });
+      notifyError(error, { action: "actualizar el curso" });
       console.log(error);
     },
   });
@@ -233,12 +224,9 @@ export const useUpdateCourseCalendar = () => {
       });
     },
     onError: (error) => {
-      // El bloqueo por curso cerrado se lanza aquí mismo, así que error.message
-      // ya viene redactado para el usuario.
-      const errorMessage = error.message || "No se pudo actualizar el curso...";
-      toast.error("Oops!", {
-        description: errorMessage,
-      });
+      // El bloqueo por curso cerrado se lanza aquí mismo como un Error plano:
+      // notifyError muestra su texto, que ya viene redactado para el usuario.
+      notifyError(error, { action: "actualizar el curso" });
       console.log(error);
     },
   });
@@ -272,9 +260,7 @@ export const useCreateCourseExam = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo crear el examen...",
-      });
+      notifyError(error, { action: "crear el examen" });
       console.log(error);
     },
   });
@@ -300,9 +286,7 @@ export const useDeleteCourseExam = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo eliminar el examen...",
-      });
+      notifyError(error, { action: "eliminar el examen" });
       console.log(error);
     },
   });
@@ -379,9 +363,7 @@ export const useUpdateCourseExamResult = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo guardar el resultado...",
-      });
+      notifyError(error, { action: "guardar el resultado" });
       console.log(error);
     },
   });

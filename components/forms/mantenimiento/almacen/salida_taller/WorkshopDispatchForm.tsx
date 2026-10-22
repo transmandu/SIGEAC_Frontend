@@ -42,12 +42,12 @@ import {
   X,
 } from "lucide-react";
 import { useMemo } from "react";
-import { SectionHeader } from "../_components/SectionHeader";
-import { ConversionPanel } from "../_components/ConversionPanel";
-import { ConsumableArticleRow } from "../_components/ConsumableArticleRow";
-import { GeneralArticleRow } from "../_components/GeneralArticleRow";
-import { truncateText } from "../_components/truncate";
-import { SearchAwareGroup } from "../_components/SearchAwareGroup";
+import { SectionHeader } from "@/components/forms/mantenimiento/almacen/_components/SectionHeader";
+import { ConversionPanel } from "@/components/forms/mantenimiento/almacen/_components/ConversionPanel";
+import { ConsumableArticleRow } from "@/components/forms/mantenimiento/almacen/_components/ConsumableArticleRow";
+import { GeneralArticleRow } from "@/components/forms/mantenimiento/almacen/_components/GeneralArticleRow";
+import { truncateText } from "@/components/forms/mantenimiento/almacen/_components/truncate";
+import { SearchAwareGroup } from "@/components/forms/mantenimiento/almacen/_components/SearchAwareGroup";
 import { WorkshopCombobox } from "@/components/forms/general/WorkshopCombobox";
 import { CreateWorkshopDialog } from "@/components/dialogs/general/CreateWorkshopDialog";
 import {

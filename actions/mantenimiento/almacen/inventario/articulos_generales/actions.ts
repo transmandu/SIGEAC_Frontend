@@ -3,7 +3,6 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { formatQuantity } from "@/lib/utils";
 import { toast } from "sonner";
-import { apiErrorMessage } from "@/lib/apiErrorMessage";
 import type {
   ConfirmGeneralArticleIntakeResponse,
   NeedsUnitConversionResponse,
@@ -11,6 +10,7 @@ import type {
   UpdateGeneralArticleIntakePayload,
   UpdateGeneralArticleIntakeResponse,
 } from "@/types/purchase";
+import { notifyError } from "@/lib/notify-error";
 
 export function isNeedsUnitConversionResponse(
   data: unknown,
@@ -192,12 +192,7 @@ export const useUpdateGeneralArticle = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("No se pudo actualizar el artículo", {
-        description: apiErrorMessage(
-          error,
-          "Intente de nuevo en unos instantes.",
-        ),
-      });
+      notifyError(error, { action: "actualizar el artículo" });
     },
   });
 
@@ -234,11 +229,7 @@ export const useAddQuantityGeneralArticle = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Error", {
-        description:
-          error?.response?.data?.message ||
-          "No se pudo actualizar la cantidad del artículo.",
-      });
+      notifyError(error, { action: "actualizar la cantidad del artículo" });
       console.error(error);
     },
   });
@@ -362,10 +353,7 @@ export const useConfirmGeneralArticleIntake = () => {
       // No es un fallo: el caller abre el diálogo para pedir la equivalencia.
       if (isNeedsUnitConversionResponse(error?.response?.data)) return;
 
-      toast.error("Error", {
-        description:
-          error?.response?.data?.message || "No se pudo confirmar la entrada.",
-      });
+      notifyError(error, { action: "confirmar la entrada" });
     },
   });
 
@@ -409,10 +397,7 @@ export const useRejectGeneralArticleIntake = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Error", {
-        description:
-          error?.response?.data?.message || "No se pudo rechazar la entrada.",
-      });
+      notifyError(error, { action: "rechazar la entrada" });
     },
   });
 
@@ -463,10 +448,7 @@ export const useUpdateGeneralArticleIntake = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Error", {
-        description:
-          error?.response?.data?.message || "No se pudo corregir la recepción.",
-      });
+      notifyError(error, { action: "corregir la recepción" });
     },
   });
 
@@ -536,12 +518,7 @@ export const useCreateGeneralArticle = () => {
       });
     },
     onError: (error) => {
-      toast.error("No se pudo crear el artículo", {
-        description: apiErrorMessage(
-          error,
-          "Intente de nuevo en unos instantes.",
-        ),
-      });
+      notifyError(error, { action: "crear el artículo" });
       console.log(error);
     },
   });

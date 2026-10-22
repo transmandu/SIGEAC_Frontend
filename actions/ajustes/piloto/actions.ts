@@ -1,8 +1,8 @@
 import axiosInstance from "@/lib/axios";
-import { getApiErrorMessage } from "@/lib/api-error";
 import { Pilot } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 interface PilotSchema {
   company: string;
@@ -35,9 +35,7 @@ export const useCreatePilot = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: getApiErrorMessage(error, "No se pudo crear el piloto..."),
-      });
+      notifyError(error, { action: "crear el piloto" });
     },
   });
   return {
@@ -65,12 +63,7 @@ export const useDeletePilot = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: getApiErrorMessage(
-          error,
-          "¡Hubo un error al eliminar el piloto!",
-        ),
-      });
+      notifyError(error, { action: "eliminar el piloto" });
     },
   });
 
@@ -94,12 +87,7 @@ export const useUpdatePilot = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: getApiErrorMessage(
-          error,
-          "No se pudo actualizar el piloto...",
-        ),
-      });
+      notifyError(error, { action: "actualizar el piloto" });
     },
   });
   return {

@@ -18,7 +18,6 @@ import {
   YAxis,
   CartesianGrid,
 } from "recharts";
-import { toast } from "sonner";
 import {
   Tooltip,
   TooltipContent,
@@ -27,6 +26,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { bibliotecaDashboardSteps } from "@/components/tour/steps/general/biblioteca/biblioteca-dashboard";
+import { notifyError } from "@/lib/notify-error";
 
 interface DashboardModalProps {
   open: boolean;
@@ -462,7 +462,7 @@ export default function DashboardModal({
         setShareRequests(Array.isArray(reqRes) ? reqRes : reqRes.data || []);
       } catch (error) {
         console.error("Error al cargar el panel:", error);
-        toast.error("No se pudieron cargar los datos del panel");
+        notifyError(error, { action: "cargar los datos del panel" });
         setDocuments({});
         setTraceability([]);
         setShareRequests([]);
@@ -640,232 +640,235 @@ export default function DashboardModal({
 
   return (
     <TooltipProvider delayDuration={300}>
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="bg-slate-100 dark:bg-[#0a0c10] border border-slate-200/60 dark:border-white/10 text-slate-900 dark:text-white max-w-[1200px] w-[95vw] rounded-4xl p-0 outline-hidden shadow-2xl">
-        <div
-          className="bg-white dark:bg-slate-900 px-8 py-5 border-b border-slate-200/80 dark:border-white/5 flex items-center justify-between"
-          data-tour="biblioteca-dashboard-title"
-        >
-          <div className="flex flex-col gap-1">
-            <DialogTitle className="text-xl font-black text-slate-800 dark:text-white tracking-tight">
-              Estadísticas de la Biblioteca
-            </DialogTitle>
-            <p className="text-[12px] font-medium text-slate-500 dark:text-slate-400">
-              {subtitleText}
-            </p>
-          </div>
-        </div>
-
-        <div className="p-6 md:p-8 space-y-6 max-h-[85vh] overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-300 dark:[&::-webkit-scrollbar-thumb]:bg-slate-700 [&::-webkit-scrollbar-thumb]:rounded-full">
-          {loading ? (
-            <div className="flex flex-col items-center justify-center py-32 gap-4">
-              <Loader2 className="h-12 w-12 animate-spin text-blue-500" />
-              <p className="text-sm font-medium text-slate-500">
-                Cargando métricas...
+      <Dialog open={open} onOpenChange={onClose}>
+        <DialogContent className="bg-slate-100 dark:bg-[#0a0c10] border border-slate-200/60 dark:border-white/10 text-slate-900 dark:text-white max-w-[1200px] w-[95vw] rounded-4xl p-0 outline-hidden shadow-2xl">
+          <div
+            className="bg-white dark:bg-slate-900 px-8 py-5 border-b border-slate-200/80 dark:border-white/5 flex items-center justify-between"
+            data-tour="biblioteca-dashboard-title"
+          >
+            <div className="flex flex-col gap-1">
+              <DialogTitle className="text-xl font-black text-slate-800 dark:text-white tracking-tight">
+                Estadísticas de la Biblioteca
+              </DialogTitle>
+              <p className="text-[12px] font-medium text-slate-500 dark:text-slate-400">
+                {subtitleText}
               </p>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-              {canViewCharts && chartData.length > 0 && (
-                <div
-                  className="col-span-1 lg:col-span-1 bg-white dark:bg-slate-900 rounded-4xl p-6 shadow-xs border border-slate-200/50 dark:border-white/5 flex flex-col justify-between"
-                  data-tour="biblioteca-dashboard-distribucion"
-                >
-                  <div>
-                    <h3 className="text-[14px] font-black text-slate-800 dark:text-white tracking-tight">
-                      Distribución Documental
-                    </h3>
-                    <p className="text-[11px] font-medium text-slate-400 mb-2">
-                      Por departamento
-                    </p>
+          </div>
+
+          <div className="p-6 md:p-8 space-y-6 max-h-[85vh] overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-300 dark:[&::-webkit-scrollbar-thumb]:bg-slate-700 [&::-webkit-scrollbar-thumb]:rounded-full">
+            {loading ? (
+              <div className="flex flex-col items-center justify-center py-32 gap-4">
+                <Loader2 className="h-12 w-12 animate-spin text-blue-500" />
+                <p className="text-sm font-medium text-slate-500">
+                  Cargando métricas...
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                {canViewCharts && chartData.length > 0 && (
+                  <div
+                    className="col-span-1 lg:col-span-1 bg-white dark:bg-slate-900 rounded-4xl p-6 shadow-xs border border-slate-200/50 dark:border-white/5 flex flex-col justify-between"
+                    data-tour="biblioteca-dashboard-distribucion"
+                  >
+                    <div>
+                      <h3 className="text-[14px] font-black text-slate-800 dark:text-white tracking-tight">
+                        Distribución Documental
+                      </h3>
+                      <p className="text-[11px] font-medium text-slate-400 mb-2">
+                        Por departamento
+                      </p>
+                    </div>
+
+                    <DonutChart
+                      data={chartData.map((d) => ({
+                        label: d.label,
+                        value: d.docsValue,
+                        color: d.color,
+                      }))}
+                      total={stats.totalDocs}
+                    />
+
+                    <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 justify-center max-h-24 overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-slate-200">
+                      {chartData
+                        .filter((d) => d.docsValue > 0)
+                        .map((d) => (
+                          <div
+                            key={d.label}
+                            className="flex items-center gap-1.5 w-[45%]"
+                          >
+                            <div
+                              className="w-2.5 h-2.5 rounded-full shrink-0"
+                              style={{ backgroundColor: d.color }}
+                            />
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="text-[9px] font-bold text-slate-500 truncate">
+                                  {d.label.substring(0, 18)}
+                                </span>
+                              </TooltipTrigger>
+                              <TooltipContent>{d.label}</TooltipContent>
+                            </Tooltip>
+                          </div>
+                        ))}
+                    </div>
                   </div>
+                )}
 
-                  <DonutChart
-                    data={chartData.map((d) => ({
-                      label: d.label,
-                      value: d.docsValue,
-                      color: d.color,
-                    }))}
-                    total={stats.totalDocs}
-                  />
+                {isSingleDeptView && statusChartData.length > 0 && (
+                  <div className="col-span-1 lg:col-span-1 bg-white dark:bg-slate-900 rounded-4xl p-6 shadow-xs border border-slate-200/50 dark:border-white/5 flex flex-col justify-between">
+                    <div>
+                      <h3 className="text-[14px] font-black text-slate-800 dark:text-white tracking-tight">
+                        Estado de Documentos
+                      </h3>
+                      <p className="text-[11px] font-medium text-slate-400 mb-2">
+                        Vigencia en el departamento
+                      </p>
+                    </div>
 
-                  <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 justify-center max-h-24 overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-slate-200">
-                    {chartData
-                      .filter((d) => d.docsValue > 0)
-                      .map((d) => (
+                    <DonutChart
+                      data={statusChartData}
+                      total={statusChartData.reduce((s, d) => s + d.value, 0)}
+                    />
+
+                    <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 justify-center">
+                      {statusChartData.map((d) => (
                         <div
                           key={d.label}
-                          className="flex items-center gap-1.5 w-[45%]"
+                          className="flex items-center gap-1.5"
                         >
                           <div
                             className="w-2.5 h-2.5 rounded-full shrink-0"
                             style={{ backgroundColor: d.color }}
                           />
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <span className="text-[9px] font-bold text-slate-500 truncate">
-                                {d.label.substring(0, 18)}
-                              </span>
-                            </TooltipTrigger>
-                            <TooltipContent>{d.label}</TooltipContent>
-                          </Tooltip>
-                        </div>
-                      ))}
-                  </div>
-                </div>
-              )}
-
-              {isSingleDeptView && statusChartData.length > 0 && (
-                <div className="col-span-1 lg:col-span-1 bg-white dark:bg-slate-900 rounded-4xl p-6 shadow-xs border border-slate-200/50 dark:border-white/5 flex flex-col justify-between">
-                  <div>
-                    <h3 className="text-[14px] font-black text-slate-800 dark:text-white tracking-tight">
-                      Estado de Documentos
-                    </h3>
-                    <p className="text-[11px] font-medium text-slate-400 mb-2">
-                      Vigencia en el departamento
-                    </p>
-                  </div>
-
-                  <DonutChart
-                    data={statusChartData}
-                    total={statusChartData.reduce((s, d) => s + d.value, 0)}
-                  />
-
-                  <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 justify-center">
-                    {statusChartData.map((d) => (
-                      <div key={d.label} className="flex items-center gap-1.5">
-                        <div
-                          className="w-2.5 h-2.5 rounded-full shrink-0"
-                          style={{ backgroundColor: d.color }}
-                        />
-                        <span className="text-[9px] font-bold text-slate-500">
-                          {d.label}: {d.value}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {(canViewCharts || isSingleDeptView) && (
-                <div
-                  className={`${isSingleDeptView ? (statusChartData.length > 0 ? "col-span-1 lg:col-span-3" : "col-span-1 lg:col-span-4") : "col-span-1 lg:col-span-2"} bg-white dark:bg-slate-900 rounded-4xl p-6 shadow-xs border border-slate-200/50 dark:border-white/5`}
-                  data-tour="biblioteca-dashboard-accesos"
-                >
-                  <h3 className="text-[14px] font-black text-slate-800 dark:text-white tracking-tight">
-                    {isSingleDeptView
-                      ? "Top Documentos Accedidos"
-                      : "Accesos Externos"}
-                  </h3>
-                  <p className="text-[11px] font-medium text-slate-400 mb-2">
-                    {isSingleDeptView
-                      ? "Documentos con más accesos vía QR"
-                      : "Interacciones vía QR"}
-                  </p>
-
-                  {isSingleDeptView ? (
-                    topDocsChart.length > 0 ? (
-                      <VerticalBarChart data={topDocsChart} />
-                    ) : (
-                      <div className="flex items-center justify-center h-48 text-slate-400 text-sm font-bold">
-                        Sin accesos registrados
-                      </div>
-                    )
-                  ) : (
-                    <VerticalBarChart
-                      data={chartData.map((d) => ({
-                        label: d.label,
-                        value: d.accessValue,
-                        color: d.color,
-                      }))}
-                    />
-                  )}
-                </div>
-              )}
-
-              {canViewCharts && (
-                <div
-                  className="col-span-1 lg:col-span-1 bg-white dark:bg-slate-900 rounded-4xl p-6 shadow-xs border border-slate-200/50 dark:border-white/5 flex flex-col justify-between"
-                  data-tour="biblioteca-dashboard-solicitudes"
-                >
-                  <div>
-                    <h3 className="text-[14px] font-black text-slate-800 dark:text-white tracking-tight">
-                      Estado Solicitudes
-                    </h3>
-                    <p className="text-[11px] font-medium text-slate-400 mb-2">
-                      Aprobaciones y rechazos
-                    </p>
-                  </div>
-
-                  <div className="flex-1 flex flex-col justify-center overflow-visible">
-                    <HalfDonutChart data={reqData} total={reqStats.total} />
-                  </div>
-
-                  <div className="mt-2 flex flex-col gap-2">
-                    {reqData.map((d) => (
-                      <div
-                        key={d.label}
-                        className="flex items-center justify-between bg-slate-50 dark:bg-slate-800/50 rounded-xl p-2 px-3"
-                      >
-                        <div className="flex items-center gap-2">
-                          <div
-                            className="w-2.5 h-2.5 rounded-full shrink-0"
-                            style={{ backgroundColor: d.color }}
-                          />
-                          <span className="text-[10px] font-bold text-slate-600 dark:text-slate-400">
-                            {d.label}
+                          <span className="text-[9px] font-bold text-slate-500">
+                            {d.label}: {d.value}
                           </span>
                         </div>
-                        <span className="text-[12px] font-black text-slate-800 dark:text-white">
-                          {d.value}
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {(canViewCharts || isSingleDeptView) && (
+                  <div
+                    className={`${isSingleDeptView ? (statusChartData.length > 0 ? "col-span-1 lg:col-span-3" : "col-span-1 lg:col-span-4") : "col-span-1 lg:col-span-2"} bg-white dark:bg-slate-900 rounded-4xl p-6 shadow-xs border border-slate-200/50 dark:border-white/5`}
+                    data-tour="biblioteca-dashboard-accesos"
+                  >
+                    <h3 className="text-[14px] font-black text-slate-800 dark:text-white tracking-tight">
+                      {isSingleDeptView
+                        ? "Top Documentos Accedidos"
+                        : "Accesos Externos"}
+                    </h3>
+                    <p className="text-[11px] font-medium text-slate-400 mb-2">
+                      {isSingleDeptView
+                        ? "Documentos con más accesos vía QR"
+                        : "Interacciones vía QR"}
+                    </p>
+
+                    {isSingleDeptView ? (
+                      topDocsChart.length > 0 ? (
+                        <VerticalBarChart data={topDocsChart} />
+                      ) : (
+                        <div className="flex items-center justify-center h-48 text-slate-400 text-sm font-bold">
+                          Sin accesos registrados
+                        </div>
+                      )
+                    ) : (
+                      <VerticalBarChart
+                        data={chartData.map((d) => ({
+                          label: d.label,
+                          value: d.accessValue,
+                          color: d.color,
+                        }))}
+                      />
+                    )}
+                  </div>
+                )}
+
+                {canViewCharts && (
+                  <div
+                    className="col-span-1 lg:col-span-1 bg-white dark:bg-slate-900 rounded-4xl p-6 shadow-xs border border-slate-200/50 dark:border-white/5 flex flex-col justify-between"
+                    data-tour="biblioteca-dashboard-solicitudes"
+                  >
+                    <div>
+                      <h3 className="text-[14px] font-black text-slate-800 dark:text-white tracking-tight">
+                        Estado Solicitudes
+                      </h3>
+                      <p className="text-[11px] font-medium text-slate-400 mb-2">
+                        Aprobaciones y rechazos
+                      </p>
+                    </div>
+
+                    <div className="flex-1 flex flex-col justify-center overflow-visible">
+                      <HalfDonutChart data={reqData} total={reqStats.total} />
+                    </div>
+
+                    <div className="mt-2 flex flex-col gap-2">
+                      {reqData.map((d) => (
+                        <div
+                          key={d.label}
+                          className="flex items-center justify-between bg-slate-50 dark:bg-slate-800/50 rounded-xl p-2 px-3"
+                        >
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="w-2.5 h-2.5 rounded-full shrink-0"
+                              style={{ backgroundColor: d.color }}
+                            />
+                            <span className="text-[10px] font-bold text-slate-600 dark:text-slate-400">
+                              {d.label}
+                            </span>
+                          </div>
+                          <span className="text-[12px] font-black text-slate-800 dark:text-white">
+                            {d.value}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Clases literales: Tailwind purga en compilación y una
+                  interpolada (lg:grid-cols-${n}) nunca llega a generarse. */}
+                <div
+                  className={`col-span-1 lg:col-span-4 grid grid-cols-2 gap-6 ${
+                    isDipDirector ? "lg:grid-cols-4" : "lg:grid-cols-3"
+                  }`}
+                  data-tour="biblioteca-dashboard-metrics"
+                >
+                  {(isDipDirector
+                    ? cards
+                    : cards.filter((c) => c.label !== "Solicitudes")
+                  ).map((card) => (
+                    <div
+                      key={card.label}
+                      className="bg-white dark:bg-slate-900 rounded-4xl p-6 shadow-xs border border-slate-200/50 dark:border-white/5 flex flex-col justify-between group hover:-translate-y-1 transition-transform duration-300"
+                    >
+                      <div className="flex justify-between items-center mb-4">
+                        <div
+                          className={`p-3 rounded-2xl ${card.bgLight} dark:bg-white/5`}
+                        >
+                          <card.icon
+                            className={`h-5 w-5 ${card.iconColor} dark:text-white`}
+                          />
+                        </div>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                          {card.label}
                         </span>
                       </div>
-                    ))}
-                  </div>
+                      <div>
+                        <div className="text-4xl font-black text-slate-800 dark:text-white tracking-tighter">
+                          {card.value}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              )}
-
-              {/* Clases literales: Tailwind purga en compilación y una
-                  interpolada (lg:grid-cols-${n}) nunca llega a generarse. */}
-              <div
-                className={`col-span-1 lg:col-span-4 grid grid-cols-2 gap-6 ${
-                  isDipDirector ? "lg:grid-cols-4" : "lg:grid-cols-3"
-                }`}
-                data-tour="biblioteca-dashboard-metrics"
-              >
-                {(isDipDirector
-                  ? cards
-                  : cards.filter((c) => c.label !== "Solicitudes")
-                ).map((card) => (
-                  <div
-                    key={card.label}
-                    className="bg-white dark:bg-slate-900 rounded-4xl p-6 shadow-xs border border-slate-200/50 dark:border-white/5 flex flex-col justify-between group hover:-translate-y-1 transition-transform duration-300"
-                  >
-                    <div className="flex justify-between items-center mb-4">
-                      <div
-                        className={`p-3 rounded-2xl ${card.bgLight} dark:bg-white/5`}
-                      >
-                        <card.icon
-                          className={`h-5 w-5 ${card.iconColor} dark:text-white`}
-                        />
-                      </div>
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                        {card.label}
-                      </span>
-                    </div>
-                    <div>
-                      <div className="text-4xl font-black text-slate-800 dark:text-white tracking-tighter">
-                        {card.value}
-                      </div>
-                    </div>
-                  </div>
-                ))}
               </div>
-            </div>
-          )}
-        </div>
-      </DialogContent>
-    </Dialog>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </TooltipProvider>
   );
 }

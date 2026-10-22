@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@/lib/zod-resolver";
 import { useCompanyStore } from "@/stores/CompanyStore";
@@ -36,8 +36,9 @@ export function AuthorizedEmployeeForm({ onSuccess }: Props) {
   const { selectedCompany } = useCompanyStore();
   const { mutateAsync, isPending } = useCreateAuthorizedEmployee();
 
-  const { data: employees = [], isLoading } =
-    useGetEmployeesByCompany(selectedCompany?.slug);
+  const { data: employees = [], isLoading } = useGetEmployeesByCompany(
+    selectedCompany?.slug,
+  );
 
   const { data: companies = [], isLoading: isLoadingCompanies } =
     useGetCompanies();
@@ -48,15 +49,15 @@ export function AuthorizedEmployeeForm({ onSuccess }: Props) {
   const {
     handleSubmit,
     setValue,
-    watch,
+    control,
     formState: { errors },
     reset,
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
   });
 
-  const selectedEmployee = watch("dni_employee");
-  const toCompany = watch("to_company_db");
+  const selectedEmployee = useWatch({ control, name: "dni_employee" });
+  const toCompany = useWatch({ control, name: "to_company_db" });
 
   const onSubmit = async (values: FormValues) => {
     if (!selectedCompany?.slug) return;
@@ -73,7 +74,7 @@ export function AuthorizedEmployeeForm({ onSuccess }: Props) {
 
   // Filtrar para que NO aparezca la empresa origen
   const filteredCompanies = companies.filter(
-    (company) => company.slug !== selectedCompany?.slug
+    (company) => company.slug !== selectedCompany?.slug,
   );
 
   // DNIs ya autorizados a la empresa destino seleccionada
@@ -82,9 +83,9 @@ export function AuthorizedEmployeeForm({ onSuccess }: Props) {
       new Set(
         authorizedEmployees
           .filter((auth) => auth.to_company_db === toCompany)
-          .map((auth) => auth.dni_employee)
+          .map((auth) => auth.dni_employee),
       ),
-    [authorizedEmployees, toCompany]
+    [authorizedEmployees, toCompany],
   );
 
   // Empleados disponibles: ocultar los que ya están autorizados al destino seleccionado
@@ -94,7 +95,10 @@ export function AuthorizedEmployeeForm({ onSuccess }: Props) {
 
   // Si el empleado seleccionado queda oculto al cambiar el destino, limpiar la selección
   useEffect(() => {
-    if (selectedEmployee && authorizedDnisForDestination.has(selectedEmployee)) {
+    if (
+      selectedEmployee &&
+      authorizedDnisForDestination.has(selectedEmployee)
+    ) {
       setValue("dni_employee", "");
     }
   }, [selectedEmployee, toCompany, authorizedDnisForDestination, setValue]);
@@ -161,7 +165,9 @@ export function AuthorizedEmployeeForm({ onSuccess }: Props) {
 
       {/* Empleado (habilitado tras elegir destino; oculta los ya autorizados) */}
       <div className="space-y-1.5">
-        <Label className={!hasDestination ? "text-muted-foreground" : undefined}>
+        <Label
+          className={!hasDestination ? "text-muted-foreground" : undefined}
+        >
           Empleado <span className="text-destructive">*</span>
         </Label>
 

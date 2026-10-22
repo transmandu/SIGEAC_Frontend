@@ -36,14 +36,13 @@ import {
   UserCheck,
   ListChecks,
 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Badge } from "@/components/ui/badge";
+import { useResettingState } from "@/hooks/useResettingState";
 
-const normalizeAuthorizedEmployeeId = (
-  value: unknown
-): number | null => {
+const normalizeAuthorizedEmployeeId = (value: unknown): number | null => {
   if (value === undefined || value === null || value === "") return null;
   const parsed = Number(value);
   return Number.isNaN(parsed) ? null : parsed;
@@ -74,7 +73,7 @@ const FormSchema = z.object({
       first_name: z.string(),
       last_name: z.string(),
       authorized_employee_id: z.number().nullable(),
-    })
+    }),
   ),
   removedEmployees: z.array(
     z.object({
@@ -82,7 +81,7 @@ const FormSchema = z.object({
       first_name: z.string(),
       last_name: z.string(),
       authorized_employee_id: z.number().nullable(),
-    })
+    }),
   ),
 });
 
@@ -95,9 +94,6 @@ export function AddSMSActivityAttendanceForm({
   const [open, setOpen] = useState(false);
   const { selectedCompany } = useCompanyStore();
   const { markSMSActivityAttendance } = useMarkSMSActivityAttendance();
-  const [employeeSelections, setEmployeeSelections] = useState<
-    EmployeeSelection[]
-  >([]);
   const [searchQuery, setSearchQuery] = useState("");
 
   const value = {
@@ -127,7 +123,7 @@ export function AddSMSActivityAttendanceForm({
         authorized_employee_id?: number | null;
         from_company_db?: string;
       }>,
-      wasEnrolled: boolean
+      wasEnrolled: boolean,
     ) =>
       employees.map((e) => ({
         dni: e.dni ?? "",
@@ -139,58 +135,50 @@ export function AddSMSActivityAttendanceForm({
         wasEnrolled,
         employee_type: (e.employee_type as "local" | "authorized") ?? "local",
         authorized_employee_id: normalizeAuthorizedEmployeeId(
-          e.authorized_employee_id
+          e.authorized_employee_id,
         ),
         from_company_db: e.from_company_db,
       })),
-    []
+    [],
   );
 
-  const updateFormValues = useCallback(
-    (selections: EmployeeSelection[]) => {
-      const added = selections.filter((e) => e.isSelected && !e.wasEnrolled);
-      const removed = selections.filter((e) => !e.isSelected && e.wasEnrolled);
+  // Quién se agrega y quién se quita respecto de lo que ya estaba guardado.
+  const toAttendanceLists = (selections: EmployeeSelection[]) => {
+    const added = selections.filter((e) => e.isSelected && !e.wasEnrolled);
+    const removed = selections.filter((e) => !e.isSelected && e.wasEnrolled);
 
-      form.setValue(
-        "addedEmployees",
-        added.map((e) => ({
-          dni: e.employee_type === "local" ? e.dni : null,
-          first_name: e.first_name,
-          last_name: e.last_name,
-          authorized_employee_id:
-            e.employee_type === "authorized"
-              ? (e.authorized_employee_id ?? null)
-              : null,
-        }))
-      );
+    return {
+      addedEmployees: added.map((e) => ({
+        dni: e.employee_type === "local" ? e.dni : null,
+        first_name: e.first_name,
+        last_name: e.last_name,
+        authorized_employee_id:
+          e.employee_type === "authorized"
+            ? (e.authorized_employee_id ?? null)
+            : null,
+      })),
+      removedEmployees: removed.map((e) => ({
+        dni: e.employee_type === "local" ? e.dni : null,
+        first_name: e.first_name,
+        last_name: e.last_name,
+        authorized_employee_id:
+          e.employee_type === "authorized"
+            ? (e.authorized_employee_id ?? null)
+            : null,
+      })),
+    };
+  };
 
-      form.setValue(
-        "removedEmployees",
-        removed.map((e) => ({
-          dni: e.employee_type === "local" ? e.dni : null,
-          first_name: e.first_name,
-          last_name: e.last_name,
-          authorized_employee_id:
-            e.employee_type === "authorized"
-              ? (e.authorized_employee_id ?? null)
-              : null,
-        }))
-      );
-    },
-    [form]
-  );
+  const [employeeSelections, setEmployeeSelections] = useResettingState<
+    EmployeeSelection[]
+  >(() => {
+    if (!employeesData) return [];
 
-  useEffect(() => {
-    if (employeesData) {
-      const selections: EmployeeSelection[] = [
-        ...mapToSelection(employeesData.attended || [], true),
-        ...mapToSelection(employeesData.not_attended || [], false),
-      ];
-
-      setEmployeeSelections(selections);
-      updateFormValues(selections);
-    }
-  }, [employeesData, updateFormValues, mapToSelection]);
+    return [
+      ...mapToSelection(employeesData.attended || [], true),
+      ...mapToSelection(employeesData.not_attended || [], false),
+    ];
+  }, [employeesData]);
 
   const toggleEmployeeSelection = (key: string) => {
     const newSelections = employeeSelections.map((emp) => {
@@ -202,7 +190,6 @@ export function AddSMSActivityAttendanceForm({
     });
 
     setEmployeeSelections(newSelections);
-    updateFormValues(newSelections);
   };
 
   const toggleAllEmployees = () => {
@@ -214,7 +201,6 @@ export function AddSMSActivityAttendanceForm({
     }));
 
     setEmployeeSelections(newSelections);
-    updateFormValues(newSelections);
   };
 
   const allSelected =
@@ -234,21 +220,23 @@ export function AddSMSActivityAttendanceForm({
 
   const selectedCount = employeeSelections.filter((e) => e.isSelected).length;
   const previouslyAttendedCount = employeeSelections.filter(
-    (e) => e.wasEnrolled
+    (e) => e.wasEnrolled,
   ).length;
   const newlyAddedCount = employeeSelections.filter(
-    (e) => e.isSelected && !e.wasEnrolled
+    (e) => e.isSelected && !e.wasEnrolled,
   ).length;
   const removedCount = employeeSelections.filter(
-    (e) => !e.isSelected && e.wasEnrolled
+    (e) => !e.isSelected && e.wasEnrolled,
   ).length;
 
-  const onSubmit = async (data: FormSchemaType) => {
+  const onSubmit = async () => {
+    const { addedEmployees, removedEmployees } =
+      toAttendanceLists(employeeSelections);
     const value = {
       activity_number: initialData?.activity_number,
       employees_list: {
-        addedEmployees: data.addedEmployees,
-        removedEmployees: data.removedEmployees,
+        addedEmployees,
+        removedEmployees,
       },
     };
     try {
@@ -377,9 +365,7 @@ export function AddSMSActivityAttendanceForm({
                         </Button>
                       </div>
                       <CommandList>
-                        <CommandEmpty>
-                          No se encontraron empleados
-                        </CommandEmpty>
+                        <CommandEmpty>No se encontraron empleados</CommandEmpty>
 
                         <CommandGroup heading="Todos los empleados">
                           {filteredEmployees.map((employee) => {
@@ -400,14 +386,13 @@ export function AddSMSActivityAttendanceForm({
                                     "mr-2 h-4 w-4 shrink-0",
                                     employee.isSelected
                                       ? "opacity-100 text-emerald-600 dark:text-emerald-400"
-                                      : "opacity-0"
+                                      : "opacity-0",
                                   )}
                                 />
                                 <div className="flex flex-col gap-0.5 min-w-0 flex-1">
                                   <div className="flex items-center gap-2 flex-wrap">
                                     <span className="text-sm font-medium truncate">
-                                      {employee.first_name}{" "}
-                                      {employee.last_name}
+                                      {employee.first_name} {employee.last_name}
                                     </span>
                                     <span className="font-mono text-xs text-muted-foreground">
                                       {employee.dni}
@@ -431,8 +416,7 @@ export function AddSMSActivityAttendanceForm({
                                     )}
                                   </div>
                                   <span className="text-xs text-muted-foreground truncate">
-                                    {employee.job_title} ·{" "}
-                                    {employee.department}
+                                    {employee.job_title} · {employee.department}
                                   </span>
                                 </div>
                               </CommandItem>

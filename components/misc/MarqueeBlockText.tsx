@@ -1,93 +1,89 @@
-'use client'
+"use client";
 
-import { useEffect, useRef, useState } from 'react'
-import { cn } from '@/lib/utils'
+import { useEffect, useRef, useState } from "react";
+import { cn } from "@/lib/utils";
 
 interface Props {
-  text: string
-  className?: string
+  text: string;
+  className?: string;
 }
 
-const SPEED = 60 // px/s
-const PAUSE_MS = 6000
+const SPEED = 60; // px/s
+const PAUSE_MS = 6000;
 
 export function MarqueeBlockText({ text, className }: Props) {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const contentRef = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
 
-  const [hovered, setHovered] = useState(false)
-  const [offset, setOffset] = useState(0)
+  const [hovered, setHovered] = useState(false);
+  const [offset, setOffset] = useState(0);
 
-  const offsetRef = useRef(0)
-  const rafRef = useRef<number | null>(null)
-  const timeoutRef = useRef<number | null>(null)
-  const pausedRef = useRef(false)
+  const offsetRef = useRef(0);
+  const rafRef = useRef<number | null>(null);
+  const timeoutRef = useRef<number | null>(null);
+  const pausedRef = useRef(false);
 
   useEffect(() => {
-    if (!hovered) {
-      offsetRef.current = 0
-      setOffset(0)
-      pausedRef.current = false
+    if (!hovered) return;
 
-      if (rafRef.current) cancelAnimationFrame(rafRef.current)
-      if (timeoutRef.current) clearTimeout(timeoutRef.current)
+    const container = containerRef.current!;
+    const content = contentRef.current!;
 
-      return
-    }
-
-    const container = containerRef.current!
-    const content = contentRef.current!
-
-    let last = performance.now()
+    let last = performance.now();
 
     const step = (now: number) => {
-      const delta = now - last
-      last = now
+      const delta = now - last;
+      last = now;
 
-      const containerWidth = container.clientWidth
-      const contentWidth = content.getBoundingClientRect().width
+      const containerWidth = container.clientWidth;
+      const contentWidth = content.getBoundingClientRect().width;
 
-      const maxScroll = Math.max(0, contentWidth - containerWidth)
+      const maxScroll = Math.max(0, contentWidth - containerWidth);
 
       if (!pausedRef.current) {
-        offsetRef.current += (SPEED * delta) / 1000
-        setOffset(offsetRef.current)
+        offsetRef.current += (SPEED * delta) / 1000;
+        setOffset(offsetRef.current);
 
         if (offsetRef.current >= maxScroll) {
-          offsetRef.current = maxScroll
-          setOffset(maxScroll)
+          offsetRef.current = maxScroll;
+          setOffset(maxScroll);
 
-          pausedRef.current = true
+          pausedRef.current = true;
 
           timeoutRef.current = window.setTimeout(() => {
-            offsetRef.current = 0
-            setOffset(0)
-            pausedRef.current = false
+            offsetRef.current = 0;
+            setOffset(0);
+            pausedRef.current = false;
 
             if (hovered) {
-              rafRef.current = requestAnimationFrame(step)
+              rafRef.current = requestAnimationFrame(step);
             }
-          }, PAUSE_MS)
+          }, PAUSE_MS);
 
-          return
+          return;
         }
       }
 
-      rafRef.current = requestAnimationFrame(step)
-    }
+      rafRef.current = requestAnimationFrame(step);
+    };
 
-    rafRef.current = requestAnimationFrame(step)
+    rafRef.current = requestAnimationFrame(step);
 
+    // Al soltar el cursor (o cambiar el texto) el texto vuelve al inicio.
     return () => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current)
-      if (timeoutRef.current) clearTimeout(timeoutRef.current)
-    }
-  }, [hovered, text])
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+
+      offsetRef.current = 0;
+      pausedRef.current = false;
+      setOffset(0);
+    };
+  }, [hovered, text]);
 
   return (
     <div
       ref={containerRef}
-      className={cn('relative w-full overflow-hidden', className)}
+      className={cn("relative w-full overflow-hidden", className)}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
@@ -97,12 +93,12 @@ export function MarqueeBlockText({ text, className }: Props) {
           className="inline-block whitespace-nowrap text-sm leading-relaxed text-foreground/90"
           style={{
             transform: `translateX(-${offset}px)`,
-            willChange: 'transform',
+            willChange: "transform",
           }}
         >
           {text?.trim()}
         </div>
       </div>
     </div>
-  )
+  );
 }

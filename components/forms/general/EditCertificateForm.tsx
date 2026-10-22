@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { useParams } from "next/navigation";
 import {
   useGetSMSCoursesList,
@@ -13,7 +13,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, FileCheck, User, Check, ChevronsUpDown } from "lucide-react";
-import { toast } from "sonner";
 import {
   Command,
   CommandEmpty,
@@ -37,6 +36,7 @@ import {
 import { cn } from "@/lib/utils";
 import { CertificateColumn } from "@/app/[company]/sms/(employees)/certificados/columns";
 import { formatCalendarDate } from "@/lib/date";
+import { notifyError } from "@/lib/notify-error";
 
 interface EditFormValues {
   course_id: string;
@@ -74,16 +74,19 @@ const EditCertificateForm = ({
     ["JEFE_SMS", "ANALISTA_SMS", "SUPERUSER"].includes(role.name.toUpperCase()),
   );
 
-  const { register, handleSubmit, setValue, watch } = useForm<EditFormValues>({
-    defaultValues: {
-      course_id: (certificate.course as any)?.id?.toString() || "",
-      completion_date: certificate.completion_date || "",
-      document: null,
-      employee_dni: certificate.employee?.dni || "",
+  const { register, handleSubmit, setValue, control } = useForm<EditFormValues>(
+    {
+      defaultValues: {
+        course_id: (certificate.course as any)?.id?.toString() || "",
+        completion_date: certificate.completion_date || "",
+        document: null,
+        employee_dni: certificate.employee?.dni || "",
+      },
     },
-  });
+  );
 
-  const selectedDni = watch("employee_dni");
+  const selectedDni = useWatch({ control, name: "employee_dni" });
+  const selectedCourseId = useWatch({ control, name: "course_id" });
 
   const onSubmit = async (data: EditFormValues) => {
     const formData = new FormData();
@@ -106,7 +109,7 @@ const EditCertificateForm = ({
       onClose();
     } catch (error) {
       console.error(error);
-      toast.error("Error al actualizar");
+      notifyError(error, { action: "actualizar" });
     }
   };
 
@@ -182,7 +185,7 @@ const EditCertificateForm = ({
         <Label>Curso / Capacitación</Label>
         <Select
           onValueChange={(v) => setValue("course_id", v)}
-          defaultValue={watch("course_id")}
+          defaultValue={selectedCourseId}
           disabled={isDataLoading}
         >
           <SelectTrigger>

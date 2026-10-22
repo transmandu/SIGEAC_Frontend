@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useDownloadQuotePdf } from "@/hooks/mantenimiento/compras/useDownloadQuotePdf";
 import { useGetQuoteAuthorizers } from "@/hooks/mantenimiento/compras/useGetQuoteAuthorizers";
+import { notifyError } from "@/lib/notify-error";
 
 type Props = {
   quote: {
@@ -72,11 +73,7 @@ export default function DownloadQuotePdfDialog({
       toast.success(`Cotización ${quote.quote_number} generada`);
       handleOpenChange(false);
     } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "No se pudo generar el formato de la cotización.",
-      );
+      notifyError(error, { action: "generar el formato de la cotización" });
     }
   };
 

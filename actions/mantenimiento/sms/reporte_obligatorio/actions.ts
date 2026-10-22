@@ -1,6 +1,7 @@
 import axiosInstance from "@/lib/axios";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 interface ObligatoryReportData {
   report_date: Date;
@@ -84,9 +85,7 @@ export const useCreateObligatoryReport = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo crear el reporte obligatorio...",
-      });
+      notifyError(error, { action: "crear el reporte obligatorio" });
       console.log(error);
     },
   });
@@ -119,9 +118,7 @@ export const useDeleteObligatoryReport = () => {
       });
     },
     onError: (e) => {
-      toast.error("Oops!", {
-        description: "¡Hubo un error al eliminar el reporte!",
-      });
+      notifyError(e, { action: "eliminar el reporte" });
     },
   });
 
@@ -153,9 +150,7 @@ export const useUpdateObligatoryReport = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo actualizar el reporte voluntario...",
-      });
+      notifyError(error, { action: "actualizar el reporte voluntario" });
       console.log(error);
     },
   });
@@ -182,9 +177,7 @@ export const useAcceptObligatoryReport = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo aceptar el reporte obligatorio...",
-      });
+      notifyError(error, { action: "aceptar el reporte obligatorio" });
       console.log(error);
     },
   });

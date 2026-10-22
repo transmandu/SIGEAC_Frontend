@@ -17,7 +17,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { Course } from "@/types";
 import { zodResolver } from "@/lib/zod-resolver";
 import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import {
@@ -33,6 +33,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { useResettingState } from "@/hooks/useResettingState";
 
 interface FormProps {
   onClose: () => void;
@@ -72,9 +73,6 @@ export function AddCourseAttendanceForm({ onClose, initialData }: FormProps) {
   const [open, setOpen] = useState(false);
   const { selectedCompany } = useCompanyStore();
   const { markCourseAttendance } = useMarkCourseAttendance();
-  const [employeeSelections, setEmployeeSelections] = useState<
-    EmployeeSelection[]
-  >([]);
   const [searchQuery, setSearchQuery] = useState("");
 
   const value = {
@@ -92,34 +90,29 @@ export function AddCourseAttendanceForm({ onClose, initialData }: FormProps) {
     },
   });
 
-  const updateFormValues = useCallback(
-    (selections: EmployeeSelection[]) => {
-      const added = selections.filter((e) => e.isSelected && !e.wasEnrolled);
-      const removed = selections.filter((e) => !e.isSelected && e.wasEnrolled);
+  // Quién se agrega y quién se quita respecto de lo que ya estaba guardado.
+  const toAttendanceLists = (selections: EmployeeSelection[]) => {
+    const added = selections.filter((e) => e.isSelected && !e.wasEnrolled);
+    const removed = selections.filter((e) => !e.isSelected && e.wasEnrolled);
 
-      form.setValue(
-        "addedEmployees",
-        added.map((e) => ({
-          dni: e.dni,
-          first_name: e.first_name,
-          last_name: e.last_name,
-        })),
-      );
+    return {
+      addedEmployees: added.map((e) => ({
+        dni: e.dni,
+        first_name: e.first_name,
+        last_name: e.last_name,
+      })),
+      removedEmployees: removed.map((e) => ({
+        dni: e.dni,
+        first_name: e.first_name,
+        last_name: e.last_name,
+      })),
+    };
+  };
 
-      form.setValue(
-        "removedEmployees",
-        removed.map((e) => ({
-          dni: e.dni,
-          first_name: e.first_name,
-          last_name: e.last_name,
-        })),
-      );
-    },
-    [form], // La dependencia ahora es el objeto 'form'
-  );
-
-  useEffect(() => {
-    if (!employeesData) return;
+  const [employeeSelections, setEmployeeSelections] = useResettingState<
+    EmployeeSelection[]
+  >(() => {
+    if (!employeesData) return [];
 
     const attended = employeesData.attended ?? [];
     const notAttended = employeesData.not_attended ?? [];
@@ -148,9 +141,8 @@ export function AddCourseAttendanceForm({ onClose, initialData }: FormProps) {
       toSelection,
     );
 
-    setEmployeeSelections(selections);
-    updateFormValues(selections);
-  }, [employeesData, updateFormValues]);
+    return selections;
+  }, [employeesData]);
 
   const toggleEmployeeSelection = (dni: string) => {
     const newSelections = employeeSelections.map((emp) =>
@@ -158,7 +150,6 @@ export function AddCourseAttendanceForm({ onClose, initialData }: FormProps) {
     );
 
     setEmployeeSelections(newSelections);
-    updateFormValues(newSelections);
   };
 
   const filteredEmployees = employeeSelections.filter((employee) => {
@@ -172,13 +163,15 @@ export function AddCourseAttendanceForm({ onClose, initialData }: FormProps) {
     );
   });
 
-  const onSubmit = async (data: FormSchemaType) => {
+  const onSubmit = async () => {
+    const { addedEmployees, removedEmployees } =
+      toAttendanceLists(employeeSelections);
     const value = {
       company: selectedCompany!.slug,
       course_id: initialData?.id.toString(),
       employees_list: {
-        addedEmployees: data.addedEmployees,
-        removedEmployees: data.removedEmployees,
+        addedEmployees,
+        removedEmployees,
       },
     };
     try {

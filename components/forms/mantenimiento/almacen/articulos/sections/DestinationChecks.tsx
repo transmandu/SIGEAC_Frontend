@@ -65,7 +65,7 @@ export const DestinationChecks = ({
           id="goes-to-inventory"
           checked={goesToInventory}
           onCheckedChange={setExclusive("goes_to_inventory")}
-          label="Pasa directo al inventario"
+          label="Pasar directo a chequeo"
           description="Omite la recepción: el artículo pasará a CHECKING por parte de Ingenería."
           disabled={disabled}
         />

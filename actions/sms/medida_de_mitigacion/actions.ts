@@ -1,6 +1,7 @@
 import axiosInstance from "@/lib/axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 interface MitigationMeasureData {
   company: string | null;
@@ -44,9 +45,7 @@ export const useCreateMitigationMeasure = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo crear la medida de mitigacion...",
-      });
+      notifyError(error, { action: "crear la medida de mitigacion" });
       console.log(error);
     },
   });
@@ -76,9 +75,7 @@ export const useDeleteMitigationMeasure = () => {
       });
     },
     onError: (e) => {
-      toast.error("Oops!", {
-        description: "¡Hubo un error al eliminar la medida de mitigacion!",
-      });
+      notifyError(e, { action: "eliminar la medida de mitigacion" });
     },
   });
 
@@ -95,7 +92,7 @@ export const useUpdateMitigationMeasure = () => {
     mutationFn: async ({ data, company, id }: UpdateMitigationMeasureData) => {
       await axiosInstance.patch(
         `/${company}/sms/mitigation-measures/${id}`,
-        data
+        data,
       );
     },
     onSuccess: () => {
@@ -106,9 +103,7 @@ export const useUpdateMitigationMeasure = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo actualizar la medida de mitigacion...",
-      });
+      notifyError(error, { action: "actualizar la medida de mitigacion" });
       console.log(error);
     },
   });

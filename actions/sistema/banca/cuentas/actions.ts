@@ -1,6 +1,7 @@
 import axiosInstance from "@/lib/axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 interface BankAccountData {
   name: string;
@@ -14,7 +15,9 @@ interface BankAccountData {
   payment_method_ids?: number[];
 }
 
-const invalidateBankAccountQueries = (queryClient: ReturnType<typeof useQueryClient>) => {
+const invalidateBankAccountQueries = (
+  queryClient: ReturnType<typeof useQueryClient>,
+) => {
   queryClient.invalidateQueries({ queryKey: ["bank-accounts"] });
   queryClient.invalidateQueries({ queryKey: ["bank-accounts-by-bank"] });
   queryClient.invalidateQueries({ queryKey: ["payment-methods"] });
@@ -35,10 +38,7 @@ export const useCreateBankAccount = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          error?.response?.data?.message || "No se pudo crear la cuenta.",
-      });
+      notifyError(error, { action: "crear la cuenta" });
     },
   });
 
@@ -51,7 +51,13 @@ export const useUpdateBankAccount = () => {
   const queryClient = useQueryClient();
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: number | string; data: Partial<BankAccountData> }) => {
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: number | string;
+      data: Partial<BankAccountData>;
+    }) => {
       await axiosInstance.put(`/bank-accounts/${id}`, data);
     },
     onSuccess: () => {
@@ -61,10 +67,7 @@ export const useUpdateBankAccount = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          error?.response?.data?.message || "No se pudo actualizar la cuenta.",
-      });
+      notifyError(error, { action: "actualizar la cuenta" });
     },
   });
 
@@ -89,10 +92,7 @@ export const useDeleteBankAccount = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          error?.response?.data?.message || "¡Hubo un error al eliminar la cuenta!",
-      });
+      notifyError(error, { action: "eliminar la cuenta" });
     },
   });
 

@@ -80,6 +80,7 @@ import { toast } from "sonner";
 import { type ChecklistValue } from "@/app/[company]/control_calidad/incoming/IncomingTypes";
 import { ReturnEvidenceSection } from "./ReturnEvidenceSection";
 import { StatusBadge } from "./StatusBadge";
+import { notifyError } from "@/lib/notify-error";
 
 /* ─── Types ─── */
 
@@ -526,7 +527,7 @@ export function IncomingReview({ article }: { article: any }) {
       window.URL.revokeObjectURL(downloadUrl);
     } catch (error) {
       console.error("Error descargando el documento:", error);
-      toast.error("Error al descargar el documento");
+      notifyError(error, { action: "descargar el documento" });
     }
   };
 
@@ -627,7 +628,7 @@ export function IncomingReview({ article }: { article: any }) {
       currentWarehouseId <= 0
     ) {
       toast.error(
-        "Seleccione un almacén válido antes de registrar el incoming.",
+        "¡Ops! Seleccione un almacén válido antes de registrar el incoming.",
       );
       return;
     }

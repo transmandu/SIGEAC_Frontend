@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -16,6 +16,7 @@ import {
 } from "date-fns";
 import { RotateCcw, Search } from "lucide-react";
 import { toast } from "sonner";
+import { useOnChange } from "@/hooks/useOnChange";
 
 type ViewMode = "single" | "range";
 type Granularity = "day" | "month" | "year";
@@ -51,12 +52,12 @@ const DateRangePickerInput = ({
     return dateString;
   };
 
-  useEffect(() => {
+  useOnChange([initialDate, granularity], () => {
     if (initialDate) {
       setFromDate(formatValueForInput(initialDate.from, granularity));
       setToDate(formatValueForInput(initialDate.to, granularity));
     }
-  }, [initialDate, granularity]);
+  });
 
   const calculateExactDate = (value: string, isEnd: boolean) => {
     if (!value) return null;
@@ -92,7 +93,7 @@ const DateRangePickerInput = ({
 
       //Evitar que el desde sea mayor que el hasta
       if (finalFrom && finalTo && finalFrom > finalTo) {
-        toast.error("Fechas inválidas", {
+        toast.error("¡Ops! Fechas inválidas", {
           description:
             "La fecha de inicio no puede ser mayor a la fecha de fin.",
         });

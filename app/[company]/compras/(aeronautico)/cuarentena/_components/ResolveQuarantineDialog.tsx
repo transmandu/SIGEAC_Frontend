@@ -33,7 +33,7 @@ import {
   User,
 } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
-import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 const MIN_NOTES_LENGTH = 5;
 
@@ -151,14 +151,7 @@ export function ResolveQuarantineDialog({ record, open, onOpenChange }: Props) {
           setCheckingEligibility(true);
           await assertCanSendToReinspection(selectedCompany.slug, record.id);
         } catch (error) {
-          const message = (
-            error as { response?: { data?: { message?: string } } }
-          )?.response?.data?.message;
-
-          toast.error("No se puede enviar a re-inspección", {
-            description:
-              message ?? "El registro de cuarentena ya no admite esta acción.",
-          });
+          notifyError(error, { action: "enviar a re-inspección" });
 
           return;
         } finally {

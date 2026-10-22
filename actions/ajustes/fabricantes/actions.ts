@@ -1,7 +1,7 @@
 import axiosInstance from "@/lib/axios";
-import { getApiErrorMessage } from "@/lib/api-error";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 interface ManufacturerSchema {
   name: string;
@@ -34,9 +34,7 @@ export const useCreateManufacturer = () => {
       });
     },
     onError: (error) => {
-      toast.error("Error", {
-        description: getApiErrorMessage(error, "No se creó correctamente."),
-      });
+      notifyError(error, { action: "crear el registro" });
     },
   });
 
@@ -72,12 +70,7 @@ export const useUpdateManufacturer = () => {
       });
     },
     onError: (error) => {
-      toast.error("Error", {
-        description: getApiErrorMessage(
-          error,
-          "No se actualizó correctamente.",
-        ),
-      });
+      notifyError(error, { action: "actualizar el registro" });
     },
   });
 
@@ -106,12 +99,7 @@ export const useDeleteManufacturer = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: getApiErrorMessage(
-          error,
-          "¡Hubo un error al eliminar al fabricante!",
-        ),
-      });
+      notifyError(error, { action: "eliminar al fabricante" });
     },
   });
 

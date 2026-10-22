@@ -5,16 +5,11 @@ import { FileText, Layers, ChevronDown } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import axiosInstance from "@/lib/axios";
 import { toast } from "sonner";
-import { useCallback } from "react";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { bibliotecaEliminarSteps } from "@/components/tour/steps/general/biblioteca/biblioteca-eliminar";
-
-interface Version {
-  id: number;
-  version_number: string;
-  version_label?: string;
-  change_log: string;
-}
+import { notifyError } from "@/lib/notify-error";
+import { useResettingState } from "@/hooks/useResettingState";
+import { useGetDocumentVersions } from "@/hooks/general/archivos/useGetDocumentVersions";
 
 interface DeleteProps {
   isOpen: boolean;
@@ -34,33 +29,28 @@ export const DeleteDocumentDialog = ({
   onSuccess,
   folderPath,
 }: DeleteProps) => {
-  const [deleteMode, setDeleteMode] = useState<"document" | "version">(
-    "document",
-  );
-  const [versionList, setVersionList] = useState<Version[]>([]);
-  const [selectedVersionToDelete, setSelectedVersionToDelete] =
-    useState<string>("");
-  const [loadingVersions, setLoadingVersions] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const handleFetchVersions = useCallback(async () => {
-    setLoadingVersions(true);
+  // El id como valor propio: es lo único que lee el callback, y así su lista de
+  // dependencias dice exactamente eso (con `doc?.id` y `doc.id` mezclados no coincidía).
+  const docId = doc?.id;
 
-    try {
-      const response = await axiosInstance.get(
-        `/${company}/library/documents/${doc.id}/versions`,
-      );
+  const { versions: versionList, isFetching: loadingVersions } =
+    useGetDocumentVersions({
+      company,
+      documentId: docId,
+      enabled: isOpen,
+      action: "obtener el historial de versiones",
+    });
 
-      const fetchedVersions = response.data?.data?.versions || [];
-      setVersionList(Array.isArray(fetchedVersions) ? fetchedVersions : []);
-    } catch (error) {
-      console.error("Error al cargar versiones:", error);
-      setVersionList([]);
-      toast.error("No se pudo obtener el historial de versiones");
-    } finally {
-      setLoadingVersions(false);
-    }
-  }, [company, doc?.id]);
+  // Cada vez que se abre (o llega otro documento) el diálogo parte de borrar el
+  // documento completo, sin versión elegida.
+  const [deleteMode, setDeleteMode] = useResettingState<"document" | "version">(
+    "document",
+    [isOpen, docId],
+  );
+  const [selectedVersionToDelete, setSelectedVersionToDelete] =
+    useResettingState<string>("", [isOpen, docId]);
 
   const { registerTour, unregisterTour } = useTourContext();
 
@@ -89,7 +79,7 @@ export const DeleteDocumentDialog = ({
         toast.success("Documento eliminado correctamente");
       } else {
         if (!selectedVersionToDelete) {
-          toast.error("Selecciona la versión que quieres eliminar");
+          toast.error("¡Ops! Selecciona la versión que quieres eliminar");
           return;
         }
         await axiosInstance.delete(
@@ -99,9 +89,7 @@ export const DeleteDocumentDialog = ({
       }
       isActuallyDeleted = true;
     } catch (error: any) {
-      const msg =
-        error.response?.data?.message || "Error al conectar con el servidor";
-      toast.error(msg);
+      notifyError(error, { action: "eliminar el documento" });
     } finally {
       setIsProcessing(false);
       if (isActuallyDeleted) {
@@ -121,16 +109,6 @@ export const DeleteDocumentDialog = ({
     () => (versionList.length > 1 ? versionList : []),
     [versionList],
   );
-
-  useEffect(() => {
-    if (isOpen && doc?.id) {
-      handleFetchVersions();
-    } else {
-      setDeleteMode("document");
-      setSelectedVersionToDelete("");
-      setVersionList([]);
-    }
-  }, [isOpen, doc?.id, handleFetchVersions]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

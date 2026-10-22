@@ -8,11 +8,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { toast } from "@/components/ui/use-toast";
 import axiosInstance from "@/lib/axios";
 import { cn } from "@/lib/utils";
 import { FileDown, Loader2 } from "lucide-react";
 import { useEffect, useState, useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useObjectUrl } from "@/hooks/useObjectUrl";
+import { notifyError } from "@/lib/notify-error";
 
 interface PdfEndpointPreviewDialogProps {
   open: boolean;
@@ -35,18 +37,7 @@ export function PdfEndpointPreviewDialog({
   className,
   fileExtension = "pdf",
 }: PdfEndpointPreviewDialogProps) {
-  const [isLoading, setIsLoading] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [previewBlob, setPreviewBlob] = useState<Blob | null>(null);
-
-  const resetPreview = useCallback(() => {
-    if (previewUrl) {
-      window.URL.revokeObjectURL(previewUrl);
-    }
-    setPreviewUrl(null);
-    setPreviewBlob(null);
-  }, [previewUrl]);
 
   const fetchPdfBlob = useCallback(async () => {
     const response = await axiosInstance.get(endpoint, {
@@ -58,55 +49,35 @@ export function PdfEndpointPreviewDialog({
     return blob.type ? blob : new Blob([blob], { type: "application/pdf" });
   }, [endpoint]);
 
-  const ensurePreview = useCallback(async () => {
-    if (previewBlob && previewUrl) {
-      return previewBlob;
-    }
+  // Se pide al abrir y se descarta al cerrar: la vista previa siempre es del
+  // documento tal como está ahora.
+  const {
+    data: fetchedBlob,
+    isFetching: isLoading,
+    error: previewError,
+  } = useQuery<Blob, Error>({
+    queryKey: ["pdf-endpoint-preview", endpoint],
+    queryFn: fetchPdfBlob,
+    enabled: open,
+    staleTime: 0,
+    gcTime: 0,
+    meta: { silent: true },
+  });
 
-    const blob = await fetchPdfBlob();
-    const url = window.URL.createObjectURL(blob);
-
-    setPreviewUrl((prevUrl) => {
-      if (prevUrl) {
-        window.URL.revokeObjectURL(prevUrl);
-      }
-      return url;
-    });
-    setPreviewBlob(blob);
-
-    return blob;
-  }, [previewBlob, previewUrl, fetchPdfBlob]);
-
-  const loadPreview = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      await ensurePreview();
-    } catch {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "No se pudo cargar la vista previa del PDF.",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }, [ensurePreview]);
-
-  // EFECTO 1: Carga automática al abrir y limpieza al cerrar/desmontar
   useEffect(() => {
-    if (open) {
-      void loadPreview();
-    } else {
-      resetPreview();
+    if (previewError) {
+      notifyError(previewError, { action: "cargar la vista previa del PDF" });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+  }, [previewError]);
+
+  const previewBlob = open ? (fetchedBlob ?? null) : null;
+  const previewUrl = useObjectUrl(previewBlob);
 
   const handleDownload = async () => {
     setIsDownloading(true);
 
     try {
-      const blob = await ensurePreview();
+      const blob = previewBlob ?? (await fetchPdfBlob());
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
 
@@ -116,12 +87,8 @@ export function PdfEndpointPreviewDialog({
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
-    } catch {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "No se pudo descargar el PDF.",
-      });
+    } catch (error) {
+      notifyError(error, { action: "descargar el PDF" });
     } finally {
       setIsDownloading(false);
     }

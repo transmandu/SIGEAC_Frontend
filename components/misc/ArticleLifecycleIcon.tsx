@@ -1,6 +1,12 @@
 "use client";
 
-import { CheckCircle2, CreditCard, PackageCheck, PackageOpen, Truck } from "lucide-react";
+import {
+  CheckCircle2,
+  CreditCard,
+  PackageCheck,
+  PackageOpen,
+  Truck,
+} from "lucide-react";
 
 import {
   Tooltip,
@@ -70,7 +76,7 @@ const ArticleLifecycleIcon = ({
         </span>
       </TooltipTrigger>
 
-      <TooltipContent side="top" className="max-w-[280px] text-xs">
+      <TooltipContent side="top" className="max-w-70 text-xs">
         {text}
       </TooltipContent>
     </Tooltip>

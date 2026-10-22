@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select";
 
 import axiosInstance from "@/lib/axios";
+import { notifyError } from "@/lib/notify-error";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -68,6 +69,8 @@ type DownloadReportDialogProps = {
   statusOptions?: StatusOption[];
   /** Filtro por quién compró el artículo. */
   sourceOptions?: StatusOption[];
+  /** Filtro por origen del intake (compras, recepción administrativa, reclasificado). */
+  entryTypeOptions?: StatusOption[];
   triggerVariant?: "outline" | "default" | "secondary";
 };
 
@@ -81,6 +84,7 @@ export function DownloadReportDialog({
   dateFieldOptions,
   statusOptions,
   sourceOptions,
+  entryTypeOptions,
   triggerVariant = "outline",
 }: DownloadReportDialogProps) {
   const { selectedCompany, selectedStation } = useCompanyStore();
@@ -100,6 +104,9 @@ export function DownloadReportDialog({
   const [source, setSource] = useState<string>(
     sourceOptions?.[0]?.value ?? "ALL",
   );
+  const [entryType, setEntryType] = useState<string>(
+    entryTypeOptions?.[0]?.value ?? "ALL",
+  );
   const [loading, setLoading] = useState(false);
 
   const handleDownload = async () => {
@@ -114,6 +121,8 @@ export function DownloadReportDialog({
       if (dateFieldOptions && dateField) params.set("date_field", dateField);
       if (statusOptions && status !== "ALL") params.set("status", status);
       if (sourceOptions && source !== "ALL") params.set("source", source);
+      if (entryTypeOptions && entryType !== "ALL")
+        params.set("entry_type", entryType);
 
       const resolvedEndpoint = requiresLocation
         ? endpoint.replace("{location_id}", selectedStation)
@@ -145,8 +154,9 @@ export function DownloadReportDialog({
       window.URL.revokeObjectURL(url);
 
       setOpen(false);
-    } catch {
-      // silent
+    } catch (error) {
+      // Antes el fallo se tragaba y el diálogo no decía nada.
+      notifyError(error, { action: "generar el reporte" });
     } finally {
       setLoading(false);
     }
@@ -212,6 +222,24 @@ export function DownloadReportDialog({
                 </SelectTrigger>
                 <SelectContent>
                   {sourceOptions.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {entryTypeOptions && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Origen</label>
+              <Select value={entryType} onValueChange={setEntryType}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {entryTypeOptions.map((opt) => (
                     <SelectItem key={opt.value} value={opt.value}>
                       {opt.label}
                     </SelectItem>

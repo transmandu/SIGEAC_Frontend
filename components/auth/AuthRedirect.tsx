@@ -63,6 +63,7 @@ export default function AuthRedirect() {
       // Sin cookie la sesión ya terminó (un 401 tardío): recargar solo sería
       // un parpadeo hacia el mismo login.
       if (window.location.pathname === "/login" && hasAuthCookie()) {
+        // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- navegación completa a propósito: es el respaldo para cuando router.replace ya falló, y repetir la transición de Next no la arreglaría.
         window.location.assign("/inicio");
       }
     }, 3000);

@@ -1,9 +1,10 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { createPortal } from 'react-dom';
-import Image from 'next/image';
-import { X } from 'lucide-react';
+import { useEffect } from "react";
+import { createPortal } from "react-dom";
+import Image from "next/image";
+import { X } from "lucide-react";
+import { useIsClient } from "@/hooks/useIsClient";
 
 interface ImageViewerProps {
   openImage: string | null;
@@ -14,31 +15,29 @@ interface ImageViewerProps {
 // un contexto de apilamiento y dejaría el overlay debajo del navbar/sidebar y
 // posicionado contra el contenedor en vez del viewport.
 const ImageViewer = ({ openImage, onClose }: ImageViewerProps) => {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => setMounted(true), []);
+  const mounted = useIsClient();
 
   useEffect(() => {
     if (!openImage) return;
 
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === "Escape") onClose();
     };
 
-    document.addEventListener('keydown', onKeyDown);
+    document.addEventListener("keydown", onKeyDown);
 
     const { overflow } = document.body.style;
-    document.body.style.overflow = 'hidden';
+    document.body.style.overflow = "hidden";
 
     return () => {
-      document.removeEventListener('keydown', onKeyDown);
+      document.removeEventListener("keydown", onKeyDown);
       document.body.style.overflow = overflow;
     };
   }, [openImage, onClose]);
 
   if (!openImage || !mounted) return null;
 
-  const src = openImage.startsWith('data:image')
+  const src = openImage.startsWith("data:image")
     ? openImage
     : `data:image/jpeg;base64,${openImage}`;
 
@@ -65,12 +64,12 @@ const ImageViewer = ({ openImage, onClose }: ImageViewerProps) => {
           alt="Imagen ampliada"
           width={1600}
           height={1200}
-          style={{ width: 'auto', height: 'auto' }}
+          style={{ width: "auto", height: "auto" }}
           className="max-h-[85vh] max-w-[90vw] rounded-lg object-contain shadow-2xl"
         />
       </div>
     </div>,
-    document.body
+    document.body,
   );
 };
 

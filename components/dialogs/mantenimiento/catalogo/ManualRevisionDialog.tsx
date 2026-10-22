@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   AlertTriangle,
   ChevronDown,
@@ -42,6 +42,7 @@ import { toCalendarPayload } from "@/lib/date";
 import { CATEGORY_LABELS } from "@/lib/maintenanceCatalogLabels";
 import { CatalogManual } from "@/types/maintenanceCatalog";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { useOnChange } from "@/hooks/useOnChange";
 
 interface ManualRevisionDialogProps {
   open: boolean;
@@ -81,7 +82,7 @@ export function ManualRevisionDialog({
     [manual.services],
   );
 
-  useEffect(() => {
+  useOnChange([open, manual, sourceServices], () => {
     if (!open) return;
     setForm({ ...emptyState, description: manual.description ?? "" });
     setEffectiveDate(undefined);
@@ -91,7 +92,7 @@ export function ManualRevisionDialog({
       Object.fromEntries(sourceServices.map((service) => [service.id, true])),
     );
     setExpanded(null);
-  }, [open, manual, sourceServices]);
+  });
 
   const selectedCount = services.filter(
     (s) => selected[s.source_service_id!],

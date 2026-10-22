@@ -31,7 +31,6 @@ import { Separator } from "@radix-ui/react-select";
 import RiskMatrix from "@/components/misc/RiskMatrix";
 import { useRouter } from "next/navigation";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { useEffect, useState } from "react";
 
 const FormSchema = z.object({
   severity: z.string(),
@@ -85,21 +84,11 @@ export default function CreateAnalysisForm({
       : { probability: "", severity: "" },
   });
 
-  const [currentSelection, setCurrentSelection] = useState("");
-
   const watchedProbability = useWatch({
     control: form.control,
     name: "probability",
   });
   const watchedSeverity = useWatch({ control: form.control, name: "severity" });
-
-  useEffect(() => {
-    if (watchedProbability && watchedSeverity) {
-      setCurrentSelection(`${watchedProbability}${watchedSeverity}`);
-    } else {
-      setCurrentSelection("");
-    }
-  }, [watchedProbability, watchedSeverity, form]);
 
   const handleCellClick = (probability: string, severity: string) => {
     form.setValue("probability", probability);
@@ -118,14 +107,14 @@ export default function CreateAnalysisForm({
       };
       await updateAnalyses.mutateAsync(value);
     } else {
-      id = id.toString();
+      const entityId = id.toString();
       if (name === "mitigacion") {
         const values = {
           company: selectedCompany!.slug,
           data: {
             ...data,
             result: data.probability + data.severity,
-            mitigation_plan_id: id,
+            mitigation_plan_id: entityId,
           },
         };
         await createAnalysis.mutateAsync(values);
@@ -135,7 +124,7 @@ export default function CreateAnalysisForm({
           data: {
             ...data,
             result: data.probability + data.severity,
-            danger_identification_id: id,
+            danger_identification_id: entityId,
           },
         };
         try {
@@ -169,7 +158,6 @@ export default function CreateAnalysisForm({
               <Select
                 onValueChange={(value) => {
                   field.onChange(value);
-                  setCurrentSelection(value + (watchedSeverity || ""));
                 }}
                 value={field.value}
               >
@@ -204,7 +192,6 @@ export default function CreateAnalysisForm({
               <Select
                 onValueChange={(value) => {
                   field.onChange(value);
-                  setCurrentSelection((watchedProbability || "") + value);
                 }}
                 value={field.value}
               >

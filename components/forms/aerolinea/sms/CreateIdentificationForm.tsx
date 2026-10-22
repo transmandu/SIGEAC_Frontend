@@ -42,7 +42,8 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarIcon, Loader2, Plus, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState, useMemo } from "react";
+import { useResettingState } from "@/hooks/useResettingState";
 
 const FormSchema = z.object({
   danger: z
@@ -124,16 +125,59 @@ export default function CreateDangerIdentificationForm({
   const { updateDangerIdentification } = useUpdateDangerIdentification();
   const router = useRouter();
 
-  const [defenses, setDefenses] = useState<string[]>([]);
-  const [newDefense, setNewDefense] = useState("");
-  const [noDefenses, setNoDefenses] = useState(false);
+  // Las listas se guardan en un solo texto separado por "~"; "No aplica" es un
+  // valor aparte que desactiva la lista.
+  const initialLists = useMemo(() => {
+    const splitAndFilter = (str: string | undefined) =>
+      str
+        ? str
+            .split("~")
+            .map((s) => s.trim())
+            .filter(Boolean)
+        : [];
 
-  const [consequences, setConsequences] = useState<string[]>([]);
+    const isNA = (str: string | undefined) =>
+      str?.trim().toUpperCase() === NOT_APPLICABLE;
+
+    const noDefenses = isNA(initialData?.current_defenses);
+    const noAnalyses = isNA(initialData?.root_cause_analysis);
+
+    return {
+      noDefenses,
+      noAnalyses,
+      defenses: noDefenses ? [] : splitAndFilter(initialData?.current_defenses),
+      consequences: splitAndFilter(initialData?.possible_consequences),
+      analyses: noAnalyses
+        ? []
+        : splitAndFilter(initialData?.root_cause_analysis),
+    };
+  }, [initialData]);
+
+  const [defenses, setDefenses] = useResettingState<string[]>(
+    initialLists.defenses,
+    [initialLists],
+  );
+  const [newDefense, setNewDefense] = useState("");
+  const [noDefenses, setNoDefenses] = useResettingState(
+    initialLists.noDefenses,
+    [initialLists],
+  );
+
+  const [consequences, setConsequences] = useResettingState<string[]>(
+    initialLists.consequences,
+    [initialLists],
+  );
   const [newConsequence, setNewConsequence] = useState("");
 
-  const [analyses, setAnalyses] = useState<string[]>([]);
+  const [analyses, setAnalyses] = useResettingState<string[]>(
+    initialLists.analyses,
+    [initialLists],
+  );
   const [newAnalysis, setNewAnalysis] = useState("");
-  const [noAnalyses, setNoAnalyses] = useState(false);
+  const [noAnalyses, setNoAnalyses] = useResettingState(
+    initialLists.noAnalyses,
+    [initialLists],
+  );
 
   const AREAS = [
     "OPERACIONES",
@@ -190,36 +234,6 @@ export default function CreateDangerIdentificationForm({
       possible_consequences: initialData?.possible_consequences || "",
     },
   });
-
-  useEffect(() => {
-    if (initialData) {
-      const splitAndFilter = (str: string | undefined) =>
-        str
-          ? str
-              .split("~")
-              .map((s) => s.trim())
-              .filter(Boolean)
-          : [];
-
-      const isNA = (str: string | undefined) =>
-        str?.trim().toUpperCase() === NOT_APPLICABLE;
-
-      setNoDefenses(isNA(initialData.current_defenses));
-      setNoAnalyses(isNA(initialData.root_cause_analysis));
-
-      setDefenses(
-        isNA(initialData.current_defenses)
-          ? []
-          : splitAndFilter(initialData.current_defenses),
-      );
-      setConsequences(splitAndFilter(initialData.possible_consequences));
-      setAnalyses(
-        isNA(initialData.root_cause_analysis)
-          ? []
-          : splitAndFilter(initialData.root_cause_analysis),
-      );
-    }
-  }, [initialData]);
 
   const addDefense = () => {
     if (newDefense.trim()) {

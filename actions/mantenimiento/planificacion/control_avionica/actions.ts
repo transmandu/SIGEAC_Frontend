@@ -9,13 +9,7 @@ import {
 } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-
-const firstBackendError = (error: any): string | undefined => {
-  const errors = error?.response?.data?.errors;
-  const firstMessage = errors && Object.values(errors).flat()[0];
-
-  return (firstMessage as string | undefined) ?? error?.response?.data?.message;
-};
+import { notifyError } from "@/lib/notify-error";
 
 export interface AvionicsIntervalData {
   counting_method: MaintenanceCountingMethod;
@@ -80,11 +74,7 @@ export const useCreateAvionicsControl = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          firstBackendError(error) ||
-          "No se pudo registrar el control de aviónica...",
-      });
+      notifyError(error, { action: "registrar el control de aviónica" });
       console.log(error);
     },
   });
@@ -120,11 +110,7 @@ export const useUpdateAvionicsControl = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          firstBackendError(error) ||
-          "No se pudo actualizar el control de aviónica...",
-      });
+      notifyError(error, { action: "actualizar el control de aviónica" });
       console.log(error);
     },
   });
@@ -163,10 +149,7 @@ export const useAddAvionicsControlItem = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          firstBackendError(error) || "No se pudo agregar el equipo...",
-      });
+      notifyError(error, { action: "agregar el equipo" });
       console.log(error);
     },
   });
@@ -235,11 +218,7 @@ export const useLinkAvionicsPendingWorkOrder = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          error?.response?.data?.message ??
-          "No se pudo asociar la Orden de Trabajo a la tarea...",
-      });
+      notifyError(error, { action: "asociar la Orden de Trabajo a la tarea" });
       console.log(error);
     },
   });
@@ -290,16 +269,14 @@ export const useImportAvionicsComplianceHistory = () => {
           description: `${result.imported} cumplimiento(s) cargado(s)${result.skipped.length ? `, ${result.skipped.length} fila(s) omitida(s).` : "."}`,
         });
       } else {
-        toast.error("Nada para importar", {
+        toast.error("¡Ops! Nada para importar", {
           description:
             "Ninguna fila coincidió con una tarea programada de este control.",
         });
       }
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo importar el archivo...",
-      });
+      notifyError(error, { action: "importar el archivo" });
       console.log(error);
     },
   });

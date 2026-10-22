@@ -1,10 +1,21 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { CalendarIcon, FileText, Loader2 } from "lucide-react";
 import { format } from "date-fns";
@@ -18,6 +29,8 @@ import {
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 import { IncomingArticle } from "@/app/[company]/control_calidad/incoming/IncomingTypes";
+import { notifyError } from "@/lib/notify-error";
+import { useOnChange } from "@/hooks/useOnChange";
 
 export function GenerateReceptionFormButton({
   selected,
@@ -54,17 +67,28 @@ export function GenerateReceptionFormButton({
 
   /** Los seleccionados pueden venir de varias OC: solo sugerimos si todos comparten la misma. */
   const systemOrderNumbers = useMemo(
-    () => Array.from(new Set(selected.map((a) => a.order_number).filter(Boolean))) as string[],
-    [selected]
+    () =>
+      Array.from(
+        new Set(selected.map((a) => a.order_number).filter(Boolean)),
+      ) as string[],
+    [selected],
   );
-  const suggestedOrderNumber = systemOrderNumbers.length === 1 ? systemOrderNumbers[0] : "";
+  const suggestedOrderNumber =
+    systemOrderNumbers.length === 1 ? systemOrderNumbers[0] : "";
 
   const validation = useMemo(() => {
-    if (!canGenerate) return { ok: false, reason: "Selecciona al menos un artículo." };
+    if (!canGenerate)
+      return { ok: false, reason: "Selecciona al menos un artículo." };
     if (!purchaseOrderCode.trim())
-      return { ok: false, reason: "Indica el número de orden que debe imprimirse en el formato." };
+      return {
+        ok: false,
+        reason: "Indica el número de orden que debe imprimirse en el formato.",
+      };
     if (isCorrection && !voidReason.trim())
-      return { ok: false, reason: "Indica por qué se anula el formato anterior." };
+      return {
+        ok: false,
+        reason: "Indica por qué se anula el formato anterior.",
+      };
     return { ok: true, reason: "" };
   }, [canGenerate, purchaseOrderCode, isCorrection, voidReason]);
 
@@ -74,46 +98,48 @@ export function GenerateReceptionFormButton({
    * volvería a pisar lo que el usuario ya escribió.
    */
   const correctingId = correcting?.id;
-  useEffect(() => {
+  useOnChange([open, correctingId, suggestedOrderNumber], () => {
     if (!open) return;
-    setPurchaseOrderCode(correcting?.purchase_order_code ?? suggestedOrderNumber);
+    setPurchaseOrderCode(
+      correcting?.purchase_order_code ?? suggestedOrderNumber,
+    );
     setClient(correcting?.printed_client ?? "");
     setOthers(correcting?.printed_others ?? "");
     setVoidReason("");
-    if (correcting?.inspection_date) setInspectionDate(new Date(correcting.inspection_date));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, correctingId, suggestedOrderNumber]);
+    if (correcting?.inspection_date)
+      setInspectionDate(new Date(correcting.inspection_date));
+  });
 
-    const confirm = async () => {
-      if (!validation.ok) return;
+  const confirm = async () => {
+    if (!validation.ok) return;
 
-      const payload = {
-        inspection_date: format(inspectionDate, "yyyy-MM-dd"),
-        purchase_order_code: purchaseOrderCode.trim() || null,
-        client: client.trim() || null,
-        others: others.trim() || null,
-        article_ids: selected.map((a) => a.id),
-        download: isCorrection ? true : downloadFormat,
-        corrects_inspection_id: correcting?.id ?? null,
-        void_reason: isCorrection ? voidReason.trim() : null,
-        show_checklist: showChecklist,
-      };
-
-      try {
-        await generatePdf.mutateAsync(payload);
-        toast.success(
-          isCorrection
-            ? "Formato reemitido. El anterior quedó anulado."
-            : downloadFormat
-              ? "PDF generado y descargado."
-              : "Artículos actualizados correctamente."
-        );
-        setOpen(false);
-        onDone?.();
-      } catch (e: any) {
-        toast.error(e?.message ?? "No se pudo generar el formato.");
-      }
+    const payload = {
+      inspection_date: format(inspectionDate, "yyyy-MM-dd"),
+      purchase_order_code: purchaseOrderCode.trim() || null,
+      client: client.trim() || null,
+      others: others.trim() || null,
+      article_ids: selected.map((a) => a.id),
+      download: isCorrection ? true : downloadFormat,
+      corrects_inspection_id: correcting?.id ?? null,
+      void_reason: isCorrection ? voidReason.trim() : null,
+      show_checklist: showChecklist,
     };
+
+    try {
+      await generatePdf.mutateAsync(payload);
+      toast.success(
+        isCorrection
+          ? "Formato reemitido. El anterior quedó anulado."
+          : downloadFormat
+            ? "PDF generado y descargado."
+            : "Artículos actualizados correctamente.",
+      );
+      setOpen(false);
+      onDone?.();
+    } catch (e: any) {
+      notifyError(e, { action: "generar el formato" });
+    }
+  };
 
   const reset = () => {
     setInspectionDate(new Date());
@@ -151,19 +177,23 @@ export function GenerateReceptionFormButton({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {isCorrection ? "Corregir formato H74-036" : "Generar formato H74-036"}
+              {isCorrection
+                ? "Corregir formato H74-036"
+                : "Generar formato H74-036"}
             </DialogTitle>
             <DialogDescription>
               {isCorrection ? (
                 <>
-                  Se emitirá un formato nuevo para <b>{selected.length}</b> artículo(s) y el
-                  anterior (<b>{correcting?.purchase_order_code ?? "N/A"}</b>) quedará{" "}
+                  Se emitirá un formato nuevo para <b>{selected.length}</b>{" "}
+                  artículo(s) y el anterior (
+                  <b>{correcting?.purchase_order_code ?? "N/A"}</b>) quedará{" "}
                   <b>anulado</b>, conservándose en el historial.
                 </>
               ) : (
                 <>
-                  Se generará el formato para <b>{selected.length}</b> artículo(s). Al
-                  confirmar, pasarán a <b>En espera por ubicar</b>.
+                  Se generará el formato para <b>{selected.length}</b>{" "}
+                  artículo(s). Al confirmar, pasarán a{" "}
+                  <b>En espera por ubicar</b>.
                 </>
               )}
             </DialogDescription>
@@ -205,14 +235,14 @@ export function GenerateReceptionFormButton({
               />
               {systemOrderNumbers.length > 1 ? (
                 <p className="text-xs text-muted-foreground">
-                  Los artículos seleccionados provienen de varias órdenes del sistema (
-                  {systemOrderNumbers.join(", ")}). Escribe el número que debe aparecer en el
-                  formato físico.
+                  Los artículos seleccionados provienen de varias órdenes del
+                  sistema ({systemOrderNumbers.join(", ")}). Escribe el número
+                  que debe aparecer en el formato físico.
                 </p>
               ) : suggestedOrderNumber ? (
                 <p className="text-xs text-muted-foreground">
-                  En el sistema es <b>{suggestedOrderNumber}</b>. Edítalo si el formato físico usa
-                  otro número.
+                  En el sistema es <b>{suggestedOrderNumber}</b>. Edítalo si el
+                  formato físico usa otro número.
                   {purchaseOrderCode !== suggestedOrderNumber ? (
                     <Button
                       type="button"
@@ -255,7 +285,8 @@ export function GenerateReceptionFormButton({
             {isCorrection ? (
               <div className="space-y-2">
                 <Label htmlFor="void-reason">
-                  Motivo de la corrección <span className="text-red-600">*</span>
+                  Motivo de la corrección{" "}
+                  <span className="text-red-600">*</span>
                 </Label>
                 <Textarea
                   id="void-reason"
@@ -277,7 +308,9 @@ export function GenerateReceptionFormButton({
                 <Checkbox
                   id="download-format"
                   checked={downloadFormat}
-                  onCheckedChange={(checked) => setDownloadFormat(checked === true)}
+                  onCheckedChange={(checked) =>
+                    setDownloadFormat(checked === true)
+                  }
                 />
                 <Label htmlFor="download-format" className="cursor-pointer">
                   Descargar formato
@@ -292,7 +325,9 @@ export function GenerateReceptionFormButton({
               <Checkbox
                 id="show-checklist"
                 checked={showChecklist}
-                onCheckedChange={(checked) => setShowChecklist(checked === true)}
+                onCheckedChange={(checked) =>
+                  setShowChecklist(checked === true)
+                }
               />
               <Label htmlFor="show-checklist" className="cursor-pointer">
                 Mostrar resultados del checklist (Vo/Bo) en el formato
@@ -317,7 +352,9 @@ export function GenerateReceptionFormButton({
               onClick={confirm}
               className="gap-2"
             >
-              {generatePdf.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+              {generatePdf.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : null}
               {isCorrection ? "Reemitir" : "Confirmar"}
             </Button>
           </DialogFooter>

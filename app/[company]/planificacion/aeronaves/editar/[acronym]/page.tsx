@@ -25,7 +25,7 @@ import {
   Settings,
   ChevronDown,
 } from "lucide-react";
-import { use, useState, useEffect, useCallback } from "react";
+import { use, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { AircraftInfoForm } from "@/components/forms/mantenimiento/aeronaves/AircraftInfoForm";
 import { AircraftPartsInfoForm } from "@/components/forms/mantenimiento/aeronaves/AircraftPartsForm";
@@ -36,6 +36,7 @@ import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufactu
 import { parseISO } from "date-fns";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { formatNumber } from "@/lib/formatNumber";
+import { useOnChange } from "@/hooks/useOnChange";
 
 interface AircraftPart {
   id?: number; // ID para actualizaciones
@@ -173,6 +174,58 @@ function PartsSummaryTree({
   );
 }
 
+/**
+ * Partes del API -> formato del formulario. Recursiva (las subpartes) y pura:
+ * no lee nada del componente, así que vive fuera de él. Dentro, como un
+ * `useCallback` que se llamaba a sí mismo, no podía referirse a su propio nombre
+ * mientras se declaraba.
+ */
+function transformExistingPartsToFormFormat(apiParts: any[]): AircraftPart[] {
+  return apiParts.map((part) => {
+    return {
+      ...(part.id && { id: part.id }),
+      part_name: part.part_name,
+      part_number: part.part_number,
+      serial: part.serial || "",
+      manufacturer_id: part.manufacturer_id?.toString() || "",
+      type: part.type
+        ? String(part.type).charAt(0).toUpperCase() +
+          String(part.type).slice(1).toLowerCase()
+        : "",
+      ata_chapter: part.ata_chapter || part.ata_number || part.ata || "",
+      position: part.position ?? (part as any).position ?? null,
+      part_order: part.part_order ?? null,
+      time_since_new:
+        (part.time_since_new ?? part.part_hours) != null
+          ? Math.round(Number(part.time_since_new ?? part.part_hours) * 100) /
+            100
+          : null,
+      time_since_overhaul:
+        part.time_since_overhaul != null
+          ? Math.round(Number(part.time_since_overhaul) * 100) / 100
+          : null,
+      cycles_since_new:
+        (part.cycles_since_new ?? part.part_cycles) != null
+          ? Math.round(Number(part.cycles_since_new ?? part.part_cycles))
+          : null,
+      cycles_since_overhaul:
+        part.cycles_since_overhaul != null
+          ? Math.round(Number(part.cycles_since_overhaul))
+          : null,
+      condition_type:
+        part.condition_type === "OVERHAULED" ? "OVERHAULED" : "NEW",
+      is_father:
+        typeof part.is_father === "boolean"
+          ? part.is_father
+          : Boolean(part.sub_parts?.length),
+      removed_date: part.removed_date || null,
+      sub_parts: part.sub_parts
+        ? transformExistingPartsToFormFormat(part.sub_parts)
+        : [],
+    } as AircraftPart;
+  });
+}
+
 export default function EditAircraftPage({
   params,
 }: {
@@ -201,57 +254,6 @@ export default function EditAircraftPage({
 
   // Obtener lista de fabricantes para mostrar el nombre en el resumen
   const { data: manufacturers } = useGetManufacturers(selectedCompany?.slug);
-
-  // Función para transformar partes del API al formato del formulario
-  const transformExistingPartsToFormFormat = useCallback(
-    (apiParts: any[]): AircraftPart[] => {
-      return apiParts.map((part) => {
-        return {
-          ...(part.id && { id: part.id }),
-          part_name: part.part_name,
-          part_number: part.part_number,
-          serial: part.serial || "",
-          manufacturer_id: part.manufacturer_id?.toString() || "",
-          type: part.type
-            ? String(part.type).charAt(0).toUpperCase() +
-              String(part.type).slice(1).toLowerCase()
-            : "",
-          ata_chapter: part.ata_chapter || part.ata_number || part.ata || "",
-          position: part.position ?? (part as any).position ?? null,
-          part_order: part.part_order ?? null,
-          time_since_new:
-            (part.time_since_new ?? part.part_hours) != null
-              ? Math.round(
-                  Number(part.time_since_new ?? part.part_hours) * 100,
-                ) / 100
-              : null,
-          time_since_overhaul:
-            part.time_since_overhaul != null
-              ? Math.round(Number(part.time_since_overhaul) * 100) / 100
-              : null,
-          cycles_since_new:
-            (part.cycles_since_new ?? part.part_cycles) != null
-              ? Math.round(Number(part.cycles_since_new ?? part.part_cycles))
-              : null,
-          cycles_since_overhaul:
-            part.cycles_since_overhaul != null
-              ? Math.round(Number(part.cycles_since_overhaul))
-              : null,
-          condition_type:
-            part.condition_type === "OVERHAULED" ? "OVERHAULED" : "NEW",
-          is_father:
-            typeof part.is_father === "boolean"
-              ? part.is_father
-              : Boolean(part.sub_parts?.length),
-          removed_date: part.removed_date || null,
-          sub_parts: part.sub_parts
-            ? transformExistingPartsToFormFormat(part.sub_parts)
-            : [],
-        } as AircraftPart;
-      });
-    },
-    [],
-  ); // Sin dependencias porque la función es pura
 
   const transformAssignmentsToFormFormat = useCallback(
     (assignments: AircraftAssignment[] = []): AircraftPart[] => {
@@ -289,71 +291,68 @@ export default function EditAircraftPage({
 
       return transformExistingPartsToFormFormat(uniqueRootParts);
     },
-    [transformExistingPartsToFormFormat],
+    [],
   );
 
   // Inicializar datos con la información existente de la aeronave
-  useEffect(() => {
-    if (!aircraft || isInitialized) return;
-    if ((aircraft as any).client_id && !clients) return;
+  useOnChange(
+    [aircraft, clients, isInitialized, transformAssignmentsToFormFormat],
+    () => {
+      if (!aircraft || isInitialized) return;
+      if ((aircraft as any).client_id && !clients) return;
 
-    // Buscar cliente por ID
-    const clientName =
-      (aircraft as any).client_id && clients
-        ? clients.find(
-            (client) =>
-              client.id.toString() === (aircraft as any).client_id.toString(),
-          )?.name || ""
-        : aircraft.client?.name || "";
+      // Buscar cliente por ID
+      const clientName =
+        (aircraft as any).client_id && clients
+          ? clients.find(
+              (client) =>
+                client.id.toString() === (aircraft as any).client_id.toString(),
+            )?.name || ""
+          : aircraft.client?.name || "";
 
-    // Inicializar datos de la aeronave
-    setAircraftData({
-      manufacturer_id: aircraft.manufacturer?.id?.toString() || "",
-      client_name: clientName,
-      authorizing: (aircraft.client?.authorizing || "PROPIETARIO") as
-        "PROPIETARIO" | "EXPLOTADOR",
-      serial: aircraft.serial || "",
-      model: (aircraft as any).model || "",
-      acronym: aircraft.acronym || "",
-      flight_hours: aircraft.flight_hours
-        ? Number(aircraft.flight_hours).toFixed(2)
-        : "0.00",
-      flight_cycles: aircraft.flight_cycles
-        ? Math.round(Number(aircraft.flight_cycles)).toString()
-        : "0",
-      fabricant_date: parseISODate(aircraft.fabricant_date),
-      location_id: aircraft.location?.id?.toString() || "",
-      comments: aircraft.comments || "",
-    });
-
-    // Inicializar datos de las partes
-    if (aircraft.aircraft_parts?.length > 0) {
-      setPartsData({
-        parts: transformExistingPartsToFormFormat(aircraft.aircraft_parts),
+      // Inicializar datos de la aeronave
+      setAircraftData({
+        manufacturer_id: aircraft.manufacturer?.id?.toString() || "",
+        client_name: clientName,
+        authorizing: (aircraft.client?.authorizing || "PROPIETARIO") as
+          "PROPIETARIO" | "EXPLOTADOR",
+        serial: aircraft.serial || "",
+        model: (aircraft as any).model || "",
+        acronym: aircraft.acronym || "",
+        flight_hours: aircraft.flight_hours
+          ? Number(aircraft.flight_hours).toFixed(2)
+          : "0.00",
+        flight_cycles: aircraft.flight_cycles
+          ? Math.round(Number(aircraft.flight_cycles)).toString()
+          : "0",
+        fabricant_date: parseISODate(aircraft.fabricant_date),
+        location_id: aircraft.location?.id?.toString() || "",
+        comments: aircraft.comments || "",
       });
-      setIsInitialized(true);
-      return;
-    }
 
-    if ((aircraft as any).aircraft_assignments?.length > 0) {
-      setPartsData({
-        parts: transformAssignmentsToFormFormat(
-          (aircraft as any).aircraft_assignments,
-        ),
-      });
-      setIsInitialized(true);
-      return;
-    }
+      // Inicializar datos de las partes
+      if (aircraft.aircraft_parts?.length > 0) {
+        setPartsData({
+          parts: transformExistingPartsToFormFormat(aircraft.aircraft_parts),
+        });
+        setIsInitialized(true);
+        return;
+      }
 
-    setPartsData({ parts: [] });
-    setIsInitialized(true);
-  }, [
-    aircraft,
-    clients,
-    isInitialized,
-    transformAssignmentsToFormFormat,
-    transformExistingPartsToFormFormat,
-  ]);
+      if ((aircraft as any).aircraft_assignments?.length > 0) {
+        setPartsData({
+          parts: transformAssignmentsToFormFormat(
+            (aircraft as any).aircraft_assignments,
+          ),
+        });
+        setIsInitialized(true);
+        return;
+      }
+
+      setPartsData({ parts: [] });
+      setIsInitialized(true);
+    },
+  );
 
   // Función para transformar las partes del formulario al formato API
   const transformPart = (part: AircraftPart, originalPart?: any): any => {

@@ -1,13 +1,18 @@
-"use client"
+"use client";
 
-import { useEffect, useMemo, useState } from "react"
-import { format } from "date-fns"
-import { es } from "date-fns/locale"
-import { AlertTriangle, Calendar as CalendarIcon, Loader2, Save } from "lucide-react"
+import { useMemo } from "react";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import {
+  AlertTriangle,
+  Calendar as CalendarIcon,
+  Loader2,
+  Save,
+} from "lucide-react";
 
-import { useUpdateGeneralArticleIntake } from "@/actions/mantenimiento/almacen/inventario/articulos_generales/actions"
-import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
+import { useUpdateGeneralArticleIntake } from "@/actions/mantenimiento/almacen/inventario/articulos_generales/actions";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Dialog,
   DialogContent,
@@ -15,34 +20,48 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits"
-import { useGetWarehousesByLocation } from "@/hooks/administracion/useGetWarehousesByUser"
-import { useCompanyStore } from "@/stores/CompanyStore"
-import { cn } from "@/lib/utils"
-import type { GeneralArticleIntake, UpdateGeneralArticleIntakePayload } from "@/types/purchase"
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits";
+import { useGetWarehousesByLocation } from "@/hooks/administracion/useGetWarehousesByUser";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { cn } from "@/lib/utils";
+import type {
+  GeneralArticleIntake,
+  UpdateGeneralArticleIntakePayload,
+} from "@/types/purchase";
+import { useResettingState } from "@/hooks/useResettingState";
 
 // Estado editable del formulario. Las fechas viven como Date|null y el resto
 // como string para que los inputs sean controlados sin saltos de cursor.
 type FormState = {
-  description: string
-  variant_type: string
-  brand_model: string
-  cost: string
-  quantity: string
-  unit_id: string
-  warehouse_id: string
-  arrived_at: Date | null
-  confirmed_at: Date | null
-  rejected_at: Date | null
-  rejection_reason: string
-  observation: string
-}
+  description: string;
+  variant_type: string;
+  brand_model: string;
+  cost: string;
+  quantity: string;
+  unit_id: string;
+  warehouse_id: string;
+  arrived_at: Date | null;
+  confirmed_at: Date | null;
+  rejected_at: Date | null;
+  rejection_reason: string;
+  observation: string;
+};
 
 const toFormState = (intake: GeneralArticleIntake): FormState => ({
   description: intake.historical_description ?? intake.description ?? "",
@@ -57,131 +76,164 @@ const toFormState = (intake: GeneralArticleIntake): FormState => ({
   rejected_at: intake.rejected_at ? new Date(intake.rejected_at) : null,
   rejection_reason: intake.rejection_reason ?? "",
   observation: intake.observation ?? "",
-})
+});
 
 // Un campo de texto vacío significa "sin valor" para las columnas opcionales;
 // description es obligatoria, así que ahí el vacío no se envía nunca.
 const emptyToNull = (value: string) => {
-  const trimmed = value.trim()
-  return trimmed === "" ? null : trimmed
-}
+  const trimmed = value.trim();
+  return trimmed === "" ? null : trimmed;
+};
 
 export default function EditIntakeDialog({
   intake,
   open,
   onOpenChange,
 }: {
-  intake: GeneralArticleIntake
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  intake: GeneralArticleIntake;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }) {
-  const { updateGeneralArticleIntake } = useUpdateGeneralArticleIntake()
-  const { selectedCompany, selectedStation } = useCompanyStore()
+  const { updateGeneralArticleIntake } = useUpdateGeneralArticleIntake();
+  const { selectedCompany, selectedStation } = useCompanyStore();
 
-  const [form, setForm] = useState<FormState>(() => toFormState(intake))
+  // Cada vez que se abre (o llega otro registro) el formulario parte de los datos del registro.
+  const [form, setForm] = useResettingState<FormState>(
+    () => toFormState(intake),
+    [open, intake],
+  );
 
-  const { data: units, isLoading: isUnitsLoading } = useGetUnits(open ? selectedCompany?.slug : undefined)
-  const { data: warehouses, isLoading: isWarehousesLoading } = useGetWarehousesByLocation({
-    company: selectedCompany?.slug ?? "",
-    location_id: selectedStation ?? null,
-  })
+  const { data: units, isLoading: isUnitsLoading } = useGetUnits(
+    open ? selectedCompany?.slug : undefined,
+  );
+  const { data: warehouses, isLoading: isWarehousesLoading } =
+    useGetWarehousesByLocation({
+      company: selectedCompany?.slug ?? "",
+      location_id: selectedStation ?? null,
+    });
 
   const generalWarehouses = useMemo(
-    () => (warehouses ?? []).filter((warehouse) => warehouse.type?.toUpperCase() === "GENERAL"),
-    [warehouses]
-  )
-
-  useEffect(() => {
-    if (!open) return
-    setForm(toFormState(intake))
-  }, [open, intake])
+    () =>
+      (warehouses ?? []).filter(
+        (warehouse) => warehouse.type?.toUpperCase() === "GENERAL",
+      ),
+    [warehouses],
+  );
 
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) =>
-    setForm((prev) => ({ ...prev, [key]: value }))
+    setForm((prev) => ({ ...prev, [key]: value }));
 
   // Una entrega directa no pasa por almacén ni tiene confirmación; su destino
   // (departamento/empleado/tercero) no se toca desde aquí.
-  const isDirectDelivery = !intake.warehouse
-  const isConfirmed = intake.status === "CONFIRMED"
-  const isRejected = intake.status === "REJECTED"
+  const isDirectDelivery = !intake.warehouse;
+  const isConfirmed = intake.status === "CONFIRMED";
+  const isRejected = intake.status === "REJECTED";
 
-  const orderNumber = intake.purchase_order?.quote_order?.requisition_order?.order_number
+  const orderNumber =
+    intake.purchase_order?.quote_order?.requisition_order?.order_number;
 
   // Solo el orden entre fechas: el "no futuro" vive en el registro real, no aquí.
   const confirmedBeforeArrival =
-    !!form.arrived_at && !!form.confirmed_at && form.confirmed_at < form.arrived_at
+    !!form.arrived_at &&
+    !!form.confirmed_at &&
+    form.confirmed_at < form.arrived_at;
   const rejectedBeforeArrival =
-    !!form.arrived_at && !!form.rejected_at && form.rejected_at < form.arrived_at
+    !!form.arrived_at &&
+    !!form.rejected_at &&
+    form.rejected_at < form.arrived_at;
 
   const timelineErrors = [
-    confirmedBeforeArrival && "La confirmación no puede ser anterior a la llegada.",
+    confirmedBeforeArrival &&
+      "La confirmación no puede ser anterior a la llegada.",
     rejectedBeforeArrival && "El rechazo no puede ser anterior a la llegada.",
-  ].filter(Boolean) as string[]
+  ].filter(Boolean) as string[];
 
-  const quantityValue = Number(form.quantity)
-  const quantityInvalid = form.quantity.trim() === "" || !Number.isFinite(quantityValue) || quantityValue <= 0
-  const descriptionInvalid = form.description.trim() === ""
+  const quantityValue = Number(form.quantity);
+  const quantityInvalid =
+    form.quantity.trim() === "" ||
+    !Number.isFinite(quantityValue) ||
+    quantityValue <= 0;
+  const descriptionInvalid = form.description.trim() === "";
 
   // Solo viaja lo que realmente cambió: la edición es parcial y casi siempre
   // toca únicamente las fechas.
   const payload = useMemo<UpdateGeneralArticleIntakePayload>(() => {
-    const original = toFormState(intake)
-    const changes: UpdateGeneralArticleIntakePayload = {}
+    const original = toFormState(intake);
+    const changes: UpdateGeneralArticleIntakePayload = {};
 
-    if (form.description.trim() !== original.description) changes.description = form.description.trim()
-    if (form.variant_type !== original.variant_type) changes.variant_type = emptyToNull(form.variant_type)
-    if (form.brand_model !== original.brand_model) changes.brand_model = emptyToNull(form.brand_model)
+    if (form.description.trim() !== original.description)
+      changes.description = form.description.trim();
+    if (form.variant_type !== original.variant_type)
+      changes.variant_type = emptyToNull(form.variant_type);
+    if (form.brand_model !== original.brand_model)
+      changes.brand_model = emptyToNull(form.brand_model);
 
     if (form.cost !== original.cost) {
-      const parsed = Number(form.cost)
-      changes.cost = form.cost.trim() === "" || !Number.isFinite(parsed) ? null : parsed
+      const parsed = Number(form.cost);
+      changes.cost =
+        form.cost.trim() === "" || !Number.isFinite(parsed) ? null : parsed;
     }
 
-    if (form.quantity !== original.quantity && !quantityInvalid) changes.quantity = quantityValue
-    if (form.unit_id !== original.unit_id && form.unit_id !== "") changes.unit_id = Number(form.unit_id)
-    if (form.warehouse_id !== original.warehouse_id && form.warehouse_id !== "") {
-      changes.warehouse_id = Number(form.warehouse_id)
+    if (form.quantity !== original.quantity && !quantityInvalid)
+      changes.quantity = quantityValue;
+    if (form.unit_id !== original.unit_id && form.unit_id !== "")
+      changes.unit_id = Number(form.unit_id);
+    if (
+      form.warehouse_id !== original.warehouse_id &&
+      form.warehouse_id !== ""
+    ) {
+      changes.warehouse_id = Number(form.warehouse_id);
     }
 
-    if (form.arrived_at?.getTime() !== original.arrived_at?.getTime() && form.arrived_at) {
-      changes.arrived_at = form.arrived_at.toISOString()
+    if (
+      form.arrived_at?.getTime() !== original.arrived_at?.getTime() &&
+      form.arrived_at
+    ) {
+      changes.arrived_at = form.arrived_at.toISOString();
     }
     if (form.confirmed_at?.getTime() !== original.confirmed_at?.getTime()) {
-      changes.confirmed_at = form.confirmed_at ? form.confirmed_at.toISOString() : null
+      changes.confirmed_at = form.confirmed_at
+        ? form.confirmed_at.toISOString()
+        : null;
     }
     if (form.rejected_at?.getTime() !== original.rejected_at?.getTime()) {
-      changes.rejected_at = form.rejected_at ? form.rejected_at.toISOString() : null
+      changes.rejected_at = form.rejected_at
+        ? form.rejected_at.toISOString()
+        : null;
     }
 
     if (form.rejection_reason !== original.rejection_reason) {
-      changes.rejection_reason = emptyToNull(form.rejection_reason)
+      changes.rejection_reason = emptyToNull(form.rejection_reason);
     }
-    if (form.observation !== original.observation) changes.observation = emptyToNull(form.observation)
+    if (form.observation !== original.observation)
+      changes.observation = emptyToNull(form.observation);
 
-    return changes
-  }, [form, intake, quantityInvalid, quantityValue])
+    return changes;
+  }, [form, intake, quantityInvalid, quantityValue]);
 
-  const changedFieldCount = Object.keys(payload).length
+  const changedFieldCount = Object.keys(payload).length;
 
   // Cambiar cantidad/unidad/almacén de una entrada ya confirmada mueve el stock
   // que aportó: se avisa antes, no después.
   const affectsStock =
     isConfirmed &&
-    (payload.quantity !== undefined || payload.unit_id !== undefined || payload.warehouse_id !== undefined)
+    (payload.quantity !== undefined ||
+      payload.unit_id !== undefined ||
+      payload.warehouse_id !== undefined);
 
   const canSubmit =
     changedFieldCount > 0 &&
     timelineErrors.length === 0 &&
     !quantityInvalid &&
     !descriptionInvalid &&
-    !updateGeneralArticleIntake.isPending
+    !updateGeneralArticleIntake.isPending;
 
   const handleSubmit = () => {
     updateGeneralArticleIntake.mutate(
       { id: intake.id, payload },
-      { onSuccess: () => onOpenChange(false) }
-    )
-  }
+      { onSuccess: () => onOpenChange(false) },
+    );
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -202,10 +254,16 @@ export default function EditIntakeDialog({
 
               <DialogDescription className="mt-1 text-xs leading-relaxed text-muted-foreground">
                 Edición administrativa de la entrada de{" "}
-                <span className="font-medium text-foreground">{intake.description}</span>
+                <span className="font-medium text-foreground">
+                  {intake.description}
+                </span>
                 {orderNumber && (
                   <>
-                    {" "}· solicitud <span className="font-medium text-foreground">{orderNumber}</span>
+                    {" "}
+                    · solicitud{" "}
+                    <span className="font-medium text-foreground">
+                      {orderNumber}
+                    </span>
                   </>
                 )}
                 . Solo se guardan los campos que modifiques.
@@ -215,14 +273,16 @@ export default function EditIntakeDialog({
         </DialogHeader>
 
         <div className="overflow-y-auto px-6 py-5 space-y-5">
-
           <Section title="Artículo">
             <div className="space-y-1.5">
               <Label className="text-xs">Descripción</Label>
               <Input
                 value={form.description}
                 onChange={(e) => set("description", e.target.value)}
-                className={cn("h-9 text-sm", descriptionInvalid && "border-red-500/50")}
+                className={cn(
+                  "h-9 text-sm",
+                  descriptionInvalid && "border-red-500/50",
+                )}
               />
             </div>
 
@@ -257,15 +317,23 @@ export default function EditIntakeDialog({
                   min="0"
                   value={form.quantity}
                   onChange={(e) => set("quantity", e.target.value)}
-                  className={cn("h-9 text-sm", quantityInvalid && "border-red-500/50")}
+                  className={cn(
+                    "h-9 text-sm",
+                    quantityInvalid && "border-red-500/50",
+                  )}
                 />
               </div>
 
               <div className="space-y-1.5">
                 <Label className="text-xs">Unidad</Label>
-                <Select value={form.unit_id} onValueChange={(value) => set("unit_id", value)}>
+                <Select
+                  value={form.unit_id}
+                  onValueChange={(value) => set("unit_id", value)}
+                >
                   <SelectTrigger className="h-9 text-sm">
-                    <SelectValue placeholder={isUnitsLoading ? "Cargando..." : "Unidad"} />
+                    <SelectValue
+                      placeholder={isUnitsLoading ? "Cargando..." : "Unidad"}
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     {(units ?? []).map((unit) => (
@@ -293,13 +361,25 @@ export default function EditIntakeDialog({
             {!isDirectDelivery && (
               <div className="space-y-1.5">
                 <Label className="text-xs">Almacén</Label>
-                <Select value={form.warehouse_id} onValueChange={(value) => set("warehouse_id", value)}>
+                <Select
+                  value={form.warehouse_id}
+                  onValueChange={(value) => set("warehouse_id", value)}
+                >
                   <SelectTrigger className="h-9 text-sm">
-                    <SelectValue placeholder={isWarehousesLoading ? "Cargando almacenes..." : "Almacén"} />
+                    <SelectValue
+                      placeholder={
+                        isWarehousesLoading
+                          ? "Cargando almacenes..."
+                          : "Almacén"
+                      }
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     {generalWarehouses.map((warehouse) => (
-                      <SelectItem key={warehouse.id} value={String(warehouse.id)}>
+                      <SelectItem
+                        key={warehouse.id}
+                        value={String(warehouse.id)}
+                      >
                         {warehouse.name}
                       </SelectItem>
                     ))}
@@ -340,7 +420,10 @@ export default function EditIntakeDialog({
             {timelineErrors.length > 0 && (
               <div className="rounded-lg border border-red-500/20 bg-red-500/5 px-3 py-2 space-y-1">
                 {timelineErrors.map((error) => (
-                  <p key={error} className="text-[11px] leading-relaxed text-red-600 dark:text-red-400">
+                  <p
+                    key={error}
+                    className="text-[11px] leading-relaxed text-red-600 dark:text-red-400"
+                  >
                     {error}
                   </p>
                 ))}
@@ -373,12 +456,12 @@ export default function EditIntakeDialog({
           {affectsStock && (
             <div className="rounded-lg border border-amber-500/25 bg-amber-500/5 px-3 py-2.5">
               <p className="text-[11px] leading-relaxed text-amber-700 dark:text-amber-300">
-                Esta entrada ya fue confirmada. Al cambiar la cantidad, la unidad o el almacén, el
-                stock del artículo se reajustará automáticamente y quedará registrado en su historial.
+                Esta entrada ya fue confirmada. Al cambiar la cantidad, la
+                unidad o el almacén, el stock del artículo se reajustará
+                automáticamente y quedará registrado en su historial.
               </p>
             </div>
           )}
-
         </div>
 
         <DialogFooter className="shrink-0 flex flex-row items-center justify-between gap-2 border-t border-border/40 bg-muted/20 px-6 py-4">
@@ -432,10 +515,16 @@ export default function EditIntakeDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
 
-const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
+const Section = ({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) => (
   <div className="space-y-3">
     <div className="flex items-center gap-2">
       <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
@@ -445,7 +534,7 @@ const Section = ({ title, children }: { title: string; children: React.ReactNode
     </div>
     {children}
   </div>
-)
+);
 
 const DateTimeField = ({
   label,
@@ -454,28 +543,28 @@ const DateTimeField = ({
   invalid,
   clearable,
 }: {
-  label: string
-  value: Date | null
-  onChange: (date: Date | null) => void
-  invalid?: boolean
-  clearable?: boolean
+  label: string;
+  value: Date | null;
+  onChange: (date: Date | null) => void;
+  invalid?: boolean;
+  clearable?: boolean;
 }) => {
   const handleDateSelect = (day: Date | undefined) => {
-    if (!day) return
-    const next = new Date(day)
+    if (!day) return;
+    const next = new Date(day);
     // Al elegir día se conserva la hora ya cargada; si no había fecha, arranca
     // en 00:00 para no inventar una hora que el usuario no eligió.
-    next.setHours(value?.getHours() ?? 0, value?.getMinutes() ?? 0, 0, 0)
-    onChange(next)
-  }
+    next.setHours(value?.getHours() ?? 0, value?.getMinutes() ?? 0, 0, 0);
+    onChange(next);
+  };
 
   const handleTimeChange = (raw: string) => {
-    const [hours, minutes] = raw.split(":").map(Number)
-    if (Number.isNaN(hours) || Number.isNaN(minutes)) return
-    const next = new Date(value ?? new Date())
-    next.setHours(hours, minutes, 0, 0)
-    onChange(next)
-  }
+    const [hours, minutes] = raw.split(":").map(Number);
+    if (Number.isNaN(hours) || Number.isNaN(minutes)) return;
+    const next = new Date(value ?? new Date());
+    next.setHours(hours, minutes, 0, 0);
+    onChange(next);
+  };
 
   return (
     <div className="space-y-1.5">
@@ -489,11 +578,13 @@ const DateTimeField = ({
               className={cn(
                 "h-9 flex-1 justify-start text-sm bg-background/70",
                 !value && "text-muted-foreground",
-                invalid && "border-red-500/50"
+                invalid && "border-red-500/50",
               )}
             >
               <CalendarIcon className="mr-2 h-3 w-3 opacity-60" />
-              {value ? format(value, "dd MMM yyyy", { locale: es }) : "Sin fecha"}
+              {value
+                ? format(value, "dd MMM yyyy", { locale: es })
+                : "Sin fecha"}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0">
@@ -511,7 +602,10 @@ const DateTimeField = ({
           type="time"
           value={value ? format(value, "HH:mm") : ""}
           onChange={(e) => handleTimeChange(e.target.value)}
-          className={cn("h-9 w-28 bg-background/70 text-sm", invalid && "border-red-500/50")}
+          className={cn(
+            "h-9 w-28 bg-background/70 text-sm",
+            invalid && "border-red-500/50",
+          )}
         />
 
         {clearable && value && (
@@ -525,5 +619,5 @@ const DateTimeField = ({
         )}
       </div>
     </div>
-  )
-}
+  );
+};

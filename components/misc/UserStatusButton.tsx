@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
-import axiosInstance from "@/lib/axios"
-import { Badge } from "@/components/ui/badge"
+import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import axiosInstance from "@/lib/axios";
+import { Badge } from "@/components/ui/badge";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,55 +15,60 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+} from "@/components/ui/alert-dialog";
+import { notifyError } from "@/lib/notify-error";
 
 interface Props {
-  userId: number
-  isActive: boolean
+  userId: number;
+  isActive: boolean;
 }
 
 export default function UserStatusButton({ userId, isActive }: Props) {
-  const [open, setOpen] = useState(false)
-  const queryClient = useQueryClient()
+  const [open, setOpen] = useState(false);
+  const queryClient = useQueryClient();
 
   const mutation = useMutation({
     mutationFn: async (newStatus: boolean) => {
       // axiosInstance ya tiene baseURL + token
-      await axiosInstance.put(`/user/${userId}/status`, { isActive: newStatus })
-      return newStatus
+      await axiosInstance.put(`/user/${userId}/status`, {
+        isActive: newStatus,
+      });
+      return newStatus;
     },
     onMutate: async (newStatus) => {
-      await queryClient.cancelQueries({ queryKey: ["users"] })
-      const previousUsers = queryClient.getQueryData<any>(["users"])
+      await queryClient.cancelQueries({ queryKey: ["users"] });
+      const previousUsers = queryClient.getQueryData<any>(["users"]);
 
       queryClient.setQueryData(["users"], (old: any) => {
-        if (!old) return old
+        if (!old) return old;
         return old.map((user: any) =>
-          user.id === userId ? { ...user, isActive: newStatus ? "1" : "0"} : user
-        )
-      })
+          user.id === userId
+            ? { ...user, isActive: newStatus ? "1" : "0" }
+            : user,
+        );
+      });
 
-      return { previousUsers }
+      return { previousUsers };
     },
     onError: (_, __, context) => {
       if (context?.previousUsers) {
-        queryClient.setQueryData(["users"], context.previousUsers)
+        queryClient.setQueryData(["users"], context.previousUsers);
       }
-      toast.error("No se pudo actualizar el usuario")
+      notifyError(_, { action: "actualizar el usuario" });
     },
     onSuccess: (newStatus) => {
       toast.success(
         newStatus
           ? "Usuario reactivado correctamente"
-          : "Usuario deshabilitado correctamente"
-      )
+          : "Usuario deshabilitado correctamente",
+      );
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["users"] })
+      queryClient.invalidateQueries({ queryKey: ["users"] });
     },
-  })
+  });
 
-  const newStatus = !isActive
+  const newStatus = !isActive;
 
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
@@ -77,8 +82,8 @@ export default function UserStatusButton({ userId, isActive }: Props) {
             {mutation.isPending
               ? "Procesando..."
               : isActive
-              ? "ACTIVO"
-              : "INACTIVO"}
+                ? "ACTIVO"
+                : "INACTIVO"}
           </Badge>
         </button>
       </AlertDialogTrigger>
@@ -100,8 +105,8 @@ export default function UserStatusButton({ userId, isActive }: Props) {
           <AlertDialogAction
             disabled={mutation.isPending}
             onClick={() => {
-              mutation.mutate(newStatus)
-              setOpen(false)
+              mutation.mutate(newStatus);
+              setOpen(false);
             }}
           >
             Confirmar
@@ -109,5 +114,5 @@ export default function UserStatusButton({ userId, isActive }: Props) {
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
-  )
+  );
 }

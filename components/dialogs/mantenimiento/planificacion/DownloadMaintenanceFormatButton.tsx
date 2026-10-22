@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useIsSuperuser } from "@/hooks/helpers/useIsSuperuser";
 import axiosInstance from "@/lib/axios";
-import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 interface DownloadMaintenanceFormatButtonProps {
   url: string;
@@ -47,9 +47,7 @@ export function DownloadMaintenanceFormatButton({
       link.remove();
       window.URL.revokeObjectURL(objectUrl);
     } catch (error) {
-      toast.error("Oops!", {
-        description: "No se pudo generar el formato INAC.",
-      });
+      notifyError(error, { action: "generar el formato INAC" });
       console.log(error);
     } finally {
       setIsDownloading(false);

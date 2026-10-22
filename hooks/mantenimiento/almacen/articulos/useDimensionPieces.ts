@@ -1,6 +1,7 @@
 import axios from "@/lib/axios";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 export type DimensionCut = {
   id: number;
@@ -29,10 +30,7 @@ export type PieceCutsResponse = {
 };
 
 /** Trazos cortados de una pieza: explica por qué le queda lo que le queda. */
-export const useGetPieceCuts = (
-  piece_id: number | null,
-  company?: string,
-) => {
+export const useGetPieceCuts = (piece_id: number | null, company?: string) => {
   return useQuery<PieceCutsResponse, Error>({
     queryKey: ["dimension-piece-cuts", company, piece_id],
     queryFn: async () => {
@@ -78,10 +76,7 @@ export const useScrapPiece = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          error?.response?.data?.message ?? "No se pudo dar de baja la pieza.",
-      });
+      notifyError(error, { action: "dar de baja la pieza" });
     },
   });
 

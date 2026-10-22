@@ -6,7 +6,7 @@ import {
 } from "@/types/maintenanceCatalog";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { apiErrorMessage } from "@/lib/apiErrorMessage";
+import { notifyError } from "@/lib/notify-error";
 
 export interface TaskRequirementFormData {
   id?: number;
@@ -74,9 +74,7 @@ export const useCreateCatalogTask = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: apiErrorMessage(error, "No se pudo registrar la tarea..."),
-      });
+      notifyError(error, { action: "registrar la tarea" });
     },
   });
 
@@ -110,12 +108,7 @@ export const useUpdateCatalogTask = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: apiErrorMessage(
-          error,
-          "No se pudo actualizar la tarea...",
-        ),
-      });
+      notifyError(error, { action: "actualizar la tarea" });
     },
   });
 
@@ -146,9 +139,7 @@ export const useDeleteCatalogTask = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: apiErrorMessage(error, "No se pudo eliminar la tarea..."),
-      });
+      notifyError(error, { action: "eliminar la tarea" });
     },
   });
 

@@ -11,16 +11,14 @@ import {
   uniformMovementTypeLabel,
 } from "@/lib/sms/uniforms";
 import {
-  getUniformTypeIcon,
+  UniformTypeIcon,
   MOVEMENT_TYPE_META,
 } from "@/components/sms/uniform-meta";
 import { formatCalendarDate } from "@/lib/date";
 
 const formatDate = (value?: string) => formatCalendarDate(value, "date", "---");
 
-const employeeFullName = (
-  emp: NonNullable<UniformMovement["employee"]>
-) =>
+const employeeFullName = (emp: NonNullable<UniformMovement["employee"]>) =>
   [emp.first_name, emp.middle_name, emp.last_name, emp.second_last_name]
     .filter(Boolean)
     .join(" ");
@@ -43,11 +41,10 @@ export const movementsColumns: AppColumnDef<UniformMovement>[] = [
     cell: ({ row }) => {
       const item = row.original.item;
       if (!item) return <span className="text-muted-foreground">---</span>;
-      const Icon = getUniformTypeIcon(undefined, item.type_label);
       return (
         <div className="flex items-center gap-2.5">
           <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
-            <Icon className="size-4" />
+            <UniformTypeIcon label={item.type_label} className="size-4" />
           </span>
           <div className="flex flex-col">
             <span className="text-sm font-semibold uppercase">

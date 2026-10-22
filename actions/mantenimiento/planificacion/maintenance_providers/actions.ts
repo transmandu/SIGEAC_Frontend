@@ -2,6 +2,7 @@ import axiosInstance from "@/lib/axios";
 import { MaintenanceProvider } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 export const useCreateMaintenanceProvider = () => {
   const queryClient = useQueryClient();
@@ -27,9 +28,7 @@ export const useCreateMaintenanceProvider = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo registrar la entidad...",
-      });
+      notifyError(error, { action: "registrar la entidad" });
       console.log(error);
     },
   });

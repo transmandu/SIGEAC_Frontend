@@ -1,19 +1,7 @@
 import axiosInstance from "@/lib/axios";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-
-const getMessage = (error: unknown, fallback: string) => {
-  const e = error as {
-    response?: {
-      data?: { message?: string; errors?: Record<string, string[]> };
-    };
-  };
-  const firstValidation = e.response?.data?.errors
-    ? Object.values(e.response.data.errors)[0]?.[0]
-    : undefined;
-
-  return firstValidation || e.response?.data?.message || fallback;
-};
+import { notifyError } from "@/lib/notify-error";
 
 export interface PasswordResetRequest {
   id: number;
@@ -54,14 +42,12 @@ export const useRequestPasswordReset = () => {
     mutationFn: async (data: { email: string; note?: string }) => {
       const response = await axiosInstance.post(
         "/password-reset-requests",
-        data
+        data,
       );
       return response.data;
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: getMessage(error, "No se pudo enviar la solicitud..."),
-      });
+      notifyError(error, { action: "enviar la solicitud" });
     },
   });
 };
@@ -76,7 +62,7 @@ export const usePendingPasswordResets = (enabled = true) => {
     queryKey: ["password-reset-requests", "pending"],
     queryFn: async () => {
       const response = await axiosInstance.get(
-        "/password-reset-requests/pending"
+        "/password-reset-requests/pending",
       );
       return response.data;
     },
@@ -112,7 +98,7 @@ export const useResolvePasswordReset = () => {
     }) => {
       const response = await axiosInstance.post(
         `/password-reset-requests/${id}/resolve`,
-        data
+        data,
       );
       return response.data;
     },
@@ -123,9 +109,7 @@ export const useResolvePasswordReset = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: getMessage(error, "No se pudo restablecer la contraseña..."),
-      });
+      notifyError(error, { action: "restablecer la contraseña" });
     },
   });
 };
@@ -134,10 +118,16 @@ export const useRejectPasswordReset = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, resolution }: { id: number; resolution?: string }) => {
+    mutationFn: async ({
+      id,
+      resolution,
+    }: {
+      id: number;
+      resolution?: string;
+    }) => {
       const response = await axiosInstance.post(
         `/password-reset-requests/${id}/reject`,
-        { resolution }
+        { resolution },
       );
       return response.data;
     },
@@ -146,9 +136,7 @@ export const useRejectPasswordReset = () => {
       toast.success("Solicitud descartada");
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: getMessage(error, "No se pudo descartar la solicitud..."),
-      });
+      notifyError(error, { action: "descartar la solicitud" });
     },
   });
 };

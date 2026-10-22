@@ -9,16 +9,44 @@ import {
   Shirt,
 } from "lucide-react";
 
-/**
- * Maps a uniform type to a representative icon. Falls back to a neutral
- * package glyph so unknown types degrade gracefully instead of breaking.
- */
-export const getUniformTypeIcon = (type?: string, label?: string): LucideIcon => {
+const UNIFORM_TYPE_ICONS = {
+  shirt: Shirt,
+  footwear: Footprints,
+  headwear: HardHat,
+  other: Package,
+} satisfies Record<string, LucideIcon>;
+
+const uniformTypeKey = (
+  type?: string,
+  label?: string,
+): keyof typeof UNIFORM_TYPE_ICONS => {
   const key = `${type ?? ""} ${label ?? ""}`.toLowerCase();
-  if (/camis|shirt|franel|chemi|chalec|vest/.test(key)) return Shirt;
-  if (/bota|boot|calzad|zapat/.test(key)) return Footprints;
-  if (/casco|helmet|gorra|cap/.test(key)) return HardHat;
-  return Package;
+  if (/camis|shirt|franel|chemi|chalec|vest/.test(key)) return "shirt";
+  if (/bota|boot|calzad|zapat/.test(key)) return "footwear";
+  if (/casco|helmet|gorra|cap/.test(key)) return "headwear";
+  return "other";
+};
+
+/**
+ * Icono representativo de un tipo de uniforme. Cae en un paquete neutro para
+ * que un tipo desconocido no rompa nada.
+ *
+ * Es un componente y no una función que devuelve un icono: guardar ese icono en
+ * una variable dentro de otro componente creaba un tipo de componente nuevo en
+ * cada render, y React lo desmontaba y volvía a montar cada vez.
+ */
+export const UniformTypeIcon = ({
+  type,
+  label,
+  className,
+}: {
+  type?: string;
+  label?: string;
+  className?: string;
+}) => {
+  const Icon = UNIFORM_TYPE_ICONS[uniformTypeKey(type, label)];
+
+  return <Icon className={className} />;
 };
 
 /** Shared visual vocabulary for movement types (table badges + form select). */

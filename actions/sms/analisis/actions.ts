@@ -2,6 +2,7 @@ import axiosInstance from "@/lib/axios";
 import { Analysis } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 interface AnalysesData {
   company: string | null;
@@ -35,9 +36,11 @@ export const useCreateAnalysis = () => {
         },
       });
     },
-    onSuccess: (_,data) => {
+    onSuccess: (_, data) => {
       queryClient.invalidateQueries({ queryKey: ["analysis"] });
-      queryClient.invalidateQueries({ queryKey: ["danger-identifications", data.company] });
+      queryClient.invalidateQueries({
+        queryKey: ["danger-identifications", data.company],
+      });
       queryClient.invalidateQueries({
         queryKey: ["danger-identification"],
       });
@@ -46,9 +49,7 @@ export const useCreateAnalysis = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo crear el análisis...",
-      });
+      notifyError(error, { action: "crear el análisis" });
       console.log(error);
     },
   });
@@ -71,9 +72,7 @@ export const useDeleteAnalysis = () => {
       });
     },
     onError: (e) => {
-      toast.error("Oops!", {
-        description: "¡Hubo un error al eliminar un analisis!",
-      });
+      notifyError(e, { action: "eliminar un analisis" });
     },
   });
 
@@ -89,17 +88,17 @@ export const useUpdateAnalyses = () => {
     mutationFn: async ({ company, data, id }: UpdateAnalysisData) => {
       await axiosInstance.patch(`/${company}/sms/analysis/${id}`, data);
     },
-    onSuccess: (_,data) => {
+    onSuccess: (_, data) => {
       queryClient.invalidateQueries({ queryKey: ["analysis"] });
-      queryClient.invalidateQueries({ queryKey: ["danger-identifications", data.company] });
+      queryClient.invalidateQueries({
+        queryKey: ["danger-identifications", data.company],
+      });
       toast.success("¡Actualizado!", {
         description: `El analisis ha sido actualizada correctamente.`,
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo actualizar el analisis...",
-      });
+      notifyError(error, { action: "actualizar el analisis" });
       console.log(error);
     },
   });

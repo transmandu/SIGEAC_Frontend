@@ -1,6 +1,7 @@
 import axiosInstance from "@/lib/axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 interface BankData {
   name: string;
@@ -21,10 +22,7 @@ export const useCreateBank = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          error?.response?.data?.message || "No se pudo crear el banco.",
-      });
+      notifyError(error, { action: "crear el banco" });
     },
   });
 
@@ -37,7 +35,13 @@ export const useUpdateBank = () => {
   const queryClient = useQueryClient();
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: number | string; data: Partial<BankData> }) => {
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: number | string;
+      data: Partial<BankData>;
+    }) => {
       await axiosInstance.put(`/banks/${id}`, data);
     },
     onSuccess: () => {
@@ -49,10 +53,7 @@ export const useUpdateBank = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          error?.response?.data?.message || "No se pudo actualizar el banco.",
-      });
+      notifyError(error, { action: "actualizar el banco" });
     },
   });
 
@@ -76,10 +77,7 @@ export const useDeleteBank = () => {
     },
     onError: (error: any) => {
       // El backend responde 409 si el banco tiene cuentas asociadas.
-      toast.error("Oops!", {
-        description:
-          error?.response?.data?.message || "¡Hubo un error al eliminar el banco!",
-      });
+      notifyError(error, { action: "eliminar el banco" });
     },
   });
 

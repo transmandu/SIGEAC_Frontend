@@ -1,6 +1,8 @@
 "use client";
 
-import { FC, useEffect, useState } from "react";
+import { FC } from "react";
+import { useIsClient } from "@/hooks/useIsClient";
+import { useResettingState } from "@/hooks/useResettingState";
 
 interface RiskMatrixProps {
   onCellClick: (probability: string, severity: string) => void;
@@ -23,12 +25,8 @@ const RiskMatrix: FC<RiskMatrixProps> = ({
   selectedProbability,
   selectedSeverity,
 }) => {
-  const [mounted, setMounted] = useState(false);
-
   // Evitar hidratación incorrecta del tema
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useIsClient();
 
   const severities: Severity[] = [
     { code: "A", name: "Catastrófico" },
@@ -46,14 +44,14 @@ const RiskMatrix: FC<RiskMatrixProps> = ({
     { value: 1, name: "Extremadamente Improbable" },
   ];
 
-  const [selectedCell, setSelectedCell] = useState<string>("");
-
-  // Actualizar la celda seleccionada cuando cambian los valores
-  useEffect(() => {
-    if (selectedProbability && selectedSeverity) {
-      setSelectedCell(`${selectedProbability}${selectedSeverity}`);
-    }
-  }, [selectedProbability, selectedSeverity]);
+  // La celda marcada sigue a los valores que llegan; un clic la mueve de inmediato.
+  const [selectedCell, setSelectedCell] = useResettingState<string>(
+    () =>
+      selectedProbability && selectedSeverity
+        ? `${selectedProbability}${selectedSeverity}`
+        : "",
+    [selectedProbability, selectedSeverity],
+  );
 
   const getRiskColor = (severity: string, probability: number): string => {
     const riskCode = `${probability}${severity}`;
@@ -213,13 +211,13 @@ const RiskMatrix: FC<RiskMatrixProps> = ({
                     }
                     className={`w-full h-full p-2 text-white dark:text-white font-bold rounded transition-all duration-200 text-xs ${getRiskColor(
                       severity.code,
-                      probability.value
+                      probability.value,
                     )} ${getHoverColor(
                       severity.code,
-                      probability.value
+                      probability.value,
                     )} ${getActiveColor(
                       severity.code,
-                      probability.value
+                      probability.value,
                     )} ${isCellSelected(severity.code, probability.value) ? "ring-2 ring-blue-400 dark:ring-blue-500 ring-offset-1 dark:ring-offset-gray-800" : ""}`}
                     aria-label={`Seleccionar probabilidad ${probability.value} y severidad ${severity.code}`}
                   >

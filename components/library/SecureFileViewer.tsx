@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useRef } from 'react';
-import { createPortal } from 'react-dom';
-import { X, Loader2, ShieldCheck, Lock, Frown, RotateCcw } from 'lucide-react';
-import { SecurePdfViewer } from '@/components/library/SecurePdfViewer';
-import { Button } from '@/components/ui/button';
-
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
+import { X, Loader2, ShieldCheck, Lock, Frown, RotateCcw } from "lucide-react";
+import { SecurePdfViewer } from "@/components/library/SecurePdfViewer";
+import { Button } from "@/components/ui/button";
+import { useBlobUrlLoader } from "@/hooks/useBlobUrlLoader";
 
 interface SecureFileViewerProps {
   isOpen: boolean;
@@ -22,27 +22,42 @@ interface SecureFileViewerProps {
   isImage?: boolean;
 }
 
+const LOAD_ERROR =
+  "No pudimos establecer una conexión segura para cargar este documento.";
+
 /**
  * Visor seguro de documentos (fork genérico de components/library/SecureVisualizer,
  * desacoplado de libraryService): recibe cómo resolver el blob en vez de asumir
  * el endpoint de la Biblioteca, para poder reutilizarse en otros módulos.
  */
-export default function SecureFileViewer({ isOpen, onClose, title, fetchBlobUrl, isImage }: SecureFileViewerProps) {
-  const [fileUrl, setFileUrl] = useState<string | null>(null);
-  const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>('dark');
-  const activeUrlRef = useRef<string | null>(null);
+export default function SecureFileViewer({
+  isOpen,
+  onClose,
+  title,
+  fetchBlobUrl,
+  isImage,
+}: SecureFileViewerProps) {
+  const [currentTheme, setCurrentTheme] = useState<"light" | "dark">("dark");
 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    url: fileUrl,
+    loading,
+    failed,
+    retry,
+  } = useBlobUrlLoader(fetchBlobUrl, isOpen ? "open" : null);
+  const error = failed ? LOAD_ERROR : null;
 
   useEffect(() => {
     const updateTheme = () => {
-      const isDark = document.documentElement.classList.contains('dark');
-      setCurrentTheme(isDark ? 'dark' : 'light');
+      const isDark = document.documentElement.classList.contains("dark");
+      setCurrentTheme(isDark ? "dark" : "light");
     };
     updateTheme();
     const observer = new MutationObserver(updateTheme);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
     return () => observer.disconnect();
   }, []);
 
@@ -53,23 +68,23 @@ export default function SecureFileViewer({ isOpen, onClose, title, fetchBlobUrl,
     if (!isOpen) return;
 
     const hidden = Array.from(
-      document.querySelectorAll<HTMLElement>('[data-dialog-overlay]')
+      document.querySelectorAll<HTMLElement>("[data-dialog-overlay]"),
     );
 
     hidden.forEach((el) => {
-      el.style.display = 'none';
+      el.style.display = "none";
     });
 
     // Radix reaplica su lock en el body mientras el diálogo sigue abierto, así
     // que aquí hace falta `important` para poder scrollear el documento.
     const previousOverflow = document.body.style.overflow;
     const previousPointerEvents = document.body.style.pointerEvents;
-    document.body.style.setProperty('overflow', 'auto', 'important');
-    document.body.style.setProperty('pointer-events', 'auto', 'important');
+    document.body.style.setProperty("overflow", "auto", "important");
+    document.body.style.setProperty("pointer-events", "auto", "important");
 
     return () => {
       hidden.forEach((el) => {
-        el.style.display = '';
+        el.style.display = "";
       });
       document.body.style.overflow = previousOverflow;
       document.body.style.pointerEvents = previousPointerEvents;
@@ -79,7 +94,7 @@ export default function SecureFileViewer({ isOpen, onClose, title, fetchBlobUrl,
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const isControl = e.ctrlKey || e.metaKey;
-      const forbiddenKeys = ['s', 'p', 'u', 'c'];
+      const forbiddenKeys = ["s", "p", "u", "c"];
       if (isControl && forbiddenKeys.includes(e.key.toLowerCase())) {
         e.preventDefault();
       }
@@ -90,65 +105,15 @@ export default function SecureFileViewer({ isOpen, onClose, title, fetchBlobUrl,
     };
 
     if (isOpen) {
-      window.addEventListener('keydown', handleKeyDown);
-      window.addEventListener('copy', handleCopy);
+      window.addEventListener("keydown", handleKeyDown);
+      window.addEventListener("copy", handleCopy);
     }
 
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('copy', handleCopy);
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("copy", handleCopy);
     };
   }, [isOpen]);
-
-  // OJO: defaultLayoutPlugin usa hooks internamente — debe llamarse directo
-  // en el cuerpo del componente (nunca dentro de useMemo/useCallback).
-  // Ref a la última función de carga: evita que el efecto de abajo se
-  // re-dispare por un simple cambio de identidad de `fetchBlobUrl` cuando
-  // el caller la pasa inline (nueva función en cada render).
-  const fetchBlobUrlRef = useRef(fetchBlobUrl);
-  fetchBlobUrlRef.current = fetchBlobUrl;
-
-  // Se incrementa para forzar una recarga (botón "Reintentar").
-  const [reloadKey, setReloadKey] = useState(0);
-
-  useEffect(() => {
-    if (!isOpen) return;
-
-    // Bandera de cancelación: si el efecto se re-ejecuta (StrictMode monta
-    // dos veces en dev) o el visor se cierra, la carga vieja se descarta sin
-    // revocar ni pisar la URL que el Viewer ya está mostrando.
-    let cancelled = false;
-
-    setLoading(true);
-    setError(null);
-    setFileUrl(null);
-
-    fetchBlobUrlRef.current()
-      .then((url) => {
-        if (cancelled) {
-          URL.revokeObjectURL(url);
-          return;
-        }
-        activeUrlRef.current = url;
-        setFileUrl(url);
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setError('No pudimos establecer una conexión segura para cargar este documento.');
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-      if (activeUrlRef.current) {
-        URL.revokeObjectURL(activeUrlRef.current);
-        activeUrlRef.current = null;
-      }
-    };
-  }, [isOpen, reloadKey]);
 
   if (!isOpen) return null;
 
@@ -166,25 +131,42 @@ export default function SecureFileViewer({ isOpen, onClose, title, fetchBlobUrl,
       onPointerDown={(e) => e.stopPropagation()}
       onMouseDown={(e) => e.stopPropagation()}
       onClick={(e) => e.stopPropagation()}
-      className={`pointer-events-auto fixed inset-0 z-200 flex items-center justify-center p-2 md:p-6 backdrop-blur-xs transition-colors duration-300 ${currentTheme === 'dark' ? 'bg-black/95' : 'bg-slate-900/40'
-      }`}>
-      <div className={`relative w-full h-full max-w-7xl rounded-2xl overflow-hidden border flex flex-col shadow-2xl transition-all duration-300 ${currentTheme === 'dark' ? 'bg-[#111214] border-gray-800' : 'bg-white border-gray-300'
-        }`}>
-
+      className={`pointer-events-auto fixed inset-0 z-200 flex items-center justify-center p-2 md:p-6 backdrop-blur-xs transition-colors duration-300 ${
+        currentTheme === "dark" ? "bg-black/95" : "bg-slate-900/40"
+      }`}
+    >
+      <div
+        className={`relative w-full h-full max-w-7xl rounded-2xl overflow-hidden border flex flex-col shadow-2xl transition-all duration-300 ${
+          currentTheme === "dark"
+            ? "bg-[#111214] border-gray-800"
+            : "bg-white border-gray-300"
+        }`}
+      >
         {/* HEADER */}
-        <div className={`p-4 border-b flex justify-between items-center ${currentTheme === 'dark' ? 'bg-[#1a1c1e] border-gray-800' : 'bg-gray-50 border-gray-200'}`}>
+        <div
+          className={`p-4 border-b flex justify-between items-center ${currentTheme === "dark" ? "bg-[#1a1c1e] border-gray-800" : "bg-gray-50 border-gray-200"}`}
+        >
           <div className="flex items-center gap-3">
-            <div className={`p-2 rounded-lg ${currentTheme === 'dark' ? 'bg-emerald-500/10' : 'bg-emerald-500/20'}`}>
+            <div
+              className={`p-2 rounded-lg ${currentTheme === "dark" ? "bg-emerald-500/10" : "bg-emerald-500/20"}`}
+            >
               <ShieldCheck className="h-5 w-5 text-emerald-500" />
             </div>
             <div>
-              <h3 className={`text-xs font-black uppercase tracking-[0.2em] ${currentTheme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
-                {title ?? 'Visualizador Seguro'}
+              <h3
+                className={`text-xs font-black uppercase tracking-[0.2em] ${currentTheme === "dark" ? "text-white" : "text-slate-900"}`}
+              >
+                {title ?? "Visualizador Seguro"}
               </h3>
-              <p className="text-[9px] text-gray-500 font-bold uppercase">Transmisión Protegida</p>
+              <p className="text-[9px] text-gray-500 font-bold uppercase">
+                Transmisión Protegida
+              </p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-red-500/10 hover:text-red-500 text-gray-500 rounded-xl transition-all">
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-red-500/10 hover:text-red-500 text-gray-500 rounded-xl transition-all"
+          >
             <X className="h-6 w-6" />
           </button>
         </div>
@@ -197,7 +179,9 @@ export default function SecureFileViewer({ isOpen, onClose, title, fetchBlobUrl,
           {loading && (
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-inherit z-10">
               <Loader2 className="h-10 w-10 animate-spin text-emerald-500" />
-              <p className="mt-4 text-[10px] font-black uppercase tracking-widest text-gray-500 text-center px-4">Iniciando Virtualización AES-256...</p>
+              <p className="mt-4 text-[10px] font-black uppercase tracking-widest text-gray-500 text-center px-4">
+                Iniciando Virtualización AES-256...
+              </p>
             </div>
           )}
 
@@ -206,7 +190,9 @@ export default function SecureFileViewer({ isOpen, onClose, title, fetchBlobUrl,
               <div className="mb-6 p-6 rounded-full bg-amber-500/10 animate-pulse">
                 <Frown className="h-16 w-16 text-amber-500" />
               </div>
-              <h2 className={`text-xl font-bold mb-2 uppercase tracking-tight ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+              <h2
+                className={`text-xl font-bold mb-2 uppercase tracking-tight ${currentTheme === "dark" ? "text-white" : "text-gray-900"}`}
+              >
                 Algo salió mal...
               </h2>
               <p className="max-w-md text-sm text-gray-500 mb-10 font-medium italic leading-relaxed">
@@ -215,7 +201,7 @@ export default function SecureFileViewer({ isOpen, onClose, title, fetchBlobUrl,
 
               <div className="flex flex-col sm:flex-row gap-4 w-full max-w-sm justify-center">
                 <Button
-                  onClick={() => setReloadKey((k) => k + 1)}
+                  onClick={retry}
                   variant="default"
                   className="bg-emerald-600 hover:bg-emerald-700 w-full sm:w-auto flex items-center gap-2 group transition-all active:scale-95"
                 >
@@ -239,7 +225,7 @@ export default function SecureFileViewer({ isOpen, onClose, title, fetchBlobUrl,
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={fileUrl}
-                      alt={title ?? 'Documento'}
+                      alt={title ?? "Documento"}
                       draggable={false}
                       className="max-h-full max-w-full object-contain select-none"
                     />
@@ -253,13 +239,15 @@ export default function SecureFileViewer({ isOpen, onClose, title, fetchBlobUrl,
         </div>
 
         {/* FOOTER */}
-        <div className={`p-3 border-t flex justify-center items-center gap-4 ${currentTheme === 'dark' ? 'bg-[#1a1c1e] border-gray-800' : 'bg-gray-50 border-gray-200'}`}>
+        <div
+          className={`p-3 border-t flex justify-center items-center gap-4 ${currentTheme === "dark" ? "bg-[#1a1c1e] border-gray-800" : "bg-gray-50 border-gray-200"}`}
+        >
           <div className="flex items-center gap-2 text-[8px] font-bold uppercase text-gray-500 tracking-tighter">
             <Lock className="h-3 w-3" />© SIGEAC Digital Library - 2026
           </div>
         </div>
       </div>
     </div>,
-    document.body
+    document.body,
   );
 }

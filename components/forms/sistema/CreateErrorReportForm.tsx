@@ -36,6 +36,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { cn } from "@/lib/utils";
 import { ChipTone } from "@/app/sistema/reportes/_components/errorReportChips";
+import type { ErrorReportDraft } from "@/stores/ErrorReportDraftStore";
+import { useResettingState } from "@/hooks/useResettingState";
 
 const formSchema = z.object({
   description: z.string().min(10, {
@@ -52,6 +54,8 @@ interface FormProps {
   onClose: () => void;
   /** Muestra severidad y código HTTP, solo disponibles para el superuser desde el panel de gestión. */
   showAdvancedFields?: boolean;
+  /** Reporte que nace de un aviso de error: llega con el contexto ya cargado. */
+  draft?: ErrorReportDraft;
 }
 
 /* ───────────────────────── Clasificación: selector explícito ───────────────────────── */
@@ -106,6 +110,7 @@ const HTTP_QUICK_PICKS = [
 export default function CreateErrorReportForm({
   onClose,
   showAdvancedFields = false,
+  draft,
 }: FormProps) {
   const { createErrorReport } = useCreateErrorReport();
   const { user } = useAuth();
@@ -113,21 +118,27 @@ export default function CreateErrorReportForm({
   const [images, setImages] = useState<File[]>([]);
   const [reportKind, setReportKind] = useState<ReportKind>("bug");
   const [isDragging, setIsDragging] = useState(false);
-  const [customHttpOpen, setCustomHttpOpen] = useState(false);
 
   // El panel de gestión (superuser) siempre puede reportar/reclasificar cualquier módulo.
   const availableModules = showAdvancedFields
     ? ERROR_REPORT_MODULES
     : getAvailableErrorReportModules(selectedCompany?.modules);
 
+  // Un reporte que nace de un aviso ya sabe en qué pantalla ocurrió.
+  const draftModule = availableModules.some(
+    (option) => option.value === draft?.module,
+  )
+    ? draft?.module
+    : undefined;
+
   const defaultModule = showAdvancedFields
     ? ""
-    : (getDefaultErrorReportModule(user?.roles) ?? "");
+    : (draftModule ?? getDefaultErrorReportModule(user?.roles) ?? "");
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      description: "",
+      description: draft?.description ?? "",
       module: defaultModule,
       severity: "",
       http_status: "",
@@ -136,6 +147,9 @@ export default function CreateErrorReportForm({
 
   const showSeverity = showAdvancedFields;
   const showHttpStatus = showAdvancedFields && reportKind === "bug";
+  const [customHttpOpen, setCustomHttpOpen] = useResettingState(false, [
+    showHttpStatus,
+  ]);
   const severity = useWatch({ control: form.control, name: "severity" });
   const httpStatus = useWatch({ control: form.control, name: "http_status" });
 
@@ -156,7 +170,6 @@ export default function CreateErrorReportForm({
   useEffect(() => {
     if (!showHttpStatus) {
       form.setValue("http_status", "");
-      setCustomHttpOpen(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showHttpStatus]);
@@ -188,6 +201,14 @@ export default function CreateErrorReportForm({
           showHttpStatus && values.http_status
             ? Number(values.http_status)
             : undefined,
+        // Un reporte que nace de un aviso lleva el código HTTP del fallo aunque
+        // el usuario normal no vea ese campo.
+        ...(draft?.httpStatus !== undefined && !showHttpStatus
+          ? { http_status: draft.httpStatus }
+          : {}),
+        error_reference: draft?.errorReference,
+        error_code: draft?.errorCode,
+        page_url: draft?.pageUrl,
         // Deja constancia de desde qué empresa se reportó: sin esto, un
         // soporte asignado por compañía no puede filtrar lo que le toca.
         company: selectedCompany?.slug,
@@ -223,6 +244,21 @@ export default function CreateErrorReportForm({
 
         {/* ───────── Body (scrollable) ───────── */}
         <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-6 py-5">
+          {draft && (
+            <div className="rounded-xl border border-slate-200/80 bg-slate-50/60 px-3 py-2.5 text-xs dark:border-slate-800/80 dark:bg-slate-900/30">
+              <p className="font-medium">{draft.errorTitle}</p>
+              {draft.errorReference && (
+                <p className="mt-0.5 text-muted-foreground">
+                  Código de error{" "}
+                  <span className="font-mono font-semibold text-foreground">
+                    {draft.errorReference}
+                  </span>
+                  . Viaja con el reporte: no hace falta que lo copies.
+                </p>
+              )}
+            </div>
+          )}
+
           <div className="space-y-1.5">
             <Label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
               Tipo de solicitud

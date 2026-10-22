@@ -1,40 +1,36 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
-import axiosInstance from '@/lib/axios';
-import { broadcastQueryInvalidation } from '@/lib/cross-tab-sync';
-import { Notification } from '@/types/notifications/types';
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import axiosInstance from "@/lib/axios";
+import { broadcastQueryInvalidation } from "@/lib/cross-tab-sync";
+import { Notification } from "@/types/notifications/types";
+import { notifyError } from "@/lib/notify-error";
 
 // Marcar como leída se refleja al instante en la campana: se actualiza la caché
 // antes de que responda el servidor y solo se revierte si falla.
 export const useMarkNotificationAsRead = (company: string) => {
   const queryClient = useQueryClient();
 
-  const queryKey = ['notifications', company];
+  const queryKey = ["notifications", company];
 
   return useMutation({
     mutationFn: async (id: string) => {
-      await axiosInstance.patch(
-        `/${company}/notifications/${id}/read`
-      );
+      await axiosInstance.patch(`/${company}/notifications/${id}/read`);
     },
 
     onMutate: async (id: string) => {
       // Cancelamos refetches en vuelo para que no pisen el update optimista.
       await queryClient.cancelQueries({ queryKey });
 
-      const previous =
-        queryClient.getQueryData<Notification[]>(queryKey);
+      const previous = queryClient.getQueryData<Notification[]>(queryKey);
 
       const readAt = new Date().toISOString();
 
-      queryClient.setQueryData<Notification[]>(
-        queryKey,
-        (old = []) =>
-          old.map((notification) =>
-            notification.id === id && !notification.read_at
-              ? { ...notification, read_at: readAt }
-              : notification
-          )
+      queryClient.setQueryData<Notification[]>(queryKey, (old = []) =>
+        old.map((notification) =>
+          notification.id === id && !notification.read_at
+            ? { ...notification, read_at: readAt }
+            : notification,
+        ),
       );
 
       return { previous };
@@ -50,15 +46,15 @@ export const useMarkNotificationAsRead = (company: string) => {
     // leída la notificación que falló.
     onError: (_error, id, context) => {
       const previous = context?.previous?.find(
-        (notification) => notification.id === id
+        (notification) => notification.id === id,
       );
 
       queryClient.setQueryData<Notification[]>(queryKey, (old = []) =>
         old.map((notification) =>
           notification.id === id
             ? { ...notification, read_at: previous?.read_at }
-            : notification
-        )
+            : notification,
+        ),
       );
     },
   });
@@ -67,31 +63,26 @@ export const useMarkNotificationAsRead = (company: string) => {
 export const useMarkAllNotificationsAsRead = (company: string) => {
   const queryClient = useQueryClient();
 
-  const queryKey = ['notifications', company];
+  const queryKey = ["notifications", company];
 
   return useMutation({
     mutationFn: async () => {
-      await axiosInstance.patch(
-        `/${company}/notifications/mark-all-read`
-      );
+      await axiosInstance.patch(`/${company}/notifications/mark-all-read`);
     },
 
     onMutate: async () => {
       await queryClient.cancelQueries({ queryKey });
 
-      const previous =
-        queryClient.getQueryData<Notification[]>(queryKey);
+      const previous = queryClient.getQueryData<Notification[]>(queryKey);
 
       const readAt = new Date().toISOString();
 
-      queryClient.setQueryData<Notification[]>(
-        queryKey,
-        (old = []) =>
-          old.map((notification) =>
-            notification.read_at
-              ? notification
-              : { ...notification, read_at: readAt }
-          )
+      queryClient.setQueryData<Notification[]>(queryKey, (old = []) =>
+        old.map((notification) =>
+          notification.read_at
+            ? notification
+            : { ...notification, read_at: readAt },
+        ),
       );
 
       return { previous };
@@ -115,21 +106,19 @@ export const useClearAllNotifications = (company: string) => {
 
   return useMutation({
     mutationFn: async () => {
-      await axiosInstance.delete(
-        `/${company}/notifications/clear/all`
-      );
+      await axiosInstance.delete(`/${company}/notifications/clear/all`);
     },
 
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ['notifications', company],
+        queryKey: ["notifications", company],
       });
 
-      toast.success('Todas las notificaciones eliminadas');
+      toast.success("Todas las notificaciones eliminadas");
     },
 
-    onError: () => {
-      toast.error('Error al eliminar las notificaciones');
+    onError: (error) => {
+      notifyError(error, { action: "eliminar las notificaciones" });
     },
   });
 };
@@ -139,21 +128,19 @@ export const useClearReadNotifications = (company: string) => {
 
   return useMutation({
     mutationFn: async () => {
-      await axiosInstance.delete(
-        `/${company}/notifications/clear/read`
-      );
+      await axiosInstance.delete(`/${company}/notifications/clear/read`);
     },
 
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ['notifications', company],
+        queryKey: ["notifications", company],
       });
 
-      toast.success('Notificaciones leídas eliminadas');
+      toast.success("Notificaciones leídas eliminadas");
     },
 
-    onError: () => {
-      toast.error('Error al eliminar notificaciones leídas');
+    onError: (error) => {
+      notifyError(error, { action: "eliminar notificaciones leídas" });
     },
   });
 };
@@ -163,14 +150,12 @@ export const useClearUnreadNotifications = (company: string) => {
 
   return useMutation({
     mutationFn: async () => {
-      await axiosInstance.delete(
-        `/${company}/notifications/clear/unread`
-      );
+      await axiosInstance.delete(`/${company}/notifications/clear/unread`);
     },
 
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ['notifications', company],
+        queryKey: ["notifications", company],
       });
     },
   });

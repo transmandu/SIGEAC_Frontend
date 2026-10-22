@@ -1,9 +1,9 @@
 import axiosInstance from "@/lib/axios";
-import { getApiErrorMessage } from "@/lib/api-error";
 import { Unit } from "@/types";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 interface createUnitSchema {
   value: string;
@@ -37,9 +37,7 @@ export const useCreateUnit = () => {
       });
     },
     onError: (error) => {
-      toast.error("Error", {
-        description: getApiErrorMessage(error, "No se creó correctamente."),
-      });
+      notifyError(error, { action: "crear el registro" });
     },
   });
 
@@ -79,12 +77,7 @@ export const useUpdateUnit = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: getApiErrorMessage(
-          error,
-          "¡Hubo un error al actualizar la unidad!",
-        ),
-      });
+      notifyError(error, { action: "actualizar la unidad" });
     },
   });
 
@@ -119,11 +112,7 @@ export const useDeleteUnit = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          error?.response?.data?.message ??
-          "¡Hubo un error al eliminar la unidad!",
-      });
+      notifyError(error, { action: "eliminar la unidad" });
     },
   });
 

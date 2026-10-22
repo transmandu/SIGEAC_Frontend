@@ -41,11 +41,12 @@ import { es } from "date-fns/locale";
 import { CalendarIcon, Loader2, X } from "lucide-react"; // Añadido el icono X
 import Image from "next/image";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useGetLocationsByCompany } from "@/hooks/sistema/useGetLocationsByCompany";
 import { VoluntaryReport } from "@/types/sms/mantenimiento";
 import { PhoneInput } from "@/components/ui/PhoneInput";
 import { phoneSchema } from "@/lib/phone";
+import { useResettingState } from "@/hooks/useResettingState";
 
 interface FormProps {
   onClose: () => void;
@@ -64,7 +65,18 @@ export function CreateGenVolReport({
   const { data: locations, isLoading: isLocationsLoading } =
     useGetLocationsByCompany(company);
 
-  const [isAnonymous, setIsAnonymous] = useState(false);
+  // Al editar un reporte con todos los datos de quien reporta, deja de ser anónimo.
+  const [isAnonymous, setIsAnonymous] = useResettingState(
+    !(
+      initialData &&
+      isEditing &&
+      initialData.reporter_email &&
+      initialData.reporter_name &&
+      initialData.reporter_last_name &&
+      initialData.reporter_phone
+    ),
+    [initialData, isEditing],
+  );
 
   // Estado local para manejar lo que el usuario está escribiendo en el input de consecuencias
   const [consequenceInput, setConsequenceInput] = useState("");
@@ -137,19 +149,6 @@ export function CreateGenVolReport({
   });
 
   type FormSchemaType = z.infer<typeof FormSchema>;
-
-  useEffect(() => {
-    if (initialData && isEditing) {
-      if (
-        initialData.reporter_email &&
-        initialData.reporter_name &&
-        initialData.reporter_last_name &&
-        initialData.reporter_phone
-      ) {
-        setIsAnonymous(false);
-      }
-    }
-  }, [initialData, isEditing]);
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
