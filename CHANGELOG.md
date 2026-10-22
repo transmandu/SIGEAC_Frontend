@@ -1,3 +1,7 @@
+## v4.76.0 — 2026-10-22
+
+- feat: enhance error reporting with additional context and details
+
 ## v4.75.0 — 2026-10-22
 
 - feat: implement error handling improvements and reporting features (#350)
