@@ -1,60 +1,69 @@
-'use client'
+"use client";
 
-import { useAddCompanyToUser, useRemoveCompanyFromUser } from '@/actions/sistema/usuarios/actions'
-import { useGetCompanies } from '@/hooks/sistema/useGetCompanies'
-import { useLocationsOfCompany } from '@/hooks/sistema/useGetLocationsByCompanyId'
-import { useResettingState } from '@/hooks/useResettingState'
-import { User } from '@/types'
-import { cn } from '@/lib/utils'
-import { Building2, Loader2, MapPin, Plus, X } from 'lucide-react'
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Label } from '@/components/ui/label'
+import {
+  useAddCompanyToUser,
+  useRemoveCompanyFromUser,
+} from "@/actions/sistema/usuarios/actions";
+import { useGetCompanies } from "@/hooks/sistema/useGetCompanies";
+import { useLocationsOfCompany } from "@/hooks/sistema/useGetLocationsByCompanyId";
+import { useResettingState } from "@/hooks/useResettingState";
+import { User } from "@/types";
+import { cn } from "@/lib/utils";
+import { Building2, Loader2, MapPin, Plus, X } from "lucide-react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { Separator } from '@/components/ui/separator'
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 
 type UserCompany = {
-  id: number
-  name: string
-  acronym?: string
-  locations?: { id: number; address: string; cod_iata?: string; isMainBase?: boolean }[]
-}
+  id: number;
+  name: string;
+  acronym?: string;
+  locations?: {
+    id: number;
+    address: string;
+    cod_iata?: string;
+    isMainBase?: boolean;
+  }[];
+};
 
 const UserCompaniesTab = ({ user }: { user: User }) => {
-  const { data: allCompanies, isLoading: loadingCompanies } = useGetCompanies()
-  const { addCompany } = useAddCompanyToUser()
-  const { removeCompany } = useRemoveCompanyFromUser()
+  const { data: allCompanies, isLoading: loadingCompanies } = useGetCompanies();
+  const { addCompany } = useAddCompanyToUser();
+  const { removeCompany } = useRemoveCompanyFromUser();
 
-  const [selectedCompanyId, setSelectedCompanyId] = useState<string>('')
-  const { data: locations, isFetching: loadingLocations } = useLocationsOfCompany(
-    selectedCompanyId ? Number(selectedCompanyId) : undefined,
-  )
-  const availableLocations = locations ?? []
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string>("");
+  const { data: locations, isFetching: loadingLocations } =
+    useLocationsOfCompany(
+      selectedCompanyId ? Number(selectedCompanyId) : undefined,
+    );
+  const availableLocations = locations ?? [];
   // Las sedes elegidas pertenecen a la compañía elegida: al cambiarla se vacían.
-  const [selectedLocationIds, setSelectedLocationIds] = useResettingState<number[]>(
-    [],
-    [selectedCompanyId],
-  )
+  const [selectedLocationIds, setSelectedLocationIds] = useResettingState<
+    number[]
+  >([], [selectedCompanyId]);
 
-  const userCompanies = (user.companies as unknown as UserCompany[]) ?? []
-  const userCompanyIds = new Set(userCompanies.map((c) => c.id))
-  const assignableCompanies = allCompanies?.filter((c) => !userCompanyIds.has(c.id)) ?? []
+  const userCompanies = (user.companies as unknown as UserCompany[]) ?? [];
+  const userCompanyIds = new Set(userCompanies.map((c) => c.id));
+  const assignableCompanies =
+    allCompanies?.filter((c) => !userCompanyIds.has(c.id)) ?? [];
 
   const toggleLocation = (id: number) => {
     setSelectedLocationIds((prev) =>
-      prev.includes(id) ? prev.filter((l) => l !== id) : [...prev, id]
-    )
-  }
+      prev.includes(id) ? prev.filter((l) => l !== id) : [...prev, id],
+    );
+  };
 
   const handleAdd = () => {
-    if (!selectedCompanyId || selectedLocationIds.length === 0) return
+    if (!selectedCompanyId || selectedLocationIds.length === 0) return;
 
     addCompany.mutate(
       {
@@ -64,23 +73,24 @@ const UserCompaniesTab = ({ user }: { user: User }) => {
       },
       {
         onSuccess: () => {
-          setSelectedCompanyId('')
-          setSelectedLocationIds([])
+          setSelectedCompanyId("");
+          setSelectedLocationIds([]);
         },
-      }
-    )
-  }
+      },
+    );
+  };
 
   const handleRemove = (companyId: number) => {
-    removeCompany.mutate({ userId: String(user.id), companyId })
-  }
+    removeCompany.mutate({ userId: String(user.id), companyId });
+  };
 
-  const removingId = removeCompany.isPending ? removeCompany.variables?.companyId : null
-  const isAdding = addCompany.isPending
+  const removingId = removeCompany.isPending
+    ? removeCompany.variables?.companyId
+    : null;
+  const isAdding = addCompany.isPending;
 
   return (
     <div className="space-y-5 p-1">
-
       {/* EMPRESAS ASIGNADAS */}
       <div>
         <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
@@ -94,8 +104,8 @@ const UserCompaniesTab = ({ user }: { user: User }) => {
         ) : (
           <ul
             className={cn(
-              'space-y-2',
-              userCompanies.length > 2 && 'max-h-40 overflow-y-auto pr-1'
+              "space-y-2",
+              userCompanies.length > 2 && "max-h-40 overflow-y-auto pr-1",
             )}
           >
             {userCompanies.map((company) => (
@@ -118,8 +128,8 @@ const UserCompaniesTab = ({ user }: { user: User }) => {
                     variant="ghost"
                     size="icon"
                     className={cn(
-                      'size-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10',
-                      removingId === company.id && 'pointer-events-none'
+                      "size-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10",
+                      removingId === company.id && "pointer-events-none",
                     )}
                     disabled={removingId === company.id}
                     onClick={() => handleRemove(company.id)}
@@ -244,7 +254,9 @@ const UserCompaniesTab = ({ user }: { user: User }) => {
         <Button
           size="sm"
           className="gap-1.5"
-          disabled={!selectedCompanyId || selectedLocationIds.length === 0 || isAdding}
+          disabled={
+            !selectedCompanyId || selectedLocationIds.length === 0 || isAdding
+          }
           onClick={handleAdd}
         >
           {isAdding ? (
@@ -255,9 +267,8 @@ const UserCompaniesTab = ({ user }: { user: User }) => {
           Agregar empresa
         </Button>
       </div>
-
     </div>
-  )
-}
+  );
+};
 
-export default UserCompaniesTab
+export default UserCompaniesTab;

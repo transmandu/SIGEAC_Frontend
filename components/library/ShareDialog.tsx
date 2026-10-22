@@ -90,26 +90,25 @@ export default function ShareDialog({
   });
   const versionId = versionChoice || versions[0]?.id.toString() || "";
 
-  const { data: activeShares = NO_SHARES, isFetching: loadingShares } = useQuery<
-    any[]
-  >({
-    queryKey: ["library-active-shares", company, doc?.id],
-    queryFn: async () => {
-      try {
-        const response = await axiosInstance.get(
-          `/${company}/library/documents/${doc.id}/active-share`,
-        );
-        const data = response.data;
-        if (Array.isArray(data)) return data;
-        return data?.share_url ? [data] : NO_SHARES;
-      } catch {
-        return NO_SHARES;
-      }
-    },
-    enabled: isOpen && !!doc?.id,
-    staleTime: 0,
-    meta: { silent: true },
-  });
+  const { data: activeShares = NO_SHARES, isFetching: loadingShares } =
+    useQuery<any[]>({
+      queryKey: ["library-active-shares", company, doc?.id],
+      queryFn: async () => {
+        try {
+          const response = await axiosInstance.get(
+            `/${company}/library/documents/${doc.id}/active-share`,
+          );
+          const data = response.data;
+          if (Array.isArray(data)) return data;
+          return data?.share_url ? [data] : NO_SHARES;
+        } catch {
+          return NO_SHARES;
+        }
+      },
+      enabled: isOpen && !!doc?.id,
+      staleTime: 0,
+      meta: { silent: true },
+    });
 
   useOnChange([isOpen, doc], () => {
     if (isOpen && doc?.id) {

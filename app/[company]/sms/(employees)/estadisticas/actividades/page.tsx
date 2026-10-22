@@ -93,14 +93,19 @@ const SMSActivityStatsPage = () => {
                     Filtros
                   </Label>
                   <p className="truncate text-sm font-medium">
-                    {params.from || format(startOfMonth(new Date()), "yyyy-MM-dd")} a{" "}
-                    {params.to || format(new Date(), "yyyy-MM-dd")}
+                    {params.from ||
+                      format(startOfMonth(new Date()), "yyyy-MM-dd")}{" "}
+                    a {params.to || format(new Date(), "yyyy-MM-dd")}
                   </p>
                 </div>
               </div>
 
               <CollapsibleTrigger asChild>
-                <Button variant="outline" size="sm" className="w-full sm:w-auto">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full sm:w-auto"
+                >
                   {isFilterOpen ? "Ocultar Filtros" : "Mostrar Filtros"}
                   <ChevronDown
                     className={`ml-2 size-4 transition-transform ${isFilterOpen ? "rotate-180" : "rotate-0"}`}
@@ -115,7 +120,8 @@ const SMSActivityStatsPage = () => {
                 onReset={handleReset}
                 initialDate={{
                   from:
-                    params.from || format(startOfMonth(new Date()), "yyyy-MM-dd"),
+                    params.from ||
+                    format(startOfMonth(new Date()), "yyyy-MM-dd"),
                   to: params.to || format(new Date(), "yyyy-MM-dd"),
                 }}
               />

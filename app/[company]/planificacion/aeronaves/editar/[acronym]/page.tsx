@@ -36,7 +36,7 @@ import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufactu
 import { parseISO } from "date-fns";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { formatNumber } from "@/lib/formatNumber";
-import { useOnChange } from "@/hooks/useOnChange"
+import { useOnChange } from "@/hooks/useOnChange";
 
 interface AircraftPart {
   id?: number; // ID para actualizaciones
@@ -295,61 +295,64 @@ export default function EditAircraftPage({
   );
 
   // Inicializar datos con la información existente de la aeronave
-  useOnChange([aircraft, clients, isInitialized, transformAssignmentsToFormFormat], () => {
-    if (!aircraft || isInitialized) return;
-    if ((aircraft as any).client_id && !clients) return;
+  useOnChange(
+    [aircraft, clients, isInitialized, transformAssignmentsToFormFormat],
+    () => {
+      if (!aircraft || isInitialized) return;
+      if ((aircraft as any).client_id && !clients) return;
 
-    // Buscar cliente por ID
-    const clientName =
-      (aircraft as any).client_id && clients
-        ? clients.find(
-            (client) =>
-              client.id.toString() === (aircraft as any).client_id.toString(),
-          )?.name || ""
-        : aircraft.client?.name || "";
+      // Buscar cliente por ID
+      const clientName =
+        (aircraft as any).client_id && clients
+          ? clients.find(
+              (client) =>
+                client.id.toString() === (aircraft as any).client_id.toString(),
+            )?.name || ""
+          : aircraft.client?.name || "";
 
-    // Inicializar datos de la aeronave
-    setAircraftData({
-      manufacturer_id: aircraft.manufacturer?.id?.toString() || "",
-      client_name: clientName,
-      authorizing: (aircraft.client?.authorizing || "PROPIETARIO") as
-        "PROPIETARIO" | "EXPLOTADOR",
-      serial: aircraft.serial || "",
-      model: (aircraft as any).model || "",
-      acronym: aircraft.acronym || "",
-      flight_hours: aircraft.flight_hours
-        ? Number(aircraft.flight_hours).toFixed(2)
-        : "0.00",
-      flight_cycles: aircraft.flight_cycles
-        ? Math.round(Number(aircraft.flight_cycles)).toString()
-        : "0",
-      fabricant_date: parseISODate(aircraft.fabricant_date),
-      location_id: aircraft.location?.id?.toString() || "",
-      comments: aircraft.comments || "",
-    });
-
-    // Inicializar datos de las partes
-    if (aircraft.aircraft_parts?.length > 0) {
-      setPartsData({
-        parts: transformExistingPartsToFormFormat(aircraft.aircraft_parts),
+      // Inicializar datos de la aeronave
+      setAircraftData({
+        manufacturer_id: aircraft.manufacturer?.id?.toString() || "",
+        client_name: clientName,
+        authorizing: (aircraft.client?.authorizing || "PROPIETARIO") as
+          "PROPIETARIO" | "EXPLOTADOR",
+        serial: aircraft.serial || "",
+        model: (aircraft as any).model || "",
+        acronym: aircraft.acronym || "",
+        flight_hours: aircraft.flight_hours
+          ? Number(aircraft.flight_hours).toFixed(2)
+          : "0.00",
+        flight_cycles: aircraft.flight_cycles
+          ? Math.round(Number(aircraft.flight_cycles)).toString()
+          : "0",
+        fabricant_date: parseISODate(aircraft.fabricant_date),
+        location_id: aircraft.location?.id?.toString() || "",
+        comments: aircraft.comments || "",
       });
-      setIsInitialized(true);
-      return;
-    }
 
-    if ((aircraft as any).aircraft_assignments?.length > 0) {
-      setPartsData({
-        parts: transformAssignmentsToFormFormat(
-          (aircraft as any).aircraft_assignments,
-        ),
-      });
-      setIsInitialized(true);
-      return;
-    }
+      // Inicializar datos de las partes
+      if (aircraft.aircraft_parts?.length > 0) {
+        setPartsData({
+          parts: transformExistingPartsToFormFormat(aircraft.aircraft_parts),
+        });
+        setIsInitialized(true);
+        return;
+      }
 
-    setPartsData({ parts: [] });
-    setIsInitialized(true);
-  });
+      if ((aircraft as any).aircraft_assignments?.length > 0) {
+        setPartsData({
+          parts: transformAssignmentsToFormFormat(
+            (aircraft as any).aircraft_assignments,
+          ),
+        });
+        setIsInitialized(true);
+        return;
+      }
+
+      setPartsData({ parts: [] });
+      setIsInitialized(true);
+    },
+  );
 
   // Función para transformar las partes del formulario al formato API
   const transformPart = (part: AircraftPart, originalPart?: any): any => {

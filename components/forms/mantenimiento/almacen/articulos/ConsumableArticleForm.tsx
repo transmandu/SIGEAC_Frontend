@@ -284,7 +284,6 @@ export default function ConsumableArticleForm({
     mode: "onBlur",
   });
 
-
   const originalUnit = useMemo(
     () =>
       units?.find(

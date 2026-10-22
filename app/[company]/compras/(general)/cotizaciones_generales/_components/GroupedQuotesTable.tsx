@@ -1,96 +1,88 @@
-'use client'
+"use client";
 
-import { useMemo } from 'react';
+import { useMemo } from "react";
 
-import GroupRow from './GroupRow'
-import GroupPagination from '@/components/misc/GroupPagination'
-import { useResettingState } from "@/hooks/useResettingState"
+import GroupRow from "./GroupRow";
+import GroupPagination from "@/components/misc/GroupPagination";
+import { useResettingState } from "@/hooks/useResettingState";
 
-type GroupableKey =
-  | 'retailer'
-  | 'requisition_order'
+type GroupableKey = "retailer" | "requisition_order";
 
 type Props<T> = {
-  data: T[]
-  groupBy: GroupableKey
-  renderTable: (rows: T[]) => React.ReactNode
-}
+  data: T[];
+  groupBy: GroupableKey;
+  renderTable: (rows: T[]) => React.ReactNode;
+};
 
 type Group<T> = {
-  key: string
-  rows: T[]
-}
+  key: string;
+  rows: T[];
+};
 
-const PAGE_SIZE = 15
+const PAGE_SIZE = 15;
 
 const formatGroupLabel = (value?: string | null) => {
-  if (!value || value.trim() === '') return 'Sin valor'
-  return value
-}
+  if (!value || value.trim() === "") return "Sin valor";
+  return value;
+};
 
 const GroupedQuotesTable = <T extends Record<string, any>>({
   data,
   groupBy,
   renderTable,
 }: Props<T>) => {
-
   const groups = useMemo<Group<T>[]>(() => {
-    const groupedMap = new Map<string, T[]>()
+    const groupedMap = new Map<string, T[]>();
 
     for (const item of data) {
-
       const rawValue: string | undefined =
-        groupBy === 'retailer'
+        groupBy === "retailer"
           ? item.retailer?.name
-          : item.requisition_order?.order_number
+          : item.requisition_order?.order_number;
 
-      const key = rawValue?.trim() || 'Sin valor'
+      const key = rawValue?.trim() || "Sin valor";
 
       if (!groupedMap.has(key)) {
-        groupedMap.set(key, [])
+        groupedMap.set(key, []);
       }
 
-      groupedMap.get(key)!.push(item)
+      groupedMap.get(key)!.push(item);
     }
 
     return Array.from(groupedMap.entries()).map(([key, rows]) => ({
       key,
       rows,
-    }))
-  }, [data, groupBy])
+    }));
+  }, [data, groupBy]);
 
   // Cambiar los datos (o la agrupación) devuelve la tabla a la primera página
   // con todos los grupos cerrados.
   const [pagination, setPagination] = useResettingState(
     { pageIndex: 0, pageSize: PAGE_SIZE },
     [groupBy, data],
-  )
+  );
 
   const totalPages = useMemo(() => {
-    return Math.max(1, Math.ceil(groups.length / pagination.pageSize))
-  }, [groups.length, pagination.pageSize])
+    return Math.max(1, Math.ceil(groups.length / pagination.pageSize));
+  }, [groups.length, pagination.pageSize]);
 
   const paginatedGroups = useMemo(() => {
-    const start = pagination.pageIndex * pagination.pageSize
+    const start = pagination.pageIndex * pagination.pageSize;
 
-    return groups.slice(
-      start,
-      start + pagination.pageSize
-    )
-  }, [groups, pagination])
+    return groups.slice(start, start + pagination.pageSize);
+  }, [groups, pagination]);
 
   const [expanded, setExpanded] = useResettingState<Record<string, boolean>>(
     {},
     [groupBy, data],
-  )
+  );
 
   const toggleGroup = (key: string) => {
     setExpanded((prev) => ({
       ...prev,
       [key]: !(prev[key] ?? false),
-    }))
-  }
-
+    }));
+  };
 
   if (!groups.length) {
     return (
@@ -107,15 +99,14 @@ const GroupedQuotesTable = <T extends Record<string, any>>({
           No hay cotizaciones agrupadas disponibles.
         </p>
       </div>
-    )
+    );
   }
 
   return (
     <div className="flex flex-col gap-4">
-
       {/* GROUPS */}
       {paginatedGroups.map((group) => {
-        const isOpen = expanded[group.key] ?? false
+        const isOpen = expanded[group.key] ?? false;
 
         return (
           <div
@@ -140,12 +131,10 @@ const GroupedQuotesTable = <T extends Record<string, any>>({
             />
 
             {isOpen && (
-              <div className="p-2 md:p-3">
-                {renderTable(group.rows)}
-              </div>
+              <div className="p-2 md:p-3">{renderTable(group.rows)}</div>
             )}
           </div>
-        )
+        );
       })}
 
       <GroupPagination
@@ -166,9 +155,8 @@ const GroupedQuotesTable = <T extends Record<string, any>>({
           })
         }
       />
-
     </div>
-  )
-}
+  );
+};
 
-export default GroupedQuotesTable
+export default GroupedQuotesTable;

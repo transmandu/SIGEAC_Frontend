@@ -10,7 +10,10 @@ const SERVER_SIZE: WindowSize = { width: 0, height: 0 };
 let current: WindowSize = SERVER_SIZE;
 
 const read = (): WindowSize => {
-  if (current.width !== window.innerWidth || current.height !== window.innerHeight) {
+  if (
+    current.width !== window.innerWidth ||
+    current.height !== window.innerHeight
+  ) {
     current = { width: window.innerWidth, height: window.innerHeight };
   }
   return current;

@@ -54,7 +54,7 @@ import {
 import { ItemActions } from "./ItemActions";
 import type { ManualAction } from "./ManualList";
 import { ServiceCard } from "./ServiceCard";
-import { useOnChange } from "@/hooks/useOnChange"
+import { useOnChange } from "@/hooks/useOnChange";
 
 /** Lo que está abierto sobre el panel: un único diálogo a la vez. */
 type Overlay =

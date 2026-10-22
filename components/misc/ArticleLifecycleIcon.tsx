@@ -1,6 +1,12 @@
 "use client";
 
-import { CheckCircle2, CreditCard, PackageCheck, PackageOpen, Truck } from "lucide-react";
+import {
+  CheckCircle2,
+  CreditCard,
+  PackageCheck,
+  PackageOpen,
+  Truck,
+} from "lucide-react";
 
 import {
   Tooltip,

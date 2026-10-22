@@ -1,7 +1,8 @@
 import { useState } from "react";
 
 const sameDeps = (a: readonly unknown[], b: readonly unknown[]) =>
-  a.length === b.length && a.every((value, index) => Object.is(value, b[index]));
+  a.length === b.length &&
+  a.every((value, index) => Object.is(value, b[index]));
 
 /**
  * Ejecuta `adjust` en el render en que cambia alguna de `deps` (y en el primero).

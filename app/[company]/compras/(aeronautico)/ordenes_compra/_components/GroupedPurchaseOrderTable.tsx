@@ -1,87 +1,84 @@
-'use client'
+"use client";
 
-import { useMemo } from 'react';
+import { useMemo } from "react";
 
-import PurchaseOrderGroupRow from './PurchaseOrderGroupRow'
-import GroupPagination from '@/components/misc/GroupPagination'
-import type { PurchaseOrder } from '@/types/purchase'
-import { useResettingState } from "@/hooks/useResettingState"
+import PurchaseOrderGroupRow from "./PurchaseOrderGroupRow";
+import GroupPagination from "@/components/misc/GroupPagination";
+import type { PurchaseOrder } from "@/types/purchase";
+import { useResettingState } from "@/hooks/useResettingState";
 
-type GroupableKey = 'quote' | 'vendor'
+type GroupableKey = "quote" | "vendor";
 
 type Props = {
-  data: PurchaseOrder[]
-  groupBy: GroupableKey
-  renderTable: (rows: PurchaseOrder[]) => React.ReactNode
-}
+  data: PurchaseOrder[];
+  groupBy: GroupableKey;
+  renderTable: (rows: PurchaseOrder[]) => React.ReactNode;
+};
 
 type Group = {
-  key: string
-  rows: PurchaseOrder[]
-}
+  key: string;
+  rows: PurchaseOrder[];
+};
 
-const PAGE_SIZE = 15
+const PAGE_SIZE = 15;
 
 const formatGroupLabel = (value?: string | null) => {
-  if (!value || value.trim() === '') return 'Sin valor'
-  return value
-}
+  if (!value || value.trim() === "") return "Sin valor";
+  return value;
+};
 
 const GroupedPurchaseOrderTable = ({ data, groupBy, renderTable }: Props) => {
-
   const groups = useMemo<Group[]>(() => {
-    const groupedMap = new Map<string, PurchaseOrder[]>()
+    const groupedMap = new Map<string, PurchaseOrder[]>();
 
     for (const item of data) {
-
       const rawValue: string | undefined =
-        groupBy === 'quote'
+        groupBy === "quote"
           ? item.quote_order?.quote_number
-          : item.vendor?.name
+          : item.vendor?.name;
 
-      const key = rawValue?.trim() || 'Sin valor'
+      const key = rawValue?.trim() || "Sin valor";
 
       if (!groupedMap.has(key)) {
-        groupedMap.set(key, [])
+        groupedMap.set(key, []);
       }
 
-      groupedMap.get(key)!.push(item)
+      groupedMap.get(key)!.push(item);
     }
 
     return Array.from(groupedMap.entries()).map(([key, rows]) => ({
       key,
       rows,
-    }))
-  }, [data, groupBy])
+    }));
+  }, [data, groupBy]);
 
   // Cambiar los datos (o la agrupación) devuelve la tabla a la primera página
   // con todos los grupos cerrados.
   const [pagination, setPagination] = useResettingState(
     { pageIndex: 0, pageSize: PAGE_SIZE },
     [groupBy, data],
-  )
+  );
 
   const totalPages = useMemo(() => {
-    return Math.max(1, Math.ceil(groups.length / pagination.pageSize))
-  }, [groups.length, pagination.pageSize])
+    return Math.max(1, Math.ceil(groups.length / pagination.pageSize));
+  }, [groups.length, pagination.pageSize]);
 
   const paginatedGroups = useMemo(() => {
-    const start = pagination.pageIndex * pagination.pageSize
-    return groups.slice(start, start + pagination.pageSize)
-  }, [groups, pagination])
+    const start = pagination.pageIndex * pagination.pageSize;
+    return groups.slice(start, start + pagination.pageSize);
+  }, [groups, pagination]);
 
   const [expanded, setExpanded] = useResettingState<Record<string, boolean>>(
     {},
     [groupBy, data],
-  )
+  );
 
   const toggleGroup = (key: string) => {
     setExpanded((prev) => ({
       ...prev,
       [key]: !(prev[key] ?? false),
-    }))
-  }
-
+    }));
+  };
 
   if (!groups.length) {
     return (
@@ -98,14 +95,13 @@ const GroupedPurchaseOrderTable = ({ data, groupBy, renderTable }: Props) => {
           No hay órdenes de compra agrupadas disponibles.
         </p>
       </div>
-    )
+    );
   }
 
   return (
     <div className="flex flex-col gap-4">
-
       {paginatedGroups.map((group) => {
-        const isOpen = expanded[group.key] ?? false
+        const isOpen = expanded[group.key] ?? false;
 
         return (
           <div
@@ -130,12 +126,10 @@ const GroupedPurchaseOrderTable = ({ data, groupBy, renderTable }: Props) => {
             />
 
             {isOpen && (
-              <div className="p-2 md:p-3">
-                {renderTable(group.rows)}
-              </div>
+              <div className="p-2 md:p-3">{renderTable(group.rows)}</div>
             )}
           </div>
-        )
+        );
       })}
 
       <GroupPagination
@@ -156,9 +150,8 @@ const GroupedPurchaseOrderTable = ({ data, groupBy, renderTable }: Props) => {
           })
         }
       />
-
     </div>
-  )
-}
+  );
+};
 
-export default GroupedPurchaseOrderTable
+export default GroupedPurchaseOrderTable;

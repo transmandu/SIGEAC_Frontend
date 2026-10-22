@@ -211,13 +211,13 @@ const RiskMatrix: FC<RiskMatrixProps> = ({
                     }
                     className={`w-full h-full p-2 text-white dark:text-white font-bold rounded transition-all duration-200 text-xs ${getRiskColor(
                       severity.code,
-                      probability.value
+                      probability.value,
                     )} ${getHoverColor(
                       severity.code,
-                      probability.value
+                      probability.value,
                     )} ${getActiveColor(
                       severity.code,
-                      probability.value
+                      probability.value,
                     )} ${isCellSelected(severity.code, probability.value) ? "ring-2 ring-blue-400 dark:ring-blue-500 ring-offset-1 dark:ring-offset-gray-800" : ""}`}
                     aria-label={`Seleccionar probabilidad ${probability.value} y severidad ${severity.code}`}
                   >

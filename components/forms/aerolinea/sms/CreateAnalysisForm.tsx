@@ -32,7 +32,6 @@ import RiskMatrix from "@/components/misc/RiskMatrix";
 import { useRouter } from "next/navigation";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
-
 const FormSchema = z.object({
   severity: z.string(),
   probability: z.string(),

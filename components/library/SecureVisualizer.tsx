@@ -31,7 +31,9 @@ export default function SecureViewer({
     retry,
   } = useBlobUrlLoader(
     () => libraryService.getFileBlob(company, documentId, isVersionHistory),
-    isOpen && documentId ? `${company}|${documentId}|${isVersionHistory}` : null,
+    isOpen && documentId
+      ? `${company}|${documentId}|${isVersionHistory}`
+      : null,
   );
   const error = failed ? LOAD_ERROR : null;
 

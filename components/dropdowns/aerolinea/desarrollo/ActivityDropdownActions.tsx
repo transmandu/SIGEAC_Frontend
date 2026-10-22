@@ -1,23 +1,41 @@
-'use client'
-import { useUpdateFinalHour, useDeleteActivity, useEditActivity } from '@/actions/aerolinea/desarrollo/reportes_diarios/actions';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+"use client";
+import {
+  useUpdateFinalHour,
+  useDeleteActivity,
+  useEditActivity,
+} from "@/actions/aerolinea/desarrollo/reportes_diarios/actions";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Clock, MoreHorizontal, Trash2, Edit, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useGetUserActivity } from "@/hooks/aerolinea/desarrollo/useGetUserActivities";
 import { useRouter } from "next/navigation";
-import { Activity } from '@/types';
+import { Activity } from "@/types";
 import { useOnChange } from "@/hooks/useOnChange";
 
 interface ActivityDropdownActionsProps {
   finished: boolean;
-  initialData: Activity
+  initialData: Activity;
 }
 
-export const ActivityDropdownActions = ({ initialData, finished }: ActivityDropdownActionsProps) => {
+export const ActivityDropdownActions = ({
+  initialData,
+  finished,
+}: ActivityDropdownActionsProps) => {
   const router = useRouter();
 
   // Uso correcto de los hooks de mutación
@@ -38,7 +56,7 @@ export const ActivityDropdownActions = ({ initialData, finished }: ActivityDropd
     startTime: "",
     endTime: "",
     description: "",
-    result: ""
+    result: "",
   });
 
   // Set default end time when dialog opens
@@ -61,7 +79,7 @@ export const ActivityDropdownActions = ({ initialData, finished }: ActivityDropd
           startTime: initialData.start_hour || "",
           endTime: initialData.final_hour || "",
           description: initialData.description || "",
-          result: initialData.result || ""
+          result: initialData.result || "",
         });
       }
     }
@@ -203,7 +221,9 @@ export const ActivityDropdownActions = ({ initialData, finished }: ActivityDropd
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Procesando...
                 </>
-              ) : 'Confirmar'}
+              ) : (
+                "Confirmar"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -269,7 +289,9 @@ export const ActivityDropdownActions = ({ initialData, finished }: ActivityDropd
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Guardando...
                 </>
-              ) : 'Guardar Cambios'}
+              ) : (
+                "Guardar Cambios"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -282,7 +304,10 @@ export const ActivityDropdownActions = ({ initialData, finished }: ActivityDropd
             <DialogTitle>Confirmar Eliminación</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <p>¿Estás seguro que deseas eliminar esta actividad? Esta acción no se puede deshacer.</p>
+            <p>
+              ¿Estás seguro que deseas eliminar esta actividad? Esta acción no
+              se puede deshacer.
+            </p>
           </div>
           <DialogFooter>
             <Button
@@ -302,7 +327,9 @@ export const ActivityDropdownActions = ({ initialData, finished }: ActivityDropd
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Eliminando...
                 </>
-              ) : 'Eliminar Actividad'}
+              ) : (
+                "Eliminar Actividad"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

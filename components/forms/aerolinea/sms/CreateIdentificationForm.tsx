@@ -147,7 +147,9 @@ export default function CreateDangerIdentificationForm({
       noAnalyses,
       defenses: noDefenses ? [] : splitAndFilter(initialData?.current_defenses),
       consequences: splitAndFilter(initialData?.possible_consequences),
-      analyses: noAnalyses ? [] : splitAndFilter(initialData?.root_cause_analysis),
+      analyses: noAnalyses
+        ? []
+        : splitAndFilter(initialData?.root_cause_analysis),
     };
   }, [initialData]);
 

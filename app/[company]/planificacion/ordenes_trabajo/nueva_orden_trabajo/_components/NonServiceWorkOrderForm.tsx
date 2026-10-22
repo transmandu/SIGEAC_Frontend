@@ -62,7 +62,7 @@ import { useEffect, useMemo } from "react";
 import { FieldErrors, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import { useResettingState } from "@/hooks/useResettingState"
+import { useResettingState } from "@/hooks/useResettingState";
 
 const manualWorkOrderSchema = z.object({
   description: z.string().min(1, "La descripción es obligatoria"),
@@ -182,7 +182,6 @@ const NonServiceWorkOrderForm = ({
     aircraftIdProp ?? searchParams.get("aircraft_id") ?? undefined;
   const prefillTaskDescription =
     taskDescriptionProp ?? searchParams.get("task_description") ?? undefined;
-
 
   const { selectedStation, selectedCompany } = useCompanyStore();
   const { createWorkOrder } = useCreateWorkOrder();

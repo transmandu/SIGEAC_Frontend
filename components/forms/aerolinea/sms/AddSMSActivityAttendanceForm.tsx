@@ -42,9 +42,7 @@ import { z } from "zod";
 import { Badge } from "@/components/ui/badge";
 import { useResettingState } from "@/hooks/useResettingState";
 
-const normalizeAuthorizedEmployeeId = (
-  value: unknown
-): number | null => {
+const normalizeAuthorizedEmployeeId = (value: unknown): number | null => {
   if (value === undefined || value === null || value === "") return null;
   const parsed = Number(value);
   return Number.isNaN(parsed) ? null : parsed;
@@ -75,7 +73,7 @@ const FormSchema = z.object({
       first_name: z.string(),
       last_name: z.string(),
       authorized_employee_id: z.number().nullable(),
-    })
+    }),
   ),
   removedEmployees: z.array(
     z.object({
@@ -83,7 +81,7 @@ const FormSchema = z.object({
       first_name: z.string(),
       last_name: z.string(),
       authorized_employee_id: z.number().nullable(),
-    })
+    }),
   ),
 });
 
@@ -125,7 +123,7 @@ export function AddSMSActivityAttendanceForm({
         authorized_employee_id?: number | null;
         from_company_db?: string;
       }>,
-      wasEnrolled: boolean
+      wasEnrolled: boolean,
     ) =>
       employees.map((e) => ({
         dni: e.dni ?? "",
@@ -137,11 +135,11 @@ export function AddSMSActivityAttendanceForm({
         wasEnrolled,
         employee_type: (e.employee_type as "local" | "authorized") ?? "local",
         authorized_employee_id: normalizeAuthorizedEmployeeId(
-          e.authorized_employee_id
+          e.authorized_employee_id,
         ),
         from_company_db: e.from_company_db,
       })),
-    []
+    [],
   );
 
   // Quién se agrega y quién se quita respecto de lo que ya estaba guardado.
@@ -222,13 +220,13 @@ export function AddSMSActivityAttendanceForm({
 
   const selectedCount = employeeSelections.filter((e) => e.isSelected).length;
   const previouslyAttendedCount = employeeSelections.filter(
-    (e) => e.wasEnrolled
+    (e) => e.wasEnrolled,
   ).length;
   const newlyAddedCount = employeeSelections.filter(
-    (e) => e.isSelected && !e.wasEnrolled
+    (e) => e.isSelected && !e.wasEnrolled,
   ).length;
   const removedCount = employeeSelections.filter(
-    (e) => !e.isSelected && e.wasEnrolled
+    (e) => !e.isSelected && e.wasEnrolled,
   ).length;
 
   const onSubmit = async () => {
@@ -367,9 +365,7 @@ export function AddSMSActivityAttendanceForm({
                         </Button>
                       </div>
                       <CommandList>
-                        <CommandEmpty>
-                          No se encontraron empleados
-                        </CommandEmpty>
+                        <CommandEmpty>No se encontraron empleados</CommandEmpty>
 
                         <CommandGroup heading="Todos los empleados">
                           {filteredEmployees.map((employee) => {
@@ -390,14 +386,13 @@ export function AddSMSActivityAttendanceForm({
                                     "mr-2 h-4 w-4 shrink-0",
                                     employee.isSelected
                                       ? "opacity-100 text-emerald-600 dark:text-emerald-400"
-                                      : "opacity-0"
+                                      : "opacity-0",
                                   )}
                                 />
                                 <div className="flex flex-col gap-0.5 min-w-0 flex-1">
                                   <div className="flex items-center gap-2 flex-wrap">
                                     <span className="text-sm font-medium truncate">
-                                      {employee.first_name}{" "}
-                                      {employee.last_name}
+                                      {employee.first_name} {employee.last_name}
                                     </span>
                                     <span className="font-mono text-xs text-muted-foreground">
                                       {employee.dni}
@@ -421,8 +416,7 @@ export function AddSMSActivityAttendanceForm({
                                     )}
                                   </div>
                                   <span className="text-xs text-muted-foreground truncate">
-                                    {employee.job_title} ·{" "}
-                                    {employee.department}
+                                    {employee.job_title} · {employee.department}
                                   </span>
                                 </div>
                               </CommandItem>

@@ -1,23 +1,34 @@
-'use client';
+"use client";
 
-import { useMemo, useState } from 'react';
-import { PanelLeftOpen, ShieldAlert } from 'lucide-react';
-import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useMemo, useState } from "react";
+import { PanelLeftOpen, ShieldAlert } from "lucide-react";
+import {
+  useParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 
-import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { ContentLayout } from '@/components/layout/ContentLayout';
-import { useGetHazardNotifications } from '@/hooks/sms/mantenimiento/useGetHazardNotifications';
-import { useGetHazardNotificationByReportNumber } from '@/hooks/sms/mantenimiento/useGetHazardNotificationByReportNumber';
-import { useCompanyStore } from '@/stores/CompanyStore';
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { ContentLayout } from "@/components/layout/ContentLayout";
+import { useGetHazardNotifications } from "@/hooks/sms/mantenimiento/useGetHazardNotifications";
+import { useGetHazardNotificationByReportNumber } from "@/hooks/sms/mantenimiento/useGetHazardNotificationByReportNumber";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
-import { EvaluationWorkflowPanel } from './_components/evaluation-workflow-panel';
-import { NotificationSelectionPanel } from './_components/notification-selection-panel';
+import { EvaluationWorkflowPanel } from "./_components/evaluation-workflow-panel";
+import { NotificationSelectionPanel } from "./_components/notification-selection-panel";
 import {
   getNotificationReportNumber,
   getNotificationSource,
   sortByNewestDate,
-} from './_components/workflow-helpers';
+} from "./_components/workflow-helpers";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { useOnChange } from "@/hooks/useOnChange";
 
@@ -29,10 +40,11 @@ const EvaluationMitigationPage = () => {
   const { selectedCompany } = useCompanyStore();
   const companySlug = selectedCompany?.slug || params.company;
 
-  const [selectedNotificationId, setSelectedNotificationId] = useState<number | null>(null);
+  const [selectedNotificationId, setSelectedNotificationId] = useState<
+    number | null
+  >(null);
   const [isNotificationSheetOpen, setIsNotificationSheetOpen] = useState(false);
-  const reportNumberParam =
-    searchParams.get('report_number');
+  const reportNumberParam = searchParams.get("report_number");
 
   const {
     data: notifications,
@@ -40,12 +52,13 @@ const EvaluationMitigationPage = () => {
     isError,
   } = useGetHazardNotifications(companySlug);
 
-  const {
-    data: notificationFromUrl,
-    isLoading: isLoadingDirect,
-  } = useGetHazardNotificationByReportNumber(companySlug, reportNumberParam);
+  const { data: notificationFromUrl, isLoading: isLoadingDirect } =
+    useGetHazardNotificationByReportNumber(companySlug, reportNumberParam);
 
-  const sortedNotifications = useMemo(() => sortByNewestDate(notifications || []), [notifications]);
+  const sortedNotifications = useMemo(
+    () => sortByNewestDate(notifications || []),
+    [notifications],
+  );
 
   const notificationFromUrlId = notificationFromUrl?.id;
   useOnChange([notificationFromUrlId], () => {
@@ -53,25 +66,29 @@ const EvaluationMitigationPage = () => {
   });
 
   const selectedNotification =
-    sortedNotifications.find((notification) => notification.id === selectedNotificationId) ||
+    sortedNotifications.find(
+      (notification) => notification.id === selectedNotificationId,
+    ) ||
     notificationFromUrl ||
     null;
 
-  const currentMitigationPlan =
-    selectedNotification?.mitigation_plan || null;
-  const currentPlanAnalysis = selectedNotification?.analysis || currentMitigationPlan?.analysis || null;
+  const currentMitigationPlan = selectedNotification?.mitigation_plan || null;
+  const currentPlanAnalysis =
+    selectedNotification?.analysis || currentMitigationPlan?.analysis || null;
   const currentPostMitigationAnalysis = currentMitigationPlan?.analysis || null;
   const currentMeasures = currentMitigationPlan?.measures || [];
 
   const syncNotificationToUrl = (notificationId: number) => {
-    const notification = sortedNotifications.find((item) => item.id === notificationId);
+    const notification = sortedNotifications.find(
+      (item) => item.id === notificationId,
+    );
 
     if (!notification) {
       return;
     }
 
     const query = new URLSearchParams(searchParams.toString());
-    query.set('report_number', getNotificationReportNumber(notification));
+    query.set("report_number", getNotificationReportNumber(notification));
 
     router.replace(`${pathname}?${query.toString()}`);
   };
@@ -93,7 +110,8 @@ const EvaluationMitigationPage = () => {
             {selectedNotification ? (
               <div className="space-y-1">
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                  Reporte asociado: {getNotificationSource(selectedNotification)}
+                  Reporte asociado:{" "}
+                  {getNotificationSource(selectedNotification)}
                 </p>
                 <p className="text-base font-semibold">
                   {getNotificationSource(selectedNotification)}
@@ -109,14 +127,23 @@ const EvaluationMitigationPage = () => {
             )}
           </div>
 
-          <Sheet open={isNotificationSheetOpen} onOpenChange={setIsNotificationSheetOpen}>
-            <Button type="button" onClick={() => setIsNotificationSheetOpen(true)}>
+          <Sheet
+            open={isNotificationSheetOpen}
+            onOpenChange={setIsNotificationSheetOpen}
+          >
+            <Button
+              type="button"
+              onClick={() => setIsNotificationSheetOpen(true)}
+            >
               <PanelLeftOpen className="mr-2 h-4 w-4" />
               {selectedNotification
-                ? 'Cambiar notificación'
-                : 'Seleccionar notificación'}
+                ? "Cambiar notificación"
+                : "Seleccionar notificación"}
             </Button>
-            <SheetContent side="left" className="w-full overflow-y-auto sm:max-w-xl">
+            <SheetContent
+              side="left"
+              className="w-full overflow-y-auto sm:max-w-xl"
+            >
               <SheetHeader className="mb-4">
                 <SheetTitle>Selección de notificación</SheetTitle>
                 <SheetDescription>
@@ -144,8 +171,9 @@ const EvaluationMitigationPage = () => {
               No hay una notificación seleccionada
             </h3>
             <p className="mt-2 max-w-xl text-sm text-muted-foreground">
-              Abra el selector para elegir la notificación con la que desea trabajar
-              y continuar con el plan, las medidas y los controles de seguimiento.
+              Abra el selector para elegir la notificación con la que desea
+              trabajar y continuar con el plan, las medidas y los controles de
+              seguimiento.
             </p>
           </div>
         ) : (

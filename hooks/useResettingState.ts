@@ -6,7 +6,8 @@ import {
 } from "react";
 
 const sameDeps = (a: readonly unknown[], b: readonly unknown[]) =>
-  a.length === b.length && a.every((value, index) => Object.is(value, b[index]));
+  a.length === b.length &&
+  a.every((value, index) => Object.is(value, b[index]));
 
 /**
  * Estado que vuelve a su valor inicial cuando cambia alguno de `deps`.

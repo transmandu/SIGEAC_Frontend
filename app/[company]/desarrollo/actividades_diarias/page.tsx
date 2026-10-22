@@ -14,10 +14,10 @@ import { PageHeader } from "@/components/layout/PageHeader";
 
 const DailyActivitiesPage = () => {
   const { data: activity_report, isLoading } = useGetRegisterWithActivities();
-  const { user, loading } = useAuth()
+  const { user, loading } = useAuth();
   const filteredReport = useMemo<ActivityReport[]>(() => {
     if (!activity_report || !user) return [];
-    if (user.username === 'JMORILLO') return activity_report;
+    if (user.username === "JMORILLO") return activity_report;
     return activity_report.filter((r) => r.user.id === user.id);
   }, [user, activity_report]);
 
@@ -35,7 +35,9 @@ const DailyActivitiesPage = () => {
           de Desarrollo. <br />
           Filtre y/o busque sí desea un dia en específico.
         </p>
-        {activity_report && <DataTable columns={columns} data={filteredReport} />}
+        {activity_report && (
+          <DataTable columns={columns} data={filteredReport} />
+        )}
       </div>
     </ContentLayout>
   );

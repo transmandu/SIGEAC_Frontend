@@ -1,6 +1,5 @@
 "use client";
 
-
 import { BookOpen, Loader2, Wrench } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
@@ -86,7 +85,8 @@ export function ServiceForm({
     () =>
       service
         ? {
-            maintenance_catalog_manual_id: service.maintenance_catalog_manual_id,
+            maintenance_catalog_manual_id:
+              service.maintenance_catalog_manual_id,
             category: service.category,
             name: service.name,
             code: service.code ?? "",

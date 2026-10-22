@@ -40,10 +40,9 @@ export const DownloadDocumentDialog = ({
 
   // Cada vez que se abre (o llega otro documento) el diálogo parte de descargar
   // la versión vigente, sin versión elegida.
-  const [downloadMode, setDownloadMode] = useResettingState<"document" | "version">(
-    "document",
-    [isOpen, docId],
-  );
+  const [downloadMode, setDownloadMode] = useResettingState<
+    "document" | "version"
+  >("document", [isOpen, docId]);
   const [selectedVersionToDownload, setSelectedVersionToDownload] =
     useResettingState<string>("", [isOpen, docId]);
 
