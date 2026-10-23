@@ -24,6 +24,8 @@ import { getColumnsByCategory } from "./columns";
 import { DataTable } from "./data-table";
 import { generalConsultaColumns } from "@/components/tables/GeneralArticleConsultaColumns";
 import { PageHeader } from "@/components/layout/PageHeader";
+import type { CompanyInventoryArticle } from "@/types/inventory";
+import { PartNumberUnitsDialog } from "./PartNumberUnitsDialog";
 
 const ALL = ALL_CONDITIONS;
 
@@ -32,6 +34,9 @@ const formatCount = (value: number) => value.toLocaleString("es-VE");
 const InventarioArticulosPage = () => {
   const [activeMainTab, setActiveMainTab] = useState("aeronautic");
   const [searchAcrossOpen, setSearchAcrossOpen] = useState(false);
+  // El número de parte se conserva al cerrar para que el diálogo no se vacíe
+  // durante su animación de salida.
+  const [units, setUnits] = useState({ open: false, partNumber: "" });
 
   const [activeCategory, setActiveCategory] =
     useState<InventoryCategory>("all");
@@ -43,10 +48,10 @@ const InventarioArticulosPage = () => {
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search.trim(), 400);
 
-  // Componentes y partes llegan resumidos por número de parte desde el
+  // Todos, componentes y partes llegan resumidos por número de parte desde el
   // servidor; la condición y la mercancía peligrosa también se filtran allí,
   // porque en el navegador solo está la página actual.
-  const aeronautical = useCompanyInventoryArticles({
+  const aeronauticalFilters = {
     category: activeCategory,
     search: debouncedSearch || undefined,
     condition:
@@ -56,7 +61,9 @@ const InventarioArticulosPage = () => {
         : undefined,
     is_hazardous:
       activeCategory === "CONSUMABLE" && consumableFilter === "QUIMICOS",
-  });
+  };
+
+  const aeronautical = useCompanyInventoryArticles(aeronauticalFilters);
 
   const general = useCompanyInventoryGeneralArticles(
     debouncedSearch || undefined,
@@ -82,9 +89,9 @@ const InventarioArticulosPage = () => {
   );
 
   const aeronauticalUnit =
-    activeCategory === "COMPONENT" || activeCategory === "PART"
-      ? "nro. de parte"
-      : "artículo(s)";
+    activeCategory === "CONSUMABLE" || activeCategory === "TOOL"
+      ? "artículo(s)"
+      : "nro. de parte";
 
   return (
     <ContentLayout title="Inventario General">
@@ -212,6 +219,17 @@ const InventarioArticulosPage = () => {
                   columns={aeronauticalColumns}
                   data={aeronautical.rows}
                   isFetching={aeronautical.isFetching}
+                  onRowClick={
+                    aeronautical.groupedBy === "part_number"
+                      ? (row: CompanyInventoryArticle) =>
+                          setUnits({ open: true, partNumber: row.part_number })
+                      : undefined
+                  }
+                  rowClassName={
+                    aeronautical.groupedBy === "part_number"
+                      ? () => "cursor-pointer hover:bg-muted/30"
+                      : undefined
+                  }
                   pagination={{
                     ...aeronautical.pagination,
                     summary:
@@ -245,6 +263,13 @@ const InventarioArticulosPage = () => {
             )}
           </TabsContent>
         </Tabs>
+
+        <PartNumberUnitsDialog
+          open={units.open}
+          onOpenChange={(open) => setUnits((prev) => ({ ...prev, open }))}
+          partNumber={units.partNumber}
+          filters={aeronauticalFilters}
+        />
 
         <SearchAcrossLocationsDialog
           open={searchAcrossOpen}

@@ -12,12 +12,24 @@ const DETAIL_ROWS: {
   { key: "title", label: "Aviso mostrado" },
   { key: "message", label: "Mensaje al usuario" },
   { key: "hint", label: "Detalle técnico" },
-  { key: "request", label: "Petición" },
+  { key: "request", label: "Petición a la API" },
   { key: "kind", label: "Tipo" },
-  { key: "viewport", label: "Ventana" },
+  { key: "viewport", label: "Resolución de la pestaña" },
   { key: "language", label: "Idioma" },
   { key: "user_agent", label: "Navegador" },
 ];
+
+// Se guardan con el reporte, pero por ahora no se muestran.
+const HIDDEN_DETAILS: ReadonlySet<string> = new Set(["viewport", "language"]);
+
+/**
+ * El detalle técnico del servidor a veces es solo "GET /api/ruta", que ya dice
+ * la petición completa: en ese caso repetirlo no aporta nada.
+ */
+const repeatsRequest = (context: ErrorReportContextData) =>
+  !!context.hint &&
+  !!context.request &&
+  context.request.endsWith(context.hint.replace(/^w+s+/, ""));
 
 /**
  * El código con que el backend dejó la entrada en el log, más la pantalla donde
@@ -37,7 +49,12 @@ export default function ErrorReferenceBlock({
 
   const context = report.error_context;
   const details = context
-    ? DETAIL_ROWS.filter(({ key }) => context[key])
+    ? DETAIL_ROWS.filter(
+        ({ key }) =>
+          context[key] &&
+          !HIDDEN_DETAILS.has(key) &&
+          !(key === "hint" && repeatsRequest(context)),
+      )
     : [];
 
   if (!report.error_reference && !report.page_url && details.length === 0) {
@@ -88,7 +105,7 @@ export default function ErrorReferenceBlock({
       {report.page_url && (
         <div className="flex flex-wrap items-baseline gap-x-2">
           <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
-            Pantalla
+            Ruta
           </span>
           <span className="break-all font-mono">{report.page_url}</span>
         </div>
