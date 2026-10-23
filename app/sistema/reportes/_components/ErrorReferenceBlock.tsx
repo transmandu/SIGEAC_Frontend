@@ -27,7 +27,9 @@ const HIDDEN_DETAILS: ReadonlySet<string> = new Set(["viewport", "language"]);
  * la petición completa: en ese caso repetirlo no aporta nada.
  */
 const repeatsRequest = (context: ErrorReportContextData) =>
-  !!context.hint && !!context.request && context.request.endsWith(context.hint.replace(/^w+s+/, ""));
+  !!context.hint &&
+  !!context.request &&
+  context.request.endsWith(context.hint.replace(/^w+s+/, ""));
 
 /**
  * El código con que el backend dejó la entrada en el log, más la pantalla donde

@@ -223,12 +223,11 @@ const quantityCol: AppColumnDef<IArticleSimple> = {
     const raw = String(value ?? "").trim();
     if (!raw) return true;
 
-    const shown =
-      row.original.__isGroup
-        ? Number(row.original.__groupCount ?? 0)
-        : row.original.stock != null
-          ? Number(row.original.stock)
-          : Number(row.original.quantity ?? 0);
+    const shown = row.original.__isGroup
+      ? Number(row.original.__groupCount ?? 0)
+      : row.original.stock != null
+        ? Number(row.original.stock)
+        : Number(row.original.quantity ?? 0);
 
     const range = raw.match(/^(<=|>=|<|>)\s*(\d+(?:\.\d+)?)$/);
     if (range) {
