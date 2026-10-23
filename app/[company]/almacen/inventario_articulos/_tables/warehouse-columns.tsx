@@ -207,14 +207,15 @@ const toDate = (value: string | Date | null | undefined): Date | null => {
 };
 
 // ✅ Columna cantidad (solo consumible y all)
-// Ahora: si es grupo, muestra __groupCount aquí (sin badge en PN)
+// Un grupo no suma cantidades (pueden ser unidades distintas ni todo estar
+// disponible): muestra AGRUPADO (n) y el detalle vive en el diálogo.
 const quantityCol: AppColumnDef<IArticleSimple> = {
   accessorKey: "quantity",
   sortFn: numericSortingFn((row) =>
-    row.stock != null
-      ? Number(row.stock)
-      : row.__isGroup
-        ? Number(row.__groupCount ?? 0)
+    row.__isGroup
+      ? Number(row.__groupCount ?? 0)
+      : row.stock != null
+        ? Number(row.stock)
         : Number(row.quantity ?? 0),
   ),
   // El texto se compara contra la cantidad mostrada, que en un grupo es el conteo.
@@ -223,10 +224,10 @@ const quantityCol: AppColumnDef<IArticleSimple> = {
     if (!raw) return true;
 
     const shown =
-      row.original.stock != null
-        ? Number(row.original.stock)
-        : row.original.__isGroup
-          ? Number(row.original.__groupCount ?? 0)
+      row.original.__isGroup
+        ? Number(row.original.__groupCount ?? 0)
+        : row.original.stock != null
+          ? Number(row.original.stock)
           : Number(row.original.quantity ?? 0);
 
     const range = raw.match(/^(<=|>=|<|>)\s*(\d+(?:\.\d+)?)$/);
@@ -244,22 +245,28 @@ const quantityCol: AppColumnDef<IArticleSimple> = {
     <DataTableColumnHeader filter column={column} title="Cantidad" />
   ),
   cell: ({ row }) => {
-    const isGroup = !!row.original.__isGroup;
+    if (row.original.__isGroup) {
+      return (
+        <div className="flex justify-center">
+          <Badge variant="outline" className="text-xs font-bold px-3 py-1">
+            AGRUPADO ({row.original.__groupCount ?? 0})
+          </Badge>
+        </div>
+      );
+    }
 
     const q =
       row.original.stock != null
         ? Number(row.original.stock)
-        : isGroup
-          ? Number(row.original.__groupCount ?? 0)
-          : Number(row.original.quantity ?? 0);
+        : Number(row.original.quantity ?? 0);
 
     const unit = row.original.unit?.value ?? "u";
     const dim = row.original.dimension;
 
     // Mismo criterio que el inventario general: en un artículo dimensionado
     // la cantidad son piezas, y lo que determina qué se puede cortar es el
-    // saldo real. La fila de agrupación cuenta artículos, no piezas.
-    if (dim && !isGroup) {
+    // saldo real.
+    if (dim) {
       return (
         <div className="flex flex-col items-center gap-1">
           <Badge
@@ -560,15 +567,8 @@ const buildBaseCols = (
     cell: ({ row }) => {
       if (row.original.__isGroup) {
         return (
-          <div className="flex justify-center">
-            <Badge variant="outline" className="text-xs">
-              <p>
-                GRUPO{" "}
-                <span className="text-xs text-muted-foreground">
-                  ({row.original.__groupCount ?? 0})
-                </span>
-              </p>
-            </Badge>
+          <div className="text-center">
+            <span className="text-muted-foreground italic">—</span>
           </div>
         );
       }
