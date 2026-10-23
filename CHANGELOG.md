@@ -1,3 +1,7 @@
+## v4.77.0 — 2026-10-23
+
+- feat: implement Part Number Units dialog and related hooks for invent… (#351)
+
 ## v4.76.0 — 2026-10-22
 
 - feat: enhance error reporting with additional context and details
