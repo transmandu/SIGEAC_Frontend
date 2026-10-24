@@ -2547,6 +2547,8 @@ export type ChangeStatus =
 
 export type TolerabilityLevel = "aceptable" | "tolerable" | "intolerable";
 
+export type RiskLevel = "bajo" | "moderado" | "alto" | "extremo";
+
 export type PhotographicStage = "before" | "after";
 
 export type ChangeRequiredItem = {
@@ -2573,7 +2575,13 @@ export type ChangeRiskAssessment = {
   hazard_description: string;
   probability_value: number;
   severity_value: string;
-  risk_index: string;
+  /**
+   * Evaluaciones nuevas: probabilidad (1-5) x severidad (A=5 ... E=1), 1-25.
+   * Historicas: celda de la matriz anterior, por ejemplo "2B".
+   */
+  risk_index: number | string;
+  /** null en evaluaciones historicas: conservan la matriz anterior. */
+  risk_level: RiskLevel | null;
   tolerability_level: TolerabilityLevel;
   created_at: string;
   updated_at: string;
