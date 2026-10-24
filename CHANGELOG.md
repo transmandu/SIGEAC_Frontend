@@ -1,3 +1,7 @@
+## v4.78.0 — 2026-10-24
+
+- feat: add new risk matrix to change request (#352)
+
 ## v4.77.0 — 2026-10-23
 
 - feat: implement Part Number Units dialog and related hooks for invent… (#351)
