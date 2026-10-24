@@ -1,4 +1,4 @@
-import { UseFormReturn, useFieldArray } from "react-hook-form";
+import { UseFormReturn, useFieldArray, useWatch } from "react-hook-form";
 import {
   FormControl,
   FormField,
@@ -18,8 +18,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ComboboxField } from "@/components/ui/ComboboxField";
+import { Badge } from "@/components/ui/badge";
 import { Loader2, Plus, Trash2 } from "lucide-react";
 import { Employee } from "@/types";
+import {
+  PROBABILITY_OPTIONS,
+  RISK_LEVEL_META,
+  RISK_LEVEL_ORDER,
+  SEVERITY_OPTIONS,
+  TOLERABILITY_LABELS,
+  describeRisk,
+} from "@/lib/sms/change-risk";
 import { ChangeRequestFormValues } from "./CreateChangeRequestForm";
 
 interface StepRisksAndDetailsProps {
@@ -27,22 +36,6 @@ interface StepRisksAndDetailsProps {
   employees: Employee[];
   isLoadingEmployees: boolean;
 }
-
-const SEVERITY_OPTIONS = [
-  { value: "A", label: "A — Catastrófico" },
-  { value: "B", label: "B — Peligroso" },
-  { value: "C", label: "C — Mayor" },
-  { value: "D", label: "D — Menor" },
-  { value: "E", label: "E — Insignificante" },
-];
-
-const PROBABILITY_OPTIONS = [
-  { value: "1", label: "1 — Extremadamente Improbable" },
-  { value: "2", label: "2 — Improbable" },
-  { value: "3", label: "3 — Remoto" },
-  { value: "4", label: "4 — Ocasional" },
-  { value: "5", label: "5 — Frecuente" },
-];
 
 const TIME_UNIT_OPTIONS = [
   { value: "days", label: "Días" },
@@ -64,6 +57,11 @@ export function StepRisksAndDetails({
     append: appendRisk,
     remove: removeRisk,
   } = useFieldArray({
+    control: form.control,
+    name: "risk_assessments",
+  });
+
+  const watchedRisks = useWatch({
     control: form.control,
     name: "risk_assessments",
   });
@@ -98,99 +96,151 @@ export function StepRisksAndDetails({
             Agregar
           </Button>
         </div>
-        {riskFields.map((field, index) => (
-          <div
-            key={field.id}
-            className="grid grid-cols-[1fr_180px_180px_auto] gap-3 items-start px-3 py-3 border border-border/30 rounded-md"
-          >
-            <FormField
-              control={form.control}
-              name={`risk_assessments.${index}.hazard_description`}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70">
-                    Peligro
-                  </FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Descripción del peligro"
-                      className="min-h-15"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name={`risk_assessments.${index}.probability_value`}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70">
-                    Probabilidad
-                  </FormLabel>
-                  <Select
-                    onValueChange={(val) => field.onChange(Number(val))}
-                    value={field.value?.toString()}
-                  >
-                    <FormControl>
-                      <SelectTrigger className="h-8 font-mono text-sm">
-                        <SelectValue />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {PROBABILITY_OPTIONS.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name={`risk_assessments.${index}.severity_value`}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70">
-                    Severidad
-                  </FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value?.toString()}
-                  >
-                    <FormControl>
-                      <SelectTrigger className="h-8 font-mono text-sm">
-                        <SelectValue />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {SEVERITY_OPTIONS.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="mt-5"
-              onClick={() => removeRisk(index)}
+        {riskFields.map((field, index) => {
+          const risk = watchedRisks?.[index];
+          const result = describeRisk(
+            Number(risk?.probability_value ?? 0),
+            risk?.severity_value ?? "",
+          );
+
+          return (
+            <div
+              key={field.id}
+              className="grid grid-cols-1 items-start gap-3 rounded-md border border-border/30 px-3 py-3 sm:grid-cols-[minmax(0,1fr)_150px_150px_180px_auto]"
             >
-              <Trash2 className="size-4 text-destructive" />
-            </Button>
+              <FormField
+                control={form.control}
+                name={`risk_assessments.${index}.hazard_description`}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70">
+                      Peligro
+                    </FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Descripción del peligro"
+                        className="min-h-15"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name={`risk_assessments.${index}.probability_value`}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70">
+                      Probabilidad
+                    </FormLabel>
+                    <Select
+                      onValueChange={(val) => field.onChange(Number(val))}
+                      value={field.value?.toString()}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="h-8 font-mono text-sm">
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {PROBABILITY_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name={`risk_assessments.${index}.severity_value`}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70">
+                      Severidad
+                    </FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value?.toString()}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="h-8 font-mono text-sm">
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {SEVERITY_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="flex flex-col gap-1 sm:mt-5">
+                <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70">
+                  Resultado
+                </span>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span
+                    className={`inline-flex min-w-9 items-center justify-center rounded-md border px-2 py-1 font-mono text-sm font-bold tabular-nums ${result.badgeClassName}`}
+                  >
+                    {result.index}
+                  </span>
+                  <Badge variant="outline" className={result.badgeClassName}>
+                    {result.label}
+                  </Badge>
+                  <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                    {result.tolerabilityLabel}
+                  </span>
+                </div>
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="sm:mt-5"
+                onClick={() => removeRisk(index)}
+              >
+                <Trash2 className="size-4 text-destructive" />
+              </Button>
+            </div>
+          );
+        })}
+
+        <div className="flex flex-col gap-2 rounded-md border border-border/30 bg-muted/20 px-3 py-2.5">
+          <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70">
+            Matriz: índice = probabilidad × severidad (A=5 … E=1)
+          </span>
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+            {RISK_LEVEL_ORDER.map((level) => {
+              const meta = RISK_LEVEL_META[level];
+
+              return (
+                <div key={level} className="flex items-center gap-1.5 text-xs">
+                  <span
+                    className={`size-2.5 rounded-full ${meta.dotClassName}`}
+                  />
+                  <span className="font-medium">{meta.label}</span>
+                  <span className="font-mono text-muted-foreground">
+                    {meta.range}
+                  </span>
+                  <span className="text-muted-foreground">
+                    · {TOLERABILITY_LABELS[meta.tolerability]}
+                  </span>
+                </div>
+              );
+            })}
           </div>
-        ))}
+        </div>
       </div>
 
       {/* Plan de Mitigación */}

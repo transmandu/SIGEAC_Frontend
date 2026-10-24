@@ -38,6 +38,13 @@ import {
   ChangePhotographicRecord,
 } from "@/types";
 import { ImageGalleryDialog } from "@/components/dialogs/general/ImageGalleryDialog";
+import {
+  RISK_LEVEL_META,
+  RISK_LEVEL_ORDER,
+  TOLERABILITY_LABELS as TOLERABILITY_TEXT,
+  isLegacyRiskIndex,
+  severityValueFor,
+} from "@/lib/sms/change-risk";
 import Image from "next/image";
 
 const STATUS_STYLES: Record<
@@ -239,12 +246,18 @@ const RiskAssessmentsSection = ({
               <TableHead className="text-center">Probabilidad</TableHead>
               <TableHead className="text-center">Severidad</TableHead>
               <TableHead className="text-center">Índice</TableHead>
+              <TableHead className="text-center">Nivel</TableHead>
               <TableHead className="text-center">Tolerabilidad</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {risks.map((risk, index) => {
               const tolerability = TOLERABILITY_LABELS[risk.tolerability_level];
+              const levelMeta = risk.risk_level
+                ? RISK_LEVEL_META[risk.risk_level]
+                : null;
+              const isLegacy = isLegacyRiskIndex(risk.risk_index);
+
               return (
                 <TableRow key={risk.id}>
                   <TableCell className="text-center text-muted-foreground">
@@ -257,10 +270,25 @@ const RiskAssessmentsSection = ({
                     {risk.probability_value}
                   </TableCell>
                   <TableCell className="text-center font-mono text-sm">
-                    {risk.severity_value}
+                    {risk.severity_value} (
+                    {severityValueFor(risk.severity_value)})
                   </TableCell>
                   <TableCell className="text-center font-mono text-sm font-semibold">
                     {risk.risk_index}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {levelMeta ? (
+                      <Badge
+                        variant="outline"
+                        className={levelMeta.badgeClassName}
+                      >
+                        {levelMeta.label}
+                      </Badge>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">
+                        Matriz anterior
+                      </span>
+                    )}
                   </TableCell>
                   <TableCell className="text-center">
                     <Badge
@@ -275,6 +303,29 @@ const RiskAssessmentsSection = ({
             })}
           </TableBody>
         </Table>
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-border/30 px-4 py-3">
+          <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70">
+            Matriz actual
+          </span>
+          {RISK_LEVEL_ORDER.map((level) => {
+            const meta = RISK_LEVEL_META[level];
+
+            return (
+              <div key={level} className="flex items-center gap-1.5 text-xs">
+                <span
+                  className={`size-2.5 rounded-full ${meta.dotClassName}`}
+                />
+                <span className="font-medium">{meta.label}</span>
+                <span className="font-mono text-muted-foreground">
+                  {meta.range}
+                </span>
+                <span className="text-muted-foreground">
+                  · {TOLERABILITY_TEXT[meta.tolerability]}
+                </span>
+              </div>
+            );
+          })}
+        </div>
       </CardContent>
     </Card>
   );
