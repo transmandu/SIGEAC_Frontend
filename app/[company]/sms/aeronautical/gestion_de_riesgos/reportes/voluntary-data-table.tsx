@@ -3,12 +3,12 @@
 import { DataTablePagination } from "@/components/tables/DataTablePagination";
 import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions";
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
 import {
   ColumnFiltersState,
@@ -26,106 +26,109 @@ import { Button } from "@/components/ui/button";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
 interface DataTableProps<TData extends RowData> {
-    columns: AppColumnDef<TData>[];
-    data: TData[];
+  columns: AppColumnDef<TData>[];
+  data: TData[];
 }
 
 export function DataTable<TData extends RowData>({
-    columns,
-    data,
+  columns,
+  data,
 }: DataTableProps<TData>) {
-    // Sin orden inicial: se respeta el orden que entrega el backend (reportes
-    // nuevos sin número primero y luego por número descendente).
-    const [sorting, setSorting] = useState<SortingState>([]);
-    const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-    const table = useTable({
-        features: appTableFeatures,
-        data,
-        columns,
-        onSortingChange: setSorting,
-        onColumnFiltersChange: setColumnFilters,
-        state: {
-            sorting,
-            columnFilters,
-        },
-    });
+  // Sin orden inicial: se respeta el orden que entrega el backend (reportes
+  // nuevos sin número primero y luego por número descendente).
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const table = useTable({
+    features: appTableFeatures,
+    data,
+    columns,
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    state: {
+      sorting,
+      columnFilters,
+    },
+  });
 
-    const router = useRouter();
-    const { selectedCompany } = useCompanyStore();
+  const router = useRouter();
+  const { selectedCompany } = useCompanyStore();
 
-    return (
-        <>
-            <div className="flex flex-col gap-2 mb-4">
-                <h1 className="text-5xl font-bold text-center">Reportes Voluntarios</h1>
-                <p className="text-sm italic text-muted-foreground text-center">
-                    Aquí se pueden visualizar los reportes voluntarios de peligro
-                    realizados hasta el momento.
-                </p>
-            </div>
+  return (
+    <>
+      <div className="flex flex-col gap-2 mb-4">
+        <h1 className="text-5xl font-bold text-center">Reportes Voluntarios</h1>
+        <p className="text-sm italic text-muted-foreground text-center">
+          Aquí se pueden visualizar los reportes voluntarios de peligro
+          realizados hasta el momento.
+        </p>
+      </div>
 
-            <div className="flex items-center justify-between py-4 gap-5">
-                <Button
-                    onClick={() => router.push(`/${selectedCompany?.slug}/general/reporte/voluntario`)} // <-- Modifica aquí tu ruta destino
-                    variant="outline"
-                    size="sm"
-                    className="flex border-dashed pr-2"                >
-                    Nuevo
-                    <Plus className="h-4 w-4" />
-                </Button>
+      <div className="flex items-center justify-between py-4 gap-5">
+        <Button
+          onClick={() =>
+            router.push(`/${selectedCompany?.slug}/general/reporte/voluntario`)
+          } // <-- Modifica aquí tu ruta destino
+          variant="outline"
+          size="sm"
+          className="flex border-dashed pr-2"
+        >
+          Nuevo
+          <Plus className="h-4 w-4" />
+        </Button>
 
-                <DataTableViewOptions table={table} />
-            </div>
-            <div className="rounded-md border mb-4">
-                <Table>
-                    <TableHeader>
-                        {table.getHeaderGroups().map((headerGroup) => (
-                            <TableRow key={headerGroup.id}>
-                                {headerGroup.headers.map((header) => {
-                                    return (
-                                        <TableHead key={header.id}>
-                                            {header.isPlaceholder
-                                                ? null
-                                                : flexRender(
-                                                    header.column.columnDef.header,
-                                                    header.getContext()
-                                                )}
-                                        </TableHead>
-                                    );
-                                })}
-                            </TableRow>
-                        ))}
-                    </TableHeader>
-                    <TableBody>
-                        {table.getRowModel().rows?.length ? (
-                            table.getRowModel().rows.map((row) => (
-                                <TableRow
-                                    key={row.id}
-                                    data-state={row.getIsSelected() && "selected"}
-                                >
-                                    {row.getVisibleCells().map((cell) => (
-                                        <TableCell key={cell.id}>
-                                            {flexRender(
-                                                cell.column.columnDef.cell,
-                                                cell.getContext()
-                                            )}
-                                        </TableCell>
-                                    ))}
-                                </TableRow>
-                            ))
-                        ) : (
-                            <TableRow>
-                                <TableCell
-                                    colSpan={columns.length}
-                                    className="h-24 text-center text-muted-foreground"
-                                >
-                                    No se ha encontrado ningún resultado...
-                                </TableCell>
-                            </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
-            </div>
-            <DataTablePagination table={table} />
-        </>
-    );
+        <DataTableViewOptions table={table} />
+      </div>
+      <div className="rounded-md border mb-4">
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => {
+                  return (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
+                    </TableHead>
+                  );
+                })}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center text-muted-foreground"
+                >
+                  No se ha encontrado ningún resultado...
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+      <DataTablePagination table={table} />
+    </>
+  );
 }
