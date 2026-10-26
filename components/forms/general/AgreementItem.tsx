@@ -15,13 +15,13 @@ import { ComboboxField } from "@/components/ui/ComboboxField";
 import { Trash2 } from "lucide-react";
 import { UseFormReturn, useWatch } from "react-hook-form";
 import { Employee } from "@/types";
-import { AuthorizedEmployeeResponse } from "@/hooks/ajustes/autorizados/useGetAuthorizedEmployees";
+import type { ExternalEmployee } from "@/hooks/ajustes/convenios/types";
 
 interface AgreementItemProps {
   form: UseFormReturn<any>;
   index: number;
   employees: Employee[];
-  authorizedEmployees: AuthorizedEmployeeResponse[];
+  authorizedEmployees: ExternalEmployee[];
   isAuthorizedEmployeesLoading?: boolean;
   onRemove: () => void;
 }

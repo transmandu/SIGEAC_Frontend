@@ -46,6 +46,8 @@ import {
 } from "lucide-react";
 
 import { useMemo } from "react";
+import { AircraftCombobox } from "./_components/AircraftCombobox";
+import { DispatchTypeHelp } from "./_components/DispatchTypeHelp";
 import { SectionHeader } from "./_components/SectionHeader";
 import { ConversionPanel } from "./_components/ConversionPanel";
 import EvidenceCapture from "@/components/misc/EvidenceCapture";
@@ -96,6 +98,7 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
     hardwareArticles,
     isHardwareLoading,
     dispatchType,
+    selectedCompany,
     internalReceiverRequired,
     selectedThirdParty,
     groupedThirdParties,
@@ -257,7 +260,7 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
                                   {items.map((e: any) => (
                                     <CommandItem
                                       key={e.id}
-                                      value={`${e.first_name} ${e.last_name} ${e.job_title?.name ?? ""}`}
+                                      value={`${e.first_name} ${e.last_name} ${[e.job_title?.name, e.department?.name].filter(Boolean).join(" - ")}`}
                                       onSelect={() => {
                                         field.onChange(`${e.dni}`);
                                         setOpenEmployee(false);
@@ -276,7 +279,12 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
                                           {e.first_name} {e.last_name}
                                         </span>
                                         <span className="text-xs text-muted-foreground truncate">
-                                          {e.job_title?.name ?? ""}
+                                          {[
+                                            e.job_title?.name,
+                                            e.department?.name,
+                                          ]
+                                            .filter(Boolean)
+                                            .join(" - ")}
                                         </span>
                                       </div>
                                     </CommandItem>
@@ -289,7 +297,9 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
                       </Popover>
                       <FormMessage />
                       <p className="text-xs text-muted-foreground">
-                        Listado general de empleados.
+                        {dispatchType === "aircraft"
+                          ? `Personal técnico autorizado de ${selectedCompany?.name ?? "la empresa"}: técnicos, ingenieros u otro personal capacitado y habilitado.`
+                          : "Listado general de empleados."}
                       </p>
                     </FormItem>
                   );
@@ -317,28 +327,31 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
                   <FormLabel className="flex justify-center mb-2">
                     Tipo de Despacho
                   </FormLabel>
-                  <FormControl>
-                    <div className="inline-flex max-w-full flex-wrap justify-center rounded-lg border bg-muted/30 p-1 gap-1">
-                      {DISPATCH_TYPES.map(({ value, label, icon: Icon }) => (
-                        <button
-                          key={value}
-                          type="button"
-                          onClick={() =>
-                            handleDispatchTypeChange(value, field.onChange)
-                          }
-                          className={cn(
-                            "flex items-center gap-2 whitespace-nowrap px-3 py-1.5 rounded-md text-sm font-medium transition-all",
-                            field.value === value
-                              ? "bg-background text-foreground shadow-xs"
-                              : "text-muted-foreground hover:text-foreground",
-                          )}
-                        >
-                          <Icon className="h-4 w-4 shrink-0" />
-                          {label}
-                        </button>
-                      ))}
-                    </div>
-                  </FormControl>
+                  <div className="flex items-center justify-center gap-2">
+                    <FormControl>
+                      <div className="inline-flex max-w-full flex-wrap justify-center rounded-lg border bg-muted/30 p-1 gap-1">
+                        {DISPATCH_TYPES.map(({ value, label, icon: Icon }) => (
+                          <button
+                            key={value}
+                            type="button"
+                            onClick={() =>
+                              handleDispatchTypeChange(value, field.onChange)
+                            }
+                            className={cn(
+                              "flex items-center gap-2 whitespace-nowrap px-3 py-1.5 rounded-md text-sm font-medium transition-all",
+                              field.value === value
+                                ? "bg-background text-foreground shadow-xs"
+                                : "text-muted-foreground hover:text-foreground",
+                            )}
+                          >
+                            <Icon className="h-4 w-4 shrink-0" />
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                    </FormControl>
+                    <DispatchTypeHelp current={field.value} />
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}
@@ -427,29 +440,12 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
                     <FormLabel className="text-sm font-medium">
                       Aeronave
                     </FormLabel>
-                    <Select
-                      value={field.value ?? ""}
-                      onValueChange={field.onChange}
-                      disabled={isAircraftsLoading}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="h-10">
-                          <SelectValue placeholder="Seleccione una aeronave..." />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {isAircraftsLoading && (
-                          <div className="flex items-center justify-center py-4">
-                            <Loader2 className="size-4 animate-spin text-muted-foreground" />
-                          </div>
-                        )}
-                        {aircrafts?.map((a: any) => (
-                          <SelectItem key={a.id} value={a.id.toString()}>
-                            {a.acronym}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <AircraftCombobox
+                      aircrafts={aircrafts}
+                      value={field.value}
+                      onChange={field.onChange}
+                      loading={isAircraftsLoading}
+                    />
                     <FormMessage />
                   </FormItem>
                 )}

@@ -46,6 +46,9 @@ import {
   X,
 } from "lucide-react";
 import { useMemo } from "react";
+import { AircraftCombobox } from "./_components/AircraftCombobox";
+import { OptionCombobox } from "./_components/OptionCombobox";
+import { DispatchTypeHelp } from "./_components/DispatchTypeHelp";
 import { SectionHeader } from "./_components/SectionHeader";
 import { ConversionPanel } from "./_components/ConversionPanel";
 import EvidenceCapture from "@/components/misc/EvidenceCapture";
@@ -53,8 +56,18 @@ import { ConsumableArticleRow } from "./_components/ConsumableArticleRow";
 import { GeneralArticleRow } from "./_components/GeneralArticleRow";
 import { BackdatedDispatchField } from "./_components/BackdatedDispatchField";
 import { truncateText } from "./_components/truncate";
+import {
+  formatExpiration,
+  isExpired,
+  sortByExpiration,
+} from "./_components/expiry";
+import { TagBadge } from "@/components/misc/TagBadge";
 import { SearchAwareGroup } from "./_components/SearchAwareGroup";
 import { useDispatchForm, aeroKey, genKey } from "./_hooks/useDispatchForm";
+const departmentOption = (d: { id: number; name: string }) => ({
+  value: d.id.toString(),
+  label: d.name,
+});
 
 interface FormProps {
   onClose: () => void;
@@ -62,13 +75,16 @@ interface FormProps {
 
 const DISPATCH_TYPES = [
   { value: "aircraft" as const, label: "Aeronave", icon: Plane },
+  { value: "department" as const, label: "Departamento", icon: Building2 },
+  { value: "other_company" as const, label: "Otra empresa", icon: UserCheck },
   // El material no sale de la compañía: viaja a otra sede propia y queda
   // esperando que allá acusen recibo.
   { value: "location" as const, label: "Otra sede", icon: Truck },
-  { value: "department" as const, label: "Departamento", icon: Building2 },
-  { value: "authorized" as const, label: "Autorizados", icon: UserCheck },
   { value: "third_party" as const, label: "Terceros", icon: Users },
 ];
+
+// Despachar a un departamento o a otra empresa no pasa por una orden de trabajo.
+const TYPES_WITHOUT_WORK_ORDER = ["department", "other_company"];
 
 export function ConsumableDispatchForm({ onClose }: FormProps) {
   const {
@@ -91,6 +107,11 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
     isAircraftsLoading,
     authorizedEmployees,
     isAuthorizedEmployeesLoading,
+    selectedAuthorized,
+    selectedCompany,
+    foreignDestinationSlug,
+    loanDepartments,
+    isLoanDepartmentsLoading,
     isThirdPartiesLoading,
     transferLocations,
     isLocationsLoading,
@@ -263,7 +284,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                                   {items.map((e) => (
                                     <CommandItem
                                       key={e.id}
-                                      value={`${e.first_name} ${e.last_name} ${e.job_title?.name ?? ""}`}
+                                      value={`${e.first_name} ${e.last_name} ${[e.job_title?.name, e.department?.name].filter(Boolean).join(" - ")}`}
                                       onSelect={() => {
                                         field.onChange(`${e.dni}`);
                                         setOpenEmployee(false);
@@ -282,7 +303,12 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                                           {e.first_name} {e.last_name}
                                         </span>
                                         <span className="text-xs text-muted-foreground truncate">
-                                          {e.job_title?.name ?? ""}
+                                          {[
+                                            e.job_title?.name,
+                                            e.department?.name,
+                                          ]
+                                            .filter(Boolean)
+                                            .join(" - ")}
                                         </span>
                                       </div>
                                     </CommandItem>
@@ -295,7 +321,9 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                       </Popover>
                       <FormMessage />
                       <p className="text-xs text-muted-foreground">
-                        Listado general de empleados.
+                        {dispatchType === "aircraft"
+                          ? `Personal técnico autorizado de ${selectedCompany?.name ?? "la empresa"}: técnicos, ingenieros u otro personal capacitado y habilitado.`
+                          : `Listado general de empleados de ${selectedCompany?.name}.`}
                       </p>
                     </FormItem>
                   );
@@ -305,7 +333,9 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
               <div className="mt-3 text-center items-center rounded-md border border-dashed p-4 text-sm text-muted-foreground">
                 Para{" "}
                 <span className="font-medium">
-                  {dispatchType === "authorized" ? "Autorizados" : "Terceros"}
+                  {dispatchType === "other_company"
+                    ? "Otra empresa"
+                    : "Terceros"}
                 </span>{" "}
                 no se selecciona responsable interno en esta sección.
               </div>
@@ -326,28 +356,31 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                   <FormLabel className="flex justify-center mb-2">
                     Tipo de Despacho
                   </FormLabel>
-                  <FormControl>
-                    <div className="inline-flex max-w-full flex-wrap justify-center rounded-lg border bg-muted/30 p-1 gap-1">
-                      {DISPATCH_TYPES.map(({ value, label, icon: Icon }) => (
-                        <button
-                          key={value}
-                          type="button"
-                          onClick={() =>
-                            handleDispatchTypeChange(value, field.onChange)
-                          }
-                          className={cn(
-                            "flex items-center gap-2 whitespace-nowrap px-3 py-1.5 rounded-md text-sm font-medium transition-all",
-                            field.value === value
-                              ? "bg-background text-foreground shadow-xs"
-                              : "text-muted-foreground hover:text-foreground",
-                          )}
-                        >
-                          <Icon className="h-4 w-4 shrink-0" />
-                          {label}
-                        </button>
-                      ))}
-                    </div>
-                  </FormControl>
+                  <div className="flex items-center justify-center gap-2">
+                    <FormControl>
+                      <div className="inline-flex max-w-full flex-wrap justify-center rounded-lg border bg-muted/30 p-1 gap-1">
+                        {DISPATCH_TYPES.map(({ value, label, icon: Icon }) => (
+                          <button
+                            key={value}
+                            type="button"
+                            onClick={() =>
+                              handleDispatchTypeChange(value, field.onChange)
+                            }
+                            className={cn(
+                              "flex items-center gap-2 whitespace-nowrap px-3 py-1.5 rounded-md text-sm font-medium transition-all",
+                              field.value === value
+                                ? "bg-background text-foreground shadow-xs"
+                                : "text-muted-foreground hover:text-foreground",
+                            )}
+                          >
+                            <Icon className="h-4 w-4 shrink-0" />
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                    </FormControl>
+                    <DispatchTypeHelp current={field.value} />
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}
@@ -360,25 +393,27 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
               canBackdate ? "md:grid-cols-3" : "md:grid-cols-2",
             )}
           >
-            <FormField
-              control={form.control}
-              name="work_order"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-sm font-medium">
-                    Ord. de Trabajo
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      className="h-10 w-full"
-                      placeholder="Ej: OT-000123"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {!TYPES_WITHOUT_WORK_ORDER.includes(dispatchType) && (
+              <FormField
+                control={form.control}
+                name="work_order"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-medium">
+                      Ord. de Trabajo
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        className="h-10 w-full"
+                        placeholder="Ej: OT-000123"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <BackdatedDispatchField form={form} canBackdate={canBackdate} />
 
@@ -391,32 +426,18 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                     <FormLabel className="text-sm font-medium">
                       Sede destino
                     </FormLabel>
-                    <Select
-                      value={field.value ?? ""}
-                      onValueChange={field.onChange}
-                      disabled={isLocationsLoading}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="h-10">
-                          <SelectValue placeholder="Seleccione la sede destino..." />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {isLocationsLoading && (
-                          <div className="flex items-center justify-center py-4">
-                            <Loader2 className="size-4 animate-spin text-muted-foreground" />
-                          </div>
-                        )}
-                        {transferLocations?.map((location) => (
-                          <SelectItem
-                            key={location.id}
-                            value={location.id.toString()}
-                          >
-                            {location.cod_iata} — {location.address}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <OptionCombobox
+                      options={transferLocations?.map((location) => ({
+                        value: location.id.toString(),
+                        label: `${location.cod_iata} — ${location.address}`,
+                      }))}
+                      placeholder="Seleccione la sede destino..."
+                      searchPlaceholder="Buscar sede..."
+                      emptyText="No se encontraron sedes."
+                      value={field.value}
+                      loading={isLocationsLoading}
+                      onChange={field.onChange}
+                    />
                     <p className="text-xs text-muted-foreground">
                       La salida quedará en tránsito hasta que esa sede confirme
                       la recepción.
@@ -434,37 +455,23 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-sm font-medium">
-                      Departamento
+                      Departamento de {selectedCompany?.name}
                     </FormLabel>
-                    <Select
-                      value={field.value ?? ""}
-                      onValueChange={(val) => {
+                    <OptionCombobox
+                      options={allDepartments?.map(departmentOption)}
+                      placeholder="Seleccione un departamento..."
+                      searchPlaceholder="Buscar departamento..."
+                      emptyText="No se encontraron departamentos."
+                      value={field.value}
+                      loading={isDepartmentsLoading}
+                      onChange={(val) => {
                         field.onChange(val);
                         const dep = allDepartments?.find(
                           (d) => d.id.toString() === val,
                         );
                         if (dep) setSelectedDepartment(dep);
                       }}
-                      disabled={isDepartmentsLoading}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="h-10">
-                          <SelectValue placeholder="Seleccione un departamento..." />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {isDepartmentsLoading && (
-                          <div className="flex items-center justify-center py-4">
-                            <Loader2 className="size-4 animate-spin text-muted-foreground" />
-                          </div>
-                        )}
-                        {allDepartments?.map((d) => (
-                          <SelectItem key={d.id} value={d.id.toString()}>
-                            {d.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -480,72 +487,129 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                     <FormLabel className="text-sm font-medium">
                       Aeronave
                     </FormLabel>
-                    <Select
-                      value={field.value ?? ""}
-                      onValueChange={field.onChange}
-                      disabled={isAircraftsLoading}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="h-10">
-                          <SelectValue placeholder="Seleccione una aeronave..." />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {isAircraftsLoading && (
-                          <div className="flex items-center justify-center py-4">
-                            <Loader2 className="size-4 animate-spin text-muted-foreground" />
-                          </div>
-                        )}
-                        {aircrafts?.map((a) => (
-                          <SelectItem key={a.id} value={a.id.toString()}>
-                            {a.acronym}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <AircraftCombobox
+                      aircrafts={aircrafts}
+                      value={field.value}
+                      onChange={field.onChange}
+                      loading={isAircraftsLoading}
+                    />
                     <FormMessage />
                   </FormItem>
                 )}
               />
             )}
 
-            {dispatchType === "authorized" && (
-              <FormField
-                control={form.control}
-                name="authorized_employee_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-sm font-medium">
-                      Empleado Autorizado
-                    </FormLabel>
-                    <Select
-                      value={field.value ?? ""}
-                      onValueChange={field.onChange}
-                      disabled={isAuthorizedEmployeesLoading}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="h-10">
-                          <SelectValue placeholder="Seleccione un empleado autorizado..." />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {isAuthorizedEmployeesLoading && (
-                          <div className="flex items-center justify-center py-4">
-                            <Loader2 className="size-4 animate-spin text-muted-foreground" />
-                          </div>
+            {dispatchType === "other_company" && (
+              <>
+                <FormField
+                  control={form.control}
+                  name="authorized_employee_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-medium">
+                        Quién recibe
+                      </FormLabel>
+                      <OptionCombobox
+                        options={authorizedEmployees?.map((a) => ({
+                          value: a.id.toString(),
+                          label: `${a.employee_name} - ${a.from_company_name}`,
+                        }))}
+                        placeholder="Seleccione un empleado autorizado..."
+                        searchPlaceholder="Buscar persona..."
+                        emptyText="No se encontraron personas."
+                        value={field.value}
+                        loading={isAuthorizedEmployeesLoading}
+                        onChange={(val) => {
+                          field.onChange(val);
+                          form.setValue("destination_company_slug", "");
+                          form.setValue("destination_department_id", "");
+                        }}
+                      />
+                      {!isAuthorizedEmployeesLoading &&
+                        authorizedEmployees?.length === 0 && (
+                          <p className="text-xs text-muted-foreground">
+                            No hay empleados autorizados con convenio activo.
+                            Configúrelos en Ajustes → Autorizaciones.
+                          </p>
                         )}
-                        {authorizedEmployees?.map((a) => (
-                          <SelectItem key={a.id} value={a.id.toString()}>
-                            {a.employee_name} -{" "}
-                            {a.from_company_db.toUpperCase()}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {selectedAuthorized && (
+                  <>
+                    <FormField
+                      control={form.control}
+                      name="destination_company_slug"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-medium">
+                            Empresa destino
+                          </FormLabel>
+                          <OptionCombobox
+                            options={[
+                              {
+                                value: selectedCompany!.slug,
+                                label: `${selectedCompany!.name} (esta empresa)`,
+                              },
+                              {
+                                value: selectedAuthorized.from_company_db,
+                                label: selectedAuthorized.from_company_name,
+                              },
+                            ]}
+                            placeholder="¿A qué empresa se atribuye?"
+                            searchPlaceholder="Buscar empresa..."
+                            emptyText="No se encontraron empresas."
+                            value={field.value}
+                            onChange={(val) => {
+                              field.onChange(val);
+                              form.setValue("destination_department_id", "");
+                            }}
+                          />
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {form.watch("destination_company_slug") && (
+                      <FormField
+                        control={form.control}
+                        name="destination_department_id"
+                        render={({ field }) => {
+                          const loading = foreignDestinationSlug
+                            ? isLoanDepartmentsLoading
+                            : isDepartmentsLoading;
+                          const options = foreignDestinationSlug
+                            ? (loanDepartments ?? [])
+                            : (allDepartments ?? []);
+
+                          return (
+                            <FormItem>
+                              <FormLabel className="text-sm font-medium">
+                                Destino en{" "}
+                                {foreignDestinationSlug
+                                  ? selectedAuthorized.from_company_name
+                                  : selectedCompany?.name}
+                              </FormLabel>
+                              <OptionCombobox
+                                options={options.map(departmentOption)}
+                                placeholder="Seleccione un departamento..."
+                                searchPlaceholder="Buscar departamento..."
+                                emptyText="No se encontraron departamentos."
+                                value={field.value}
+                                loading={loading}
+                                onChange={field.onChange}
+                              />
+                              <FormMessage />
+                            </FormItem>
+                          );
+                        }}
+                      />
+                    )}
+                  </>
                 )}
-              />
+              </>
             )}
 
             {dispatchType === "third_party" && (
@@ -838,44 +902,72 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                             key={`aero-${batch.batch_id}`}
                             heading={batch.name}
                           >
-                            {batch.articles.map((article: any) => {
-                              const already = aeroSelectedSet.has(
-                                Number(article.id),
-                              );
-                              return (
-                                <CommandItem
-                                  key={`a-${article.id}-${batch.batch_id}`}
-                                  value={`${batch.name} ${article.part_number} ${article.serial ?? ""} ${article.description ?? ""}`}
-                                  className="max-w-full"
-                                  onSelect={() =>
-                                    handleAddAeronautical(
-                                      article,
-                                      batch.batch_id,
-                                    )
-                                  }
-                                >
-                                  <Check
-                                    className={cn(
-                                      "mr-2 h-4 w-4",
-                                      already ? "opacity-100" : "opacity-0",
+                            {sortByExpiration<any>(batch.articles).map(
+                              (article: any) => {
+                                const expired = isExpired(
+                                  article.expiration_date,
+                                );
+                                const already = aeroSelectedSet.has(
+                                  Number(article.id),
+                                );
+                                return (
+                                  <CommandItem
+                                    key={`a-${article.id}-${batch.batch_id}`}
+                                    value={`${batch.name} ${article.part_number} ${article.serial ?? ""} ${article.description ?? ""}`}
+                                    className="max-w-full"
+                                    onSelect={() =>
+                                      handleAddAeronautical(
+                                        article,
+                                        batch.batch_id,
+                                      )
+                                    }
+                                  >
+                                    <Check
+                                      className={cn(
+                                        "mr-2 h-4 w-4",
+                                        already ? "opacity-100" : "opacity-0",
+                                      )}
+                                    />
+                                    <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+                                      <span
+                                        className={cn(
+                                          "font-medium truncate",
+                                          expired && "text-destructive",
+                                        )}
+                                      >
+                                        {article.part_number}{" "}
+                                        {article.serial
+                                          ? `· ${article.serial}`
+                                          : ""}
+                                      </span>
+                                      <span
+                                        className={cn(
+                                          "text-xs truncate",
+                                          expired
+                                            ? "text-destructive"
+                                            : "text-muted-foreground",
+                                        )}
+                                      >
+                                        {truncateText(article.description) ||
+                                          "Sin nota"}{" "}
+                                        · Disp: {article.quantity}{" "}
+                                        {article.unit}
+                                        {article.expiration_date &&
+                                          ` · Vence: ${formatExpiration(article.expiration_date)}`}
+                                      </span>
+                                    </div>
+                                    {expired && (
+                                      <TagBadge
+                                        tone="rose"
+                                        className="ml-2 shrink-0"
+                                      >
+                                        Vencido
+                                      </TagBadge>
                                     )}
-                                  />
-                                  <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-                                    <span className="font-medium truncate">
-                                      {article.part_number}{" "}
-                                      {article.serial
-                                        ? `· ${article.serial}`
-                                        : ""}
-                                    </span>
-                                    <span className="text-xs text-muted-foreground truncate">
-                                      {truncateText(article.description) ||
-                                        "Sin nota"}{" "}
-                                      · Disp: {article.quantity} {article.unit}
-                                    </span>
-                                  </div>
-                                </CommandItem>
-                              );
-                            })}
+                                  </CommandItem>
+                                );
+                              },
+                            )}
                           </SearchAwareGroup>
                         ))
                       )

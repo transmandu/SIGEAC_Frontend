@@ -3,6 +3,7 @@
 import { Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 /**
  * Marco común de los formularios de artículo: cuerpo y acciones.
@@ -23,6 +24,7 @@ export const ArticleFormShell = ({
   submitTourId,
   onSubmit,
   formRef,
+  className,
   children,
 }: {
   busy?: boolean;
@@ -36,9 +38,15 @@ export const ArticleFormShell = ({
   submitTourId?: string;
   onSubmit: React.FormEventHandler<HTMLFormElement>;
   formRef?: React.Ref<HTMLFormElement>;
+  /** Para que el formulario llene un contenedor con altura limitada (diálogos con una lista que desplaza). */
+  className?: string;
   children: React.ReactNode;
 }) => (
-  <form ref={formRef} className="flex flex-col gap-5" onSubmit={onSubmit}>
+  <form
+    ref={formRef}
+    className={cn("flex flex-col gap-5", className)}
+    onSubmit={onSubmit}
+  >
     {children}
 
     {!hideActions && (

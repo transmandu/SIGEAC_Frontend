@@ -15,7 +15,7 @@ import { useGetEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetEmploy
 import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits";
 import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment";
 import { useGetThirdParties } from "@/hooks/general/terceros/useGetThirdParties";
-import { useGetAuthorizedEmployees } from "@/hooks/ajustes/autorizados/useGetAuthorizedEmployees";
+import { useGetExternalEmployees } from "@/hooks/ajustes/convenios/useGetExternalEmployees";
 import { useGetGeneralArticles } from "@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticles";
 import {
   getRequisitionArticleKey,
@@ -123,7 +123,7 @@ export function CreateGeneralRequisitionForm({
   } = useGetEmployeesByCompany(selectedCompany?.slug);
 
   const { data: authorizedEmployees, isLoading: isAuthorizedEmployeesLoading } =
-    useGetAuthorizedEmployees(selectedCompany?.slug);
+    useGetExternalEmployees(selectedCompany?.slug, "purchases.requisition");
 
   const { data: generalArticles, isLoading: isGeneralArticlesLoading } =
     useGetGeneralArticles();

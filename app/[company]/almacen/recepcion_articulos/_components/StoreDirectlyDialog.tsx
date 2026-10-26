@@ -33,7 +33,7 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { useGetAuthorizedEmployees } from '@/hooks/ajustes/autorizados/useGetAuthorizedEmployees'
+import { useGetExternalEmployees } from '@/hooks/ajustes/convenios/useGetExternalEmployees'
 import { useGetEmployeesByCompany } from '@/hooks/ajustes/empleados/useGetEmployees'
 import { cn } from '@/lib/utils'
 import { useCompanyStore } from '@/stores/CompanyStore'
@@ -68,9 +68,8 @@ export function StoreDirectlyDialog({ article }: { article: TransitArticle }) {
     const { data: employees, isLoading: employeesLoading } = useGetEmployeesByCompany(
         selectedCompany?.slug
     )
-    const { data: authorized, isLoading: authorizedLoading } = useGetAuthorizedEmployees(
-        selectedCompany?.slug
-    )
+    const { data: authorized, isLoading: authorizedLoading } = useGetExternalEmployees(
+        selectedCompany?.slug, "purchases.requisition")
     const { storeArticleDirectly } = useStoreArticleDirectly()
 
     const authorizersLoading = employeesLoading || authorizedLoading

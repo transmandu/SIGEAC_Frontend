@@ -14,7 +14,7 @@ import { useGetUserDepartamentEmployees } from "@/hooks/ajustes/empleados/useGet
 import { useGetEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetEmployees";
 import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment";
 import { useGetThirdParties } from "@/hooks/general/terceros/useGetThirdParties";
-import { useGetAuthorizedEmployees } from "@/hooks/ajustes/autorizados/useGetAuthorizedEmployees";
+import { useGetExternalEmployees } from "@/hooks/ajustes/convenios/useGetExternalEmployees";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { zodResolver } from "@/lib/zod-resolver";
 import { Loader2, Send, Plane, Package } from "lucide-react";
@@ -189,7 +189,7 @@ export function CreateWarehouseRequisitionForm({
   } = useGetEmployeesByCompany(selectedCompany?.slug);
 
   const { data: authorizedEmployees, isLoading: isAuthorizedEmployeesLoading } =
-    useGetAuthorizedEmployees(selectedCompany?.slug);
+    useGetExternalEmployees(selectedCompany?.slug, "purchases.requisition");
 
   const { createRequisition } = useCreateRequisition();
 
