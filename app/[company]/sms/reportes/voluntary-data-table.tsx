@@ -36,12 +36,9 @@ export function DataTable<TData extends RowData>({
   columns,
   data,
 }: DataTableProps<TData>) {
-  const [sorting, setSorting] = useState<SortingState>([
-    {
-      id: "report_number",
-      desc: true, // true para descendente (más recientes primero), false para ascendente
-    },
-  ]);
+  // Sin orden inicial: se respeta el orden que entrega el backend (reportes
+  // nuevos sin número primero y luego por número descendente).
+  const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const table = useTable({
     features: appTableFeatures,
