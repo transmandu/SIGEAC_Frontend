@@ -50,6 +50,21 @@ export function filterMenuGroups(
     return item.requiresOmac === currentCompany?.isOMAC;
   };
 
+  // Restringe un ítem a una o más empresas puntuales por slug (ej. una
+  // sección que solo aplica a Transmandu). Sin la lista, el ítem es visible
+  // para cualquier empresa, igual que con `moduleValue`/`requiresOmac`.
+  const hasCompanyAccess = (item: {
+    allowedCompanySlugs?: string[];
+  }): boolean => {
+    if (!item.allowedCompanySlugs || item.allowedCompanySlugs.length === 0) {
+      return true;
+    }
+    return (
+      !!currentCompany?.slug &&
+      item.allowedCompanySlugs.includes(currentCompany.slug)
+    );
+  };
+
   return groups
     .filter((group) => isModuleActive(group.moduleValue))
     .map((group) => {
@@ -57,7 +72,8 @@ export function filterMenuGroups(
         (menu) =>
           isModuleActive(menu.moduleValue) &&
           hasRoleAccess(menu) &&
-          hasOmacAccess(menu),
+          hasOmacAccess(menu) &&
+          hasCompanyAccess(menu),
       );
 
       const mappedMenus = filteredMenus
@@ -67,6 +83,7 @@ export function filterMenuGroups(
               isModuleActive(sub.moduleValue) &&
               hasRoleAccess(sub) &&
               hasOmacAccess(sub) &&
+              hasCompanyAccess(sub) &&
               isValidHref(sub.href),
           );
 
