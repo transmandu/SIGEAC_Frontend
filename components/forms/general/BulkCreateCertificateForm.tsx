@@ -119,11 +119,15 @@ export const BulkCreateCertificateForm = ({
 
   const currentImport = importStatus ?? initialImport;
 
-  // El estado del backend manda: en cuanto el job termina, la UI pasa a la
-  // vista de balance sin esperar a un setState dentro de un efecto.
+  // El estado del backend manda: en cuanto la importación termina, la UI pasa
+  // a la vista de balance sin esperar a un setState dentro de un efecto.
+  // `initialImport` ya trae el estado final cuando el backend procesó el lote
+  // en la misma petición, así que no dependemos del primer sondeo.
+  const currentStatus = (importStatus ?? initialImport)?.status;
+
   const effectivePhase: CertificateImportPhase =
     phase === "processing" &&
-    (importStatus?.status === "completed" || importStatus?.status === "failed")
+    (currentStatus === "completed" || currentStatus === "failed")
       ? "done"
       : phase;
 
@@ -190,24 +194,24 @@ export const BulkCreateCertificateForm = ({
   }, []);
 
   useEffect(() => {
-    if (!importStatus || finishedNotified.current) return;
+    if (!currentImport || finishedNotified.current) return;
 
     if (
-      importStatus.status === "completed" ||
-      importStatus.status === "failed"
+      currentImport.status === "completed" ||
+      currentImport.status === "failed"
     ) {
       finishedNotified.current = true;
       queryClient.invalidateQueries({ queryKey: ["sms-certificates"] });
 
-      if (importStatus.status === "failed") {
+      if (currentImport.status === "failed") {
         toast.error("La importación falló", {
           description:
-            importStatus.error ??
+            currentImport.error ??
             "No se pudo completar el lote de certificados.",
         });
-      } else if (importStatus.imported > 0) {
+      } else if (currentImport.imported > 0) {
         toast.success("Lote procesado", {
-          description: `${importStatus.imported} de ${importStatus.total} certificados fueron asignados.`,
+          description: `${currentImport.imported} de ${currentImport.total} certificados fueron asignados.`,
         });
       } else {
         toast.warning("No se asignó ningún certificado", {
@@ -216,7 +220,7 @@ export const BulkCreateCertificateForm = ({
         });
       }
     }
-  }, [importStatus, queryClient]);
+  }, [currentImport, queryClient]);
 
   const addFiles = (fileList: FileList | null) => {
     if (!fileList || fileList.length === 0) return;

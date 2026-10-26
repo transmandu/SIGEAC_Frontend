@@ -41,8 +41,13 @@ const StatBox = ({
 const resolveTitle = (
   phase: CertificateImportPhase,
   importFailed?: boolean,
+  percentage = 0,
 ) => {
-  if (phase === "uploading") return "Subiendo archivos...";
+  // En `uploading` el 100 % significa que el servidor ya recibió todo y está
+  // creando los certificados: avisamos para que no parezca que se quedó ahí.
+  if (phase === "uploading") {
+    return percentage >= 100 ? "Procesando lote..." : "Subiendo archivos...";
+  }
   if (phase === "processing") return "Procesando lote...";
   if (importFailed) return "La importación falló";
 
@@ -70,7 +75,7 @@ export const CertificateImportProgressBar = ({
       <div className="mb-2 flex items-center justify-between gap-3">
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold">
-            {resolveTitle(phase, importFailed)}
+            {resolveTitle(phase, importFailed, percentage)}
           </p>
           <p className="truncate text-xs text-muted-foreground">
             {courseName

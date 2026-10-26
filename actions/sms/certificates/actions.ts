@@ -32,8 +32,9 @@ export const useCreateSMSCertificate = () => {
 };
 
 // --- CARGAR LOTE ---
-// Sube varios PDF y devuelve el estado del job. El componente que la usa se
-// encarga de consultar el avance y de refrescar la tabla al terminar.
+// Sube varios PDF y devuelve el balance de la importación. El backend procesa
+// el lote en la misma petición, así que la respuesta suele traer `completed`;
+// el hook de estado solo se consulta si la respuesta llegara en curso.
 export const useBulkCreateSMSCertificates = () => {
   return useMutation({
     mutationFn: async ({

@@ -41,7 +41,7 @@ export const CertificateImportResultList = ({
           <p className="p-6 text-center text-sm text-muted-foreground">
             {phase === "uploading"
               ? "Esperando a que terminen de subir los archivos..."
-              : "El job está arrancando. El detalle aparecerá aquí..."}
+              : "Procesando los archivos. El detalle aparecerá aquí..."}
           </p>
         )}
 
