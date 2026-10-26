@@ -362,8 +362,13 @@ export function ComplianceQueueButton() {
   const [collapsed, setCollapsed] = useState<string[]>([]);
   const { selectedCompany } = useCompanyStore();
   const company = selectedCompany?.slug;
+  // `control-queue` es exclusivo de empresas OMAC (ver EnsureCompanyType en el
+  // backend): para el resto la consulta se deshabilita y la bandeja no se monta.
+  const isOmac = !!selectedCompany?.isOMAC;
 
-  const { data: queue, isLoading } = useGetControlQueue(company);
+  const { data: queue, isLoading } = useGetControlQueue(
+    isOmac ? company : undefined,
+  );
   const { removeFromControlQueue } = useRemoveFromControlQueue();
   const { clearControlQueue } = useClearControlQueue();
 
@@ -442,7 +447,7 @@ export function ComplianceQueueButton() {
     };
   }, [open]);
 
-  if (isLoading || !company || !entries.length) return null;
+  if (!isOmac || isLoading || !company || !entries.length) return null;
 
   const toggle = (id: number) =>
     setSelected((prev) =>
