@@ -1,7 +1,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import type { AxiosProgressEvent } from "axios";
 import axiosInstance from "@/lib/axios";
 import { toast } from "sonner";
 import { notifyError } from "@/lib/notify-error";
+import type { SMSCertificateImport } from "@/types";
 
 // --- CREAR ---
 export const useCreateSMSCertificate = () => {
@@ -25,6 +27,37 @@ export const useCreateSMSCertificate = () => {
     },
     onError: (error) => {
       notifyError(error, { action: "subir el certificado" });
+    },
+  });
+};
+
+// --- CARGAR LOTE ---
+// Sube varios PDF y devuelve el estado del job. El componente que la usa se
+// encarga de consultar el avance y de refrescar la tabla al terminar.
+export const useBulkCreateSMSCertificates = () => {
+  return useMutation({
+    mutationFn: async ({
+      company,
+      data,
+      onUploadProgress,
+    }: {
+      company: string;
+      data: FormData;
+      onUploadProgress?: (event: AxiosProgressEvent) => void;
+    }) => {
+      const response = await axiosInstance.post<{ data: SMSCertificateImport }>(
+        `/${company}/sms/certificates/bulk`,
+        data,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+          onUploadProgress,
+        },
+      );
+
+      return response.data.data;
+    },
+    onError: (error) => {
+      notifyError(error, { action: "subir el lote de certificados" });
     },
   });
 };

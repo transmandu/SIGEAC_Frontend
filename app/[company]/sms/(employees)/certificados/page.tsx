@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useGetSMSCertificates } from "@/hooks/sms/useGetCertificates";
@@ -13,6 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { CreateCertificateForm } from "@/components/forms/general/CreateCertificateForm";
+import { BulkCreateCertificateForm } from "@/components/forms/general/BulkCreateCertificateForm";
 import { DataTableCertificates } from "./data-table";
 import { getColumns, CertificateColumn, CertificateGroup } from "./columns";
 import { useTourContext } from "@/components/tour/TourProvider";
@@ -28,9 +29,21 @@ const CertificatesPage = () => {
   const { selectedCompany } = useCompanyStore();
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const [bulkRunning, setBulkRunning] = useState(false);
   const [selectedEmployee, setSelectedEmployee] =
     useState<CertificateGroup | null>(null);
   const { registerTour, unregisterTour } = useTourContext();
+
+  // Mientras el lote se sube o procesa no se permite cerrar el diálogo: el
+  // usuario debe ver el balance final y el job sigue corriendo de todos modos.
+  const handleBulkOpenChange = useCallback(
+    (next: boolean) => {
+      if (!next && bulkRunning) return;
+      setBulkOpen(next);
+    },
+    [bulkRunning],
+  );
 
   useEffect(() => {
     if (open) {
@@ -122,6 +135,7 @@ const CertificatesPage = () => {
               columns={tableColumns}
               data={certificatesByEmployee}
               onOpenModal={() => setOpen(true)}
+              onOpenBulkModal={() => setBulkOpen(true)}
               onEmployeeClick={setSelectedEmployee}
               user={user}
             />
@@ -156,6 +170,25 @@ const CertificatesPage = () => {
                 No tienes permisos para realizar esta acción.
               </p>
             )}
+          </DialogContent>
+        </Dialog>
+
+        {/* DIALOG DE CARGA MASIVA */}
+        <Dialog open={bulkOpen} onOpenChange={handleBulkOpenChange}>
+          <DialogContent
+            className="sm:max-w-2xl bg-background border-border shadow-lg"
+            data-tour="cert-bulk-dialog"
+          >
+            <DialogHeader>
+              <DialogTitle className="text-center text-xl font-bold text-foreground">
+                Cargar Lote de Certificados
+              </DialogTitle>
+            </DialogHeader>
+
+            <BulkCreateCertificateForm
+              onClose={() => setBulkOpen(false)}
+              onRunningChange={setBulkRunning}
+            />
           </DialogContent>
         </Dialog>
 
