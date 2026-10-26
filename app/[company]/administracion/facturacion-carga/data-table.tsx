@@ -1,0 +1,115 @@
+"use client";
+
+import {
+  ColumnFiltersState,
+  flexRender,
+  type RowData,
+  SortingState,
+  useTable,
+} from "@tanstack/react-table";
+import { appTableFeatures, type AppColumnDef } from "@/lib/table";
+
+import { DataTablePagination } from "@/components/tables/DataTablePagination";
+import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions";
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { ListRestart } from "lucide-react";
+import { useState } from "react";
+
+interface DataTableProps<TData extends RowData> {
+  columns: AppColumnDef<TData>[];
+  data: TData[];
+}
+
+export function DataTable<TData extends RowData>({
+  columns,
+  data,
+}: DataTableProps<TData>) {
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+
+  const table = useTable({
+    features: appTableFeatures,
+    data,
+    columns,
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    state: { sorting, columnFilters },
+  });
+
+  const isFiltered = table.state.columnFilters.length > 0;
+
+  return (
+    <div>
+      <div className="flex items-center py-4">
+        {isFiltered && (
+          <Button
+            variant="ghost"
+            onClick={() => table.resetColumnFilters()}
+            className="h-8 px-2 lg:px-3"
+          >
+            Reiniciar
+            <ListRestart className="ml-2 h-4 w-4" />
+          </Button>
+        )}
+        <DataTableViewOptions table={table} />
+      </div>
+      <div className="rounded-md border mb-4">
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center text-muted-foreground"
+                >
+                  Aún no hay clientes con cobros de carga registrados...
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+      <DataTablePagination table={table} />
+    </div>
+  );
+}

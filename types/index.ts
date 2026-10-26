@@ -2293,6 +2293,65 @@ export type CargoManifestItem = {
   shipmentItem?: CargoShipmentItem;
 };
 
+export type CargoCharge = {
+  id: number;
+  manifest_id: number;
+  cargo_shipment_id: number;
+  billing_date: string;
+  guide_number: string;
+  aircraft_model: string | null;
+  aircraft_registration: string | null;
+  weight: number;
+  route: string | null;
+  concept: string | null;
+  charge_type: string;
+  tariff: number | null;
+  total_amount: number;
+  amount_paid: number;
+  pending_amount: number;
+  updated_by: string | null;
+  // Conciliación: el saldo guardado contra la caja (suma de abonos).
+  // Vienen en null cuando la consulta no trajo la caja (por ejemplo, en la
+  // respuesta del guardado en lote).
+  abonos_total: number | null;
+  diferencia: number | null;
+  estado: "reconciled" | "saldo_sin_abono" | "abono_sin_saldo" | null;
+  reconciled_at: string | null;
+  reconciled_by: string | null;
+  reconciliation_note: string | null;
+};
+
+export type CargoBillingClientSummary = {
+  id: number;
+  name: string;
+  dni: string;
+  total_services: number;
+  total_pending: number;
+};
+
+export type CargoChargesResponse = {
+  client: AirlineClient;
+  charges: CargoCharge[];
+  summary: {
+    total_services: number;
+    total_pending: number;
+    unreconciled_count: number;
+    unreconciled_amount: number;
+  };
+};
+
+export type CargoChargePayment = {
+  id: number;
+  cargo_charge_id: number;
+  amount: number;
+  concept: string | null;
+  payment_method_id: number | null;
+  registered_by: string;
+  created_at: string;
+  charge?: { id: number; guide_number: string };
+  payment_method?: { id: number; name: string } | null;
+};
+
 export type FuelVehicleStatus = "active" | "inactive";
 
 export type FuelVehicleType =
