@@ -1,3 +1,12 @@
+## v4.80.0 — 2026-10-26
+
+- Merge pull request #354 from transmandu/feature/cargo-billing
+- feat(cargo-billing): show shipment detail from a charge
+- feat(cargo-billing): manage tariffs, payments, reconciliation and refunds
+- feat(menus): add cargo billing section restricted by company
+- feat(cargo-billing): list clients with pending charges
+- fix(http): raise axios timeout to 30s
+
 ## v4.79.0 — 2026-10-26
 
 - feat: save many certificates sms (#353)
