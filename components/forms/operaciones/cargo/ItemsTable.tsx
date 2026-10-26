@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { UseFormReturn, useFieldArray } from "react-hook-form";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -104,62 +105,60 @@ export function ItemsTable({
         className={cn("pr-2", fields.length > 5 ? "h-80" : "h-auto max-h-80")}
       >
         <div className="space-y-0" data-tour="cargo-crear-items-row-{index}">
-          {fields.map((field, index) => (
-            <div
-              key={field.id}
-              className="grid grid-cols-[1fr_120px_140px_48px] gap-2 items-center px-4 py-2 border-b border-border/30 last:border-0 hover:bg-muted/30 transition-colors group"
-            >
-              <FormField
-                control={form.control}
-                name={`items.${index}.product_description`}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <ProductAutocompleteInput
-                        company={company}
-                        value={field.value}
-                        onChange={field.onChange}
-                        placeholder="Ej. BOLSA CON GRIFO"
-                      />
-                    </FormControl>
-                    <FormMessage className="text-[10px]" />
-                  </FormItem>
-                )}
-              />
+          {fields.map((field, index) => {
+            const dispatchedUnits = Number(field.dispatched_units ?? 0);
+            const dispatchedWeight = Number(field.dispatched_weight ?? 0);
+            const manifested = dispatchedUnits > 0 || dispatchedWeight > 0;
 
-              <FormField
-                control={form.control}
-                name={`items.${index}.units`}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <Input
-                        data-tour="cargo-crear-items-unidades"
-                        type="number"
-                        min="1"
-                        className="bg-transparent h-8 text-sm text-center tabular-nums focus-visible:bg-background"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage className="text-[10px]" />
-                  </FormItem>
-                )}
-              />
-
-              <div className="flex items-center gap-1">
+            return (
+              <div
+                key={field.id}
+                className="grid grid-cols-[1fr_120px_140px_48px] gap-2 items-center px-4 py-2 border-b border-border/30 last:border-0 hover:bg-muted/30 transition-colors group"
+              >
                 <FormField
                   control={form.control}
-                  name={`items.${index}.weight`}
+                  name={`items.${index}.product_description`}
                   render={({ field }) => (
-                    <FormItem className="flex-1">
+                    <FormItem>
+                      <div className="flex items-center gap-2">
+                        <div className="min-w-0 flex-1">
+                          <FormControl>
+                            <ProductAutocompleteInput
+                              company={company}
+                              value={field.value}
+                              onChange={field.onChange}
+                              placeholder="Ej. BOLSA CON GRIFO"
+                              disabled={manifested}
+                            />
+                          </FormControl>
+                        </div>
+                        {manifested && (
+                          <Badge
+                            variant="warning"
+                            className="shrink-0 px-1.5 py-0 text-[10px] uppercase tracking-wide"
+                            title={`${dispatchedUnits} und. / ${dispatchedWeight} kg. despachados`}
+                          >
+                            Manifestado
+                          </Badge>
+                        )}
+                      </div>
+                      <FormMessage className="text-[10px]" />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name={`items.${index}.units`}
+                  render={({ field }) => (
+                    <FormItem>
                       <FormControl>
                         <Input
-                          data-tour="cargo-crear-items-peso"
+                          data-tour="cargo-crear-items-unidades"
                           type="number"
-                          step="0.01"
-                          min="0"
-                          placeholder="0.00"
-                          className="h-9 text-center"
+                          min="1"
+                          className="bg-transparent h-8 text-sm text-center tabular-nums focus-visible:bg-background"
+                          disabled={manifested}
                           {...field}
                         />
                       </FormControl>
@@ -167,36 +166,69 @@ export function ItemsTable({
                     </FormItem>
                   )}
                 />
-                {useScale && (
-                  <ScaleButton
-                    onCapture={(result) => {
-                      form.setValue(`items.${index}.weight`, result.weight, {
-                        shouldValidate: true,
-                        shouldDirty: true,
-                      });
-                    }}
-                  />
-                )}
-              </div>
 
-              <div className="flex justify-end items-center">
-                <Button
-                  data-tour="cargo-crear-items-eliminar"
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => remove(index)}
-                  disabled={fields.length === 1}
-                  className={cn(
-                    "h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-opacity",
-                    fields.length === 1 && "opacity-30 cursor-not-allowed",
+                <div className="flex items-center gap-1">
+                  <FormField
+                    control={form.control}
+                    name={`items.${index}.weight`}
+                    render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormControl>
+                          <Input
+                            data-tour="cargo-crear-items-peso"
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            placeholder="0.00"
+                            className="h-9 text-center"
+                            disabled={manifested}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage className="text-[10px]" />
+                      </FormItem>
+                    )}
+                  />
+                  {useScale && !manifested && (
+                    <ScaleButton
+                      onCapture={(result) => {
+                        form.setValue(`items.${index}.weight`, result.weight, {
+                          shouldValidate: true,
+                          shouldDirty: true,
+                        });
+                      }}
+                    />
                   )}
-                >
-                  <Trash2 className="size-4" />
-                </Button>
+                </div>
+
+                <div className="flex justify-end items-center">
+                  {manifested ? (
+                    <span
+                      title="Ítem manifestado: no se puede modificar"
+                      className="flex w-full justify-center text-muted-foreground"
+                    >
+                      <Lock className="size-4" />
+                    </span>
+                  ) : (
+                    <Button
+                      data-tour="cargo-crear-items-eliminar"
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => remove(index)}
+                      disabled={fields.length === 1}
+                      className={cn(
+                        "h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-opacity",
+                        fields.length === 1 && "opacity-30 cursor-not-allowed",
+                      )}
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </ScrollArea>
 

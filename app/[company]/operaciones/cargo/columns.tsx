@@ -6,7 +6,7 @@ import { CargoShipment } from "@/types";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { format, parseISO, isValid } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { Edit, FileText, Trash, MoreHorizontal } from "lucide-react";
+import { Edit, FileText, Trash, MoreHorizontal, Lock } from "lucide-react";
 import Link from "next/link";
 import {
   DropdownMenu,
@@ -30,6 +30,9 @@ import { Badge } from "@/components/ui/badge";
 
 const ActionsCell = ({ row, isCurrentMonth, company, canWrite }: any) => {
   const shipment = row.original;
+  const status = shipment.manifest_status;
+  const isManifested = status === "MANIFESTED";
+  const isPending = status === "PENDING";
   const [openDelete, setOpenDelete] = useState(false);
   const { deleteCargoShipment: deleteMutation } =
     useDeleteCargoShipment(company);
@@ -64,29 +67,35 @@ const ActionsCell = ({ row, isCurrentMonth, company, canWrite }: any) => {
               </Link>
             </DropdownMenuItem>
 
-            {canWrite && isCurrentMonth && (
-              <>
-                <DropdownMenuItem
-                  asChild
-                  className="cursor-pointer"
-                  data-tour="cargo-guia-row-editar"
+            {canWrite && isCurrentMonth && !isManifested && (
+              <DropdownMenuItem
+                asChild
+                className="cursor-pointer"
+                data-tour="cargo-guia-row-editar"
+              >
+                <Link
+                  href={`/${company}/operaciones/cargo/guia/${shipment.id}/update`}
                 >
-                  <Link
-                    href={`/${company}/operaciones/cargo/guia/${shipment.id}/update`}
-                  >
-                    <Edit className="mr-2 h-4 w-4 text-blue-500" />
-                    <span>Editar</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  className="text-destructive focus:text-destructive cursor-pointer"
-                  onClick={() => setOpenDelete(true)}
-                  data-tour="cargo-guia-row-eliminar"
-                >
-                  <Trash className="mr-2 h-4 w-4" />
-                  <span>Eliminar</span>
-                </DropdownMenuItem>
-              </>
+                  <Edit className="mr-2 h-4 w-4 text-blue-500" />
+                  <span>Editar</span>
+                </Link>
+              </DropdownMenuItem>
+            )}
+            {canWrite && isCurrentMonth && isPending && (
+              <DropdownMenuItem
+                className="text-destructive focus:text-destructive cursor-pointer"
+                onClick={() => setOpenDelete(true)}
+                data-tour="cargo-guia-row-eliminar"
+              >
+                <Trash className="mr-2 h-4 w-4" />
+                <span>Eliminar</span>
+              </DropdownMenuItem>
+            )}
+            {canWrite && isCurrentMonth && isManifested && (
+              <DropdownMenuItem disabled>
+                <Lock className="mr-2 h-4 w-4" />
+                <span>Totalmente manifestada</span>
+              </DropdownMenuItem>
             )}
           </DropdownMenuContent>
         </DropdownMenu>

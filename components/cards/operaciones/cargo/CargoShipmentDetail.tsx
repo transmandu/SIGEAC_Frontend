@@ -1,5 +1,6 @@
 "use client";
 
+import { formatPhone } from "@/lib/phone";
 import { CargoShipment } from "@/types";
 import { format, isValid, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
@@ -121,7 +122,9 @@ export function CargoShipmentDetail({ shipment }: { shipment: CargoShipment }) {
                 <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
                   Teléfono
                 </p>
-                <p className="text-sm">{shipment.client?.phone || "N/A"}</p>
+                <p className="text-sm">
+                  {formatPhone(shipment.client?.phone) || "N/A"}
+                </p>
               </div>
             </div>
           </CardContent>

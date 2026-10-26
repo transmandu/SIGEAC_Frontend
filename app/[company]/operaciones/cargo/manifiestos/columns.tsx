@@ -39,7 +39,15 @@ import {
   downloadManifestPdf,
 } from "@/actions/cargo/manifestActions";
 
-const ActionsCell = ({ row, company }: { row: any; company: string }) => {
+const ActionsCell = ({
+  row,
+  company,
+  canWrite,
+}: {
+  row: any;
+  company: string;
+  canWrite: boolean;
+}) => {
   const manifest = row.original as CargoManifest;
   const [openDelete, setOpenDelete] = useState(false);
   const router = useRouter();
@@ -76,22 +84,26 @@ const ActionsCell = ({ row, company }: { row: any; company: string }) => {
             >
               <FileText className="mr-2 h-4 w-4" /> Ver
             </DropdownMenuItem>
-            <DropdownMenuItem
-              className="cursor-pointer"
-              onClick={() =>
-                router.push(
-                  `/${company}/operaciones/cargo/manifiestos/${manifest.id}/update`,
-                )
-              }
-            >
-              <Edit className="mr-2 h-4 w-4" /> Editar
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="text-destructive focus:text-destructive cursor-pointer"
-              onClick={() => setOpenDelete(true)}
-            >
-              <Trash className="mr-2 h-4 w-4" /> Eliminar
-            </DropdownMenuItem>
+            {canWrite && (
+              <DropdownMenuItem
+                className="cursor-pointer"
+                onClick={() =>
+                  router.push(
+                    `/${company}/operaciones/cargo/manifiestos/${manifest.id}/update`,
+                  )
+                }
+              >
+                <Edit className="mr-2 h-4 w-4" /> Editar
+              </DropdownMenuItem>
+            )}
+            {canWrite && (
+              <DropdownMenuItem
+                className="text-destructive focus:text-destructive cursor-pointer"
+                onClick={() => setOpenDelete(true)}
+              >
+                <Trash className="mr-2 h-4 w-4" /> Eliminar
+              </DropdownMenuItem>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -129,6 +141,7 @@ const ActionsCell = ({ row, company }: { row: any; company: string }) => {
 
 export const getManifestColumns = (
   company: string,
+  canWrite: boolean,
 ): AppColumnDef<CargoManifest>[] => [
   {
     accessorKey: "manifest_number",
@@ -229,6 +242,8 @@ export const getManifestColumns = (
   },
   {
     id: "actions",
-    cell: ({ row }: any) => <ActionsCell row={row} company={company} />,
+    cell: ({ row }: any) => (
+      <ActionsCell row={row} company={company} canWrite={canWrite} />
+    ),
   },
 ];
