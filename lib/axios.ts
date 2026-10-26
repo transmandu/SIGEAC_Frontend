@@ -8,6 +8,7 @@ const isPublicRoute = (pathname: string) =>
 
 const axiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
+  timeout: 30_000,
   withCredentials: true,
   headers: {
     skip_zrok_interstitial: true,
