@@ -39,7 +39,7 @@ import {
 } from "@/actions/general/minutas_reunion/actions";
 import { MeetingMinutes } from "@/types";
 import { useGetAllEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetAllEmployees";
-import { useGetAuthorizedEmployees } from "@/hooks/ajustes/autorizados/useGetAuthorizedEmployees";
+import { useGetExternalEmployees } from "@/hooks/ajustes/convenios/useGetExternalEmployees";
 import { toCalendarPayload } from "@/lib/date";
 
 interface FormProps {
@@ -189,7 +189,12 @@ export function CreateMeetingMinuteForm({
   const { data: allEmployees, isLoading: allEmployeesLoading } =
     useGetAllEmployeesByCompany(companySlug);
   const { data: authorizedEmployees, isLoading: authorizedEmployeesLoading } =
-    useGetAuthorizedEmployees(companySlug);
+    useGetExternalEmployees(
+      companySlug,
+      "meetings.minutes",
+      // Al editar, quien entonces estaba autorizado, no solo quien lo está hoy.
+      initialData?.date ? String(initialData.date).slice(0, 10) : undefined,
+    );
   const { createMeetingMinute } = useCreateMeetingMinute();
   const { updateMeetingMinute } = useUpdateMeetingMinute();
 

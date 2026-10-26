@@ -32,6 +32,9 @@ interface IDispatchRequestAction {
   user_id: number;
   aircraft_id?: string;
   authorized_employee_id?: string;
+  /** Salida a otra empresa: empresa y departamento a los que se atribuye. */
+  destination_company_slug?: string;
+  destination_department_id?: string;
   department_id?: string;
   /**
    * Sede destino: convierte la salida en un traslado entre sedes. El backend

@@ -130,8 +130,9 @@ export const columns: AppColumnDef<DispatchGroupRow>[] = [
             <p className="font-medium text-center">
               {authorized_employee.full_name}
             </p>
-            <p className="text-xs text-muted-foreground uppercase">
-              {authorized_employee.from_company_db}
+            <p className="text-xs text-muted-foreground">
+              {row.original.authorized_company_name ??
+                authorized_employee.from_company_db}
             </p>
           </div>
         );
@@ -165,7 +166,11 @@ export const columns: AppColumnDef<DispatchGroupRow>[] = [
   {
     id: "destination",
     meta: { title: "Destino" },
-    accessorFn: (row) => row.aircraft?.acronym ?? row.department?.name ?? "",
+    accessorFn: (row) =>
+      row.aircraft?.acronym ??
+      row.destination_company_name ??
+      row.department?.name ??
+      "",
     header: ({ column }) => (
       <DataTableColumnHeader
         column={column}
@@ -178,6 +183,8 @@ export const columns: AppColumnDef<DispatchGroupRow>[] = [
     cell: ({ row }) => {
       const aircraft = row.original.aircraft?.acronym;
       const dept = row.original.department?.name;
+      const { destination_company_name, destination_department_name } =
+        row.original;
 
       if (aircraft) {
         return (
@@ -188,6 +195,19 @@ export const columns: AppColumnDef<DispatchGroupRow>[] = [
             </p>
             <p className="text-xs text-muted-foreground text-center">
               Aeronave
+            </p>
+          </div>
+        );
+      }
+
+      if (destination_company_name) {
+        return (
+          <div className="flex flex-col items-center justify-center leading-tight">
+            <p className="font-medium text-center">
+              {destination_company_name}
+            </p>
+            <p className="text-xs text-muted-foreground text-center">
+              {destination_department_name ?? "Sin departamento"}
             </p>
           </div>
         );

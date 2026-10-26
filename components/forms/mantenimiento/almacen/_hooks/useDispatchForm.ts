@@ -6,7 +6,8 @@ import { useGetConversionByConsmable } from "@/hooks/mantenimiento/almacen/artic
 import { useGetConversionByGeneralArticle } from "@/hooks/mantenimiento/almacen/articulos/useGetConvertionsByGeneralArticleId";
 import { useGetGeneralArticles } from "@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticles";
 import { useGetBatchesWithInWarehouseArticles } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesWithInWarehouseArticles";
-import { useGetAuthorizedEmployees } from "@/hooks/ajustes/autorizados/useGetAuthorizedEmployees";
+import { useGetExternalEmployees } from "@/hooks/ajustes/convenios/useGetExternalEmployees";
+import { useGetLoanDepartments } from "@/hooks/ajustes/convenios/useGetLoanDepartments";
 import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment";
 import { useGetEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetEmployees";
 import { useGetMaintenanceAircrafts } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts";
@@ -44,7 +45,7 @@ export type MsgLevel = "error" | "warn";
 export type RowMsg = { msg: string; level: MsgLevel } | undefined;
 export type ConversionTarget = "aero" | "general";
 export type DispatchType =
-  "aircraft" | "department" | "authorized" | "third_party" | "location";
+  "aircraft" | "department" | "other_company" | "third_party" | "location";
 export type ItemCategory = "consumable" | "component" | "part";
 
 type ConvState = {
@@ -123,6 +124,8 @@ const SERVER_ERROR_FIELDS = new Set([
   "department_id",
   "aircraft_id",
   "authorized_employee_id",
+  "destination_company_slug",
+  "destination_department_id",
   "third_party_id",
   "destination_location_id",
   "third_party_requested_by",
@@ -134,7 +137,7 @@ export const FormSchema = z
   .object({
     work_order: z.string(),
     dispatch_type: z.enum(
-      ["aircraft", "department", "authorized", "third_party", "location"],
+      ["aircraft", "department", "other_company", "third_party", "location"],
       {
         message: "Debe seleccionar el tipo de despacho.",
       },
@@ -154,7 +157,12 @@ export const FormSchema = z
     status: z.string(),
     unit: z.enum(["litros", "mililitros"]).optional(),
     aircraft_id: z.string().optional(),
+    // Salida a otra empresa: quien retira y a dónde se atribuye el material
+    // son datos distintos (una persona de B puede sacar para un departamento
+    // de A o de B).
     authorized_employee_id: z.string().optional(),
+    destination_company_slug: z.string().optional(),
+    destination_department_id: z.string().optional(),
     third_party_id: z.string().optional(),
     // Sede a la que va el material. Convierte la salida en un traslado: no
     // se cierra al registrarse, queda esperando el acuse de esa sede.
@@ -201,12 +209,28 @@ export const FormSchema = z
         path: ["department_id"],
       });
     }
-    if (data.dispatch_type === "authorized" && !data.authorized_employee_id) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Debe seleccionar un autorizado.",
-        path: ["authorized_employee_id"],
-      });
+    if (data.dispatch_type === "other_company") {
+      if (!data.authorized_employee_id) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Debe seleccionar quién retira.",
+          path: ["authorized_employee_id"],
+        });
+      }
+      if (!data.destination_company_slug) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Debe seleccionar la empresa destino.",
+          path: ["destination_company_slug"],
+        });
+      }
+      if (!data.destination_department_id) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Debe seleccionar el departamento destino.",
+          path: ["destination_department_id"],
+        });
+      }
     }
     if (data.dispatch_type === "third_party" && !data.third_party_id) {
       ctx.addIssue({
@@ -292,7 +316,7 @@ export function useDispatchForm(
   const { data: aircrafts, isLoading: isAircraftsLoading } =
     useGetMaintenanceAircrafts(selectedCompany?.slug);
   const { data: authorizedEmployees, isLoading: isAuthorizedEmployeesLoading } =
-    useGetAuthorizedEmployees(selectedCompany?.slug);
+    useGetExternalEmployees(selectedCompany?.slug, "warehouse.dispatch");
   const { data: thirdParties, isLoading: isThirdPartiesLoading } =
     useGetThirdParties();
 
@@ -340,6 +364,8 @@ export function useDispatchForm(
       department_id: "",
       third_party_id: "",
       destination_location_id: "",
+      destination_company_slug: "",
+      destination_department_id: "",
       status: "proceso",
       is_backdated: false,
       aeronautical_articles: [],
@@ -362,6 +388,27 @@ export function useDispatchForm(
   const watchedAeroRaw = useWatch({ control, name: "aeronautical_articles" });
   const watchedGenRaw = useWatch({ control, name: "general_articles" });
   const dispatchType = useWatch({ control, name: "dispatch_type" });
+  const authorizedEmployeeId = useWatch({
+    control,
+    name: "authorized_employee_id",
+  });
+  const destinationCompanySlug = useWatch({
+    control,
+    name: "destination_company_slug",
+  });
+  const selectedAuthorized = useMemo(
+    () =>
+      authorizedEmployees?.find((a) => String(a.id) === authorizedEmployeeId),
+    [authorizedEmployees, authorizedEmployeeId],
+  );
+  // Los departamentos de esta empresa ya están cargados; solo se piden los de
+  // la otra cuando es ella el destino.
+  const foreignDestinationSlug =
+    destinationCompanySlug && destinationCompanySlug !== selectedCompany?.slug
+      ? destinationCompanySlug
+      : undefined;
+  const { data: loanDepartments, isLoading: isLoanDepartmentsLoading } =
+    useGetLoanDepartments(selectedCompany?.slug, foreignDestinationSlug);
   const thirdPartyId = useWatch({ control, name: "third_party_id" });
 
   const watchedAero = useMemo(() => watchedAeroRaw ?? [], [watchedAeroRaw]);
@@ -870,7 +917,14 @@ export function useDispatchForm(
         setSelectedDepartment(null);
       }
       if (value !== "aircraft") setValue("aircraft_id", "");
-      if (value !== "authorized") setValue("authorized_employee_id", "");
+      if (value === "department" || value === "other_company") {
+        setValue("work_order", "");
+      }
+      if (value !== "other_company") {
+        setValue("authorized_employee_id", "");
+        setValue("destination_company_slug", "");
+        setValue("destination_department_id", "");
+      }
       if (value !== "third_party") {
         setValue("third_party_id", "");
         setOpenThirdParty(false);
@@ -1084,6 +1138,20 @@ export function useDispatchForm(
             data.dispatch_type === "department"
               ? data.department_id
               : undefined,
+          // Salida a otra empresa: el departamento destino viaja en
+          // destination_department_id (el backend decide si es el propio).
+          authorized_employee_id:
+            data.dispatch_type === "other_company"
+              ? data.authorized_employee_id
+              : undefined,
+          destination_company_slug:
+            data.dispatch_type === "other_company"
+              ? data.destination_company_slug
+              : undefined,
+          destination_department_id:
+            data.dispatch_type === "other_company"
+              ? data.destination_department_id
+              : undefined,
           // Con sede destino el backend abre un traslado: la salida queda
           // en tránsito hasta que esa sede acusa recibo.
           destination_location_id:
@@ -1148,6 +1216,11 @@ export function useDispatchForm(
     isAircraftsLoading,
     authorizedEmployees,
     isAuthorizedEmployeesLoading,
+    selectedAuthorized,
+    selectedCompany,
+    foreignDestinationSlug,
+    loanDepartments,
+    isLoanDepartmentsLoading,
     thirdParties,
     isThirdPartiesLoading,
     transferLocations,

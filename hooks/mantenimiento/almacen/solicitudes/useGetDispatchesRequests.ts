@@ -1,4 +1,3 @@
-import { AuthorizedEmployee } from "@/app/[company]/ajustes/autorizaciones/autorizados/columns";
 import type { DispatchArticle } from "@/app/[company]/almacen/solicitudes/salida/page";
 import { useDebounce } from "@/hooks/helpers/useDebounce";
 import axios from "@/lib/axios";
@@ -17,7 +16,10 @@ interface IDispatch {
   id: number;
   request_number: string;
   requested_by: string;
-  auhtorized_employee?: AuthorizedEmployee;
+  authorized_employee?: { full_name: string; from_company_db: string };
+  authorized_company_name?: string | null;
+  destination_company_name?: string | null;
+  destination_department_name?: string | null;
   created_by: string;
   justification: string;
   destination_place: string;

@@ -29,7 +29,7 @@ import {
 } from "./StepPhotographicRecords";
 import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment";
 import { useGetAllEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetAllEmployees";
-import { useGetAuthorizedEmployees } from "@/hooks/ajustes/autorizados/useGetAuthorizedEmployees";
+import { useGetExternalEmployees } from "@/hooks/ajustes/convenios/useGetExternalEmployees";
 import { toCalendarPayload } from "@/lib/date";
 
 const STEPS = [
@@ -157,7 +157,7 @@ export function CreateChangeRequestForm() {
   const { data: employees, isLoading: isLoadingEmployees } =
     useGetAllEmployeesByCompany(selectedCompany?.slug);
   const { data: authorizedEmployees, isLoading: isLoadingAuthorizedEmployees } =
-    useGetAuthorizedEmployees(selectedCompany?.slug);
+    useGetExternalEmployees(selectedCompany?.slug, "sms.change_management");
 
   const form = useForm<ChangeRequestFormValues>({
     resolver: zodResolver(formSchema),

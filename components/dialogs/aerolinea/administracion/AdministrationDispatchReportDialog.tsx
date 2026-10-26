@@ -34,7 +34,7 @@ import { useGetDispatchWorkOrders } from "@/hooks/mantenimiento/almacen/reportes
 import { useGetDispatchReport } from "@/hooks/mantenimiento/almacen/reportes/useGetDispatchReport";
 import { useGetDispatchCostReport } from "@/hooks/mantenimiento/almacen/reportes/useGetDispatchCostReport";
 import { useGetBalanceAndTotalReport } from "@/hooks/mantenimiento/almacen/reportes/useGetBalanceAndTotalReport";
-import { useGetAuthorizedEmployees } from "@/hooks/ajustes/autorizados/useGetAuthorizedEmployees";
+import { useGetDispatchReportExternalEmployees } from "@/hooks/ajustes/convenios/useGetDispatchReportExternalEmployees";
 import { useGetThirdParties } from "@/hooks/general/terceros/useGetThirdParties";
 import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment";
 import { useGetConditions } from "@/hooks/general/condiciones/useGetConditions";
@@ -120,7 +120,10 @@ export function AdministrationDispatchReportDialog({
   const allDepartments = departments ? flattenDepartments(departments) : [];
 
   const { data: authorizedEmployees, isLoading: isLoadingEmployees } =
-    useGetAuthorizedEmployees(selectedCompany?.slug);
+    useGetDispatchReportExternalEmployees(
+      selectedCompany?.slug,
+      selectedStation,
+    );
 
   const { data: thirdParties, isLoading: isLoadingThirdParties } =
     useGetThirdParties();
