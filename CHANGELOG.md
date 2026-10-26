@@ -1,3 +1,7 @@
+## v4.79.0 — 2026-10-26
+
+- feat: save many certificates sms (#353)
+
 ## v4.78.0 — 2026-10-24
 
 - feat: add new risk matrix to change request (#352)
