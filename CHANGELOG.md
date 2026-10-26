@@ -1,3 +1,7 @@
+## v4.82.0 — 2026-10-26
+
+- feat: add ConfirmActionDialog component for action confirmation (#356)
+
 ## v4.81.0 — 2026-10-26
 
 - Merge pull request #355 from transmandu/feature/operaciones-cargo
