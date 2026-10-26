@@ -6,8 +6,7 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 
-
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, ShieldX } from "lucide-react";
 import { MonthYearPicker } from "@/components/selects/MonthYearPicker";
 
 import UpdateCargoManifestForm from "@/components/forms/operaciones/cargo/UpdateCargoManifestForm";
@@ -17,6 +16,7 @@ import { useTourContext } from "@/components/tour/TourProvider";
 import { cargoManifiestoEditarSteps } from "@/components/tour/steps/cargo/manifiesto-editar";
 import { useEffect } from "react";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { useAuth } from "@/contexts/AuthContext";
 
 const EditarManifiestoPage = () => {
   const params = useParams();
@@ -24,6 +24,12 @@ const EditarManifiestoPage = () => {
 
   const company = params.company as string;
   const id = params.id as string;
+
+  const { user } = useAuth();
+  const userRoles = user?.roles?.map((r) => r.name) || [];
+  const canWrite = userRoles.some((r) =>
+    ["OPERADOR_CARGA", "SUPERUSER"].includes(r),
+  );
 
   const {
     data: manifest,
@@ -33,7 +39,11 @@ const EditarManifiestoPage = () => {
   const { registerTour, unregisterTour } = useTourContext();
 
   useEffect(() => {
-    registerTour("cargo-manifiesto-editar", "Editar Manifiesto", cargoManifiestoEditarSteps);
+    registerTour(
+      "cargo-manifiesto-editar",
+      "Editar Manifiesto",
+      cargoManifiestoEditarSteps,
+    );
     return () => unregisterTour("cargo-manifiesto-editar");
   }, [registerTour, unregisterTour]);
 
@@ -43,6 +53,25 @@ const EditarManifiestoPage = () => {
       `/${company}/operaciones/cargo/manifiestos?month=${manifest.month}&year=${manifest.year}`,
     );
   };
+
+  if (!canWrite) {
+    return (
+      <ContentLayout title="Editar Manifiesto">
+        <div className="flex flex-col items-center gap-4 py-24 text-center">
+          <ShieldX className="h-12 w-12 text-muted-foreground" />
+          <p className="text-lg font-semibold">No autorizado</p>
+          <p className="text-sm text-muted-foreground">
+            No tienes permisos para editar manifiestos.
+          </p>
+          <Button asChild variant="outline">
+            <Link href={`/${company}/operaciones/cargo/manifiestos`}>
+              Volver
+            </Link>
+          </Button>
+        </div>
+      </ContentLayout>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -80,7 +109,13 @@ const EditarManifiestoPage = () => {
 
         {/* Header */}
         <div className="flex items-center gap-4 mb-4">
-          <Button asChild variant="outline" size="icon" className="h-9 w-9" data-tour="cargo-manifiestos-editar-btn-volver">
+          <Button
+            asChild
+            variant="outline"
+            size="icon"
+            className="h-9 w-9"
+            data-tour="cargo-manifiestos-editar-btn-volver"
+          >
             <Link
               href={`/${company}/operaciones/cargo/manifiestos?month=${manifest.month}&year=${manifest.year}`}
             >
@@ -88,7 +123,10 @@ const EditarManifiestoPage = () => {
             </Link>
           </Button>
 
-          <h1 className="text-3xl font-bold" data-tour="cargo-manifiestos-editar-header">
+          <h1
+            className="text-3xl font-bold"
+            data-tour="cargo-manifiestos-editar-header"
+          >
             Editar Manifiesto - {manifest.manifest_number}
           </h1>
         </div>

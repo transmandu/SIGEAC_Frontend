@@ -60,12 +60,13 @@ const ManifestsPage = () => {
     isError,
   } = useGetCargoManifests(company, month, year, filterAircraftId, day);
 
-  const columns = getManifestColumns(company);
-
   const userRoles = user?.roles?.map((r) => r.name) || [];
   const canWrite = userRoles.some((r) =>
     ["OPERADOR_CARGA", "SUPERUSER"].includes(r),
   );
+
+  const columns = getManifestColumns(company, canWrite);
+
   const { registerTour, unregisterTour } = useTourContext();
 
   useEffect(() => {
