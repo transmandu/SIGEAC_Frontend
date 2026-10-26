@@ -1,3 +1,11 @@
+## v4.81.0 — 2026-10-26
+
+- Merge pull request #355 from transmandu/feature/operaciones-cargo
+- fix(planificacion): only query the control queue for OMAC companies
+- feat(operaciones): gate cargo edits by role and manifest state
+- feat(operaciones): lock items already dispatched in a manifest
+- refactor(operaciones): extract the cargo shipment detail into a shared card
+
 ## v4.80.0 — 2026-10-26
 
 - Merge pull request #354 from transmandu/feature/cargo-billing
