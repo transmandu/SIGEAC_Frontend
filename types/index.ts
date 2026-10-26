@@ -2187,6 +2187,41 @@ export interface SMSCertificate {
     name: string;
   };
 }
+
+/** Estado de una carga masiva de certificados (job en cola). */
+export type SMSCertificateImportStatus =
+  "queued" | "running" | "completed" | "failed";
+
+export interface SMSCertificateImportResult {
+  /** Nombre original del PDF. */
+  file: string;
+  /** DNI leído del nombre del archivo. */
+  dni: string | null;
+  /** Empleado al que se asignó, si se encontró. */
+  employee: string | null;
+  status: "imported" | "failed";
+  /** Motivo del fallo, solo cuando `status` es `failed`. */
+  message: string | null;
+}
+
+export interface SMSCertificateImport {
+  id: string;
+  status: SMSCertificateImportStatus;
+  course_id: number;
+  course_name: string;
+  completion_date: string;
+  total: number;
+  processed: number;
+  imported: number;
+  failed: number;
+  percentage: number;
+  results: SMSCertificateImportResult[];
+  error: string | null;
+  created_at: string;
+  updated_at: string;
+  started_at: string | null;
+  finished_at: string | null;
+}
 export interface ShippingAgency {
   id: number;
   name: string;
