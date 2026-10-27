@@ -8,6 +8,7 @@ import { useGetBatchesWithInWarehouseArticles } from "@/hooks/mantenimiento/alma
 import { useGetWorkshops } from "@/hooks/general/talleres/useGetWorkshops";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { parseQuantity, resolveQuantityText } from "@/lib/fractions";
 import { zodResolver } from "@/lib/zod-resolver";
 import { useCallback, useMemo, useState } from "react";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
@@ -250,7 +251,7 @@ export function useWorkshopDispatchForm(onClose: () => void) {
 
   const validateAndClamp = useCallback(
     (key: string, raw: string, max: number, conv?: RowConversion) => {
-      const n = parseFloat(raw || "0") || 0;
+      const n = parseQuantity(raw) ?? 0;
       if (!raw || n <= 0) {
         setRowMsg(key, {
           msg: "La cantidad debe ser mayor a 0",
@@ -270,7 +271,7 @@ export function useWorkshopDispatchForm(onClose: () => void) {
         return String(capped);
       }
       setRowMsg(key, undefined);
-      return raw;
+      return resolveQuantityText(raw);
     },
     [setRowMsg],
   );
@@ -402,6 +403,52 @@ export function useWorkshopDispatchForm(onClose: () => void) {
     (index: number, fieldId: string, next: CutDraft) =>
       updateCutFor("aero", index, fieldId, next),
     [updateCutFor],
+  );
+
+  // Atajos de fracción y sugerencia «usar 1/2»: la cantidad ya viene en unidad
+  // base, así que, igual que "usar máximo", descartan la conversión vigente.
+  const setQuantityAero = useCallback(
+    (index: number, fieldId: string, value: number) => {
+      const key = aeroKey(fieldId);
+      const max = watchedAero[index]?.article_id
+        ? getAeroMax(Number(watchedAero[index].article_id))
+        : 0;
+      const adjusted = validateAndClamp(key, String(value), max);
+      setQtyByKey((p) => ({ ...p, [key]: adjusted }));
+      setConvByKey((p) => {
+        const n = { ...p };
+        delete n[key];
+        return n;
+      });
+      setValue(
+        `aeronautical_articles.${index}.quantity`,
+        parseFloat(adjusted) || 0,
+      );
+      setValue(`aeronautical_articles.${index}.unit_id`, null);
+    },
+    [watchedAero, getAeroMax, validateAndClamp, setValue],
+  );
+
+  const setQuantityGen = useCallback(
+    (index: number, fieldId: string, value: number) => {
+      const key = genKey(fieldId);
+      const max = watchedGen[index]?.general_article_id
+        ? getGenMax(Number(watchedGen[index].general_article_id))
+        : 0;
+      const adjusted = validateAndClamp(key, String(value), max);
+      setQtyByKey((p) => ({ ...p, [key]: adjusted }));
+      setConvByKey((p) => {
+        const n = { ...p };
+        delete n[key];
+        return n;
+      });
+      setValue(
+        `general_articles.${index}.quantity`,
+        parseFloat(adjusted) || 0,
+      );
+      setValue(`general_articles.${index}.unit_id`, null);
+    },
+    [watchedGen, getGenMax, validateAndClamp, setValue],
   );
 
   const setToMaxAero = useCallback(
@@ -664,7 +711,7 @@ export function useWorkshopDispatchForm(onClose: () => void) {
     const rowInvalid = (key: string) => {
       const cut = cutByKey[key];
       if (cut) return !isCutComplete(cut);
-      return (parseFloat(qtyByKey[key] ?? "0") || 0) <= 0;
+      return (parseQuantity(qtyByKey[key] ?? "") ?? 0) <= 0;
     };
 
     return (
@@ -834,6 +881,8 @@ export function useWorkshopDispatchForm(onClose: () => void) {
     commitGenQty,
     setToMaxAero,
     setToMaxGen,
+    setQuantityAero,
+    setQuantityGen,
     convState,
     setConvState,
     activeConversions,

@@ -24,6 +24,8 @@ interface GeneralArticleRowProps {
   onQtyChange: (val: string) => void
   onCommit: () => void
   onSetMax: () => void
+  /** Fija una cantidad en unidad base (atajos de fracción). */
+  onSetQuantity?: (value: number) => void
   onOpenConversion: () => void
   onRemove: () => void
   onCutChange: (next: CutDraft) => void
@@ -50,6 +52,7 @@ export function GeneralArticleRow({
   onQtyChange,
   onCommit,
   onSetMax,
+  onSetQuantity,
   onOpenConversion,
   onRemove,
   onCutChange,
@@ -100,6 +103,7 @@ export function GeneralArticleRow({
       onQtyChange={onQtyChange}
       onCommit={onCommit}
       onSetMax={onSetMax}
+      onSetQuantity={onSetQuantity}
       onOpenConversion={onOpenConversion}
       onRemove={onRemove}
     />

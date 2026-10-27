@@ -26,6 +26,8 @@ interface ConsumableArticleRowProps {
   onQtyChange: (val: string) => void
   onCommit: () => void
   onSetMax: () => void
+  /** Fija una cantidad en unidad base (atajos de fracción). */
+  onSetQuantity?: (value: number) => void
   onOpenConversion: () => void
   onRemove: () => void
   onCutChange: (next: CutDraft) => void
@@ -57,6 +59,7 @@ export function ConsumableArticleRow({
   onQtyChange,
   onCommit,
   onSetMax,
+  onSetQuantity,
   onOpenConversion,
   onRemove,
   onCutChange,
@@ -110,6 +113,7 @@ export function ConsumableArticleRow({
       onQtyChange={onQtyChange}
       onCommit={onCommit}
       onSetMax={onSetMax}
+      onSetQuantity={onSetQuantity}
       onOpenConversion={onOpenConversion}
       onRemove={onRemove}
     />

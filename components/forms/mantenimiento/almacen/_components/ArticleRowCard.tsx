@@ -3,15 +3,18 @@ import { memo } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits"
+import {
+  FRACTION_SHORTCUTS,
+  fractionLabel,
+  isFractionText,
+  nearFraction,
+  parseQuantity,
+  sanitizeQuantityText,
+} from "@/lib/fractions"
 import { cn } from "@/lib/utils"
+import { useCompanyStore } from "@/stores/CompanyStore"
 import { AlertCircle, Calculator, X } from "lucide-react"
-
-function sanitizeDecimal(raw: string) {
-  const cleaned = raw.replace(/[^\d.]/g, "")
-  const parts = cleaned.split(".")
-  if (parts.length <= 1) return cleaned
-  return `${parts[0]}.${parts.slice(1).join("")}`
-}
 
 type MsgLevel = "error" | "warn"
 type RowMsg = { msg: string; level: MsgLevel } | undefined
@@ -48,6 +51,11 @@ interface ArticleRowCardProps {
   onQtyChange: (val: string) => void
   onCommit: () => void
   onSetMax: () => void
+  /**
+   * Fija una cantidad en unidad base y descarta la conversión vigente. Sin
+   * ella la fila no ofrece atajos de fracción ni la sugerencia «usar 1/2».
+   */
+  onSetQuantity?: (value: number) => void
   onOpenConversion: () => void
   onRemove: () => void
 }
@@ -70,12 +78,32 @@ export const ArticleRowCard = memo(function ArticleRowCard({
   onQtyChange,
   onCommit,
   onSetMax,
+  onSetQuantity,
   onOpenConversion,
   onRemove,
 }: ArticleRowCardProps) {
+  const { selectedCompany } = useCompanyStore()
+  const { data: units } = useGetUnits(selectedCompany?.slug)
+
   const activeUnit = conversion?.unitLabel ?? baseUnitLabel
   const baseLabel = conversion?.baseLabel || baseUnitLabel
-  const qtyInBase = conversion ? (parseFloat(qty || "0") || 0) * conversion.factor : null
+  const parsedQty = parseQuantity(qty)
+  const qtyInBase = conversion ? (parsedQty ?? 0) * conversion.factor : null
+
+  const baseAllowsFractions = !!units?.some(
+    (unit) =>
+      unit.allows_fractions &&
+      unit.label.toUpperCase() === baseLabel?.toUpperCase(),
+  )
+  const showShortcuts = !!onSetQuantity && baseAllowsFractions && !conversion && !disabled
+  const nearest =
+    onSetQuantity && baseAllowsFractions && qtyInBase
+      ? nearFraction(qtyInBase)
+      : null
+  const readAsFraction =
+    baseAllowsFractions && !conversion && parsedQty && !isFractionText(qty)
+      ? fractionLabel(parsedQty)
+      : null
 
   return (
     <div className={cn("border rounded-md p-3 border-l-4", accentClass)}>
@@ -135,7 +163,13 @@ export const ArticleRowCard = memo(function ArticleRowCard({
           type="text"
           disabled={disabled}
           value={qty}
-          onChange={(e) => onQtyChange(sanitizeDecimal(e.target.value))}
+          onChange={(e) =>
+            onQtyChange(
+              baseAllowsFractions
+                ? sanitizeQuantityText(e.target.value)
+                : e.target.value.replace(/[^\d.,]/g, ""),
+            )
+          }
           onBlur={onCommit}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
@@ -144,13 +178,46 @@ export const ArticleRowCard = memo(function ArticleRowCard({
               ;(e.currentTarget as HTMLInputElement).blur()
             }
           }}
-          placeholder={!disabled ? `Máx: ${max}${baseLabel ? ` ${baseLabel}` : ""}` : "Ingrese la cantidad..."}
+          placeholder={
+            !disabled
+              ? `Máx: ${max}${baseLabel ? ` ${baseLabel}` : ""}${baseAllowsFractions ? " · admite 1/2, 1 1/4…" : ""}`
+              : "Ingrese la cantidad..."
+          }
           className={cn(
             "h-10",
             rowMsg?.level === "error" && "border-destructive focus-visible:ring-destructive",
             rowMsg?.level === "warn" && "border-amber-500 focus-visible:ring-amber-500"
           )}
         />
+
+        {showShortcuts && (
+          <div className="flex flex-wrap items-center gap-1.5">
+            {FRACTION_SHORTCUTS.map((shortcut) => (
+              <Button
+                key={shortcut.label}
+                type="button"
+                variant={parsedQty === shortcut.value ? "secondary" : "outline"}
+                size="sm"
+                className="h-7 px-2 text-xs tabular-nums"
+                onClick={() => onSetQuantity?.(shortcut.value)}
+              >
+                {shortcut.label}
+              </Button>
+            ))}
+          </div>
+        )}
+
+        {isFractionText(qty) && parsedQty && (
+          <p className="text-xs font-medium tabular-nums">
+            {qty} = {parsedQty}{baseLabel ? ` ${baseLabel}` : ""}
+          </p>
+        )}
+
+        {readAsFraction && (
+          <p className="text-xs font-medium tabular-nums">
+            {readAsFraction}{baseLabel ? ` ${baseLabel}` : ""}
+          </p>
+        )}
 
         {rowMsg?.msg && (
           <div className={cn("flex items-center gap-1 text-xs", MSG_CLASS[rowMsg.level])}>
@@ -165,6 +232,25 @@ export const ArticleRowCard = memo(function ArticleRowCard({
           <p className="text-xs font-medium tabular-nums">
             {qty || 0} {conversion.unitLabel} = {Number(qtyInBase.toFixed(6))} {conversion.baseLabel}
           </p>
+        )}
+
+        {/* «2 L» no es «1/2 galón» (1 galón son 3,785 L): 2 L descuentan 0,528.
+            Se avisa para que no se descuadre el inventario, sin bloquear. */}
+        {conversion && nearest && qtyInBase !== null && (
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-md border border-amber-500/40 bg-amber-500/5 px-2 py-1.5 text-xs text-amber-700 dark:text-amber-400">
+            <span>
+              Equivale a {Number(qtyInBase.toFixed(4))} {conversion.baseLabel}, no a {nearest.label}.
+            </span>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-6 px-2 text-xs"
+              onClick={() => onSetQuantity?.(nearest.value)}
+            >
+              Usar {nearest.label} {conversion.baseLabel}
+            </Button>
+          </div>
         )}
 
         {max > 0 && (

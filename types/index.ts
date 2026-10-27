@@ -1485,6 +1485,8 @@ export type Unit = {
   label: string;
   /** Habilita la unidad para declarar medidas en artículos dimensionados. */
   is_dimensional?: boolean;
+  /** Se despacha por fracciones (1/2, 1/4… de galón): atajos y escritura «1/2» en las salidas. */
+  allows_fractions?: boolean;
   updated_by: string;
   registered_by: string;
   created_at: Date;
