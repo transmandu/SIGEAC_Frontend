@@ -402,8 +402,10 @@ export function useDispatchForm(
       authorizedEmployees?.find((a) => String(a.id) === authorizedEmployeeId),
     [authorizedEmployees, authorizedEmployeeId],
   );
-  const { data: destinationCompanies, isLoading: isDestinationCompaniesLoading } =
-    useGetDestinationCompanies(selectedCompany?.slug, authorizedEmployeeId);
+  const {
+    data: destinationCompanies,
+    isLoading: isDestinationCompaniesLoading,
+  } = useGetDestinationCompanies(selectedCompany?.slug, authorizedEmployeeId);
   const destinationCompanyName = destinationCompanies?.find(
     (c) => c.slug === destinationCompanySlug,
   )?.name;

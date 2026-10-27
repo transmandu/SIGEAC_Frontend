@@ -553,7 +553,9 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                           <OptionCombobox
                             options={destinationCompanies?.map((c) => ({
                               value: c.slug,
-                              label: c.is_own ? `${c.name} (esta empresa)` : c.name,
+                              label: c.is_own
+                                ? `${c.name} (esta empresa)`
+                                : c.name,
                             }))}
                             placeholder="¿A qué empresa se atribuye?"
                             searchPlaceholder="Buscar empresa..."
