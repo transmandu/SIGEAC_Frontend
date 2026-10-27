@@ -1,3 +1,7 @@
+## v4.83.0 — 2026-10-27
+
+- feat: implement destination companies feature in ConsumableDispatchForm (#358)
+
 ## v4.82.1 — 2026-10-27
 
 - fix: report order sms (#357)
