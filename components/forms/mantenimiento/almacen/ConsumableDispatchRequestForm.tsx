@@ -110,6 +110,9 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
     selectedAuthorized,
     selectedCompany,
     foreignDestinationSlug,
+    destinationCompanies,
+    isDestinationCompaniesLoading,
+    destinationCompanyName,
     loanDepartments,
     isLoanDepartmentsLoading,
     isThirdPartiesLoading,
@@ -548,19 +551,16 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                             Empresa destino
                           </FormLabel>
                           <OptionCombobox
-                            options={[
-                              {
-                                value: selectedCompany!.slug,
-                                label: `${selectedCompany!.name} (esta empresa)`,
-                              },
-                              {
-                                value: selectedAuthorized.from_company_db,
-                                label: selectedAuthorized.from_company_name,
-                              },
-                            ]}
+                            options={destinationCompanies?.map((c) => ({
+                              value: c.slug,
+                              label: c.is_own
+                                ? `${c.name} (esta empresa)`
+                                : c.name,
+                            }))}
                             placeholder="¿A qué empresa se atribuye?"
                             searchPlaceholder="Buscar empresa..."
                             emptyText="No se encontraron empresas."
+                            loading={isDestinationCompaniesLoading}
                             value={field.value}
                             onChange={(val) => {
                               field.onChange(val);
@@ -588,9 +588,8 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                             <FormItem>
                               <FormLabel className="text-sm font-medium">
                                 Destino en{" "}
-                                {foreignDestinationSlug
-                                  ? selectedAuthorized.from_company_name
-                                  : selectedCompany?.name}
+                                {destinationCompanyName ??
+                                  selectedCompany?.name}
                               </FormLabel>
                               <OptionCombobox
                                 options={options.map(departmentOption)}

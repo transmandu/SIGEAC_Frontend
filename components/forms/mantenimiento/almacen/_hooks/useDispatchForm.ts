@@ -7,6 +7,7 @@ import { useGetConversionByGeneralArticle } from "@/hooks/mantenimiento/almacen/
 import { useGetGeneralArticles } from "@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticles";
 import { useGetBatchesWithInWarehouseArticles } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesWithInWarehouseArticles";
 import { useGetExternalEmployees } from "@/hooks/ajustes/convenios/useGetExternalEmployees";
+import { useGetDestinationCompanies } from "@/hooks/ajustes/convenios/useGetDestinationCompanies";
 import { useGetLoanDepartments } from "@/hooks/ajustes/convenios/useGetLoanDepartments";
 import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment";
 import { useGetEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetEmployees";
@@ -401,6 +402,13 @@ export function useDispatchForm(
       authorizedEmployees?.find((a) => String(a.id) === authorizedEmployeeId),
     [authorizedEmployees, authorizedEmployeeId],
   );
+  const {
+    data: destinationCompanies,
+    isLoading: isDestinationCompaniesLoading,
+  } = useGetDestinationCompanies(selectedCompany?.slug, authorizedEmployeeId);
+  const destinationCompanyName = destinationCompanies?.find(
+    (c) => c.slug === destinationCompanySlug,
+  )?.name;
   // Los departamentos de esta empresa ya están cargados; solo se piden los de
   // la otra cuando es ella el destino.
   const foreignDestinationSlug =
@@ -1219,6 +1227,9 @@ export function useDispatchForm(
     selectedAuthorized,
     selectedCompany,
     foreignDestinationSlug,
+    destinationCompanies,
+    isDestinationCompaniesLoading,
+    destinationCompanyName,
     loanDepartments,
     isLoanDepartmentsLoading,
     thirdParties,
