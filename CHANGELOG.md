@@ -1,3 +1,7 @@
+## v4.82.1 — 2026-10-27
+
+- fix: report order sms (#357)
+
 ## v4.82.0 — 2026-10-26
 
 - feat: add ConfirmActionDialog component for action confirmation (#356)
