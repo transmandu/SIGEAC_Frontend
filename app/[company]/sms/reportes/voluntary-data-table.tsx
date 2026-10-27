@@ -36,12 +36,9 @@ export function DataTable<TData extends RowData>({
   columns,
   data,
 }: DataTableProps<TData>) {
-  const [sorting, setSorting] = useState<SortingState>([
-    {
-      id: "report_number",
-      desc: true, // true para descendente (más recientes primero), false para ascendente
-    },
-  ]);
+  // Sin orden inicial: se respeta el orden que entrega el backend (reportes
+  // nuevos sin número primero y luego por número descendente).
+  const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const table = useTable({
     features: appTableFeatures,
@@ -107,7 +104,7 @@ export function DataTable<TData extends RowData>({
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                     </TableHead>
                   );
@@ -126,7 +123,7 @@ export function DataTable<TData extends RowData>({
                     <TableCell key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}
