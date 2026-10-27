@@ -106,6 +106,13 @@ export interface LoanHistoryEvent {
   by: string | null;
 }
 
+export interface DestinationCompany {
+  slug: string;
+  name: string;
+  is_own: boolean;
+  is_origin: boolean;
+}
+
 export interface LoanDepartment {
   id: number;
   name: string;
