@@ -100,6 +100,12 @@ export interface CheckingArticle {
   is_hazardous: boolean;
   zone: string | null;
   status: string;
+  /** Solicitud de chequeo de ingeniería; `requested_by` es el username. */
+  engineering_check?: {
+    status: "NOT_REQUESTED" | "REQUESTED" | "APPROVED";
+    requested_at: string | null;
+    requested_by: string | null;
+  };
   condition: string | null;
   quantity: number;
   unit: InventoryUnit | null;

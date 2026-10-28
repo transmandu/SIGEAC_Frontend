@@ -63,6 +63,18 @@ export interface CategoryDetails {
   fields: { label: string; value: string | number | boolean | null }[];
 }
 
+/**
+ * Chequeo de ingeniería sobre la información del artículo. Es opcional; pero
+ * una vez solicitado retiene al artículo hasta que ingeniería lo aprueba.
+ */
+export type EngineeringCheckStatus = "NOT_REQUESTED" | "REQUESTED" | "APPROVED";
+
+export interface EngineeringCheck {
+  status: EngineeringCheckStatus;
+  requested_at: string | null;
+  checked_at: string | null;
+}
+
 /** Recepción del almacén y compras · en tránsito. */
 export interface TransitQueueArticle extends QueueArticleBase {
   /** Entrada al estado actual (ISO). */
@@ -77,6 +89,9 @@ export interface TransitQueueArticle extends QueueArticleBase {
   has_documentation: boolean;
   document_requirements: ArticleDocumentRequirementSummary[];
   incoming_readiness: IncomingReadiness;
+  engineering_check?: EngineeringCheck;
+  /** Desde cuándo puede volver a avisarse que el incoming está detenido (ISO). */
+  incoming_blocked_next_notification_at?: string | null;
   category_details: CategoryDetails | null;
 }
 

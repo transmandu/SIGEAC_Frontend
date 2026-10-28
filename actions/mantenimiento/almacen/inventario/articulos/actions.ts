@@ -700,6 +700,11 @@ export const useUpdateArticleStatus = () => {
     onError: (error: any) => {
       notifyError(error, { action: "actualizar el articulo" });
       console.log(error);
+      // Un rechazo por chequeo de ingeniería pendiente significa que la fila
+      // estaba desactualizada: se refresca para que muestre el estado real.
+      if (error?.response?.data?.code === "ENGINEERING_CHECK_REQUIRED") {
+        queryClient.invalidateQueries({ queryKey: ["articles"] });
+      }
     },
   });
   return {
@@ -716,6 +721,7 @@ export const useUpdateArticleStatus = () => {
  */
 export const useReportIncomingBlocked = () => {
   const { selectedCompany } = useCompanyStore();
+  const queryClient = useQueryClient();
 
   const mutation = useMutation({
     mutationFn: async ({
@@ -742,9 +748,145 @@ export const useReportIncomingBlocked = () => {
     onError: (error: any) => {
       notifyError(error, { action: "enviar la notificación" });
     },
+    // Con éxito o con el 429 del intervalo mínimo, la fila debe traer la hora
+    // del último aviso para que el botón muestre la cuenta atrás real.
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["articles"] });
+    },
   });
 
   return { reportIncomingBlocked: mutation };
+};
+
+/**
+ * Almacén pide que ingeniería verifique la información de un artículo ya en
+ * recepción. Es opcional, pero una vez pedido retiene al artículo hasta que
+ * ingeniería lo apruebe o lo elimine.
+ */
+export const useRequestEngineeringCheck = () => {
+  const { selectedCompany } = useCompanyStore();
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: async ({ id }: { id: number }) => {
+      const { data } = await axiosInstance.post(
+        `/${selectedCompany?.slug}/articles/${id}/request-engineering-check`,
+      );
+
+      return data;
+    },
+    onSuccess: (data) => {
+      toast.success("Chequeo solicitado", {
+        description:
+          data?.message ??
+          "Ingeniería fue notificada. El artículo queda retenido hasta que lo apruebe.",
+      });
+    },
+    onError: (error: any) => {
+      notifyError(error, { action: "solicitar el chequeo de ingeniería" });
+    },
+    // También al fallar: un 422 suele significar que alguien más ya lo pidió o
+    // lo aprobó, y la fila debe mostrar el estado real.
+    onSettled: () => invalidateArticleQueues(queryClient),
+  });
+
+  return { requestEngineeringCheck: mutation };
+};
+
+/** A dónde queda un artículo cuando ingeniería lo aprueba. */
+export type EngineeringApproveDestination = "RECEPTION" | "STORED";
+
+const invalidateArticleQueues = (
+  queryClient: ReturnType<typeof useQueryClient>,
+) => {
+  queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
+  queryClient.invalidateQueries({ queryKey: ["articles"] });
+  queryClient.invalidateQueries({ queryKey: ["in-transit-articles"] });
+  queryClient.invalidateQueries({ queryKey: ["in-reception-articles"] });
+  queryClient.invalidateQueries({ queryKey: ["article-status-history"] });
+};
+
+/**
+ * Ingeniería aprueba la información de uno o varios artículos. Reemplaza al
+ * cambio de estado genérico a STORED: aquí el backend sabe que es un visto
+ * bueno, deja constancia de quién lo dio y avisa a almacén.
+ */
+export const useEngineeringApprove = () => {
+  const { selectedCompany } = useCompanyStore();
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: async ({
+      ids,
+      destination,
+      notes,
+    }: {
+      ids: number[];
+      destination: EngineeringApproveDestination;
+      notes?: string | null;
+    }) => {
+      const body = { destination, notes: notes || null };
+      const [only] = ids;
+
+      const { data } =
+        ids.length === 1
+          ? await axiosInstance.post(
+              `/${selectedCompany?.slug}/articles/${only}/engineering-approve`,
+              body,
+            )
+          : await axiosInstance.post(
+              `/${selectedCompany?.slug}/articles/engineering-approve`,
+              { ...body, ids },
+            );
+
+      return data;
+    },
+    onSuccess: (data) => {
+      toast.success("Artículo aprobado", {
+        description: data?.message ?? "Se aprobó la información del artículo.",
+      });
+    },
+    onError: (error: any) => {
+      notifyError(error, { action: "aprobar el artículo" });
+    },
+    // También al fallar: otro ingeniero pudo haberlo resuelto antes.
+    onSettled: () => invalidateArticleQueues(queryClient),
+  });
+
+  return { engineeringApprove: mutation };
+};
+
+/**
+ * Ingeniería elimina un artículo cuya información no tiene arreglo. El motivo
+ * es obligatorio: el backend lo deja en el historial y se lo comunica a quien
+ * registró el artículo y a almacén.
+ */
+export const useEngineeringReject = () => {
+  const { selectedCompany } = useCompanyStore();
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: async ({ id, reason }: { id: number; reason: string }) => {
+      const { data } = await axiosInstance.post(
+        `/${selectedCompany?.slug}/articles/${id}/engineering-reject`,
+        { reason },
+      );
+
+      return data;
+    },
+    onSuccess: (data) => {
+      toast.success("Artículo eliminado", {
+        description:
+          data?.message ?? "Se eliminó el artículo y se notificó el motivo.",
+      });
+    },
+    onError: (error: any) => {
+      notifyError(error, { action: "eliminar el artículo" });
+    },
+    onSettled: () => invalidateArticleQueues(queryClient),
+  });
+
+  return { engineeringReject: mutation };
 };
 
 /**
@@ -807,6 +949,10 @@ export const useStoreArticleDirectly = () => {
     },
     onError: (error: any) => {
       const data = error?.response?.data;
+
+      if (data?.code === "ENGINEERING_CHECK_REQUIRED") {
+        queryClient.invalidateQueries({ queryKey: ["articles"] });
+      }
 
       // El rechazo por documentación viene con la lista de lo que falta; sin
       // enumerarla el usuario solo sabe que "falta algo" y no qué consignar.

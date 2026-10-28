@@ -65,7 +65,13 @@ type Authorizer = {
   authorizedId: number | null;
 };
 
-export function StoreDirectlyDialog({ article }: { article: TransitArticle }) {
+export function StoreDirectlyDialog({
+  article,
+  disabled = false,
+}: {
+  article: TransitArticle;
+  disabled?: boolean;
+}) {
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<AuthorizerTab>("employee");
   const [authorizerKey, setAuthorizerKey] = useState<string | null>(null);
@@ -163,16 +169,25 @@ export function StoreDirectlyDialog({ article }: { article: TransitArticle }) {
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-7 w-7 p-0 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:text-emerald-500 dark:hover:bg-emerald-950/40"
-              onClick={() => setOpen(true)}
-            >
-              <PackageCheck className="size-3.5" />
-            </Button>
+            {/* El span deja que el tooltip explique por qué está bloqueado: un
+                botón deshabilitado no recibe el puntero. */}
+            <span>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={disabled}
+                className="h-7 w-7 p-0 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:text-emerald-500 dark:hover:bg-emerald-950/40"
+                onClick={() => setOpen(true)}
+              >
+                <PackageCheck className="size-3.5" />
+              </Button>
+            </span>
           </TooltipTrigger>
-          <TooltipContent>Pasar directo al inventario</TooltipContent>
+          <TooltipContent>
+            {disabled
+              ? "Ingeniería debe aprobar el artículo antes de pasarlo al inventario"
+              : "Pasar directo al inventario"}
+          </TooltipContent>
         </Tooltip>
       </TooltipProvider>
 
