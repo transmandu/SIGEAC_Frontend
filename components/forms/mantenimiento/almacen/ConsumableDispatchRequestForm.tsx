@@ -152,6 +152,8 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
     commitGenQty,
     setToMaxAero,
     setToMaxGen,
+    setQuantityAero,
+    setQuantityGen,
     convState,
     setConvState,
     activeConversions,
@@ -1064,6 +1066,9 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                     }
                     onCommit={() => commitAeroQty(index, f.id)}
                     onSetMax={() => setToMaxAero(index, f.id)}
+                    onSetQuantity={(value) =>
+                      setQuantityAero(index, f.id, value)
+                    }
                     onOpenConversion={() =>
                       openConversionForAero(index, f.id, articleId)
                     }
@@ -1114,6 +1119,9 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                     }
                     onCommit={() => commitGenQty(index, f.id)}
                     onSetMax={() => setToMaxGen(index, f.id)}
+                    onSetQuantity={(value) =>
+                      setQuantityGen(index, f.id, value)
+                    }
                     onOpenConversion={() =>
                       openConversionForGeneral(index, f.id, generalId)
                     }

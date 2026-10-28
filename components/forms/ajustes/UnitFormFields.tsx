@@ -20,7 +20,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Ruler, Tag } from "lucide-react";
+import { Ruler, Split, Tag } from "lucide-react";
 import type { UnitFormValues } from "./unitSchema";
 
 /** Campos compartidos por el alta y la edición de una unidad. */
@@ -111,6 +111,29 @@ export function UnitFormFields({
                 onCheckedChange={field.onChange}
                 label="Sirve para declarar medidas"
                 description="Habilita esta unidad para dimensionar artículos que se despachan en trazos (láminas, telas, rollos)."
+                disabled={disabled}
+              />
+            </FormItem>
+          )}
+        />
+      </FormSection>
+
+      <FormSection
+        icon={Split}
+        title="Fracciones"
+        hint="Para unidades que almacén despacha por partes, como el galón."
+      >
+        <FormField
+          control={control}
+          name="allows_fractions"
+          render={({ field }) => (
+            <FormItem>
+              <CheckboxCard
+                id="unit-allows-fractions"
+                checked={field.value}
+                onCheckedChange={field.onChange}
+                label="Se despacha por fracciones"
+                description="En las salidas aparecen los atajos 1/2, 1/4, 1/8, 1/16 y 1/32, y se puede escribir «1/2». Los reportes siguen mostrando la cantidad en decimal."
                 disabled={disabled}
               />
             </FormItem>

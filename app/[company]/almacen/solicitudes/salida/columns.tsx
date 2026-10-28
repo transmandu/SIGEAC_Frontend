@@ -293,6 +293,7 @@ export const columns: AppColumnDef<DispatchGroupRow>[] = [
           articles={row.original.articles}
           status={row.original.status}
           requestNumber={row.original.request_number}
+          canSetWorkOrder={row.original.can_set_work_order}
         />
       </div>
     ),

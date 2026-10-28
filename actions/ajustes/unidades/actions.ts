@@ -9,6 +9,7 @@ interface createUnitSchema {
   value: string;
   label: string;
   is_dimensional?: boolean;
+  allows_fractions?: boolean;
 }
 
 /** Actualización parcial: solo viajan los campos que cambiaron. */

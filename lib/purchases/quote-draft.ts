@@ -46,6 +46,52 @@ export function quoteDraftProgress(draft: Quote) {
   };
 }
 
+type DraftFormLine = {
+  unit_price?: string;
+  not_quoted?: boolean;
+  reference?: string;
+  lead_time_value?: string;
+  quote_justification?: string;
+  condition_id?: string;
+  vendor_id?: string;
+  retailer_id?: string;
+  brand_model?: string;
+  alt_part_number?: string;
+  original_alt_part_number?: string;
+};
+
+/**
+ * Si el formulario trae algo que valga la pena guardar. Cantidad, unidad y sede
+ * no cuentan: llegan prellenadas desde la requisición, así que un formulario
+ * recién abierto las tiene sin que nadie haya capturado nada.
+ */
+export function hasQuoteDraftContent(data: {
+  vendor_id?: string;
+  retailer_id?: string;
+  observation?: string;
+  articles?: DraftFormLine[];
+  general_articles?: DraftFormLine[];
+}): boolean {
+  if (data.vendor_id || data.retailer_id || data.observation?.trim()) {
+    return true;
+  }
+
+  return [...(data.articles ?? []), ...(data.general_articles ?? [])].some(
+    (line) =>
+      !!line.not_quoted ||
+      !!line.unit_price ||
+      !!line.reference?.trim() ||
+      !!line.lead_time_value ||
+      !!line.quote_justification?.trim() ||
+      !!line.condition_id ||
+      !!line.vendor_id ||
+      !!line.retailer_id ||
+      !!line.brand_model?.trim() ||
+      (!!line.alt_part_number &&
+        line.alt_part_number !== line.original_alt_part_number),
+  );
+}
+
 /** Días que lleva un borrador sin tocarse. */
 export function quoteDraftDaysIdle(draft: Quote): number {
   const reference = draft.updated_at ?? draft.created_at ?? draft.quote_date;

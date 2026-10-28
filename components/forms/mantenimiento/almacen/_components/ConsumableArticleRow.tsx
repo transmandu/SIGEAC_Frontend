@@ -1,34 +1,41 @@
-"use client"
+"use client";
 
-import { useGetArticleDimension } from "@/hooks/mantenimiento/almacen/articulos/useGetArticleDimension"
-import { useCompanyStore } from "@/stores/CompanyStore"
-import type { Article } from "@/types"
-import { ArticleRowCard } from "./ArticleRowCard"
-import { CutCapturePanel, EMPTY_CUT, type CutDraft } from "./CutCapturePanel"
+import { useGetArticleDimension } from "@/hooks/mantenimiento/almacen/articulos/useGetArticleDimension";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import type { Article } from "@/types";
+import { ArticleRowCard } from "./ArticleRowCard";
+import { CutCapturePanel, EMPTY_CUT, type CutDraft } from "./CutCapturePanel";
 
-type RowMsg = { msg: string; level: "error" | "warn" } | undefined
-type RowConversion = { unitId: number; unitLabel: string; factor: number; baseLabel: string }
+type RowMsg = { msg: string; level: "error" | "warn" } | undefined;
+type RowConversion = {
+  unitId: number;
+  unitLabel: string;
+  factor: number;
+  baseLabel: string;
+};
 
 interface ConsumableArticleRowProps {
-  article?: Article
-  articleId: number
+  article?: Article;
+  articleId: number;
   /** Renglón al que pertenece; es lo que identifica la fila una vez elegida. */
-  batchName?: string
-  qty: string
-  max: number
-  rowMsg: RowMsg
-  conversion?: RowConversion
-  showConversionPanel: boolean
-  conversionPanelNode: React.ReactNode
-  cut?: CutDraft
+  batchName?: string;
+  qty: string;
+  max: number;
+  rowMsg: RowMsg;
+  conversion?: RowConversion;
+  showConversionPanel: boolean;
+  conversionPanelNode: React.ReactNode;
+  cut?: CutDraft;
   /** Captura de evidencia fotográfica de la entrega. Opcional. */
-  evidenceNode?: React.ReactNode
-  onQtyChange: (val: string) => void
-  onCommit: () => void
-  onSetMax: () => void
-  onOpenConversion: () => void
-  onRemove: () => void
-  onCutChange: (next: CutDraft) => void
+  evidenceNode?: React.ReactNode;
+  onQtyChange: (val: string) => void;
+  onCommit: () => void;
+  onSetMax: () => void;
+  /** Fija una cantidad en unidad base (atajos de fracción). */
+  onSetQuantity?: (value: number) => void;
+  onOpenConversion: () => void;
+  onRemove: () => void;
+  onCutChange: (next: CutDraft) => void;
 }
 
 /**
@@ -57,26 +64,29 @@ export function ConsumableArticleRow({
   onQtyChange,
   onCommit,
   onSetMax,
+  onSetQuantity,
   onOpenConversion,
   onRemove,
   onCutChange,
 }: ConsumableArticleRowProps) {
-  const { selectedCompany } = useCompanyStore()
+  const { selectedCompany } = useCompanyStore();
   const { data: dimension } = useGetArticleDimension(
     articleId || null,
     selectedCompany?.slug,
     "consumables",
-  )
+  );
 
-  const isDimensional = dimension?.dimensional === true
+  const isDimensional = dimension?.dimensional === true;
 
   const subtitle = isDimensional
     ? `${batchName ?? "Sin lote"} · ${dimension.pieces.length} pieza(s) · ${dimension.total_remaining} ${dimension.profile.magnitude_label} en total`
-    : `${batchName ?? "Sin lote"} · Disponible: ${article?.quantity ?? 0} ${article?.unit ?? ""}`
+    : `${batchName ?? "Sin lote"} · Disponible: ${article?.quantity ?? 0} ${article?.unit ?? ""}`;
 
   return (
     <ArticleRowCard
-      title={article?.part_number ?? (articleId ? `ID: ${articleId}` : "Artículo")}
+      title={
+        article?.part_number ?? (articleId ? `ID: ${articleId}` : "Artículo")
+      }
       subtitle={subtitle}
       qty={qty}
       max={max}
@@ -110,8 +120,9 @@ export function ConsumableArticleRow({
       onQtyChange={onQtyChange}
       onCommit={onCommit}
       onSetMax={onSetMax}
+      onSetQuantity={onSetQuantity}
       onOpenConversion={onOpenConversion}
       onRemove={onRemove}
     />
-  )
+  );
 }

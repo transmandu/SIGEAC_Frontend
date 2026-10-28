@@ -18,6 +18,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import { hasQuoteDraftContent } from "@/lib/purchases/quote-draft";
 import type { Quote, QuoteableRequisition } from "@/types/purchase/quote";
 import type {
   ArticleQuoteOrder,
@@ -602,6 +603,17 @@ export function CreateQuoteForm({
       data.quote_date instanceof Date
         ? data.quote_date.toISOString()
         : undefined;
+
+    // Solo al abrirlo: un borrador ya existente sí puede guardarse vacío (el
+    // usuario pudo haber borrado lo capturado), pero crear uno sin nada solo
+    // deja una fila inútil junto a la requisición.
+    if (!draftId && !hasQuoteDraftContent(data)) {
+      toast.info("No hay nada que guardar", {
+        description:
+          "Capture al menos un precio, un proveedor o marque un artículo como no cotizado.",
+      });
+      return;
+    }
 
     let id = draftId;
     // Las líneas recién creadas vienen en la respuesta de apertura: sin ellas no

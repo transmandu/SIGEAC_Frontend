@@ -46,6 +46,7 @@ export default function UpdateUnitForm({ unit, onClose }: FormProps) {
       label: unit.label ?? "",
       value: unit.value ?? "",
       is_dimensional: !!unit.is_dimensional,
+      allows_fractions: !!unit.allows_fractions,
     },
   });
 

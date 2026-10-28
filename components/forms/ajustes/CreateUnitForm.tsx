@@ -42,7 +42,12 @@ export default function CreateUnitForm({
 
   const form = useForm<UnitFormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { label: "", value: "", is_dimensional: false },
+    defaultValues: {
+      label: "",
+      value: "",
+      is_dimensional: false,
+      allows_fractions: false,
+    },
   });
 
   // Los duplicados se validan contra el catálogo: si este llega después de que

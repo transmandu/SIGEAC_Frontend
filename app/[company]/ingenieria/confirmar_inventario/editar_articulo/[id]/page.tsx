@@ -1,24 +1,16 @@
 "use client";
 
-import { useUpdateArticleStatus } from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
 import RegisterArticleForm from "@/components/forms/mantenimiento/almacen/RegisterArticleForm";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
 import LoadingPage from "@/components/misc/LoadingPage";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { useGetArticleById } from "@/hooks/mantenimiento/almacen/articulos/useGetArticleById";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { BadgeCheck, Loader2 } from "lucide-react";
+import { BadgeCheck } from "lucide-react";
 import { redirect, useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { ApproveArticlesDialog } from "@/app/[company]/ingenieria/confirmar_inventario/_components/ApproveArticlesDialog";
 
 type ConfirmStep = "saved" | "direct" | null;
 
@@ -30,19 +22,11 @@ const ConfirmInventory = () => {
     params.id,
     selectedCompany?.slug,
   );
-  const { updateArticleStatus } = useUpdateArticleStatus();
   const [step, setStep] = useState<ConfirmStep>(null);
+  const approved = useRef(false);
 
   const backToTable = () =>
     router.push(`/${selectedCompany?.slug}/ingenieria/confirmar_inventario`);
-
-  const confirmToStorage = () => {
-    if (!data?.id) return;
-    updateArticleStatus.mutate(
-      { id: Number(data.id), status: "STORED" },
-      { onSuccess: backToTable },
-    );
-  };
 
   if (isLoading) {
     return <LoadingPage />;
@@ -51,7 +35,8 @@ const ConfirmInventory = () => {
     redirect(`/${selectedCompany?.slug}/dashboard`);
   }
 
-  const confirming = updateArticleStatus.isPending;
+  const scope =
+    data?.status?.toUpperCase() === "CHECKING" ? "checking" : "reception";
 
   return (
     <ContentLayout title="Confirmar Ingreso">
@@ -61,11 +46,11 @@ const ConfirmInventory = () => {
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="space-y-1">
             <h1 className="text-2xl font-semibold tracking-tight">
-              Confirmar Ingreso
+              Chequeo de información
             </h1>
             <p className="text-sm text-muted-foreground">
               Revise y corrija los datos del artículo. Al guardar podrá
-              confirmarlo o volver a la tabla.
+              aprobarlo o volver a la tabla.
             </p>
           </div>
 
@@ -75,7 +60,7 @@ const ConfirmInventory = () => {
             onClick={() => setStep("direct")}
           >
             <BadgeCheck className="size-4 text-green-600" />
-            Confirmar sin cambios
+            Aprobar sin cambios
           </Button>
         </div>
 
@@ -88,50 +73,31 @@ const ConfirmInventory = () => {
         />
       </div>
 
-      <Dialog
+      <ApproveArticlesDialog
         open={step !== null}
         onOpenChange={(open) => {
-          if (open || confirming) return;
+          if (open) return;
           // Ya guardado, cerrar el aviso equivale a dejarlo pendiente en la tabla.
-          if (step === "saved") backToTable();
+          // Si lo cerró una aprobación, esa ya navega: no se navega dos veces.
+          if (step === "saved" && !approved.current) backToTable();
           setStep(null);
         }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="text-center">
-              {step === "saved"
-                ? "Artículo actualizado"
-                : "Confirmar Registro de Artículo"}
-            </DialogTitle>
-            <DialogDescription className="text-center">
-              {step === "saved"
-                ? "¿Desea confirmar ahora su ingreso al almacén o volver a la tabla para confirmarlo después?"
-                : "Se confirmará el artículo con los datos guardados; los cambios sin guardar de este formulario se perderán."}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="flex flex-col gap-2 md:gap-0">
-            <Button
-              variant="outline"
-              disabled={confirming}
-              onClick={() => (step === "saved" ? backToTable() : setStep(null))}
-            >
-              {step === "saved" ? "Volver a la tabla" : "Cancelar"}
-            </Button>
-            <Button
-              disabled={confirming}
-              onClick={confirmToStorage}
-              className="min-w-45"
-            >
-              {confirming ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                "Confirmar ingreso a almacén"
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        ids={data?.id ? [Number(data.id)] : []}
+        scope={scope}
+        title={
+          step === "saved" ? "Artículo actualizado" : "Aprobar el artículo"
+        }
+        description={
+          step === "saved"
+            ? "¿Desea aprobarlo ahora o volver a la tabla para hacerlo después?"
+            : "Se aprobará con los datos guardados; los cambios sin guardar de este formulario se perderán."
+        }
+        cancelLabel={step === "saved" ? "Volver a la tabla" : "Cancelar"}
+        onApproved={() => {
+          approved.current = true;
+          backToTable();
+        }}
+      />
     </ContentLayout>
   );
 };

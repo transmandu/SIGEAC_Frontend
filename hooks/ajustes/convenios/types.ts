@@ -1,6 +1,7 @@
 /** Qué puede hacer una persona de otra empresa aquí; lo abre el convenio. */
 export type CompanyScope =
   | "warehouse.dispatch"
+  | "warehouse.direct_store"
   | "purchases.requisition"
   | "meetings.minutes"
   | "sms.activities"

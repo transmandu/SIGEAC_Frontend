@@ -32,6 +32,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useAuth } from "@/contexts/AuthContext";
+import { formatCountdown, useCountdown } from "@/hooks/useCountdown";
 import { useTransitQueue } from "@/hooks/mantenimiento/almacen/inventario/useArticleQueues";
 import {
   INCOMING_REASON_ACTIONS,
@@ -45,6 +46,7 @@ import {
   BellRing,
   ChevronRight,
   CircleAlert,
+  ClipboardCheck,
   FileWarning,
   Loader2,
   MapPin,
@@ -55,6 +57,7 @@ import { memo, useMemo, useState } from "react";
 import type { TransitArticle } from "@/types/purchase/in-transit";
 import { ArticleDetailDialog } from "./ArticleDetailDialog";
 import { DownloadReportDialog } from "./DownloadReportDialog";
+import { EngineeringCheckButton } from "./EngineeringCheckButton";
 import { StoreDirectlyDialog } from "./StoreDirectlyDialog";
 
 type StatusFilter = "ALL" | "TRANSIT" | "RECEPTION";
@@ -80,6 +83,16 @@ const ArticleRow = memo(function ArticleRow({
 
   const status = article.status?.toUpperCase();
   const isReception = status === "RECEPTION";
+
+  // Un chequeo pedido es obligatorio: retiene el artículo hasta que ingeniería
+  // lo apruebe. Sin pedirlo no cambia nada.
+  const awaitingEngineeringCheck =
+    article.engineering_check?.status === "REQUESTED";
+
+  // Intervalo mínimo entre avisos de incoming detenido, que fija el backend.
+  const reportCooldown = useCountdown(
+    article.incoming_blocked_next_notification_at,
+  );
 
   const readiness = article.incoming_readiness;
   const canPassToIncoming = isReadyForIncoming(readiness);
@@ -250,6 +263,13 @@ const ArticleRow = memo(function ArticleRow({
               {TRANSIT_STATUS_LABELS[status ?? ""] ?? "Sin estado"}
             </span>
 
+            {isReception && awaitingEngineeringCheck && (
+              <span className="select-none inline-flex items-center gap-1 whitespace-nowrap rounded border border-sky-200 bg-sky-50 px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-sky-700 dark:border-sky-800/60 dark:bg-sky-950/40 dark:text-sky-400">
+                <ClipboardCheck className="size-2.5" />
+                EN CHEQUEO
+              </span>
+            )}
+
             {isBlocked &&
               (needsDocumentsDeclared ? (
                 <span className="select-none inline-flex animate-pulse items-center gap-1 whitespace-nowrap rounded border border-orange-300 bg-orange-100 px-1.5 py-0.5 text-[10px] font-bold tracking-wide text-orange-800 dark:border-orange-700/60 dark:bg-orange-950/50 dark:text-orange-300">
@@ -277,23 +297,39 @@ const ArticleRow = memo(function ArticleRow({
         <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
           {isReception && (
             <div className="flex items-center justify-center gap-1">
+              <EngineeringCheckButton article={article} />
               {canPassToIncoming ? (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-7 px-2 text-xs gap-1"
-                  disabled={pending}
-                  onClick={handleMoveToIncoming}
-                >
-                  {pending ? (
-                    <Loader2 className="size-3 animate-spin" />
-                  ) : (
-                    <>
-                      <ArrowRight className="size-3" />
-                      Incoming
-                    </>
-                  )}
-                </Button>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      {/* El span recibe el puntero cuando el botón está
+                          deshabilitado, para que el tooltip explique por qué. */}
+                      <span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7 w-24 justify-center px-2 text-xs gap-1"
+                          disabled={pending || awaitingEngineeringCheck}
+                          onClick={handleMoveToIncoming}
+                        >
+                          {pending ? (
+                            <Loader2 className="size-3 animate-spin" />
+                          ) : (
+                            <>
+                              <ArrowRight className="size-3" />
+                              Incoming
+                            </>
+                          )}
+                        </Button>
+                      </span>
+                    </TooltipTrigger>
+                    {awaitingEngineeringCheck && (
+                      <TooltipContent>
+                        Ingeniería debe aprobar el artículo antes del incoming
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
+                </TooltipProvider>
               ) : (
                 // No va deshabilitado de verdad: sigue siendo pulsable para que
                 // el clic sirva de reclamo a compras. Lo que no hace es pasar el
@@ -315,33 +351,46 @@ const ArticleRow = memo(function ArticleRow({
                       }}
                     >
                       <TooltipTrigger asChild>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className={cn(
-                              "h-7 px-2 text-xs gap-1",
-                              needsDocumentsDeclared
-                                ? "border-orange-400 font-semibold text-orange-800 hover:bg-orange-50 dark:border-orange-600/70 dark:text-orange-300 dark:hover:bg-orange-950/40"
-                                : "border-amber-300 text-amber-700 hover:bg-amber-50 dark:border-amber-800/60 dark:text-amber-400 dark:hover:bg-amber-950/40",
-                            )}
-                            disabled={reportIncomingBlocked.isPending}
-                          >
-                            {reportIncomingBlocked.isPending ? (
-                              <Loader2 className="size-3 animate-spin" />
-                            ) : needsDocumentsDeclared ? (
-                              <>
-                                <CircleAlert className="size-3" />
-                                Incoming
-                              </>
-                            ) : (
-                              <>
-                                <FileWarning className="size-3" />
-                                Incoming
-                              </>
-                            )}
-                          </Button>
-                        </AlertDialogTrigger>
+                        {/* El span recibe el puntero cuando el botón está en
+                            cuenta atrás y deshabilitado, para que el tooltip
+                            siga explicando cuánto falta. */}
+                        <span>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className={cn(
+                                "h-7 w-24 justify-center px-2 text-xs gap-1 tabular-nums",
+                                needsDocumentsDeclared
+                                  ? "border-orange-400 font-semibold text-orange-800 hover:bg-orange-50 dark:border-orange-600/70 dark:text-orange-300 dark:hover:bg-orange-950/40"
+                                  : "border-amber-300 text-amber-700 hover:bg-amber-50 dark:border-amber-800/60 dark:text-amber-400 dark:hover:bg-amber-950/40",
+                              )}
+                              disabled={
+                                reportIncomingBlocked.isPending ||
+                                reportCooldown > 0
+                              }
+                            >
+                              {reportIncomingBlocked.isPending ? (
+                                <Loader2 className="size-3 animate-spin" />
+                              ) : reportCooldown > 0 ? (
+                                <>
+                                  <BellRing className="size-3" />
+                                  {formatCountdown(reportCooldown)}
+                                </>
+                              ) : needsDocumentsDeclared ? (
+                                <>
+                                  <CircleAlert className="size-3" />
+                                  Incoming
+                                </>
+                              ) : (
+                                <>
+                                  <FileWarning className="size-3" />
+                                  Incoming
+                                </>
+                              )}
+                            </Button>
+                          </AlertDialogTrigger>
+                        </span>
                       </TooltipTrigger>
 
                       <AlertDialogContent>
@@ -447,14 +496,18 @@ const ArticleRow = memo(function ArticleRow({
 
                       <p className="mt-2 flex items-center gap-1 font-medium">
                         <BellRing className="size-3" />
-                        Presiona para avisar a compras y al personal competente.
-                        Se pedirá confirmación.
+                        {reportCooldown > 0
+                          ? `Ya se avisó hace poco. Podrá avisar de nuevo en ${formatCountdown(reportCooldown)}.`
+                          : "Presiona para avisar a compras y al personal competente. Se pedirá confirmación."}
                       </p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               )}
-              <StoreDirectlyDialog article={article} />
+              <StoreDirectlyDialog
+                article={article}
+                disabled={awaitingEngineeringCheck}
+              />
             </div>
           )}
         </TableCell>

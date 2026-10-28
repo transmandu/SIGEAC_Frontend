@@ -72,6 +72,8 @@ export type DispatchGroupRow = {
   destination_company_name?: string | null;
   destination_department_name?: string | null;
   work_order?: string;
+  /** Salida a aeronave, sede o tercero que se registró sin OT. */
+  can_set_work_order?: boolean;
   articles: DispatchArticle[];
   /**
    * Sede destino: solo la llevan los traslados entre sedes propias. Mientras el
