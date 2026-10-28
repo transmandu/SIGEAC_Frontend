@@ -20,13 +20,21 @@ import {
 import { useReturnToWarehouse } from "@/actions/mantenimiento/almacen/solicitudes/salida/action";
 import DispatchReturnDialog from "@/components/dialogs/mantenimiento/almacen/DispatchReturnDialog";
 import DispatchReturnHistoryDialog from "@/components/dialogs/mantenimiento/almacen/DispatchReturnHistoryDialog";
+import DispatchWorkOrderDialog from "@/components/dialogs/mantenimiento/almacen/DispatchWorkOrderDialog";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { History, Loader2, MoreHorizontal, Trash2, Undo2 } from "lucide-react";
+import {
+  History,
+  Loader2,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+  Undo2,
+} from "lucide-react";
 import { useState } from "react";
 
 const DispatchRequestDropdownActions = ({
@@ -35,13 +43,16 @@ const DispatchRequestDropdownActions = ({
   articles,
   status,
   requestNumber,
+  canSetWorkOrder,
 }: {
   id: string | number;
   category?: string;
   articles: DispatchArticle[];
   status?: string;
   requestNumber?: string;
+  canSetWorkOrder?: boolean;
 }) => {
+  const [openWorkOrder, setOpenWorkOrder] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
   const [openReturn, setOpenReturn] = useState(false);
   const [openReturnForm, setOpenReturnForm] = useState(false);
@@ -91,6 +102,13 @@ const DispatchRequestDropdownActions = ({
         dispatchId={id}
         requestNumber={requestNumber ?? ""}
         articles={articles}
+      />
+
+      <DispatchWorkOrderDialog
+        open={openWorkOrder}
+        onOpenChange={setOpenWorkOrder}
+        dispatchId={id}
+        requestNumber={requestNumber ?? ""}
       />
 
       <DispatchReturnHistoryDialog
@@ -179,6 +197,19 @@ const DispatchRequestDropdownActions = ({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="center" className="flex gap-2 justify-center">
+          {canSetWorkOrder && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onSelect={() => setOpenWorkOrder(true)}
+                >
+                  <Pencil className="size-5 text-amber-500" />
+                </DropdownMenuItem>
+              </TooltipTrigger>
+              <TooltipContent>Completar orden de trabajo</TooltipContent>
+            </Tooltip>
+          )}
           {canReturn && (
             <Tooltip>
               <TooltipTrigger asChild>

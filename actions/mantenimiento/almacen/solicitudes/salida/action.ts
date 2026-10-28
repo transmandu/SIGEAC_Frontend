@@ -460,3 +460,33 @@ export const useAcknowledgeTransfer = () => {
 
   return { acknowledgeTransfer: acknowledgeMutation };
 };
+
+export const useSetDispatchWorkOrder = () => {
+  const queryClient = useQueryClient();
+  const { selectedStation } = useCompanyStore();
+
+  return useMutation({
+    mutationFn: async ({
+      id,
+      company,
+      work_order,
+    }: {
+      id: string | number;
+      company: string;
+      work_order: string;
+    }) => {
+      await axiosInstance.patch(`/${company}/dispatch-order/${id}/work-order`, {
+        work_order,
+      });
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["dispatches-requests", variables.company, selectedStation],
+      });
+      toast.success("¡Orden de trabajo registrada!");
+    },
+    onError: (error) => {
+      notifyError(error, { action: "registrar la orden de trabajo" });
+    },
+  });
+};
