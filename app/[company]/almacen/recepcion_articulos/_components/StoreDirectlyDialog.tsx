@@ -54,12 +54,15 @@ type AuthorizerTab = "employee" | "external";
 // La nómina propia y los empleados que otra empresa autorizó ante ésta se
 // presentan como una sola lista: para quien recibe son igual de válidos. La
 // diferencia solo importa al guardar, porque el id de empleado del movimiento
-// apunta a la tabla local y el autorizado de otra empresa no está en ella.
+// apunta a la tabla local y el autorizado de otra empresa no está en ella: de
+// éste viaja su identidad de convenio (authorizedId) y el servidor sella el
+// nombre.
 type Authorizer = {
   key: string;
   name: string;
   dni: string;
   employeeId: number | null;
+  authorizedId: number | null;
 };
 
 export function StoreDirectlyDialog({ article }: { article: TransitArticle }) {
@@ -74,7 +77,7 @@ export function StoreDirectlyDialog({ article }: { article: TransitArticle }) {
   const { data: employees, isLoading: employeesLoading } =
     useGetEmployeesByCompany(selectedCompany?.slug);
   const { data: authorized, isLoading: authorizedLoading } =
-    useGetExternalEmployees(selectedCompany?.slug, "purchases.requisition");
+    useGetExternalEmployees(selectedCompany?.slug, "warehouse.direct_store");
   const { storeArticleDirectly } = useStoreArticleDirectly();
 
   const authorizersLoading = employeesLoading || authorizedLoading;
@@ -85,6 +88,7 @@ export function StoreDirectlyDialog({ article }: { article: TransitArticle }) {
       name: `${emp.first_name} ${emp.last_name}`,
       dni: emp.dni ?? "",
       employeeId: emp.id,
+      authorizedId: null,
     }));
 
     const ownDnis = new Set(own.map((a) => a.dni).filter(Boolean));
@@ -98,6 +102,7 @@ export function StoreDirectlyDialog({ article }: { article: TransitArticle }) {
         name: auth.employee_name ?? "",
         dni: auth.dni_employee ?? "",
         employeeId: null,
+        authorizedId: auth.id,
       }))
       .filter((auth) => auth.name);
 
@@ -137,10 +142,11 @@ export function StoreDirectlyDialog({ article }: { article: TransitArticle }) {
       await storeArticleDirectly.mutateAsync({
         id: article.id,
         authorized_by: authorizedBy,
-        // Solo cuando el autorizante es de la nómina propia: del externo
-        // —y del autorizado de otra empresa— queda únicamente el nombre.
+        // Del externo escrito a mano queda únicamente el nombre.
         authorized_by_employee_id:
           tab === "employee" ? (selectedAuthorizer?.employeeId ?? null) : null,
+        authorized_employee_id:
+          tab === "employee" ? (selectedAuthorizer?.authorizedId ?? null) : null,
         authorization_reason: reason.trim() || null,
       });
 
@@ -283,6 +289,12 @@ export function StoreDirectlyDialog({ article }: { article: TransitArticle }) {
                 onChange={(e) => setExternalName(e.target.value)}
                 maxLength={255}
               />
+            )}
+
+            {tab === "employee" && selectedAuthorizer && (
+              <p className="text-xs text-muted-foreground">
+                Se le enviará un aviso por correo, si tiene uno registrado.
+              </p>
             )}
           </div>
 

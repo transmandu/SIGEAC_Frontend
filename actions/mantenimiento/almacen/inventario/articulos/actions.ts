@@ -762,11 +762,13 @@ export const useStoreArticleDirectly = () => {
       id,
       authorized_by,
       authorized_by_employee_id,
+      authorized_employee_id,
       authorization_reason,
     }: {
       id: number;
       authorized_by: string;
       authorized_by_employee_id?: number | null;
+      authorized_employee_id?: number | null;
       authorization_reason?: string | null;
     }) => {
       await axiosInstance.put(
@@ -774,6 +776,7 @@ export const useStoreArticleDirectly = () => {
         {
           authorized_by,
           authorized_by_employee_id: authorized_by_employee_id ?? null,
+          authorized_employee_id: authorized_employee_id ?? null,
           authorization_reason: authorization_reason || null,
         },
       );
