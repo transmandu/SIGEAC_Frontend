@@ -1,3 +1,7 @@
+## v4.84.0 — 2026-10-28
+
+- feat: changes in multiple modules (#359)
+
 ## v4.83.0 — 2026-10-27
 
 - feat: implement destination companies feature in ConsumableDispatchForm (#358)
