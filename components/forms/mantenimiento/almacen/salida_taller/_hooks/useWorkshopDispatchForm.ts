@@ -442,10 +442,7 @@ export function useWorkshopDispatchForm(onClose: () => void) {
         delete n[key];
         return n;
       });
-      setValue(
-        `general_articles.${index}.quantity`,
-        parseFloat(adjusted) || 0,
-      );
+      setValue(`general_articles.${index}.quantity`, parseFloat(adjusted) || 0);
       setValue(`general_articles.${index}.unit_id`, null);
     },
     [watchedGen, getGenMax, validateAndClamp, setValue],

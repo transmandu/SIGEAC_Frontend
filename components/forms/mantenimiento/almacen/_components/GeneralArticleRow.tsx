@@ -1,34 +1,39 @@
-"use client"
+"use client";
 
-import { useGetArticleDimension } from "@/hooks/mantenimiento/almacen/articulos/useGetArticleDimension"
-import { useCompanyStore } from "@/stores/CompanyStore"
-import type { GeneralArticle } from "@/types"
-import { ArticleRowCard } from "./ArticleRowCard"
-import { CutCapturePanel, EMPTY_CUT, type CutDraft } from "./CutCapturePanel"
+import { useGetArticleDimension } from "@/hooks/mantenimiento/almacen/articulos/useGetArticleDimension";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import type { GeneralArticle } from "@/types";
+import { ArticleRowCard } from "./ArticleRowCard";
+import { CutCapturePanel, EMPTY_CUT, type CutDraft } from "./CutCapturePanel";
 
-type RowMsg = { msg: string; level: "error" | "warn" } | undefined
-type RowConversion = { unitId: number; unitLabel: string; factor: number; baseLabel: string }
+type RowMsg = { msg: string; level: "error" | "warn" } | undefined;
+type RowConversion = {
+  unitId: number;
+  unitLabel: string;
+  factor: number;
+  baseLabel: string;
+};
 
 interface GeneralArticleRowProps {
-  article?: GeneralArticle
-  generalId: number
-  qty: string
-  max: number
-  rowMsg: RowMsg
-  conversion?: RowConversion
-  showConversionPanel: boolean
-  conversionPanelNode: React.ReactNode
-  cut?: CutDraft
+  article?: GeneralArticle;
+  generalId: number;
+  qty: string;
+  max: number;
+  rowMsg: RowMsg;
+  conversion?: RowConversion;
+  showConversionPanel: boolean;
+  conversionPanelNode: React.ReactNode;
+  cut?: CutDraft;
   /** Captura de evidencia fotográfica de la entrega. Opcional. */
-  evidenceNode?: React.ReactNode
-  onQtyChange: (val: string) => void
-  onCommit: () => void
-  onSetMax: () => void
+  evidenceNode?: React.ReactNode;
+  onQtyChange: (val: string) => void;
+  onCommit: () => void;
+  onSetMax: () => void;
   /** Fija una cantidad en unidad base (atajos de fracción). */
-  onSetQuantity?: (value: number) => void
-  onOpenConversion: () => void
-  onRemove: () => void
-  onCutChange: (next: CutDraft) => void
+  onSetQuantity?: (value: number) => void;
+  onOpenConversion: () => void;
+  onRemove: () => void;
+  onCutChange: (next: CutDraft) => void;
 }
 
 /**
@@ -57,21 +62,23 @@ export function GeneralArticleRow({
   onRemove,
   onCutChange,
 }: GeneralArticleRowProps) {
-  const { selectedCompany } = useCompanyStore()
+  const { selectedCompany } = useCompanyStore();
   const { data: dimension } = useGetArticleDimension(
     generalId || null,
     selectedCompany?.slug,
-  )
+  );
 
-  const isDimensional = dimension?.dimensional === true
+  const isDimensional = dimension?.dimensional === true;
 
   const subtitle = isDimensional
     ? `${article?.brand_model ?? "N/A"} · ${article?.variant_type ?? "N/A"} · ${dimension.pieces.length} pieza(s) · ${dimension.total_remaining} ${dimension.profile.magnitude_label} en total`
-    : `${article?.brand_model ?? "N/A"} · ${article?.variant_type ?? "N/A"} · Disponible: ${article?.quantity ?? 0} ${article?.general_primary_unit?.label ?? ""}`
+    : `${article?.brand_model ?? "N/A"} · ${article?.variant_type ?? "N/A"} · Disponible: ${article?.quantity ?? 0} ${article?.general_primary_unit?.label ?? ""}`;
 
   return (
     <ArticleRowCard
-      title={article?.description ?? (generalId ? `ID: ${generalId}` : "Artículo")}
+      title={
+        article?.description ?? (generalId ? `ID: ${generalId}` : "Artículo")
+      }
       subtitle={subtitle}
       qty={qty}
       max={max}
@@ -107,5 +114,5 @@ export function GeneralArticleRow({
       onOpenConversion={onOpenConversion}
       onRemove={onRemove}
     />
-  )
+  );
 }

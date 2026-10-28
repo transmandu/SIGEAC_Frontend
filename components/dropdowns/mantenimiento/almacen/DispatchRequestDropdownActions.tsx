@@ -72,7 +72,7 @@ const DispatchRequestDropdownActions = ({
     articles.some(
       (a) =>
         a.article_dispatch_order_id &&
-        (a.pending_quantity ?? Number(a.dispatch_quantity) ?? 0) > 0
+        (a.pending_quantity ?? Number(a.dispatch_quantity) ?? 0) > 0,
     );
   const hasReturns =
     status === "RETURNED" ||
@@ -80,7 +80,10 @@ const DispatchRequestDropdownActions = ({
 
   const handleDelete = async () => {
     if (!selectedCompany?.slug) return;
-    await deleteDispatchRequest.mutateAsync({ id, company: selectedCompany.slug });
+    await deleteDispatchRequest.mutateAsync({
+      id,
+      company: selectedCompany.slug,
+    });
     setOpenDelete(false);
   };
 
@@ -161,7 +164,8 @@ const DispatchRequestDropdownActions = ({
               ¿Seguro que desea eliminar esta solicitud de salida?
             </DialogTitle>
             <DialogDescription className="text-center p-2 mb-0 pb-0">
-              Esta acción es irreversible y repondrá el stock de los artículos asociados.
+              Esta acción es irreversible y repondrá el stock de los artículos
+              asociados.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex flex-col gap-2 md:gap-0">
@@ -196,7 +200,10 @@ const DispatchRequestDropdownActions = ({
             <MoreHorizontal className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="center" className="flex gap-2 justify-center">
+        <DropdownMenuContent
+          align="center"
+          className="flex gap-2 justify-center"
+        >
           {canSetWorkOrder && (
             <Tooltip>
               <TooltipTrigger asChild>

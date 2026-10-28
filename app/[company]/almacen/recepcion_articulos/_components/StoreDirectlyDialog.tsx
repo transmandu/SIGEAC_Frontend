@@ -152,7 +152,9 @@ export function StoreDirectlyDialog({
         authorized_by_employee_id:
           tab === "employee" ? (selectedAuthorizer?.employeeId ?? null) : null,
         authorized_employee_id:
-          tab === "employee" ? (selectedAuthorizer?.authorizedId ?? null) : null,
+          tab === "employee"
+            ? (selectedAuthorizer?.authorizedId ?? null)
+            : null,
         authorization_reason: reason.trim() || null,
       });
 
