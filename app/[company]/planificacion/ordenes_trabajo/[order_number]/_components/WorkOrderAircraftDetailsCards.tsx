@@ -35,7 +35,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import axiosInstance from "@/lib/axios";
+import axiosInstance, { PDF_GENERATION_TIMEOUT } from "@/lib/axios";
 import { toast } from "sonner";
 import { workOrderStatusLabelEsUpper } from "@/lib/planificacion/statuses";
 import { notifyError } from "@/lib/notify-error";
@@ -109,7 +109,7 @@ const WorkOrderAircraftDetailsCards = ({
     try {
       const response = await axiosInstance.get(
         `/${companySlug}/work-orders/${work_order.order_number}/package`,
-        { responseType: "blob", params },
+        { responseType: "blob", params, timeout: PDF_GENERATION_TIMEOUT },
       );
       const blob = new Blob([response.data], { type: "application/pdf" });
       const url = window.URL.createObjectURL(blob);

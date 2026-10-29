@@ -15,6 +15,14 @@ const axiosInstance = axios.create({
   },
 });
 
+/**
+ * Los PDF se arman en el servidor con LibreOffice: un paquete de OT puede
+ * tardar decenas de segundos (varias hojas) y con el timeout global de 30 s la
+ * petición se cancelaba mientras el backend seguía generando. Estas llamadas
+ * piden un margen mayor.
+ */
+export const PDF_GENERATION_TIMEOUT = 120_000;
+
 // El id del socket identifica a la sesión que originó un cambio, para que los
 // eventos que el servidor emite de vuelta no la hagan refetchear encima de su
 // propio update optimista. Se lee de window y no de lib/echo porque echo importa
