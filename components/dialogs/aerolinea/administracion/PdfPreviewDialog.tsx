@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { Eye, Printer, Loader2, FileDown } from "lucide-react";
-import axiosInstance from "@/lib/axios";
+import axiosInstance, { PDF_GENERATION_TIMEOUT } from "@/lib/axios";
 import { notifyError } from "@/lib/notify-error";
 
 type HoursMode = "auto" | "manual";
@@ -105,6 +105,7 @@ export function PdfPreviewDialog({
       const response = await axiosInstance.get(endpoint, {
         responseType: "blob",
         params,
+        timeout: PDF_GENERATION_TIMEOUT,
       });
       const blob = new Blob([response.data], { type: "application/pdf" });
       const url = window.URL.createObjectURL(blob);
