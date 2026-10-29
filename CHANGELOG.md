@@ -1,3 +1,7 @@
+## v4.84.1 — 2026-10-29
+
+- fix: work order pdf (#360)
+
 ## v4.84.0 — 2026-10-28
 
 - feat: changes in multiple modules (#359)
