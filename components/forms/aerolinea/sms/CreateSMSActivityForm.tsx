@@ -40,7 +40,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useGetActivityCategories } from "@/hooks/sms/useGetActivityCategories";
-import { useGetEmployeesByDepartment } from "@/hooks/sistema/useGetEmployeesByDepartament";
+import { useGetEmployeesByDepartment } from "@/hooks/sistema/useGetEmployeesByDepartment";
 import { cn, parseServerDate } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { SMSActivity } from "@/types";

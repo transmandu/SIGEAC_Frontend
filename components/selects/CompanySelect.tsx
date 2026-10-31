@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/select";
 
 import { useAuth } from "@/contexts/AuthContext";
-import { useUserLocationsByCompanyId } from "@/hooks/sistema/usuario/useGetUserLocationsByCompanyId";
+import { useGetUserLocations } from "@/hooks/sistema/usuario/useGetUserLocations";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Company } from "@/types";
 
@@ -35,7 +35,7 @@ const CompanySelect = () => {
     data: locations,
     isLoading: locationsLoading,
     isError,
-  } = useUserLocationsByCompanyId(selectedCompany?.id);
+  } = useGetUserLocations(selectedCompany?.slug);
 
   const handleCompanySelect = (companyId: string) => {
     const company = user?.companies?.find(

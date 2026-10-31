@@ -7,7 +7,7 @@ import {
 } from "@/actions/mantenimiento/compras/cotizaciones/actions";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
-import { useGetLocationsByCompanyId } from "@/hooks/sistema/useGetLocationsByCompanyId";
+import { useGetLocationsByCompany } from "@/hooks/sistema/useGetLocationsByCompany";
 import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits";
 import { useGetRetailers } from "@/hooks/general/comercios/useGetRetailers";
 import { useCompanyStore } from "@/stores/CompanyStore";
@@ -134,11 +134,7 @@ export function CreateGeneralQuoteForm({
   const draftId = draft?.id ?? openedDraftId;
   const [issueDialogOpen, setIssueDialogOpen] = useState(false);
 
-  const { mutate, data: locations } = useGetLocationsByCompanyId();
-
-  useEffect(() => {
-    if (selectedCompany) mutate(Number(2));
-  }, [selectedCompany, mutate]);
+  const { data: locations } = useGetLocationsByCompany(selectedCompany?.slug);
 
   /**
    * Lo ya capturado en el borrador, indexado por el artículo de requisición que

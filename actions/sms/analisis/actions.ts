@@ -58,29 +58,6 @@ export const useCreateAnalysis = () => {
   };
 };
 
-export const useDeleteAnalysis = () => {
-  const queryClient = useQueryClient();
-
-  const deleteMutation = useMutation({
-    mutationFn: async (id: number | string) => {
-      await axiosInstance.delete(`/transmandu/sms/analysis/${id}`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["analysis"] });
-      toast.success("¡Eliminado!", {
-        description: `¡El analisis ha sido eliminado correctamente!`,
-      });
-    },
-    onError: (e) => {
-      notifyError(e, { action: "eliminar un analisis" });
-    },
-  });
-
-  return {
-    deleteAnalysis: deleteMutation,
-  };
-};
-
 export const useUpdateAnalyses = () => {
   const queryClient = useQueryClient();
   const updateAnalysesMutation = useMutation({

@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufacturers";
-import { useGetLocationsByCompanyId } from "@/hooks/sistema/useGetLocationsByCompanyId";
+import { useGetLocationsByCompany } from "@/hooks/sistema/useGetLocationsByCompany";
 import { useGetClients } from "@/hooks/mantenimiento/clientes/useGetClients";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
@@ -114,12 +114,7 @@ export function AircraftInfoForm({
   initialData,
 }: AircraftInfoFormProps) {
   const { selectedCompany } = useCompanyStore();
-  const {
-    data: locations,
-    isPending: isLocationsLoading,
-    isError: isLocationsError,
-    mutate,
-  } = useGetLocationsByCompanyId();
+  const { data: locations } = useGetLocationsByCompany(selectedCompany?.slug);
   const {
     data: manufacturers,
     isLoading: isManufacturersLoading,
@@ -133,10 +128,6 @@ export function AircraftInfoForm({
   const [newClientAuthorizing, setNewClientAuthorizing] = useState<
     "PROPIETARIO" | "EXPLOTADOR"
   >("PROPIETARIO");
-
-  useEffect(() => {
-    mutate(2);
-  }, [mutate]);
 
   const form = useForm<AircraftInfoType>({
     resolver: zodResolver(AircraftInfoSchema),

@@ -29,7 +29,7 @@ import { useGetJobTitles } from "@/hooks/ajustes/cargo/useGetJobTitles";
 import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment";
 import { useGetLocationsByCompany } from "@/hooks/sistema/useGetLocationsByCompany";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { useGetUsers } from "@/hooks/sistema/useGetUsers";
+import { useGetUsers } from "@/hooks/sistema/usuario/useGetUsers";
 import { zodResolver } from "@/lib/zod-resolver";
 import { Loader2, Upload, Trash2 } from "lucide-react";
 import Image from "next/image";

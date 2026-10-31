@@ -4,6 +4,7 @@ import { type AppColumnDef } from "@/lib/table";
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 
+import { CompanyLink } from "@/components/misc/CompanyLink";
 import { Badge } from "@/components/ui/badge";
 import { ResponsesBySurvey } from "@/hooks/sms/survey/useGetResponsesBySurvey";
 
@@ -77,12 +78,12 @@ export const columns: AppColumnDef<ResponsesBySurvey>[] = [
       const identifier = row.original.email ?? row.original.user;
       return (
         <div className="flex justify-center">
-          <a
-            href={`/transmandu/sms/gestion_encuestas/${row.original.survey_number}/resultados/${identifier}`}
+          <CompanyLink
+            to={`sms/gestion_encuestas/${row.original.survey_number}/resultados/${identifier}`}
             className="font-bold hover:scale-105 hover:no-underline transition-colors duration-200 cursor-pointer"
           >
             {identifier ?? "N/A"}
-          </a>
+          </CompanyLink>
         </div>
       );
     },

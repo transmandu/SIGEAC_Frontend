@@ -75,7 +75,9 @@ export function DataTable<TData extends RowData>({
       <div className="flex items-center py-4">
         <Button
           onClick={() => {
-            router.push(`/transmandu/sms/reportes/reportes_obligatorios/nuevo_reporte`);
+            router.push(
+              `/${selectedCompany?.slug}/sms/reportes/reportes_obligatorios/nuevo_reporte`,
+            );
           }}
           variant="outline"
           size="sm"

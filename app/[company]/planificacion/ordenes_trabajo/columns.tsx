@@ -10,7 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { WorkOrder } from "@/types"
 import { format, parseISO } from "date-fns"
 import { es } from "date-fns/locale"
-import Link from "next/link"
+import { CompanyLink } from "@/components/misc/CompanyLink"
 import { workOrderStatusLabelEsUpper } from "@/lib/planificacion/statuses"
 
 export const columns: AppColumnDef<WorkOrder>[] = [
@@ -43,12 +43,12 @@ export const columns: AppColumnDef<WorkOrder>[] = [
     ),
     cell: ({ row }) => {
       return (
-        <Link
-          href={`/hangar74/planificacion/ordenes_trabajo/${row.original.order_number}`}
+        <CompanyLink
+          to={`planificacion/ordenes_trabajo/${row.original.order_number}`}
           className="font-medium flex justify-center hover:scale-105 hover:text-blue-600 transition-all ease-in cursor-pointer duration-150"
         >
           {row.original.order_number}
-        </Link>
+        </CompanyLink>
       );
     },
   },
@@ -59,12 +59,12 @@ export const columns: AppColumnDef<WorkOrder>[] = [
     ),
     cell: ({ row }) => {
       return (
-        <Link
-          href={`/hangar74/planificacion/aeronaves`}
+        <CompanyLink
+          to="planificacion/aeronaves"
           className="font-medium flex justify-center hover:scale-105 hover:text-blue-600 transition-all ease-in cursor-pointer duration-150"
         >
           {row.original.aircraft.acronym}
-        </Link>
+        </CompanyLink>
       );
     },
   },

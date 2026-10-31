@@ -24,16 +24,13 @@ import {
   TabsTrigger
 } from "@/components/ui/tabs";
 import { useGetPermissions } from "@/hooks/sistema/usuario/useGetPermissions";
-import { Company, Module } from "@/types";
 import { zodResolver } from "@/lib/zod-resolver";
 import { Loader, Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useGetCompanies } from "@/hooks/sistema/useGetCompanies";
-import { useGetModulesByCompanyId } from "@/hooks/sistema/useGetModulesByCompanyId";
 
 const formSchema = z.object({
   name: z.string().min(3, {
@@ -51,21 +48,9 @@ interface FormProps {
 
 export default function CreateRoleForm({ onClose }: FormProps) {
 
-  const [selectedCompany, setSelectedCompany] = useState<Company>();
-
-  const [selectedModule, setSelectedModule] = useState<Module | null>(null);
-
   const { createRole } = useCreateRole();
 
   const { data: companies, isLoading, isError: isCompaniesError } = useGetCompanies();
-
-  const { mutate: fetchModules, data: modules, isPending } = useGetModulesByCompanyId();
-
-  useEffect(() => {
-    if (selectedCompany) {
-      fetchModules(selectedCompany.id);
-    }
-  }, [selectedCompany, fetchModules]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -90,17 +75,6 @@ export default function CreateRoleForm({ onClose }: FormProps) {
       onClose();
     }
   }
-
-  const onValueChange = (value: string) => {
-    const company = companies?.find(company => company.id.toString() === value);
-    setSelectedCompany(company)
-  }
-
-  const handleModuleChange = (moduleName: string) => {
-    const moduleSelected = modules?.find(m => m.label === moduleName) || null;
-    setSelectedModule(moduleSelected);
-  }
-
 
   return (
     <Form {...form}>
@@ -143,10 +117,7 @@ export default function CreateRoleForm({ onClose }: FormProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Compañía</FormLabel>
-              <Select onValueChange={(event) => {
-                field.onChange(event)
-                onValueChange(event)
-              }}
+              <Select onValueChange={field.onChange}
               >
                 <FormControl>
                   <SelectTrigger>

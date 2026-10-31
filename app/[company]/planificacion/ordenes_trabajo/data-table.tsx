@@ -20,7 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import Link from "next/link"
+import { CompanyLink } from "@/components/misc/CompanyLink"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { WarehouseDispatchReportDialog } from "@/components/dialogs/mantenimiento/almacen/WarehouseDispatchReportDialog"
@@ -67,9 +67,9 @@ export function DataTable<TData extends RowData>({
     <div>
       <div className="flex items-center py-4">
         <div className="flex gap-x-2 items-center">
-          <Link href={'/hangar74/planificacion/ordenes_trabajo/nueva_orden_trabajo'}>
+          <CompanyLink to="planificacion/ordenes_trabajo/nueva_orden_trabajo">
             <Button variant="outline" className="flex items-center justify-center gap-2 h-8 border-dashed">Generar Orden de Trabajo</Button>
-          </Link>
+          </CompanyLink>
           <WarehouseDispatchReportDialog/>
           
         </div>

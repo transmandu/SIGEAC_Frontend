@@ -3,7 +3,7 @@ import { useCreateRequisition } from "@/actions/mantenimiento/compras/requisicio
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { useAuth } from "@/contexts/AuthContext";
-import { useGetBatchesByLocationId } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByLocationId";
+import { useGetBatchesByLocation } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByLocation";
 import {
   useSearchBatchesWithArticles,
   type BatchWithArticles,
@@ -148,13 +148,12 @@ export function CreateWarehouseRequisitionForm({
 }: FormProps) {
   const { user } = useAuth();
 
-  const {
-    mutate,
-    data: batches,
-    isPending: isBatchesLoading,
-  } = useGetBatchesByLocationId();
-
   const { selectedCompany, selectedStation } = useCompanyStore();
+
+  const { data: batches, isLoading: isBatchesLoading } = useGetBatchesByLocation(
+    selectedCompany?.slug,
+    selectedStation,
+  );
 
   const { data: employees, isPending: employeesLoading } =
     useGetUserDepartamentEmployees(selectedCompany?.slug);
@@ -308,15 +307,6 @@ export function CreateWarehouseRequisitionForm({
       form.setValue("location_id", selectedStation);
     }
   }, [user, form, selectedCompany, selectedStation]);
-
-  useEffect(() => {
-    if (selectedStation) {
-      mutate({
-        location_id: Number(selectedStation),
-        company: selectedCompany?.slug,
-      });
-    }
-  }, [selectedStation, mutate, selectedCompany]);
 
   useEffect(() => {
     form.setValue(

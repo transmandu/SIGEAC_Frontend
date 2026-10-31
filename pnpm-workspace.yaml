@@ -15,3 +15,18 @@ allowBuilds:
 # un paquete publicado hoy mismo, hay que bajar este número a mano para esa
 # instalación.
 minimumReleaseAge: 1440
+
+# Sin esto la cuarentena es estricta (el valor por defecto de pnpm 12): si solo
+# existe una versión dentro de la ventana, pnpm se niega a instalarla salvo que
+# se apruebe y se guarde en minimumReleaseAgeExclude. Dependabot actualiza con
+# `pnpm update --no-save`, que no puede guardar esa excepción, así que el job de
+# npm fallaba siempre con ERR_PNPM_STRICT_MIN_RELEASE_AGE_REQUIRES_SAVE y nunca
+# abrió un PR (ni de versión ni de seguridad). Dependabot pasa además
+# --config.minimumReleaseAgeStrict=false, pero pnpm 12 no aplica los flags
+# --config.minimumReleaseAge* de la línea de comandos (comprobado), por eso hay
+# que fijarlo en este archivo.
+# Efecto: si algún rango tiene una versión madura (más de 24 h), pnpm sigue
+# eligiendo esa; la cuarentena solo se relaja cuando no queda otra, y entonces
+# pnpm añade la versión a minimumReleaseAgeExclude. Dependabot ya aplica su propia
+# espera (cooldown de 7 días en .github/dependabot.yml) a lo que propone.
+minimumReleaseAgeStrict: false
