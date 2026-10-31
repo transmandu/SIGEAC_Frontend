@@ -20,6 +20,8 @@ interface DataTableProps<TData extends RowData> {
   /** Paginación por cursor del servidor; `summary` lleva el total. */
   pagination: CursorPaginationState & { summary?: string };
   isFetching?: boolean;
+  onRowClick?: (row: TData) => void;
+  rowClassName?: (row: TData) => string;
 }
 
 /**
@@ -31,6 +33,8 @@ export function DataTable<TData extends RowData>({
   data,
   pagination,
   isFetching = false,
+  onRowClick,
+  rowClassName,
 }: DataTableProps<TData>) {
   const table = useTable({
     features: appTableFeatures,
@@ -70,7 +74,11 @@ export function DataTable<TData extends RowData>({
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
+                <TableRow
+                  key={row.id}
+                  className={rowClassName?.(row.original)}
+                  onClick={() => onRowClick?.(row.original)}
+                >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       {flexRender(

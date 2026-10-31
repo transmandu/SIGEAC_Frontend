@@ -4,6 +4,7 @@ import { ConversionDirection } from "@/types/supervisor";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { ConvertibleType } from "./useArticleUnitConversions";
+import { notifyError } from "@/lib/notify-error";
 
 /**
  * Catálogo de equivalencias reutilizables: lo que un artículo puede COPIAR en
@@ -122,7 +123,9 @@ export const useMutateUnitConversionPreset = (company?: string) => {
     },
     onSuccess: (data) => {
       invalidate();
-      toast.success("Equivalencia agregada", { description: data?.preset?.lectura });
+      toast.success("Equivalencia agregada", {
+        description: data?.preset?.lectura,
+      });
     },
     onError: (error: any) => {
       if (error?.response?.status === 409) {
@@ -132,9 +135,7 @@ export const useMutateUnitConversionPreset = (company?: string) => {
         return;
       }
 
-      toast.error("No se pudo agregar la equivalencia", {
-        description: error?.response?.data?.message,
-      });
+      notifyError(error, { action: "agregar la equivalencia" });
     },
   });
 
@@ -162,15 +163,15 @@ export const useMutateUnitConversionPreset = (company?: string) => {
       });
     },
     onError: (error: any) => {
-      toast.error("No se pudo actualizar la equivalencia", {
-        description: error?.response?.data?.message,
-      });
+      notifyError(error, { action: "actualizar la equivalencia" });
     },
   });
 
   const remove = useMutation({
     mutationFn: async (id: number) => {
-      const { data } = await axios.delete(`/${company}/unit-conversion-presets/${id}`);
+      const { data } = await axios.delete(
+        `/${company}/unit-conversion-presets/${id}`,
+      );
       return data;
     },
     onSuccess: () => {
@@ -180,9 +181,7 @@ export const useMutateUnitConversionPreset = (company?: string) => {
       });
     },
     onError: (error: any) => {
-      toast.error("No se pudo eliminar la equivalencia", {
-        description: error?.response?.data?.message,
-      });
+      notifyError(error, { action: "eliminar la equivalencia" });
     },
   });
 

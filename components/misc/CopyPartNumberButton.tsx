@@ -42,7 +42,7 @@ const CopyPartNumberButton = ({
       clearTimeout(timeoutRef.current);
       timeoutRef.current = setTimeout(() => setCopied(false), 1500);
     } catch {
-      toast.error("No se pudo copiar", {
+      toast.error("¡Ops! No se pudo copiar", {
         description: "Copie el número de parte manualmente.",
       });
     }

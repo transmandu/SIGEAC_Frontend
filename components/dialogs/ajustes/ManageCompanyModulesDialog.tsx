@@ -1,178 +1,169 @@
-'use client'
+"use client";
 
-import { useEffect, useMemo, useState } from 'react'
-import { Boxes, Loader2, TriangleAlert } from 'lucide-react'
+import { useMemo } from "react";
+import { Boxes, Loader2, TriangleAlert } from "lucide-react";
 
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog'
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
-import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
-import { ScrollArea } from '@/components/ui/scroll-area'
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
-import { useGetModules } from '@/hooks/sistema/useGetModules'
-import { useSyncCompanyModules } from '@/actions/sistema/empresas/actions'
-import { Company } from '@/types'
+import { useGetModules } from "@/hooks/sistema/useGetModules";
+import { useSyncCompanyModules } from "@/actions/sistema/empresas/actions";
+import { Company } from "@/types";
+import { useResettingState } from "@/hooks/useResettingState";
 
 interface Props {
-    company: Company
-    open: boolean
-    onOpenChange: (open: boolean) => void
+  company: Company;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
-const ManageCompanyModulesDialog = ({
-    company,
+const ManageCompanyModulesDialog = ({ company, open, onOpenChange }: Props) => {
+  const { data: modules, isLoading, isError } = useGetModules();
+  const { syncCompanyModules } = useSyncCompanyModules();
+
+  const assignedIds = useMemo(
+    () => (company.modules ?? []).map((m) => m.id),
+    [company.modules],
+  );
+
+  // Al reabrir, la selección parte de lo que la compañía tiene guardado: sin
+  // esto el diálogo conservaría los checkboxes de una edición cancelada.
+  const [selected, setSelected] = useResettingState<number[]>(assignedIds, [
     open,
-    onOpenChange,
-}: Props) => {
-    const { data: modules, isLoading, isError } = useGetModules()
-    const { syncCompanyModules } = useSyncCompanyModules()
+    assignedIds,
+  ]);
 
-    const assignedIds = useMemo(
-        () => (company.modules ?? []).map((m) => m.id),
-        [company.modules]
-    )
+  const toggle = (id: number) => {
+    setSelected((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+  };
 
-    const [selected, setSelected] = useState<number[]>(assignedIds)
+  const isDirty =
+    selected.length !== assignedIds.length ||
+    selected.some((id) => !assignedIds.includes(id));
 
-    // Al reabrir, la selección parte de lo que la compañía tiene guardado: sin
-    // esto el diálogo conservaría los checkboxes de una edición cancelada.
-    useEffect(() => {
-        if (open) setSelected(assignedIds)
-    }, [open, assignedIds])
+  const removed = useMemo(
+    () => (company.modules ?? []).filter((m) => !selected.includes(m.id)),
+    [company.modules, selected],
+  );
 
-    const toggle = (id: number) => {
-        setSelected((prev) =>
-            prev.includes(id)
-                ? prev.filter((x) => x !== id)
-                : [...prev, id]
-        )
-    }
+  const handleSubmit = async () => {
+    await syncCompanyModules.mutateAsync({
+      slug: company.slug,
+      module_ids: selected,
+    });
 
-    const isDirty =
-        selected.length !== assignedIds.length ||
-        selected.some((id) => !assignedIds.includes(id))
+    onOpenChange(false);
+  };
 
-    const removed = useMemo(
-        () => (company.modules ?? []).filter((m) => !selected.includes(m.id)),
-        [company.modules, selected]
-    )
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Boxes className="size-5" />
+            Módulos de {company.name}
+          </DialogTitle>
 
-    const handleSubmit = async () => {
-        await syncCompanyModules.mutateAsync({
-            slug: company.slug,
-            module_ids: selected,
-        })
+          <DialogDescription>
+            Seleccione los módulos habilitados para esta empresa.
+          </DialogDescription>
+        </DialogHeader>
 
-        onOpenChange(false)
-    }
+        {removed.length > 0 && (
+          <div className="flex gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2.5">
+            <TriangleAlert className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400" />
 
-    return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-md">
-                <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
-                        <Boxes className="size-5" />
-                        Módulos de {company.name}
-                    </DialogTitle>
+            <div className="flex flex-col gap-1 text-xs">
+              <span className="font-medium text-amber-900 dark:text-amber-200">
+                Va a quitar {removed.length}{" "}
+                {removed.length === 1 ? "módulo" : "módulos"}
+              </span>
 
-                    <DialogDescription>
-                        Seleccione los módulos habilitados para esta empresa.
-                    </DialogDescription>
-                </DialogHeader>
+              <span className="text-amber-800/90 dark:text-amber-200/80">
+                Los usuarios perderán su acceso a{" "}
+                {removed.map((m) => m.label).join(", ")} en esta empresa y habrá
+                que reasignarlo a mano si lo vuelve a habilitar. Los datos ya
+                registrados no se borran.
+              </span>
+            </div>
+          </div>
+        )}
 
-                {removed.length > 0 && (
-                    <div className="flex gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2.5">
-                        <TriangleAlert className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400" />
+        {isLoading && (
+          <div className="flex items-center justify-center py-10">
+            <Loader2 className="size-6 animate-spin text-muted-foreground" />
+          </div>
+        )}
 
-                        <div className="flex flex-col gap-1 text-xs">
-                            <span className="font-medium text-amber-900 dark:text-amber-200">
-                                Va a quitar {removed.length}{' '}
-                                {removed.length === 1 ? 'módulo' : 'módulos'}
-                            </span>
+        {isError && (
+          <p className="py-10 text-center text-sm text-muted-foreground">
+            Ha ocurrido un error al cargar los módulos.
+          </p>
+        )}
 
-                            <span className="text-amber-800/90 dark:text-amber-200/80">
-                                Los usuarios perderán su acceso a{' '}
-                                {removed.map((m) => m.label).join(', ')} en esta
-                                empresa y habrá que reasignarlo a mano si lo
-                                vuelve a habilitar. Los datos ya registrados no
-                                se borran.
-                            </span>
-                        </div>
-                    </div>
-                )}
+        {modules && (
+          <ScrollArea className="max-h-72 pr-3">
+            <div className="flex flex-col gap-1">
+              {modules.map((module) => (
+                <label
+                  key={module.id}
+                  htmlFor={`module-${module.id}`}
+                  className="flex cursor-pointer items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 transition-colors hover:border-border/70 hover:bg-muted/40"
+                >
+                  <Checkbox
+                    id={`module-${module.id}`}
+                    checked={selected.includes(module.id)}
+                    onCheckedChange={() => toggle(module.id)}
+                  />
 
-                {isLoading && (
-                    <div className="flex items-center justify-center py-10">
-                        <Loader2 className="size-6 animate-spin text-muted-foreground" />
-                    </div>
-                )}
+                  <div className="flex flex-col leading-tight">
+                    <span className="text-sm font-medium">{module.label}</span>
 
-                {isError && (
-                    <p className="py-10 text-center text-sm text-muted-foreground">
-                        Ha ocurrido un error al cargar los módulos.
-                    </p>
-                )}
+                    <span className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                      {module.value}
+                    </span>
+                  </div>
+                </label>
+              ))}
+            </div>
+          </ScrollArea>
+        )}
 
-                {modules && (
-                    <ScrollArea className="max-h-72 pr-3">
-                        <div className="flex flex-col gap-1">
-                            {modules.map((module) => (
-                                <label
-                                    key={module.id}
-                                    htmlFor={`module-${module.id}`}
-                                    className="flex cursor-pointer items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 transition-colors hover:border-border/70 hover:bg-muted/40"
-                                >
-                                    <Checkbox
-                                        id={`module-${module.id}`}
-                                        checked={selected.includes(module.id)}
-                                        onCheckedChange={() => toggle(module.id)}
-                                    />
+        <DialogFooter>
+          <Button
+            variant="ghost"
+            onClick={() => onOpenChange(false)}
+            disabled={syncCompanyModules.isPending}
+          >
+            Cancelar
+          </Button>
 
-                                    <div className="flex flex-col leading-tight">
-                                        <span className="text-sm font-medium">
-                                            {module.label}
-                                        </span>
+          <Button
+            onClick={handleSubmit}
+            disabled={!isDirty || syncCompanyModules.isPending}
+          >
+            {syncCompanyModules.isPending ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              "Guardar"
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
 
-                                        <span className="text-[11px] uppercase tracking-wide text-muted-foreground">
-                                            {module.value}
-                                        </span>
-                                    </div>
-                                </label>
-                            ))}
-                        </div>
-                    </ScrollArea>
-                )}
-
-                <DialogFooter>
-                    <Button
-                        variant="ghost"
-                        onClick={() => onOpenChange(false)}
-                        disabled={syncCompanyModules.isPending}
-                    >
-                        Cancelar
-                    </Button>
-
-                    <Button
-                        onClick={handleSubmit}
-                        disabled={!isDirty || syncCompanyModules.isPending}
-                    >
-                        {syncCompanyModules.isPending ? (
-                            <Loader2 className="size-4 animate-spin" />
-                        ) : (
-                            'Guardar'
-                        )}
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-    )
-}
-
-export default ManageCompanyModulesDialog
+export default ManageCompanyModulesDialog;

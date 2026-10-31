@@ -591,7 +591,7 @@ export function notifyInvalidForm<T extends Record<string, any>>(
   return (errors: FieldErrors<T>) => {
     console.warn("[Formulario de control] Validación fallida:", errors);
     const first = firstFieldError(errors);
-    toast.error("Faltan datos o hay valores inválidos", {
+    toast.error("¡Ops! Faltan datos o hay valores inválidos", {
       description: first?.message ?? "Revise los campos marcados en rojo.",
     });
     if (first) {

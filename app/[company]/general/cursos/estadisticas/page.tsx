@@ -9,7 +9,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { format, startOfYear } from "date-fns";
 import { Loader2 } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { estadisticasSteps } from "@/components/tour/steps/general/cursos/estadisticas";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -32,26 +32,16 @@ const CourseStatsPage = () => {
     [key: string]: string | undefined;
   }
 
-  const [params, setParams] = useState<Params>({
-    from: format(startOfYear(new Date()), "yyyy-MM-dd"),
-    to: format(new Date(), "yyyy-MM-dd"),
-  });
-
-  useEffect(() => {
-    const defaultFrom = format(startOfYear(new Date()), "yyyy-MM-dd");
-    const defaultTo = format(new Date(), "yyyy-MM-dd");
-
-    const newParams: Params = {};
-    searchParams.forEach((value, key) => {
-      newParams[key] = value;
-    });
-
-    const finalParams: Params = {
-      from: newParams.from || defaultFrom,
-      to: newParams.to || defaultTo,
-    };
-    setParams(finalParams);
-  }, [searchParams, pathname]);
+  // Las fechas viven en la URL: se leen de ahí en vez de copiarlas a un estado.
+  const params = useMemo<Params>(
+    () => ({
+      from:
+        searchParams.get("from") ||
+        format(startOfYear(new Date()), "yyyy-MM-dd"),
+      to: searchParams.get("to") || format(new Date(), "yyyy-MM-dd"),
+    }),
+    [searchParams],
+  );
 
   // Manejar cambio de fechas desde DataFilter
   const handleDateChange = (

@@ -13,6 +13,8 @@ import { toast } from "sonner";
 import axiosInstance from "@/lib/axios";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { bibliotecaUploadVersionSteps } from "@/components/tour/steps/general/biblioteca/biblioteca-upload-version";
+import { notifyError } from "@/lib/notify-error";
+import { useOnChange } from "@/hooks/useOnChange";
 
 export const UploadVersionDialog = ({
   isOpen,
@@ -47,7 +49,7 @@ export const UploadVersionDialog = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // CAMBIO CLAVE: Inicialización reactiva al abrir el diálogo
-  useEffect(() => {
+  useOnChange([isOpen, doc], () => {
     if (isOpen) {
       setSelectedFile(null);
       setChangeLog("");
@@ -69,7 +71,7 @@ export const UploadVersionDialog = ({
         setManualRequiresExpiry(null);
       }
     }
-  }, [isOpen, doc]);
+  });
 
   const isOriginalExpiry = useMemo(() => {
     const status = String(doc?.expiry_status || "")
@@ -86,11 +88,11 @@ export const UploadVersionDialog = ({
   }, [isOriginalExpiry, manualRequiresExpiry]);
 
   const handleUploadVersion = async () => {
-    if (!selectedFile) return toast.error("Debes seleccionar un archivo");
+    if (!selectedFile) return toast.error("¡Ops! Debes seleccionar un archivo");
     if (!changeLog.trim())
-      return toast.error("La justificación es obligatoria");
+      return toast.error("¡Ops! La justificación es obligatoria");
     if (requiresExpiry && !expirationDate)
-      return toast.error("La fecha de expiración es obligatoria");
+      return toast.error("¡Ops! La fecha de expiración es obligatoria");
 
     setUploading(true);
     const formData = new FormData();
@@ -112,7 +114,7 @@ export const UploadVersionDialog = ({
       if (onSuccess) await onSuccess();
       onClose();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Error al subir la versión");
+      notifyError(error, { action: "subir la versión" });
     } finally {
       setUploading(false);
     }
@@ -172,7 +174,7 @@ export const UploadVersionDialog = ({
                 if (["pdf", "xlsx", "xls"].includes(ext || "")) {
                   setSelectedFile(file);
                 } else {
-                  toast.error("Solo se permiten archivos PDF o Excel");
+                  toast.error("¡Ops! Solo se permiten archivos PDF o Excel");
                 }
               }}
               onClick={() => fileInputRef.current?.click()}

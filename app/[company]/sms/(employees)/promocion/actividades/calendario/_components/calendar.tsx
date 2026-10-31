@@ -26,7 +26,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { ClockIcon, Hammer, NotebookIcon, PencilLine } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 
 interface SMSActivities {
   id: number;
@@ -99,7 +99,8 @@ export const Calendar = ({ events, theme = "light" }: CalendarProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | undefined>();
 
-  const eventsServiceRef = useRef(createEventsServicePlugin());
+  // Estado y no ref: el plugin se crea una vez y se lee al renderizar (en `plugins`).
+  const [eventsService] = useState(() => createEventsServicePlugin());
   const eventModal = useMemo(() => createEventModalPlugin(), []);
   const dragAndDrop = useMemo(() => createDragAndDropPlugin(), []);
   const resizePlugin = useMemo(() => createResizePlugin(30), []);
@@ -128,7 +129,7 @@ export const Calendar = ({ events, theme = "light" }: CalendarProps) => {
     locale: "es-ES",
     defaultView: "month",
     isResponsive: true,
-    plugins: [dragAndDrop, eventsServiceRef.current, eventModal, resizePlugin],
+    plugins: [dragAndDrop, eventsService, eventModal, resizePlugin],
     dayBoundaries: { start: "06:00", end: "18:00" },
     callbacks: {
       onDoubleClickDate: (date) => {
@@ -231,15 +232,15 @@ export const Calendar = ({ events, theme = "light" }: CalendarProps) => {
         );
       },
     }),
-    [selectedCompany?.slug]
+    [selectedCompany?.slug],
   );
 
   // ✅ Refrescar eventos en el servicio solo cuando cambian
   useEffect(() => {
-    if (calendarEvents && eventsServiceRef.current) {
-      eventsServiceRef.current.set(calendarEvents);
+    if (calendarEvents) {
+      eventsService.set(calendarEvents);
     }
-  }, [calendarEvents]);
+  }, [calendarEvents, eventsService]);
 
   // ✅ Actualizar tema dinámicamente
   useEffect(() => {

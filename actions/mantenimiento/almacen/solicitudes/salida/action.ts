@@ -3,6 +3,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 interface IDispatchRequestAction {
   justification: string;
@@ -31,6 +32,9 @@ interface IDispatchRequestAction {
   user_id: number;
   aircraft_id?: string;
   authorized_employee_id?: string;
+  /** Salida a otra empresa: empresa y departamento a los que se atribuye. */
+  destination_company_slug?: string;
+  destination_department_id?: string;
   department_id?: string;
   /**
    * Sede destino: convierte la salida en un traslado entre sedes. El backend
@@ -38,8 +42,8 @@ interface IDispatchRequestAction {
    * en el acto como el resto de las salidas.
    */
   destination_location_id?: string;
-  approved_by?: string
-  delivered_by?: string
+  approved_by?: string;
+  delivered_by?: string;
   /**
    * Fotos de la entrega, indexadas por la clave de la fila del formulario
    * ("aero:0", "general:1"): al capturarlas la línea de la salida todavía no
@@ -78,7 +82,11 @@ function buildDispatchFormData(data: IDispatchRequestAction): FormData {
     // String(false) es truthy en PHP y la regla `boolean` no lo acepta.
     form.append(
       key,
-      typeof value === "boolean" ? (value ? "1" : "0") : (value as string | File),
+      typeof value === "boolean"
+        ? value
+          ? "1"
+          : "0"
+        : (value as string | File),
     );
   };
 
@@ -121,10 +129,10 @@ export const useCreateDispatchRequest = () => {
         queryKey: ["dispatches-requests", data.company, selectedStation],
       });
 
-      toast.success("¡Creado!", {
+      (toast.success("¡Creado!", {
         description: `La solicitud ha sido creado correctamente.`,
       }),
-        router.refresh();
+        router.refresh());
     },
     onError: (error: any) => {
       // Ver nota en useUpdateStatusDispatchRequest: el stock en pantalla quedó
@@ -135,11 +143,7 @@ export const useCreateDispatchRequest = () => {
         queryClient.invalidateQueries({ queryKey: ["general-articles"] });
       }
 
-      toast.error("Oops!", {
-        description:
-          error?.response?.data?.message ||
-          "No se pudo crear la solicitud...",
-      });
+      notifyError(error, { action: "crear la solicitud" });
       console.log(error);
     },
   });
@@ -172,14 +176,14 @@ export const useUpdateStatusDispatchRequest = () => {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({
+      (queryClient.invalidateQueries({
         queryKey: ["dispatches-requests-in-process"],
       }),
         queryClient.invalidateQueries({ queryKey: ["dispatched-articles"] }),
-        queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
-        toast.success("¡Actualizado!", {
-          description: "¡La solicitud ha sido actualizada!",
-        });
+        queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] }));
+      toast.success("¡Actualizado!", {
+        description: "¡La solicitud ha sido actualizada!",
+      });
     },
     onError: (error: any) => {
       // Un 422 con `insufficient_stock` significa que la existencia cambió
@@ -191,11 +195,7 @@ export const useUpdateStatusDispatchRequest = () => {
         queryClient.invalidateQueries({ queryKey: ["general-articles"] });
       }
 
-      toast.error("Oops!", {
-        description:
-          error?.response?.data?.message ||
-          "No se pudo actualizar la solicitud...",
-      });
+      notifyError(error, { action: "actualizar la solicitud" });
       console.log(error);
     },
   });
@@ -223,18 +223,22 @@ export const useDeleteDispatchRequest = () => {
         queryKey: ["dispatches-requests", variables.company, selectedStation],
       });
       queryClient.invalidateQueries({
-        queryKey: ["dispatches-requests-in-process", variables.company, selectedStation],
+        queryKey: [
+          "dispatches-requests-in-process",
+          variables.company,
+          selectedStation,
+        ],
       });
-      queryClient.invalidateQueries({ queryKey: ["dispatched-articles", variables.company] });
+      queryClient.invalidateQueries({
+        queryKey: ["dispatched-articles", variables.company],
+      });
       queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
       toast.success("Â¡Eliminado!", {
         description: "La solicitud ha sido eliminada correctamente.",
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo eliminar la solicitud...",
-      });
+      notifyError(error, { action: "eliminar la solicitud" });
       console.log(error);
     },
   });
@@ -272,7 +276,7 @@ function buildReturnFormData(data: IDispatchReturnAction): FormData {
   data.items.forEach((item, index) => {
     form.append(
       `items[${index}][article_dispatch_order_id]`,
-      String(item.article_dispatch_order_id)
+      String(item.article_dispatch_order_id),
     );
     form.append(`items[${index}][quantity]`, String(item.quantity));
     form.append(`items[${index}][condition]`, item.condition);
@@ -304,7 +308,7 @@ export const useCreateDispatchReturn = () => {
       const response = await axiosInstance.post(
         `/${company}/dispatch-order/${id}/returns`,
         buildReturnFormData(data),
-        { headers: { "Content-Type": "multipart/form-data" } }
+        { headers: { "Content-Type": "multipart/form-data" } },
       );
       return response.data;
     },
@@ -325,11 +329,7 @@ export const useCreateDispatchReturn = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          error?.response?.data?.message ||
-          "No se pudo registrar la devolución...",
-      });
+      notifyError(error, { action: "registrar la devolución" });
       console.log(error);
     },
   });
@@ -344,13 +344,7 @@ export const useDeleteDispatchEvidence = () => {
   const { selectedStation } = useCompanyStore();
 
   const deleteMutation = useMutation({
-    mutationFn: async ({
-      id,
-      company,
-    }: {
-      id: number;
-      company: string;
-    }) => {
+    mutationFn: async ({ id, company }: { id: number; company: string }) => {
       await axiosInstance.delete(`/${company}/dispatch-evidences/${id}`);
     },
     onSuccess: (_, variables) => {
@@ -362,11 +356,7 @@ export const useDeleteDispatchEvidence = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          error?.response?.data?.message ||
-          "No se pudo eliminar la evidencia...",
-      });
+      notifyError(error, { action: "eliminar la evidencia" });
       console.log(error);
     },
   });
@@ -384,7 +374,7 @@ export const useReturnToWarehouse = (company?: string) => {
     mutationKey: ["update-status", company],
     mutationFn: async (article_id: number) => {
       const { data } = await axiosInstance.put(
-        `/${company}/update-status-items/${article_id}`
+        `/${company}/update-status-items/${article_id}`,
       );
       return data;
     },
@@ -464,13 +454,39 @@ export const useAcknowledgeTransfer = () => {
       );
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          error?.response?.data?.message ||
-          "No se pudo registrar el acuse del traslado.",
-      });
+      notifyError(error, { action: "registrar el acuse del traslado" });
     },
   });
 
   return { acknowledgeTransfer: acknowledgeMutation };
+};
+
+export const useSetDispatchWorkOrder = () => {
+  const queryClient = useQueryClient();
+  const { selectedStation } = useCompanyStore();
+
+  return useMutation({
+    mutationFn: async ({
+      id,
+      company,
+      work_order,
+    }: {
+      id: string | number;
+      company: string;
+      work_order: string;
+    }) => {
+      await axiosInstance.patch(`/${company}/dispatch-order/${id}/work-order`, {
+        work_order,
+      });
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["dispatches-requests", variables.company, selectedStation],
+      });
+      toast.success("¡Orden de trabajo registrada!");
+    },
+    onError: (error) => {
+      notifyError(error, { action: "registrar la orden de trabajo" });
+    },
+  });
 };

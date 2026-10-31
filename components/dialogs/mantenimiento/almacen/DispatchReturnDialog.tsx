@@ -83,7 +83,8 @@ function alternatePartNumbersOf(article: DispatchArticle): string[] {
   // El tipo declarado es string[] | null y por eso no admite el caso string
   // suelto que sí llega en runtime; el cast es el propio punto de esta
   // función, que existe para blindar contra ese desfase.
-  const raw = article.alternative_part_number as string[] | string | null | undefined;
+  const raw = article.alternative_part_number as
+    string[] | string | null | undefined;
   if (Array.isArray(raw)) return raw;
   if (typeof raw === "string" && raw.trim() !== "") return [raw];
   return [];
@@ -142,16 +143,17 @@ const DispatchReturnDialog = ({
 
   // Solo puede devolverse lo que sigue fuera del almacén.
   const returnable = useMemo(
-    () => articles.filter((a) => a.article_dispatch_order_id && pendingOf(a) > 0),
-    [articles]
+    () =>
+      articles.filter((a) => a.article_dispatch_order_id && pendingOf(a) > 0),
+    [articles],
   );
 
   const selected = useMemo(
     () =>
       returnable.filter(
-        (a) => selection[a.article_dispatch_order_id!]?.checked
+        (a) => selection[a.article_dispatch_order_id!]?.checked,
       ),
-    [returnable, selection]
+    [returnable, selection],
   );
 
   // Marcado como dañado, y solo si esa línea admite inspección: el backend
@@ -250,11 +252,11 @@ const DispatchReturnDialog = ({
     // defecto): se cortaría sin error y faltarían fotos sin que nadie lo sepa.
     const totalFiles = selected.reduce(
       (sum, a) => sum + (evidences[a.article_dispatch_order_id!]?.length ?? 0),
-      0
+      0,
     );
 
     if (totalFiles > MAX_EVIDENCE_FILES_PER_REQUEST) {
-      toast.error("Demasiadas evidencias", {
+      toast.error("¡Ops! Demasiadas evidencias", {
         description: `Adjuntó ${totalFiles} imágenes y el servidor admite ${MAX_EVIDENCE_FILES_PER_REQUEST} por envío. Quite algunas y vuelva a intentar.`,
       });
       return;
@@ -268,7 +270,7 @@ const DispatchReturnDialog = ({
         items: selected.map((a) => ({
           article_dispatch_order_id: a.article_dispatch_order_id!,
           quantity: Number(
-            selection[a.article_dispatch_order_id!].quantity.replace(",", ".")
+            selection[a.article_dispatch_order_id!].quantity.replace(",", "."),
           ),
           // isAltered vuelve a mirar is_inspectable: la casilla pudo marcarse y
           // luego dejar de mostrarse, quedando su estado en true.
@@ -282,7 +284,7 @@ const DispatchReturnDialog = ({
               a.article_dispatch_order_id!,
               evidences[a.article_dispatch_order_id!] ?? [],
             ])
-            .filter(([, files]) => (files as File[]).length > 0)
+            .filter(([, files]) => (files as File[]).length > 0),
         ),
       },
     });
@@ -329,7 +331,9 @@ const DispatchReturnDialog = ({
                   const pending = pendingOf(article);
                   const entry = selection[lineId];
                   const checked = entry?.checked ?? false;
-                  const value = Number((entry?.quantity ?? "").replace(",", "."));
+                  const value = Number(
+                    (entry?.quantity ?? "").replace(",", "."),
+                  );
                   const error = checked ? quantityErrorOf(article) : null;
 
                   // Se deriva de los dos saldos que ya manda el backend en vez
@@ -366,12 +370,18 @@ const DispatchReturnDialog = ({
 
                           <div className="mt-2 flex flex-wrap gap-2">
                             {shown(article.variant_type) && (
-                              <Badge variant="secondary" className="font-normal">
+                              <Badge
+                                variant="secondary"
+                                className="font-normal"
+                              >
                                 {shown(article.variant_type)}
                               </Badge>
                             )}
                             {shown(article.brand_model) && (
-                              <Badge variant="secondary" className="font-normal">
+                              <Badge
+                                variant="secondary"
+                                className="font-normal"
+                              >
                                 {shown(article.brand_model)}
                               </Badge>
                             )}
@@ -405,12 +415,18 @@ const DispatchReturnDialog = ({
                               </Badge>
                             )}
                             {shown(article.category) && (
-                              <Badge variant="secondary" className="font-normal">
+                              <Badge
+                                variant="secondary"
+                                className="font-normal"
+                              >
                                 {shown(article.category)}
                               </Badge>
                             )}
                             {shown(article.batch_name) && (
-                              <Badge variant="secondary" className="font-normal">
+                              <Badge
+                                variant="secondary"
+                                className="font-normal"
+                              >
                                 {shown(article.batch_name)}
                               </Badge>
                             )}
@@ -540,7 +556,6 @@ const DispatchReturnDialog = ({
                   maxLength={1000}
                 />
               </div>
-
             </>
           )}
         </div>

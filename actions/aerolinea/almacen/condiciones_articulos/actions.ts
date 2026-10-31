@@ -1,9 +1,9 @@
 import axiosInstance from "@/lib/axios";
-import { getApiErrorMessage } from "@/lib/api-error";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Condition } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 interface ConditionPayload {
   name: string;
@@ -32,12 +32,7 @@ export const useCreateCondition = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: getApiErrorMessage(
-          error,
-          "No se pudo crear la condición.",
-        ),
-      });
+      notifyError(error, { action: "crear la condición" });
     },
   });
 
@@ -69,12 +64,7 @@ export const useUpdateCondition = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: getApiErrorMessage(
-          error,
-          "¡Hubo un error al actualizar la condición!",
-        ),
-      });
+      notifyError(error, { action: "actualizar la condición" });
     },
   });
 
@@ -101,12 +91,7 @@ export const useDeleteCondition = () => {
     onError: (error) => {
       // 409/422: la condición tiene salidas o artículos y no puede borrarse;
       // el motivo viene en el mensaje del servidor.
-      toast.error("Oops!", {
-        description: getApiErrorMessage(
-          error,
-          "¡Hubo un error al eliminar la condición!",
-        ),
-      });
+      notifyError(error, { action: "eliminar la condición" });
     },
   });
 

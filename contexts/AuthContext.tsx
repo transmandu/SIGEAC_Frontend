@@ -7,6 +7,7 @@ import axiosInstance, {
 import { createCookie, deleteCookie, hasAuthCookie } from "@/lib/cookie";
 import { resetEcho } from "@/lib/echo";
 import { setPostLoginRedirect } from "@/lib/postLoginRedirect";
+import { useIsClient } from "@/hooks/useIsClient";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { User } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -17,6 +18,7 @@ import {
   useEffect,
   useMemo,
   useState,
+  useSyncExternalStore,
   useCallback,
   useRef,
 } from "react";
@@ -24,6 +26,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
 import LogoutOverlay from "@/components/misc/LogoutOverlay";
+import { describeApiError } from "@/lib/api-error";
 
 /* ---------------- TYPES ---------------- */
 
@@ -53,6 +56,8 @@ interface LoginResponse {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const noSubscription = () => () => {};
+
 export const AUTH_USER_QUERY_KEY = ["auth", "user"] as const;
 
 /* ---------------- PROVIDER ---------------- */
@@ -67,13 +72,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // La cookie sólo dice si vale la pena preguntar por el usuario; la respuesta
   // de /user sigue siendo la única fuente de verdad de la sesión.
-  const [hasToken, setHasToken] = useState(false);
-  const [tokenChecked, setTokenChecked] = useState(false);
-
-  useEffect(() => {
-    setHasToken(hasAuthCookie());
-    setTokenChecked(true);
-  }, []);
+  // La cookie se lee solo en el navegador; el login y el logout la cambian
+  // explícitamente, y eso manda sobre lo que se leyó al montar.
+  const cookieToken = useSyncExternalStore(
+    noSubscription,
+    hasAuthCookie,
+    () => false,
+  );
+  const [tokenOverride, setHasToken] = useState<boolean | null>(null);
+  const hasToken = tokenOverride ?? cookieToken;
+  const tokenChecked = useIsClient();
 
   const { data: cachedUser = null, isLoading: userLoading } =
     useQuery<User | null>({
@@ -180,7 +188,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // `user` se lee por ref y no como dependencia: incluirlo re-registraba el
   // interceptor en cada cambio de sesión.
   const userRef = useRef<User | null>(null);
-  userRef.current = user;
+
+  useEffect(() => {
+    userRef.current = user;
+  }, [user]);
 
   useEffect(() => {
     const interceptor = axiosInstance.interceptors.response.use(
@@ -266,16 +277,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // Credenciales inválidas u otros errores de validación controlados por el backend
       const isExpectedAuthError = status === 401 || status === 422;
 
+      // Lo que no es "credenciales inválidas" ya no se reduce a un genérico: sin
+      // internet, servidor caído o falla del sistema cada uno dice lo suyo.
+      const described = describeApiError(err);
+
       const message = isExpectedAuthError
         ? rawMessage || "Credenciales inválidas"
-        : "Ha ocurrido un problema. Por favor contacte al equipo de Desarrollo para resolverlo a la brevedad posible.";
+        : described.reference
+          ? `${described.description} (Código: ${described.reference})`
+          : described.description;
 
       setError(message);
 
-      toast.error("Error de autenticación", {
-        description: message,
-        position: "bottom-center",
-      });
+      // eslint-disable-next-line no-restricted-syntax -- el login ya clasificó el error con describeApiError y lo muestra en la parte inferior, sin botón Reportar (aún no hay sesión).
+      toast.error(
+        isExpectedAuthError ? "Error de autenticación" : described.title,
+        {
+          description: message,
+          position: "bottom-center",
+        },
+      );
     },
   });
 

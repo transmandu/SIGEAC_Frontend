@@ -18,6 +18,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import { hasQuoteDraftContent } from "@/lib/purchases/quote-draft";
 import type { Quote, QuoteableRequisition } from "@/types/purchase/quote";
 import type {
   ArticleQuoteOrder,
@@ -603,6 +604,17 @@ export function CreateQuoteForm({
         ? data.quote_date.toISOString()
         : undefined;
 
+    // Solo al abrirlo: un borrador ya existente sí puede guardarse vacío (el
+    // usuario pudo haber borrado lo capturado), pero crear uno sin nada solo
+    // deja una fila inútil junto a la requisición.
+    if (!draftId && !hasQuoteDraftContent(data)) {
+      toast.info("No hay nada que guardar", {
+        description:
+          "Capture al menos un precio, un proveedor o marque un artículo como no cotizado.",
+      });
+      return;
+    }
+
     let id = draftId;
     // Las líneas recién creadas vienen en la respuesta de apertura: sin ellas no
     // hay con qué emparejar las del formulario.
@@ -682,7 +694,7 @@ export function CreateQuoteForm({
     );
 
     if (quotedArticles.length === 0 && quotedGeneralArticles.length === 0) {
-      toast.error("Debe cotizar al menos un artículo.");
+      toast.error("¡Ops! Debe cotizar al menos un artículo.");
       return;
     }
 
@@ -695,14 +707,14 @@ export function CreateQuoteForm({
       );
     if (missingJustification) {
       toast.error(
-        "Debe justificar los artículos no cotizados o con cambios en cantidad/unidad.",
+        "¡Ops! Debe justificar los artículos no cotizados o con cambios en cantidad/unidad.",
       );
       return;
     }
 
     if (data.articles.some((a) => !a.article_requisition_order_id)) {
       toast.error(
-        "Uno o más artículos no tienen un identificador válido de la requisición. Recargue la página e intente de nuevo.",
+        "¡Ops! Uno o más artículos no tienen un identificador válido de la requisición. Recargue la página e intente de nuevo.",
       );
       return;
     }
@@ -711,7 +723,7 @@ export function CreateQuoteForm({
       data.general_articles.some((a) => !a.general_article_requisition_order_id)
     ) {
       toast.error(
-        "Uno o más artículos generales no tienen un identificador válido de la requisición. Recargue la página e intente de nuevo.",
+        "¡Ops! Uno o más artículos generales no tienen un identificador válido de la requisición. Recargue la página e intente de nuevo.",
       );
       return;
     }
@@ -776,7 +788,7 @@ export function CreateQuoteForm({
 
   const onInvalid = () => {
     toast.error(
-      "Hay campos obligatorios sin completar. Revise los artículos marcados con *.",
+      "¡Ops! Hay campos obligatorios sin completar. Revise los artículos marcados con *.",
     );
   };
 

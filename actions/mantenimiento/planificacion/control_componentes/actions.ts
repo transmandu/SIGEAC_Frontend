@@ -10,15 +10,9 @@ import {
 } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 /** Primer mensaje de validación del backend, sea del campo que sea. */
-const firstBackendError = (error: any): string | undefined => {
-  const errors = error?.response?.data?.errors;
-  const firstMessage = errors && Object.values(errors).flat()[0];
-
-  return (firstMessage as string | undefined) ?? error?.response?.data?.message;
-};
-
 export interface ComponentIntervalData {
   counting_method: MaintenanceCountingMethod;
   limit_kind: ComponentLimitKind;
@@ -79,11 +73,7 @@ export const useCreateComponentControl = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          firstBackendError(error) ||
-          "No se pudo registrar el control de componentes...",
-      });
+      notifyError(error, { action: "registrar el control de componentes" });
       console.log(error);
     },
   });
@@ -119,11 +109,7 @@ export const useUpdateComponentControl = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          firstBackendError(error) ||
-          "No se pudo actualizar el control de componentes...",
-      });
+      notifyError(error, { action: "actualizar el control de componentes" });
       console.log(error);
     },
   });
@@ -162,10 +148,7 @@ export const useAddComponentControlItem = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          firstBackendError(error) || "No se pudo agregar el componente...",
-      });
+      notifyError(error, { action: "agregar el componente" });
       console.log(error);
     },
   });
@@ -236,10 +219,8 @@ export const useLinkComponentPendingWorkOrder = () => {
     },
     // El backend valida coherencia y devuelve el motivo exacto.
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          error?.response?.data?.message ??
-          "No se pudo asociar la Orden de Trabajo al componente...",
+      notifyError(error, {
+        action: "asociar la Orden de Trabajo al componente",
       });
       console.log(error);
     },
@@ -291,16 +272,14 @@ export const useImportComponentComplianceHistory = () => {
           description: `${result.imported} cumplimiento(s) cargado(s)${result.skipped.length ? `, ${result.skipped.length} fila(s) omitida(s).` : "."}`,
         });
       } else {
-        toast.error("Nada para importar", {
+        toast.error("¡Ops! Nada para importar", {
           description:
             "Ninguna fila coincidió con la descripción, N° de parte, serial y posición de un componente de este control.",
         });
       }
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo importar el archivo...",
-      });
+      notifyError(error, { action: "importar el archivo" });
       console.log(error);
     },
   });

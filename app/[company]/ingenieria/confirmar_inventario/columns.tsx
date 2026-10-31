@@ -7,9 +7,16 @@ import { type AppColumnDef } from "@/lib/table";
 import { formatQuantity } from "@/lib/utils";
 import type { CheckingArticle } from "@/types/inventory";
 import { addDays, format, parseISO } from "date-fns";
+import { BadgeCheck } from "lucide-react";
 import CheckingArticleDropdownActions from "./_components/CheckingArticleDropdownActionts";
 
 export type IArticleSimple = CheckingArticle;
+
+// Ingeniería aprueba todo lo que no esté ya aprobado, lo haya pedido almacén o
+// no, para que su revisión conste. Eliminar no tiene esa restricción: todo lo
+// que esta pantalla lista está en chequeo o en recepción.
+export const canApprove = (article: IArticleSimple) =>
+  article.engineering_check?.status !== "APPROVED";
 
 const baseCols: AppColumnDef<IArticleSimple>[] = [
   {
@@ -90,9 +97,26 @@ const baseCols: AppColumnDef<IArticleSimple>[] = [
     ),
     cell: ({ row }) => (
       <div className="flex flex-col justify-center items-center space-y-2">
-        <Badge className="bg-yellow-500">
+        <Badge
+          className={
+            row.original.status?.toUpperCase() === "CHECKING"
+              ? "bg-sky-500"
+              : "bg-amber-500"
+          }
+        >
           {row.original.status?.toUpperCase()}
         </Badge>
+        {row.original.status?.toUpperCase() === "RECEPTION" &&
+          row.original.engineering_check?.status === "REQUESTED" && (
+            <Badge className="bg-sky-500">SOLICITADO POR ALMACÉN</Badge>
+          )}
+        {row.original.status?.toUpperCase() === "RECEPTION" &&
+          row.original.engineering_check?.status === "APPROVED" && (
+            <Badge className="bg-emerald-500">
+              <BadgeCheck className="mr-1 size-3" />
+              APROBADO POR INGENIERÍA
+            </Badge>
+          )}
       </div>
     ),
   },
@@ -129,6 +153,7 @@ const selectionColumn: AppColumnDef<IArticleSimple> = {
     <div className="flex justify-center">
       <Checkbox
         checked={row.getIsSelected()}
+        disabled={!canApprove(row.original)}
         onCheckedChange={(value) => row.toggleSelected(!!value)}
         aria-label="Seleccionar articulo"
       />
@@ -148,7 +173,16 @@ const componenteCols: AppColumnDef<IArticleSimple>[] = [
     ),
     cell: ({ row }) => {
       const item = row.original;
-      return <CheckingArticleDropdownActions id={item.id} />;
+      return (
+        <CheckingArticleDropdownActions
+          id={item.id}
+          partNumber={item.part_number}
+          canApprove={canApprove(item)}
+          scope={
+            item.status?.toUpperCase() === "CHECKING" ? "checking" : "reception"
+          }
+        />
+      );
     },
   },
 ];
@@ -176,7 +210,16 @@ export const consumibleCols: AppColumnDef<IArticleSimple>[] = [
     ),
     cell: ({ row }) => {
       const item = row.original;
-      return <CheckingArticleDropdownActions id={item.id} />;
+      return (
+        <CheckingArticleDropdownActions
+          id={item.id}
+          partNumber={item.part_number}
+          canApprove={canApprove(item)}
+          scope={
+            item.status?.toUpperCase() === "CHECKING" ? "checking" : "reception"
+          }
+        />
+      );
     },
   },
 ];
@@ -240,7 +283,16 @@ export const herramientaCols: AppColumnDef<IArticleSimple>[] = [
     ),
     cell: ({ row }) => {
       const item = row.original;
-      return <CheckingArticleDropdownActions id={item.id} />;
+      return (
+        <CheckingArticleDropdownActions
+          id={item.id}
+          partNumber={item.part_number}
+          canApprove={canApprove(item)}
+          scope={
+            item.status?.toUpperCase() === "CHECKING" ? "checking" : "reception"
+          }
+        />
+      );
     },
   },
 ];

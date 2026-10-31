@@ -6,11 +6,13 @@ import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 export interface AuthorizedEmployee {
   id: number;
   dni_employee: string;
-  from_company_db: string; // Empresa que autorizó
-  to_company_db: string;   // Empresa actual (no se muestra)
+  from_company_db: string; // Empresa de la persona
+  from_company_name?: string;
+  to_company_db: string; // Empresa actual (no se muestra)
   employee_name: string;
-  job_title?: string;      // Cargo del empleado
-  department?: string;     // Departamento del empleado
+  job_title?: string; // Cargo del empleado
+  department?: string; // Departamento del empleado
+  scopes?: string[]; // Alcances en que puede actuar
 }
 
 export const columns: AppColumnDef<AuthorizedEmployee>[] = [
@@ -112,18 +114,42 @@ export const columns: AppColumnDef<AuthorizedEmployee>[] = [
 
     header: ({ column }) => (
       <div className="flex justify-center w-full">
-        <DataTableColumnHeader filter column={column} title="Empresa que Autoriza" />
+        <DataTableColumnHeader filter column={column} title="Empresa" />
       </div>
     ),
 
     meta: {
-      title: "Empresa que Autoriza",
+      title: "Empresa",
     },
 
     cell: ({ row }) => (
       <div className="flex justify-center w-full">
         <span className="text-sm text-slate-600 dark:text-slate-300 uppercase">
-          {row.original.from_company_db}
+          {row.original.from_company_name ?? row.original.from_company_db}
+        </span>
+      </div>
+    ),
+  },
+
+  {
+    id: "scopes",
+    size: 260,
+    enableSorting: false,
+
+    header: ({ column }) => (
+      <div className="flex justify-center w-full">
+        <DataTableColumnHeader column={column} title="Alcances" />
+      </div>
+    ),
+
+    meta: {
+      title: "Alcances",
+    },
+
+    cell: ({ row }) => (
+      <div className="flex justify-center w-full">
+        <span className="text-sm text-center text-slate-600 dark:text-slate-300">
+          {row.original.scopes?.join(", ") || "—"}
         </span>
       </div>
     ),

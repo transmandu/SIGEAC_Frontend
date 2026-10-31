@@ -1,10 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { ChevronDown, Building2 } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import libraryService, { FolderNode } from "@/lib/libraryService";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
+import { useResettingState } from "@/hooks/useResettingState";
 
 interface CreateFolderDialogProps {
   open: boolean;
@@ -46,21 +48,16 @@ export default function CreateFolderDialog({
   onSuccess,
 }: CreateFolderDialogProps) {
   const [name, setName] = useState("");
-  const [parentId, setParentId] = useState("");
-  const [selectedDeptId, setSelectedDeptId] = useState(departmentId ?? "");
-
-  useEffect(() => {
-    if (open && departmentId) setSelectedDeptId(departmentId);
-  }, [open, departmentId]);
-
-  useEffect(() => {
-    if (open && selectedFolderPath && selectedFolderPath !== "/") {
-      const match = findFolderByPath(folders, selectedFolderPath);
-      if (match) setParentId(match.id);
-    } else {
-      setParentId("");
-    }
+  // Al abrir, el diálogo parte del departamento y de la carpeta que se estaban
+  // viendo en la biblioteca.
+  const [parentId, setParentId] = useResettingState(() => {
+    if (!open || !selectedFolderPath || selectedFolderPath === "/") return "";
+    return findFolderByPath(folders, selectedFolderPath)?.id ?? "";
   }, [open, selectedFolderPath, folders]);
+  const [selectedDeptId, setSelectedDeptId] = useResettingState(
+    departmentId ?? "",
+    [open, departmentId],
+  );
 
   const [loading, setLoading] = useState(false);
 
@@ -84,7 +81,7 @@ export default function CreateFolderDialog({
       onSuccess(deptId);
       onClose();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Error al crear la carpeta");
+      notifyError(error, { action: "crear la carpeta" });
     } finally {
       setLoading(false);
     }

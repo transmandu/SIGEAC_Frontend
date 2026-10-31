@@ -43,6 +43,7 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { formatCalendarDate, toCalendarPayload } from "@/lib/date";
+import { notifyError } from "@/lib/notify-error";
 
 interface CreateCertificateFormProps {
   onClose: () => void;
@@ -114,7 +115,7 @@ export const CreateCertificateForm = ({
     }
 
     if (!finalDni) {
-      toast.error("Error de identificación", {
+      toast.error("¡Ops! Error de identificación", {
         description: "No se encontró un DNI válido para procesar.",
       });
       return;
@@ -130,9 +131,7 @@ export const CreateCertificateForm = ({
 
       onClose();
     } catch (error: any) {
-      const serverMessage =
-        error.response?.data?.message || "Error en el servidor";
-      toast.error("No se pudo guardar", { description: serverMessage });
+      notifyError(error, { action: "guardar el certificado" });
     }
   };
 

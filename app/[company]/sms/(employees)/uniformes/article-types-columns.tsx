@@ -26,7 +26,7 @@ import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useDeleteUniformArticleType } from "@/actions/sms/uniforms/actions";
 import { UniformArticleType } from "@/hooks/sms/useGetUniforms";
-import { getUniformTypeIcon } from "@/components/sms/uniform-meta";
+import { UniformTypeIcon } from "@/components/sms/uniform-meta";
 
 interface Handlers {
   onEdit: (type: UniformArticleType) => void;
@@ -74,8 +74,8 @@ const ArticleTypeRowActions = ({
           <AlertDialogHeader>
             <AlertDialogTitle>¿Eliminar tipo de artículo?</AlertDialogTitle>
             <AlertDialogDescription>
-              Sólo se puede eliminar un tipo sin artículos asociados. Si ya tiene
-              artículos, desactívelo en su lugar.
+              Sólo se puede eliminar un tipo sin artículos asociados. Si ya
+              tiene artículos, desactívelo en su lugar.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -99,17 +99,16 @@ const ArticleTypeRowActions = ({
 };
 
 export const getArticleTypesColumns = (
-  handlers: Handlers
+  handlers: Handlers,
 ): AppColumnDef<UniformArticleType>[] => [
   {
     accessorKey: "name",
     header: "Tipo de artículo",
     cell: ({ row }) => {
-      const Icon = getUniformTypeIcon(undefined, row.original.name);
       return (
         <div className="flex items-center gap-2.5">
           <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
-            <Icon className="size-4" />
+            <UniformTypeIcon label={row.original.name} className="size-4" />
           </span>
           <span className="font-semibold uppercase text-foreground">
             {row.original.name}

@@ -42,9 +42,7 @@ import {
 
 const FormSchema = z
   .object({
-    password: z
-      .string()
-      .min(8, { message: "Mínimo 8 caracteres." }),
+    password: z.string().min(8, { message: "Mínimo 8 caracteres." }),
     password_confirmation: z.string(),
   })
   .refine((d) => d.password === d.password_confirmation, {
@@ -126,7 +124,7 @@ export default function ResolvePasswordResetDialog({
       await navigator.clipboard.writeText(value);
       toast.success("Contraseña copiada");
     } catch {
-      toast.error("No se pudo copiar", {
+      toast.error("¡Ops! No se pudo copiar", {
         description: "Cópiela manualmente del campo.",
       });
     }

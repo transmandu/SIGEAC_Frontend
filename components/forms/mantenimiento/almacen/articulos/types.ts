@@ -117,7 +117,7 @@ export interface EditingArticle extends Article {
     dimension?: ArticleDimension | null;
   };
   has_documentation?: boolean;
-  reception_date?: string;
+  reception_date?: string | null;
   purchase_order_id?: number | null;
   purchase_order_number?: string | null;
   /** Número de la requisición de origen: purchase_order -> quote_order -> requisition_order. */

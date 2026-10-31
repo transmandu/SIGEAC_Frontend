@@ -1,8 +1,8 @@
 import axiosInstance from "@/lib/axios";
-import { getApiErrorMessage } from "@/lib/api-error";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Employee } from "@/types";
+import { notifyError } from "@/lib/notify-error";
 
 export interface CreateEmployeeSchema {
   first_name: string;
@@ -56,7 +56,7 @@ export const useCreateEmployee = () => {
     },
 
     onError: (error: any) => {
-      toast.error(getApiErrorMessage(error, "Error al crear empleado"));
+      notifyError(error, { action: "crear empleado" });
     },
   });
 };
@@ -108,9 +108,7 @@ export const useUpdateEmployee = () => {
     onError: (error: any) => {
       console.error("Update Employee Error:", error?.response?.data);
 
-      toast.error(
-        error?.response?.data?.message ?? "Error al actualizar empleado",
-      );
+      notifyError(error, { action: "actualizar empleado" });
     },
   });
 };
@@ -142,9 +140,7 @@ export const useDeleteEmployee = () => {
     },
 
     onError: (error: any) => {
-      toast.error(
-        error?.response?.data?.message ?? error?.message ?? "Error al eliminar",
-      );
+      notifyError(error, { action: "eliminar" });
     },
   });
 };
@@ -184,9 +180,7 @@ export const useDeactivateEmployee = () => {
     },
 
     onError: (error: any) => {
-      toast.error(
-        error?.response?.data?.message ?? "Error al desactivar empleado",
-      );
+      notifyError(error, { action: "desactivar empleado" });
     },
   });
 };
@@ -219,9 +213,7 @@ export const useReactivateEmployee = () => {
     },
 
     onError: (error: any) => {
-      toast.error(
-        error?.response?.data?.message ?? "Error al reactivar empleado",
-      );
+      notifyError(error, { action: "reactivar empleado" });
     },
   });
 };

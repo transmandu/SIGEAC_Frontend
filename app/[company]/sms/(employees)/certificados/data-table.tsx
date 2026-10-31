@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, UploadCloud } from "lucide-react";
 
 import { DataTablePagination } from "@/components/tables/DataTablePagination";
 import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions";
@@ -32,6 +32,7 @@ interface DataTableProps<TData extends RowData> {
   columns: AppColumnDef<TData>[];
   data: TData[];
   onOpenModal: () => void;
+  onOpenBulkModal: () => void;
   onEmployeeClick: (employee: CertificateGroup) => void;
   user?: any;
 }
@@ -40,6 +41,7 @@ export function DataTableCertificates<TData extends RowData>({
   columns,
   data,
   onOpenModal,
+  onOpenBulkModal,
   onEmployeeClick,
   user,
 }: DataTableProps<TData>) {
@@ -118,16 +120,28 @@ export function DataTableCertificates<TData extends RowData>({
         <div className="flex items-center gap-2">
           {/* Solo renderiza el botón si el usuario tiene los roles necesarios */}
           {canCreate && (
-            <Button
-              onClick={onOpenModal}
-              variant="outline"
-              size="sm"
-              className="flex h-8 items-center gap-2"
-              data-tour="cert-create-btn"
-            >
-              <Plus className="h-4 w-4" />
-              Nuevo Certificado
-            </Button>
+            <>
+              <Button
+                onClick={onOpenModal}
+                variant="outline"
+                size="sm"
+                className="flex h-8 items-center gap-2"
+                data-tour="cert-create-btn"
+              >
+                <Plus className="h-4 w-4" />
+                Nuevo Certificado
+              </Button>
+              <Button
+                onClick={onOpenBulkModal}
+                variant="outline"
+                size="sm"
+                className="flex h-8 items-center gap-2"
+                data-tour="cert-bulk-btn"
+              >
+                <UploadCloud className="h-4 w-4" />
+                Cargar lote
+              </Button>
+            </>
           )}
         </div>
 

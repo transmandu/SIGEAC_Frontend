@@ -21,6 +21,13 @@ const parseDateLocal = (dateString: string): Date => {
   return parseISO(dateString);
 };
 
+// Una fila con varias unidades resume seriales y condiciones distintos: ahí
+// esas celdas no dicen nada y se muestra un guion.
+const isGrouped = (article: CompanyInventoryArticle) =>
+  article.serial_count > 1;
+
+const Dash = () => <span className="text-muted-foreground">-</span>;
+
 const baseCols: AppColumnDef<CompanyInventoryArticle>[] = [
   {
     accessorKey: "part_number",
@@ -60,7 +67,7 @@ const baseCols: AppColumnDef<CompanyInventoryArticle>[] = [
       return (
         <div className="text-center text-sm font-medium">
           {serial_count > 1 ? (
-            `${serial_count} seriales`
+            <Dash />
           ) : serial || lot_number ? (
             serial || lot_number
           ) : (
@@ -89,6 +96,14 @@ const baseCols: AppColumnDef<CompanyInventoryArticle>[] = [
       <DataTableColumnHeader column={column} title="Condición" />
     ),
     cell: ({ row }) => {
+      if (isGrouped(row.original)) {
+        return (
+          <div className="text-center">
+            <Dash />
+          </div>
+        );
+      }
+
       const toolStatus = row.original.tool?.status;
       const c = formatCondition(row.original.condition);
 
@@ -134,12 +149,22 @@ const baseCols: AppColumnDef<CompanyInventoryArticle>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Disponibilidad" />
     ),
-    cell: ({ row }) => (
-      <AvailabilityBadge
-        quantity={row.original.available_quantity}
-        unit={row.original.unit?.value ?? row.original.unit?.label}
-      />
-    ),
+    cell: ({ row }) =>
+      isGrouped(row.original) ? (
+        <div className="flex justify-center">
+          <Badge
+            variant="outline"
+            className="px-3 py-1 text-xs font-bold whitespace-nowrap tabular-nums"
+          >
+            AGRUPADO ({row.original.serial_count})
+          </Badge>
+        </div>
+      ) : (
+        <AvailabilityBadge
+          quantity={row.original.available_quantity}
+          unit={row.original.unit?.value ?? row.original.unit?.label}
+        />
+      ),
   },
 ];
 

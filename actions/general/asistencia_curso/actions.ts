@@ -1,6 +1,7 @@
 import axiosInstance from "@/lib/axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 interface EmployeeSelected {
   dni: string;
@@ -28,7 +29,7 @@ export const useCreateCourseAttendance = () => {
           headers: {
             "Content-Type": "multipart/form-data",
           },
-        }
+        },
       );
     },
     onSuccess: (_, data) => {
@@ -41,16 +42,16 @@ export const useCreateCourseAttendance = () => {
 
       queryClient.invalidateQueries({ queryKey: ["department-courses"] });
 
-      queryClient.invalidateQueries({ queryKey: ["enrollment-status-by-course",data.course_id] });
+      queryClient.invalidateQueries({
+        queryKey: ["enrollment-status-by-course", data.course_id],
+      });
 
       toast.success("Modificado!", {
         description: `La lista de personas ha sido modificada`,
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo modificar...",
-      });
+      notifyError(error, { action: "modificar" });
       console.log(error);
     },
   });
@@ -69,7 +70,7 @@ export const useMarkCourseAttendance = () => {
     }: CourseAttendaceData) => {
       await axiosInstance.patch(
         `/general/${company}/course/${course_id}/mark-attendance`,
-        employees_list
+        employees_list,
       );
     },
     onSuccess: (_, data) => {
@@ -93,9 +94,7 @@ export const useMarkCourseAttendance = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo actualizar la asistencia...",
-      });
+      notifyError(error, { action: "actualizar la asistencia" });
       console.log(error);
     },
   });

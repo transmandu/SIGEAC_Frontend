@@ -40,6 +40,7 @@ export const buildUnitSchema = (units: Unit[] | undefined, ignoreId?: number) =>
         { message: "Ya existe una unidad con ese símbolo." },
       ),
     is_dimensional: z.boolean(),
+    allows_fractions: z.boolean(),
   });
 
 export type UnitFormValues = z.infer<ReturnType<typeof buildUnitSchema>>;
@@ -48,11 +49,12 @@ export const UNIT_FIELD_LABELS = {
   label: "Nombre",
   value: "Símbolo",
   is_dimensional: "Declara medidas",
+  allows_fractions: "Se despacha por fracciones",
 };
 
 /** Solo lo que el usuario cambió respecto a la unidad guardada. */
 export const diffUnit = (
-  unit: Pick<Unit, "label" | "value" | "is_dimensional">,
+  unit: Pick<Unit, "label" | "value" | "is_dimensional" | "allows_fractions">,
   values: UnitFormValues,
 ): Partial<UnitFormValues> => {
   const diff: Partial<UnitFormValues> = {};
@@ -62,6 +64,9 @@ export const diffUnit = (
   }
   if (values.is_dimensional !== !!unit.is_dimensional) {
     diff.is_dimensional = values.is_dimensional;
+  }
+  if (values.allows_fractions !== !!unit.allows_fractions) {
+    diff.allows_fractions = values.allows_fractions;
   }
   return diff;
 };

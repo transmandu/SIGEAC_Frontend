@@ -1,24 +1,36 @@
-"use client"
+"use client";
 
-import Link from "next/link"
+import Link from "next/link";
 import { type AppColumnDef } from "@/lib/table";
-import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { FlightControl } from "@/types"
-import FlightControlDropdownActions from "@/components/dropdowns/mantenimiento/FlightControlDropdownActions"
-import { ArrowRight, Hash, MapPin, Clock, Repeat2, Calendar } from "lucide-react"
-import { formatDate } from "@/lib/utils"
+import { formatNumber } from "@/lib/formatNumber";
+import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { FlightControl } from "@/types";
+import FlightControlDropdownActions from "@/components/dropdowns/mantenimiento/FlightControlDropdownActions";
+import {
+  ArrowRight,
+  Hash,
+  MapPin,
+  Clock,
+  Repeat2,
+  Calendar,
+} from "lucide-react";
+import { formatDate } from "@/lib/utils";
 
-
-export const getColumns = (companySlug: string): AppColumnDef<FlightControl>[] => [
+export const getColumns = (
+  companySlug: string,
+): AppColumnDef<FlightControl>[] => [
   {
     id: "select",
     header: ({ table }) => (
       <div className="flex justify-center">
         <Checkbox
-          checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && "indeterminate")
+          }
           onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
           aria-label="Seleccionar todos"
         />
@@ -39,10 +51,12 @@ export const getColumns = (companySlug: string): AppColumnDef<FlightControl>[] =
   },
   {
     accessorKey: "flight_number",
-    header: ({ column }) => <DataTableColumnHeader filter column={column} title="Vuelo" />,
+    header: ({ column }) => (
+      <DataTableColumnHeader filter column={column} title="Vuelo" />
+    ),
     cell: ({ row }) => {
-      const n = row.original.flight_number
-      const href = `/${companySlug}/planificacion/control_vuelos/vuelos/${n}`
+      const n = row.original.flight_number;
+      const href = `/${companySlug}/planificacion/control_vuelos/vuelos/${n}`;
 
       return (
         <div className="flex items-center justify-center gap-2">
@@ -53,13 +67,15 @@ export const getColumns = (companySlug: string): AppColumnDef<FlightControl>[] =
             </Link>
           </Button>
         </div>
-      )
+      );
     },
   },
   {
     id: "route",
     accessorFn: (row) => `${row.origin ?? ""} ${row.destination ?? ""}`,
-    header: ({ column }) => <DataTableColumnHeader filter column={column} title="Ruta" />,
+    header: ({ column }) => (
+      <DataTableColumnHeader filter column={column} title="Ruta" />
+    ),
     cell: ({ row }) => (
       <div className="flex items-center justify-center gap-2">
         <MapPin className="h-4 w-4 text-muted-foreground" />
@@ -75,7 +91,9 @@ export const getColumns = (companySlug: string): AppColumnDef<FlightControl>[] =
   },
   {
     accessorKey: "flight_date",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Fecha" />,
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Fecha" />
+    ),
     cell: ({ row }) => (
       <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
         <Calendar className="h-4 w-4" />
@@ -86,11 +104,18 @@ export const getColumns = (companySlug: string): AppColumnDef<FlightControl>[] =
   {
     id: "flight_hours",
     accessorFn: (row) => Number(row.flight_hours ?? 0),
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Horas" />,
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Horas" />
+    ),
     cell: ({ row }) => (
       <div className="flex items-center justify-center gap-2">
         <Clock className="h-4 w-4 text-muted-foreground" />
-        <span className="font-medium tabular-nums">{Number(row.original.flight_hours ?? 0).toFixed(3)}</span>
+        <span className="font-medium tabular-nums">
+          {formatNumber(row.original.flight_hours ?? 0, {
+            minDecimals: 3,
+            maxDecimals: 3,
+          })}
+        </span>
         <span className="text-xs text-muted-foreground">h</span>
       </div>
     ),
@@ -98,17 +123,23 @@ export const getColumns = (companySlug: string): AppColumnDef<FlightControl>[] =
   {
     id: "flight_cycles",
     accessorFn: (row) => Number(row.flight_cycles ?? 0),
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Ciclos" />,
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Ciclos" />
+    ),
     cell: ({ row }) => (
       <div className="flex items-center justify-center gap-2">
         <Repeat2 className="h-4 w-4 text-muted-foreground" />
-        <span className="font-medium tabular-nums">{Number(row.original.flight_cycles ?? 0)}</span>
+        <span className="font-medium tabular-nums">
+          {formatNumber(row.original.flight_cycles ?? 0)}
+        </span>
       </div>
     ),
   },
   {
     accessorKey: "aircraft_operator",
-    header: ({ column }) => <DataTableColumnHeader filter column={column} title="Operador" />,
+    header: ({ column }) => (
+      <DataTableColumnHeader filter column={column} title="Operador" />
+    ),
     cell: ({ row }) => (
       <div className="flex justify-center">
         {row.original.aircraft_operator ? (
@@ -130,4 +161,4 @@ export const getColumns = (companySlug: string): AppColumnDef<FlightControl>[] =
     ),
     size: 60,
   },
-]
+];

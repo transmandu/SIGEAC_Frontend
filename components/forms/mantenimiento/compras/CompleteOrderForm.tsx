@@ -304,7 +304,7 @@ export function CompleteOrderForm({
     );
     if (missingJustification) {
       toast.error(
-        "Debe justificar los artículos cuyo total difiere del monto cotizado.",
+        "¡Ops! Debe justificar los artículos cuyo total difiere del monto cotizado.",
       );
       return;
     }
@@ -317,7 +317,7 @@ export function CompleteOrderForm({
     );
 
     if (filledInvoices.some((invoice) => invoice.id == null && !invoice.file)) {
-      toast.error("Cada factura nueva debe tener su archivo adjunto.");
+      toast.error("¡Ops! Cada factura nueva debe tener su archivo adjunto.");
       return;
     }
 

@@ -32,6 +32,7 @@ import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { AlertTriangle, BarChart3, Loader2 } from "lucide-react";
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
+import { formatNumber } from "@/lib/formatNumber";
 
 const chartConfig = {
   corrections: { label: "Correcciones", theme: SERIES.corrections },
@@ -186,12 +187,12 @@ function KpiStrip({ stats }: { stats: PlanificationAuditStats }) {
 
       <Kpi title="Tiempo hasta corregir">
         <KpiValue suffix={ttc.median_days == null ? undefined : "días"}>
-          {ttc.median_days == null ? "—" : ttc.median_days.toLocaleString("es")}
+          {ttc.median_days == null ? "—" : formatNumber(ttc.median_days)}
         </KpiValue>
         <p className="text-xs text-muted-foreground">
           {ttc.avg_days == null
             ? "Sin correcciones en el período"
-            : `Mediana · promedio ${ttc.avg_days.toLocaleString("es")} días`}
+            : `Mediana · promedio ${formatNumber(ttc.avg_days)} días`}
         </p>
       </Kpi>
     </div>
@@ -259,9 +260,7 @@ function ErrorRatePanel({ stats }: { stats: PlanificationAuditStats }) {
                 <span className="truncate">{MODULE_META[module].label}</span>
                 <span className="shrink-0 tabular-nums">
                   <span className="font-medium">
-                    {rate.rate == null
-                      ? "—"
-                      : `${rate.rate.toLocaleString("es")}%`}
+                    {rate.rate == null ? "—" : `${formatNumber(rate.rate)}%`}
                   </span>
                   <span className="ml-1.5 text-xs text-muted-foreground">
                     {rate.with_errors} de {rate.created}

@@ -12,6 +12,7 @@ interface ProductAutocompleteInputProps {
   onChange: (value: string) => void;
   placeholder?: string;
   className?: string;
+  disabled?: boolean;
 }
 
 export function ProductAutocompleteInput({
@@ -20,6 +21,7 @@ export function ProductAutocompleteInput({
   onChange,
   placeholder = "Ej. BOLSA CON GRIFO",
   className,
+  disabled = false,
 }: ProductAutocompleteInputProps) {
   const [search, setSearch] = useState(value);
   const [isOpen, setIsOpen] = useState(false);
@@ -107,6 +109,7 @@ export function ProductAutocompleteInput({
         )}
         value={search}
         onChange={handleInputChange}
+        disabled={disabled}
         onFocus={() => {
           setIsOpen(true);
           updateDropdownPosition();

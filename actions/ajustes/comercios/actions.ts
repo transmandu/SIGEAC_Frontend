@@ -1,8 +1,8 @@
 import axiosInstance from "@/lib/axios";
-import { getApiErrorMessage } from "@/lib/api-error";
 import { Retailer } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 interface RetailerSchema {
   name: string;
@@ -31,9 +31,7 @@ export const useCreateRetailer = () => {
       });
     },
     onError: (error) => {
-      toast.error("Error", {
-        description: getApiErrorMessage(error, "No se creó correctamente."),
-      });
+      notifyError(error, { action: "crear el registro" });
     },
   });
 
@@ -65,12 +63,7 @@ export const useUpdateRetailer = () => {
       });
     },
     onError: (error) => {
-      toast.error("Error", {
-        description: getApiErrorMessage(
-          error,
-          "No se actualizó correctamente.",
-        ),
-      });
+      notifyError(error, { action: "actualizar el registro" });
     },
   });
 
@@ -99,9 +92,7 @@ export const useDeleteRetailer = () => {
       });
     },
     onError: (error) => {
-      toast.error("Error", {
-        description: getApiErrorMessage(error, "No se eliminó correctamente."),
-      });
+      notifyError(error, { action: "eliminar el registro" });
     },
   });
 

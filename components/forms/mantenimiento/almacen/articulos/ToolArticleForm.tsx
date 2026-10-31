@@ -147,13 +147,14 @@ const apiDate = (value?: Date | null) => {
  * La fecha de recepción distingue "No aplica" de "sin indicar", cosa que la
  * fecha de calibración no necesita.
  *
- * El picker manda `null` al marcar la casilla y `undefined` al no tocarla, y
- * desde que el backend rellena la recepción ausente con la de hoy, colapsar
- * ambos casos guardaría justo lo contrario de lo que pidió quien marcó la
- * casilla.
+ * El picker manda `null` al marcar la casilla y `undefined` al no tocarla.
+ * "No aplica" viaja como cadena vacía —multipart no transporta null— y el
+ * backend la guarda como NULL; omitir el campo, en cambio, lo rellena con hoy.
+ * Vive aparte porque `apiDate` lo comparten fabricación, caducidad y shelf
+ * life, donde `null` y `undefined` sí significan lo mismo.
  */
 const receptionApiDate = (value?: Date | null) =>
-  value === null ? NOT_APPLICABLE : apiDate(value);
+  value === null ? "" : apiDate(value);
 
 /**
  * Registro de herramientas, para cualquier destino.
@@ -178,7 +179,11 @@ export default function ToolArticleForm({
     initialData?.reception_date
       ? parseISO(initialData.reception_date)
       : isEditing
-        ? undefined
+        ? // Guardado como null = "No aplica"; si el campo ni llegó, no se sabe
+          // qué hay y el guardado no debe tocarlo.
+          initialData?.reception_date === null
+          ? null
+          : undefined
         : new Date(),
   );
   const [preview, setPreview] = useState<FormValues | null>(null);
@@ -322,7 +327,7 @@ export default function ToolArticleForm({
         applyServerFieldErrors(form.setError, errors, FIELD_LABELS),
       afterCreate: () => {
         form.reset();
-        setReceptionDate(null);
+        setReceptionDate(new Date());
       },
     });
 

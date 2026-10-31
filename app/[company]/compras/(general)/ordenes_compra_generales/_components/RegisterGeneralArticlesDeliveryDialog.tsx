@@ -47,7 +47,7 @@ import {
 import { useGetWarehousesByLocation } from "@/hooks/administracion/useGetWarehousesByUser";
 import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment";
 import { useGetEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetEmployees";
-import { useGetAuthorizedEmployees } from "@/hooks/ajustes/autorizados/useGetAuthorizedEmployees";
+import { useGetExternalEmployees } from "@/hooks/ajustes/convenios/useGetExternalEmployees";
 import { useGetThirdParties } from "@/hooks/general/terceros/useGetThirdParties";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { cn } from "@/lib/utils";
@@ -125,7 +125,10 @@ export default function RegisterGeneralArticlesDeliveryDialog({
   const { data: employees, isLoading: isEmployeesLoading } =
     useGetEmployeesByCompany(open ? company : undefined);
   const { data: authorizedEmployees, isLoading: isAuthorizedLoading } =
-    useGetAuthorizedEmployees(open ? company : undefined);
+    useGetExternalEmployees(
+      open ? company : undefined,
+      "purchases.requisition",
+    );
   const { data: thirdParties, isLoading: isThirdPartiesLoading } =
     useGetThirdParties();
 

@@ -1,25 +1,52 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 
-import { useUpdateToolBox } from "@/actions/mantenimiento/almacen/inventario/caja_herramientas/actions"
-import { Input } from "@/components/ui/input"
-import { useAuth } from "@/contexts/AuthContext"
-import { useGetEmployeesForBox } from "@/hooks/mantenimiento/almacen/caja_herramientas/useGetEmployeeForBox"
-import { useGetEditToolBoxTools } from "@/hooks/mantenimiento/almacen/caja_herramientas/useGetToolBoxTools"
-import { cn } from "@/lib/utils"
-import { useCompanyStore } from "@/stores/CompanyStore"
-import { ToolBox } from "@/types"
-import { zodResolver } from "@/lib/zod-resolver"
-import { Box, Check, ChevronsUpDown, Loader2, User, Wrench, X } from "lucide-react"
-import { useEffect, useMemo, useState } from "react"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { useUpdateToolBox } from "@/actions/mantenimiento/almacen/inventario/caja_herramientas/actions";
+import { Input } from "@/components/ui/input";
+import { useAuth } from "@/contexts/AuthContext";
+import { useGetEmployeesForBox } from "@/hooks/mantenimiento/almacen/caja_herramientas/useGetEmployeeForBox";
+import { useGetEditToolBoxTools } from "@/hooks/mantenimiento/almacen/caja_herramientas/useGetToolBoxTools";
+import { cn } from "@/lib/utils";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { ToolBox } from "@/types";
+import { zodResolver } from "@/lib/zod-resolver";
+import {
+  Box,
+  Check,
+  ChevronsUpDown,
+  Loader2,
+  User,
+  Wrench,
+  X,
+} from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { useResettingState } from "@/hooks/useResettingState";
 
 const FormSchema = z.object({
   name: z.string().min(3, {
@@ -29,13 +56,13 @@ const FormSchema = z.object({
   delivered_by: z.string(),
   employee_id: z.string(),
   tool_id: z.array(z.string()),
-})
+});
 
-type FormSchemaType = z.infer<typeof FormSchema>
+type FormSchemaType = z.infer<typeof FormSchema>;
 
 interface FormProps {
-  onClose: () => void,
-  initialData: ToolBox,
+  onClose: () => void;
+  initialData: ToolBox;
 }
 
 const AVATAR_PALETTE = [
@@ -45,68 +72,69 @@ const AVATAR_PALETTE = [
   "bg-violet-500/15 text-violet-600 dark:bg-violet-500/20 dark:text-violet-400",
   "bg-rose-500/15 text-rose-600 dark:bg-rose-500/20 dark:text-rose-400",
   "bg-cyan-500/15 text-cyan-600 dark:bg-cyan-500/20 dark:text-cyan-400",
-]
+];
 
-const getAvatarPalette = (seed: number) => AVATAR_PALETTE[seed % AVATAR_PALETTE.length]
+const getAvatarPalette = (seed: number) =>
+  AVATAR_PALETTE[seed % AVATAR_PALETTE.length];
 
 const getInitials = (firstName?: string, lastName?: string) =>
-  `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase()
+  `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase();
 
 export function EditToolBoxForm({ onClose, initialData }: FormProps) {
+  const { user } = useAuth();
 
-  const { user } = useAuth()
-
-  const [selectedTools, setSelectedTools] = useState<string[]>([])
+  const [selectedTools, setSelectedTools] = useResettingState<string[]>(
+    () => initialData.tool?.map((tool) => tool.article.id!.toString()) ?? [],
+    [initialData.tool],
+  );
 
   const [openArticles, setOpenArticles] = useState(false);
 
   const [openEmployee, setOpenEmployee] = useState(false);
 
-  const { selectedStation, selectedCompany } = useCompanyStore()
+  const { selectedStation, selectedCompany } = useCompanyStore();
 
-  const { updateToolBox } = useUpdateToolBox()
+  const { updateToolBox } = useUpdateToolBox();
 
-  const { data: employees, isLoading: employeesLoading } = useGetEmployeesForBox(selectedStation ?? null, selectedCompany?.slug);
+  const { data: employees, isLoading: employeesLoading } =
+    useGetEmployeesForBox(selectedStation ?? null, selectedCompany?.slug);
 
-  const { data, isLoading } = useGetEditToolBoxTools(selectedStation ?? null, initialData.id ?? null, selectedCompany?.slug);
+  const { data, isLoading } = useGetEditToolBoxTools(
+    selectedStation ?? null,
+    initialData.id ?? null,
+    selectedCompany?.slug,
+  );
 
   const allArticles = useMemo(
     () => (data ?? []).flatMap((batch) => batch.article),
-    [data]
+    [data],
   );
 
   const form = useForm<FormSchemaType>({
-
     resolver: zodResolver(FormSchema),
     defaultValues: {
       name: initialData.name || "",
       created_by: initialData.created_by || "",
       delivered_by: initialData.delivered_by || "",
       employee_id: initialData.employee?.id.toString() || "",
-      tool_id: initialData.tool.map((tool) => tool.article.id!.toString()) || [],
+      tool_id:
+        initialData.tool.map((tool) => tool.article.id!.toString()) || [],
     },
-  })
+  });
 
   const handleToolSelect = (currentValue: string) => {
     setSelectedTools((prevSelected) =>
       prevSelected.includes(currentValue)
         ? prevSelected.filter((value) => value !== currentValue)
-        : [...prevSelected, currentValue]
+        : [...prevSelected, currentValue],
     );
   };
 
   const isToolSelected = (value: string) => selectedTools.includes(value);
 
   useEffect(() => {
-    form.setValue('tool_id', selectedTools);
+    form.setValue("tool_id", selectedTools);
   }, [selectedTools, form]);
-
-  useEffect(() => {
-    if (initialData.tool) {
-      const preselectedTools = initialData.tool.map((tool) => tool.article.id!.toString());
-      setSelectedTools(preselectedTools);
-    }
-  }, [initialData.tool]);
 
   const onSubmit = async (data: FormSchemaType) => {
     const formattedData = {
@@ -114,14 +142,20 @@ export function EditToolBoxForm({ onClose, initialData }: FormProps) {
       created_by: `${user?.first_name} ${user?.last_name}`,
       delivered_by: `${user?.first_name} ${user?.last_name}`,
       id: initialData.id,
-    }
-    await updateToolBox.mutateAsync({data: formattedData, company: selectedCompany!.slug})
+    };
+    await updateToolBox.mutateAsync({
+      data: formattedData,
+      company: selectedCompany!.slug,
+    });
     onClose();
-  }
+  };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-5">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="flex flex-col gap-5"
+      >
         <FormField
           control={form.control}
           name="name"
@@ -129,11 +163,17 @@ export function EditToolBoxForm({ onClose, initialData }: FormProps) {
             <FormItem>
               <div className="flex items-center justify-between">
                 <FormLabel>Nombre de la Caja</FormLabel>
-                <span className="text-xs text-muted-foreground">Obligatorio</span>
+                <span className="text-xs text-muted-foreground">
+                  Obligatorio
+                </span>
               </div>
               <FormControl>
                 <div className="relative">
-                  <Input placeholder="Ej: Caja de Mecánica de Motor #4" className="pr-9" {...field} />
+                  <Input
+                    placeholder="Ej: Caja de Mecánica de Motor #4"
+                    className="pr-9"
+                    {...field}
+                  />
                   <Box className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 </div>
               </FormControl>
@@ -145,7 +185,9 @@ export function EditToolBoxForm({ onClose, initialData }: FormProps) {
           control={form.control}
           name="employee_id"
           render={({ field }) => {
-            const selectedEmployee = employees?.find((employee) => employee.id.toString() === field.value)
+            const selectedEmployee = employees?.find(
+              (employee) => employee.id.toString() === field.value,
+            );
             return (
               <FormItem className="flex flex-col">
                 <FormLabel>Técnico Responsable</FormLabel>
@@ -161,11 +203,22 @@ export function EditToolBoxForm({ onClose, initialData }: FormProps) {
                         {selectedEmployee ? (
                           <span className="flex items-center gap-2 truncate">
                             <Avatar className="h-5 w-5">
-                              <AvatarFallback className={cn("text-[9px] font-semibold", getAvatarPalette(selectedEmployee.id))}>
-                                {getInitials(selectedEmployee.first_name, selectedEmployee.last_name)}
+                              <AvatarFallback
+                                className={cn(
+                                  "text-[9px] font-semibold",
+                                  getAvatarPalette(selectedEmployee.id),
+                                )}
+                              >
+                                {getInitials(
+                                  selectedEmployee.first_name,
+                                  selectedEmployee.last_name,
+                                )}
                               </AvatarFallback>
                             </Avatar>
-                            <span className="truncate">{selectedEmployee.first_name} {selectedEmployee.last_name}</span>
+                            <span className="truncate">
+                              {selectedEmployee.first_name}{" "}
+                              {selectedEmployee.last_name}
+                            </span>
                           </span>
                         ) : (
                           <span className="flex items-center gap-2 text-muted-foreground">
@@ -177,38 +230,64 @@ export function EditToolBoxForm({ onClose, initialData }: FormProps) {
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
-                  <PopoverContent className="p-0" align="start" matchTriggerWidth>
+                  <PopoverContent
+                    className="p-0"
+                    align="start"
+                    matchTriggerWidth
+                  >
                     <Command>
                       <CommandInput placeholder="Buscar técnico..." />
                       <CommandList>
                         <CommandEmpty className="text-muted-foreground text-xs p-4 text-center">
-                          {employeesLoading ? <Loader2 className="mx-auto size-4 animate-spin" /> : "No se encontraron técnicos..."}
+                          {employeesLoading ? (
+                            <Loader2 className="mx-auto size-4 animate-spin" />
+                          ) : (
+                            "No se encontraron técnicos..."
+                          )}
                         </CommandEmpty>
                         <CommandGroup>
-                          {
-                            employees && employees.map((employee) => (
+                          {employees &&
+                            employees.map((employee) => (
                               <CommandItem
                                 key={employee.id}
                                 value={`${employee.first_name} ${employee.last_name} ${employee.job_title.name}`}
                                 onSelect={() => {
-                                  field.onChange(employee.id.toString())
-                                  setOpenEmployee(false)
+                                  field.onChange(employee.id.toString());
+                                  setOpenEmployee(false);
                                 }}
                                 className="gap-2"
                               >
                                 <Avatar className="h-6 w-6">
-                                  <AvatarFallback className={cn("text-[10px] font-semibold", getAvatarPalette(employee.id))}>
-                                    {getInitials(employee.first_name, employee.last_name)}
+                                  <AvatarFallback
+                                    className={cn(
+                                      "text-[10px] font-semibold",
+                                      getAvatarPalette(employee.id),
+                                    )}
+                                  >
+                                    {getInitials(
+                                      employee.first_name,
+                                      employee.last_name,
+                                    )}
                                   </AvatarFallback>
                                 </Avatar>
                                 <span className="flex-1 truncate">
-                                  <span className="block font-medium">{employee.first_name} {employee.last_name}</span>
-                                  <span className="block text-xs text-muted-foreground">{employee.job_title.name}</span>
+                                  <span className="block font-medium">
+                                    {employee.first_name} {employee.last_name}
+                                  </span>
+                                  <span className="block text-xs text-muted-foreground">
+                                    {employee.job_title.name}
+                                  </span>
                                 </span>
-                                <Check className={cn("h-4 w-4 shrink-0", field.value === employee.id.toString() ? "opacity-100" : "opacity-0")} />
+                                <Check
+                                  className={cn(
+                                    "h-4 w-4 shrink-0",
+                                    field.value === employee.id.toString()
+                                      ? "opacity-100"
+                                      : "opacity-0",
+                                  )}
+                                />
                               </CommandItem>
-                            ))
-                          }
+                            ))}
                         </CommandGroup>
                       </CommandList>
                     </Command>
@@ -216,7 +295,7 @@ export function EditToolBoxForm({ onClose, initialData }: FormProps) {
                 </Popover>
                 <FormMessage />
               </FormItem>
-            )
+            );
           }}
         />
         <FormField
@@ -251,40 +330,55 @@ export function EditToolBoxForm({ onClose, initialData }: FormProps) {
                   <Command>
                     <CommandInput placeholder="Buscar herramienta..." />
                     <CommandList>
-                      <CommandEmpty className="text-muted-foreground text-xs p-4 text-center">No se han encontrado herramientas disponibles...</CommandEmpty>
-                      {
-                        data && data.map((batch) => (
-                          <CommandGroup key={batch.id.toString()} heading={batch.name}>
-                            {
-                              batch.article.map((article) => {
-                                const isExpired = article.tool.status === "EXPIRED"
-                                return (
-                                  <CommandItem
-                                    key={article.id}
-                                    disabled={isExpired}
-                                    onSelect={() => {
-                                      handleToolSelect(article.id?.toString()!)
-                                    }}
-                                    className="gap-2"
-                                  >
-                                    <Wrench className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                                    <span className="flex-1 truncate">SN - {article.serial}</span>
-                                    {isExpired && (
-                                      <Badge variant="destructive" className="px-1.5 py-0 text-[10px] font-normal">
-                                        Vencida
-                                      </Badge>
+                      <CommandEmpty className="text-muted-foreground text-xs p-4 text-center">
+                        No se han encontrado herramientas disponibles...
+                      </CommandEmpty>
+                      {data &&
+                        data.map((batch) => (
+                          <CommandGroup
+                            key={batch.id.toString()}
+                            heading={batch.name}
+                          >
+                            {batch.article.map((article) => {
+                              const isExpired =
+                                article.tool.status === "EXPIRED";
+                              return (
+                                <CommandItem
+                                  key={article.id}
+                                  disabled={isExpired}
+                                  onSelect={() => {
+                                    handleToolSelect(article.id?.toString()!);
+                                  }}
+                                  className="gap-2"
+                                >
+                                  <Wrench className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                                  <span className="flex-1 truncate">
+                                    SN - {article.serial}
+                                  </span>
+                                  {isExpired && (
+                                    <Badge
+                                      variant="destructive"
+                                      className="px-1.5 py-0 text-[10px] font-normal"
+                                    >
+                                      Vencida
+                                    </Badge>
+                                  )}
+                                  <Check
+                                    className={cn(
+                                      "h-4 w-4 shrink-0",
+                                      isToolSelected(article.id!.toString())
+                                        ? "opacity-100"
+                                        : "opacity-0",
                                     )}
-                                    <Check className={cn("h-4 w-4 shrink-0", isToolSelected(article.id!.toString()) ? "opacity-100" : "opacity-0")} />
-                                    <span className="hidden">
-                                      {article.serial} {batch.name}
-                                    </span>
-                                  </CommandItem>
-                                )
-                              })
-                            }
+                                  />
+                                  <span className="hidden">
+                                    {article.serial} {batch.name}
+                                  </span>
+                                </CommandItem>
+                              );
+                            })}
                           </CommandGroup>
-                        ))
-                      }
+                        ))}
                     </CommandList>
                   </Command>
                 </PopoverContent>
@@ -292,9 +386,15 @@ export function EditToolBoxForm({ onClose, initialData }: FormProps) {
               {selectedTools.length > 0 && (
                 <div className="flex max-h-28 flex-wrap gap-1.5 overflow-y-auto rounded-md border border-dashed border-input p-2">
                   {selectedTools.map((toolId) => {
-                    const article = allArticles.find((a) => a.id?.toString() === toolId)
+                    const article = allArticles.find(
+                      (a) => a.id?.toString() === toolId,
+                    );
                     return (
-                      <Badge key={toolId} variant="secondary" className="gap-1 py-1 pl-2 pr-1 font-normal">
+                      <Badge
+                        key={toolId}
+                        variant="secondary"
+                        className="gap-1 py-1 pl-2 pr-1 font-normal"
+                      >
                         <Wrench className="h-3 w-3 text-muted-foreground" />
                         {article ? `SN - ${article.serial}` : toolId}
                         <button
@@ -305,7 +405,7 @@ export function EditToolBoxForm({ onClose, initialData }: FormProps) {
                           <X className="h-3 w-3" />
                         </button>
                       </Badge>
-                    )
+                    );
                   })}
                 </div>
               )}
@@ -318,10 +418,16 @@ export function EditToolBoxForm({ onClose, initialData }: FormProps) {
             Cancelar
           </Button>
           <Button disabled={updateToolBox.isPending} className="gap-1.5">
-            {updateToolBox.isPending ? <Loader2 className="animate-spin size-4" /> : <><Check className="h-4 w-4" /> Actualizar Caja</>}
+            {updateToolBox.isPending ? (
+              <Loader2 className="animate-spin size-4" />
+            ) : (
+              <>
+                <Check className="h-4 w-4" /> Actualizar Caja
+              </>
+            )}
           </Button>
         </div>
       </form>
     </Form>
-  )
+  );
 }

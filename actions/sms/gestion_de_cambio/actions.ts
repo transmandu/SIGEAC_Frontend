@@ -6,6 +6,7 @@ import {
 } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 interface CreateChangeRequestData {
   company: string;
@@ -116,9 +117,7 @@ export const useCreateChangeRequest = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo crear la solicitud de cambio...",
-      });
+      notifyError(error, { action: "crear la solicitud de cambio" });
       console.error(error);
     },
   });
@@ -211,9 +210,7 @@ export const useUpdateChangeRequest = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo actualizar la solicitud de cambio...",
-      });
+      notifyError(error, { action: "actualizar la solicitud de cambio" });
       console.error(error);
     },
   });
@@ -250,9 +247,7 @@ export const useAssignReviewers = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo asignar la revisión y aprobación...",
-      });
+      notifyError(error, { action: "asignar la revisión y aprobación" });
       console.error(error);
     },
   });
@@ -275,10 +270,8 @@ export const useDeleteChangeRequest = () => {
         description: "La solicitud de cambio ha sido eliminada correctamente.",
       });
     },
-    onError: () => {
-      toast.error("Oops!", {
-        description: "Hubo un error al eliminar la solicitud de cambio...",
-      });
+    onError: (error) => {
+      notifyError(error, { action: "eliminar la solicitud de cambio" });
     },
   });
   return {

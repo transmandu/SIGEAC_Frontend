@@ -20,7 +20,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Check, ChevronsUpDown, Loader2, Plus, Trash2 } from "lucide-react";
 import { Employee } from "@/types";
-import { AuthorizedEmployeeResponse } from "@/hooks/ajustes/autorizados/useGetAuthorizedEmployees";
+import type { ExternalEmployee } from "@/hooks/ajustes/convenios/types";
 import { ChangeRequestFormValues } from "./CreateChangeRequestForm";
 import {
   Command,
@@ -41,7 +41,7 @@ interface StepPlanAndResourcesProps {
   form: UseFormReturn<ChangeRequestFormValues>;
   employees: Employee[];
   isLoadingEmployees: boolean;
-  authorizedEmployees?: AuthorizedEmployeeResponse[];
+  authorizedEmployees?: ExternalEmployee[];
   isLoadingAuthorizedEmployees?: boolean;
 }
 
@@ -64,7 +64,7 @@ function ResponsibleSelect({
   form: UseFormReturn<ChangeRequestFormValues>;
   index: number;
   localEmployees: Employee[];
-  authorizedEmployees: AuthorizedEmployeeResponse[];
+  authorizedEmployees: ExternalEmployee[];
   isLoading: boolean;
 }) {
   const [open, setOpen] = useState(false);

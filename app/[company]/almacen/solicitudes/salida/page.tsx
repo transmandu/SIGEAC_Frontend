@@ -66,7 +66,14 @@ export type DispatchGroupRow = {
     full_name: string;
     from_company_db: string;
   };
+  /** Nombre real de la empresa de quien retira (no su slug). */
+  authorized_company_name?: string | null;
+  /** Salida a otra empresa: a dónde se atribuye el material. */
+  destination_company_name?: string | null;
+  destination_department_name?: string | null;
   work_order?: string;
+  /** Salida a aeronave, sede o tercero que se registró sin OT. */
+  can_set_work_order?: boolean;
   articles: DispatchArticle[];
   /**
    * Sede destino: solo la llevan los traslados entre sedes propias. Mientras el

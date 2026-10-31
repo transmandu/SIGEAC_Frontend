@@ -2,6 +2,7 @@ import axiosInstance from "@/lib/axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { toCalendarPayload } from "@/lib/date";
+import { notifyError } from "@/lib/notify-error";
 
 /**
  * Convierte un objeto plano a FormData.
@@ -23,7 +24,10 @@ function objectToFormData(obj: Record<string, unknown>): FormData {
           } else if (item === null) {
             formData.append(`${key}[]`, "");
           } else {
-            formData.append(`${key}[]`, item instanceof File ? item : String(item));
+            formData.append(
+              `${key}[]`,
+              item instanceof File ? item : String(item),
+            );
           }
         });
     } else if (value instanceof File) {
@@ -66,7 +70,6 @@ interface updateFolllowUpControlData {
   };
 }
 
-
 export const useCreateFollowUpControl = () => {
   const queryClient = useQueryClient();
   const createMutation = useMutation({
@@ -74,7 +77,7 @@ export const useCreateFollowUpControl = () => {
       await axiosInstance.post(
         `/${company}/sms/follow-up-controls`,
         objectToFormData(data as Record<string, unknown>),
-        { headers: { "Content-Type": "multipart/form-data" } }
+        { headers: { "Content-Type": "multipart/form-data" } },
       );
     },
     onSuccess: () => {
@@ -85,9 +88,7 @@ export const useCreateFollowUpControl = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo crear el control de seguimiento...",
-      });
+      notifyError(error, { action: "crear el control de seguimiento" });
       console.log(error);
     },
   });
@@ -115,9 +116,7 @@ export const useDeleteFollowUpControl = () => {
       });
     },
     onError: (e) => {
-      toast.error("Oops!", {
-        description: "¡Hubo un error al eliminar el control de seguimiento!",
-      });
+      notifyError(e, { action: "eliminar el control de seguimiento" });
     },
   });
 
@@ -134,7 +133,7 @@ export const useUpdateFollowUpControl = () => {
       await axiosInstance.post(
         `/${company}/sms/update-follow-up-controls/${id}`,
         objectToFormData(data as Record<string, unknown>),
-        { headers: { "Content-Type": "multipart/form-data" } }
+        { headers: { "Content-Type": "multipart/form-data" } },
       );
     },
     onSuccess: () => {
@@ -144,9 +143,7 @@ export const useUpdateFollowUpControl = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo actualizar el control de seguimiento...",
-      });
+      notifyError(error, { action: "actualizar el control de seguimiento" });
       console.log(error);
     },
   });

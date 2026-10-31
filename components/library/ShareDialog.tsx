@@ -21,10 +21,15 @@ import { Button } from "@/components/ui/button";
 import { QRCodeSVG } from "qrcode.react";
 import { toast } from "sonner";
 import axiosInstance from "@/lib/axios";
+import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { bibliotecaShareSteps } from "@/components/tour/steps/general/biblioteca/biblioteca-share";
+import { notifyError } from "@/lib/notify-error";
+import { useOnChange } from "@/hooks/useOnChange";
+import { useResettingState } from "@/hooks/useResettingState";
+import { useGetDocumentVersions } from "@/hooks/general/archivos/useGetDocumentVersions";
 
 interface ShareDialogProps {
   isOpen: boolean;
@@ -36,6 +41,8 @@ interface ShareDialogProps {
 
 type Tab = "form" | "active";
 
+const NO_SHARES: any[] = [];
+
 export default function ShareDialog({
   isOpen,
   onClose,
@@ -45,21 +52,19 @@ export default function ShareDialog({
 }: ShareDialogProps) {
   const [activeTab, setActiveTab] = useState<Tab>("form");
 
-  const [versionId, setVersionId] = useState("");
+  // La versión elegida; si no eligió ninguna, la más reciente.
+  const [versionChoice, setVersionId] = useResettingState("", [isOpen, doc]);
   const [sharedWithName, setSharedWithName] = useState("");
   const [reason, setReason] = useState("");
   const [duration, setDuration] = useState("24");
   const [customHours, setCustomHours] = useState("");
   const [showCustomDuration, setShowCustomDuration] = useState(false);
   const [readOnly, setReadOnly] = useState(true);
-  const [versions, setVersions] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
   const [generatedUrl, setGeneratedUrl] = useState("");
   const [confirmed, setConfirmed] = useState(false);
 
-  const [activeShares, setActiveShares] = useState<any[]>([]);
-  const [loadingShares, setLoadingShares] = useState(false);
   const [selectedShareUrl, setSelectedShareUrl] = useState<string | null>(null);
 
   const isReasonValid = reason.trim().length >= 10;
@@ -77,10 +82,36 @@ export default function ShareDialog({
     return () => unregisterTour("biblioteca-share");
   }, [isOpen, registerTour, unregisterTour]);
 
-  useEffect(() => {
+  const { versions } = useGetDocumentVersions({
+    company,
+    documentId: doc?.id,
+    enabled: isOpen,
+    action: "cargar las versiones del documento",
+  });
+  const versionId = versionChoice || versions[0]?.id.toString() || "";
+
+  const { data: activeShares = NO_SHARES, isFetching: loadingShares } =
+    useQuery<any[]>({
+      queryKey: ["library-active-shares", company, doc?.id],
+      queryFn: async () => {
+        try {
+          const response = await axiosInstance.get(
+            `/${company}/library/documents/${doc.id}/active-share`,
+          );
+          const data = response.data;
+          if (Array.isArray(data)) return data;
+          return data?.share_url ? [data] : NO_SHARES;
+        } catch {
+          return NO_SHARES;
+        }
+      },
+      enabled: isOpen && !!doc?.id,
+      staleTime: 0,
+      meta: { silent: true },
+    });
+
+  useOnChange([isOpen, doc], () => {
     if (isOpen && doc?.id) {
-      loadVersions();
-      loadActiveShares();
       setGeneratedUrl("");
       setConfirmed(false);
       setSelectedShareUrl(null);
@@ -90,51 +121,9 @@ export default function ShareDialog({
       setDuration("24");
       setCustomHours("");
       setShowCustomDuration(false);
-      setVersionId("");
       setReadOnly(true);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, doc]);
-
-  const loadVersions = async () => {
-    try {
-      const res = await axiosInstance.get(
-        `/${company}/library/documents/${doc.id}/versions`,
-      );
-      const data = res.data?.data?.versions ?? [];
-      const list = Array.isArray(data) ? data : [];
-      // Ya vienen ordenadas de más reciente a más antigua desde el backend.
-      setVersions(list);
-      if (list.length > 0) {
-        setVersionId(list[0].id.toString());
-      }
-    } catch (error) {
-      console.error("Error al cargar versiones:", error);
-      setVersions([]);
-      toast.error("No se pudieron cargar las versiones del documento");
-    }
-  };
-
-  const loadActiveShares = async () => {
-    setLoadingShares(true);
-    try {
-      const response = await axiosInstance.get(
-        `/${company}/library/documents/${doc.id}/active-share`,
-      );
-      const data = response.data;
-      if (Array.isArray(data)) {
-        setActiveShares(data);
-      } else if (data?.share_url) {
-        setActiveShares([data]);
-      } else {
-        setActiveShares([]);
-      }
-    } catch {
-      setActiveShares([]);
-    } finally {
-      setLoadingShares(false);
-    }
-  };
+  });
 
   const getDurationValue = () => {
     if (showCustomDuration && customHours) {
@@ -145,7 +134,7 @@ export default function ShareDialog({
 
   const handleSubmit = async () => {
     if (!isReasonValid) {
-      return toast.error("El motivo debe tener al menos 10 caracteres.");
+      return toast.error("¡Ops! El motivo debe tener al menos 10 caracteres.");
     }
 
     const durationValue = getDurationValue();
@@ -153,7 +142,7 @@ export default function ShareDialog({
       showCustomDuration &&
       (!customHours || durationValue < 24 || durationValue > 168)
     ) {
-      return toast.error("La duración debe estar entre 24 y 168 horas.");
+      return toast.error("¡Ops! La duración debe estar entre 24 y 168 horas.");
     }
 
     setLoading(true);
@@ -187,9 +176,7 @@ export default function ShareDialog({
         );
       }
     } catch (error: any) {
-      toast.error(
-        error.response?.data?.message || "Error al procesar la solicitud",
-      );
+      notifyError(error, { action: "procesar la solicitud" });
     } finally {
       setLoading(false);
     }
@@ -435,7 +422,7 @@ export default function ShareDialog({
               <h3 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tight mb-2">
                 Solicitud Enviada
               </h3>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 text-center mb-8 max-w-[280px]">
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 text-center mb-8 max-w-70">
                 Tu solicitud ha sido enviada al Director DIP para aprobación.
                 Recibirás una notificación cuando sea revisada.
               </p>

@@ -2,42 +2,38 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-import { useUpdateArticleStatus } from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import type { CheckingScope } from "@/hooks/mantenimiento/almacen/inventario/useCheckingArticles";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { BadgeCheck, Loader2, MoreHorizontal, SquarePen } from "lucide-react";
+import { BadgeCheck, MoreHorizontal, SquarePen, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { ApproveArticlesDialog } from "./ApproveArticlesDialog";
+import { RejectArticleDialog } from "./RejectArticleDialog";
 
-const CheckingArticleDropdownActions = ({ id }: { id: string | number }) => {
-  const [open, setOpen] = useState<boolean>(false);
+const CheckingArticleDropdownActions = ({
+  id,
+  partNumber,
+  scope,
+  canApprove,
+}: {
+  id: number;
+  partNumber: string;
+  scope: CheckingScope;
+  /** Un artículo ya aprobado por ingeniería no se vuelve a aprobar. */
+  canApprove: boolean;
+}) => {
+  const [approveOpen, setApproveOpen] = useState(false);
+  const [rejectOpen, setRejectOpen] = useState(false);
   const router = useRouter();
   const { selectedCompany } = useCompanyStore();
-  const { updateArticleStatus } = useUpdateArticleStatus();
-
-  const handleConfirm = (id: number ) => {
-    updateArticleStatus.mutate(
-      { id, status: "STORED" },
-      {
-        onSuccess: () => setOpen(false), // Cierra el modal solo si la eliminación fue exitosa
-      }
-    );
-  };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="h-8 w-8 p-0">
@@ -45,59 +41,51 @@ const CheckingArticleDropdownActions = ({ id }: { id: string | number }) => {
             <MoreHorizontal className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent
-          align="center"
-          className="flex gap-2 justify-center"
-        >
+        <DropdownMenuContent align="end">
           <DropdownMenuItem
-            className="cursor-pointer"
-            onClick={() => {
+            className="cursor-pointer gap-2"
+            onClick={() =>
               router.push(
-                `/${selectedCompany?.slug}/ingenieria/confirmar_inventario/editar_articulo/${id}`
-              );
-            }}
+                `/${selectedCompany?.slug}/ingenieria/confirmar_inventario/editar_articulo/${id}`,
+              )
+            }
           >
-            <SquarePen className="size-5" />
+            <SquarePen className="size-4" />
+            Editar
           </DropdownMenuItem>
-          <DialogTrigger asChild>
-            <DropdownMenuItem className="cursor-pointer">
-              <BadgeCheck className="size-5 text-green-600/80" />
+          {canApprove && (
+            <DropdownMenuItem
+              className="cursor-pointer gap-2"
+              onClick={() => setApproveOpen(true)}
+            >
+              <BadgeCheck className="size-4 text-green-600/80" />
+              Aprobar
             </DropdownMenuItem>
-          </DialogTrigger>
+          )}
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            className="cursor-pointer gap-2 text-red-600 focus:text-red-600"
+            onClick={() => setRejectOpen(true)}
+          >
+            <Trash2 className="size-4" />
+            Eliminar
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle className="text-center">
-            Confirmar Registro de Artículo
-          </DialogTitle>
-          <DialogDescription className="text-center p-2 mb-0 pb-0">
-            La información del artículo será verificada y registrada en el sistema. ¿Desea
-            continuar?
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter className="flex flex-col gap-2 md:gap-0">
-          <Button
-            className="bg-rose-400 hover:bg-white hover:text-black hover:border hover:border-black"
-            onClick={() => setOpen(false)}
-            type="submit"
-          >
-            Cancelar
-          </Button>
-          <Button
-            disabled={updateArticleStatus.isPending}
-            className="hover:bg-white hover:text-black hover:border hover:border-black transition-all"
-            onClick={() => handleConfirm(Number(id))}
-          >
-            {updateArticleStatus.isPending ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              <p>Confirmar</p>
-            )}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+
+      <ApproveArticlesDialog
+        open={approveOpen}
+        onOpenChange={setApproveOpen}
+        ids={[id]}
+        scope={scope}
+      />
+      <RejectArticleDialog
+        open={rejectOpen}
+        onOpenChange={setRejectOpen}
+        articleId={id}
+        partNumber={partNumber}
+      />
+    </>
   );
 };
 

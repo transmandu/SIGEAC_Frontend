@@ -40,6 +40,7 @@ import {
 import { CloseComplianceDialog } from "@/components/dialogs/mantenimiento/planificacion/CloseComplianceDialog";
 import { StartComplianceDialog } from "@/components/dialogs/mantenimiento/planificacion/StartComplianceDialog";
 import { AddComponentControlItemDialog } from "@/components/dialogs/mantenimiento/planificacion/AddComponentControlItemDialog";
+import { useAuth } from "@/contexts/AuthContext";
 import { ImportComponentComplianceHistoryDialog } from "@/components/dialogs/mantenimiento/planificacion/ImportComponentComplianceHistoryDialog";
 import { useGetComponentControl } from "@/hooks/mantenimiento/planificacion/useGetComponentControl";
 import { useGetAircraftDailyAverage } from "@/hooks/mantenimiento/planificacion/useGetAircraftDailyAverage";
@@ -49,6 +50,7 @@ import {
   fmtNumber,
   ItemStatus,
   STATUS_META,
+  UNIT_SHORT,
 } from "@/lib/maintenanceControlCalc";
 import { comparePartsByOrder, partTypeLabel } from "@/lib/maintenancePartTypes";
 import {
@@ -196,12 +198,6 @@ function TruncatedText({ children }: { children: string }) {
     </Tooltip>
   );
 }
-
-const UNIT_SHORT: Record<string, string> = {
-  HOURS: "hrs",
-  CYCLES: "cic",
-  DAYS: "días",
-};
 
 /**
  * Mismo ciclo que el Control de Mantenimiento: mandar el componente a la cola
@@ -542,6 +538,8 @@ function ComponentsTable({
 const ComponentControlDetailPage = () => {
   const { id, company } = useParams<{ id: string; company: string }>();
   const { selectedCompany } = useCompanyStore();
+  const { user } = useAuth();
+  const isSuperuser = !!user?.roles?.some((r) => r.name === "SUPERUSER");
   const {
     data: control,
     isLoading,
@@ -663,10 +661,12 @@ const ComponentControlDetailPage = () => {
             />
             {!controlRetired && (
               <>
-                <ImportComponentComplianceHistoryDialog
-                  controlId={control.id}
-                  items={activeItems}
-                />
+                {isSuperuser && (
+                  <ImportComponentComplianceHistoryDialog
+                    controlId={control.id}
+                    items={activeItems}
+                  />
+                )}
                 <ActionTriggerButton asChild>
                   <Link
                     href={`/${company}/planificacion/control_componentes/editar/${control.id}`}

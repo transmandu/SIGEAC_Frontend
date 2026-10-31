@@ -1,8 +1,8 @@
 import axios from "@/lib/axios";
-import { getApiErrorMessage } from "@/lib/api-error";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ShippingAgency } from "@/types";
+import { notifyError } from "@/lib/notify-error";
 
 export interface CreateShippingAgencySchema {
   name: string;
@@ -39,12 +39,7 @@ export const useCreateShippingAgency = (companySlug?: string) => {
       });
     },
     onError: (error) => {
-      toast.error("¡Error!", {
-        description: getApiErrorMessage(
-          error,
-          "Hubo un error al crear la agencia de envío.",
-        ),
-      });
+      notifyError(error, { action: "crear la agencia de envío" });
     },
   });
 };
@@ -70,12 +65,7 @@ export const useUpdateShippingAgency = (companySlug?: string) => {
       });
     },
     onError: (error) => {
-      toast.error("¡Error!", {
-        description: getApiErrorMessage(
-          error,
-          "Hubo un error al actualizar la agencia de envío.",
-        ),
-      });
+      notifyError(error, { action: "actualizar la agencia de envío" });
     },
   });
 };
@@ -98,12 +88,7 @@ export const useDeleteShippingAgency = (companySlug?: string) => {
       });
     },
     onError: (error) => {
-      toast.error("¡Error!", {
-        description: getApiErrorMessage(
-          error,
-          "Hubo un error al eliminar la agencia de envío.",
-        ),
-      });
+      notifyError(error, { action: "eliminar la agencia de envío" });
     },
   });
 };

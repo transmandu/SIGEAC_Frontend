@@ -3,7 +3,6 @@
 import axiosInstance from "@/lib/axios";
 import {
   FUEL_QUERY_KEYS,
-  getFuelErrorMessage,
   normalizeFuelMovement,
   normalizeFuelVehicle,
 } from "@/lib/fuel";
@@ -17,6 +16,7 @@ import {
 } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 const invalidateFuelQueries = (
   queryClient: ReturnType<typeof useQueryClient>,
@@ -42,9 +42,7 @@ export const useCreateFuelVehicle = (company?: string) => {
       });
     },
     onError: (error) => {
-      toast.error("No se pudo registrar", {
-        description: getFuelErrorMessage(error),
-      });
+      notifyError(error, { action: "registrar el vehículo" });
     },
   });
 };
@@ -66,9 +64,7 @@ export const useUpdateFuelVehicleStatus = (company?: string) => {
       });
     },
     onError: (error) => {
-      toast.error("No se pudo actualizar", {
-        description: getFuelErrorMessage(error),
-      });
+      notifyError(error, { action: "actualizar el estado del vehículo" });
     },
   });
 };
@@ -97,9 +93,7 @@ export const useUpdateFuelVehicle = (company?: string) => {
       });
     },
     onError: (error) => {
-      toast.error("No se pudo actualizar", {
-        description: getFuelErrorMessage(error),
-      });
+      notifyError(error, { action: "actualizar el vehículo" });
     },
   });
 };
@@ -118,9 +112,7 @@ export const useDeleteFuelVehicle = (company?: string) => {
       });
     },
     onError: (error) => {
-      toast.error("No se pudo eliminar", {
-        description: getFuelErrorMessage(error),
-      });
+      notifyError(error, { action: "eliminar el vehículo" });
     },
   });
 };
@@ -143,9 +135,7 @@ export const useCreateFuelMovement = (company?: string) => {
       });
     },
     onError: (error) => {
-      toast.error("No se pudo registrar", {
-        description: getFuelErrorMessage(error),
-      });
+      notifyError(error, { action: "registrar el movimiento de combustible" });
     },
   });
 };
@@ -174,9 +164,7 @@ export const useAnnulFuelMovement = (company?: string) => {
       });
     },
     onError: (error) => {
-      toast.error("No se pudo anular", {
-        description: getFuelErrorMessage(error),
-      });
+      notifyError(error, { action: "anular el movimiento de combustible" });
     },
   });
 };
@@ -197,9 +185,7 @@ export const useDeleteFuelMovement = (company?: string) => {
       });
     },
     onError: (error) => {
-      toast.error("No se pudo eliminar", {
-        description: getFuelErrorMessage(error),
-      });
+      notifyError(error, { action: "eliminar el movimiento de combustible" });
     },
   });
 };

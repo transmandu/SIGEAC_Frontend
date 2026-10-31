@@ -2,27 +2,7 @@ import axiosInstance from "@/lib/axios";
 import { ErrorReportSeverity } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-
-// Prioriza el primer error de validación sobre el mensaje general: es el que
-// dice qué campo corregir.
-const getErrorMessage = (error: unknown, fallback: string) => {
-  const maybeAxiosError = error as {
-    response?: {
-      status?: number;
-      data?: { message?: string; errors?: Record<string, string[]> };
-    };
-  };
-  const errors = maybeAxiosError.response?.data?.errors;
-  const firstValidationMessage = errors
-    ? Object.values(errors)[0]?.[0]
-    : undefined;
-
-  return (
-    firstValidationMessage ||
-    maybeAxiosError.response?.data?.message ||
-    fallback
-  );
-};
+import { notifyError } from "@/lib/notify-error";
 
 interface CreateErrorReportData {
   description: string;
@@ -31,6 +11,12 @@ interface CreateErrorReportData {
   http_status?: number;
   /** Compañía desde la que se reporta: permite filtrar por empresa al atender. */
   company?: string;
+  /** Del aviso de error desde el que se reportó: une el reporte con el log. */
+  error_reference?: string;
+  error_code?: string;
+  page_url?: string;
+  /** Lo técnico del aviso, ya como JSON: el backend solo guarda claves conocidas. */
+  error_context?: string;
   images?: File[];
 }
 
@@ -45,8 +31,15 @@ export const useCreateErrorReport = () => {
         formData.append("description", data.description);
         if (data.module) formData.append("module", data.module);
         if (data.severity) formData.append("severity", data.severity);
-        if (data.http_status !== undefined) formData.append("http_status", String(data.http_status));
+        if (data.http_status !== undefined)
+          formData.append("http_status", String(data.http_status));
         if (data.company) formData.append("company", data.company);
+        if (data.error_reference)
+          formData.append("error_reference", data.error_reference);
+        if (data.error_code) formData.append("error_code", data.error_code);
+        if (data.page_url) formData.append("page_url", data.page_url);
+        if (data.error_context)
+          formData.append("error_context", data.error_context);
         images.forEach((image) => formData.append("images[]", image));
 
         const response = await axiosInstance.post("/error-reports", formData, {
@@ -65,9 +58,7 @@ export const useCreateErrorReport = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: getErrorMessage(error, "No se pudo registrar el reporte..."),
-      });
+      notifyError(error, { action: "registrar el reporte" });
     },
   });
 
@@ -89,9 +80,7 @@ export const useDeleteErrorReport = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: getErrorMessage(error, "No se pudo eliminar el reporte..."),
-      });
+      notifyError(error, { action: "eliminar el reporte" });
     },
   });
 
@@ -105,7 +94,9 @@ export const useSetErrorReportInProgress = () => {
 
   const setInProgressMutation = useMutation({
     mutationFn: async (id: number) => {
-      const response = await axiosInstance.post(`/error-reports/${id}/in-progress`);
+      const response = await axiosInstance.post(
+        `/error-reports/${id}/in-progress`,
+      );
       return response.data;
     },
     onSuccess: () => {
@@ -114,10 +105,8 @@ export const useSetErrorReportInProgress = () => {
         description: "El reporte ahora esta en progreso.",
       });
     },
-    onError: () => {
-      toast.error("Oops!", {
-        description: "No se pudo tomar el reporte...",
-      });
+    onError: (error) => {
+      notifyError(error, { action: "tomar el reporte" });
     },
   });
 
@@ -134,7 +123,10 @@ export const useResolveErrorReport = () => {
 
   const resolveMutation = useMutation({
     mutationFn: async ({ id, resolution }: ResolveErrorReportData) => {
-      const response = await axiosInstance.post(`/error-reports/${id}/resolve`, { resolution });
+      const response = await axiosInstance.post(
+        `/error-reports/${id}/resolve`,
+        { resolution },
+      );
       return response.data;
     },
     onSuccess: () => {
@@ -143,10 +135,8 @@ export const useResolveErrorReport = () => {
         description: "El reporte fue marcado como resuelto.",
       });
     },
-    onError: () => {
-      toast.error("Oops!", {
-        description: "No se pudo resolver el reporte...",
-      });
+    onError: (error) => {
+      notifyError(error, { action: "resolver el reporte" });
     },
   });
 
@@ -158,7 +148,9 @@ export const useMarkErrorReportDuplicate = () => {
 
   const markDuplicateMutation = useMutation({
     mutationFn: async (id: number) => {
-      const response = await axiosInstance.post(`/error-reports/${id}/duplicate`);
+      const response = await axiosInstance.post(
+        `/error-reports/${id}/duplicate`,
+      );
       return response.data;
     },
     onSuccess: () => {
@@ -167,10 +159,8 @@ export const useMarkErrorReportDuplicate = () => {
         description: "El reporte fue marcado como duplicado.",
       });
     },
-    onError: () => {
-      toast.error("Oops!", {
-        description: "No se pudo marcar el reporte como duplicado...",
-      });
+    onError: (error) => {
+      notifyError(error, { action: "marcar el reporte como duplicado" });
     },
   });
 
@@ -189,7 +179,10 @@ export const useUpdateErrorReportDiagnosis = () => {
 
   const updateDiagnosisMutation = useMutation({
     mutationFn: async ({ id, ...data }: UpdateErrorReportDiagnosisData) => {
-      const response = await axiosInstance.patch(`/error-reports/${id}/diagnosis`, data);
+      const response = await axiosInstance.patch(
+        `/error-reports/${id}/diagnosis`,
+        data,
+      );
       return response.data;
     },
     onSuccess: () => {
@@ -198,10 +191,8 @@ export const useUpdateErrorReportDiagnosis = () => {
         description: "El diagnóstico técnico fue guardado correctamente.",
       });
     },
-    onError: () => {
-      toast.error("Oops!", {
-        description: "No se pudo actualizar el diagnóstico...",
-      });
+    onError: (error) => {
+      notifyError(error, { action: "actualizar el diagnóstico" });
     },
   });
 
@@ -221,9 +212,13 @@ export const useAddErrorReportImages = () => {
       const formData = new FormData();
       images.forEach((image) => formData.append("images[]", image));
 
-      const response = await axiosInstance.post(`/error-reports/${id}/images`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const response = await axiosInstance.post(
+        `/error-reports/${id}/images`,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        },
+      );
       return response.data;
     },
     onSuccess: () => {
@@ -232,10 +227,8 @@ export const useAddErrorReportImages = () => {
         description: "Las imágenes fueron adjuntadas al reporte.",
       });
     },
-    onError: () => {
-      toast.error("Oops!", {
-        description: "No se pudieron agregar las imágenes...",
-      });
+    onError: (error) => {
+      notifyError(error, { action: "agregar las imágenes" });
     },
   });
 
@@ -247,7 +240,9 @@ export const useDeleteErrorReportImage = () => {
 
   const deleteImageMutation = useMutation({
     mutationFn: async ({ id, imageId }: { id: number; imageId: number }) => {
-      const response = await axiosInstance.delete(`/error-reports/${id}/images/${imageId}`);
+      const response = await axiosInstance.delete(
+        `/error-reports/${id}/images/${imageId}`,
+      );
       return response.data;
     },
     onSuccess: () => {
@@ -256,10 +251,8 @@ export const useDeleteErrorReportImage = () => {
         description: "La imagen fue eliminada del reporte.",
       });
     },
-    onError: () => {
-      toast.error("Oops!", {
-        description: "No se pudo eliminar la imagen...",
-      });
+    onError: (error) => {
+      notifyError(error, { action: "eliminar la imagen" });
     },
   });
 
@@ -279,16 +272,25 @@ export const useImportErrorReportHistory = () => {
   const queryClient = useQueryClient();
 
   const importMutation = useMutation({
-    mutationFn: async ({ file, from, dry_run, delay }: ImportErrorReportHistoryData) => {
+    mutationFn: async ({
+      file,
+      from,
+      dry_run,
+      delay,
+    }: ImportErrorReportHistoryData) => {
       const formData = new FormData();
       formData.append("file", file);
       if (from) formData.append("from", from);
       if (dry_run !== undefined) formData.append("dry_run", String(dry_run));
       if (delay !== undefined) formData.append("delay", String(delay));
 
-      const response = await axiosInstance.post("/error-reports/import-history", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const response = await axiosInstance.post(
+        "/error-reports/import-history",
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        },
+      );
       return response.data;
     },
     onSuccess: () => {
@@ -297,10 +299,8 @@ export const useImportErrorReportHistory = () => {
         description: "La importacion del historico se esta procesando.",
       });
     },
-    onError: () => {
-      toast.error("Oops!", {
-        description: "No se pudo iniciar la importacion...",
-      });
+    onError: (error) => {
+      notifyError(error, { action: "iniciar la importacion" });
     },
   });
 

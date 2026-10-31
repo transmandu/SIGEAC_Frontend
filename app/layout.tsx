@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/providers/theme-provider";
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import { RedirectHandler } from "@/components/misc/RedirectHandler";
+import ErrorReportDraftHost from "@/components/misc/ErrorReportDraftHost";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 const inter = Poppins({
@@ -46,6 +47,7 @@ export default function RootLayout({
                 {children}
               </TooltipProvider>
               <Toaster />
+              <ErrorReportDraftHost />
             </ThemeProvider>
           </AuthProvider>
         </QueryClientProvider>

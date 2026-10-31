@@ -8,39 +8,57 @@ import { useGetMeetingMinuteByDepartment } from "@/hooks/general/minuta_reunion/
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Check, FileText, FileUp, ImageIcon, Info, Loader2, Users } from "lucide-react";
+import {
+  Check,
+  FileText,
+  FileUp,
+  ImageIcon,
+  Info,
+  Loader2,
+  Users,
+} from "lucide-react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
+
+const EmployeeDetail = ({
+  employee,
+  bold = false,
+}: {
+  employee?: {
+    first_name: string;
+    last_name: string;
+    job_title?: { name: string };
+  } | null;
+  bold?: boolean;
+}) => {
+  if (!employee) return <p className="mt-1 text-sm">N/A</p>;
+  return (
+    <div className="mt-1">
+      <p className={`text-sm ${bold ? "font-medium" : ""}`}>
+        {employee.first_name} {employee.last_name}
+      </p>
+      {employee.job_title && (
+        <p className="text-xs text-muted-foreground">
+          {employee.job_title.name}
+        </p>
+      )}
+    </div>
+  );
+};
 
 const ShowMeetingMinute = () => {
   const { id } = useParams<{ id: string }>();
   const { selectedCompany, selectedStation } = useCompanyStore();
 
-  const { data: meeting, isLoading, isError } = useGetMeetingMinuteByDepartment(
+  const {
+    data: meeting,
+    isLoading,
+    isError,
+  } = useGetMeetingMinuteByDepartment(
     id,
     selectedStation,
     selectedCompany?.slug,
   );
-
-  const EmployeeDetail = ({
-    employee,
-    bold = false,
-  }: {
-    employee?: { first_name: string; last_name: string; job_title?: { name: string } } | null;
-    bold?: boolean;
-  }) => {
-    if (!employee) return <p className="mt-1 text-sm">N/A</p>;
-    return (
-      <div className="mt-1">
-        <p className={`text-sm ${bold ? "font-medium" : ""}`}>
-          {employee.first_name} {employee.last_name}
-        </p>
-        {employee.job_title && (
-          <p className="text-xs text-muted-foreground">{employee.job_title.name}</p>
-        )}
-      </div>
-    );
-  };
 
   const dateLabel = (date: string) => {
     try {
@@ -63,7 +81,10 @@ const ShowMeetingMinute = () => {
     return [];
   };
 
-  const fileUrl = (filePath?: string | null, action: "serve" | "download" = "serve") => {
+  const fileUrl = (
+    filePath?: string | null,
+    action: "serve" | "download" = "serve",
+  ) => {
     if (!filePath || !selectedCompany?.slug) return null;
     return `/${selectedCompany.slug}/files/${action}/${btoa(filePath)}`;
   };
@@ -125,19 +146,31 @@ const ShowMeetingMinute = () => {
 
         <Tabs defaultValue="informacion" className="w-full">
           <TabsList className="mb-5 grid w-full grid-cols-2 gap-2 border border-border/60 bg-transparent p-1 sm:grid-cols-4">
-            <TabsTrigger value="informacion" className="flex items-center gap-2 px-2 data-[state=active]:bg-muted">
+            <TabsTrigger
+              value="informacion"
+              className="flex items-center gap-2 px-2 data-[state=active]:bg-muted"
+            >
               <Info className="h-4 w-4 shrink-0" />
               <span className="truncate text-xs sm:text-sm">Información</span>
             </TabsTrigger>
-            <TabsTrigger value="asistentes" className="flex items-center gap-2 px-2 data-[state=active]:bg-muted">
+            <TabsTrigger
+              value="asistentes"
+              className="flex items-center gap-2 px-2 data-[state=active]:bg-muted"
+            >
               <Users className="h-4 w-4 shrink-0" />
               <span className="truncate text-xs sm:text-sm">Asistentes</span>
             </TabsTrigger>
-            <TabsTrigger value="acuerdos" className="flex items-center gap-2 px-2 data-[state=active]:bg-muted">
+            <TabsTrigger
+              value="acuerdos"
+              className="flex items-center gap-2 px-2 data-[state=active]:bg-muted"
+            >
               <Check className="h-4 w-4 shrink-0" />
               <span className="truncate text-xs sm:text-sm">Acuerdos</span>
             </TabsTrigger>
-            <TabsTrigger value="documentos" className="flex items-center gap-2 px-2 data-[state=active]:bg-muted">
+            <TabsTrigger
+              value="documentos"
+              className="flex items-center gap-2 px-2 data-[state=active]:bg-muted"
+            >
               <FileUp className="h-4 w-4 shrink-0" />
               <span className="truncate text-xs sm:text-sm">Documentos</span>
             </TabsTrigger>
@@ -149,7 +182,9 @@ const ShowMeetingMinute = () => {
                 <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                   Fecha
                 </p>
-                <p className="mt-1 text-sm font-medium">{dateLabel(meeting.date)}</p>
+                <p className="mt-1 text-sm font-medium">
+                  {dateLabel(meeting.date)}
+                </p>
               </div>
               <div className="rounded-lg border border-border/60 p-3">
                 <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -203,29 +238,33 @@ const ShowMeetingMinute = () => {
               </section>
             )}
 
-            {meeting.topics && (() => {
-              const topicsList = parseTopics(meeting.topics);
-              if (topicsList.length === 0) return null;
-              return (
-                <section className="rounded-lg border border-border/60 p-4">
-                  <h2 className="pb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                    Temas Abordados
-                  </h2>
-                  <div className="border-t border-border/60 pt-2">
-                    <div className="divide-y divide-border/30 border border-border/40">
-                      {topicsList.map((topic: string, i: number) => (
-                        <div key={i} className="flex items-start gap-3 px-3 py-3 text-sm transition-colors hover:bg-muted/20">
-                          <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-muted text-[11px] font-medium text-muted-foreground">
-                            {i + 1}
-                          </span>
-                          <span>{topic.trim()}</span>
-                        </div>
-                      ))}
+            {meeting.topics &&
+              (() => {
+                const topicsList = parseTopics(meeting.topics);
+                if (topicsList.length === 0) return null;
+                return (
+                  <section className="rounded-lg border border-border/60 p-4">
+                    <h2 className="pb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      Temas Abordados
+                    </h2>
+                    <div className="border-t border-border/60 pt-2">
+                      <div className="divide-y divide-border/30 border border-border/40">
+                        {topicsList.map((topic: string, i: number) => (
+                          <div
+                            key={i}
+                            className="flex items-start gap-3 px-3 py-3 text-sm transition-colors hover:bg-muted/20"
+                          >
+                            <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-muted text-[11px] font-medium text-muted-foreground">
+                              {i + 1}
+                            </span>
+                            <span>{topic.trim()}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                </section>
-              );
-            })()}
+                  </section>
+                );
+              })()}
           </TabsContent>
 
           <TabsContent value="asistentes">
@@ -258,20 +297,27 @@ const ShowMeetingMinute = () => {
                     </thead>
                     <tbody className="divide-y divide-border/30">
                       {meeting.attendees.map((att) => (
-                        <tr key={att.id} className="transition-colors hover:bg-muted/20">
+                        <tr
+                          key={att.id}
+                          className="transition-colors hover:bg-muted/20"
+                        >
                           <td className="whitespace-nowrap px-3 py-3 text-sm font-medium">
                             {att.employee
                               ? `${att.employee.first_name} ${att.employee.last_name}`
                               : att.attendee_name || "N/A"}
                           </td>
                           <td className="whitespace-nowrap px-3 py-3 text-sm text-muted-foreground">
-                            {att.employee?.job_title?.name || att.job_title || "—"}
+                            {att.employee?.job_title?.name ||
+                              att.job_title ||
+                              "—"}
                           </td>
                           <td className="px-3 py-3 text-center">
                             {att.has_attended ? (
                               <Check className="mx-auto h-4 w-4 text-green-600" />
                             ) : (
-                              <span className="text-xs text-muted-foreground">—</span>
+                              <span className="text-xs text-muted-foreground">
+                                —
+                              </span>
                             )}
                           </td>
                         </tr>
@@ -304,12 +350,17 @@ const ShowMeetingMinute = () => {
               {meeting.agreements && meeting.agreements.length > 0 ? (
                 <div className="divide-y divide-border/30 rounded border border-border/40">
                   {meeting.agreements.map((agreement, i) => (
-                    <div key={agreement.id ?? i} className="grid grid-cols-1 gap-2 px-4 py-3 sm:grid-cols-3">
+                    <div
+                      key={agreement.id ?? i}
+                      className="grid grid-cols-1 gap-2 px-4 py-3 sm:grid-cols-3"
+                    >
                       <div className="sm:col-span-2">
                         <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
                           Descripción
                         </p>
-                        <p className="mt-0.5 text-sm">{agreement.description}</p>
+                        <p className="mt-0.5 text-sm">
+                          {agreement.description}
+                        </p>
                       </div>
                       <div>
                         <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
@@ -318,10 +369,13 @@ const ShowMeetingMinute = () => {
                         {agreement.responsible ? (
                           <div className="mt-0.5">
                             <p className="text-sm font-medium">
-                              {agreement.responsible.first_name} {agreement.responsible.last_name}
+                              {agreement.responsible.first_name}{" "}
+                              {agreement.responsible.last_name}
                             </p>
                             {agreement.responsible.job_title && (
-                              <p className="text-xs text-muted-foreground">{agreement.responsible.job_title.name}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {agreement.responsible.job_title.name}
+                              </p>
                             )}
                           </div>
                         ) : (
@@ -330,7 +384,9 @@ const ShowMeetingMinute = () => {
                               {agreement.responsible_name || "N/A"}
                             </p>
                             {agreement.responsible_job_title && (
-                              <p className="text-xs text-muted-foreground">{agreement.responsible_job_title}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {agreement.responsible_job_title}
+                              </p>
                             )}
                           </div>
                         )}
@@ -387,7 +443,9 @@ const ShowMeetingMinute = () => {
                     Foto de la Reunión
                   </h2>
                   <div className="border-t border-border/60 pt-3">
-                    <p className="text-sm text-muted-foreground">Sin foto adjunta.</p>
+                    <p className="text-sm text-muted-foreground">
+                      Sin foto adjunta.
+                    </p>
                   </div>
                 </section>
               )}
@@ -403,7 +461,10 @@ const ShowMeetingMinute = () => {
                       {meeting.document.split("/").pop()}
                     </p>
                     <Button variant="outline" size="sm" asChild>
-                      <a href={fileUrl(meeting.document, "download") ?? "#"} download>
+                      <a
+                        href={fileUrl(meeting.document, "download") ?? "#"}
+                        download
+                      >
                         <FileUp className="mr-1.5 h-3.5 w-3.5" />
                         Descargar documento
                       </a>
@@ -417,7 +478,9 @@ const ShowMeetingMinute = () => {
                     Documento Adjunto
                   </h2>
                   <div className="border-t border-border/60 pt-3">
-                    <p className="text-sm text-muted-foreground">Sin documento adjunto.</p>
+                    <p className="text-sm text-muted-foreground">
+                      Sin documento adjunto.
+                    </p>
                   </div>
                 </section>
               )}

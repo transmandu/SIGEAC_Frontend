@@ -60,7 +60,7 @@ import type {
   ThirdParty,
   Unit,
 } from "@/types";
-import type { AuthorizedEmployeeResponse } from "@/hooks/ajustes/autorizados/useGetAuthorizedEmployees";
+import type { ExternalEmployee } from "@/hooks/ajustes/convenios/types";
 import type { RequisitionGeneralArticleForm } from "@/types/purchase";
 import { ArticleImageAttachment } from "./ArticleImageAttachment";
 import { RequiredIndicator } from "@/components/misc/RequiredIndicator";
@@ -85,7 +85,7 @@ interface GeneralArticlesSectionProps {
   isDestinationEmployeesLoading: boolean;
   thirdParties?: ThirdParty[];
   isThirdPartiesLoading: boolean;
-  authorizedEmployees?: AuthorizedEmployeeResponse[];
+  authorizedEmployees?: ExternalEmployee[];
   isAuthorizedEmployeesLoading: boolean;
   showDestinationFields?: boolean;
   handleGeneralArticleSelect: (article: GeneralArticle) => void;
@@ -120,7 +120,7 @@ interface DestinationFieldsRowProps {
   isDestinationEmployeesLoading: boolean;
   thirdParties?: ThirdParty[];
   isThirdPartiesLoading: boolean;
-  authorizedEmployees?: AuthorizedEmployeeResponse[];
+  authorizedEmployees?: ExternalEmployee[];
   isAuthorizedEmployeesLoading: boolean;
   handleGeneralArticleChange: (
     index: number,

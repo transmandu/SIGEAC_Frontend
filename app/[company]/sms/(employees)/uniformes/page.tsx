@@ -23,7 +23,6 @@ import {
   Tags,
   Tag,
 } from "lucide-react";
-import { toast } from "sonner";
 
 import { useCompanyStore } from "@/stores/CompanyStore";
 import axiosInstance from "@/lib/axios";
@@ -49,6 +48,7 @@ import { UniformArticleTypeForm } from "@/components/forms/sms/UniformArticleTyp
 import { UniformBrandForm } from "@/components/forms/sms/UniformBrandForm";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { toCalendarPayload } from "@/lib/date";
+import { notifyError } from "@/lib/notify-error";
 
 const UniformesPage = () => {
   const { selectedCompany } = useCompanyStore();
@@ -139,8 +139,8 @@ const UniformesPage = () => {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-    } catch {
-      toast.error("Error al exportar el inventario");
+    } catch (error) {
+      notifyError(error, { action: "exportar el inventario" });
     } finally {
       setExporting(false);
     }

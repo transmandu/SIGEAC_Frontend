@@ -6,8 +6,8 @@ import {
 } from "@/types/maintenanceCatalog";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { apiErrorMessage } from "@/lib/apiErrorMessage";
 import { TaskFormData } from "@/actions/mantenimiento/catalogo/tareas/actions";
+import { notifyError } from "@/lib/notify-error";
 
 export interface ServiceFormData {
   maintenance_catalog_manual_id?: number | null;
@@ -70,12 +70,7 @@ export const useCreateCatalogService = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: apiErrorMessage(
-          error,
-          "No se pudo registrar el servicio/certificado...",
-        ),
-      });
+      notifyError(error, { action: "registrar el servicio/certificado" });
     },
   });
 
@@ -108,12 +103,7 @@ export const useUpdateCatalogService = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: apiErrorMessage(
-          error,
-          "No se pudo actualizar el servicio/certificado...",
-        ),
-      });
+      notifyError(error, { action: "actualizar el servicio/certificado" });
     },
   });
 
@@ -142,12 +132,7 @@ export const useDeleteCatalogService = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: apiErrorMessage(
-          error,
-          "No se pudo eliminar el servicio/certificado...",
-        ),
-      });
+      notifyError(error, { action: "eliminar el servicio/certificado" });
     },
   });
 

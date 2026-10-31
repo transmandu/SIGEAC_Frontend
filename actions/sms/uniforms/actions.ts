@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axiosInstance from "@/lib/axios";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 interface CreateItemPayload {
   company: string;
@@ -90,11 +91,7 @@ export const useCreateUniformItem = () => {
       toast.success("Artículo creado con éxito");
     },
     onError: (error: any) => {
-      toast.error(
-        error.response?.data?.message?.size?.[0] ||
-          error.response?.data?.message ||
-          "Error al crear el artículo"
-      );
+      notifyError(error, { action: "crear el artículo" });
     },
   });
 };
@@ -107,7 +104,7 @@ export const useUpdateUniformItem = () => {
     mutationFn: async ({ company, id, data }: UpdateItemPayload) => {
       return await axiosInstance.patch(
         `/${company}/sms/uniforms/items/${id}`,
-        data
+        data,
       );
     },
     onSuccess: () => {
@@ -115,7 +112,7 @@ export const useUpdateUniformItem = () => {
       toast.success("Artículo actualizado");
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Error al actualizar");
+      notifyError(error, { action: "actualizar" });
     },
   });
 };
@@ -126,19 +123,14 @@ export const useDeleteUniformItem = () => {
 
   return useMutation({
     mutationFn: async ({ company, id }: { company: string; id: number }) => {
-      return await axiosInstance.delete(
-        `/${company}/sms/uniforms/items/${id}`
-      );
+      return await axiosInstance.delete(`/${company}/sms/uniforms/items/${id}`);
     },
     onSuccess: () => {
       invalidate(queryClient);
       toast.success("Artículo eliminado");
     },
     onError: (error: any) => {
-      toast.error(
-        error.response?.data?.message ||
-          "No se pudo eliminar el artículo"
-      );
+      notifyError(error, { action: "eliminar el artículo" });
     },
   });
 };
@@ -151,7 +143,7 @@ export const useCreateUniformArticleType = () => {
     mutationFn: async ({ company, data }: CreateArticleTypePayload) => {
       return await axiosInstance.post(
         `/${company}/sms/uniforms/article-types`,
-        data
+        data,
       );
     },
     onSuccess: () => {
@@ -159,11 +151,7 @@ export const useCreateUniformArticleType = () => {
       toast.success("Tipo de artículo creado");
     },
     onError: (error: any) => {
-      toast.error(
-        error.response?.data?.message?.name?.[0] ||
-          error.response?.data?.message ||
-          "Error al crear el tipo de artículo"
-      );
+      notifyError(error, { action: "crear el tipo de artículo" });
     },
   });
 };
@@ -175,7 +163,7 @@ export const useUpdateUniformArticleType = () => {
     mutationFn: async ({ company, id, data }: UpdateArticleTypePayload) => {
       return await axiosInstance.patch(
         `/${company}/sms/uniforms/article-types/${id}`,
-        data
+        data,
       );
     },
     onSuccess: () => {
@@ -183,11 +171,7 @@ export const useUpdateUniformArticleType = () => {
       toast.success("Tipo de artículo actualizado");
     },
     onError: (error: any) => {
-      toast.error(
-        error.response?.data?.message?.name?.[0] ||
-          error.response?.data?.message ||
-          "Error al actualizar el tipo"
-      );
+      notifyError(error, { action: "actualizar el tipo" });
     },
   });
 };
@@ -198,7 +182,7 @@ export const useDeleteUniformArticleType = () => {
   return useMutation({
     mutationFn: async ({ company, id }: { company: string; id: number }) => {
       return await axiosInstance.delete(
-        `/${company}/sms/uniforms/article-types/${id}`
+        `/${company}/sms/uniforms/article-types/${id}`,
       );
     },
     onSuccess: () => {
@@ -206,10 +190,7 @@ export const useDeleteUniformArticleType = () => {
       toast.success("Tipo de artículo eliminado");
     },
     onError: (error: any) => {
-      toast.error(
-        error.response?.data?.message ||
-          "No se pudo eliminar el tipo de artículo"
-      );
+      notifyError(error, { action: "eliminar el tipo de artículo" });
     },
   });
 };
@@ -220,21 +201,14 @@ export const useCreateUniformBrand = () => {
 
   return useMutation({
     mutationFn: async ({ company, data }: CreateBrandPayload) => {
-      return await axiosInstance.post(
-        `/${company}/sms/uniforms/brands`,
-        data
-      );
+      return await axiosInstance.post(`/${company}/sms/uniforms/brands`, data);
     },
     onSuccess: () => {
       invalidateBrands(queryClient);
       toast.success("Marca creada");
     },
     onError: (error: any) => {
-      toast.error(
-        error.response?.data?.message?.name?.[0] ||
-          error.response?.data?.message ||
-          "Error al crear la marca"
-      );
+      notifyError(error, { action: "crear la marca" });
     },
   });
 };
@@ -246,7 +220,7 @@ export const useUpdateUniformBrand = () => {
     mutationFn: async ({ company, id, data }: UpdateBrandPayload) => {
       return await axiosInstance.patch(
         `/${company}/sms/uniforms/brands/${id}`,
-        data
+        data,
       );
     },
     onSuccess: () => {
@@ -254,11 +228,7 @@ export const useUpdateUniformBrand = () => {
       toast.success("Marca actualizada");
     },
     onError: (error: any) => {
-      toast.error(
-        error.response?.data?.message?.name?.[0] ||
-          error.response?.data?.message ||
-          "Error al actualizar la marca"
-      );
+      notifyError(error, { action: "actualizar la marca" });
     },
   });
 };
@@ -269,7 +239,7 @@ export const useDeleteUniformBrand = () => {
   return useMutation({
     mutationFn: async ({ company, id }: { company: string; id: number }) => {
       return await axiosInstance.delete(
-        `/${company}/sms/uniforms/brands/${id}`
+        `/${company}/sms/uniforms/brands/${id}`,
       );
     },
     onSuccess: () => {
@@ -277,10 +247,7 @@ export const useDeleteUniformBrand = () => {
       toast.success("Marca eliminada");
     },
     onError: (error: any) => {
-      toast.error(
-        error.response?.data?.message ||
-          "No se pudo eliminar la marca"
-      );
+      notifyError(error, { action: "eliminar la marca" });
     },
   });
 };
@@ -293,7 +260,7 @@ export const useCreateUniformMovement = () => {
     mutationFn: async ({ company, data }: CreateMovementPayload) => {
       return await axiosInstance.post(
         `/${company}/sms/uniforms/movements`,
-        data
+        data,
       );
     },
     onSuccess: () => {
@@ -301,14 +268,7 @@ export const useCreateUniformMovement = () => {
       toast.success("Movimiento registrado");
     },
     onError: (error: any) => {
-      const msg = error.response?.data?.message;
-      const text =
-        typeof msg === "string"
-          ? msg
-          : typeof msg === "object" && msg !== null
-            ? Object.values(msg).flat().join(". ")
-            : "Error al registrar el movimiento";
-      toast.error(text);
+      notifyError(error, { action: "registrar el movimiento" });
     },
   });
 };

@@ -2,6 +2,7 @@ import axiosInstance from "@/lib/axios";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 /** Trazo de una pieza dimensionada, mismas reglas que la salida normal. */
 interface ICutPayload {
@@ -70,11 +71,7 @@ export const useCreateWorkshopDispatch = () => {
         queryClient.invalidateQueries({ queryKey: ["general-articles"] });
       }
 
-      toast.error("Oops!", {
-        description:
-          error?.response?.data?.message ||
-          "No se pudo crear la salida a taller...",
-      });
+      notifyError(error, { action: "crear la salida a taller" });
     },
   });
 
@@ -117,10 +114,7 @@ export const useRegisterWorkshopDispatchEvent = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          error?.response?.data?.message || "No se pudo registrar el suceso...",
-      });
+      notifyError(error, { action: "registrar el suceso" });
     },
   });
 
@@ -174,11 +168,7 @@ export const useUpdateWorkshopDetails = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          error?.response?.data?.message ||
-          "No se pudieron actualizar los datos del taller...",
-      });
+      notifyError(error, { action: "actualizar los datos del taller" });
     },
   });
 
@@ -225,11 +215,7 @@ export const useChangeWorkshop = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          error?.response?.data?.message ||
-          "No se pudo cambiar el taller de esta salida...",
-      });
+      notifyError(error, { action: "cambiar el taller de esta salida" });
     },
   });
 
@@ -283,11 +269,7 @@ export const useCloseWorkshopDispatch = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          error?.response?.data?.message ||
-          "No se pudo cerrar la salida a taller...",
-      });
+      notifyError(error, { action: "cerrar la salida a taller" });
     },
   });
 

@@ -272,9 +272,12 @@ function FolderTree({
   canManage,
   companySlug,
 }: FolderTreeProps) {
-  const [expandedDepts, setExpandedDepts] = useState<number[]>(
-    isMultiDept ? [] : departmentFolders.map((d) => d.departmentId),
-  );
+  // Con varios departamentos el usuario abre y cierra cada uno; con uno solo
+  // siempre está abierto.
+  const [openedDepts, setExpandedDepts] = useState<number[]>([]);
+  const expandedDepts = isMultiDept
+    ? openedDepts
+    : departmentFolders.map((d) => d.departmentId);
 
   const STORAGE_KEY = `biblioteca_expanded_folders_` + companySlug;
 
@@ -305,14 +308,6 @@ function FolderTree({
 
   useEffect(() => {
     if (!isMultiDept && departmentFolders.length > 0) {
-      const ids = departmentFolders.map((d) => d.departmentId);
-      const same =
-        ids.length === expandedDepts.length &&
-        ids.every((v, i) => v === expandedDepts[i]);
-      if (!same) {
-        setExpandedDepts(ids);
-      }
-
       departmentFolders.forEach((d) => {
         if (
           d.folders.length === 0 &&
@@ -323,7 +318,7 @@ function FolderTree({
         }
       });
     }
-  }, [departmentFolders, isMultiDept, onToggleDept, expandedDepts]);
+  }, [departmentFolders, isMultiDept, onToggleDept]);
 
   const toggleDept = (id: number, name: string) => {
     setExpandedDepts((prev) => {

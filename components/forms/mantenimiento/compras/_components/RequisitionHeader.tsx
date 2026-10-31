@@ -31,7 +31,7 @@ import type {
   Department,
   ThirdParty,
 } from "@/types";
-import type { AuthorizedEmployeeResponse } from "@/hooks/ajustes/autorizados/useGetAuthorizedEmployees";
+import type { ExternalEmployee } from "@/hooks/ajustes/convenios/types";
 import {
   Command,
   CommandEmpty,
@@ -61,7 +61,7 @@ interface RequisitionHeaderProps {
   filteredEmployees: Employee[];
   employeeSearch: string;
   setEmployeeSearch: (v: string) => void;
-  authorizedEmployees?: AuthorizedEmployeeResponse[];
+  authorizedEmployees?: ExternalEmployee[];
   isAuthorizedEmployeesLoading?: boolean;
   allowAuthorizedEmployees?: boolean;
   workOrders?: WorkOrder[];
@@ -139,7 +139,7 @@ export function RequisitionHeader({
   );
 
   const formatAuthorizedEmployeeLabel = (
-    authorizedEmployee: AuthorizedEmployeeResponse,
+    authorizedEmployee: ExternalEmployee,
   ) => `${authorizedEmployee.employee_name}`;
 
   // Los departamentos llegan como árbol (con `descendants` anidados); se
@@ -180,7 +180,7 @@ export function RequisitionHeader({
             };
 
             const selectAuthorizedEmployee = (
-              authorizedEmployee: AuthorizedEmployeeResponse,
+              authorizedEmployee: ExternalEmployee,
             ) => {
               form.setValue("requested_by", authorizedEmployee.dni_employee);
               form.setValue(

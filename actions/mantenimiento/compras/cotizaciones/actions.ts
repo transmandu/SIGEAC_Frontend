@@ -8,6 +8,7 @@ import type {
   SaveQuoteDraftData,
   UpdateQuoteStatusData,
 } from "@/types/purchase";
+import { notifyError } from "@/lib/notify-error";
 
 export const useCreateQuote = () => {
   const queryClient = useQueryClient();
@@ -34,10 +35,8 @@ export const useCreateQuote = () => {
         description: "La cotización ha sido creada correctamente.",
       });
     },
-    onError: () => {
-      toast.error("Oops!", {
-        description: "No se pudo crear la cotización.",
-      });
+    onError: (error) => {
+      notifyError(error, { action: "crear la cotización" });
     },
   });
 
@@ -77,11 +76,7 @@ export const useCreateComplementaryQuote = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          error?.response?.data?.message ||
-          "No se pudo crear la cotización complementaria.",
-      });
+      notifyError(error, { action: "crear la cotización complementaria" });
     },
   });
 
@@ -118,10 +113,8 @@ export const useUpdateQuoteStatus = () => {
         description: "La cotización ha sido actualizada correctamente.",
       });
     },
-    onError: () => {
-      toast.error("Oops!", {
-        description: "Hubo un error al actualizar la cotización.",
-      });
+    onError: (error) => {
+      notifyError(error, { action: "actualizar la cotización" });
     },
   });
 
@@ -163,11 +156,7 @@ export const useCascadeDeleteQuote = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          error?.response?.data?.message ||
-          "Hubo un error al eliminar en cascada la cotización.",
-      });
+      notifyError(error, { action: "eliminar en cascada la cotización" });
     },
   });
 
@@ -193,10 +182,8 @@ export const useDeleteQuote = () => {
         description: "La cotización ha sido eliminada correctamente.",
       });
     },
-    onError: () => {
-      toast.error("Oops!", {
-        description: "Hubo un error al eliminar la cotización.",
-      });
+    onError: (error) => {
+      notifyError(error, { action: "eliminar la cotización" });
     },
   });
 
@@ -240,10 +227,7 @@ export const useOpenQuoteDraft = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          error?.response?.data?.message || "No se pudo abrir el borrador.",
-      });
+      notifyError(error, { action: "abrir el borrador" });
     },
   });
 
@@ -284,11 +268,7 @@ export const useSaveQuoteDraft = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("No se guardó el borrador", {
-        description:
-          error?.response?.data?.message ||
-          "Revisa tu conexión: los últimos cambios no se guardaron.",
-      });
+      notifyError(error, { action: "guardar el borrador" });
     },
   });
 
@@ -325,11 +305,7 @@ export const useIssueQuoteDraft = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("No se pudo emitir", {
-        description:
-          error?.response?.data?.message ||
-          "Quedan artículos sin precio y sin marcar como no cotizados.",
-      });
+      notifyError(error, { action: "emitir" });
     },
   });
 
@@ -356,10 +332,7 @@ export const useDeleteQuoteDraft = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          error?.response?.data?.message || "No se pudo descartar el borrador.",
-      });
+      notifyError(error, { action: "descartar el borrador" });
     },
   });
 

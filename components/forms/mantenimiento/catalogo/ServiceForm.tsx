@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { BookOpen, Loader2, Wrench } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
@@ -36,6 +35,7 @@ import {
 } from "@/types/maintenanceCatalog";
 import { ServiceFormData } from "@/actions/mantenimiento/catalogo/servicios/actions";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { useResettingState } from "@/hooks/useResettingState";
 
 interface ServiceFormProps {
   service?: CatalogService;
@@ -79,7 +79,31 @@ export function ServiceForm({
   const { data: aircrafts = [] } = useGetMaintenanceAircrafts(
     selectedCompany?.slug,
   );
-  const [form, setForm] = useState<ServiceFormData>(emptyState);
+  // Sin servicio el formulario es "nuevo": parte vacío en vez de conservar lo
+  // que quedó de una edición anterior.
+  const [form, setForm] = useResettingState<ServiceFormData>(
+    () =>
+      service
+        ? {
+            maintenance_catalog_manual_id:
+              service.maintenance_catalog_manual_id,
+            category: service.category,
+            name: service.name,
+            code: service.code ?? "",
+            description: service.description ?? "",
+            intervals: service.intervals.map((i) => ({
+              counting_method: i.counting_method,
+              interval_value: i.interval_value,
+            })),
+            status: service.status,
+            aircraft_ids: service.aircrafts?.map((a) => a.id) ?? [],
+          }
+        : {
+            ...emptyState,
+            maintenance_catalog_manual_id: lockedManual?.id ?? null,
+          },
+    [service, lockedManual],
+  );
 
   // El select siempre ofrece los manuales vigentes; si el servicio ya
   // apuntaba a uno superado, se agrega aparte para no perder la referencia
@@ -88,31 +112,6 @@ export function ServiceForm({
     service?.manual && !activeManuals.some((m) => m.id === service.manual!.id)
       ? [...activeManuals, service.manual]
       : activeManuals;
-
-  useEffect(() => {
-    // Sin servicio el formulario es "nuevo": se limpia en vez de conservar lo
-    // que quedó de una edición anterior.
-    if (!service) {
-      setForm({
-        ...emptyState,
-        maintenance_catalog_manual_id: lockedManual?.id ?? null,
-      });
-      return;
-    }
-    setForm({
-      maintenance_catalog_manual_id: service.maintenance_catalog_manual_id,
-      category: service.category,
-      name: service.name,
-      code: service.code ?? "",
-      description: service.description ?? "",
-      intervals: service.intervals.map((i) => ({
-        counting_method: i.counting_method,
-        interval_value: i.interval_value,
-      })),
-      status: service.status,
-      aircraft_ids: service.aircrafts?.map((a) => a.id) ?? [],
-    });
-  }, [service, lockedManual]);
 
   const toggleAircraft = (id: number, checked: boolean) => {
     setForm((f) => ({

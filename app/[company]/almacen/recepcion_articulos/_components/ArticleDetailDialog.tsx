@@ -15,10 +15,12 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import {
+  BadgeCheck,
   Boxes,
   CalendarClock,
   CheckCircle2,
   CircleAlert,
+  ClipboardCheck,
   ClipboardList,
   Eye,
   FileWarning,
@@ -206,8 +208,15 @@ export function ArticleDetailDialog({
   const isReception = status === "RECEPTION";
 
   const roles = user?.roles?.map((r) => r.name) ?? [];
+  // Con el chequeo de ingeniería pedido el artículo no se edita desde almacén:
+  // los datos los corrige ingeniería, que es quien los está validando.
+  const awaitingEngineeringCheck =
+    article.engineering_check?.status === "REQUESTED";
   const canEdit =
-    !readOnly && isReception && EDIT_ROLES.some((r) => roles.includes(r));
+    !readOnly &&
+    isReception &&
+    !awaitingEngineeringCheck &&
+    EDIT_ROLES.some((r) => roles.includes(r));
 
   const location = article.batch?.warehouse?.location;
   // El `?? []` crea un array nuevo en cada render, y eso invalidaba el memo de
@@ -359,6 +368,21 @@ export function ArticleDetailDialog({
                 >
                   {TRANSIT_STATUS_LABELS[status ?? ""] ?? "Sin estado"}
                 </Badge>
+
+                {isReception && awaitingEngineeringCheck && (
+                  <Badge className="rounded-md border border-sky-200 bg-sky-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-sky-700 dark:border-sky-800/60 dark:bg-sky-950/40 dark:text-sky-400">
+                    <ClipboardCheck className="mr-1 size-2.5" />
+                    En chequeo de ingeniería
+                  </Badge>
+                )}
+
+                {isReception &&
+                  article.engineering_check?.status === "APPROVED" && (
+                    <Badge className="rounded-md border border-emerald-300 bg-emerald-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-700 dark:border-emerald-800/60 dark:bg-emerald-950/40 dark:text-emerald-400">
+                      <BadgeCheck className="mr-1 size-2.5" />
+                      Aprobado por ingeniería
+                    </Badge>
+                  )}
 
                 {needsDocumentsDeclared && (
                   <Badge className="animate-pulse rounded-md border border-orange-300 bg-orange-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-orange-800 dark:border-orange-700/60 dark:bg-orange-950/50 dark:text-orange-300">

@@ -40,7 +40,7 @@ import { FileServer } from "@/components/misc/FileServer";
 import Image from "next/image";
 import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment";
 import { useGetEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetEmployees";
-import { useGetAuthorizedEmployees } from "@/hooks/ajustes/autorizados/useGetAuthorizedEmployees";
+import { useGetExternalEmployees } from "@/hooks/ajustes/convenios/useGetExternalEmployees";
 
 const STEPS = [
   { label: "General y Clasificación", step: 1 },
@@ -406,7 +406,12 @@ export function EditChangeRequestForm({
   const { data: employees, isLoading: isLoadingEmployees } =
     useGetEmployeesByCompany(selectedCompany?.slug);
   const { data: authorizedEmployees, isLoading: isLoadingAuthorizedEmployees } =
-    useGetAuthorizedEmployees(selectedCompany?.slug);
+    useGetExternalEmployees(
+      selectedCompany?.slug,
+      "sms.change_management",
+      // Quien estaba autorizado el día de la solicitud, no solo quien lo está hoy.
+      changeRequest.request_date?.split("T")[0],
+    );
 
   const durationParsed = parseDurationDays(changeRequest.temporary_duration);
   const stabParsed = parseDurationDays(changeRequest.stabilization_period);

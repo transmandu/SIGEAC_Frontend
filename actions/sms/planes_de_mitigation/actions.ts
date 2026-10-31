@@ -1,6 +1,7 @@
 import axiosInstance from "@/lib/axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 interface MitigationPlanData {
   company: string | null;
@@ -49,9 +50,7 @@ export const useCreateMitigationPlan = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo crear el plan de mitigation...",
-      });
+      notifyError(error, { action: "crear el plan de mitigation" });
       console.log(error);
     },
   });
@@ -81,9 +80,7 @@ export const useDeleteMitigationPlan = () => {
       });
     },
     onError: (e) => {
-      toast.error("Oops!", {
-        description: "¡Hubo un error al eliminar el plan de mitigacion!",
-      });
+      notifyError(e, { action: "eliminar el plan de mitigacion" });
     },
   });
 
@@ -107,9 +104,7 @@ export const useUpdateMitigationPlan = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo actualizar el plan de mitigacion...",
-      });
+      notifyError(error, { action: "actualizar el plan de mitigacion" });
       console.log(error);
     },
   });
@@ -139,9 +134,7 @@ export const useCloseReport = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo cerrar el reporte...",
-      });
+      notifyError(error, { action: "cerrar el reporte" });
       console.log(error);
     },
   });
@@ -171,9 +164,7 @@ export const useOpenReport = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo abrir el reporte...",
-      });
+      notifyError(error, { action: "abrir el reporte" });
       console.log(error);
     },
   });

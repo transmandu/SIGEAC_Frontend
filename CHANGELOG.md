@@ -1,3 +1,72 @@
+## v4.84.1 — 2026-10-29
+
+- fix: work order pdf (#360)
+
+## v4.84.0 — 2026-10-28
+
+- feat: changes in multiple modules (#359)
+
+## v4.83.0 — 2026-10-27
+
+- feat: implement destination companies feature in ConsumableDispatchForm (#358)
+
+## v4.82.1 — 2026-10-27
+
+- fix: report order sms (#357)
+
+## v4.82.0 — 2026-10-26
+
+- feat: add ConfirmActionDialog component for action confirmation (#356)
+
+## v4.81.0 — 2026-10-26
+
+- Merge pull request #355 from transmandu/feature/operaciones-cargo
+- fix(planificacion): only query the control queue for OMAC companies
+- feat(operaciones): gate cargo edits by role and manifest state
+- feat(operaciones): lock items already dispatched in a manifest
+- refactor(operaciones): extract the cargo shipment detail into a shared card
+
+## v4.80.0 — 2026-10-26
+
+- Merge pull request #354 from transmandu/feature/cargo-billing
+- feat(cargo-billing): show shipment detail from a charge
+- feat(cargo-billing): manage tariffs, payments, reconciliation and refunds
+- feat(menus): add cargo billing section restricted by company
+- feat(cargo-billing): list clients with pending charges
+- fix(http): raise axios timeout to 30s
+
+## v4.79.0 — 2026-10-26
+
+- feat: save many certificates sms (#353)
+
+## v4.78.0 — 2026-10-24
+
+- feat: add new risk matrix to change request (#352)
+
+## v4.77.0 — 2026-10-23
+
+- feat: implement Part Number Units dialog and related hooks for invent… (#351)
+
+## v4.76.0 — 2026-10-22
+
+- feat: enhance error reporting with additional context and details
+
+## v4.75.0 — 2026-10-22
+
+- feat: implement error handling improvements and reporting features (#350)
+
+## v4.74.0 — 2026-10-20
+
+- feat: show if the change is temporal (#349)
+
+## v4.73.1 — 2026-10-20
+
+- fix: change risk label to spanish (#348)
+
+## v4.73.0 — 2026-10-20
+
+- feat: add control snapshot dialogs for avionics, components, and dire… (#347)
+
 ## v4.72.0 — 2026-10-19
 
 - feat: enhance maintenance forms with new features and validations (#346)

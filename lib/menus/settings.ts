@@ -18,7 +18,12 @@ export function buildSettingsGroup({
       {
         href: `/${slug}/ajustes`,
         label: "Catálogos",
-        active: pathname.startsWith(`/${slug}/ajustes`),
+        // Todo ajuste cuelga de /ajustes, pero Organización y Autorizaciones son
+        // grupos aparte: sin excluirlos, Catálogos se marcaba también en ellos.
+        active:
+          pathname.startsWith(`/${slug}/ajustes`) &&
+          !pathname.startsWith(`/${slug}/ajustes/empresa`) &&
+          !pathname.startsWith(`/${slug}/ajustes/autorizaciones`),
         icon: Globe,
         roles: [
           "JEFE_ALMACEN",
@@ -220,13 +225,13 @@ export function buildSettingsGroup({
         roles: ["ADMIN", "SUPERUSER"],
         submenus: [
           {
-            href: `/${slug}/ajustes/autorizaciones/autorizar`,
-            label: "Autorizar Empleados",
-            active: pathname === `/${slug}/ajustes/autorizaciones/autorizar`,
+            href: `/${slug}/ajustes/autorizaciones/convenios`,
+            label: "Convenios entre Empresas",
+            active: pathname === `/${slug}/ajustes/autorizaciones/convenios`,
           },
           {
             href: `/${slug}/ajustes/autorizaciones/autorizados`,
-            label: "Empleados Autorizados",
+            label: "Personal Externo",
             active: pathname === `/${slug}/ajustes/autorizaciones/autorizados`,
           },
         ],

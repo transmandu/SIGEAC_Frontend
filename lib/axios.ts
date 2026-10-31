@@ -8,11 +8,20 @@ const isPublicRoute = (pathname: string) =>
 
 const axiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
+  timeout: 30_000,
   withCredentials: true,
   headers: {
     skip_zrok_interstitial: true,
   },
 });
+
+/**
+ * Los PDF se arman en el servidor con LibreOffice: un paquete de OT puede
+ * tardar decenas de segundos (varias hojas) y con el timeout global de 30 s la
+ * petición se cancelaba mientras el backend seguía generando. Estas llamadas
+ * piden un margen mayor.
+ */
+export const PDF_GENERATION_TIMEOUT = 120_000;
 
 // El id del socket identifica a la sesión que originó un cambio, para que los
 // eventos que el servidor emite de vuelta no la hagan refetchear encima de su

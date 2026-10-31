@@ -2,6 +2,7 @@ import axiosInstance from "@/lib/axios";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 interface EmployeeSelected {
   dni: string | null;
@@ -42,13 +43,19 @@ export const useCreateSMSActivityAttendance = () => {
           headers: {
             "Content-Type": "multipart/form-data",
           },
-        }
+        },
       );
       return response.data;
     },
     onSuccess: (_, data) => {
       queryClient.invalidateQueries({ queryKey: ["sms-activity-attendance"] });
-      queryClient.invalidateQueries({ queryKey: ["enrollment-status-by-activity", data.company, data.activity_number] });
+      queryClient.invalidateQueries({
+        queryKey: [
+          "enrollment-status-by-activity",
+          data.company,
+          data.activity_number,
+        ],
+      });
       queryClient.invalidateQueries({
         queryKey: ["enrolled-employees"],
       });
@@ -70,8 +77,8 @@ export const useCreateSMSActivityAttendance = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo actualizar los inscritos en la actividad...",
+      notifyError(error, {
+        action: "actualizar los inscritos en la actividad",
       });
       console.log(error);
     },
@@ -91,7 +98,7 @@ export const useMarkSMSActivityAttendance = () => {
     }: SMSActivityAttendaceData) => {
       await axiosInstance.patch(
         `/${selectedCompany?.slug}/sms/mark-sms-activity-attendance/${activity_number}`,
-        employees_list
+        employees_list,
       );
     },
     onSuccess: (_, data) => {
@@ -107,7 +114,7 @@ export const useMarkSMSActivityAttendance = () => {
         queryKey: ["sms-activity-attendance-stats", data.activity_number],
       });
       queryClient.invalidateQueries({ queryKey: ["sms-activities"] });
-      
+
       queryClient.invalidateQueries({
         queryKey: ["sms-activity-attendance-status", data.activity_number],
       });
@@ -116,9 +123,7 @@ export const useMarkSMSActivityAttendance = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo actualizar la asistencia...",
-      });
+      notifyError(error, { action: "actualizar la asistencia" });
       console.log(error);
     },
   });

@@ -52,6 +52,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { notifyError } from "@/lib/notify-error";
 
 // El árbol puede venir anidado, así que un find() plano no encuentra a los hijos.
 
@@ -335,15 +336,21 @@ const BibliotecaPage = () => {
 
   useEffect(() => {
     if (documentsQuery.isError) {
-      console.error("Error al cargar la biblioteca:", documentsQuery.error);
-      toast.error("Error al sincronizar documentos");
+      // dedupe: el manejador global de consultas ya avisa de fallos de red o
+      // del sistema; así los dos avisos se funden en uno.
+      notifyError(documentsQuery.error, {
+        action: "sincronizar los documentos",
+        dedupe: true,
+      });
     }
   }, [documentsQuery.isError, documentsQuery.error]);
 
   useEffect(() => {
     if (categoriesQuery.isError) {
-      console.error("Error al cargar categorías:", categoriesQuery.error);
-      toast.error("No se pudieron cargar las categorías");
+      notifyError(categoriesQuery.error, {
+        action: "cargar las categorías",
+        dedupe: true,
+      });
     }
   }, [categoriesQuery.isError, categoriesQuery.error]);
 
@@ -449,7 +456,7 @@ const BibliotecaPage = () => {
         setFoldersMap((prev) => ({ ...prev, [deptId]: res.folders || [] }));
       } catch (error) {
         console.error("Error al cargar carpetas:", error);
-        toast.error("No se pudieron cargar las carpetas del departamento");
+        notifyError(error, { action: "cargar las carpetas del departamento" });
       } finally {
         setLoadingDeptIds((prev) => prev.filter((id) => id !== deptId));
       }
@@ -515,7 +522,7 @@ const BibliotecaPage = () => {
       await fetchDocs();
     } catch (error) {
       console.error("Error al eliminar:", error);
-      toast.error("No se pudo eliminar el documento");
+      notifyError(error, { action: "eliminar el documento" });
     }
   };
 
@@ -547,9 +554,7 @@ const BibliotecaPage = () => {
 
       await Promise.all([fetchDocs(), handleFolderRefresh(departmentId)]);
     } catch (error: any) {
-      toast.error(
-        error.response?.data?.message || "Error al mover el documento",
-      );
+      notifyError(error, { action: "mover el documento" });
     } finally {
       setMovingDocument(false);
     }
@@ -571,7 +576,7 @@ const BibliotecaPage = () => {
         setFoldersMap((prev) => ({ ...prev, [deptId]: res.folders || [] }));
       } catch (error) {
         console.error("Error al refrescar carpetas:", error);
-        toast.error("No se pudieron refrescar las carpetas");
+        notifyError(error, { action: "refrescar las carpetas" });
       }
     },
     [companySlug],

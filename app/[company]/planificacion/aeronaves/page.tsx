@@ -22,7 +22,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { AeronauticalAircraft } from "@/types";
 import { PlusCircle, Search, Building2, Filter } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { PlanificationAircraftTab } from "./_components/PlanificationAircraftTab";
 import { useGetMaintenanceAircrafts } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts";
 import { useGetClients } from "@/hooks/mantenimiento/clientes/useGetClients";
@@ -39,21 +39,14 @@ const AircraftsPage = () => {
   } = useGetMaintenanceAircrafts(selectedCompany?.slug);
   const { data: clients } = useGetClients(selectedCompany?.slug);
 
-  // Valor del Tab seleccionado (controlado)
-  const [tabValue, setTabValue] = useState<string>("");
+  // Tab que eligió el usuario; el activo se deriva más abajo (ver `tabValue`).
+  const [selectedTab, setSelectedTab] = useState<string>("");
 
   // Query del buscador
   const [query, setQuery] = useState<string>("");
 
   // Filtro de operador/cliente
   const [selectedOperator, setSelectedOperator] = useState<string>("all");
-
-  // Cuando llegan los datos iniciales, setear el primer tab
-  useEffect(() => {
-    if (aircrafts?.length && !tabValue) {
-      setTabValue(aircrafts[0].acronym);
-    }
-  }, [aircrafts, tabValue]);
 
   // Filtrado flexible por múltiples campos + operador
   const filteredAircrafts = useMemo<AeronauticalAircraft[]>(() => {
@@ -86,6 +79,13 @@ const AircraftsPage = () => {
   }, [aircrafts, query, selectedOperator]);
 
   // Agrupar aeronaves por operador
+  // Tab activo: el elegido mientras siga en el filtrado; si no (al llegar los
+  // datos, o al filtrar), el primer resultado. Se deriva en vez de corregir el
+  // estado con un efecto, que pintaba primero un tab que no existía.
+  const tabValue = filteredAircrafts.some((a) => a.acronym === selectedTab)
+    ? selectedTab
+    : (filteredAircrafts[0]?.acronym ?? "");
+
   const aircraftsByOperator = useMemo(() => {
     const groups: Record<string, AeronauticalAircraft[]> = {};
 
@@ -102,15 +102,6 @@ const AircraftsPage = () => {
 
     return groups;
   }, [filteredAircrafts]);
-
-  // Si el tab seleccionado no existe en el filtrado, moverlo al primer resultado
-  useEffect(() => {
-    if (!filteredAircrafts.length) return;
-    const stillVisible = filteredAircrafts.some((a) => a.acronym === tabValue);
-    if (!stillVisible) {
-      setTabValue(filteredAircrafts[0].acronym);
-    }
-  }, [filteredAircrafts, tabValue]);
 
   if (isLoading) {
     return <LoadingPage />;
@@ -266,7 +257,7 @@ const AircraftsPage = () => {
                           <div className="rounded-lg bg-background p-4 border border-border/50">
                             <Tabs
                               value={tabValue}
-                              onValueChange={setTabValue}
+                              onValueChange={setSelectedTab}
                               className="w-full"
                             >
                               <TabsList className="flex flex-wrap justify-start w-full gap-2 bg-muted/50 p-2 rounded-lg">
@@ -326,7 +317,7 @@ const AircraftsPage = () => {
                   </div>
                 </div>
                 <div className="p-6">
-                  <Tabs value={tabValue} onValueChange={setTabValue}>
+                  <Tabs value={tabValue} onValueChange={setSelectedTab}>
                     <TabsList className="flex flex-wrap justify-center w-full gap-2 bg-muted/50 p-2 rounded-lg">
                       {filteredAircrafts.map((aircraft) => (
                         <TabsTrigger

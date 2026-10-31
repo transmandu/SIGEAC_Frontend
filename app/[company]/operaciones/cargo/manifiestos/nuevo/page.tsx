@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ShieldX } from "lucide-react";
 import CreateCargoManifestForm from "@/components/forms/operaciones/cargo/CreateCargoManifestForm";
 import { useGetAircrafts } from "@/hooks/aerolinea/aeronaves/useGetAircrafts";
 import { useGetExternalAircraftSuggestions } from "@/hooks/operaciones/cargo/useGetExternalAircraftSuggestions";
@@ -24,6 +24,7 @@ import { useGetNextManifestNumber } from "@/hooks/operaciones/cargo/useGetNextMa
 import { useTourContext } from "@/components/tour/TourProvider";
 import { cargoManifiestoCrearSteps } from "@/components/tour/steps/cargo/manifiesto-crear";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { useAuth } from "@/contexts/AuthContext";
 
 const NuevoManifiestoPage = () => {
   const params = useParams();
@@ -79,12 +80,37 @@ const NuevoManifiestoPage = () => {
     return () => unregisterTour("cargo-manifiesto-crear");
   }, [registerTour, unregisterTour]);
 
+  const { user } = useAuth();
+  const userRoles = user?.roles?.map((r) => r.name) || [];
+  const canWrite = userRoles.some((r) =>
+    ["OPERADOR_CARGA", "SUPERUSER"].includes(r),
+  );
+
   // ── Éxito ──────────────────────────────────────────────────────────────────
   const handleSuccess = () => {
     router.push(
       `/${company}/operaciones/cargo/manifiestos?month=${month}&year=${year}`,
     );
   };
+
+  if (!canWrite) {
+    return (
+      <ContentLayout title="Nuevo Manifiesto de Carga">
+        <div className="flex flex-col items-center gap-4 py-24 text-center">
+          <ShieldX className="h-12 w-12 text-muted-foreground" />
+          <p className="text-lg font-semibold">No autorizado</p>
+          <p className="text-sm text-muted-foreground">
+            No tienes permisos para crear manifiestos de carga.
+          </p>
+          <Button asChild variant="outline">
+            <Link href={`/${company}/operaciones/cargo/manifiestos`}>
+              Volver
+            </Link>
+          </Button>
+        </div>
+      </ContentLayout>
+    );
+  }
 
   return (
     <ContentLayout title="Nuevo Manifiesto de Carga">

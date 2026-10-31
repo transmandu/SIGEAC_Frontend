@@ -16,6 +16,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import libraryService from "@/lib/libraryService";
 import { toast } from "sonner";
 import { DepartmentFolderGroup } from "@/components/library/FolderTree";
+import { notifyError } from "@/lib/notify-error";
 
 interface MoveDocumentsDialogProps {
   open: boolean;
@@ -188,9 +189,7 @@ export default function MoveDocumentsDialog({
       onSuccess(selectedDeptId, selectedPath);
       onClose();
     } catch (error: any) {
-      toast.error(
-        error.response?.data?.message || "Error al mover los documentos",
-      );
+      notifyError(error, { action: "mover los documentos" });
     } finally {
       setLoading(false);
     }

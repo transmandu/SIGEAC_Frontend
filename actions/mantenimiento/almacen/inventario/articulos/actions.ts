@@ -9,7 +9,7 @@ import {
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { apiErrorMessage } from "@/lib/apiErrorMessage";
+import { notifyError } from "@/lib/notify-error";
 
 interface ArticleData {
   serial?: string | string[];
@@ -278,12 +278,7 @@ export const useCreateArticle = () => {
       });
     },
     onError: (error) => {
-      toast.error("No se pudo crear el artículo", {
-        description: apiErrorMessage(
-          error,
-          "Intente de nuevo en unos instantes.",
-        ),
-      });
+      notifyError(error, { action: "crear el artículo" });
       console.log(error);
     },
   });
@@ -321,12 +316,7 @@ export const useCreateToReviewArticle = () => {
       });
     },
     onError: (error) => {
-      toast.error("No se pudo crear el artículo", {
-        description: apiErrorMessage(
-          error,
-          "Intente de nuevo en unos instantes.",
-        ),
-      });
+      notifyError(error, { action: "crear el artículo" });
       console.log(error);
     },
   });
@@ -375,11 +365,7 @@ export const useAssignArticleDocumentRequirements = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          error?.response?.data?.message ??
-          "No se pudo registrar la documentación requerida...",
-      });
+      notifyError(error, { action: "registrar la documentación requerida" });
     },
   });
 
@@ -425,9 +411,7 @@ export const useSyncArticleDocumentRequirements = () => {
       invalidateArticleDocuments(queryClient);
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo actualizar la documentación esperada...",
-      });
+      notifyError(error, { action: "actualizar la documentación esperada" });
       console.log(error);
     },
   });
@@ -435,31 +419,6 @@ export const useSyncArticleDocumentRequirements = () => {
   return {
     syncArticleDocumentRequirements: syncMutation,
   };
-};
-
-/**
- * El 422 de Laravel trae el motivo real (tipo de archivo no permitido, pesa
- * más de 10 MB...). Sin esto el usuario solo veía "no se pudo guardar" y no
- * había forma de saber por qué el archivo fue rechazado.
- */
-const describeDocumentUploadError = (error: any): string => {
-  const response = error?.response;
-
-  if (response?.status === 413) {
-    return "El archivo es demasiado grande. El máximo permitido es 10 MB.";
-  }
-
-  const validationErrors = response?.data?.errors;
-
-  if (validationErrors && typeof validationErrors === "object") {
-    const first = Object.values(validationErrors).flat()[0];
-    if (typeof first === "string") return first;
-  }
-
-  const message = response?.data?.message;
-  if (typeof message === "string" && message.length > 0) return message;
-
-  return "No se pudo guardar la documentación del artículo...";
 };
 
 export const useUploadArticleDocuments = () => {
@@ -530,10 +489,15 @@ export const useUploadArticleDocuments = () => {
       invalidateArticleDocuments(queryClient);
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: describeDocumentUploadError(error),
+      // El 413 lo corta el servidor antes de que Laravel valide nada: solo aquí
+      // se sabe cuál es el límite de un documento.
+      notifyError(error, {
+        action: "guardar la documentación del artículo",
+        messages: {
+          tooLarge:
+            "El archivo es demasiado grande. El máximo permitido es 10 MB.",
+        },
       });
-      console.log(error);
     },
   });
 
@@ -583,9 +547,7 @@ export const useConsignRequirementDocuments = () => {
       invalidateArticleDocuments(queryClient);
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo consignar la documentación del artículo...",
-      });
+      notifyError(error, { action: "consignar la documentación del artículo" });
       console.log(error);
     },
   });
@@ -617,9 +579,7 @@ export const useDeleteArticleDocument = () => {
       invalidateArticleDocuments(queryClient);
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo eliminar el documento consignado...",
-      });
+      notifyError(error, { action: "eliminar el documento consignado" });
       console.log(error);
     },
   });
@@ -653,9 +613,7 @@ export const useDeleteArticle = () => {
       });
     },
     onError: (e) => {
-      toast.error("Oops!", {
-        description: "¡Hubo un error al eliminar el articulo!",
-      });
+      notifyError(e, { action: "eliminar el articulo" });
     },
   });
 
@@ -740,14 +698,13 @@ export const useUpdateArticleStatus = () => {
       });
     },
     onError: (error: any) => {
-      // El rechazo del incoming llega con lo que falta por artículo. Sin
-      // enumerarlo el usuario solo ve "no se pudo" y no qué resolver.
-      const data = error?.response?.data;
-
-      toast.error("Oops!", {
-        description: data?.message ?? "No se pudo actualizar el articulo...",
-      });
+      notifyError(error, { action: "actualizar el articulo" });
       console.log(error);
+      // Un rechazo por chequeo de ingeniería pendiente significa que la fila
+      // estaba desactualizada: se refresca para que muestre el estado real.
+      if (error?.response?.data?.code === "ENGINEERING_CHECK_REQUIRED") {
+        queryClient.invalidateQueries({ queryKey: ["articles"] });
+      }
     },
   });
   return {
@@ -764,6 +721,7 @@ export const useUpdateArticleStatus = () => {
  */
 export const useReportIncomingBlocked = () => {
   const { selectedCompany } = useCompanyStore();
+  const queryClient = useQueryClient();
 
   const mutation = useMutation({
     mutationFn: async ({
@@ -788,15 +746,147 @@ export const useReportIncomingBlocked = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          error?.response?.data?.message ??
-          "No se pudo enviar la notificación...",
-      });
+      notifyError(error, { action: "enviar la notificación" });
+    },
+    // Con éxito o con el 429 del intervalo mínimo, la fila debe traer la hora
+    // del último aviso para que el botón muestre la cuenta atrás real.
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["articles"] });
     },
   });
 
   return { reportIncomingBlocked: mutation };
+};
+
+/**
+ * Almacén pide que ingeniería verifique la información de un artículo ya en
+ * recepción. Es opcional, pero una vez pedido retiene al artículo hasta que
+ * ingeniería lo apruebe o lo elimine.
+ */
+export const useRequestEngineeringCheck = () => {
+  const { selectedCompany } = useCompanyStore();
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: async ({ id }: { id: number }) => {
+      const { data } = await axiosInstance.post(
+        `/${selectedCompany?.slug}/articles/${id}/request-engineering-check`,
+      );
+
+      return data;
+    },
+    onSuccess: (data) => {
+      toast.success("Chequeo solicitado", {
+        description:
+          data?.message ??
+          "Ingeniería fue notificada. El artículo queda retenido hasta que lo apruebe.",
+      });
+    },
+    onError: (error: any) => {
+      notifyError(error, { action: "solicitar el chequeo de ingeniería" });
+    },
+    // También al fallar: un 422 suele significar que alguien más ya lo pidió o
+    // lo aprobó, y la fila debe mostrar el estado real.
+    onSettled: () => invalidateArticleQueues(queryClient),
+  });
+
+  return { requestEngineeringCheck: mutation };
+};
+
+/** A dónde queda un artículo cuando ingeniería lo aprueba. */
+export type EngineeringApproveDestination = "RECEPTION" | "STORED";
+
+const invalidateArticleQueues = (
+  queryClient: ReturnType<typeof useQueryClient>,
+) => {
+  queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
+  queryClient.invalidateQueries({ queryKey: ["articles"] });
+  queryClient.invalidateQueries({ queryKey: ["in-transit-articles"] });
+  queryClient.invalidateQueries({ queryKey: ["in-reception-articles"] });
+  queryClient.invalidateQueries({ queryKey: ["article-status-history"] });
+};
+
+/**
+ * Ingeniería aprueba la información de uno o varios artículos. Reemplaza al
+ * cambio de estado genérico a STORED: aquí el backend sabe que es un visto
+ * bueno, deja constancia de quién lo dio y avisa a almacén.
+ */
+export const useEngineeringApprove = () => {
+  const { selectedCompany } = useCompanyStore();
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: async ({
+      ids,
+      destination,
+      notes,
+    }: {
+      ids: number[];
+      destination: EngineeringApproveDestination;
+      notes?: string | null;
+    }) => {
+      const body = { destination, notes: notes || null };
+      const [only] = ids;
+
+      const { data } =
+        ids.length === 1
+          ? await axiosInstance.post(
+              `/${selectedCompany?.slug}/articles/${only}/engineering-approve`,
+              body,
+            )
+          : await axiosInstance.post(
+              `/${selectedCompany?.slug}/articles/engineering-approve`,
+              { ...body, ids },
+            );
+
+      return data;
+    },
+    onSuccess: (data) => {
+      toast.success("Artículo aprobado", {
+        description: data?.message ?? "Se aprobó la información del artículo.",
+      });
+    },
+    onError: (error: any) => {
+      notifyError(error, { action: "aprobar el artículo" });
+    },
+    // También al fallar: otro ingeniero pudo haberlo resuelto antes.
+    onSettled: () => invalidateArticleQueues(queryClient),
+  });
+
+  return { engineeringApprove: mutation };
+};
+
+/**
+ * Ingeniería elimina un artículo cuya información no tiene arreglo. El motivo
+ * es obligatorio: el backend lo deja en el historial y se lo comunica a quien
+ * registró el artículo y a almacén.
+ */
+export const useEngineeringReject = () => {
+  const { selectedCompany } = useCompanyStore();
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: async ({ id, reason }: { id: number; reason: string }) => {
+      const { data } = await axiosInstance.post(
+        `/${selectedCompany?.slug}/articles/${id}/engineering-reject`,
+        { reason },
+      );
+
+      return data;
+    },
+    onSuccess: (data) => {
+      toast.success("Artículo eliminado", {
+        description:
+          data?.message ?? "Se eliminó el artículo y se notificó el motivo.",
+      });
+    },
+    onError: (error: any) => {
+      notifyError(error, { action: "eliminar el artículo" });
+    },
+    onSettled: () => invalidateArticleQueues(queryClient),
+  });
+
+  return { engineeringReject: mutation };
 };
 
 /**
@@ -814,11 +904,13 @@ export const useStoreArticleDirectly = () => {
       id,
       authorized_by,
       authorized_by_employee_id,
+      authorized_employee_id,
       authorization_reason,
     }: {
       id: number;
       authorized_by: string;
       authorized_by_employee_id?: number | null;
+      authorized_employee_id?: number | null;
       authorization_reason?: string | null;
     }) => {
       await axiosInstance.put(
@@ -826,6 +918,7 @@ export const useStoreArticleDirectly = () => {
         {
           authorized_by,
           authorized_by_employee_id: authorized_by_employee_id ?? null,
+          authorized_employee_id: authorized_employee_id ?? null,
           authorization_reason: authorization_reason || null,
         },
       );
@@ -857,16 +950,26 @@ export const useStoreArticleDirectly = () => {
     onError: (error: any) => {
       const data = error?.response?.data;
 
+      if (data?.code === "ENGINEERING_CHECK_REQUIRED") {
+        queryClient.invalidateQueries({ queryKey: ["articles"] });
+      }
+
       // El rechazo por documentación viene con la lista de lo que falta; sin
       // enumerarla el usuario solo sabe que "falta algo" y no qué consignar.
       const pending: string[] = (data?.pending_documents ?? [])
         .map((doc: { document_type?: string | null }) => doc.document_type)
         .filter(Boolean);
 
-      toast.error("Oops!", {
-        description: pending.length
-          ? `${data.message} Pendiente: ${pending.join(", ")}.`
-          : (data?.message ?? "No se pudo pasar el artículo al inventario..."),
+      // Sin documentos pendientes es un error común; con ellos, lo útil es la
+      // lista de lo que falta consignar.
+      if (pending.length === 0) {
+        notifyError(error, { action: "pasar el artículo al inventario" });
+        return;
+      }
+
+      // eslint-disable-next-line no-restricted-syntax -- aviso con la lista de documentos que faltan: notifyError no la conoce.
+      toast.error("¡Ops! Faltan documentos por consignar", {
+        description: `${data.message} Pendiente: ${pending.join(", ")}.`,
       });
     },
   });
@@ -922,9 +1025,7 @@ export const useConfirmIncomingArticle = () => {
     },
 
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo registrar la inspección...",
-      });
+      notifyError(error, { action: "registrar la inspección" });
 
       console.error(error);
     },
@@ -974,9 +1075,7 @@ export const useEditArticle = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo actualizar el articulo...",
-      });
+      notifyError(error, { action: "actualizar el articulo" });
       console.log(error);
     },
   });
@@ -1025,12 +1124,7 @@ export const useUpdateArticle = () => {
     },
 
     onError: (error) => {
-      toast.error("No se pudo actualizar el artículo", {
-        description: apiErrorMessage(
-          error,
-          "Intente de nuevo en unos instantes.",
-        ),
-      });
+      notifyError(error, { action: "actualizar el artículo" });
 
       console.log(error);
     },
@@ -1062,10 +1156,7 @@ export const useLocateArticle = () => {
     onError: (error: any) => {
       // El backend rechaza ubicar un artículo que ya salió de espera de
       // ubicación; ese motivo hay que mostrarlo, no taparlo con el genérico.
-      toast.error("Oops!", {
-        description:
-          error?.response?.data?.message ?? "No se pudo ubicar el articulo...",
-      });
+      notifyError(error, { action: "ubicar el articulo" });
       console.log(error);
     },
   });
@@ -1116,9 +1207,7 @@ export const useSendToQuarantine = () => {
     },
 
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo registrar el artículo en cuarentena...",
-      });
+      notifyError(error, { action: "registrar el artículo en cuarentena" });
 
       console.error(error);
     },
@@ -1158,9 +1247,7 @@ export const useUpdateToolArticleStatus = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo actualizar el articulo...",
-      });
+      notifyError(error, { action: "actualizar el articulo" });
       console.log(error);
     },
   });
@@ -1235,11 +1322,7 @@ export const useDetermineArticleDestination = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          error?.response?.data?.message ||
-          "No se pudo determinar el destino del artículo.",
-      });
+      notifyError(error, { action: "determinar el destino del artículo" });
     },
   });
 

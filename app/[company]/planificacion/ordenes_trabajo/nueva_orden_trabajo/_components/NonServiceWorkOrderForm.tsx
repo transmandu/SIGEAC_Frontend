@@ -58,10 +58,11 @@ import {
   PlusCircle,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { FieldErrors, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import { useResettingState } from "@/hooks/useResettingState";
 
 const manualWorkOrderSchema = z.object({
   description: z.string().min(1, "La descripción es obligatoria"),
@@ -182,10 +183,6 @@ const NonServiceWorkOrderForm = ({
   const prefillTaskDescription =
     taskDescriptionProp ?? searchParams.get("task_description") ?? undefined;
 
-  const [selectedAircraft, setSelectedAircraft] = useState<string>("");
-  const [tasks, setTasks] = useState<TaskInProgress[]>([]);
-  const prefillApplied = useRef(false);
-
   const { selectedStation, selectedCompany } = useCompanyStore();
   const { createWorkOrder } = useCreateWorkOrder();
   const { linkPendingWorkOrder } = useLinkPendingWorkOrder();
@@ -225,22 +222,34 @@ const NonServiceWorkOrderForm = ({
     }
   }, [selectedStation, form]);
 
-  useEffect(() => {
-    if (prefillApplied.current || !aircrafts) return;
-    if (fromControlQueue && !controlQueue) return;
+  // Lo que llega por la URL (aeronave, tareas de la bandeja) se aplica una sola
+  // vez, cuando ya cargaron los catálogos que necesita.
+  const prefillReady = !!aircrafts && (!fromControlQueue || !!controlQueue);
+  const prefillAircraft =
+    prefillReady && prefillAircraftId
+      ? aircrafts?.find((a) => a.id.toString() === prefillAircraftId)
+      : undefined;
 
-    if (prefillAircraftId) {
-      const aircraft = aircrafts.find(
-        (a) => a.id.toString() === prefillAircraftId,
-      );
-      if (aircraft) {
-        form.setValue("aircraft_id", aircraft.id.toString());
-        if (aircraft.client.authorizing) {
-          form.setValue("authorizing", aircraft.client.authorizing);
-        }
-        setSelectedAircraft(aircraft.manufacturer.id.toString());
-      }
-    }
+  const prefillAircraftValue = prefillAircraft?.id.toString();
+
+  const [selectedAircraft, setSelectedAircraft] = useResettingState<string>(
+    () => prefillAircraft?.manufacturer.id.toString() ?? "",
+    [prefillAircraftValue],
+  );
+
+  const [tasks, setTasks] = useResettingState<TaskInProgress[]>(() => {
+    if (!prefillReady) return [];
+
+    const emptyTask = (description: string): TaskInProgress => ({
+      id: crypto.randomUUID(),
+      material: "",
+      description_task: description,
+      ata: "",
+      task_number: "",
+      origin_manual: "",
+      maintenance_catalog_task_id: "",
+      task_items: [],
+    });
 
     const queuedEntries = fromControlQueue
       ? (controlQueue?.entries ?? []).filter((entry) =>
@@ -249,44 +258,17 @@ const NonServiceWorkOrderForm = ({
       : [];
 
     if (queuedEntries.length) {
-      setTasks(
-        queuedEntries.map((entry) => ({
-          id: crypto.randomUUID(),
-          material: "",
-          description_task: entry.label ?? "",
-          ata: "",
-          task_number: "",
-          origin_manual: "",
-          maintenance_catalog_task_id: "",
-          task_items: [],
-        })),
-      );
-    } else if (prefillTaskDescription) {
-      setTasks([
-        {
-          id: crypto.randomUUID(),
-          material: "",
-          description_task: prefillTaskDescription,
-          ata: "",
-          task_number: "",
-          origin_manual: "",
-          maintenance_catalog_task_id: "",
-          task_items: [],
-        },
-      ]);
+      return queuedEntries.map((entry) => emptyTask(entry.label ?? ""));
     }
+    return prefillTaskDescription ? [emptyTask(prefillTaskDescription)] : [];
+  }, [prefillReady]);
 
-    prefillApplied.current = true;
-    // queueEntryIds se rearma en cada render; su contenido viene de la URL.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    aircrafts,
-    controlQueue,
-    fromControlQueue,
-    prefillAircraftId,
-    prefillTaskDescription,
-    form,
-  ]);
+  const prefillAuthorizing = prefillAircraft?.client.authorizing;
+  useEffect(() => {
+    if (!prefillAircraftValue) return;
+    form.setValue("aircraft_id", prefillAircraftValue);
+    if (prefillAuthorizing) form.setValue("authorizing", prefillAuthorizing);
+  }, [prefillAircraftValue, prefillAuthorizing, form]);
 
   const addEmptyTask = () => {
     setTasks((prev) => [
@@ -418,7 +400,7 @@ const NonServiceWorkOrderForm = ({
         : taskErrors?.message) ??
       Object.values(errors).find((e) => e?.message)?.message ??
       "Revise los campos obligatorios.";
-    toast.error("Faltan datos", { description: String(message) });
+    toast.error("¡Ops! Faltan datos", { description: String(message) });
   };
 
   const onSubmit = async (data: ManualWorkOrderFormValues) => {
@@ -897,7 +879,7 @@ const NonServiceWorkOrderForm = ({
                                   : "Tarea manual"}
                               </span>
                               <CatalogServicePicker
-                                aircraftId={form.watch("aircraft_id")}
+                                aircraftId={selectedAircraftId}
                                 onSelectTask={(catalogTask, service) => {
                                   const requirementsText =
                                     catalogTask.requirements

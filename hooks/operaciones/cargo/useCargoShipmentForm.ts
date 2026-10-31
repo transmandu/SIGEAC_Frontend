@@ -22,9 +22,12 @@ import { useGetExternalAircraftSuggestions } from "@/hooks/operaciones/cargo/use
 import { useGetCarriers } from "@/hooks/operaciones/cargo/useGetCarriers";
 
 const itemSchema = z.object({
+  item_id: z.coerce.number().optional(),
   product_description: z.string().min(1, "La descripción es requerida"),
   units: z.coerce.number().min(1, "Debe ser al menos 1 unidad"),
   weight: z.coerce.number().min(0.01, "El peso debe ser mayor a 0"),
+  dispatched_units: z.coerce.number().optional(),
+  dispatched_weight: z.coerce.number().optional(),
 });
 
 export const formSchema = z
@@ -160,7 +163,14 @@ export function useCargoShipmentForm(initialData?: any) {
     // uno antes de enviar. La comparación ignora mayúsculas y espacios.
     const itemMap = new Map<
       string,
-      { product_description: string; units: number; weight: number }
+      {
+        item_id?: number;
+        product_description: string;
+        units: number;
+        weight: number;
+        dispatched_units?: number;
+        dispatched_weight?: number;
+      }
     >();
     let hasDuplicates = false;
 
@@ -173,9 +183,12 @@ export function useCargoShipmentForm(initialData?: any) {
         existing.weight += Number(item.weight);
       } else {
         itemMap.set(key, {
+          item_id: item.item_id,
           product_description: item.product_description,
           units: Number(item.units),
           weight: Number(item.weight),
+          dispatched_units: item.dispatched_units,
+          dispatched_weight: item.dispatched_weight,
         });
       }
     });
@@ -201,7 +214,12 @@ export function useCargoShipmentForm(initialData?: any) {
 
     const payload = {
       ...values,
-      items: finalItems,
+      items: finalItems.map((item) => ({
+        item_id: item.item_id,
+        product_description: item.product_description,
+        units: item.units,
+        weight: item.weight,
+      })),
       registration_date: format(values.registration_date, "yyyy-MM-dd"),
       pilot_id: p.type === "int" ? p.id : null,
       copilot_id: cp.type === "int" ? cp.id : null,
@@ -292,9 +310,12 @@ function buildDefaultValues(initialData?: any): CargoShipmentFormValues {
     aircraft_id:
       initialData.aircraft_id ?? initialData.aircraft?.id ?? undefined,
     items: initialData.items.map((item: any) => ({
+      item_id: item.id,
       product_description: item.product_description,
       units: item.units,
       weight: Number(item.weight),
+      dispatched_units: Number(item.units_dispatched ?? 0),
+      dispatched_weight: Number(item.weight_dispatched ?? 0),
     })),
   };
 }

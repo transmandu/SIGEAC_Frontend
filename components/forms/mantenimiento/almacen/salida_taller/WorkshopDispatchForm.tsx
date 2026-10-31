@@ -42,12 +42,12 @@ import {
   X,
 } from "lucide-react";
 import { useMemo } from "react";
-import { SectionHeader } from "../_components/SectionHeader";
-import { ConversionPanel } from "../_components/ConversionPanel";
-import { ConsumableArticleRow } from "../_components/ConsumableArticleRow";
-import { GeneralArticleRow } from "../_components/GeneralArticleRow";
-import { truncateText } from "../_components/truncate";
-import { SearchAwareGroup } from "../_components/SearchAwareGroup";
+import { SectionHeader } from "@/components/forms/mantenimiento/almacen/_components/SectionHeader";
+import { ConversionPanel } from "@/components/forms/mantenimiento/almacen/_components/ConversionPanel";
+import { ConsumableArticleRow } from "@/components/forms/mantenimiento/almacen/_components/ConsumableArticleRow";
+import { GeneralArticleRow } from "@/components/forms/mantenimiento/almacen/_components/GeneralArticleRow";
+import { truncateText } from "@/components/forms/mantenimiento/almacen/_components/truncate";
+import { SearchAwareGroup } from "@/components/forms/mantenimiento/almacen/_components/SearchAwareGroup";
 import { WorkshopCombobox } from "@/components/forms/general/WorkshopCombobox";
 import { CreateWorkshopDialog } from "@/components/dialogs/general/CreateWorkshopDialog";
 import {
@@ -107,6 +107,8 @@ export function WorkshopDispatchForm({ onClose }: FormProps) {
     commitGenQty,
     setToMaxAero,
     setToMaxGen,
+    setQuantityAero,
+    setQuantityGen,
     convState,
     setConvState,
     activeConversions,
@@ -527,6 +529,9 @@ export function WorkshopDispatchForm({ onClose }: FormProps) {
                     }
                     onCommit={() => commitAeroQty(index, f.id)}
                     onSetMax={() => setToMaxAero(index, f.id)}
+                    onSetQuantity={(value) =>
+                      setQuantityAero(index, f.id, value)
+                    }
                     onOpenConversion={() =>
                       openConversionForAero(index, f.id, articleId)
                     }
@@ -570,6 +575,9 @@ export function WorkshopDispatchForm({ onClose }: FormProps) {
                     }
                     onCommit={() => commitGenQty(index, f.id)}
                     onSetMax={() => setToMaxGen(index, f.id)}
+                    onSetQuantity={(value) =>
+                      setQuantityGen(index, f.id, value)
+                    }
                     onOpenConversion={() =>
                       openConversionForGeneral(index, f.id, generalId)
                     }

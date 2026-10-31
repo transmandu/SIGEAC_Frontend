@@ -46,17 +46,11 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import Link from "next/link";
 import axiosInstance from "@/lib/axios";
 import { toast } from "sonner";
+import { formatNumber } from "@/lib/formatNumber";
+import { notifyError } from "@/lib/notify-error";
 
-const fmtNumber = (n: any) => {
-  if (n === null || n === undefined) return "N/A";
-  const num = Number(n);
-  return isNaN(num)
-    ? "N/A"
-    : num.toLocaleString("es-ES", {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 3,
-      });
-};
+const fmtNumber = (n: unknown) =>
+  formatNumber(n, { maxDecimals: 3, fallback: "N/A" });
 
 const fmtDate = (d?: string | null | Date) => {
   if (!d) return "—";
@@ -172,7 +166,7 @@ export function PlanificationAircraftTab({
   // Lógica de descarga de Excel
   const handleDownloadTraceability = async () => {
     if (!selectedCompany?.slug || !aircraft?.id) {
-      toast.error("Datos de aeronave o empresa no disponibles");
+      toast.error("¡Ops! Datos de aeronave o empresa no disponibles");
       return;
     }
 
@@ -205,24 +199,9 @@ export function PlanificationAircraftTab({
 
       toast.success("Archivo generado correctamente");
     } catch (error: any) {
-      // Manejo de errores con el fix de TypeScript que aplicamos antes
-      if (error.response?.data instanceof Blob) {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const result = reader.result;
-          if (typeof result === "string") {
-            try {
-              const parsed = JSON.parse(result);
-              toast.error(parsed.error || "Error en el servidor");
-            } catch (e) {
-              toast.error("Error al procesar la respuesta del servidor");
-            }
-          }
-        };
-        reader.readAsText(error.response.data);
-      } else {
-        toast.error("Error al conectar con el servidor");
-      }
+      notifyError(error, {
+        action: "generar la trazabilidad de la aeronave",
+      });
     } finally {
       setIsDownloading(false);
     }
@@ -234,7 +213,7 @@ export function PlanificationAircraftTab({
     second_date?: string;
   }) => {
     if (!selectedCompany?.slug || !aircraft?.id) {
-      toast.error("Datos de aeronave o empresa no disponibles");
+      toast.error("¡Ops! Datos de aeronave o empresa no disponibles");
       return;
     }
 
@@ -270,23 +249,9 @@ export function PlanificationAircraftTab({
 
       toast.success("Archivo generado correctamente");
     } catch (error: any) {
-      if (error.response?.data instanceof Blob) {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const result = reader.result;
-          if (typeof result === "string") {
-            try {
-              const parsed = JSON.parse(result);
-              toast.error(parsed.error || "Error en el servidor");
-            } catch (e) {
-              toast.error("Error al procesar la respuesta del servidor");
-            }
-          }
-        };
-        reader.readAsText(error.response.data);
-      } else {
-        toast.error("Error al conectar con el servidor");
-      }
+      notifyError(error, {
+        action: "generar la trazabilidad de la aeronave",
+      });
     } finally {
       setIsDownloading(false);
     }

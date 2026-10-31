@@ -43,9 +43,10 @@ import { es } from "date-fns/locale";
 import { CalendarIcon, Loader2, Plus, ShieldCheck, X } from "lucide-react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { PhoneInput } from "@/components/ui/PhoneInput";
 import { phoneSchema } from "@/lib/phone";
+import { useResettingState } from "@/hooks/useResettingState";
 
 interface FormProps {
   onClose: () => void;
@@ -60,9 +61,28 @@ export function CreateGeneralVoluntaryReportForm({
   const { company } = useParams<{ company: string }>();
   const { createVoluntaryReport } = useCreateVoluntaryReport();
   const { updateVoluntaryReport } = useUpdateVoluntaryReport();
-  const [isAnonymous, setIsAnonymous] = useState(true);
+  // Al editar, parten de lo que ya trae el reporte.
+  const [isAnonymous, setIsAnonymous] = useResettingState(
+    !(
+      initialData &&
+      isEditing &&
+      initialData.reporter_email &&
+      initialData.reporter_name &&
+      initialData.reporter_last_name &&
+      initialData.reporter_phone
+    ),
+    [initialData, isEditing],
+  );
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [consequences, setConsequences] = useState<string[]>([]);
+  const [consequences, setConsequences] = useResettingState<string[]>(
+    () =>
+      initialData && isEditing && initialData.possible_consequences
+        ? initialData.possible_consequences
+            .split(",")
+            .filter((item) => item.trim() !== "")
+        : [],
+    [initialData, isEditing],
+  );
   const [newConsequence, setNewConsequence] = useState("");
 
   const FormSchema = z.object({
@@ -127,26 +147,6 @@ export function CreateGeneralVoluntaryReportForm({
   });
 
   type FormSchemaType = z.infer<typeof FormSchema>;
-
-  useEffect(() => {
-    if (initialData && isEditing) {
-      if (
-        initialData.reporter_email &&
-        initialData.reporter_name &&
-        initialData.reporter_last_name &&
-        initialData.reporter_phone
-      ) {
-        setIsAnonymous(false);
-      }
-
-      if (initialData.possible_consequences) {
-        const initialConsequences = initialData.possible_consequences
-          .split(",")
-          .filter((item) => item.trim() !== "");
-        setConsequences(initialConsequences);
-      }
-    }
-  }, [initialData, isEditing]); // Only run when these values change
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),

@@ -25,7 +25,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import axiosInstance from "@/lib/axios";
-import { toast } from "sonner";
 
 import SecureViewer from "@/components/library/SecureVisualizer";
 import { HistoryPanel } from "@/components/library/VersionPanel";
@@ -33,6 +32,7 @@ import ShareDialog from "@/components/library/ShareDialog";
 import { DeleteDocumentDialog } from "@/components/library/DeleteDocumentDialog";
 import { UploadVersionDialog } from "@/components/library/UploadVersionDialog";
 import { DownloadDocumentDialog } from "@/components/library/DownloadDocumentDialog";
+import { notifyError } from "@/lib/notify-error";
 
 const iconBase =
   "size-4.5 transition-all duration-200 ease-out group-hover:scale-110";
@@ -152,7 +152,7 @@ export const LibraryDropdownActions = ({
       setHistoryOpen(true);
     } catch (error) {
       console.error("Error al cargar versiones:", error);
-      toast.error("Error al cargar versiones");
+      notifyError(error, { action: "cargar versiones" });
     } finally {
       setLoadingVersions(false);
     }

@@ -1,6 +1,7 @@
 import axiosInstance from "@/lib/axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 interface BankCardData {
   name: string;
@@ -13,7 +14,9 @@ interface BankCardData {
   company_ids?: number[];
 }
 
-const invalidateBankCardQueries = (queryClient: ReturnType<typeof useQueryClient>) => {
+const invalidateBankCardQueries = (
+  queryClient: ReturnType<typeof useQueryClient>,
+) => {
   queryClient.invalidateQueries({ queryKey: ["bank-cards"] });
   queryClient.invalidateQueries({ queryKey: ["payment-methods"] });
   queryClient.invalidateQueries({ queryKey: ["bank-accounts"] });
@@ -34,10 +37,7 @@ export const useCreateBankCard = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          error?.response?.data?.message || "No se pudo crear la tarjeta.",
-      });
+      notifyError(error, { action: "crear la tarjeta" });
     },
   });
 
@@ -50,7 +50,13 @@ export const useUpdateBankCard = () => {
   const queryClient = useQueryClient();
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: number | string; data: Partial<BankCardData> }) => {
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: number | string;
+      data: Partial<BankCardData>;
+    }) => {
       await axiosInstance.put(`/bank-cards/${id}`, data);
     },
     onSuccess: () => {
@@ -60,10 +66,7 @@ export const useUpdateBankCard = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          error?.response?.data?.message || "No se pudo actualizar la tarjeta.",
-      });
+      notifyError(error, { action: "actualizar la tarjeta" });
     },
   });
 
@@ -86,10 +89,7 @@ export const useDeleteBankCard = () => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          error?.response?.data?.message || "¡Hubo un error al eliminar la tarjeta!",
-      });
+      notifyError(error, { action: "eliminar la tarjeta" });
     },
   });
 

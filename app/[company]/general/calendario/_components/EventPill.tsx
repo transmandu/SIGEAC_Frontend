@@ -56,20 +56,30 @@ export function EventPill({
   const isMarker = event.display === "marker";
   const canDrag = canEdit && !!event.editable;
 
-  const move = useDraggable({
+  const {
+    setNodeRef: setMoveNode,
+    listeners: moveListeners,
+    attributes: moveAttributes,
+    transform,
+    isDragging,
+  } = useDraggable({
     id: event.id,
     disabled: !canDrag || isOverlayPreview,
     data: { kind: "move", event },
   });
 
-  const resize = useDraggable({
+  const {
+    setNodeRef: setResizeNode,
+    listeners: resizeListeners,
+    attributes: resizeAttributes,
+  } = useDraggable({
     id: `resize:${event.id}`,
     disabled: !canDrag || isMarker || isOverlayPreview,
     data: { kind: "resize", event },
   });
 
-  const style = move.transform
-    ? { transform: CSS.Translate.toString(move.transform) }
+  const style = transform
+    ? { transform: CSS.Translate.toString(transform) }
     : undefined;
 
   if (isMarker) {
@@ -77,14 +87,14 @@ export function EventPill({
 
     return (
       <div
-        ref={move.setNodeRef}
+        ref={setMoveNode}
         style={style}
-        {...move.listeners}
-        {...move.attributes}
+        {...moveListeners}
+        {...moveAttributes}
         onClick={onClick}
         className={cn(
           "flex w-full cursor-pointer items-center gap-1 overflow-hidden rounded px-0.5 py-px text-left",
-          move.isDragging && "opacity-40",
+          isDragging && "opacity-40",
         )}
       >
         <span
@@ -101,23 +111,23 @@ export function EventPill({
 
   return (
     <div
-      ref={move.setNodeRef}
+      ref={setMoveNode}
       style={{ ...style, background, borderLeftColor: color, color }}
-      {...move.listeners}
-      {...move.attributes}
+      {...moveListeners}
+      {...moveAttributes}
       onClick={onClick}
       className={cn(
         "group/pill relative w-full cursor-pointer overflow-hidden rounded border-l-[3px] px-1.5 py-0.5 text-left text-[12px] font-semibold leading-tight",
-        move.isDragging && "opacity-40",
+        isDragging && "opacity-40",
       )}
     >
       <span className="block truncate">{label}</span>
 
       {canDrag && !isOverlayPreview && (
         <div
-          ref={resize.setNodeRef}
-          {...resize.listeners}
-          {...resize.attributes}
+          ref={setResizeNode}
+          {...resizeListeners}
+          {...resizeAttributes}
           onClick={(e) => e.stopPropagation()}
           className="absolute inset-x-0 bottom-0 h-1 cursor-ns-resize opacity-0 group-hover/pill:opacity-100"
           style={{ background: color }}

@@ -43,7 +43,7 @@ function ImageUploadField({
 
       if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
         toast.error(
-          "Formato de imagen inválido. Solo se permiten archivos JPG o PNG.",
+          "¡Ops! Formato de imagen inválido. Solo se permiten archivos JPG o PNG.",
         );
         e.target.value = "";
         return;
@@ -51,7 +51,7 @@ function ImageUploadField({
 
       if (file.size > MAX_IMAGE_SIZE_BYTES) {
         toast.error(
-          "La imagen excede el límite de 5MB. Por favor, selecciona una más ligera.",
+          "¡Ops! La imagen excede el límite de 5MB. Por favor, selecciona una más ligera.",
         );
         e.target.value = "";
         return;

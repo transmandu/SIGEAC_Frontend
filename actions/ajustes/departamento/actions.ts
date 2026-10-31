@@ -1,8 +1,8 @@
 import axiosInstance from "@/lib/axios"
 import { Department } from "@/types"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { AxiosError } from "axios"
 import { toast } from "sonner"
+import { notifyError } from "@/lib/notify-error"
 
 export interface DepartmentLocationInput {
   location_id: number
@@ -19,20 +19,9 @@ export interface DepartmentPayload {
   locations?: DepartmentLocationInput[]
 }
 
-const serverMessage = (error: unknown, fallback: string): string => {
-  const data = (error as AxiosError<{ message?: string; errors?: Record<string, string[]> }>)
-    ?.response?.data
-
-  const firstFieldError = data?.errors
-    ? Object.values(data.errors)[0]?.[0]
-    : undefined
-
-  return firstFieldError ?? data?.message ?? fallback
-}
-
 const useDepartmentMutation = <TVariables>(
   mutationFn: (variables: TVariables) => Promise<unknown>,
-  messages: { success: string; error: string },
+  messages: { success: string; action: string },
 ) => {
   const queryClient = useQueryClient()
 
@@ -47,7 +36,7 @@ const useDepartmentMutation = <TVariables>(
     },
 
     onError: (error) => {
-      toast.error("Oops!", { description: serverMessage(error, messages.error) })
+      notifyError(error, { action: messages.action })
     },
   })
 }
@@ -58,12 +47,12 @@ export const useCreateDepartment = () => {
       await axiosInstance.post<Department>(`/${company}/departments`, data),
     {
       success: "El departamento ha sido creado correctamente.",
-      error: "Hubo un error al crear el departamento.",
+      action: "crear el departamento",
     },
   )
 
-  return { createDepartment: createMutation }
-}
+  return { createDepartment: createMutation };
+};
 
 export const useUpdateDepartment = () => {
   const updateMutation = useDepartmentMutation(
@@ -78,12 +67,12 @@ export const useUpdateDepartment = () => {
     }) => await axiosInstance.put<Department>(`/${company}/departments/${id}`, data),
     {
       success: "El departamento ha sido actualizado correctamente.",
-      error: "Hubo un error al actualizar el departamento.",
+      action: "actualizar el departamento",
     },
   )
 
-  return { updateDepartment: updateMutation }
-}
+  return { updateDepartment: updateMutation };
+};
 
 export const useMoveDepartment = () => {
   const moveMutation = useDepartmentMutation(
@@ -100,7 +89,7 @@ export const useMoveDepartment = () => {
     }) => await axiosInstance.patch<Department>(`/${company}/departments/${id}/move`, data),
     {
       success: "El organigrama fue actualizado.",
-      error: "No se pudo mover el departamento.",
+      action: "mover el departamento",
     },
   )
 
@@ -119,7 +108,7 @@ export const useReorderDepartments = () => {
     }) => await axiosInstance.post(`/${company}/departments/reorder`, data),
     {
       success: "El orden fue actualizado.",
-      error: "No se pudo reordenar.",
+      action: "reordenar los departamentos",
     },
   )
 
@@ -140,7 +129,7 @@ export const useSetDepartmentActive = () => {
     }) => await axiosInstance.patch<Department>(`/${company}/departments/${id}/active`, data),
     {
       success: "El estado del departamento fue actualizado.",
-      error: "No se pudo cambiar el estado del departamento.",
+      action: "cambiar el estado del departamento",
     },
   )
 
@@ -160,7 +149,7 @@ export const useSyncDepartmentLocations = () => {
     }) => await axiosInstance.put<Department>(`/${company}/departments/${id}/locations`, { locations }),
     {
       success: "Las sedes del departamento fueron actualizadas.",
-      error: "No se pudieron actualizar las sedes.",
+      action: "actualizar las sedes del departamento",
     },
   )
 
@@ -181,7 +170,7 @@ export const useMergeDepartment = () => {
     }) => await axiosInstance.post<Department>(`/${company}/departments/${id}/merge`, data),
     {
       success: "Los departamentos fueron fusionados.",
-      error: "No se pudo fusionar el departamento.",
+      action: "fusionar el departamento",
     },
   )
 
@@ -194,7 +183,7 @@ export const useDeleteDepartment = () => {
       await axiosInstance.delete(`/${company}/departments/${id}`),
     {
       success: "El departamento ha sido eliminado correctamente.",
-      error: "Hubo un error al eliminar el departamento.",
+      action: "eliminar el departamento",
     },
   )
 

@@ -1,12 +1,10 @@
 import type { ConfirmedReason } from "@/components/dialogs/mantenimiento/planificacion/ReasonConfirmDialog";
-import {
-  backendMessageFrom,
-  type EditReasonValue,
-} from "@/components/forms/mantenimiento/planificacion/EditReasonFields";
+import type { EditReasonValue } from "@/components/forms/mantenimiento/planificacion/EditReasonFields";
 import { invalidatePlanificationAudit } from "@/hooks/mantenimiento/planificacion/useGetPlanificationAuditStats";
 import axiosInstance from "@/lib/axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 // Interfaz para las partes de la aeronave en el API (part_type en minúsculas)
 export interface AircraftPartAPI {
@@ -64,9 +62,7 @@ export const useCreateMaintenanceAircraft = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo crear la aeronave...",
-      });
+      notifyError(error, { action: "crear la aeronave" });
       console.log(error);
     },
   });
@@ -102,11 +98,7 @@ export const useUpdateMaintenanceAircraft = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description:
-          backendMessageFrom(error) ??
-          "Hubo un error al actualizar la aeronave.",
-      });
+      notifyError(error, { action: "actualizar la aeronave" });
     },
   });
 

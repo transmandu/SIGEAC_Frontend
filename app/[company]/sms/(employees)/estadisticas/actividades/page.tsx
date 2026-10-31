@@ -16,7 +16,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { format, startOfMonth } from "date-fns";
 import { CalendarRange, ChevronDown, Loader2 } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { PageHeader } from "@/components/layout/PageHeader";
 
 const SMSActivityStatsPage = () => {
@@ -31,27 +31,18 @@ const SMSActivityStatsPage = () => {
     [key: string]: string | undefined;
   }
 
-  const [params, setParams] = useState<Params>({
-    from: format(startOfMonth(new Date()), "yyyy-MM-dd"),
-    to: format(new Date(), "yyyy-MM-dd"),
-  });
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-  useEffect(() => {
-    const defaultFrom = format(startOfMonth(new Date()), "yyyy-MM-dd");
-    const defaultTo = format(new Date(), "yyyy-MM-dd");
-
-    const newParams: Params = {};
-    searchParams.forEach((value, key) => {
-      newParams[key] = value;
-    });
-
-    const finalParams: Params = {
-      from: newParams.from || defaultFrom,
-      to: newParams.to || defaultTo,
-    };
-    setParams(finalParams);
-  }, [searchParams, pathname]);
+  // Las fechas viven en la URL: se leen de ahí en vez de copiarlas a un estado.
+  const params = useMemo<Params>(
+    () => ({
+      from:
+        searchParams.get("from") ||
+        format(startOfMonth(new Date()), "yyyy-MM-dd"),
+      to: searchParams.get("to") || format(new Date(), "yyyy-MM-dd"),
+    }),
+    [searchParams],
+  );
 
   const handleDateChange = (
     dateRange: { from: Date; to: Date } | undefined,
@@ -102,14 +93,19 @@ const SMSActivityStatsPage = () => {
                     Filtros
                   </Label>
                   <p className="truncate text-sm font-medium">
-                    {params.from || format(startOfMonth(new Date()), "yyyy-MM-dd")} a{" "}
-                    {params.to || format(new Date(), "yyyy-MM-dd")}
+                    {params.from ||
+                      format(startOfMonth(new Date()), "yyyy-MM-dd")}{" "}
+                    a {params.to || format(new Date(), "yyyy-MM-dd")}
                   </p>
                 </div>
               </div>
 
               <CollapsibleTrigger asChild>
-                <Button variant="outline" size="sm" className="w-full sm:w-auto">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full sm:w-auto"
+                >
                   {isFilterOpen ? "Ocultar Filtros" : "Mostrar Filtros"}
                   <ChevronDown
                     className={`ml-2 size-4 transition-transform ${isFilterOpen ? "rotate-180" : "rotate-0"}`}
@@ -124,7 +120,8 @@ const SMSActivityStatsPage = () => {
                 onReset={handleReset}
                 initialDate={{
                   from:
-                    params.from || format(startOfMonth(new Date()), "yyyy-MM-dd"),
+                    params.from ||
+                    format(startOfMonth(new Date()), "yyyy-MM-dd"),
                   to: params.to || format(new Date(), "yyyy-MM-dd"),
                 }}
               />

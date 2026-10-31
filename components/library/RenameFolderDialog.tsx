@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import libraryService from "@/lib/libraryService";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 interface RenameFolderDialogProps {
   open: boolean;
@@ -41,9 +42,7 @@ export default function RenameFolderDialog({
       onSuccess();
       onClose();
     } catch (error: any) {
-      toast.error(
-        error.response?.data?.message || "Error al renombrar la carpeta",
-      );
+      notifyError(error, { action: "renombrar la carpeta" });
     } finally {
       setLoading(false);
     }

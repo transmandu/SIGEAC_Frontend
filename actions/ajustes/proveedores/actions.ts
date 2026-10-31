@@ -1,8 +1,8 @@
 import axios from "@/lib/axios";
-import { getApiErrorMessage } from "@/lib/api-error";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Vendor } from "@/types";
+import { notifyError } from "@/lib/notify-error";
 
 export interface CreateVendorSchema {
   name: string;
@@ -33,12 +33,7 @@ export const useCreateVendor = (companySlug?: string) => {
       });
     },
     onError: (error) => {
-      toast.error("¡Error!", {
-        description: getApiErrorMessage(
-          error,
-          "Hubo un error al crear el proveedor.",
-        ),
-      });
+      notifyError(error, { action: "crear el proveedor" });
     },
   });
 };
@@ -62,12 +57,7 @@ export const useUpdateVendor = (companySlug?: string) => {
       });
     },
     onError: (error) => {
-      toast.error("¡Error!", {
-        description: getApiErrorMessage(
-          error,
-          "Hubo un error al actualizar el proveedor.",
-        ),
-      });
+      notifyError(error, { action: "actualizar el proveedor" });
     },
   });
 };
@@ -88,12 +78,7 @@ export const useDeleteVendor = (companySlug?: string) => {
       });
     },
     onError: (error) => {
-      toast.error("¡Error!", {
-        description: getApiErrorMessage(
-          error,
-          "Hubo un error al eliminar el proveedor.",
-        ),
-      });
+      notifyError(error, { action: "eliminar el proveedor" });
     },
   });
 };

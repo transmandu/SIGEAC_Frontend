@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@/lib/zod-resolver";
 import * as z from "zod";
@@ -73,6 +73,8 @@ import {
 } from "./_components/form-feedback";
 import { invalidFieldClass } from "./_components/form-theme";
 import { RequiredIndicator } from "@/components/misc/RequiredIndicator";
+import { useResettingState } from "@/hooks/useResettingState";
+import { useObjectUrl } from "@/hooks/useObjectUrl";
 
 // Mismo lenguaje visual que el LoginForm: cristal suave con borde slate y
 // realce azul al pasar el cursor.
@@ -315,9 +317,6 @@ const CreateGeneralArticleForm = ({
 
   // Equivalencias del artículo. Viven fuera de RHF porque son una lista y no
   // un campo: se envían junto al resto del payload al guardar.
-  const [conversions, setConversions] = useState<ConsumableConversionInput[]>(
-    [],
-  );
 
   // Equivalencia que se pide al cambiar la unidad base de un artículo ya
   // registrado; tampoco es un campo del formulario.
@@ -341,17 +340,18 @@ const CreateGeneralArticleForm = ({
     selectedCompany?.slug,
   );
 
-  useEffect(() => {
-    if (!existingConversions) return;
-
-    setConversions(
-      existingConversions.map((row) => ({
+  // Al editar se parte de las equivalencias ya guardadas.
+  const [conversions, setConversions] = useResettingState<
+    ConsumableConversionInput[]
+  >(
+    () =>
+      existingConversions?.map((row) => ({
         unit_id: Number(row.unit.id),
         direction: "base_per_unit" as const,
         value: row.base_per_unit,
-      })),
-    );
-  }, [existingConversions]);
+      })) ?? [],
+    [existingConversions],
+  );
 
   const busy =
     createGeneralArticle?.isPending ||
@@ -361,19 +361,7 @@ const CreateGeneralArticleForm = ({
   // Preview del archivo nuevo. El URL se crea y se revoca dentro del mismo
   // efecto: con useMemo, el doble montaje de StrictMode revocaba el blob de
   // la primera pasada y la miniatura quedaba rota.
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!imageFile) {
-      setImagePreview(null);
-      return;
-    }
-
-    const url = URL.createObjectURL(imageFile);
-    setImagePreview(url);
-
-    return () => URL.revokeObjectURL(url);
-  }, [imageFile]);
+  const imagePreview = useObjectUrl(imageFile);
 
   // El archivo recién elegido tiene prioridad sobre la imagen ya guardada.
   const currentImage = imagePreview ?? initialData?.image ?? null;
@@ -513,7 +501,9 @@ const CreateGeneralArticleForm = ({
           // fluye con el scroll del documento.
           inDialog && "flex-1",
         )}
-        onSubmit={form.handleSubmit(onSubmit, invalidFormHandler(FIELD_LABELS))}
+        onSubmit={(event) =>
+          form.handleSubmit(onSubmit, invalidFormHandler(FIELD_LABELS))(event)
+        }
       >
         <div
           className={cn("shrink-0 space-y-1", inDialog && "border-b px-6 py-4")}

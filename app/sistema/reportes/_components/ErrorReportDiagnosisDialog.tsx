@@ -45,6 +45,8 @@ import {
   httpStatusTone,
 } from "./errorReportChips";
 import { formatPhone } from "@/lib/phone";
+import ErrorReferenceBlock from "./ErrorReferenceBlock";
+import { useOnChange } from "@/hooks/useOnChange";
 
 interface ErrorReportDiagnosisDialogProps {
   open: boolean;
@@ -307,7 +309,7 @@ export default function ErrorReportDiagnosisDialog({
   const { addErrorReportImages } = useAddErrorReportImages();
   const { deleteErrorReportImage } = useDeleteErrorReportImage();
 
-  useEffect(() => {
+  useOnChange([open, report], () => {
     if (open) {
       setHttpStatus(report.http_status?.toString() ?? "");
       setTechnicalCause(report.technical_cause ?? "");
@@ -315,7 +317,22 @@ export default function ErrorReportDiagnosisDialog({
       setActiveTab("resumen");
       setLightboxIndex(null);
     }
-  }, [open, report]);
+  });
+
+  // Lo que el aviso observó (petición y detalle del servidor). Es el síntoma,
+  // no la causa: por eso se ofrece insertarlo y no se rellena solo.
+  const context = report.error_context;
+  const detectedByTheSystem = context
+    ? [
+        context.request &&
+          `Petición: ${context.request}${report.http_status_label ? ` → ${report.http_status_label}` : ""}`,
+        context.hint &&
+          !context.request?.endsWith(context.hint.replace(/^\w+\s+/, "")) &&
+          `Detalle del servidor: ${context.hint}`,
+      ]
+        .filter(Boolean)
+        .join("\n")
+    : "";
 
   const canEdit = report.status === "OPEN" || report.status === "IN_PROGRESS";
   const diagnosticSteps = Array.isArray(report.diagnostic_steps)
@@ -372,7 +389,7 @@ export default function ErrorReportDiagnosisDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[85vh] flex-col overflow-hidden p-0 sm:max-w-[620px]">
+      <DialogContent className="flex max-h-[85vh] flex-col overflow-hidden p-0 sm:max-w-155">
         {/* ───────── Sticky header ───────── */}
         <DialogHeader className="shrink-0 border-b border-slate-200/80 bg-linear-to-b from-slate-50 to-background px-6 pb-4 pt-6 dark:border-slate-800/80 dark:from-slate-900/40">
           <div className="flex items-start justify-between gap-3 pr-6">
@@ -449,10 +466,12 @@ export default function ErrorReportDiagnosisDialog({
                 {moduleLabel && <Chip tone="indigo">{moduleLabel}</Chip>}
                 {report.http_status_label && (
                   <Chip tone={httpStatusTone(report.http_status)}>
-                    {report.http_status} · {report.http_status_label}
+                    {report.http_status_label}
                   </Chip>
                 )}
               </div>
+
+              <ErrorReferenceBlock report={report} />
 
               <div className="space-y-1.5">
                 <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -509,9 +528,28 @@ export default function ErrorReportDiagnosisDialog({
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                      Causa técnica
-                    </Label>
+                    <div className="flex items-center justify-between gap-2">
+                      <Label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                        Causa técnica
+                      </Label>
+                      {detectedByTheSystem && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setTechnicalCause((current) =>
+                              current.trim()
+                                ? `${current.trimEnd()}
+
+${detectedByTheSystem}`
+                                : detectedByTheSystem,
+                            )
+                          }
+                          className="text-xs text-primary underline-offset-2 hover:underline"
+                        >
+                          Insertar lo que detectó el sistema
+                        </button>
+                      )}
+                    </div>
                     <ConsoleField
                       value={technicalCause}
                       onChange={setTechnicalCause}
@@ -598,7 +636,7 @@ export default function ErrorReportDiagnosisDialog({
                     </span>
                     {report.http_status_label ? (
                       <Chip tone={httpStatusTone(report.http_status)}>
-                        {report.http_status} · {report.http_status_label}
+                        {report.http_status_label}
                       </Chip>
                     ) : (
                       <span className="text-sm text-muted-foreground">—</span>

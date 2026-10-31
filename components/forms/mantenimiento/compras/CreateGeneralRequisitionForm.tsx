@@ -15,7 +15,7 @@ import { useGetEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetEmploy
 import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits";
 import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment";
 import { useGetThirdParties } from "@/hooks/general/terceros/useGetThirdParties";
-import { useGetAuthorizedEmployees } from "@/hooks/ajustes/autorizados/useGetAuthorizedEmployees";
+import { useGetExternalEmployees } from "@/hooks/ajustes/convenios/useGetExternalEmployees";
 import { useGetGeneralArticles } from "@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticles";
 import {
   getRequisitionArticleKey,
@@ -39,6 +39,7 @@ import { isHigherPriority, type Priority } from "./_components/priorityUtils";
 import { getStoragePathFromUrl } from "./_components/imageUtils";
 import { canAddRequisitionArticle } from "@/lib/purchases/requisition-article-limit";
 import { toCalendarPayload } from "@/lib/date";
+import { useResettingState } from "@/hooks/useResettingState";
 
 /* -------------------------------------------------------------------------- */
 /*                                   SCHEMA                                   */
@@ -58,25 +59,27 @@ const FormSchema = z.object({
     .refine((f) => f.size <= 5 * 1024 * 1024, "Máx 5MB")
     .refine(
       (f) => ["image/jpeg", "image/png"].includes(f.type),
-      "Solo JPG o PNG"
+      "Solo JPG o PNG",
     )
     .optional(),
-  general_articles: z.array(
-    z.object({
-      description: z.string().min(1, "La descripción es obligatoria"),
-      requested_date: z.string().optional(),
-      variant_type: z.string().nullable().optional(),
-      quantity: z.number().min(1, "La cantidad debe ser mayor a 0"),
-      unit_id: z.string().optional(),
-      priority: z.enum(["HIGH", "MEDIUM", "LOW"]).optional(),
-      image: z.any().optional(),
-      existing_image_path: z.string().optional(),
-      department_id: z.string().optional(),
-      third_party_id: z.string().optional(),
-      employee_id: z.string().optional(),
-      authorized_employee_id: z.string().optional(),
-    })
-  ).min(1, "Debe agregar al menos un artículo general"),
+  general_articles: z
+    .array(
+      z.object({
+        description: z.string().min(1, "La descripción es obligatoria"),
+        requested_date: z.string().optional(),
+        variant_type: z.string().nullable().optional(),
+        quantity: z.number().min(1, "La cantidad debe ser mayor a 0"),
+        unit_id: z.string().optional(),
+        priority: z.enum(["HIGH", "MEDIUM", "LOW"]).optional(),
+        image: z.any().optional(),
+        existing_image_path: z.string().optional(),
+        department_id: z.string().optional(),
+        third_party_id: z.string().optional(),
+        employee_id: z.string().optional(),
+        authorized_employee_id: z.string().optional(),
+      }),
+    )
+    .min(1, "Debe agregar al menos un artículo general"),
 });
 
 type FormSchemaType = z.infer<typeof FormSchema>;
@@ -104,8 +107,9 @@ export function CreateGeneralRequisitionForm({
   const { data: employees, isPending: employeesLoading } =
     useGetUserDepartamentEmployees(selectedCompany?.slug);
 
-  const { data: units, isLoading: isUnitsLoading } =
-    useGetUnits(selectedCompany?.slug);
+  const { data: units, isLoading: isUnitsLoading } = useGetUnits(
+    selectedCompany?.slug,
+  );
 
   const { data: departments, isLoading: isDepartmentsLoading } =
     useGetDepartments(selectedCompany?.slug);
@@ -113,11 +117,13 @@ export function CreateGeneralRequisitionForm({
   const { data: thirdParties, isLoading: isThirdPartiesLoading } =
     useGetThirdParties();
 
-  const { data: destinationEmployees, isLoading: isDestinationEmployeesLoading } =
-    useGetEmployeesByCompany(selectedCompany?.slug);
+  const {
+    data: destinationEmployees,
+    isLoading: isDestinationEmployeesLoading,
+  } = useGetEmployeesByCompany(selectedCompany?.slug);
 
   const { data: authorizedEmployees, isLoading: isAuthorizedEmployeesLoading } =
-    useGetAuthorizedEmployees(selectedCompany?.slug);
+    useGetExternalEmployees(selectedCompany?.slug, "purchases.requisition");
 
   const { data: generalArticles, isLoading: isGeneralArticlesLoading } =
     useGetGeneralArticles();
@@ -129,9 +135,17 @@ export function CreateGeneralRequisitionForm({
   const { createRequisition } = useCreateRequisition();
   const { updateRequisition } = useUpdateRequisition();
 
-  const [selectedGeneralArticles, setSelectedGeneralArticles] = useState<RequisitionGeneralArticleForm[]>([]);
+  const [selectedGeneralArticles, setSelectedGeneralArticles] =
+    useResettingState<RequisitionGeneralArticleForm[]>(
+      () =>
+        (initialData?.general_articles ??
+          []) as RequisitionGeneralArticleForm[],
+      [initialData],
+    );
   // Datos validados, en espera de que el usuario confirme los duplicados.
-  const [pendingSubmit, setPendingSubmit] = useState<FormSchemaType | null>(null);
+  const [pendingSubmit, setPendingSubmit] = useState<FormSchemaType | null>(
+    null,
+  );
 
   const [employeeSearch, setEmployeeSearch] = useState("");
   const [generalArticleSearch, setGeneralArticleSearch] = useState("");
@@ -141,7 +155,8 @@ export function CreateGeneralRequisitionForm({
     const query = employeeSearch.toLowerCase().trim();
     if (!query) return employees;
     return employees.filter((emp) => {
-      const searchText = `${emp.first_name} ${emp.last_name} ${emp.dni}`.toLowerCase();
+      const searchText =
+        `${emp.first_name} ${emp.last_name} ${emp.dni}`.toLowerCase();
       return searchText.includes(query);
     });
   }, [employees, employeeSearch]);
@@ -151,7 +166,8 @@ export function CreateGeneralRequisitionForm({
     const query = generalArticleSearch.toLowerCase().trim();
     if (!query) return generalArticles;
     return generalArticles.filter((article) => {
-      const searchText = `${article.description} ${article.variant_type ?? ""}`.toLowerCase();
+      const searchText =
+        `${article.description} ${article.variant_type ?? ""}`.toLowerCase();
       return searchText.includes(query);
     });
   }, [generalArticles, generalArticleSearch]);
@@ -174,14 +190,13 @@ export function CreateGeneralRequisitionForm({
     }
     if (initialData) {
       form.reset(initialData);
-      if (initialData.general_articles?.length) {
-        setSelectedGeneralArticles(initialData.general_articles as RequisitionGeneralArticleForm[]);
-      }
     }
   }, [user, selectedCompany, selectedStation, initialData, form]);
 
   useEffect(() => {
-    form.setValue("general_articles", selectedGeneralArticles, { shouldValidate: form.formState.isSubmitted });
+    form.setValue("general_articles", selectedGeneralArticles, {
+      shouldValidate: form.formState.isSubmitted,
+    });
   }, [selectedGeneralArticles, form]);
 
   /* ------------------------------- HANDLERS ------------------------------- */
@@ -190,8 +205,16 @@ export function CreateGeneralRequisitionForm({
   // solo en la marca, así que la identidad compara siempre los tres campos
   // juntos — nunca la descripción sola.
   const isSameGeneralArticle = (
-    a: { description: string; variant_type?: string | null; brand_model?: string | null },
-    b: { description: string; variant_type?: string | null; brand_model?: string | null }
+    a: {
+      description: string;
+      variant_type?: string | null;
+      brand_model?: string | null;
+    },
+    b: {
+      description: string;
+      variant_type?: string | null;
+      brand_model?: string | null;
+    },
   ) =>
     a.description === b.description &&
     (a.variant_type ?? "") === (b.variant_type ?? "") &&
@@ -225,10 +248,11 @@ export function CreateGeneralRequisitionForm({
   const handleGeneralArticleChange = (
     index: number,
     field: keyof RequisitionGeneralArticleForm,
-    value: any
+    value: any,
   ) => {
     if (field === "priority") {
-      const currentPriority = form.getValues("priority") as Priority | undefined;
+      const currentPriority = form.getValues("priority") as
+        Priority | undefined;
       if (isHigherPriority(value as Priority, currentPriority)) {
         form.setValue("priority", value);
       }
@@ -242,7 +266,7 @@ export function CreateGeneralRequisitionForm({
           return { ...article, image: value, existing_image_path: undefined };
         }
         return { ...article, [field]: value };
-      })
+      }),
     );
   };
 
@@ -269,18 +293,24 @@ export function CreateGeneralRequisitionForm({
   /* ------------------------------- SUBMIT --------------------------------- */
 
   /** Al enviar y no al seleccionar, para atrapar también los escritos a mano. */
-  const findDuplicateConflicts = (data: FormSchemaType): DuplicateRequisitionConflict[] =>
+  const findDuplicateConflicts = (
+    data: FormSchemaType,
+  ): DuplicateRequisitionConflict[] =>
     data.general_articles.flatMap((article) => {
       const entries = activeRequisitionsByArticle.get(
-        getRequisitionArticleKey(article.description, article.variant_type)
+        getRequisitionArticleKey(article.description, article.variant_type),
       );
 
       if (!entries?.length) return [];
 
-      return [{
-        label: [article.description, article.variant_type].filter(Boolean).join(" - "),
-        entries,
-      }];
+      return [
+        {
+          label: [article.description, article.variant_type]
+            .filter(Boolean)
+            .join(" - "),
+          entries,
+        },
+      ];
     });
 
   const submitRequisition = async (data: FormSchemaType) => {
@@ -289,8 +319,12 @@ export function CreateGeneralRequisitionForm({
     const formattedData = {
       ...data,
       type: "GENERAL" as const,
-      department_id: data.department_id ? Number(data.department_id) : undefined,
-      third_party_id: data.third_party_id ? Number(data.third_party_id) : undefined,
+      department_id: data.department_id
+        ? Number(data.department_id)
+        : undefined,
+      third_party_id: data.third_party_id
+        ? Number(data.third_party_id)
+        : undefined,
       general_articles: data.general_articles.map((article) => ({
         ...article,
         requested_date: article.requested_date ?? toCalendarPayload(new Date()),
@@ -302,9 +336,16 @@ export function CreateGeneralRequisitionForm({
     };
 
     if (isEditing) {
-      await updateRequisition.mutateAsync({ id: id!, data: formattedData, company: selectedCompany.slug });
+      await updateRequisition.mutateAsync({
+        id: id!,
+        data: formattedData,
+        company: selectedCompany.slug,
+      });
     } else {
-      await createRequisition.mutateAsync({ data: formattedData, company: selectedCompany.slug });
+      await createRequisition.mutateAsync({
+        data: formattedData,
+        company: selectedCompany.slug,
+      });
     }
 
     onClose();
@@ -378,9 +419,15 @@ export function CreateGeneralRequisitionForm({
         </div>
 
         <Button disabled={isPending} className="gap-2">
-          {isEditing
-            ? <><Pencil className="size-4" /> Editar Requisición</>
-            : <><Send className="size-4" /> Generar Requisición</>}
+          {isEditing ? (
+            <>
+              <Pencil className="size-4" /> Editar Requisición
+            </>
+          ) : (
+            <>
+              <Send className="size-4" /> Generar Requisición
+            </>
+          )}
           {isPending && <Loader2 className="size-4 animate-spin" />}
         </Button>
       </form>

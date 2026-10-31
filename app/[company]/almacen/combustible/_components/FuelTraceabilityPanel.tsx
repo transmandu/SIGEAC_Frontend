@@ -14,7 +14,7 @@ import { formatLiters, getFuelMovementLabel } from "@/lib/fuel";
 import { FuelMovement, FuelVehicle } from "@/types";
 import { format } from "date-fns";
 import { ChevronLeft, ChevronRight, Route } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 const DISPATCHES_PER_PAGE = 15;
 
@@ -33,14 +33,15 @@ export function FuelTraceabilityPanel({
     ),
   );
 
-  const [page, setPage] = useState(1);
-  const lastPage = Math.max(1, Math.ceil(dispatches.length / DISPATCHES_PER_PAGE));
+  const [requestedPage, setPage] = useState(1);
+  const lastPage = Math.max(
+    1,
+    Math.ceil(dispatches.length / DISPATCHES_PER_PAGE),
+  );
 
-  // Si el listado de despachos cambia (filtros, refetch) y la pagina actual
-  // queda fuera de rango, se vuelve a la primera.
-  useEffect(() => {
-    setPage((current) => Math.min(current, lastPage));
-  }, [lastPage]);
+  // Si el listado de despachos cambia (filtros, refetch) y la página pedida
+  // queda fuera de rango, se muestra la última que existe.
+  const page = Math.min(requestedPage, lastPage);
 
   const paginatedDispatches = dispatches.slice(
     (page - 1) * DISPATCHES_PER_PAGE,
@@ -81,40 +82,42 @@ export function FuelTraceabilityPanel({
             {paginatedDispatches.length ? (
               paginatedDispatches.map((movement) => {
                 const vehicle = movement.vehicle
-                  ? vehiclesById.get(movement.vehicle.id) ?? movement.vehicle
+                  ? (vehiclesById.get(movement.vehicle.id) ?? movement.vehicle)
                   : null;
                 return (
-                <TableRow key={movement.id}>
-                  <TableCell className="font-medium">
-                    {format(movement.operational_date, "dd/MM/yyyy")}
-                  </TableCell>
-                  <TableCell>{getFuelMovementLabel(movement.type)}</TableCell>
-                  <TableCell>
-                    {vehicle ? (
-                      <div className="flex flex-col">
-                        <span>{vehicle.plate || "Sin placa"}</span>
-                        {(vehicle.brand || vehicle.model || vehicle.color) && (
-                          <span className="text-xs text-muted-foreground">
-                            {[vehicle.brand, vehicle.model, vehicle.color]
-                              .filter(Boolean)
-                              .join(" ")}
-                          </span>
-                        )}
-                      </div>
-                    ) : (
-                      movement.third_party?.name || "Sin destino"
-                    )}
-                  </TableCell>
-                  <TableCell className="text-right font-mono tabular-nums">
-                    {formatLiters(movement.liters)}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <FuelMovementDetailDialog
-                      company={company}
-                      movement={movement}
-                    />
-                  </TableCell>
-                </TableRow>
+                  <TableRow key={movement.id}>
+                    <TableCell className="font-medium">
+                      {format(movement.operational_date, "dd/MM/yyyy")}
+                    </TableCell>
+                    <TableCell>{getFuelMovementLabel(movement.type)}</TableCell>
+                    <TableCell>
+                      {vehicle ? (
+                        <div className="flex flex-col">
+                          <span>{vehicle.plate || "Sin placa"}</span>
+                          {(vehicle.brand ||
+                            vehicle.model ||
+                            vehicle.color) && (
+                            <span className="text-xs text-muted-foreground">
+                              {[vehicle.brand, vehicle.model, vehicle.color]
+                                .filter(Boolean)
+                                .join(" ")}
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        movement.third_party?.name || "Sin destino"
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right font-mono tabular-nums">
+                      {formatLiters(movement.liters)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <FuelMovementDetailDialog
+                        company={company}
+                        movement={movement}
+                      />
+                    </TableCell>
+                  </TableRow>
                 );
               })
             ) : (
@@ -162,7 +165,9 @@ export function FuelTraceabilityPanel({
               variant="ghost"
               size="sm"
               className="h-8 gap-1 px-2"
-              onClick={() => setPage((current) => Math.min(lastPage, current + 1))}
+              onClick={() =>
+                setPage((current) => Math.min(lastPage, current + 1))
+              }
               disabled={page >= lastPage}
             >
               Siguiente

@@ -2,6 +2,7 @@ import axiosInstance from "@/lib/axios";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 interface ActivityCategoryData {
   name: string;
@@ -36,10 +37,8 @@ export const useCreateActivityCategory = () => {
         description: "La categoría de actividad se creó correctamente.",
       });
     },
-    onError: () => {
-      toast.error("Oops!", {
-        description: "No se pudo crear la categoría de actividad.",
-      });
+    onError: (error) => {
+      notifyError(error, { action: "crear la categoría de actividad" });
     },
   });
 
@@ -63,10 +62,8 @@ export const useUpdateActivityCategory = () => {
         description: "La categoría de actividad se actualizó correctamente.",
       });
     },
-    onError: () => {
-      toast.error("Oops!", {
-        description: "No se pudo actualizar la categoría de actividad.",
-      });
+    onError: (error) => {
+      notifyError(error, { action: "actualizar la categoría de actividad" });
     },
   });
 
@@ -90,10 +87,8 @@ export const useDeleteActivityCategory = () => {
         description: "La categoría de actividad se eliminó correctamente.",
       });
     },
-    onError: () => {
-      toast.error("Oops!", {
-        description: "No se pudo eliminar la categoría de actividad.",
-      });
+    onError: (error) => {
+      notifyError(error, { action: "eliminar la categoría de actividad" });
     },
   });
 

@@ -3,6 +3,7 @@ import axiosInstance from "@/lib/axios";
 import { ComponentAction } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
 
 /**
  * Iniciar y cerrar un cumplimiento, igual para los cuatro controles. Un ítem
@@ -82,13 +83,6 @@ export interface CloseComplianceData {
   next?: Partial<ComplianceStartFields>;
 }
 
-const firstBackendError = (error: any): string | undefined => {
-  const errors = error?.response?.data?.errors;
-  const firstMessage = errors && Object.values(errors).flat()[0];
-
-  return (firstMessage as string | undefined) ?? error?.response?.data?.message;
-};
-
 const useRefreshControls = (kind: ComplianceKind) => {
   const queryClient = useQueryClient();
 
@@ -126,10 +120,7 @@ export const useStartCompliance = (kind: ComplianceKind) => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          firstBackendError(error) || "No se pudo iniciar el cumplimiento...",
-      });
+      notifyError(error, { action: "iniciar el cumplimiento" });
       console.log(error);
     },
   });
@@ -164,10 +155,7 @@ export const useCloseCompliance = (kind: ComplianceKind) => {
       });
     },
     onError: (error: any) => {
-      toast.error("Oops!", {
-        description:
-          firstBackendError(error) || "No se pudo cerrar el cumplimiento...",
-      });
+      notifyError(error, { action: "cerrar el cumplimiento" });
       console.log(error);
     },
   });

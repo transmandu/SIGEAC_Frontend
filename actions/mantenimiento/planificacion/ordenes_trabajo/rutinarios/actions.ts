@@ -3,6 +3,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { string } from "zod";
+import { notifyError } from "@/lib/notify-error";
 
 export const useUpdateWorkOrderTaskStatus = () => {
   const queryClient = useQueryClient();
@@ -19,7 +20,7 @@ export const useUpdateWorkOrderTaskStatus = () => {
     }) => {
       await axiosInstance.put(
         `/${company}/update-status-work-order-task/${task_id}`,
-        { status }
+        { status },
       );
     },
     onSuccess: () => {
@@ -29,9 +30,7 @@ export const useUpdateWorkOrderTaskStatus = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo cerrar la tarea...",
-      });
+      notifyError(error, { action: "cerrar la tarea" });
       console.log(error);
     },
   });
@@ -58,7 +57,7 @@ export const useUpdateWorkOrderTask = () => {
     }) => {
       await axiosInstance.put(
         `/${company}/update-work-order-task/${data.id}`,
-        data
+        data,
       );
     },
     onSuccess: () => {
@@ -72,9 +71,7 @@ export const useUpdateWorkOrderTask = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo actualizada la tarea...",
-      });
+      notifyError(error);
     },
   });
   return {
@@ -107,7 +104,7 @@ export const useAddWorkOrderTask = () => {
     }) => {
       await axiosInstance.post(
         `/${selectedCompany?.slug}/${work_order_id}/store-work-order-task`,
-        data
+        data,
       );
     },
     onSuccess: () => {
@@ -121,9 +118,7 @@ export const useAddWorkOrderTask = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo actualizada la tarea...",
-      });
+      notifyError(error);
     },
   });
   return {
@@ -151,7 +146,7 @@ export const useCreateTaskEvents = () => {
     }) => {
       await axiosInstance.post(
         `/${selectedCompany?.slug}/${task_id}/store-work-order-task-event`,
-        data
+        data,
       );
     },
     onSuccess: () => {
@@ -165,9 +160,7 @@ export const useCreateTaskEvents = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", {
-        description: "No se pudo actualizada la tarea...",
-      });
+      notifyError(error);
     },
   });
   return {

@@ -671,6 +671,8 @@ export type MaintenanceControlSnapshotItem = {
 export type MaintenanceControlSnapshotPart = {
   id: number;
   type: string | null;
+  /** Posición asignada en la aeronave; fija qué parte es "Motor 1". */
+  part_order: number | null;
   manufacturer: string | null;
   part_number: string | null;
   serial: string | null;
@@ -678,9 +680,21 @@ export type MaintenanceControlSnapshotPart = {
   csn: number | null;
 };
 
-export type MaintenanceControlSnapshot = {
+/** Lo común de los cuatro snapshots: corte, aeronave, partes y parámetros del control. */
+export type ControlSnapshotBase = {
   as_of: string;
-  control: { id: number; title: string };
+  control: {
+    id: number;
+    title: string;
+    remaining_percentage: number;
+    has_percentage_overrides: boolean;
+  };
+  /** Promedio diario de los 30 días previos al corte; null sin matrícula. */
+  daily_average: {
+    daily_average_hours: number;
+    daily_average_cycles: number;
+    days_considered: number;
+  } | null;
   aircraft: {
     acronym: string;
     manufacturer: string | null;
@@ -689,8 +703,85 @@ export type MaintenanceControlSnapshot = {
     flight_hours: number;
     flight_cycles: number;
   };
+  /** Ya en el orden del control en vivo (tipo, `part_order`, id). */
   parts: MaintenanceControlSnapshotPart[];
+};
+
+export type MaintenanceControlSnapshot = ControlSnapshotBase & {
   items: MaintenanceControlSnapshotItem[];
+};
+
+/** Una AD a la fecha consultada (DirectiveControlSnapshotService). */
+export type DirectiveControlSnapshotItem = {
+  id: number;
+  ad_number: string;
+  authority: DirectiveAuthority;
+  revision: string | null;
+  description: string;
+  declared_description?: string | null;
+  reference_document: string | null;
+  compliance_method: string | null;
+  compliance_type: DirectiveComplianceType;
+  remaining_percentage: number | string | null;
+  aircraft_part_id: number | null;
+  /** A esa fecha tenía un cumplimiento vigente (con o sin plazo). */
+  has_current_compliance: boolean;
+  /** null = sin reloj: cumplida (única vez), sin cumplimiento vigente o sin plazo. */
+  computed: MaintenanceControlItemComputed | null;
+  /** Fecha en que se cumplió, si era de única vez y ya estaba cumplida a esa fecha. */
+  complied_at: string | null;
+  complied_method: string | null;
+  complied_provider: string | null;
+};
+
+export type DirectiveControlSnapshot = ControlSnapshotBase & {
+  items: DirectiveControlSnapshotItem[];
+};
+
+/** Un componente a la fecha consultada (ComponentControlSnapshotService). */
+export type ComponentControlSnapshotItem = {
+  id: number;
+  description: string;
+  declared_description?: string | null;
+  part_number: string;
+  serial: string;
+  position: string | null;
+  action: ComponentAction;
+  flags: ControlItemFlag[];
+  remaining_percentage: number | string | null;
+  limit_kinds: ComponentLimitKind[];
+  aircraft_part_id: number | null;
+  computed: MaintenanceControlItemComputed | null;
+};
+
+export type ComponentControlSnapshot = ControlSnapshotBase & {
+  items: ComponentControlSnapshotItem[];
+};
+
+/** Una tarea de un equipo de aviónica a la fecha consultada. */
+export type AvionicsControlSnapshotTask = {
+  id: number;
+  action: AvionicsAction;
+  is_on_condition: boolean;
+  remaining_percentage: number | string | null;
+  /** null = por condición, o sin cumplimiento vigente a esa fecha. */
+  computed: MaintenanceControlItemComputed | null;
+};
+
+export type AvionicsControlSnapshotItem = {
+  id: number;
+  description: string;
+  declared_description?: string | null;
+  part_number: string;
+  serial: string;
+  position: string | null;
+  reference_document: string | null;
+  flags: ControlItemFlag[];
+  tasks: AvionicsControlSnapshotTask[];
+};
+
+export type AvionicsControlSnapshot = ControlSnapshotBase & {
+  items: AvionicsControlSnapshotItem[];
 };
 
 // ─── Bandeja de trabajo ─────────────────────────────────────────────────────
@@ -1457,6 +1548,8 @@ export type Unit = {
   label: string;
   /** Habilita la unidad para declarar medidas en artículos dimensionados. */
   is_dimensional?: boolean;
+  /** Se despacha por fracciones (1/2, 1/4… de galón): atajos y escritura «1/2» en las salidas. */
+  allows_fractions?: boolean;
   updated_by: string;
   registered_by: string;
   created_at: Date;
@@ -2159,6 +2252,41 @@ export interface SMSCertificate {
     name: string;
   };
 }
+
+/** Estado de una carga masiva de certificados (job en cola). */
+export type SMSCertificateImportStatus =
+  "queued" | "running" | "completed" | "failed";
+
+export interface SMSCertificateImportResult {
+  /** Nombre original del PDF. */
+  file: string;
+  /** DNI leído del nombre del archivo. */
+  dni: string | null;
+  /** Empleado al que se asignó, si se encontró. */
+  employee: string | null;
+  status: "imported" | "failed";
+  /** Motivo del fallo, solo cuando `status` es `failed`. */
+  message: string | null;
+}
+
+export interface SMSCertificateImport {
+  id: string;
+  status: SMSCertificateImportStatus;
+  course_id: number;
+  course_name: string;
+  completion_date: string;
+  total: number;
+  processed: number;
+  imported: number;
+  failed: number;
+  percentage: number;
+  results: SMSCertificateImportResult[];
+  error: string | null;
+  created_at: string;
+  updated_at: string;
+  started_at: string | null;
+  finished_at: string | null;
+}
 export interface ShippingAgency {
   id: number;
   name: string;
@@ -2263,6 +2391,65 @@ export type CargoManifestItem = {
   units_in_manifest: number;
   shipment?: CargoShipment;
   shipmentItem?: CargoShipmentItem;
+};
+
+export type CargoCharge = {
+  id: number;
+  manifest_id: number;
+  cargo_shipment_id: number;
+  billing_date: string;
+  guide_number: string;
+  aircraft_model: string | null;
+  aircraft_registration: string | null;
+  weight: number;
+  route: string | null;
+  concept: string | null;
+  charge_type: string;
+  tariff: number | null;
+  total_amount: number;
+  amount_paid: number;
+  pending_amount: number;
+  updated_by: string | null;
+  // Conciliación: el saldo guardado contra la caja (suma de abonos).
+  // Vienen en null cuando la consulta no trajo la caja (por ejemplo, en la
+  // respuesta del guardado en lote).
+  abonos_total: number | null;
+  diferencia: number | null;
+  estado: "reconciled" | "saldo_sin_abono" | "abono_sin_saldo" | null;
+  reconciled_at: string | null;
+  reconciled_by: string | null;
+  reconciliation_note: string | null;
+};
+
+export type CargoBillingClientSummary = {
+  id: number;
+  name: string;
+  dni: string;
+  total_services: number;
+  total_pending: number;
+};
+
+export type CargoChargesResponse = {
+  client: AirlineClient;
+  charges: CargoCharge[];
+  summary: {
+    total_services: number;
+    total_pending: number;
+    unreconciled_count: number;
+    unreconciled_amount: number;
+  };
+};
+
+export type CargoChargePayment = {
+  id: number;
+  cargo_charge_id: number;
+  amount: number;
+  concept: string | null;
+  payment_method_id: number | null;
+  registered_by: string;
+  created_at: string;
+  charge?: { id: number; guide_number: string };
+  payment_method?: { id: number; name: string } | null;
 };
 
 export type FuelVehicleStatus = "active" | "inactive";
@@ -2442,6 +2629,18 @@ export type ErrorReportImage = {
   image_url: string;
 };
 
+export type ErrorReportContextData = {
+  title?: string;
+  message?: string;
+  hint?: string;
+  kind?: string;
+  request?: string;
+  user_agent?: string;
+  viewport?: string;
+  language?: string;
+  online?: boolean;
+};
+
 export type ErrorReport = {
   id: number;
   reported_by: string;
@@ -2454,6 +2653,13 @@ export type ErrorReport = {
   severity: ErrorReportSeverity | null;
   http_status: number | null;
   http_status_label: string | null;
+  /** Código del aviso de error desde el que se reportó (`ERR-XXXXXX`); es el mismo del log. */
+  error_reference: string | null;
+  error_code: string | null;
+  /** Pantalla donde ocurrió, sin dominio. */
+  page_url: string | null;
+  /** Lo técnico del aviso (solo lo devuelve la API a SUPERUSER). */
+  error_context?: ErrorReportContextData | null;
   technical_cause: string | null;
   diagnostic_steps: string[] | null;
   duplicate_count: number;
@@ -2498,7 +2704,9 @@ export type ChangeStatus =
   | "EN_EJECUCION"
   | "CERRADO";
 
-export type TolerabilityLevel = "acceptable" | "tolerable" | "intolerable";
+export type TolerabilityLevel = "aceptable" | "tolerable" | "intolerable";
+
+export type RiskLevel = "bajo" | "moderado" | "alto" | "extremo";
 
 export type PhotographicStage = "before" | "after";
 
@@ -2526,7 +2734,13 @@ export type ChangeRiskAssessment = {
   hazard_description: string;
   probability_value: number;
   severity_value: string;
-  risk_index: string;
+  /**
+   * Evaluaciones nuevas: probabilidad (1-5) x severidad (A=5 ... E=1), 1-25.
+   * Historicas: celda de la matriz anterior, por ejemplo "2B".
+   */
+  risk_index: number | string;
+  /** null en evaluaciones historicas: conservan la matriz anterior. */
+  risk_level: RiskLevel | null;
   tolerability_level: TolerabilityLevel;
   created_at: string;
   updated_at: string;

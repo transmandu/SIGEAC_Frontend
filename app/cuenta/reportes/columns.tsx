@@ -12,7 +12,10 @@ import {
 import { ErrorReport } from "@/types";
 import { format } from "date-fns";
 import { AlertTriangle, CheckCircle2, Clock, Eye } from "lucide-react";
-import { Chip, STATUS_CHIP } from "@/app/sistema/reportes/_components/errorReportChips";
+import {
+  Chip,
+  STATUS_CHIP,
+} from "@/app/sistema/reportes/_components/errorReportChips";
 
 const STATUS_ICON: Record<ErrorReport["status"], typeof AlertTriangle> = {
   OPEN: AlertTriangle,
@@ -21,7 +24,7 @@ const STATUS_ICON: Record<ErrorReport["status"], typeof AlertTriangle> = {
 };
 
 export const getColumns = (
-  onViewDetail: (report: ErrorReport) => void
+  onViewDetail: (report: ErrorReport) => void,
 ): AppColumnDef<ErrorReport>[] => [
   {
     accessorKey: "reported_at",
@@ -44,7 +47,7 @@ export const getColumns = (
         <TooltipProvider disableHoverableContent>
           <Tooltip delayDuration={200}>
             <TooltipTrigger asChild>
-              <p className="max-w-[280px] truncate text-sm">{description}</p>
+              <p className="max-w-70 truncate text-sm">{description}</p>
             </TooltipTrigger>
             <TooltipContent className="max-w-sm whitespace-pre-wrap">
               {description}
@@ -58,7 +61,9 @@ export const getColumns = (
     accessorKey: "module",
     header: "Módulo",
     cell: ({ row }) => (
-      <span className="text-sm text-muted-foreground">{row.original.module ?? "—"}</span>
+      <span className="text-sm text-muted-foreground">
+        {row.original.module ?? "—"}
+      </span>
     ),
   },
   {
