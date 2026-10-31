@@ -5,7 +5,7 @@ import {
   useRemoveCompanyFromUser,
 } from "@/actions/sistema/usuarios/actions";
 import { useGetCompanies } from "@/hooks/sistema/useGetCompanies";
-import { useLocationsOfCompany } from "@/hooks/sistema/useGetLocationsByCompanyId";
+import { useGetLocationsByCompany } from "@/hooks/sistema/useGetLocationsByCompany";
 import { useResettingState } from "@/hooks/useResettingState";
 import { User } from "@/types";
 import { cn } from "@/lib/utils";
@@ -41,10 +41,11 @@ const UserCompaniesTab = ({ user }: { user: User }) => {
   const { removeCompany } = useRemoveCompanyFromUser();
 
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>("");
+  const selectedCompanySlug = allCompanies?.find(
+    (company) => String(company.id) === selectedCompanyId,
+  )?.slug;
   const { data: locations, isFetching: loadingLocations } =
-    useLocationsOfCompany(
-      selectedCompanyId ? Number(selectedCompanyId) : undefined,
-    );
+    useGetLocationsByCompany(selectedCompanySlug);
   const availableLocations = locations ?? [];
   // Las sedes elegidas pertenecen a la compañía elegida: al cambiarla se vacían.
   const [selectedLocationIds, setSelectedLocationIds] = useResettingState<

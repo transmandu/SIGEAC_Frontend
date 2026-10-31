@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useGetEmployesByDepartment } from "@/hooks/ajustes/empleados/useGetEmployeesByDepartment";
+import { useGetEmployeesByDepartment } from "@/hooks/sistema/useGetEmployeesByDepartment";
 import {
   Tooltip,
   TooltipContent,
@@ -66,9 +66,9 @@ const ChangeManagementActions = ({
   const [approvedById, setApprovedById] = useState<string>("");
 
   const { data: smsEmployees, isLoading: isLoadingSmsEmployees } =
-    useGetEmployesByDepartment("SMS", selectedStation, selectedCompany?.slug);
+    useGetEmployeesByDepartment("SMS", selectedStation, selectedCompany?.slug);
   const { data: preEmployees, isLoading: isLoadingPreEmployees } =
-    useGetEmployesByDepartment("PRE", selectedStation, selectedCompany?.slug);
+    useGetEmployeesByDepartment("PRE", selectedStation, selectedCompany?.slug);
 
   const handleDelete = async () => {
     if (!selectedCompany) return;

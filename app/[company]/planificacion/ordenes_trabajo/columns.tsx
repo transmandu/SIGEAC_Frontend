@@ -1,17 +1,17 @@
-"use client"
+"use client";
 
 import { type AppColumnDef } from "@/lib/table";
 
-import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
+import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 
-import WorkOrderDropdownActions from "@/components/dropdowns/mantenimiento/ordenes_trabajo/WorkOrderDropdownActionts"
-import { Badge } from "@/components/ui/badge"
-import { Checkbox } from "@/components/ui/checkbox"
-import { WorkOrder } from "@/types"
-import { format, parseISO } from "date-fns"
-import { es } from "date-fns/locale"
-import Link from "next/link"
-import { workOrderStatusLabelEsUpper } from "@/lib/planificacion/statuses"
+import WorkOrderDropdownActions from "@/components/dropdowns/mantenimiento/ordenes_trabajo/WorkOrderDropdownActionts";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { WorkOrder } from "@/types";
+import { format, parseISO } from "date-fns";
+import { es } from "date-fns/locale";
+import { CompanyLink } from "@/components/misc/CompanyLink";
+import { workOrderStatusLabelEsUpper } from "@/lib/planificacion/statuses";
 
 export const columns: AppColumnDef<WorkOrder>[] = [
   {
@@ -43,12 +43,12 @@ export const columns: AppColumnDef<WorkOrder>[] = [
     ),
     cell: ({ row }) => {
       return (
-        <Link
-          href={`/hangar74/planificacion/ordenes_trabajo/${row.original.order_number}`}
+        <CompanyLink
+          to={`planificacion/ordenes_trabajo/${row.original.order_number}`}
           className="font-medium flex justify-center hover:scale-105 hover:text-blue-600 transition-all ease-in cursor-pointer duration-150"
         >
           {row.original.order_number}
-        </Link>
+        </CompanyLink>
       );
     },
   },
@@ -59,12 +59,12 @@ export const columns: AppColumnDef<WorkOrder>[] = [
     ),
     cell: ({ row }) => {
       return (
-        <Link
-          href={`/hangar74/planificacion/aeronaves`}
+        <CompanyLink
+          to="planificacion/aeronaves"
           className="font-medium flex justify-center hover:scale-105 hover:text-blue-600 transition-all ease-in cursor-pointer duration-150"
         >
           {row.original.aircraft.acronym}
-        </Link>
+        </CompanyLink>
       );
     },
   },
@@ -121,7 +121,9 @@ export const columns: AppColumnDef<WorkOrder>[] = [
       <DataTableColumnHeader column={column} title="Nº de Items" />
     ),
     cell: ({ row }) => (
-      <p className="flex justify-center">{row.original.work_order_tasks.length ?? "N/A"}</p>
+      <p className="flex justify-center">
+        {row.original.work_order_tasks.length ?? "N/A"}
+      </p>
     ),
   },
   {

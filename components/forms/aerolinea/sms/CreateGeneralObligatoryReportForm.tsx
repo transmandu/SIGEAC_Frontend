@@ -42,7 +42,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { useGetAircraftAcronyms } from "@/hooks/aerolinea/aeronaves/useGetAircraftAcronyms";
-import { useGetPilots } from "@/hooks/sms/useGetPilots";
+import { useGetPilotNames } from "@/hooks/sms/useGetPilotNames";
 import { cn } from "@/lib/utils";
 import { ObligatoryReport } from "@/types";
 import { format } from "date-fns";
@@ -180,7 +180,8 @@ export function CreateGeneralObligatoryReportForm({
     return []; // Devuelve un array vacío si initialData?.incidents es null o undefined
   });
 
-  const { data: pilots, isLoading: isLoadingPilots } = useGetPilots(company);
+  const { data: pilots, isLoading: isLoadingPilots } =
+    useGetPilotNames(company);
   const { data: aircrafts, isLoading: isLoadingAircrafts } =
     useGetAircraftAcronyms(company);
 
@@ -262,7 +263,7 @@ export function CreateGeneralObligatoryReportForm({
     };
 
     try {
-      await createObligatoryReport.mutateAsync(value);
+      await createObligatoryReport.mutateAsync({ company, data: value });
       setIsSubmitted(true);
     } catch (error) {
       console.error("Error al crear reporte:", error);

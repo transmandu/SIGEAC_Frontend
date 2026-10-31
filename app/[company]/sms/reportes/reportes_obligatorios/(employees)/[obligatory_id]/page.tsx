@@ -72,7 +72,7 @@ const ShowObligatoryReport = () => {
           obligatoryReport.danger_identification?.id && (
             <Button variant="outline" size="sm" className="h-9 w-full" asChild>
               <Link
-                href={`/transmandu/sms/gestion_reportes/peligros_identificados/${obligatoryReport.danger_identification.id}`}
+                href={`/${selectedCompany?.slug}/sms/gestion_reportes/peligros_identificados/${obligatoryReport.danger_identification.id}`}
               >
                 Ver Identificación
               </Link>

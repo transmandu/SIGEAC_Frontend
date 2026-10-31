@@ -86,7 +86,7 @@ const VoluntaryReportDropdownActions = ({
 
   const handleCreateIdentification = () => {
     router.push(
-      `/transmandu/sms/gestion_reportes/peligros_identificados/crear_identificacion?reporteId=${voluntaryReport.id}`,
+      `/${selectedCompany?.slug}/sms/gestion_reportes/peligros_identificados/crear_identificacion?reporteId=${voluntaryReport.id}`,
     );
   };
 
@@ -142,7 +142,7 @@ const VoluntaryReportDropdownActions = ({
                 <DropdownMenuItem
                   onClick={() => {
                     router.push(
-                      `/transmandu/sms/reportes/reportes_voluntarios/${voluntaryReport.id}`,
+                      `/${selectedCompany?.slug}/sms/reportes/reportes_voluntarios/${voluntaryReport.id}`,
                     );
                   }}
                 >

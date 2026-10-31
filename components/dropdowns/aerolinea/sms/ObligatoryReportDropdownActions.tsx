@@ -138,7 +138,7 @@ const ObligatoryReportDropdownActions = ({
                 <DropdownMenuItem
                   onClick={() => {
                     router.push(
-                      `/transmandu/sms/reportes/reportes_obligatorios/${obligatoryReport.id}`,
+                      `/${selectedCompany?.slug}/sms/reportes/reportes_obligatorios/${obligatoryReport.id}`,
                     );
                   }}
                 >

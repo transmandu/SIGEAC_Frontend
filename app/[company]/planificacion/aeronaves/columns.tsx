@@ -20,7 +20,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import Link from "next/link";
+import { CompanyLink } from "@/components/misc/CompanyLink";
 import { AeronauticalAircraft } from "@/types";
 import MaintenanceAircraftDropdownActions from "@/components/dropdowns/mantenimiento/ordenes_trabajo/MaintenanceAircraftDropdownActions";
 import { formatNumber } from "@/lib/formatNumber";
@@ -57,12 +57,12 @@ export const columns: AppColumnDef<AeronauticalAircraft>[] = [
       <DataTableColumnHeader filter column={column} title="Matricula" />
     ),
     cell: ({ row }) => (
-      <Link
-        href={`/estelar/planificacion/aeronaves`}
+      <CompanyLink
+        to="planificacion/aeronaves"
         className="flex justify-center font-bold italic"
       >
         {row.original.acronym}
-      </Link>
+      </CompanyLink>
     ),
   },
   {

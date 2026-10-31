@@ -3,7 +3,7 @@ import { useCreateRequisition } from "@/actions/mantenimiento/compras/requisicio
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { useAuth } from "@/contexts/AuthContext";
-import { useGetBatchesByLocationId } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByLocationId";
+import { useGetBatchesByLocation } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByLocation";
 import {
   useSearchBatchesWithArticles,
   type BatchWithArticles,
@@ -80,14 +80,13 @@ interface FormProps {
 export function CreateAeronauticalRequisitionForm({ onClose }: FormProps) {
   const { user } = useAuth();
 
-  const {
-    mutate,
-    mutateAsync,
-    data: batches,
-    isPending: isBatchesLoading,
-  } = useGetBatchesByLocationId();
-
   const { selectedCompany, selectedStation } = useCompanyStore();
+
+  const {
+    data: batches,
+    isLoading: isBatchesLoading,
+    refetch: refetchBatches,
+  } = useGetBatchesByLocation(selectedCompany?.slug, selectedStation);
 
   // Solicitantes base: mantenimiento, almacén e ingeniería (ambas sedes; el
   // backend acota por location_id). Si el usuario pertenece a otro departamento
@@ -218,15 +217,6 @@ export function CreateAeronauticalRequisitionForm({ onClose }: FormProps) {
       form.setValue("location_id", selectedStation);
     }
   }, [user, form, selectedCompany, selectedStation]);
-
-  useEffect(() => {
-    if (selectedStation) {
-      mutate({
-        location_id: Number(selectedStation),
-        company: selectedCompany?.slug,
-      });
-    }
-  }, [selectedStation, mutate, selectedCompany]);
 
   useEffect(() => {
     form.setValue("articles", selectedBatches, {
@@ -460,11 +450,8 @@ export function CreateAeronauticalRequisitionForm({ onClose }: FormProps) {
 
   const handleBatchCreated = async (batchName: string) => {
     if (!selectedStation) return;
-    const updatedBatches = await mutateAsync({
-      location_id: Number(selectedStation),
-      company: selectedCompany?.slug,
-    });
-    const newBatch = updatedBatches.find((b) => b.name === batchName);
+    const { data: updatedBatches } = await refetchBatches();
+    const newBatch = updatedBatches?.find((b) => b.name === batchName);
     if (newBatch) {
       handleBatchSelect(
         newBatch.name,

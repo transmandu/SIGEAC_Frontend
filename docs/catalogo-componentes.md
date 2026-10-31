@@ -121,6 +121,7 @@ Complementos en `ui/`: `DataTableColumHeader`, y en la raíz `DataTableMixedSort
 | `AmountInput` | `misc/` | Montos con formato de moneda |
 | `MultiInputField` | `misc/` | Lista de valores repetibles |
 | `CompanyMultiSelect` | `misc/` | Selección múltiple de empresas |
+| `CompanyLink` | `misc/` | Enlace dentro de la compañía de la URL (`to="modulo/pantalla"`), para celdas de tabla |
 | `PaymentMethodMultiSelect` | `misc/` | Métodos de pago |
 
 ### Filtros y utilidades
@@ -888,7 +889,6 @@ varios módulos significa que es transversal; **huérfano** significa cero consu
 
 | Componente | Ruta | Usado por | Líneas |
 |---|---|---|---|
-| `_(sin export nombrado)_` | `cards/ChildrenInfoCard.tsx` | **huérfano** | 64 |
 | `getMonthByNumber` | `cards/ConfigMonths.tsx` | administracion, ajustes | 29 |
 | `CustomCard` | `cards/CustomCard.tsx` | _app_root | 96 |
 | `_(sin export nombrado)_` | `cards/FatureCard.tsx` | **huérfano** | 41 |

@@ -7,7 +7,7 @@ import { PlaneTakeoff, Settings2 } from "lucide-react";
 import { motion } from "motion/react";
 
 import { useAuth } from "@/contexts/AuthContext";
-import { useGetUserLocationsByCompanyId } from "@/hooks/sistema/usuario/useGetUserLocationsByCompanyId";
+import { fetchUserLocations } from "@/hooks/sistema/usuario/useGetUserLocations";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
 import { resolveLandingPath } from "@/lib/postLoginRedirect";
@@ -51,8 +51,6 @@ const CompanyBootstrapSession = () => {
     setSelectedStation,
     reset,
   } = useCompanyStore();
-
-  const { mutateAsync: getLocations } = useGetUserLocationsByCompanyId();
 
   const hydrated = useSyncExternalStore(
     subscribeToCompanyStore,
@@ -130,7 +128,7 @@ const CompanyBootstrapSession = () => {
         }
 
         try {
-          const locations = await getLocations(selectedCompany.id);
+          const locations = await fetchUserLocations(selectedCompany.slug);
 
           if (!locations?.length) {
             discardSelection(selectedCompany.id);
@@ -185,7 +183,7 @@ const CompanyBootstrapSession = () => {
       const company = selectedCompany;
 
       try {
-        const locations = await getLocations(company.id);
+        const locations = await fetchUserLocations(company.slug);
 
         if (!locations?.length) return;
 
@@ -229,7 +227,6 @@ const CompanyBootstrapSession = () => {
     userLoading,
     selectedCompany,
     selectedStation,
-    getLocations,
     setSelectedCompany,
     setSelectedStation,
     reset,

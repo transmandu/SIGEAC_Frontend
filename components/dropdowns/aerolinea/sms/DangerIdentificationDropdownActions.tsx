@@ -71,27 +71,28 @@ const DangerIdentificationDropdownActions = ({
 
   const canEdit = status === "ABIERTO";
   const canDelete = status === "ABIERTO";
-  const canCreateAnalysis = dangerIdentification && !dangerIdentification.analysis;
+  const canCreateAnalysis =
+    dangerIdentification && !dangerIdentification.analysis;
   const canEditAnalysis =
-    dangerIdentification && dangerIdentification.analysis && status !== "CERRADO";
+    dangerIdentification &&
+    dangerIdentification.analysis &&
+    status !== "CERRADO";
 
   const [hoveredTooltip, setHoveredTooltip] = useState<string | null>(null);
 
   const tooltipHandler = (name: string) => ({
     onMouseEnter: () => setHoveredTooltip(name),
-    onMouseLeave: () => setHoveredTooltip((prev) => (prev === name ? null : prev)),
+    onMouseLeave: () =>
+      setHoveredTooltip((prev) => (prev === name ? null : prev)),
   });
 
   const renderTooltipIcon = (
     name: string,
     label: string,
-    children: ReactNode
+    children: ReactNode,
   ) => (
     <Tooltip open={hoveredTooltip === name}>
-      <TooltipTrigger
-        asChild
-        {...tooltipHandler(name)}
-      >
+      <TooltipTrigger asChild {...tooltipHandler(name)}>
         {children}
       </TooltipTrigger>
       <TooltipContent>{label}</TooltipContent>
@@ -109,84 +110,81 @@ const DangerIdentificationDropdownActions = ({
             </Button>
           </PopoverTrigger>
 
-          <PopoverContent
-            align="end"
-            className="w-auto p-1.5 border-border/60"
-          >
-              <div className="flex items-center gap-0.5">
-                {canEdit &&
-                  renderTooltipIcon(
-                    "edit",
-                    "Editar",
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={() => setOpenEdit(true)}
-                    >
-                      <ClipboardPen className="size-4" />
-                    </Button>
-                  )}
-
-                {canDelete &&
-                  renderTooltipIcon(
-                    "delete",
-                    "Eliminar",
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={() => setOpenDelete(true)}
-                    >
-                      <Trash2 className="size-4 text-red-500" />
-                    </Button>
-                  )}
-
-                {renderTooltipIcon(
-                  "view",
-                  "Ver",
+          <PopoverContent align="end" className="w-auto p-1.5 border-border/60">
+            <div className="flex items-center gap-0.5">
+              {canEdit &&
+                renderTooltipIcon(
+                  "edit",
+                  "Editar",
                   <Button
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8"
-                    onClick={() => {
-                      router.push(
-                        `/transmandu/sms/gestion_reportes/peligros_identificados/${dangerIdentification.id}`
-                      );
-                    }}
+                    onClick={() => setOpenEdit(true)}
                   >
-                    <EyeIcon className="size-4" />
-                  </Button>
+                    <ClipboardPen className="size-4" />
+                  </Button>,
                 )}
 
-                {canCreateAnalysis &&
-                  renderTooltipIcon(
-                    "create-analysis",
-                    "Crear Analisis",
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={() => setOpenCreateAnalysis(true)}
-                    >
-                      <ClipboardPenLine className="size-4" />
-                    </Button>
-                  )}
+              {canDelete &&
+                renderTooltipIcon(
+                  "delete",
+                  "Eliminar",
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => setOpenDelete(true)}
+                  >
+                    <Trash2 className="size-4 text-red-500" />
+                  </Button>,
+                )}
 
-                {canEditAnalysis &&
-                  renderTooltipIcon(
-                    "edit-analysis",
-                    "Editar Analisis",
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={() => setOpenEditAnalyses(true)}
-                    >
-                      <ClipboardPenLine className="size-4" />
-                    </Button>
-                  )}
-              </div>
+              {renderTooltipIcon(
+                "view",
+                "Ver",
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => {
+                    router.push(
+                      `/${selectedCompany?.slug}/sms/gestion_reportes/peligros_identificados/${dangerIdentification.id}`,
+                    );
+                  }}
+                >
+                  <EyeIcon className="size-4" />
+                </Button>,
+              )}
+
+              {canCreateAnalysis &&
+                renderTooltipIcon(
+                  "create-analysis",
+                  "Crear Analisis",
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => setOpenCreateAnalysis(true)}
+                  >
+                    <ClipboardPenLine className="size-4" />
+                  </Button>,
+                )}
+
+              {canEditAnalysis &&
+                renderTooltipIcon(
+                  "edit-analysis",
+                  "Editar Analisis",
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => setOpenEditAnalyses(true)}
+                  >
+                    <ClipboardPenLine className="size-4" />
+                  </Button>,
+                )}
+            </div>
           </PopoverContent>
         </Popover>
       </div>

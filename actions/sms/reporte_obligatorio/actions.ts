@@ -65,9 +65,15 @@ interface NextNumberResponse {
 export const useCreateObligatoryReport = () => {
   const queryClient = useQueryClient();
   const createMutation = useMutation({
-    mutationFn: async (data: ObligatoryReportData) => {
+    mutationFn: async ({
+      company,
+      data,
+    }: {
+      company: string;
+      data: ObligatoryReportData;
+    }) => {
       const response = await axiosInstance.post(
-        "/transmandu/sms/obligatory-reports",
+        `/${company}/sms/obligatory-reports`,
         data,
         {
           headers: {

@@ -13,7 +13,7 @@ import {
   Loader2,
   Check,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -40,6 +40,7 @@ const ActivityReportsDropdownActions = ({
 }: ActivityReportsDropdownActionsProps) => {
   const { toast } = useToast();
   const router = useRouter();
+  const { company } = useParams<{ company: string }>();
   const { data: report, isLoading: isReportLoading } = useGetUserActivity(id);
   const { updateObservation } = useUpdateObservation();
 
@@ -55,6 +56,7 @@ const ActivityReportsDropdownActions = ({
     setIsSubmitting(true);
     try {
       await updateObservation.mutateAsync({
+        company,
         id: id.toString(),
         observation: observation.trim(),
       });
@@ -75,7 +77,7 @@ const ActivityReportsDropdownActions = ({
   };
 
   const navigateToDetail = () => {
-    router.push(`/transmandu/desarrollo/actividades_diarias/${id}/`);
+    router.push(`/${company}/desarrollo/actividades_diarias/${id}/`);
   };
 
   return (

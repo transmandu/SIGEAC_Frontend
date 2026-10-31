@@ -18,7 +18,17 @@ version: 2
 #
 # Las actualizaciones de SEGURIDAD (las que Dependabot abre por un CVE) no
 # pasan por nada de esto: ignoran el calendario y la cuarentena, y llegan el
-# mismo dia. Eso es comportamiento de GitHub, no hay que configurarlo aqui.
+# mismo dia. Pero solo si se cumplen tres condiciones que este archivo no puede
+# garantizar y que conviene comprobar de vez en cuando:
+#   - Settings > Advanced Security: "Dependency graph", "Dependabot alerts" y
+#     "Dependabot security updates" activados. Sin el grafo de dependencias
+#     GitHub no tiene que comparar contra los avisos y no genera ninguna alerta,
+#     aunque las alertas figuren como activadas.
+#   - El job de npm tiene que poder ejecutarse (Insights > Dependency graph >
+#     Dependabot). Si falla, tampoco abre PRs de seguridad y GitHub no avisa
+#     de ello: ya ocurrió, ver el comentario de minimumReleaseAgeStrict en
+#     pnpm-workspace.yaml.
+#   - gh api graphql ... dependencyGraphManifests.totalCount debe ser > 0.
 
 updates:
   # ------------------------------------------------------------------- pnpm
