@@ -116,14 +116,14 @@ importers:
         specifier: ^3.2.2
         version: 3.2.2(react@19.3.0)
       '@hookform/resolvers':
-        specifier: ^5.9.1
-        version: 5.9.1(@standard-schema/spec@1.1.0)(react-hook-form@7.87.0(react@19.3.0))(zod@4.6.7)
+        specifier: ^5.9.2
+        version: 5.9.2(@standard-schema/spec@1.1.0)(react-hook-form@7.91.0(@types/react@19.3.0)(react@19.3.0))(zod@4.6.7)
       '@lglab/react-qr-code':
-        specifier: ^1.7.3
-        version: 1.7.3(react@19.3.0)
+        specifier: ^1.8.1
+        version: 1.8.1(react@19.3.0)
       '@preact/signals':
-        specifier: ^2.11.2
-        version: 2.11.2(preact@10.29.8)
+        specifier: ^2.11.3
+        version: 2.11.3(preact@10.29.8)
       '@radix-ui/react-accordion':
         specifier: ^1.2.20
         version: 1.2.20(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -195,19 +195,19 @@ importers:
         version: 3.8.0(react@19.3.0)
       '@schedule-x/calendar':
         specifier: ^3.7.3
-        version: 3.7.3(@preact/signals@2.11.2(preact@10.29.8))(preact@10.29.8)(temporal-polyfill@0.3.2)
+        version: 3.7.3(@preact/signals@2.11.3(preact@10.29.8))(preact@10.29.8)(temporal-polyfill@0.3.2)
       '@schedule-x/drag-and-drop':
         specifier: ^3.7.3
         version: 3.7.3
       '@schedule-x/event-modal':
         specifier: ^3.7.3
-        version: 3.7.3(@preact/signals@2.11.2(preact@10.29.8))(preact@10.29.8)
+        version: 3.7.3(@preact/signals@2.11.3(preact@10.29.8))(preact@10.29.8)
       '@schedule-x/events-service':
         specifier: ^3.7.3
         version: 3.7.3
       '@schedule-x/react':
         specifier: ^3.7.0
-        version: 3.7.0(@schedule-x/calendar@3.7.3(@preact/signals@2.11.2(preact@10.29.8))(preact@10.29.8)(temporal-polyfill@0.3.2))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+        version: 3.7.0(@schedule-x/calendar@3.7.3(@preact/signals@2.11.3(preact@10.29.8))(preact@10.29.8)(temporal-polyfill@0.3.2))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       '@schedule-x/resize':
         specifier: ^3.7.3
         version: 3.7.3
@@ -251,14 +251,14 @@ importers:
         specifier: ^3.0.8
         version: 3.0.8
       laravel-echo:
-        specifier: ^2.5.0
-        version: 2.5.0(pusher-js@8.6.0)
+        specifier: ^2.6.1
+        version: 2.6.1(pusher-js@8.6.0)
       libphonenumber-js:
         specifier: ^1.13.15
         version: 1.13.15
       lucide-react:
-        specifier: ^1.43.0
-        version: 1.43.0(react@19.3.0)
+        specifier: ^1.61.0
+        version: 1.61.0(@types/react@19.3.0)(react@19.3.0)
       motion:
         specifier: ^13.2.0
         version: 13.2.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -293,17 +293,17 @@ importers:
         specifier: ^6.4.0
         version: 6.4.0(react@19.3.0)
       react-currency-input-field:
-        specifier: ^4.0.6
-        version: 4.0.6(react@19.3.0)
+        specifier: ^4.0.14
+        version: 4.0.14(react@19.3.0)
       react-day-picker:
-        specifier: ^10.0.1
-        version: 10.0.1(@types/react@19.3.0)(react@19.3.0)
+        specifier: ^10.0.2
+        version: 10.0.2(@types/react@19.3.0)(react@19.3.0)
       react-dom:
         specifier: ^19.3.0
         version: 19.3.0(react@19.3.0)
       react-hook-form:
-        specifier: ^7.87.0
-        version: 7.87.0(react@19.3.0)
+        specifier: ^7.91.0
+        version: 7.91.0(@types/react@19.3.0)(react@19.3.0)
       react-icons:
         specifier: ^5.7.0
         version: 5.7.0(react@19.3.0)
@@ -335,8 +335,8 @@ importers:
         specifier: ^4.6.6
         version: 4.6.7
       zustand:
-        specifier: ^5.0.15
-        version: 5.0.15(@types/react@19.3.0)(immer@11.1.18)(react@19.3.0)(use-sync-external-store@1.7.0(react@19.3.0))
+        specifier: ^5.0.16
+        version: 5.0.16(@types/react@19.3.0)(immer@11.1.18)(react@19.3.0)(use-sync-external-store@1.7.0(react@19.3.0))
     devDependencies:
       '@tailwindcss/postcss':
         specifier: ^4.3.3
@@ -539,8 +539,8 @@ packages:
   '@floating-ui/utils@0.2.12':
     resolution: {integrity: sha512-HpCo8tmWzLVad5s2d19EhAz5zqrrQ6s69qd6moPMQvkOuSwDT1YgRfWSVuc4ennqrgv3OHppiOGMQ7oC13yIww==}
 
-  '@hookform/resolvers@5.9.1':
-    resolution: {integrity: sha512-7b7vsbraJxKgjVSA1Nur9tLwj539WGJUBLA7QNvXnFoT2pM5Z7G+6rlukk4B2/QrTZy6huRtH6wKeESPKuIr6w==}
+  '@hookform/resolvers@5.9.2':
+    resolution: {integrity: sha512-RtjTnZqsC38s4NKp2XO3fD8IA5uyN4tB7McQ5C6uiMPcV+WWO8F+wVa3e+BXUpH2ScgxghAlwFRMVqjT9WChAQ==}
     peerDependencies:
       '@sinclair/typebox': '>=0.25.24'
       '@standard-schema/spec': ^1.0.0
@@ -550,7 +550,7 @@ packages:
       ajv-errors: ^3.0.0
       ajv-formats: ^2.1.1
       arktype: ^2.0.0
-      ata-validator: ^1.2.0
+      ata-validator: ^1.23.0
       class-transformer: '>=0.4.0'
       class-validator: '>=0.12.0'
       computed-types: ^1.0.0
@@ -815,8 +815,8 @@ packages:
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
 
-  '@lglab/react-qr-code@1.7.3':
-    resolution: {integrity: sha512-gVcknLUtgJalQBo8i/UoGLvQk+sSdOhTg3fAIwpTN7BwrWpWkrT+D1dvY0TSZH+awaYMd/iGr10y3KIMxkJYMQ==}
+  '@lglab/react-qr-code@1.8.1':
+    resolution: {integrity: sha512-fnz4A/4CpD77GjOU1xvqpNBqyHVCcxMrnyy2Oxudxb9cJapSZFyAdIDaJ9JXx+tkJUnFwgXTeE9Hi4Ut2MSiow==}
     peerDependencies:
       react: ^18 || ^19
 
@@ -993,8 +993,8 @@ packages:
   '@preact/signals-core@1.14.4':
     resolution: {integrity: sha512-HNB6HYeYKhQbJ1aKl+YRjrS4+QWHLKX6qKoUsfS/m0vqzsVaEBiZiaKbG/e+NKk2ch5ALQr/ihWaMHxiCuuWHA==}
 
-  '@preact/signals@2.11.2':
-    resolution: {integrity: sha512-rVTRTt/T0HIRgbugwS5FigbfF/kfdEFYFtiqxa+lbpqTajepqnR0firuAS2iNdHyejWB7Yc9p9QePkVNBtTAwg==}
+  '@preact/signals@2.11.3':
+    resolution: {integrity: sha512-mttwFM98G/JiriTgMwU+UWygL6sfVmYEiNcPSKkUnv4PxPpZhmP2ugGC4qi360+ZIHyQ8NY05bfJT3b4RUIGlw==}
     peerDependencies:
       preact: '>= 10.25.0 || >=11.0.0-0'
 
@@ -2917,8 +2917,8 @@ packages:
     resolution: {integrity: sha512-MbjN408fEndfiQXbFQ1vnd+1NoLDsnQW41410oQBXiyXDMYH5z505juWa4KUE1LqxRC7DgOgZDbKLxHIwm27hA==}
     engines: {node: '>=0.10'}
 
-  laravel-echo@2.5.0:
-    resolution: {integrity: sha512-h/4iS6lyxbLRJOteLEg9yodFT0xyK1e2N7tknKFwHdPhIsLdUl6uGGXptio8ugtIUKrmlEazW3/04iU+iVJYWg==}
+  laravel-echo@2.6.1:
+    resolution: {integrity: sha512-hKqIqy4Bl2HRdJsGzN8DbzcON7+09TNr8r5dCNZHNORZ78FUNoFbsy0cUGhYRAMei/yr8IQvCZ1ozJ8LTzzueQ==}
     engines: {node: ^20.19.0 || >=22.12.0}
     peerDependencies:
       pusher-js: '*'
@@ -3027,10 +3027,14 @@ packages:
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
 
-  lucide-react@1.43.0:
-    resolution: {integrity: sha512-ubtnda1fVK5ky0PNEpOmB0wiwhpZUyJiol4K14KCm+QKvuCkfUu54Et/rIjyupJpwiJ5Hg+BLQE86/GEsS+IgQ==}
+  lucide-react@1.61.0:
+    resolution: {integrity: sha512-v2SQPPPNjnr+BlhL9Spuzmo5yR+hLkftfuE4E3jaxdNPgSH0hJKPcLJBP7yAta87jQNPsSERS59PJjCJ/CorBA==}
     peerDependencies:
+      '@types/react': '*'
       react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
 
   magic-string@0.30.21:
     resolution: {integrity: sha512-vd2F4YUyEXKGcLHoq+TEyCjxueSeHnFxyyjNp80yg0XV4vUhnDer/lvvlqM/arB5bXQN5K2/3oinyCRyx8T2CQ==}
@@ -3316,13 +3320,13 @@ packages:
     peerDependencies:
       react: ^16.3.0 || ^17.0.1 || ^18.0.0 || ^19.0.0
 
-  react-currency-input-field@4.0.6:
-    resolution: {integrity: sha512-TdR5RQnefI4lC47h8Nt3kZJo5cfyoOpEm8Eqoa04TygZn3Bk6AYubJP7QPUQl4YQBeG1WQlaf8BvL1v9IpK5ig==}
+  react-currency-input-field@4.0.14:
+    resolution: {integrity: sha512-ZSs1ZJjiOPN6FOl0hny091oX2vtPRMyqY4+OLdn/w3SJwFOkOQBvx4m/TmI0laDTq1XtYziB/FD4y45B4Msa5g==}
     peerDependencies:
       react: ^16.9.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
-  react-day-picker@10.0.1:
-    resolution: {integrity: sha512-eNh6BlwcYInWaJtRv18mXQ06Ys/H6rdTZAnTaSdOYJuTpwP1JMCHNd1FDRadA+gbeinq+psdULN5Xnowy9mV8w==}
+  react-day-picker@10.0.2:
+    resolution: {integrity: sha512-QetiKtZWE9Uaw/pM/SYNv6WPYOTRnSJ2puL0GgwkmUFMIwiY0dtjH1W4B7DOVXVNQM0ZOClGpH/heOfBSzWeiA==}
     engines: {node: '>=18'}
     peerDependencies:
       '@types/react': '>=16.8.0'
@@ -3336,11 +3340,15 @@ packages:
     peerDependencies:
       react: ^19.3.0
 
-  react-hook-form@7.87.0:
-    resolution: {integrity: sha512-zhFzWvLxNHH+8839OnZcUxgMZw88ah2jZWDWvKWgF3Tpbnd0vKL+dlcuU3nZVWESZQjd81EW8K+wU+cYfYAc0w==}
+  react-hook-form@7.91.0:
+    resolution: {integrity: sha512-5BEBUnCBwa28AFXYTYmOaB/+CSpJ/+CWVASHEvIGUzFdHyUiPHeRhG7r5hOZ8nZi0yP7pbHdFNXO/p31EKTJFQ==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
+      '@types/react': '*'
       react: ^16.8.0 || ^17 || ^18 || ^19
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
 
   react-icons@5.7.0:
     resolution: {integrity: sha512-LBLy340Rzqy6+/yVhZKT3B/QpP1BZaesGqasf09HPOBzRarcDIFH0WwXlXQfE7q7ipxK4MSiC5DIBWURCny6fw==}
@@ -3806,8 +3814,8 @@ packages:
   zod@4.6.7:
     resolution: {integrity: sha512-g8W2D2kU6a8untc053fX1uVBKzM7yqAxW/3zwk83+6RyF2+SKOuV+c0wBDhUwzV1PaGapmZH+rmcUzPf+3CGwg==}
 
-  zustand@5.0.15:
-    resolution: {integrity: sha512-MpSEjRiBkA9crSYeOUH32rJC7SVqAbm0Fqcqge/bUi2PPoLcBWKOsG+C8mevmpr8TwXHBVkChbbJiyvkE+i/3A==}
+  zustand@5.0.16:
+    resolution: {integrity: sha512-Uv7e327ihlCfayfja3hDc0M64Upev1LWBKpRobdK4NyovDDPeeX4imWXc/wzC1yc6fkYPoAY/ncKVPAs2jrtQw==}
     engines: {node: '>=12.20.0'}
     peerDependencies:
       '@types/react': '>=18.0.0'
@@ -4039,10 +4047,10 @@ snapshots:
 
   '@floating-ui/utils@0.2.12': {}
 
-  '@hookform/resolvers@5.9.1(@standard-schema/spec@1.1.0)(react-hook-form@7.87.0(react@19.3.0))(zod@4.6.7)':
+  '@hookform/resolvers@5.9.2(@standard-schema/spec@1.1.0)(react-hook-form@7.91.0(@types/react@19.3.0)(react@19.3.0))(zod@4.6.7)':
     dependencies:
       '@standard-schema/utils': 0.3.0
-      react-hook-form: 7.87.0(react@19.3.0)
+      react-hook-form: 7.91.0(@types/react@19.3.0)(react@19.3.0)
     optionalDependencies:
       '@standard-schema/spec': 1.1.0
       zod: 4.6.7
@@ -4188,7 +4196,7 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.6.0
 
-  '@lglab/react-qr-code@1.7.3(react@19.3.0)':
+  '@lglab/react-qr-code@1.8.1(react@19.3.0)':
     dependencies:
       react: 19.3.0
 
@@ -4308,7 +4316,7 @@ snapshots:
 
   '@preact/signals-core@1.14.4': {}
 
-  '@preact/signals@2.11.2(preact@10.29.8)':
+  '@preact/signals@2.11.3(preact@10.29.8)':
     dependencies:
       '@preact/signals-core': 1.14.4
       preact: 10.29.8
@@ -4994,24 +5002,24 @@ snapshots:
 
   '@rtsao/scc@1.1.0': {}
 
-  '@schedule-x/calendar@3.7.3(@preact/signals@2.11.2(preact@10.29.8))(preact@10.29.8)(temporal-polyfill@0.3.2)':
+  '@schedule-x/calendar@3.7.3(@preact/signals@2.11.3(preact@10.29.8))(preact@10.29.8)(temporal-polyfill@0.3.2)':
     dependencies:
-      '@preact/signals': 2.11.2(preact@10.29.8)
+      '@preact/signals': 2.11.3(preact@10.29.8)
       preact: 10.29.8
       temporal-polyfill: 0.3.2
 
   '@schedule-x/drag-and-drop@3.7.3': {}
 
-  '@schedule-x/event-modal@3.7.3(@preact/signals@2.11.2(preact@10.29.8))(preact@10.29.8)':
+  '@schedule-x/event-modal@3.7.3(@preact/signals@2.11.3(preact@10.29.8))(preact@10.29.8)':
     dependencies:
-      '@preact/signals': 2.11.2(preact@10.29.8)
+      '@preact/signals': 2.11.3(preact@10.29.8)
       preact: 10.29.8
 
   '@schedule-x/events-service@3.7.3': {}
 
-  '@schedule-x/react@3.7.0(@schedule-x/calendar@3.7.3(@preact/signals@2.11.2(preact@10.29.8))(preact@10.29.8)(temporal-polyfill@0.3.2))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)':
+  '@schedule-x/react@3.7.0(@schedule-x/calendar@3.7.3(@preact/signals@2.11.3(preact@10.29.8))(preact@10.29.8)(temporal-polyfill@0.3.2))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)':
     dependencies:
-      '@schedule-x/calendar': 3.7.3(@preact/signals@2.11.2(preact@10.29.8))(preact@10.29.8)(temporal-polyfill@0.3.2)
+      '@schedule-x/calendar': 3.7.3(@preact/signals@2.11.3(preact@10.29.8))(preact@10.29.8)(temporal-polyfill@0.3.2)
       react: 19.3.0
       react-dom: 19.3.0(react@19.3.0)
 
@@ -6427,7 +6435,7 @@ snapshots:
     dependencies:
       language-subtag-registry: 0.3.23
 
-  laravel-echo@2.5.0(pusher-js@8.6.0):
+  laravel-echo@2.6.1(pusher-js@8.6.0):
     optionalDependencies:
       pusher-js: 8.6.0
 
@@ -6506,9 +6514,11 @@ snapshots:
     dependencies:
       yallist: 3.1.1
 
-  lucide-react@1.43.0(react@19.3.0):
+  lucide-react@1.61.0(@types/react@19.3.0)(react@19.3.0):
     dependencies:
       react: 19.3.0
+    optionalDependencies:
+      '@types/react': 19.3.0
 
   magic-string@0.30.21:
     dependencies:
@@ -6783,11 +6793,11 @@ snapshots:
       react: 19.3.0
       tween-functions: 1.2.0
 
-  react-currency-input-field@4.0.6(react@19.3.0):
+  react-currency-input-field@4.0.14(react@19.3.0):
     dependencies:
       react: 19.3.0
 
-  react-day-picker@10.0.1(@types/react@19.3.0)(react@19.3.0):
+  react-day-picker@10.0.2(@types/react@19.3.0)(react@19.3.0):
     dependencies:
       '@date-fns/tz': 1.5.0
       date-fns: 4.4.0
@@ -6800,9 +6810,11 @@ snapshots:
       react: 19.3.0
       scheduler: 0.28.0
 
-  react-hook-form@7.87.0(react@19.3.0):
+  react-hook-form@7.91.0(@types/react@19.3.0)(react@19.3.0):
     dependencies:
       react: 19.3.0
+    optionalDependencies:
+      '@types/react': 19.3.0
 
   react-icons@5.7.0(react@19.3.0):
     dependencies:
@@ -7400,7 +7412,7 @@ snapshots:
 
   zod@4.6.7: {}
 
-  zustand@5.0.15(@types/react@19.3.0)(immer@11.1.18)(react@19.3.0)(use-sync-external-store@1.7.0(react@19.3.0)):
+  zustand@5.0.16(@types/react@19.3.0)(immer@11.1.18)(react@19.3.0)(use-sync-external-store@1.7.0(react@19.3.0)):
     optionalDependencies:
       '@types/react': 19.3.0
       immer: 11.1.18
