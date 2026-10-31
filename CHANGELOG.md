@@ -1,3 +1,7 @@
+## v4.84.2 — 2026-10-31
+
+- refactor: remove unused hooks and components (#361)
+
 ## v4.84.1 — 2026-10-29
 
 - fix: work order pdf (#360)
