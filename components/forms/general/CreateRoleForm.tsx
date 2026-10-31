@@ -1,4 +1,4 @@
-'use client';
+"use client";
 import { useCreateRole } from "@/actions/aerolinea/roles/actions";
 import {
   Form,
@@ -17,12 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger
-} from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useGetPermissions } from "@/hooks/sistema/usuario/useGetPermissions";
 import { zodResolver } from "@/lib/zod-resolver";
 import { Loader, Loader2 } from "lucide-react";
@@ -40,41 +35,42 @@ const formSchema = z.object({
     message: "Debe especificar un nombre para el rol.",
   }),
   company: z.string(),
-})
+});
 
 interface FormProps {
-  onClose: () => void,
+  onClose: () => void;
 }
 
 export default function CreateRoleForm({ onClose }: FormProps) {
-
   const { createRole } = useCreateRole();
 
-  const { data: companies, isLoading, isError: isCompaniesError } = useGetCompanies();
+  const {
+    data: companies,
+    isLoading,
+    isError: isCompaniesError,
+  } = useGetCompanies();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
       company: "",
-
     },
-  })
+  });
 
   const { control } = form;
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-
     const data = {
       name: values.name,
       company: parseInt(values.company),
       label: values.label,
-    }
+    };
     createRole.mutate(data);
     if (createRole.isSuccess) {
       onClose();
     }
-  }
+  };
 
   return (
     <Form {...form}>
@@ -88,9 +84,7 @@ export default function CreateRoleForm({ onClose }: FormProps) {
               <FormControl>
                 <Input placeholder="EJ: Admin..." {...field} />
               </FormControl>
-              <FormDescription>
-                Este será el nombre del rol.
-              </FormDescription>
+              <FormDescription>Este será el nombre del rol.</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -104,9 +98,7 @@ export default function CreateRoleForm({ onClose }: FormProps) {
               <FormControl>
                 <Input placeholder="EJ: Jef. de X" {...field} />
               </FormControl>
-              <FormDescription>
-                Este será la etiqueta del rol.
-              </FormDescription>
+              <FormDescription>Este será la etiqueta del rol.</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -117,27 +109,28 @@ export default function CreateRoleForm({ onClose }: FormProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Compañía</FormLabel>
-              <Select onValueChange={field.onChange}
-              >
+              <Select onValueChange={field.onChange}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Seleccione la compañia..." />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {
-                    isLoading && <div>Cargando...</div>
-                  }
-                  {
-                    companies && companies.map(company => (
-                      <SelectItem key={company.id} value={company.id.toString()}>
+                  {isLoading && <div>Cargando...</div>}
+                  {companies &&
+                    companies.map((company) => (
+                      <SelectItem
+                        key={company.id}
+                        value={company.id.toString()}
+                      >
                         {company.description}
                       </SelectItem>
-                    ))
-                  }
-                  {
-                    isCompaniesError && <p className="text-muted-foreground text-center text-sm">Ha ocurrido un error al cargar las compañías...</p>
-                  }
+                    ))}
+                  {isCompaniesError && (
+                    <p className="text-muted-foreground text-center text-sm">
+                      Ha ocurrido un error al cargar las compañías...
+                    </p>
+                  )}
                 </SelectContent>
               </Select>
               <FormDescription>
@@ -147,10 +140,18 @@ export default function CreateRoleForm({ onClose }: FormProps) {
             </FormItem>
           )}
         />
-        <Button className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70" disabled={createRole?.isPending} type="submit">
-          {createRole?.isPending ? <Loader2 className="size-4 animate-spin" /> : <p>Crear</p>}
+        <Button
+          className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70"
+          disabled={createRole?.isPending}
+          type="submit"
+        >
+          {createRole?.isPending ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <p>Crear</p>
+          )}
         </Button>
       </form>
     </Form>
-  )
+  );
 }

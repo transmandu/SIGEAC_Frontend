@@ -36,10 +36,7 @@ export const useCreateActivityReport = () => {
   const queryClient = useQueryClient();
 
   const createMutation = useMutation({
-    mutationFn: async ({
-      company,
-      date,
-    }: CompanyParams & { date: string }) => {
+    mutationFn: async ({ company, date }: CompanyParams & { date: string }) => {
       await axiosInstance.post(`/${company}/activity-report`, { date });
     },
     onSuccess: () => {

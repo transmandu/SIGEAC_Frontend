@@ -1,17 +1,17 @@
-"use client"
+"use client";
 
 import { type AppColumnDef } from "@/lib/table";
 
-import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
+import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 
-import WorkOrderDropdownActions from "@/components/dropdowns/mantenimiento/ordenes_trabajo/WorkOrderDropdownActionts"
-import { Badge } from "@/components/ui/badge"
-import { Checkbox } from "@/components/ui/checkbox"
-import { WorkOrder } from "@/types"
-import { format, parseISO } from "date-fns"
-import { es } from "date-fns/locale"
-import { CompanyLink } from "@/components/misc/CompanyLink"
-import { workOrderStatusLabelEsUpper } from "@/lib/planificacion/statuses"
+import WorkOrderDropdownActions from "@/components/dropdowns/mantenimiento/ordenes_trabajo/WorkOrderDropdownActionts";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { WorkOrder } from "@/types";
+import { format, parseISO } from "date-fns";
+import { es } from "date-fns/locale";
+import { CompanyLink } from "@/components/misc/CompanyLink";
+import { workOrderStatusLabelEsUpper } from "@/lib/planificacion/statuses";
 
 export const columns: AppColumnDef<WorkOrder>[] = [
   {
@@ -121,7 +121,9 @@ export const columns: AppColumnDef<WorkOrder>[] = [
       <DataTableColumnHeader column={column} title="Nº de Items" />
     ),
     cell: ({ row }) => (
-      <p className="flex justify-center">{row.original.work_order_tasks.length ?? "N/A"}</p>
+      <p className="flex justify-center">
+        {row.original.work_order_tasks.length ?? "N/A"}
+      </p>
     ),
   },
   {

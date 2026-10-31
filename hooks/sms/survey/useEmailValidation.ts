@@ -2,7 +2,8 @@ import { useDebounce } from "@/hooks/helpers/useDebounce";
 import { useGetEmailCompletedSurvey } from "./useGetEmailCompletedSurvey";
 import { useState } from "react";
 
-const looksLikeEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+const looksLikeEmail = (value: string) =>
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
 // Impide responder dos veces la misma encuesta con el mismo correo. Se consulta
 // mientras se escribe, de ahí el debounce, pero solo con un correo completo:

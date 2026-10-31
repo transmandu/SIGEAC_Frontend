@@ -150,10 +150,8 @@ export function CreateWarehouseRequisitionForm({
 
   const { selectedCompany, selectedStation } = useCompanyStore();
 
-  const { data: batches, isLoading: isBatchesLoading } = useGetBatchesByLocation(
-    selectedCompany?.slug,
-    selectedStation,
-  );
+  const { data: batches, isLoading: isBatchesLoading } =
+    useGetBatchesByLocation(selectedCompany?.slug, selectedStation);
 
   const { data: employees, isPending: employeesLoading } =
     useGetUserDepartamentEmployees(selectedCompany?.slug);

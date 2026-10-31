@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import {
   ColumnFiltersState,
@@ -9,9 +9,9 @@ import {
 } from "@tanstack/react-table";
 import { appTableFeatures, type AppColumnDef } from "@/lib/table";
 
-import { DataTablePagination } from "@/components/tables/DataTablePagination"
-import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions"
-import { Button } from "@/components/ui/button"
+import { DataTablePagination } from "@/components/tables/DataTablePagination";
+import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -19,33 +19,30 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { CompanyLink } from "@/components/misc/CompanyLink"
-import { useRouter } from "next/navigation"
-import { useState } from "react"
-import { WarehouseDispatchReportDialog } from "@/components/dialogs/mantenimiento/almacen/WarehouseDispatchReportDialog"
+} from "@/components/ui/table";
+import { CompanyLink } from "@/components/misc/CompanyLink";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { WarehouseDispatchReportDialog } from "@/components/dialogs/mantenimiento/almacen/WarehouseDispatchReportDialog";
 
 interface DataTableProps<TData extends RowData> {
-  columns: AppColumnDef<TData>[]
-  data: TData[]
+  columns: AppColumnDef<TData>[];
+  data: TData[];
 }
 
 export function DataTable<TData extends RowData>({
   columns,
   data,
 }: DataTableProps<TData>) {
-
-  const [sorting, setSorting] = useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(
-    []
-  )
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
   const locations = [
     {
-      label: 'Puerto Ordaz',
-      value: 'pzo'
-    }
-  ]
+      label: "Puerto Ordaz",
+      value: "pzo",
+    },
+  ];
 
   const table = useTable({
     features: appTableFeatures,
@@ -55,23 +52,27 @@ export function DataTable<TData extends RowData>({
     onColumnFiltersChange: setColumnFilters,
     state: {
       sorting,
-      columnFilters
-    }
-  })
+      columnFilters,
+    },
+  });
 
   const router = useRouter();
 
-  const isFiltered = table.state.columnFilters.length > 0
+  const isFiltered = table.state.columnFilters.length > 0;
 
   return (
     <div>
       <div className="flex items-center py-4">
         <div className="flex gap-x-2 items-center">
           <CompanyLink to="planificacion/ordenes_trabajo/nueva_orden_trabajo">
-            <Button variant="outline" className="flex items-center justify-center gap-2 h-8 border-dashed">Generar Orden de Trabajo</Button>
+            <Button
+              variant="outline"
+              className="flex items-center justify-center gap-2 h-8 border-dashed"
+            >
+              Generar Orden de Trabajo
+            </Button>
           </CompanyLink>
-          <WarehouseDispatchReportDialog/>
-          
+          <WarehouseDispatchReportDialog />
         </div>
         <DataTableViewOptions table={table} />
       </div>
@@ -86,11 +87,11 @@ export function DataTable<TData extends RowData>({
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
                     </TableHead>
-                  )
+                  );
                 })}
               </TableRow>
             ))}
@@ -104,14 +105,20 @@ export function DataTable<TData extends RowData>({
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center text-muted-foreground">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center text-muted-foreground"
+                >
                   No se ha encontrado ningún resultado...
                 </TableCell>
               </TableRow>
@@ -121,5 +128,5 @@ export function DataTable<TData extends RowData>({
       </div>
       <DataTablePagination table={table} />
     </div>
-  )
+  );
 }

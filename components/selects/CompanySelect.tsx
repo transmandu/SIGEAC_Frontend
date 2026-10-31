@@ -38,9 +38,7 @@ const CompanySelect = () => {
   } = useGetUserLocations(selectedCompany?.slug);
 
   const handleCompanySelect = (companyId: string) => {
-    const company = user?.companies?.find(
-      (c) => c.id.toString() === companyId
-    );
+    const company = user?.companies?.find((c) => c.id.toString() === companyId);
 
     if (!company) return;
 
@@ -78,15 +76,13 @@ const CompanySelect = () => {
             "data-[state=open]:ring-2 data-[state=open]:ring-blue-500/15",
             "data-[state=open]:shadow-md data-[state=open]:shadow-blue-500/15",
             "transition-all duration-200",
-            "active:scale-[0.99]"
+            "active:scale-[0.99]",
           )}
         >
           {userLoading ? (
             <div className="flex items-center gap-2">
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              <span className="text-xs text-muted-foreground">
-                Cargando
-              </span>
+              <span className="text-xs text-muted-foreground">Cargando</span>
             </div>
           ) : (
             <SelectValue placeholder="Empresa" />
@@ -95,10 +91,7 @@ const CompanySelect = () => {
 
         <SelectContent>
           {user?.companies?.map((company: Company) => (
-            <SelectItem
-              key={company.id}
-              value={company.id.toString()}
-            >
+            <SelectItem key={company.id} value={company.id.toString()}>
               {company.name}
             </SelectItem>
           ))}
@@ -125,15 +118,13 @@ const CompanySelect = () => {
             "data-[state=open]:ring-2 data-[state=open]:ring-blue-500/15",
             "data-[state=open]:shadow-md data-[state=open]:shadow-blue-500/15",
             "transition-all duration-200",
-            "active:scale-[0.99]"
+            "active:scale-[0.99]",
           )}
         >
           {locationsLoading ? (
             <div className="flex items-center gap-2">
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              <span className="text-xs text-muted-foreground">
-                Cargando
-              </span>
+              <span className="text-xs text-muted-foreground">Cargando</span>
             </div>
           ) : (
             <SelectValue placeholder="Estación" />
@@ -147,10 +138,7 @@ const CompanySelect = () => {
             </div>
           ) : (
             locations?.map((location) => (
-              <SelectItem
-                key={location.id}
-                value={location.id.toString()}
-              >
+              <SelectItem key={location.id} value={location.id.toString()}>
                 {location.cod_iata}
               </SelectItem>
             ))

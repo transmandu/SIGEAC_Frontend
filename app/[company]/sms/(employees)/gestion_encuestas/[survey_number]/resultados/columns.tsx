@@ -63,7 +63,9 @@ export const columns: AppColumnDef<ResponsesBySurvey>[] = [
     cell: ({ row }) => {
       return (
         <div className="flex justify-center">
-          <Badge className="bg-blue-500">{row.original.questions_answered}</Badge>
+          <Badge className="bg-blue-500">
+            {row.original.questions_answered}
+          </Badge>
         </div>
       );
     },

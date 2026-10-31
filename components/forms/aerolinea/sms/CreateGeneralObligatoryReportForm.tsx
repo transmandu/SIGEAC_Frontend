@@ -180,7 +180,8 @@ export function CreateGeneralObligatoryReportForm({
     return []; // Devuelve un array vacío si initialData?.incidents es null o undefined
   });
 
-  const { data: pilots, isLoading: isLoadingPilots } = useGetPilotNames(company);
+  const { data: pilots, isLoading: isLoadingPilots } =
+    useGetPilotNames(company);
   const { data: aircrafts, isLoading: isLoadingAircrafts } =
     useGetAircraftAcronyms(company);
 
