@@ -1,3 +1,7 @@
+## v4.84.7 — 2026-11-01
+
+- build(deps): bump the tailwind group across 1 directory with 2 updates (#365)
+
 ## v4.84.6 — 2026-11-01
 
 - Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
