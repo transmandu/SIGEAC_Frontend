@@ -1,3 +1,7 @@
+## v4.84.3 — 2026-11-01
+
+- build(deps): bump the react group with 2 updates (#362)
+
 ## v4.84.2 — 2026-10-31
 
 - refactor: remove unused hooks and components (#361)
