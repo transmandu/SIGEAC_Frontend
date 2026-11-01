@@ -1,3 +1,7 @@
+## v4.85.0 — 2026-11-01
+
+- feat(auth): enhance logout functionality with optional session revoca… (#370)
+
 ## v4.84.11 — 2026-11-01
 
 - build(deps): bump temporal-polyfill from 0.3.2 to 1.0.6 (#369)
