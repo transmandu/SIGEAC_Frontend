@@ -1,3 +1,7 @@
+## v4.84.4 — 2026-11-01
+
+- build(deps): bump the radix-ui group across 1 directory with 20 updates (#363)
+
 ## v4.84.3 — 2026-11-01
 
 - build(deps): bump the react group with 2 updates (#362)
