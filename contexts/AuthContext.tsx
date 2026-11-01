@@ -118,57 +118,60 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // `revoke: false` es para cuando el servidor ya rechazó el token (401): no
   // hay nada que revocar y la petición solo añadiría otro 401.
-  const logout = useCallback(async ({ revoke = true } = {}) => {
-    if (sessionEndedRef.current) return;
+  const logout = useCallback(
+    async ({ revoke = true } = {}) => {
+      if (sessionEndedRef.current) return;
 
-    sessionEndedRef.current = true;
+      sessionEndedRef.current = true;
 
-    setLoggingOut(true);
+      setLoggingOut(true);
 
-    try {
-      if (revoke) await revokeSession();
+      try {
+        if (revoke) await revokeSession();
 
-      setError(null);
-      setHasToken(false);
+        setError(null);
+        setHasToken(false);
 
-      resetEcho();
+        resetEcho();
 
-      deleteCookie("auth_token");
+        deleteCookie("auth_token");
 
-      // reset() solo limpia el estado en memoria de ESTA pestaña. La compañía
-      // vive en localStorage (zustand persist), así que sin borrar la clave la
-      // siguiente cuenta heredaba la empresa y la estación de la anterior.
-      reset();
-      useCompanyStore.persist.clearStorage();
+        // reset() solo limpia el estado en memoria de ESTA pestaña. La compañía
+        // vive en localStorage (zustand persist), así que sin borrar la clave la
+        // siguiente cuenta heredaba la empresa y la estación de la anterior.
+        reset();
+        useCompanyStore.persist.clearStorage();
 
-      // El historial empresa→estación es del usuario que se va: dejarlo hacía
-      // que la siguiente cuenta heredara la estación de la anterior en cuanto
-      // coincidieran en una empresa.
-      localStorage.removeItem("company-station-history");
+        // El historial empresa→estación es del usuario que se va: dejarlo hacía
+        // que la siguiente cuenta heredara la estación de la anterior en cuanto
+        // coincidieran en una empresa.
+        localStorage.removeItem("company-station-history");
 
-      // Un destino pendiente de la sesión que termina no es de la siguiente.
-      setPostLoginRedirect(null);
+        // Un destino pendiente de la sesión que termina no es de la siguiente.
+        setPostLoginRedirect(null);
 
-      // El usuario se anula ANTES de navegar. removeQueries() vacía la caché,
-      // pero la query queda deshabilitada (hasToken=false) y sigue entregando su
-      // último dato: AuthRedirect veía sesión viva al aterrizar en /login y
-      // rebotaba a /inicio, en bucle con el 401 que originó este logout.
-      queryClient.setQueryData(AUTH_USER_QUERY_KEY, null);
-      queryClient.removeQueries();
+        // El usuario se anula ANTES de navegar. removeQueries() vacía la caché,
+        // pero la query queda deshabilitada (hasToken=false) y sigue entregando su
+        // último dato: AuthRedirect veía sesión viva al aterrizar en /login y
+        // rebotaba a /inicio, en bucle con el 401 que originó este logout.
+        queryClient.setQueryData(AUTH_USER_QUERY_KEY, null);
+        queryClient.removeQueries();
 
-      router.replace("/login");
+        router.replace("/login");
 
-      toast.info("Sesión finalizada", {
-        position: "bottom-center",
-      });
-    } catch (err) {
-      // El overlay NO se apaga aquí: sigue tapando hasta que /login esté
-      // pintado. Si el logout falla a medias, el timeout de abajo lo levanta.
-      // El candado se suelta para que el siguiente 401 pueda reintentar.
-      sessionEndedRef.current = false;
-      console.error("Logout error:", err);
-    }
-  }, [router, queryClient, reset]);
+        toast.info("Sesión finalizada", {
+          position: "bottom-center",
+        });
+      } catch (err) {
+        // El overlay NO se apaga aquí: sigue tapando hasta que /login esté
+        // pintado. Si el logout falla a medias, el timeout de abajo lo levanta.
+        // El candado se suelta para que el siguiente 401 pueda reintentar.
+        sessionEndedRef.current = false;
+        console.error("Logout error:", err);
+      }
+    },
+    [router, queryClient, reset],
+  );
 
   // Solo la red de seguridad: si la navegación se atasca, el overlay no puede
   // quedarse tapando la pantalla para siempre.
