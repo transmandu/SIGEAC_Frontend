@@ -3,6 +3,7 @@
 import axiosInstance, {
   isAuthEndpoint,
   isStaleSessionResponse,
+  revokeSession,
 } from "@/lib/axios";
 import { createCookie, deleteCookie, hasAuthCookie } from "@/lib/cookie";
 import { resetEcho } from "@/lib/echo";
@@ -37,7 +38,7 @@ interface AuthContextType {
   loggingOut: boolean;
   error: string | null;
   loginMutation: any;
-  logout: () => Promise<void>;
+  logout: (options?: { revoke?: boolean }) => Promise<void>;
   clearLoggingOut: () => void;
 }
 
@@ -115,7 +116,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // los tardíos volvían a tapar un login que ya estaba pintado.
   const sessionEndedRef = useRef(false);
 
-  const logout = useCallback(async () => {
+  // `revoke: false` es para cuando el servidor ya rechazó el token (401): no
+  // hay nada que revocar y la petición solo añadiría otro 401.
+  const logout = useCallback(async ({ revoke = true } = {}) => {
     if (sessionEndedRef.current) return;
 
     sessionEndedRef.current = true;
@@ -123,6 +126,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setLoggingOut(true);
 
     try {
+      if (revoke) await revokeSession();
+
       setError(null);
       setHasToken(false);
 
@@ -206,7 +211,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
 
         if (userRef.current) {
-          logout();
+          logout({ revoke: false });
         } else {
           // 401 antes de que la sesión llegue a memoria (token expirado al
           // recargar): no hay estado que limpiar ni de dónde expulsar, pero la
