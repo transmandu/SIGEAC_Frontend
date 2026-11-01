@@ -1,3 +1,7 @@
+## v4.84.9 — 2026-11-01
+
+- build(deps): bump the produccion group across 1 directory with 9 updates (#367)
+
 ## v4.84.8 — 2026-11-01
 
 - chore(deps-dev): bump prettier from 3.9.6 to 3.9.10 in the herramientas-dev group across 1 directory (#366)
