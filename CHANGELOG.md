@@ -1,3 +1,8 @@
+## v4.84.6 — 2026-11-01
+
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- build(deps): update pnpm to version 12.16.1
+
 ## v4.84.5 — 2026-11-01
 
 - build(deps): bump the tanstack group across 1 directory with 2 updates (#364)
