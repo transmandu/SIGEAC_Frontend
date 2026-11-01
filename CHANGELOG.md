@@ -1,3 +1,7 @@
+## v4.84.11 — 2026-11-01
+
+- build(deps): bump temporal-polyfill from 0.3.2 to 1.0.6 (#369)
+
 ## v4.84.10 — 2026-11-01
 
 - chore(deps-dev): bump @types/node from 25.9.6 to 26.6.5 (#368)
