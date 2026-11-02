@@ -1,3 +1,7 @@
+## v4.86.1 — 2026-11-02
+
+- fix(sms): validate activity form and create bulletins atomically (#372)
+
 ## v4.86.0 — 2026-11-02
 
 - feat(sms): increase activity topics limit to 10000 chars (#371)
