@@ -1,3 +1,7 @@
+## v4.86.0 — 2026-11-02
+
+- feat(sms): increase activity topics limit to 10000 chars (#371)
+
 ## v4.85.0 — 2026-11-01
 
 - feat(auth): enhance logout functionality with optional session revoca… (#370)
