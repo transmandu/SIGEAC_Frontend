@@ -402,23 +402,23 @@ export function ConversionsRegistryPanel() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center gap-2 px-3 py-2 rounded-xl border bg-slate-200/40 border-slate-200/40 dark:bg-slate-800/70 dark:border-slate-700/60 backdrop-blur-md dark:shadow-[0_4px_20px_rgba(0,0,0,0.35)]">
-        <div className="relative w-64 sm:w-72">
+        <div className="relative w-64 sm:w-72 max-sm:w-full">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
           <Input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Buscar por artículo, unidad o equivalencia..."
-            className="pl-8 h-8 text-xs bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60 focus-visible:ring-1 focus-visible:ring-primary/40"
+            className="pl-8 h-8 max-sm:h-10 text-xs bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60 focus-visible:ring-1 focus-visible:ring-primary/40"
           />
         </div>
 
-        <div className="relative">
+        <div className="relative max-sm:w-full">
           <SlidersHorizontal className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 z-10 size-3.5 text-muted-foreground" />
           <Select
             value={typeFilter}
             onValueChange={(next) => setTypeFilter(next as TypeFilter)}
           >
-            <SelectTrigger className="h-8 w-50 pl-8 text-xs bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60 transition-colors focus:ring-1 focus:ring-primary/40">
+            <SelectTrigger className="h-8 w-50 max-sm:h-10 max-sm:w-full pl-8 text-xs bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60 transition-colors focus:ring-1 focus:ring-primary/40">
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="border-slate-200/60 dark:border-slate-700/60">

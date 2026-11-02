@@ -79,12 +79,12 @@ const UnitsPage = () => {
     >
       {canReviewConversions ? (
         <Tabs value={tab} onValueChange={setTab}>
-          <TabsList className="flex h-auto w-full items-center justify-center gap-3 rounded-xl border border-slate-200 bg-slate-100/60 p-1.5 dark:border-slate-700/60 dark:bg-slate-800/50">
+          <TabsList className="flex h-auto w-full items-center justify-center gap-3 max-sm:flex-col max-sm:items-stretch max-sm:gap-1.5 rounded-xl border border-slate-200 bg-slate-100/60 p-1.5 dark:border-slate-700/60 dark:bg-slate-800/50">
             {TABS.map(({ value, label }) => (
               <TabsTrigger
                 key={value}
                 value={value}
-                className="relative h-8 w-56 flex-none rounded-lg border border-slate-200/70 bg-transparent px-3 py-0 dark:border-slate-700/40 data-[state=active]:border-transparent text-sm font-medium text-muted-foreground shadow-none transition-colors hover:text-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none"
+                className="relative h-8 w-56 flex-none max-md:w-auto max-md:grow max-sm:h-10 max-sm:w-full rounded-lg border border-slate-200/70 bg-transparent px-3 py-0 dark:border-slate-700/40 data-[state=active]:border-transparent text-sm font-medium text-muted-foreground shadow-none transition-colors hover:text-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none"
               >
                 {tab === value && (
                   <motion.span

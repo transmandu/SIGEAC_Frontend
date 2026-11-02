@@ -29,7 +29,7 @@ export default function ShippingAgenciesSubRow({ agency }: Props) {
         </span>
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         <div className="rounded-md border border-slate-200/60 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 px-3 py-2">
           <div className="text-[10px] text-muted-foreground/60 uppercase tracking-wide">
             Teléfono

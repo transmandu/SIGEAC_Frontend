@@ -43,7 +43,7 @@ function FilterSelect({
       <SlidersHorizontal className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 z-10 size-3.5 text-muted-foreground" />
       <Select value={value} onValueChange={onChange}>
         <SelectTrigger
-          className={`h-8 pl-8 text-left text-xs bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60 transition-colors focus:ring-1 focus:ring-primary/40 [&>span]:text-left ${className}`}
+          className={`h-8 max-sm:h-10 max-sm:w-full pl-8 text-left text-xs bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60 transition-colors focus:ring-1 focus:ring-primary/40 [&>span]:text-left ${className}`}
         >
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
@@ -168,7 +168,7 @@ const AircraftsPage = () => {
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 gap-1.5 text-xs text-muted-foreground"
+              className="h-8 max-sm:h-10 gap-1.5 text-xs text-muted-foreground"
               onClick={clearFilters}
             >
               <FilterX className="size-3.5" />

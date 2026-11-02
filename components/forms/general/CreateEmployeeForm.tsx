@@ -481,7 +481,7 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
                   )}
                 />
 
-                <div className="grid grid-cols-2 gap-4 w-full">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
                   <FormField
                     control={form.control}
                     name="first_name"
@@ -542,12 +542,12 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
 
               {/* =============== RIGHT COLUMN =============== */}
               <div className="flex flex-col gap-4">
-                <div className="grid grid-cols-12 gap-4 w-full items-end">
+                <div className="grid grid-cols-4 sm:grid-cols-12 gap-4 w-full items-end">
                   <FormField
                     control={form.control}
                     name="dni_type"
                     render={({ field }) => (
-                      <FormItem className="col-span-2">
+                      <FormItem className="col-span-1 sm:col-span-2">
                         <FormLabel>T. Doc</FormLabel>
                         <Select
                           onValueChange={field.onChange}
@@ -573,7 +573,7 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
                     control={form.control}
                     name="dni"
                     render={({ field }) => (
-                      <FormItem className="col-span-5">
+                      <FormItem className="col-span-3 sm:col-span-5">
                         <FormLabel>Cédula</FormLabel>
                         <FormControl>
                           <Input placeholder="Ej. 12345678" {...field} />
@@ -618,7 +618,7 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
                     control={form.control}
                     name="gender"
                     render={({ field }) => (
-                      <FormItem className="col-span-3">
+                      <FormItem className="col-span-2 sm:col-span-3">
                         <FormLabel>Género</FormLabel>
                         <Select
                           onValueChange={field.onChange}
@@ -640,7 +640,7 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="job_title_id"
@@ -751,7 +751,7 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-100 p-0">
+                        <PopoverContent className="w-100 max-w-[calc(100vw-2rem)] p-0">
                           <Command>
                             <CommandInput placeholder="Buscar usuario..." />
                             <CommandList>
@@ -829,7 +829,7 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
                   )}
                 />
 
-                <div className="flex justify-end">
+                <div className="flex justify-end max-sm:[&>button]:w-full">
                   <Button
                     type="button"
                     onClick={handleNextStep}
@@ -848,9 +848,9 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
             <div className="w-full max-w-2xl space-y-6">
               <h3 className="text-lg font-medium">Datos de Usuario</h3>
 
-              <div className="grid grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
                 <div className="space-y-6">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
                       name="username"
@@ -1107,7 +1107,7 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
                               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                             </Button>
                           </PopoverTrigger>
-                          <PopoverContent className="w-80 p-0">
+                          <PopoverContent className="w-80 max-w-[calc(100vw-2rem)] p-0">
                             <Command>
                               <CommandInput placeholder="Buscar rol..." />
                               <CommandList className="max-h-60 overflow-auto">
@@ -1179,7 +1179,7 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
                             </Button>
                           </PopoverTrigger>
 
-                          <PopoverContent className="w-80 p-0">
+                          <PopoverContent className="w-80 max-w-[calc(100vw-2rem)] p-0">
                             <Command>
                               <CommandInput placeholder="Buscar módulo..." />
                               <CommandList className="max-h-60 overflow-auto">
@@ -1216,7 +1216,7 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
                 </div>
               </div>
 
-              <div className="flex justify-between pt-4">
+              <div className="flex justify-between pt-4 max-sm:flex-col-reverse max-sm:gap-2 max-sm:[&>button]:w-full">
                 <Button
                   type="button"
                   variant="outline"

@@ -15,7 +15,7 @@ const Item = ({ label, value }: { label: string; value?: React.ReactNode }) => {
       <span className="text-[11px] uppercase tracking-wide text-muted-foreground">
         {label}
       </span>
-      <span className="text-sm font-medium text-foreground">
+      <span className="text-sm font-medium text-foreground wrap-break-word">
         {value ?? "—"}
       </span>
     </div>
@@ -25,7 +25,7 @@ const Item = ({ label, value }: { label: string; value?: React.ReactNode }) => {
 export function EmployeeExpandedRow({ employee }: Props) {
   return (
     <div>
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
         <Item label="Tipo de sangre" value={employee.blood_type} />
 
         <Item

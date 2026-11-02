@@ -37,7 +37,7 @@ const ShowPilot = () => {
         <PageHeader currentLabel={fullName} />
 
         <div className="flex flex-col gap-2 border-b pb-4">
-          <h1 className="text-3xl font-semibold tracking-tight">
+          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
             {fullName ?? "Información del Piloto"}
           </h1>
           <p className="text-sm text-muted-foreground">

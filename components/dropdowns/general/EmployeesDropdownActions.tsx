@@ -98,7 +98,7 @@ const EmployeesDropdownActions = ({ employee }: { employee: Employee }) => {
       <SettingsRowActions actions={actions} />
 
       <Dialog open={openUpdate} onOpenChange={setOpenUpdate}>
-        <DialogContent className="max-w-lg lg:max-w-2xl">
+        <DialogContent className="max-h-[90vh] overflow-y-auto max-w-lg lg:max-w-2xl">
           <DialogHeader>
             <DialogTitle>Actualizar empleado</DialogTitle>
             <DialogDescription>

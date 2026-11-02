@@ -81,7 +81,7 @@ const EmployeePage = () => {
         value={tab}
         onValueChange={(value) => setTab(value as "active" | "inactive")}
       >
-        <TabsList className="grid grid-cols-2 w-[320px]">
+        <TabsList className="grid grid-cols-2 w-[320px] max-w-full">
           <TabsTrigger value="active">
             Activos ({activeEmployees?.length ?? "…"})
           </TabsTrigger>

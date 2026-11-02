@@ -50,7 +50,7 @@ export const ArticleFormShell = ({
     {children}
 
     {!hideActions && (
-      <div className="flex justify-end gap-3 border-t pt-4">
+      <div className="flex justify-end gap-3 border-t pt-4 max-sm:flex-col-reverse max-sm:[&>button]:w-full">
         {onCancel && (
           <Button
             type="button"

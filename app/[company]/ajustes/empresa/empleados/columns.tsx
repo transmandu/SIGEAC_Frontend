@@ -127,6 +127,7 @@ export const getEmployeeColumns = (
     {
       accessorKey: "gender",
       header: () => null,
+      meta: { title: "Género" },
       size: 40,
       enableSorting: false,
       cell: ({ row }) => {

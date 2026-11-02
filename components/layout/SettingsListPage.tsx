@@ -53,22 +53,24 @@ export function SettingsListPage({
           className="flex flex-col gap-2 border-b pb-4"
           data-tour={tourPrefix ? `${tourPrefix}-title` : undefined}
         >
-          <h1 className="text-3xl font-semibold tracking-tight">{heading}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+            {heading}
+          </h1>
           <p className="text-sm text-muted-foreground">{description}</p>
         </div>
 
         {hasToolbar && (
-          <div className="flex items-center justify-between gap-4 px-3 py-2 rounded-xl border bg-slate-200/40 border-slate-200/40 dark:bg-slate-800/70 dark:border-slate-700/60 backdrop-blur-md dark:shadow-[0_4px_20px_rgba(0,0,0,0.35)]">
-            <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center justify-between gap-4 px-3 py-2 rounded-xl border max-sm:flex-col max-sm:items-stretch max-sm:gap-2 max-sm:p-2 bg-slate-200/40 border-slate-200/40 dark:bg-slate-800/70 dark:border-slate-700/60 backdrop-blur-md dark:shadow-[0_4px_20px_rgba(0,0,0,0.35)]">
+            <div className="flex flex-wrap items-center gap-2 max-sm:flex-col max-sm:items-stretch max-sm:[&>*]:w-full!">
               {toolbar}
               {search && (
-                <div className="relative w-64 sm:w-72">
+                <div className="relative w-64 sm:w-72 max-sm:w-full">
                   <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
                   <Input
                     value={search.value}
                     onChange={(e) => search.onChange(e.target.value)}
                     placeholder={search.placeholder}
-                    className="pl-8 h-8 text-xs bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60 focus-visible:ring-1 focus-visible:ring-primary/40"
+                    className="pl-8 h-8 text-xs max-sm:h-10 bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60 focus-visible:ring-1 focus-visible:ring-primary/40"
                   />
                 </div>
               )}
@@ -76,7 +78,7 @@ export function SettingsListPage({
             </div>
 
             {count && (
-              <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
+              <span className="shrink-0 text-xs text-muted-foreground tabular-nums max-sm:text-right">
                 {count.value === undefined
                   ? "—"
                   : `${count.value} ${count.value === 1 ? count.singular : count.plural}`}

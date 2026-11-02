@@ -337,7 +337,7 @@ export function UpdateEmployeeForm({ employee, onSuccess }: Props) {
 
         {/* ================= STEP 1 ================= */}
         {step === 1 && (
-          <div className="border rounded-xl p-6 bg-muted/20">
+          <div className="border rounded-xl p-4 sm:p-6 bg-muted/20">
             {/* HEADER */}
             <div className="mb-6">
               <p className="text-sm font-medium">Datos personales</p>
@@ -348,8 +348,8 @@ export function UpdateEmployeeForm({ employee, onSuccess }: Props) {
 
             {/* CONTENIDO */}
             <div className="grid grid-cols-12 gap-6 items-stretch">
-              <div className="col-span-12 md:col-span-7 space-y-6">
-                <div className="grid grid-cols-2 gap-4">
+              <div className="col-span-12 lg:col-span-7 space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="first_name"
@@ -378,7 +378,7 @@ export function UpdateEmployeeForm({ employee, onSuccess }: Props) {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="last_name"
@@ -406,12 +406,12 @@ export function UpdateEmployeeForm({ employee, onSuccess }: Props) {
                   />
                 </div>
 
-                <div className="grid grid-cols-12 gap-3 items-end">
+                <div className="grid grid-cols-4 sm:grid-cols-12 gap-3 items-end">
                   <FormField
                     control={form.control}
                     name="dni_type"
                     render={({ field }) => (
-                      <FormItem className="col-span-2">
+                      <FormItem className="col-span-1 sm:col-span-2">
                         <FormLabel>Tipo</FormLabel>
                         <Select
                           key={field.value}
@@ -437,7 +437,7 @@ export function UpdateEmployeeForm({ employee, onSuccess }: Props) {
                     control={form.control}
                     name="dni"
                     render={({ field }) => (
-                      <FormItem className="col-span-5">
+                      <FormItem className="col-span-3 sm:col-span-5">
                         <FormLabel>DNI</FormLabel>
                         <FormControl>
                           <Input {...field} disabled />
@@ -486,7 +486,7 @@ export function UpdateEmployeeForm({ employee, onSuccess }: Props) {
                     control={form.control}
                     name="gender"
                     render={({ field }) => (
-                      <FormItem className="col-span-3">
+                      <FormItem className="col-span-2 sm:col-span-3">
                         <FormLabel>Género</FormLabel>
                         <Select
                           value={field.value || ""}
@@ -510,8 +510,8 @@ export function UpdateEmployeeForm({ employee, onSuccess }: Props) {
               </div>
 
               {/* AVATAR */}
-              <div className="col-span-12 md:col-span-5 flex">
-                <div className="border rounded-xl bg-muted/20 p-6 w-full h-full flex flex-col">
+              <div className="col-span-12 lg:col-span-5 flex">
+                <div className="border rounded-xl bg-muted/20 p-4 sm:p-6 w-full h-full flex flex-col">
                   {/* HEADER */}
                   <div className="flex justify-center items-center mb-4">
                     <p className="text-sm font-medium">Foto del empleado</p>
@@ -598,7 +598,7 @@ export function UpdateEmployeeForm({ employee, onSuccess }: Props) {
         {step === 2 && (
           <div className="space-y-6">
             {/* ================= BLOQUE 1 ================= */}
-            <div className="border rounded-xl p-6 space-y-4 bg-muted/20">
+            <div className="border rounded-xl p-4 sm:p-6 space-y-4 bg-muted/20">
               {/* HEADER */}
               <div>
                 <p className="text-sm font-medium">Datos adicionales</p>
@@ -683,7 +683,7 @@ export function UpdateEmployeeForm({ employee, onSuccess }: Props) {
             </div>
 
             {/* ================= BLOQUE 2 ================= */}
-            <div className="border rounded-xl p-6 space-y-4">
+            <div className="border rounded-xl p-4 sm:p-6 space-y-4">
               {/* HEADER */}
               <div>
                 <p className="text-sm font-medium">Datos organizacionales</p>
