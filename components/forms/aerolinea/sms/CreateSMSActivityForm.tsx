@@ -64,6 +64,8 @@ import { ActivityCategoriesForm } from "./ActivityCategoriesForm";
 import FolderSelect from "@/components/library/FolderSelect";
 import { useResettingState } from "@/hooks/useResettingState";
 
+const MAX_TOPICS_LENGTH = 10000;
+
 const FormSchema = z
   .object({
     activity_name: z.string(),
@@ -80,7 +82,10 @@ const FormSchema = z
     topics: z
       .string()
       .min(1, "Debe agregar al menos un tema")
-      .max(1000, "Máximo 1000 caracteres"),
+      .max(
+        MAX_TOPICS_LENGTH,
+        `Máximo ${MAX_TOPICS_LENGTH.toLocaleString("es-ES")} caracteres`,
+      ),
     categories: z.array(z.string()),
     objetive: z.string().max(500, "Máximo 500 caracteres"),
     description: z.string().max(2000, "Máximo 2000 caracteres"),
@@ -214,19 +219,38 @@ export default function CreateSMSActivityForm({
     }
   }, [isEditing, initialData, employees, nextNumberData, form]);
   const addTopic = () => {
-    if (newTopic.trim()) {
-      const updated = [...topics, newTopic.trim()];
-      setTopics(updated);
-      form.setValue("topics", updated.join(","));
-      setNewTopic("");
+    const value = newTopic.trim();
+    if (!value) return;
+
+    const updated = [...topics, value];
+    const serialized = updated.join(",");
+
+    if (serialized.length > MAX_TOPICS_LENGTH) {
+      form.setError("topics", {
+        type: "max",
+        message: `Máximo ${MAX_TOPICS_LENGTH.toLocaleString("es-ES")} caracteres en los temas abordados`,
+      });
+      return;
     }
+
+    setTopics(updated);
+    form.clearErrors("topics");
+    form.setValue("topics", serialized, { shouldValidate: true });
+    setNewTopic("");
   };
 
   const removeTopic = (index: number) => {
     const updated = topics.filter((_, i) => i !== index);
     setTopics(updated);
-    form.setValue("topics", updated.join(","));
+    form.clearErrors("topics");
+    form.setValue("topics", updated.join(","), { shouldValidate: true });
   };
+
+  const topicsLength = topics.join(",").length;
+  const remainingTopicsChars = Math.max(
+    0,
+    MAX_TOPICS_LENGTH - topicsLength - (topics.length > 0 ? 1 : 0),
+  );
 
   const handleTopicKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
@@ -517,11 +541,23 @@ export default function CreateSMSActivityForm({
                 value={newTopic}
                 onChange={(e) => setNewTopic(e.target.value)}
                 onKeyPress={handleTopicKeyPress}
+                maxLength={remainingTopicsChars}
               />
               <Button type="button" onClick={addTopic} size="icon">
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
+            <p
+              className={cn(
+                "text-xs text-right",
+                remainingTopicsChars === 0
+                  ? "text-destructive"
+                  : "text-muted-foreground",
+              )}
+            >
+              {topicsLength.toLocaleString("es-ES")} /{" "}
+              {MAX_TOPICS_LENGTH.toLocaleString("es-ES")} caracteres
+            </p>
             <div className="flex flex-wrap gap-2 p-2 border rounded-md max-h-48 overflow-y-auto">
               {topics.map((item, index) => (
                 <div
