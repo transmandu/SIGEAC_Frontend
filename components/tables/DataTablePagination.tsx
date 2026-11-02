@@ -33,9 +33,9 @@ export function DataTablePagination<TData extends RowData>({
     >
       <div className="flex-1 text-sm text-muted-foreground" />
 
-      <div className="flex items-center space-x-6 lg:space-x-8">
+      <div className="flex items-center space-x-6 lg:space-x-8 max-md:w-full max-md:flex-wrap max-md:justify-center max-md:gap-y-3 max-md:space-x-0">
         {/* PAGE SIZE */}
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 max-md:order-3 max-md:w-full max-md:justify-center">
           <p className="text-xs font-medium text-muted-foreground">
             Items por página:
           </p>
@@ -68,7 +68,7 @@ export function DataTablePagination<TData extends RowData>({
         </div>
 
         {/* PAGE INFO */}
-        <div className="flex w-25 items-center justify-center text-xs font-medium">
+        <div className="flex w-25 items-center justify-center text-xs font-medium max-md:order-1 max-md:w-full">
           <span className="text-muted-foreground">Página</span>
 
           <span className="mx-1 text-foreground font-semibold tabular-nums">
@@ -83,7 +83,7 @@ export function DataTablePagination<TData extends RowData>({
         </div>
 
         {/* NAV */}
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 max-md:order-2 max-md:w-full max-md:justify-center max-md:space-x-3">
           {[
             {
               icon: ChevronFirst,
@@ -114,7 +114,7 @@ export function DataTablePagination<TData extends RowData>({
               key={label}
               variant="ghost"
               className="
-                h-8 w-8 p-0 rounded-md
+                h-8 w-8 p-0 rounded-md max-md:size-10 max-md:active:scale-90 max-md:active:bg-muted
                 text-muted-foreground
                 hover:text-foreground
                 hover:bg-white dark:hover:bg-slate-800/50

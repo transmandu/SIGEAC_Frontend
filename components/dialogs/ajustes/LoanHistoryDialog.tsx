@@ -112,7 +112,7 @@ export function LoanHistoryDialog({
                 <TableRow>
                   <TableHead className="w-28">Fecha</TableHead>
                   <TableHead>Qué ocurrió</TableHead>
-                  <TableHead className="w-40">Por</TableHead>
+                  <TableHead className="w-40 max-sm:hidden">Por</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -123,8 +123,13 @@ export function LoanHistoryDialog({
                     </TableCell>
                     <TableCell className="font-medium">
                       {describe(event)}
+                      {event.by && (
+                        <span className="mt-0.5 block text-xs font-normal text-muted-foreground sm:hidden">
+                          {event.by}
+                        </span>
+                      )}
                     </TableCell>
-                    <TableCell className="text-muted-foreground">
+                    <TableCell className="text-muted-foreground max-sm:hidden">
                       {event.by ?? "—"}
                     </TableCell>
                   </TableRow>

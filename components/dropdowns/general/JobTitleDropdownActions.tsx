@@ -47,7 +47,7 @@ const JobTitleDropdownActions = ({ jobTitle }: { jobTitle: JobTitle }) => {
       <SettingsRowActions actions={actions} />
 
       <Dialog open={openEdit} onOpenChange={setOpenEdit}>
-        <DialogContent className="sm:max-w-105">
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-105">
           <DialogHeader>
             <DialogTitle>Editar cargo</DialogTitle>
             <DialogDescription>

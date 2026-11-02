@@ -82,7 +82,7 @@ const ClientDropdownActions = ({ client }: { client: AirlineClient }) => {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="grid grid-cols-2 gap-4 py-2">
+          <div className="grid grid-cols-1 gap-4 py-2 sm:grid-cols-2">
             <Field label="Teléfono" value={formatPhone(client.phone) || "—"} />
             <Field label="Correo" value={client.email || "—"} />
             <Field
@@ -92,7 +92,7 @@ const ClientDropdownActions = ({ client }: { client: AirlineClient }) => {
             <Field
               label="Dirección"
               value={client.address || "—"}
-              className="col-span-2"
+              className="sm:col-span-2"
             />
           </div>
 

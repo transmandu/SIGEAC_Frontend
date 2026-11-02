@@ -369,7 +369,7 @@ function NewPresetForm({ onDone }: { onDone: () => void }) {
             </SelectContent>
           </Select>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="whitespace-nowrap text-xs text-muted-foreground">
               1 {direction === "base_per_unit" ? unitLabel : baseLabel} =
             </span>

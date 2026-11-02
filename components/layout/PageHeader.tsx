@@ -82,7 +82,7 @@ export function PageHeader({
                 />
             )}
 
-            <Breadcrumb>
+            <Breadcrumb className="min-w-0">
                 <BreadcrumbList>
                     {visible.map((crumb, index) => {
                         const isLast = index === visible.length - 1;

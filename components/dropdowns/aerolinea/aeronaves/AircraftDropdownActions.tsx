@@ -88,7 +88,7 @@ const AircraftDropdownActions = ({
             </DialogDescription>
           </DialogHeader>
 
-          <div className="grid grid-cols-2 gap-4 py-2">
+          <div className="grid grid-cols-1 gap-4 py-2 sm:grid-cols-2">
             <Field label="Serial" value={aircraft.serial} />
             <Field
               label="Estado"
@@ -129,7 +129,7 @@ const AircraftDropdownActions = ({
             <Field
               label="Comentarios"
               value={aircraft.comments || "—"}
-              className="col-span-2"
+              className="sm:col-span-2"
             />
           </div>
 

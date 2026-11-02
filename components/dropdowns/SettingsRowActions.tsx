@@ -55,7 +55,7 @@ export function SettingsRowActions({
           <Button
             variant="ghost"
             size="icon"
-            className="size-8 rounded-xl border border-transparent transition-all duration-200 hover:bg-muted/70 hover:border-border/50 hover:shadow-xs data-[state=open]:bg-muted"
+            className="size-8 rounded-xl border border-transparent max-md:size-10 max-md:active:scale-90 transition-all duration-200 hover:bg-muted/70 hover:border-border/50 hover:shadow-xs data-[state=open]:bg-muted"
             data-tour={tourId}
           >
             <MoreHorizontal className="size-4" />
@@ -66,10 +66,10 @@ export function SettingsRowActions({
         <DropdownMenuContent
           align="center"
           sideOffset={3}
-          className="flex items-center justify-center gap-1.5 rounded-2xl border border-border/50 bg-background/90 backdrop-blur-xl shadow-xl p-1.5 overflow-visible animate-in fade-in zoom-in-95 duration-200"
+          className="flex items-center justify-center gap-1.5 rounded-2xl border border-border/50 bg-background/90 backdrop-blur-xl shadow-xl p-1.5 overflow-visible animate-in fade-in zoom-in-95 duration-200 max-md:min-w-48 max-md:bg-background max-md:backdrop-blur-none max-md:origin-(--radix-dropdown-menu-content-transform-origin) max-md:flex-col max-md:items-stretch max-md:gap-0.5"
         >
           {actions.map(
-            ({ key, label, icon: Icon, tone = "default", onSelect }) => (
+            ({ key, label, icon: Icon, tone = "default", onSelect }, index) => (
               <Tooltip key={key}>
                 <TooltipTrigger asChild>
                   <span>
@@ -80,21 +80,27 @@ export function SettingsRowActions({
                       <button
                         type="button"
                         aria-label={label}
+                        style={{ animationDelay: `${60 + index * 35}ms` }}
                         onClick={() => {
                           setOpen(false);
                           onSelect();
                         }}
                         className={cn(
-                          "group relative flex items-center justify-center size-9 rounded-xl transition-all duration-200 ease-out hover:bg-muted hover:shadow-xs active:scale-95",
+                          "group relative flex items-center justify-center size-9 rounded-xl transition-all duration-200 ease-out hover:bg-muted hover:shadow-xs active:scale-95 max-md:h-11 max-md:w-full max-md:justify-start max-md:gap-3 max-md:px-3 max-md:active:bg-muted motion-safe:max-md:animate-item-in",
                           TONES[tone],
                         )}
                       >
-                        <Icon className="size-4.5 transition-all duration-200 ease-out group-hover:scale-110" />
+                        <Icon className="size-4.5 shrink-0 transition-all duration-200 ease-out group-hover:scale-110" />
+                        <span className="text-sm font-medium md:hidden">
+                          {label}
+                        </span>
                       </button>
                     </DropdownMenuItem>
                   </span>
                 </TooltipTrigger>
-                <TooltipContent>{label}</TooltipContent>
+                <TooltipContent className="max-md:hidden">
+                  {label}
+                </TooltipContent>
               </Tooltip>
             ),
           )}

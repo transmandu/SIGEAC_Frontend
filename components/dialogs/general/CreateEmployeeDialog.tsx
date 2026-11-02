@@ -26,7 +26,7 @@ export function CreateEmployeeDialog() {
         </ActionTriggerButton>
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-5xl">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-5xl">
         <DialogHeader>
           <DialogTitle>Crear Empleado</DialogTitle>
           <DialogDescription>
