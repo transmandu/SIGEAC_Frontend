@@ -127,7 +127,7 @@ export function SheetMenu() {
 
       <SheetContent
         side="left"
-        className="sm:max-w-72 px-3 h-full flex flex-col"
+        className="max-sm:w-4/5 sm:max-w-72 px-3 h-full flex flex-col"
       >
         {/* HEADER */}
         <SheetHeader>

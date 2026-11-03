@@ -13,14 +13,13 @@ import { useTourContext } from "@/components/tour/TourProvider";
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 import LoadingPage from "@/components/misc/LoadingPage";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyEmployee } from "@/hooks/sistema/usuario/useMyEmployee";
 import { useProfileIdentity } from "@/hooks/sistema/usuario/useProfileIdentity";
 import { cuentaSteps } from "@/components/tour/steps/cuenta";
-import { cn } from "@/lib/utils";
 
 import ProfileCompanies from "./_components/ProfileCompanies";
 import ProfileCover from "./_components/ProfileCover";
@@ -31,6 +30,17 @@ const RequestPasswordResetDialog = dynamic(
   () => import("@/components/dialogs/sistema/RequestPasswordResetDialog"),
   { ssr: false },
 );
+
+type Employee = NonNullable<ReturnType<typeof useMyEmployee>["data"]>;
+
+const documentOf = (employee: Employee) =>
+  `${employee.dni_type ? `${employee.dni_type}-` : ""}${employee.dni}`.toUpperCase();
+
+/** Entrada escalonada de los bloques, solo en móvil y si el sistema no pide menos movimiento. */
+const enter = (index: number) => ({
+  className: "motion-safe:max-md:animate-card-in",
+  style: { animationDelay: `${index * 70}ms` },
+});
 
 const AccountPage = () => {
   const { loading } = useAuth();
@@ -43,7 +53,7 @@ const AccountPage = () => {
   useEffect(() => {
     if (!user) return;
 
-    registerTour("cuenta", "Cuenta", cuentaSteps);
+    registerTour("cuenta", "Mi Cuenta", cuentaSteps);
     return () => unregisterTour("cuenta");
   }, [registerTour, unregisterTour, user]);
 
@@ -57,37 +67,38 @@ const AccountPage = () => {
 
   if (!user) {
     return (
-      <ContentLayout title="Mi perfil">
-        <PageHeader className="mb-6" />
-        <div className="flex min-h-75 items-center justify-center text-sm text-muted-foreground">
-          Sesión finalizada
+      <ContentLayout title="Mi Cuenta">
+        <div className="flex flex-col gap-6">
+          <PageHeader />
+          <div className="flex min-h-75 items-center justify-center text-sm text-muted-foreground">
+            Sesión finalizada
+          </div>
         </div>
       </ContentLayout>
     );
   }
 
   return (
-    <ContentLayout title="Mi perfil">
-      <PageHeader className="mb-2" />
+    <ContentLayout title="Mi Cuenta">
+      <div className="flex flex-col gap-6" data-tour="cuenta-title">
+        <PageHeader />
 
-      <div
-        className="mx-auto mt-4 max-w-5xl space-y-6"
-        data-tour="cuenta-title"
-      >
-        <div data-tour="cuenta-user-card">
+        <div data-tour="cuenta-user-card" {...enter(0)}>
           <ProfileCover
             user={user}
             roles={visibleRoles}
             jobTitle={employee?.job_title?.name}
             photoUrl={employee?.photo_url_lg ?? employee?.photo_url}
             photoLoading={employeeLoading}
+            gender={employee?.gender}
           />
         </div>
 
-        <div data-tour="cuenta-company-info">
+        <div data-tour="cuenta-company-info" {...enter(1)}>
           <ProfileSection
             title="Mis empresas"
-            icon={<Building2 className="size-4" />}
+            icon={Building2}
+            hint="Las empresas a las que tiene acceso y su rol en cada una."
           >
             <ProfileCompanies
               companies={user.companies}
@@ -98,31 +109,31 @@ const AccountPage = () => {
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
-          <ProfileSection
-            title="Cuenta"
-            icon={<UserRound className="size-4" />}
-          >
-            <div className="divide-y rounded-xl border bg-card px-4">
-              <ProfileField
-                label="Nombre de usuario"
-                value={user.username}
-                mono
-              />
-              <ProfileField label="Correo electrónico" value={user.email} />
-              <ProfileField
-                label="Empresa activa"
-                value={selectedCompany?.name}
-              />
-            </div>
-          </ProfileSection>
+          <div {...enter(2)}>
+            <ProfileSection title="Cuenta" icon={UserRound} className="h-full">
+              <div className="divide-y">
+                <ProfileField
+                  label="Nombre de usuario"
+                  value={user.username}
+                  mono
+                />
+                <ProfileField label="Correo electrónico" value={user.email} />
+                <ProfileField
+                  label="Empresa activa"
+                  value={selectedCompany?.name}
+                />
+              </div>
+            </ProfileSection>
+          </div>
 
-          <ProfileSection
-            title="Ficha laboral"
-            icon={<IdCard className="size-4" />}
-          >
-            <div className="divide-y rounded-xl border bg-card px-4">
+          <div {...enter(3)}>
+            <ProfileSection
+              title="Ficha laboral"
+              icon={IdCard}
+              className="h-full"
+            >
               {employee ? (
-                <>
+                <div className="divide-y">
                   <ProfileField label="Empleado" value={employeeName} />
                   <ProfileField
                     label="Cargo"
@@ -134,69 +145,51 @@ const AccountPage = () => {
                   />
                   <ProfileField
                     label="Documento"
-                    value={
-                      employee.dni &&
-                      `${employee.dni_type ?? ""}${employee.dni}`.toUpperCase()
-                    }
+                    value={employee.dni && documentOf(employee)}
                     mono
                   />
-                </>
+                </div>
+              ) : employeeLoading ? (
+                <div className="space-y-3 py-1">
+                  {Array.from({ length: 4 }).map((_, index) => (
+                    <Skeleton key={index} className="h-5 w-full" />
+                  ))}
+                </div>
               ) : (
                 <p className="py-8 text-center text-sm text-muted-foreground">
-                  {employeeLoading
-                    ? "Cargando ficha…"
-                    : selectedCompany
-                      ? "No hay un empleado asociado a su usuario en esta empresa."
-                      : "Seleccione una empresa para ver su ficha laboral."}
+                  {selectedCompany
+                    ? "No hay un empleado asociado a su usuario en esta empresa."
+                    : "Seleccione una empresa para ver su ficha laboral."}
                 </p>
               )}
+            </ProfileSection>
+          </div>
+        </div>
+
+        <div data-tour="cuenta-security" {...enter(4)}>
+          <ProfileSection title="Seguridad" icon={ShieldCheck}>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                  Contraseña
+                </p>
+                <p className="max-w-md text-xs leading-relaxed text-muted-foreground">
+                  Por políticas de seguridad, la nueva contraseña la asigna un
+                  administrador. Al solicitarla se le notifica para que se la
+                  comunique.
+                </p>
+              </div>
+
+              <ActionTriggerButton
+                className="max-sm:w-full sm:shrink-0"
+                onClick={() => setResetOpen(true)}
+              >
+                <KeyRound className="mr-2 h-4 w-4" />
+                Solicitar cambio
+              </ActionTriggerButton>
             </div>
           </ProfileSection>
         </div>
-
-        <ProfileSection
-          title="Seguridad"
-          icon={<ShieldCheck className="size-4" />}
-        >
-          <div
-            data-tour="cuenta-security"
-            className="flex flex-col gap-4 rounded-xl border bg-card p-4 sm:flex-row sm:items-center sm:justify-between"
-          >
-            <div className="space-y-1">
-              <p className="text-sm font-medium">Contraseña</p>
-              <p className="max-w-md text-xs leading-relaxed text-muted-foreground">
-                Por políticas de seguridad, la nueva contraseña la asigna un
-                administrador. Al solicitarla se le notifica para que se la
-                comunique.
-              </p>
-            </div>
-
-            {/* Mismo lenguaje visual que los selects del bootstrap y la
-                entrada al panel global: superficie translúcida y realce azul. */}
-            <Button
-              variant="ghost"
-              className={cn(
-                "h-9 gap-2 rounded-lg text-sm font-normal sm:shrink-0",
-                "bg-linear-to-br from-background/70 to-background/40",
-                "backdrop-blur-md",
-                "border border-slate-400/60 dark:border-slate-600/60",
-                "shadow-xs",
-                "text-slate-700 dark:text-slate-200",
-                "hover:border-blue-400/30 hover:bg-linear-to-br",
-                "hover:from-background/70 hover:to-background/40",
-                "hover:shadow-md hover:shadow-blue-500/10",
-                "transition-all duration-200",
-                "active:scale-[0.99]",
-              )}
-              onClick={() => setResetOpen(true)}
-            >
-              <KeyRound className="size-4" />
-              Solicitar cambio
-            </Button>
-          </div>
-        </ProfileSection>
-
-        <Separator className="opacity-0" />
       </div>
 
       {resetOpen && (

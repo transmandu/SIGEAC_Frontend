@@ -1,14 +1,9 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
+import { Loader2, History } from "lucide-react";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Table,
@@ -85,16 +80,19 @@ export function LoanHistoryDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
-        <DialogHeader>
-          <DialogTitle>Historial del convenio</DialogTitle>
-          <DialogDescription>
+      <FormDialogContent
+        icon={History}
+        title="Historial del convenio"
+        description={
+          <>
             Todo lo ocurrido en el convenio con{" "}
             <span className="font-medium text-foreground">{otherName}</span>,
             del más reciente al más antiguo.
-          </DialogDescription>
-        </DialogHeader>
-
+          </>
+        }
+        lockOutside={false}
+        className="sm:max-w-3xl"
+      >
         {isLoading ? (
           <Loader2 className="mx-auto my-10 size-5 animate-spin text-muted-foreground" />
         ) : isError ? (
@@ -138,7 +136,7 @@ export function LoanHistoryDialog({
             </Table>
           </ScrollArea>
         )}
-      </DialogContent>
+      </FormDialogContent>
     </Dialog>
   );
 }

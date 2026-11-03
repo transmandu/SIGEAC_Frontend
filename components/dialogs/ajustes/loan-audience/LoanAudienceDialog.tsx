@@ -1,14 +1,9 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
+import { Loader2, UserPlus } from "lucide-react";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog } from "@/components/ui/dialog";
 import type {
   CompanyLoanAgreement,
   CompanyLoanScope,
@@ -40,21 +35,22 @@ export function LoanAudienceDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        className="flex h-[90vh] flex-col overflow-hidden sm:max-w-4xl"
-        onInteractOutside={(e) => e.preventDefault()}
-      >
-        <DialogHeader className="shrink-0">
-          <DialogTitle>{scope.label}</DialogTitle>
-          <DialogDescription>
+      <FormDialogContent
+        icon={UserPlus}
+        title={scope.label}
+        description={
+          <>
             Elija quién de su empresa puede usarlo en{" "}
             <span className="font-medium text-foreground">
-              {agreement.lender_company_name}
-            </span>
+              {" "}
+              {agreement.lender_company_name}{" "}
+            </span>{" "}
             ; solo se guardará lo que cambie.
-          </DialogDescription>
-        </DialogHeader>
-
+          </>
+        }
+        fill
+        className="h-[90vh] sm:max-w-4xl"
+      >
         {open &&
           (isLoading || !data ? (
             <Loader2 className="mx-auto my-10 size-5 animate-spin text-muted-foreground" />
@@ -67,7 +63,7 @@ export function LoanAudienceDialog({
               onDone={() => onOpenChange(false)}
             />
           ))}
-      </DialogContent>
+      </FormDialogContent>
     </Dialog>
   );
 }

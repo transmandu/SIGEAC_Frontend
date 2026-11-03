@@ -1,18 +1,12 @@
 "use client";
 
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Warehouse } from "lucide-react";
 import CreateWarehouseForm from "@/components/forms/ajustes/CreateWarehouseForm";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 
 const CreateWarehouseDialog = () => {
   const [open, setOpen] = useState(false);
@@ -25,15 +19,14 @@ const CreateWarehouseDialog = () => {
           Crear almacén
         </ActionTriggerButton>
       </DialogTrigger>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-105">
-        <DialogHeader>
-          <DialogTitle>Creación de Almacén</DialogTitle>
-          <DialogDescription>
-            Cree un almacén rellenando los datos necesarios.
-          </DialogDescription>
-        </DialogHeader>
+      <FormDialogContent
+        icon={Warehouse}
+        title="Creación de Almacén"
+        description="Cree un almacén rellenando los datos necesarios."
+        className="sm:max-w-105"
+      >
         <CreateWarehouseForm onClose={() => setOpen(false)} />
-      </DialogContent>
+      </FormDialogContent>
     </Dialog>
   );
 };

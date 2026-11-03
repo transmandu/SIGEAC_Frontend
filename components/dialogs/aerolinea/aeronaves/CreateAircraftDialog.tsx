@@ -1,17 +1,11 @@
 "use client";
 
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Plane } from "lucide-react";
 import { CreateAircraftForm } from "@/components/forms/aerolinea/aeronaves/CreateAircraftForm";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 
 export function CreateAircraftDialog() {
   const [open, setOpen] = useState(false);
@@ -24,19 +18,14 @@ export function CreateAircraftDialog() {
           Crear aeronave
         </ActionTriggerButton>
       </DialogTrigger>
-      <DialogContent
-        className="max-h-[90vh] overflow-y-auto sm:max-w-4xl"
-        onInteractOutside={(e) => e.preventDefault()}
+      <FormDialogContent
+        icon={Plane}
+        title="Crear aeronave"
+        description="Registre una aeronave de la flota o una externa para cargar su carga."
+        className="sm:max-w-4xl"
       >
-        <DialogHeader>
-          <DialogTitle>Crear aeronave</DialogTitle>
-          <DialogDescription>
-            Registre una aeronave de la flota o una externa para cargar su
-            carga.
-          </DialogDescription>
-        </DialogHeader>
         <CreateAircraftForm onClose={() => setOpen(false)} />
-      </DialogContent>
+      </FormDialogContent>
     </Dialog>
   );
 }

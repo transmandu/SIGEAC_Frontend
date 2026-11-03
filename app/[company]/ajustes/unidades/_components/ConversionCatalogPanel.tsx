@@ -1,7 +1,8 @@
 "use client";
 
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import { useMemo, useState } from "react";
-import { Loader2, Plus, Ruler, Trash2 } from "lucide-react";
+import { Loader2, Plus, Ruler, Trash2, ArrowLeftRight } from "lucide-react";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 import { ConfirmDeleteDialog } from "@/components/dialogs/shared/ConfirmDeleteDialog";
 import {
@@ -13,14 +14,7 @@ import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { TagBadge } from "@/components/misc/TagBadge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -219,16 +213,14 @@ function NewPresetDialog() {
         </ActionTriggerButton>
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>Creación de Equivalencia</DialogTitle>
-          <DialogDescription>
-            Plantilla reutilizable: el artículo copia el número y la conversión
-            resultante es suya.
-          </DialogDescription>
-        </DialogHeader>
+      <FormDialogContent
+        icon={ArrowLeftRight}
+        title="Creación de Equivalencia"
+        description="Plantilla reutilizable: el artículo copia el número y la conversión resultante es suya."
+        className="sm:max-w-lg"
+      >
         <NewPresetForm onDone={() => setOpen(false)} />
-      </DialogContent>
+      </FormDialogContent>
     </Dialog>
   );
 }

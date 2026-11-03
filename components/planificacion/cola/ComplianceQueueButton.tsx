@@ -388,6 +388,16 @@ export function ComplianceQueueButton() {
     return selectedIds.filter((id) => ids.has(id));
   }, [selectedIds, entries]);
 
+  // El botón del tour (z-100) quedaría encima de este panel (z-45): se retira
+  // mientras está abierto (ver globals.css).
+  useEffect(() => {
+    if (!open) return;
+
+    document.documentElement.setAttribute("data-queue-open", "");
+
+    return () => document.documentElement.removeAttribute("data-queue-open");
+  }, [open]);
+
   useEffect(() => {
     if (!open) return;
 
@@ -513,7 +523,7 @@ export function ComplianceQueueButton() {
               whileHover={open ? undefined : { x: -3 }}
               className={cn(
                 "flex flex-col items-center gap-2",
-                "fixed right-0 top-1/2 z-1003 -translate-y-1/2",
+                "fixed right-0 top-1/2 z-40 -translate-y-1/2",
                 "rounded-l-xl px-2 py-4",
                 "bg-linear-to-b from-primary to-blue-600 text-white",
                 "shadow-[-4px_0_16px_rgba(0,0,0,0.15)]",
@@ -554,7 +564,7 @@ export function ComplianceQueueButton() {
         aria-label="Bandeja de trabajo"
         aria-hidden={!open}
         className={cn(
-          "fixed inset-y-0 right-0 z-1002",
+          "fixed inset-y-0 right-0 z-45",
           "flex w-96 max-w-[calc(100vw-2.5rem)] flex-col",
           "border-l bg-background shadow-[-8px_0_30px_rgba(0,0,0,0.12)]",
           !open && "pointer-events-none",

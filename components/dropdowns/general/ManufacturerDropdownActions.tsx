@@ -1,16 +1,11 @@
 "use client";
 
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import { useState } from "react";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, Factory } from "lucide-react";
 import { useDeleteManufacturer } from "@/actions/ajustes/fabricantes/actions";
 import { ConfirmDeleteDialog } from "@/components/dialogs/shared/ConfirmDeleteDialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog } from "@/components/ui/dialog";
 import UpdateManufacturerForm from "@/components/forms/general/UpdateManufacturerForm";
 import {
   SettingsRowActions,
@@ -60,25 +55,26 @@ const ManufacturerDropdownActions = ({
       <SettingsRowActions actions={actions} tourId="fabricantes-actions" />
 
       <Dialog open={openEdit} onOpenChange={setOpenEdit}>
-        <DialogContent
-          className="max-h-[90vh] overflow-y-auto sm:max-w-lg"
-          onInteractOutside={(e) => e.preventDefault()}
-        >
-          <DialogHeader>
-            <DialogTitle>Editar fabricante</DialogTitle>
-            <DialogDescription>
+        <FormDialogContent
+          icon={Factory}
+          title="Editar fabricante"
+          description={
+            <>
               Modifique lo necesario de{" "}
               <span className="font-medium text-foreground">
-                {manufacturer.name}
-              </span>
+                {" "}
+                {manufacturer.name}{" "}
+              </span>{" "}
               ; solo se guardará lo que cambie.
-            </DialogDescription>
-          </DialogHeader>
+            </>
+          }
+          className="sm:max-w-lg"
+        >
           <UpdateManufacturerForm
             manufacturer={manufacturer}
             onClose={() => setOpenEdit(false)}
           />
-        </DialogContent>
+        </FormDialogContent>
       </Dialog>
 
       <ConfirmDeleteDialog

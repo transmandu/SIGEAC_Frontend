@@ -1,6 +1,7 @@
 "use client";
 
 import { Loader2, type LucideIcon } from "lucide-react";
+import { fullScreenOnMobile } from "@/components/dialogs/shared/FormDialogContent";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -71,7 +72,13 @@ export function ConfirmActionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[390px] rounded-3xl border border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl overflow-hidden p-0">
+      <DialogContent
+        className={cn(
+          "sm:max-w-[390px] rounded-3xl border border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl overflow-hidden p-0",
+          fullScreenOnMobile,
+          "max-sm:content-center",
+        )}
+      >
         <DialogHeader className="px-6 pt-8 pb-3 flex flex-col items-center text-center space-y-3">
           <div
             className={cn(

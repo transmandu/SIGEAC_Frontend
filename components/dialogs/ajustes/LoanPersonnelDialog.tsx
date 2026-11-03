@@ -1,14 +1,9 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
+import { Loader2, UsersRound } from "lucide-react";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Table,
@@ -42,19 +37,23 @@ export function LoanPersonnelDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
-        <DialogHeader>
-          <DialogTitle>Personal autorizado</DialogTitle>
-          <DialogDescription>
+      <FormDialogContent
+        icon={UsersRound}
+        title="Personal autorizado"
+        description={
+          <>
             Personas de{" "}
             <span className="font-medium text-foreground">
-              {agreement.borrower_company_name}
+              {" "}
+              {agreement.borrower_company_name}{" "}
             </span>{" "}
             que esa empresa eligió, una a una o por departamento, para actuar en
             los alcances que usted le abrió.
-          </DialogDescription>
-        </DialogHeader>
-
+          </>
+        }
+        lockOutside={false}
+        className="sm:max-w-3xl"
+      >
         {isLoading ? (
           <Loader2 className="mx-auto my-10 size-5 animate-spin text-muted-foreground" />
         ) : isError ? (
@@ -95,7 +94,7 @@ export function LoanPersonnelDialog({
             </Table>
           </ScrollArea>
         )}
-      </DialogContent>
+      </FormDialogContent>
     </Dialog>
   );
 }

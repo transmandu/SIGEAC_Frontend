@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, type ComponentProps } from "react";
 import {
   ColumnFiltersState,
   ExpandedState,
@@ -19,6 +19,7 @@ import {
 import { appTableFeatures, type AppColumnDef } from "@/lib/table";
 import { DataTablePagination } from "@/components/tables/DataTablePagination";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
+import { EmptyState } from "@/components/misc/EmptyState";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -49,6 +50,24 @@ interface SettingsDataTableProps<TData extends RowData> {
   /** Prefijo de los `data-tour` (`-new`, `-table`, `-pagination`). */
   tourPrefix?: string;
   pageSize?: number;
+  /**
+   * Paginación en el servidor: `data` trae solo la página visible. Sin esto la
+   * tabla pagina en el cliente sobre todo lo recibido.
+   */
+  serverPagination?: {
+    pageIndex: number;
+    pageSize: number;
+    pageCount: number;
+    onChange: (pageIndex: number, pageSize: number) => void;
+  };
+  /**
+   * Filtros de columna en el servidor: la tabla solo muestra y edita su estado;
+   * quien la usa decide qué parámetros manda y vuelve a la primera página.
+   */
+  serverFilters?: {
+    value: ColumnFiltersState;
+    onChange: (next: ColumnFiltersState) => void;
+  };
   /** Con subfila, la fila entera se expande al hacer clic. */
   renderSubRow?: (row: TData) => React.ReactNode;
   /** `data-tour` extra del cuerpo, para tours que señalan las filas. */
@@ -82,6 +101,12 @@ const MOBILE_PRESS_SCALE =
 const MOBILE_LEFT =
   "max-md:wrap-anywhere max-md:[&_.justify-center]:justify-start max-md:[&_.text-center]:text-left max-md:[&_.flex-col.items-center]:items-start";
 
+/** Tiene algo que ofrecer en el panel móvil: orden o filtro. */
+const isControllable = (column: {
+  getCanSort: () => boolean;
+  columnDef: { meta?: { filterable?: boolean } };
+}) => column.getCanSort() || !!column.columnDef.meta?.filterable;
+
 function mobileCellClass(columnId: string, label?: string, isTitle?: boolean) {
   if (columnId === "expander") {
     return "max-md:order-last max-md:col-span-2 max-md:flex max-md:items-center max-md:gap-1 max-md:border-t max-md:border-slate-200/70 max-md:p-0 max-md:pt-3 dark:max-md:border-slate-700/50 max-md:before:text-xs max-md:before:font-medium max-md:before:text-muted-foreground max-md:before:content-['Ver_detalle'] max-md:data-[expanded=true]:before:content-['Ocultar_detalle'] max-md:[&>div]:w-auto";
@@ -105,19 +130,8 @@ function mobileCellClass(columnId: string, label?: string, isTitle?: boolean) {
 
 function TableMessage({
   colSpan,
-  icon: Icon,
-  title,
-  description,
-  action,
-  tone = "muted",
-}: {
-  colSpan: number;
-  icon: React.ComponentType<{ className?: string }>;
-  title: string;
-  description?: string;
-  action?: React.ReactNode;
-  tone?: "muted" | "error";
-}) {
+  ...state
+}: { colSpan: number } & ComponentProps<typeof EmptyState>) {
   return (
     <TableRow
       role="row"
@@ -128,24 +142,7 @@ function TableMessage({
         colSpan={colSpan}
         className="h-48 max-md:flex max-md:h-[max(12rem,calc(100dvh-30rem))] max-md:items-center max-md:justify-center"
       >
-        <div className="flex flex-col items-center justify-center gap-2 text-center">
-          <div
-            className={
-              tone === "error"
-                ? "flex size-11 items-center justify-center rounded-2xl border border-red-500/20 bg-red-500/5 text-red-500"
-                : "flex size-11 items-center justify-center rounded-2xl border border-border/60 bg-muted/40 text-muted-foreground"
-            }
-          >
-            <Icon className="size-5" />
-          </div>
-          <p className="text-sm font-medium text-foreground">{title}</p>
-          {description && (
-            <p className="max-w-sm text-xs text-muted-foreground">
-              {description}
-            </p>
-          )}
-          {action}
-        </div>
+        <EmptyState {...state} />
       </TableCell>
     </TableRow>
   );
@@ -163,6 +160,8 @@ export function SettingsDataTable<TData extends RowData>({
   actions,
   tourPrefix,
   pageSize = 15,
+  serverPagination,
+  serverFilters,
   renderSubRow,
   bodyTourId,
 }: SettingsDataTableProps<TData>) {
@@ -174,33 +173,70 @@ export function SettingsDataTable<TData extends RowData>({
 
   const stableData = useMemo(() => data, [data]);
 
+  const activePagination = serverPagination
+    ? {
+        pageIndex: serverPagination.pageIndex,
+        pageSize: serverPagination.pageSize,
+      }
+    : pagination;
+
   const table = useTable({
     features: appTableFeatures,
     data: stableData,
     columns,
-    state: { sorting, columnFilters, pagination, expanded },
+    manualPagination: !!serverPagination,
+    manualFiltering: !!serverFilters,
+    pageCount: serverPagination?.pageCount,
+    state: {
+      sorting,
+      columnFilters: serverFilters ? serverFilters.value : columnFilters,
+      pagination: activePagination,
+      expanded,
+    },
     onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    onPaginationChange: setPagination,
+    onColumnFiltersChange: (updater) => {
+      const current = serverFilters ? serverFilters.value : columnFilters;
+      const next = typeof updater === "function" ? updater(current) : updater;
+
+      if (serverFilters) {
+        serverFilters.onChange(next);
+      } else {
+        setColumnFilters(next);
+      }
+    },
+    onPaginationChange: (updater) => {
+      const next =
+        typeof updater === "function" ? updater(activePagination) : updater;
+
+      if (serverPagination) {
+        serverPagination.onChange(next.pageIndex, next.pageSize);
+      } else {
+        setPagination(next);
+      }
+    },
     onExpandedChange: setExpanded,
     getRowCanExpand: () => !!renderSubRow,
   });
 
   const rows = table.getRowModel().rows;
-  const hasSortable = table.getAllColumns().some((c) => c.getCanSort());
-  const activeControls = sorting.length + columnFilters.length;
+  const activeFilters = serverFilters ? serverFilters.value : columnFilters;
+  const hasControls = table.getAllColumns().some(isControllable);
+  const activeControls = sorting.length + activeFilters.length;
   const showControlsToggle =
-    hasSortable &&
+    hasControls &&
     !loading &&
     !error &&
     (data.length > 0 || activeControls > 0);
-  const hasColumnFilters = columnFilters.length > 0;
-  const titleColumnId = table
+  const hasColumnFilters = activeFilters.length > 0;
+  const titledColumns = table
     .getVisibleLeafColumns()
-    .find(
+    .filter(
       (c) =>
         c.id !== "expander" && c.id !== "actions" && c.columnDef.meta?.title,
-    )?.id;
+    );
+  const titleColumnId = (
+    titledColumns.find((c) => c.columnDef.meta?.mobileTitle) ?? titledColumns[0]
+  )?.id;
   const tour = (suffix: string) =>
     tourPrefix ? `${tourPrefix}-${suffix}` : undefined;
 
@@ -269,8 +305,9 @@ export function SettingsDataTable<TData extends RowData>({
                       } as React.CSSProperties
                     }
                     className={cn(
-                      "py-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground md:w-(--col-w) max-md:block max-md:h-auto max-md:p-0",
-                      (header.isPlaceholder || !header.column.getCanSort()) &&
+                      "py-3 font-semibold text-muted-foreground md:w-(--col-w) max-md:block max-md:h-auto max-md:p-0",
+                      (header.isPlaceholder ||
+                        !isControllable(header.column)) &&
                         "max-md:hidden",
                     )}
                   >
@@ -321,7 +358,7 @@ export function SettingsDataTable<TData extends RowData>({
                 icon={TriangleAlert}
                 tone="error"
                 title={errorMessage}
-                description="Revisa tu conexión e inténtalo de nuevo."
+                description="Revise su conexión e inténtelo de nuevo."
                 action={
                   onRetry && (
                     <Button

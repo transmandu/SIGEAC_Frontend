@@ -1,9 +1,10 @@
 "use client";
 
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import { useState } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale/es";
-import { Eye, Pencil, Trash2 } from "lucide-react";
+import { Eye, Pencil, Trash2, Plane } from "lucide-react";
 import { useDeleteAircraft } from "@/actions/aerolinea/aeronaves/actions";
 import { ConfirmDeleteDialog } from "@/components/dialogs/shared/ConfirmDeleteDialog";
 import {
@@ -12,14 +13,7 @@ import {
 } from "@/components/dropdowns/SettingsRowActions";
 import { EditAircraftForm } from "@/components/forms/aerolinea/aeronaves/EditAircraftForm";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog } from "@/components/ui/dialog";
 import { AIRCRAFT_STATUS_LABELS, parseApiDate } from "@/lib/airline-aircraft";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import type { AirlineAircraft } from "@/types";
@@ -80,14 +74,22 @@ const AircraftDropdownActions = ({
       <SettingsRowActions actions={actions} tourId="aeronaves-actions" />
 
       <Dialog open={openDetails} onOpenChange={setOpenDetails}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>{aircraft.acronym}</DialogTitle>
-            <DialogDescription>
+        <FormDialogContent
+          icon={Plane}
+          title={aircraft.acronym}
+          description={
+            <>
               {aircraft.brand} {aircraft.model}
-            </DialogDescription>
-          </DialogHeader>
-
+            </>
+          }
+          footer={
+            <Button variant="outline" onClick={() => setOpenDetails(false)}>
+              Cerrar
+            </Button>
+          }
+          lockOutside={false}
+          className="sm:max-w-md"
+        >
           <div className="grid grid-cols-1 gap-4 py-2 sm:grid-cols-2">
             <Field label="Serial" value={aircraft.serial} />
             <Field
@@ -132,39 +134,30 @@ const AircraftDropdownActions = ({
               className="sm:col-span-2"
             />
           </div>
-
-          <DialogFooter>
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => setOpenDetails(false)}
-            >
-              Cerrar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
+        </FormDialogContent>
       </Dialog>
 
       <Dialog open={openEdit} onOpenChange={setOpenEdit}>
-        <DialogContent
-          className="max-h-[90vh] overflow-y-auto sm:max-w-4xl"
-          onInteractOutside={(e) => e.preventDefault()}
-        >
-          <DialogHeader>
-            <DialogTitle>Editar aeronave</DialogTitle>
-            <DialogDescription>
+        <FormDialogContent
+          icon={Plane}
+          title="Editar aeronave"
+          description={
+            <>
               Modifique lo necesario de{" "}
               <span className="font-medium text-foreground">
-                {aircraft.acronym}
-              </span>
+                {" "}
+                {aircraft.acronym}{" "}
+              </span>{" "}
               ; solo se guardará lo que cambie.
-            </DialogDescription>
-          </DialogHeader>
+            </>
+          }
+          className="sm:max-w-4xl"
+        >
           <EditAircraftForm
             aircraft={aircraft}
             onClose={() => setOpenEdit(false)}
           />
-        </DialogContent>
+        </FormDialogContent>
       </Dialog>
 
       <ConfirmDeleteDialog

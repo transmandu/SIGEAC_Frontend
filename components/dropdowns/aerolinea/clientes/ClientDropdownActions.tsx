@@ -1,7 +1,8 @@
 "use client";
 
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import { useState } from "react";
-import { Eye, Pencil, Trash2 } from "lucide-react";
+import { Eye, Pencil, Trash2, UserRound } from "lucide-react";
 import { useDeleteClient } from "@/actions/aerolinea/clientes/actions";
 import { ConfirmDeleteDialog } from "@/components/dialogs/shared/ConfirmDeleteDialog";
 import {
@@ -10,14 +11,7 @@ import {
 } from "@/components/dropdowns/SettingsRowActions";
 import { EditClientForm } from "@/components/forms/aerolinea/clientes/EditClientForm";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog } from "@/components/ui/dialog";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import type { AirlineClient } from "@/types";
 import { formatPhone } from "@/lib/phone";
@@ -74,14 +68,22 @@ const ClientDropdownActions = ({ client }: { client: AirlineClient }) => {
       <SettingsRowActions actions={actions} tourId="clientes-actions" />
 
       <Dialog open={openDetails} onOpenChange={setOpenDetails}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>{client.name}</DialogTitle>
-            <DialogDescription>
+        <FormDialogContent
+          icon={UserRound}
+          title={client.name}
+          description={
+            <>
               {client.dni_type}-{client.dni}
-            </DialogDescription>
-          </DialogHeader>
-
+            </>
+          }
+          footer={
+            <Button variant="outline" onClick={() => setOpenDetails(false)}>
+              Cerrar
+            </Button>
+          }
+          lockOutside={false}
+          className="sm:max-w-md"
+        >
           <div className="grid grid-cols-1 gap-4 py-2 sm:grid-cols-2">
             <Field label="Teléfono" value={formatPhone(client.phone) || "—"} />
             <Field label="Correo" value={client.email || "—"} />
@@ -95,34 +97,24 @@ const ClientDropdownActions = ({ client }: { client: AirlineClient }) => {
               className="sm:col-span-2"
             />
           </div>
-
-          <DialogFooter>
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => setOpenDetails(false)}
-            >
-              Cerrar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
+        </FormDialogContent>
       </Dialog>
 
       <Dialog open={openEdit} onOpenChange={setOpenEdit}>
-        <DialogContent
-          className="max-h-[90vh] overflow-y-auto sm:max-w-3xl"
-          onInteractOutside={(e) => e.preventDefault()}
-        >
-          <DialogHeader>
-            <DialogTitle>Editar cliente</DialogTitle>
-            <DialogDescription>
+        <FormDialogContent
+          icon={UserRound}
+          title="Editar cliente"
+          description={
+            <>
               Modifique lo necesario de{" "}
-              <span className="font-medium text-foreground">{client.name}</span>
+              <span className="font-medium text-foreground">{client.name}</span>{" "}
               ; solo se guardará lo que cambie.
-            </DialogDescription>
-          </DialogHeader>
+            </>
+          }
+          className="sm:max-w-3xl"
+        >
           <EditClientForm client={client} onClose={() => setOpenEdit(false)} />
-        </DialogContent>
+        </FormDialogContent>
       </Dialog>
 
       <ConfirmDeleteDialog

@@ -239,6 +239,51 @@ export const instantToCalendarDay = (
   return format(shiftToTimeZone(date, timeZone), "yyyy-MM-dd");
 };
 
+/** Desfase (ms) de una zona respecto de UTC en un instante dado. */
+const offsetAt = (instantMs: number, timeZone: string): number => {
+  const parts = formatterFor(timeZone).formatToParts(new Date(instantMs));
+  const get = (type: string) =>
+    Number(parts.find((p) => p.type === type)?.value);
+
+  const asUtc = Date.UTC(
+    get("year"),
+    get("month") - 1,
+    get("day"),
+    get("hour") % 24,
+    get("minute"),
+    get("second"),
+  );
+
+  return asUtc - Math.floor(instantMs / 1000) * 1000;
+};
+
+/**
+ * El inicio o el fin de un día de calendario en la zona de la compañía, como
+ * instante UTC (ISO) listo para filtrar una columna datetime en el servidor.
+ * Mandar el día pelado dejaría fuera todo lo ocurrido ese mismo día.
+ */
+export const zonedDayToUtcIso = (
+  day: string | null | undefined,
+  edge: "start" | "end",
+  timeZone: string = DEFAULT_TIMEZONE,
+): string | undefined => {
+  const match = day?.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!match) return undefined;
+
+  const [, year, month, date] = match.map(Number);
+  const wall =
+    edge === "start"
+      ? Date.UTC(year, month - 1, date, 0, 0, 0, 0)
+      : Date.UTC(year, month - 1, date, 23, 59, 59, 999);
+
+  // Segunda pasada: el desfase puede cambiar entre la estimación y el
+  // instante real cuando el día cruza un cambio de horario.
+  const first = wall - offsetAt(wall, timeZone);
+  const utc = wall - offsetAt(first, timeZone);
+
+  return new Date(utc).toISOString();
+};
+
 /**
  * Una fecha de calendario lista para mandar al backend, en hora local. El
  * `.toISOString()` de un Date tomado del calendario corre el día hacia atrás

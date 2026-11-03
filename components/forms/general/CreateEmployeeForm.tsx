@@ -397,7 +397,7 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mt-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         {step === 1 && (
           <>
             <h3 className="text-lg font-medium">Datos del Empleado</h3>

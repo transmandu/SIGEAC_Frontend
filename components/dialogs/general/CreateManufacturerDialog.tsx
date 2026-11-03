@@ -1,18 +1,12 @@
 "use client";
 
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { useState } from "react";
 import CreateManufacturerForm from "@/components/forms/general/CreateManufacturerForm";
-import { Plus } from "lucide-react";
+import { Plus, Factory } from "lucide-react";
 
 interface CreateManufacturerDialogProps {
   defaultType?:
@@ -37,22 +31,18 @@ export function CreateManufacturerDialog({
           </ActionTriggerButton>
         )}
       </DialogTrigger>
-      <DialogContent
-        className="max-h-[90vh] overflow-y-auto sm:max-w-lg"
-        onInteractOutside={(e) => e.preventDefault()}
+      <FormDialogContent
+        icon={Factory}
+        title="Creación de Fabricante"
+        description="Cree un fabricante rellenando la información necesaria."
+        className="sm:max-w-lg"
       >
-        <DialogHeader>
-          <DialogTitle>Creación de Fabricante</DialogTitle>
-          <DialogDescription>
-            Cree un fabricante rellenando la información necesaria.
-          </DialogDescription>
-        </DialogHeader>
         <CreateManufacturerForm
           onClose={() => setOpen(false)}
           defaultType={defaultType}
           onSuccess={onSuccess}
         />
-      </DialogContent>
+      </FormDialogContent>
     </Dialog>
   );
 }

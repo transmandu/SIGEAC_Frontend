@@ -1,16 +1,10 @@
 "use client";
 
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import { useEffect, useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, UserRound } from "lucide-react";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { CreateClientForm } from "@/components/forms/mantenimiento/clientes/CreateClientForm";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { clientesCrearAeronauticalSteps } from "@/components/tour/steps/ajustes/clientes/clientes-crear";
@@ -38,18 +32,15 @@ export function CreateClientDialog() {
           Crear cliente
         </ActionTriggerButton>
       </DialogTrigger>
-      <DialogContent
-        className="max-h-[90vh] overflow-y-auto sm:max-w-3xl"
-        onInteractOutside={(e) => e.preventDefault()}
+      <FormDialogContent
+        icon={UserRound}
+        title="Crear Cliente"
+        description="Cree un nuevo cliente."
+        tourId="clientes-crear-header"
+        className="sm:max-w-3xl"
       >
-        <DialogHeader>
-          <DialogTitle data-tour="clientes-crear-header">
-            Crear Cliente
-          </DialogTitle>
-          <DialogDescription>Cree un nuevo cliente.</DialogDescription>
-        </DialogHeader>
         <CreateClientForm onClose={() => setOpen(false)} />
-      </DialogContent>
+      </FormDialogContent>
     </Dialog>
   );
 }

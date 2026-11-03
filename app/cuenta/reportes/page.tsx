@@ -1,64 +1,115 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ContentLayout } from "@/components/layout/ContentLayout";
-import { Button } from "@/components/ui/button";
+import type { ColumnFiltersState } from "@tanstack/react-table";
 import { Plus } from "lucide-react";
-import { useGetErrorReports } from "@/hooks/sistema/reportes/useGetErrorReports";
-import { DataTable } from "@/app/sistema/reportes/data-table";
+
 import CreateErrorReportDialog from "@/components/dialogs/sistema/CreateErrorReportDialog";
-import { getColumns } from "./columns";
+import { SettingsListPage } from "@/components/layout/SettingsListPage";
+import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
+import { SettingsDataTable } from "@/components/tables/SettingsDataTable";
+import type { DateRangeFilterValue } from "@/components/tables/DataTableHeader";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import { useDebounce } from "@/hooks/helpers/useDebounce";
+import { useGetErrorReports } from "@/hooks/sistema/reportes/useGetErrorReports";
+import { zonedDayToUtcIso } from "@/lib/date";
+import type { ErrorReport, ErrorReportStatus } from "@/types";
+
 import MyReportDetailDialog from "./_components/MyReportDetailDialog";
-import { PageHeader } from "@/components/layout/PageHeader";
-import type { ErrorReport } from "@/types";
+import { getColumns } from "./columns";
 
-const DEFAULT_PAGE_SIZE = 25;
+const DEFAULT_PAGE_SIZE = 15;
 
-// El index del backend ya filtra por reported_by_user_id salvo para SUPERUSER,
-// así que esta pantalla no manda filtro de autor.
+// `mine`: el SUPERUSER recibiría los de todos; eso es Soporte Técnico.
+// Los filtros de columna y la búsqueda se resuelven en el servidor: la tabla
+// solo ve una página, y filtrar esa página sería engañoso.
 export default function MisReportesPage() {
+  const timeZone = useCompanyTimezone();
+
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(DEFAULT_PAGE_SIZE);
+  const [search, setSearch] = useState("");
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [createOpen, setCreateOpen] = useState(false);
   const [detailReport, setDetailReport] = useState<ErrorReport | null>(null);
 
-  const { data, isLoading } = useGetErrorReports({ page, per_page: perPage });
+  const debouncedSearch = useDebounce(search.trim(), 350);
 
-  const columns = useMemo(() => getColumns(setDetailReport), []);
+  const filterValue = <T,>(id: string) =>
+    columnFilters.find((filter) => filter.id === id)?.value as T | undefined;
 
-  const handlePaginationChange = (pageIndex: number, pageSize: number) => {
-    setPage(pageIndex + 1);
-    setPerPage(pageSize);
-  };
+  const dateRange = filterValue<DateRangeFilterValue>("reported_at");
+
+  const { data, isLoading, isError, refetch } = useGetErrorReports(
+    {
+      page,
+      per_page: perPage,
+      status: filterValue<ErrorReportStatus>("status"),
+      module: filterValue<string>("module"),
+      search: debouncedSearch || undefined,
+      from: zonedDayToUtcIso(dateRange?.from, "start", timeZone),
+      to: zonedDayToUtcIso(dateRange?.to, "end", timeZone),
+      mine: true,
+    },
+    { keepPrevious: true },
+  );
+
+  const columns = useMemo(
+    () => getColumns(setDetailReport, timeZone),
+    [timeZone],
+  );
 
   return (
-    <ContentLayout title="Mis Reportes">
-      <div className="flex flex-col gap-y-6">
-        <PageHeader />
-
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex flex-col gap-1">
-            <h1 className="text-3xl font-bold tracking-tight">Mis Reportes</h1>
-            <p className="text-sm text-muted-foreground">
-              Reporta un problema y sigue el estado de su resolución.
-            </p>
-          </div>
-          <Button size="sm" onClick={() => setCreateOpen(true)}>
+    <SettingsListPage
+      title="Mis Reportes"
+      heading="Mis Reportes"
+      description="Reporte un problema y siga el estado de su resolución."
+      search={{
+        value: search,
+        onChange: (value) => {
+          setSearch(value);
+          setPage(1);
+        },
+        placeholder: "Buscar en la descripción...",
+      }}
+      count={{
+        value: data?.pagination.total,
+        singular: "reporte",
+        plural: "reportes",
+      }}
+    >
+      <SettingsDataTable
+        columns={columns}
+        data={data?.reports ?? []}
+        loading={isLoading}
+        error={isError}
+        errorMessage="No se pudieron cargar sus reportes"
+        onRetry={() => refetch()}
+        filtered={!!debouncedSearch || columnFilters.length > 0}
+        emptyMessage="Aún no ha reportado ningún problema."
+        actions={
+          <ActionTriggerButton onClick={() => setCreateOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
             Reportar un problema
-          </Button>
-        </div>
-
-        <DataTable
-          columns={columns}
-          data={data?.reports ?? []}
-          loading={isLoading}
-          pageIndex={page - 1}
-          pageSize={perPage}
-          pageCount={data?.pagination.last_page ?? 0}
-          onPaginationChange={handlePaginationChange}
-        />
-      </div>
+          </ActionTriggerButton>
+        }
+        serverFilters={{
+          value: columnFilters,
+          onChange: (next) => {
+            setColumnFilters(next);
+            setPage(1);
+          },
+        }}
+        serverPagination={{
+          pageIndex: page - 1,
+          pageSize: perPage,
+          pageCount: data?.pagination.last_page ?? 0,
+          onChange: (pageIndex, pageSize) => {
+            setPage(pageIndex + 1);
+            setPerPage(pageSize);
+          },
+        }}
+      />
 
       <CreateErrorReportDialog open={createOpen} onOpenChange={setCreateOpen} />
 
@@ -67,6 +118,6 @@ export default function MisReportesPage() {
         open={!!detailReport}
         onOpenChange={(open) => !open && setDetailReport(null)}
       />
-    </ContentLayout>
+    </SettingsListPage>
   );
 }

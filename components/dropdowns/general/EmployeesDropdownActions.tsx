@@ -1,26 +1,29 @@
 "use client";
 
 import { useState } from "react";
-import { Minus, Pencil, RotateCcw, Trash2 } from "lucide-react";
+import {
+  Minus,
+  Pencil,
+  RotateCcw,
+  Trash2,
+  UserCheck,
+  UserRound,
+  UserX,
+} from "lucide-react";
 import {
   useDeactivateEmployee,
   useDeleteEmployee,
   useReactivateEmployee,
 } from "@/actions/ajustes/empleados/actions";
+import { ConfirmActionDialog } from "@/components/dialogs/shared/ConfirmActionDialog";
 import { ConfirmDeleteDialog } from "@/components/dialogs/shared/ConfirmDeleteDialog";
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import {
   SettingsRowActions,
   type RowAction,
 } from "@/components/dropdowns/SettingsRowActions";
 import { UpdateEmployeeForm } from "@/components/forms/general/UpdateEmployeeForm";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog } from "@/components/ui/dialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Employee } from "@/types";
@@ -81,99 +84,62 @@ const EmployeesDropdownActions = ({ employee }: { employee: Employee }) => {
       : []),
   ];
 
-  const toggleStatus = async (
-    mutation: typeof deactivateEmployee,
-    close: () => void,
-  ) => {
-    try {
-      await mutation.mutateAsync({ id: employee.id, company });
-      close();
-    } catch {
-      // El aviso lo muestra la mutación; el diálogo queda abierto.
-    }
-  };
-
   return (
     <>
       <SettingsRowActions actions={actions} />
 
       <Dialog open={openUpdate} onOpenChange={setOpenUpdate}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto max-w-lg lg:max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Actualizar empleado</DialogTitle>
-            <DialogDescription>
+        <FormDialogContent
+          icon={UserRound}
+          title="Actualizar empleado"
+          description={
+            <>
               Modifique la información de{" "}
               <span className="font-medium text-foreground">{fullName}</span>
-            </DialogDescription>
-          </DialogHeader>
-
+            </>
+          }
+          className="max-w-lg lg:max-w-2xl"
+        >
           <UpdateEmployeeForm
             employee={employee}
             onSuccess={() => setOpenUpdate(false)}
           />
-        </DialogContent>
+        </FormDialogContent>
       </Dialog>
 
-      <Dialog open={openDeactivate} onOpenChange={setOpenDeactivate}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Desactivar empleado</DialogTitle>
-            <DialogDescription>
-              {fullName} será ocultado de operaciones activas, pero podrá ser
-              reactivado posteriormente.
-            </DialogDescription>
-          </DialogHeader>
+      <ConfirmActionDialog
+        open={openDeactivate}
+        onOpenChange={setOpenDeactivate}
+        title="Desactivar empleado"
+        entityName={fullName}
+        icon={UserX}
+        tone="amber"
+        confirmLabel="Desactivar"
+        isPending={deactivateEmployee.isPending}
+        onConfirm={() =>
+          deactivateEmployee.mutateAsync({ id: employee.id, company })
+        }
+      >
+        Será ocultado de las operaciones activas, pero podrá ser reactivado
+        después. Acción reversible: no se elimina ningún dato.
+      </ConfirmActionDialog>
 
-          <div className="rounded-xl border border-yellow-500/20 bg-yellow-500/5 p-3 text-sm text-yellow-700 dark:text-yellow-400">
-            Acción reversible. No se eliminan datos del sistema.
-          </div>
-
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setOpenDeactivate(false)}>
-              Cancelar
-            </Button>
-            <Button
-              className="bg-yellow-500 hover:bg-yellow-600 text-white"
-              disabled={deactivateEmployee.isPending}
-              onClick={() =>
-                toggleStatus(deactivateEmployee, () => setOpenDeactivate(false))
-              }
-            >
-              Desactivar
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={openReactivate} onOpenChange={setOpenReactivate}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Reactivar empleado</DialogTitle>
-            <DialogDescription>
-              {fullName} volverá a estar activo en el sistema.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="rounded-xl border border-green-500/20 bg-green-500/5 p-3 text-sm text-green-700 dark:text-green-400">
-            Se restaurará su acceso a operaciones activas.
-          </div>
-
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setOpenReactivate(false)}>
-              Cancelar
-            </Button>
-            <Button
-              className="bg-green-600 hover:bg-green-700 text-white"
-              disabled={reactivateEmployee.isPending}
-              onClick={() =>
-                toggleStatus(reactivateEmployee, () => setOpenReactivate(false))
-              }
-            >
-              Reactivar
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <ConfirmActionDialog
+        open={openReactivate}
+        onOpenChange={setOpenReactivate}
+        title="Reactivar empleado"
+        entityName={fullName}
+        icon={UserCheck}
+        tone="primary"
+        confirmLabel="Reactivar"
+        isPending={reactivateEmployee.isPending}
+        onConfirm={() =>
+          reactivateEmployee.mutateAsync({ id: employee.id, company })
+        }
+      >
+        Volverá a estar activo en el sistema y se restaurará su acceso a las
+        operaciones activas.
+      </ConfirmActionDialog>
 
       <ConfirmDeleteDialog
         open={openDelete}

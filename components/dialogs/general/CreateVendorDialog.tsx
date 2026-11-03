@@ -1,16 +1,10 @@
 "use client";
 
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import { useState, useEffect } from "react";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Plus } from "lucide-react";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import { Plus, Building2 } from "lucide-react";
 import CreateVendorForm from "@/components/forms/general/CreateVendorForm";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { proveedoresCrearSteps } from "@/components/tour/steps/ajustes/proveedores/proveedores-crear";
@@ -50,18 +44,15 @@ export function CreateVendorDialog({
         </ActionTriggerButton>
       </DialogTrigger>
 
-      <DialogContent
-        className="max-h-[90vh] overflow-y-auto sm:max-w-2xl"
-        onInteractOutside={(e) => e.preventDefault()}
+      <FormDialogContent
+        icon={Building2}
+        title="Nuevo proveedor"
+        description="Registre un proveedor o beneficiario para la gestión de compras."
+        tourId="proveedores-dialog-header"
+        className="sm:max-w-2xl"
       >
-        <DialogHeader data-tour="proveedores-dialog-header">
-          <DialogTitle>Nuevo proveedor</DialogTitle>
-          <DialogDescription>
-            Registre un proveedor o beneficiario para la gestión de compras.
-          </DialogDescription>
-        </DialogHeader>
         <CreateVendorForm onClose={() => onOpenChange(false)} />
-      </DialogContent>
+      </FormDialogContent>
     </Dialog>
   );
 }

@@ -2,21 +2,30 @@
 
 import { Notification } from "@/types/notifications/types";
 import { cn } from "@/lib/utils";
-import { Clock, CheckCheck } from "lucide-react";
-import * as LucideIcons from "lucide-react";
-import { Check, Bell, Loader2 } from "lucide-react";
+import { CheckCheck, Check, Clock, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import {
+  createElement,
+  useState,
+  useTransition,
+  type KeyboardEvent,
+} from "react";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useMarkNotificationAsRead } from "@/actions/notifications/actions";
+import { TagBadge } from "@/components/misc/TagBadge";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  NOTIFICATION_TONE_STYLES,
+  notificationIcon,
+  notificationTone,
+} from "@/lib/notifications";
 import DispatchReturnNotificationDialog from "@/components/dialogs/mantenimiento/almacen/DispatchReturnNotificationDialog";
 
 // Tipos que abren un diálogo con el detalle en vez de navegar: su payload no
@@ -24,58 +33,6 @@ import DispatchReturnNotificationDialog from "@/components/dialogs/mantenimiento
 // origen (ver DispatchReturnRegisteredNotification en el backend).
 // TRAINING_EXPIRING_SOON navega directo a /general/cursos?tab=por-expirar.
 const DIALOG_TYPES = ["DISPATCH_RETURN_REGISTERED"];
-
-const ITEM_COLORS = [
-  {
-    stripe: "bg-blue-500/60",
-    border: "border-blue-400/25",
-    hover: "group-hover:border-blue-400/45",
-  },
-  {
-    stripe: "bg-emerald-500/60",
-    border: "border-emerald-400/25",
-    hover: "group-hover:border-emerald-400/45",
-  },
-  {
-    stripe: "bg-orange-500/60",
-    border: "border-orange-400/25",
-    hover: "group-hover:border-orange-400/45",
-  },
-  {
-    stripe: "bg-indigo-500/60",
-    border: "border-indigo-400/25",
-    hover: "group-hover:border-indigo-400/45",
-  },
-  {
-    stripe: "bg-sky-500/60",
-    border: "border-sky-400/25",
-    hover: "group-hover:border-sky-400/45",
-  },
-  {
-    stripe: "bg-teal-500/60",
-    border: "border-teal-400/25",
-    hover: "group-hover:border-teal-400/45",
-  },
-  {
-    stripe: "bg-red-500/60",
-    border: "border-red-400/25",
-    hover: "group-hover:border-red-400/45",
-  },
-];
-
-function getNotificationColors(id: string | number) {
-  const hash = String(id)
-    .split("")
-    .reduce((acc, char) => acc + char.charCodeAt(0), 0);
-
-  return ITEM_COLORS[hash % ITEM_COLORS.length];
-}
-
-function NotificationIcon({ name }: { name?: string }) {
-  const Icon = (LucideIcons as Record<string, any>)[name ?? "Bell"] ?? Bell;
-
-  return <Icon className="h-5 w-5" />;
-}
 
 function formatNotificationDate(date: string) {
   const value = formatDistanceToNow(new Date(date), {
@@ -91,8 +48,11 @@ function formatNotificationDate(date: string) {
 
 export default function NotificationItem({
   notification,
+  index = 0,
 }: {
   notification: Notification;
+  /** Posición en la lista: escalona la entrada en móvil. */
+  index?: number;
 }) {
   const router = useRouter();
 
@@ -107,6 +67,12 @@ export default function NotificationItem({
 
   const isUnread = !notification.read_at;
   const opensDialog = DIALOG_TYPES.includes(notification.data?.type);
+  const url = notification.data?.url;
+  // Sin destino la fila no es un enlace: no debe parecerlo.
+  const isActionable = opensDialog || !!url;
+
+  const tone =
+    NOTIFICATION_TONE_STYLES[notificationTone(notification.data?.type)];
 
   const handleMarkAsRead = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -128,7 +94,6 @@ export default function NotificationItem({
       return;
     }
 
-    const url = notification.data?.url;
     if (!url) return;
 
     // useTransition nos da el pending real de la navegación de App Router,
@@ -138,180 +103,163 @@ export default function NotificationItem({
     });
   };
 
-  const colors = getNotificationColors(notification.id);
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      handleNavigate();
+    }
+  };
 
   return (
     <>
       <div
-        onClick={handleNavigate}
         aria-busy={isNavigating}
+        style={{ animationDelay: `${Math.min(index, 6) * 45}ms` }}
         className={cn(
-          "group relative flex items-center gap-3 px-3 py-2",
-          "mx-1 cursor-pointer overflow-hidden rounded-xl",
-          "bg-muted/20 hover:bg-muted/40",
-          "shadow-xs transition-all",
+          "group relative overflow-hidden rounded-xl border shadow-xs transition-colors",
+          "border-slate-200 dark:border-slate-700/60",
+          isUnread ? tone.unread : "bg-white dark:bg-slate-900/60",
+          isActionable && "hover:border-slate-300 dark:hover:border-slate-600",
+          isActionable &&
+            "max-md:touch-manipulation max-md:[-webkit-tap-highlight-color:transparent] max-md:transition-[background-color,border-color,scale] max-md:duration-150 max-md:[&:active:not(:has(button:active))]:scale-[0.985]",
+          "motion-safe:max-md:animate-card-in",
           // Mientras navega, ignoramos clicks extra: la ruta destino puede tardar
           // y el usuario tiende a insistir sobre una fila que se ve inerte.
           isNavigating && "pointer-events-none",
         )}
       >
-        {/* COLOR STRIPE */}
+        {/* Franja de color: más tenue una vez leída. */}
         <div
-          className={cn("absolute left-0 top-0 h-full w-1", colors.stripe)}
-        />
-
-        {/* COLORED BORDER */}
-        <div
+          aria-hidden
           className={cn(
-            "pointer-events-none absolute inset-0 rounded-xl border transition-all duration-200",
-            colors.border,
-            colors.hover,
+            "absolute left-0 top-0 h-full w-1",
+            tone.stripe,
+            !isUnread && "opacity-30",
           )}
         />
 
-        {/* LOADING BAR (mientras se resuelve la navegación) */}
+        {/* Barra de carga mientras se resuelve la navegación */}
         {isNavigating && (
-          <div className="pointer-events-none absolute bottom-0 left-0 h-0.5 w-full overflow-hidden rounded-b-xl bg-primary/10">
+          <div className="pointer-events-none absolute bottom-0 left-0 h-0.5 w-full overflow-hidden bg-primary/10">
             <div className="h-full w-1/4 animate-indeterminate rounded-full bg-primary/70" />
           </div>
         )}
-        {/* ACTION + GRADIENT (desktop only) */}
-        {isUnread && (
+
+        {/* El área que abre la notificación. El botón de "marcar como leída" es
+            su hermano, no su hijo: un botón dentro de otro elemento interactivo
+            no se anuncia bien en lectores de pantalla. */}
+        <div
+          role={isActionable ? "button" : undefined}
+          tabIndex={isActionable ? 0 : undefined}
+          onClick={isActionable ? handleNavigate : undefined}
+          onKeyDown={isActionable ? handleKeyDown : undefined}
+          className={cn(
+            "flex items-start gap-3 p-3 pl-4 sm:items-center",
+            isActionable &&
+              "cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/40",
+            // Sitio para el botón de "marcar como leída" cuando va a la vista.
+            isUnread && "pr-14 pointer-fine:md:pr-3",
+          )}
+        >
+          {/* ICONO */}
           <div
-            className="
-            hidden md:flex
-            absolute right-0 top-0 h-full w-20 overflow-visible
-            items-center justify-center
-
-            opacity-0 scale-95 translate-x-2
-            group-hover:opacity-100
-            group-hover:scale-100
-            group-hover:translate-x-0
-
-            transition-all duration-200 ease-out
-          "
+            className={cn(
+              "flex size-10 shrink-0 items-center justify-center rounded-xl transition-colors",
+              isUnread ? tone.icon : "bg-muted text-muted-foreground",
+            )}
           >
-            <div
-              className="
-              absolute inset-0
-              bg-linear-to-l
-              from-black/30
-              via-black/10
-              to-transparent
-              pointer-events-none
-              rounded-r-xl
-            "
-            />
+            {isNavigating ? (
+              <Loader2 className="size-5 animate-spin" />
+            ) : (
+              createElement(notificationIcon(notification.data?.icon), {
+                className: "size-5",
+              })
+            )}
+          </div>
+
+          {/* CONTENIDO */}
+          <div className="min-w-0 flex-1 space-y-1">
+            <p
+              className={cn(
+                "line-clamp-2 text-sm leading-snug sm:truncate",
+                isUnread
+                  ? "font-semibold text-foreground"
+                  : "font-medium text-muted-foreground",
+              )}
+            >
+              {notification.data.title}
+            </p>
+
+            <p className="line-clamp-2 text-xs text-muted-foreground">
+              {notification.data.message}
+            </p>
+
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 pt-0.5 text-[11px] text-muted-foreground">
+              <TagBadge
+                tone={isUnread ? "blue" : "slate"}
+                className="h-5 px-2 text-[11px]"
+              >
+                {isUnread ? "Nueva" : "Leída"}
+              </TagBadge>
+
+              {notification.created_at && (
+                <span className="flex items-center gap-1">
+                  <Clock className="size-3" />
+                  {formatNotificationDate(notification.created_at)}
+                </span>
+              )}
+
+              {!isUnread && notification.read_at && (
+                <span className="flex items-center gap-1">
+                  <CheckCheck className="size-3 text-blue-500" />
+                  Leído {formatNotificationDate(notification.read_at)}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* MARCAR COMO LEÍDA con ratón: al apuntar la fila aparece sobre un
+            degradado con el botón desenfocado (el efecto de siempre). Se decide
+            por el tipo de puntero y no por el ancho: una tableta táctil grande
+            no tiene hover. */}
+        {isUnread && (
+          <div className="absolute right-0 top-0 hidden h-full w-20 translate-x-2 scale-95 items-center justify-center overflow-visible opacity-0 transition-all duration-200 ease-out group-hover:translate-x-0 group-hover:scale-100 group-hover:opacity-100 focus-within:translate-x-0 focus-within:scale-100 focus-within:opacity-100 pointer-fine:md:flex">
+            <div className="pointer-events-none absolute inset-0 rounded-r-xl bg-linear-to-l from-black/30 via-black/10 to-transparent" />
 
             <TooltipProvider delayDuration={100}>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
+                    type="button"
                     onClick={handleMarkAsRead}
-                    className="
-                    relative z-10
-
-                    flex items-center justify-center
-                    w-8 h-8
-
-                    rounded-md
-                    bg-background/70
-                    backdrop-blur-md
-
-                    border border-border/40
-                    shadow-xs
-
-                    hover:bg-background
-                    active:scale-95
-
-                    transition
-                  "
+                    aria-label="Marcar como leída"
+                    className="relative z-10 flex h-8 w-8 items-center justify-center rounded-md border border-border/40 bg-background/70 shadow-xs backdrop-blur-md transition hover:bg-background active:scale-95 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary/40"
                   >
                     <Check className="h-4 w-4 text-green-600" />
                   </button>
                 </TooltipTrigger>
 
                 <TooltipContent side="left" className="z-1001">
-                  Marcar como leído
+                  Marcar como leída
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
           </div>
         )}
 
-        {/* ICON */}
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center">
-          <div
-            className={cn(
-              "flex h-10 w-10 items-center justify-center rounded-xl transition-colors",
-              isNavigating
-                ? "bg-primary/15 text-primary"
-                : isUnread
-                  ? "bg-primary/10 text-primary"
-                  : "bg-muted text-muted-foreground",
-            )}
+        {/* MARCAR COMO LEÍDA al tocar (y con ratón en pantallas estrechas): sin
+            hover no hay dónde apuntar, así que el botón está siempre a la vista. */}
+        {isUnread && (
+          <button
+            type="button"
+            onClick={handleMarkAsRead}
+            aria-label="Marcar como leída"
+            className="absolute right-3 top-1/2 flex size-9 -translate-y-1/2 items-center justify-center rounded-md border border-border/40 bg-background/70 shadow-xs backdrop-blur-md transition active:scale-90 pointer-fine:md:hidden"
           >
-            {isNavigating ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
-            ) : (
-              <NotificationIcon name={notification.data.icon} />
-            )}
-          </div>
-        </div>
-
-        {/* CONTENT */}
-        <div className="min-w-0 flex-1">
-          {/* HEADER */}
-          <div className="flex items-start justify-between gap-2 min-w-0">
-            <p
-              className={cn(
-                "truncate text-sm font-medium flex-1 min-w-0",
-                isUnread ? "text-foreground" : "text-muted-foreground",
-              )}
-            >
-              {notification.data.title}
-            </p>
-
-            <span
-              className={cn(
-                "shrink-0 whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-medium",
-                isUnread
-                  ? "bg-blue-500/10 text-blue-600 dark:text-blue-400"
-                  : "bg-muted text-muted-foreground",
-              )}
-            >
-              {isUnread ? "Nueva" : "Leída"}
-            </span>
-          </div>
-
-          {/* MESSAGE */}
-          <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
-            {notification.data.message}
-          </p>
-
-          {/* FOOTER */}
-          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] text-muted-foreground">
-            {notification.created_at && (
-              <span className="flex items-center gap-1">
-                <Clock className="h-3 w-3 text-muted-foreground" />
-                {formatNotificationDate(notification.created_at)}
-              </span>
-            )}
-
-            {!isUnread && notification.read_at && (
-              <>
-                <span className="text-muted-foreground/40">·</span>
-
-                <span className="flex items-center gap-1">
-                  <CheckCheck className="h-3 w-3 text-blue-500" />
-                  <span>
-                    Leído {formatNotificationDate(notification.read_at)}
-                  </span>
-                </span>
-              </>
-            )}
-          </div>
-        </div>
+            <Check className="h-4 w-4 text-green-600" />
+          </button>
+        )}
       </div>
 
       {opensDialog &&

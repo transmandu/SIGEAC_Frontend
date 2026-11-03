@@ -1,7 +1,8 @@
 "use client";
 
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import { useState } from "react";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, Warehouse as WarehouseIcon } from "lucide-react";
 import { useDeleteWarehouse } from "@/actions/mantenimiento/almacen/almacenes/actions";
 import { ConfirmDeleteDialog } from "@/components/dialogs/shared/ConfirmDeleteDialog";
 import {
@@ -9,13 +10,7 @@ import {
   type RowAction,
 } from "@/components/dropdowns/SettingsRowActions";
 import CreateWarehouseForm from "@/components/forms/ajustes/CreateWarehouseForm";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog } from "@/components/ui/dialog";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Warehouse } from "@/types";
 
@@ -47,21 +42,25 @@ const WarehouseDropdownActions = ({ warehouse }: { warehouse: Warehouse }) => {
       <SettingsRowActions actions={actions} />
 
       <Dialog open={openEdit} onOpenChange={setOpenEdit}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-105">
-          <DialogHeader>
-            <DialogTitle>Editar almacén</DialogTitle>
-            <DialogDescription>
+        <FormDialogContent
+          icon={WarehouseIcon}
+          title="Editar almacén"
+          description={
+            <>
               Modifique la información de{" "}
               <span className="font-medium text-foreground">
-                {warehouse.name}
+                {" "}
+                {warehouse.name}{" "}
               </span>
-            </DialogDescription>
-          </DialogHeader>
+            </>
+          }
+          className="sm:max-w-105"
+        >
           <CreateWarehouseForm
             warehouse={warehouse}
             onClose={() => setOpenEdit(false)}
           />
-        </DialogContent>
+        </FormDialogContent>
       </Dialog>
 
       <ConfirmDeleteDialog

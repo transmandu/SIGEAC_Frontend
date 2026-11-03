@@ -1,20 +1,15 @@
 "use client";
 
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import { useDeleteUnit } from "@/actions/ajustes/unidades/actions";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, Ruler } from "lucide-react";
 import { ConfirmDeleteDialog } from "@/components/dialogs/shared/ConfirmDeleteDialog";
 import {
   SettingsRowActions,
   type RowAction,
 } from "@/components/dropdowns/SettingsRowActions";
 import { useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog } from "@/components/ui/dialog";
 import UpdateUnitForm from "@/components/forms/ajustes/UpdateUnitForm";
 import { Unit } from "@/types";
 
@@ -47,20 +42,20 @@ const UnitDropdownActions = ({ unit }: { unit: Unit }) => {
 
       {/* ── Editar ── */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent
-          className="max-h-[90vh] overflow-y-auto sm:max-w-lg"
-          onInteractOutside={(e) => e.preventDefault()}
-        >
-          <DialogHeader>
-            <DialogTitle>Editar unidad</DialogTitle>
-            <DialogDescription>
+        <FormDialogContent
+          icon={Ruler}
+          title="Editar unidad"
+          description={
+            <>
               Modifique lo necesario de{" "}
               <span className="font-medium text-foreground">{unit.label}</span>;
               solo se guardará lo que cambie.
-            </DialogDescription>
-          </DialogHeader>
+            </>
+          }
+          className="sm:max-w-lg"
+        >
           <UpdateUnitForm unit={unit} onClose={() => setEditOpen(false)} />
-        </DialogContent>
+        </FormDialogContent>
       </Dialog>
 
       <ConfirmDeleteDialog
