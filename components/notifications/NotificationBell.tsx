@@ -66,7 +66,7 @@ export default function NotificationBell() {
           <TooltipTrigger asChild>
             <button
               onClick={() => setOpen(true)}
-              aria-label="Notifications"
+              aria-label="Notificaciones"
               className={cn(
                 "glass-control",
                 "relative flex items-center justify-center",
@@ -132,7 +132,7 @@ export default function NotificationBell() {
                       shadow-xs
                     "
                   >
-                    {unreadCount > 9 ? "+9" : unreadCount}
+                    {unreadCount > 9 ? "9+" : unreadCount}
                   </motion.span>
                 )}
               </AnimatePresence>

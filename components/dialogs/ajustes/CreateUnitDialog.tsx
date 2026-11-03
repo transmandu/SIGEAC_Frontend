@@ -1,17 +1,11 @@
 "use client";
 
-import { Plus } from "lucide-react";
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
+import { Plus, Ruler } from "lucide-react";
 
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { useState } from "react";
 import CreateUnitForm from "@/components/forms/ajustes/CreateUnitForm";
 
@@ -25,18 +19,14 @@ export function CreateUnitDialog() {
           Crear unidad
         </ActionTriggerButton>
       </DialogTrigger>
-      <DialogContent
-        className="max-h-[90vh] overflow-y-auto sm:max-w-lg"
-        onInteractOutside={(e) => e.preventDefault()}
+      <FormDialogContent
+        icon={Ruler}
+        title="Creación de Unidad"
+        description="Registre una unidad de medida para los artículos del almacén."
+        className="sm:max-w-lg"
       >
-        <DialogHeader>
-          <DialogTitle>Creación de Unidad</DialogTitle>
-          <DialogDescription>
-            Registre una unidad de medida para los artículos del almacén.
-          </DialogDescription>
-        </DialogHeader>
         <CreateUnitForm onClose={() => setOpen(false)} />
-      </DialogContent>
+      </FormDialogContent>
     </Dialog>
   );
 }

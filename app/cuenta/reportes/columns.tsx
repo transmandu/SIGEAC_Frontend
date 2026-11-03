@@ -1,107 +1,139 @@
 "use client";
 
+import { Eye } from "lucide-react";
+
+import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
+import { TagBadge } from "@/components/misc/TagBadge";
+import { SettingsRowActions } from "@/components/dropdowns/SettingsRowActions";
+import { formatInstant } from "@/lib/date";
 import { type AppColumnDef } from "@/lib/table";
+import type { ErrorReport } from "@/types";
 
-import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-  TooltipProvider,
-} from "@/components/ui/tooltip";
-import { ErrorReport } from "@/types";
-import { format } from "date-fns";
-import { AlertTriangle, CheckCircle2, Clock, Eye } from "lucide-react";
-import {
-  Chip,
-  STATUS_CHIP,
-} from "@/app/sistema/reportes/_components/errorReportChips";
+import { ERROR_REPORT_MODULES } from "@/lib/errorReportModules";
 
-const STATUS_ICON: Record<ErrorReport["status"], typeof AlertTriangle> = {
-  OPEN: AlertTriangle,
-  IN_PROGRESS: Clock,
-  RESOLVED: CheckCircle2,
-};
+import { REPORT_STATUS } from "./_components/reportStatus";
+
+const STATUS_OPTIONS = Object.entries(REPORT_STATUS).map(
+  ([value, { label }]) => ({ value, label }),
+);
+
+const center = "flex justify-center w-full";
 
 export const getColumns = (
   onViewDetail: (report: ErrorReport) => void,
+  timeZone: string,
 ): AppColumnDef<ErrorReport>[] => [
   {
     accessorKey: "reported_at",
-    header: "Fecha",
-    cell: ({ row }) => {
-      const date = row.original.reported_at;
-      return (
-        <p className="whitespace-nowrap text-sm">
-          {date ? format(new Date(date), "dd/MM/yyyy HH:mm") : "—"}
-        </p>
-      );
-    },
+    size: 170,
+    enableSorting: false,
+    meta: { title: "Fecha", filterable: true },
+    header: ({ column }) => (
+      <div className={center}>
+        <DataTableColumnHeader dateRangeFilter column={column} title="Fecha" />
+      </div>
+    ),
+    cell: ({ row }) => (
+      <div className={center}>
+        <span className="whitespace-nowrap text-sm font-semibold tabular-nums text-slate-700 dark:text-slate-200">
+          {formatInstant(row.original.reported_at, timeZone, "dateTime", "—")}
+        </span>
+      </div>
+    ),
   },
   {
     accessorKey: "description",
-    header: "Descripción",
-    cell: ({ row }) => {
-      const description = row.original.description;
-      return (
-        <TooltipProvider disableHoverableContent>
-          <Tooltip delayDuration={200}>
-            <TooltipTrigger asChild>
-              <p className="max-w-70 truncate text-sm">{description}</p>
-            </TooltipTrigger>
-            <TooltipContent className="max-w-sm whitespace-pre-wrap">
-              {description}
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      );
-    },
+    size: 420,
+    enableSorting: false,
+    meta: { title: "Descripción", mobileTitle: true },
+    header: ({ column }) => (
+      <div className={center}>
+        <DataTableColumnHeader column={column} title="Descripción" />
+      </div>
+    ),
+    cell: ({ row }) => (
+      <div className={center}>
+        <span
+          className="line-clamp-2 max-w-95 text-center text-sm leading-snug text-slate-600 wrap-break-word max-md:text-base max-md:font-semibold max-md:text-slate-700 dark:text-slate-300 dark:max-md:text-slate-200"
+          title={row.original.description}
+        >
+          {row.original.description}
+        </span>
+      </div>
+    ),
   },
   {
     accessorKey: "module",
-    header: "Módulo",
+    size: 180,
+    enableSorting: false,
+    meta: { title: "Módulo", filterable: true },
+    header: ({ column }) => (
+      <div className={center}>
+        <DataTableColumnHeader
+          column={column}
+          title="Módulo"
+          filterOptions={ERROR_REPORT_MODULES}
+        />
+      </div>
+    ),
     cell: ({ row }) => (
-      <span className="text-sm text-muted-foreground">
-        {row.original.module ?? "—"}
-      </span>
+      <div className={center}>
+        <span className="text-sm text-slate-600 dark:text-slate-300">
+          {row.original.module ?? "—"}
+        </span>
+      </div>
     ),
   },
   {
     accessorKey: "status",
-    header: "Estatus",
+    size: 160,
+    enableSorting: false,
+    meta: { title: "Estatus", filterable: true },
+    header: ({ column }) => (
+      <div className={center}>
+        <DataTableColumnHeader
+          column={column}
+          title="Estatus"
+          filterOptions={STATUS_OPTIONS}
+        />
+      </div>
+    ),
     cell: ({ row }) => {
-      const { label, tone } = STATUS_CHIP[row.original.status];
-      const Icon = STATUS_ICON[row.original.status];
+      const { label, tone, icon } = REPORT_STATUS[row.original.status];
+
       return (
-        <div className="flex justify-center">
-          <Chip tone={tone} icon={<Icon className="h-3 w-3" />}>
+        <div className={center}>
+          <TagBadge tone={tone} icon={icon}>
             {label}
-          </Chip>
+          </TagBadge>
         </div>
       );
     },
   },
   {
     id: "actions",
-    header: () => <div className="text-center">Detalle</div>,
-    cell: ({ row }) => (
-      <div className="flex justify-center">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => onViewDetail(row.original)}
-            >
-              <Eye className="h-4 w-4" />
-              <span className="sr-only">Ver detalle del reporte</span>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Ver detalle</TooltipContent>
-        </Tooltip>
+    size: 100,
+    enableSorting: false,
+    meta: { title: "Acciones" },
+    header: ({ column }) => (
+      <div className={center}>
+        <DataTableColumnHeader column={column} title="Acciones" />
       </div>
     ),
-    enableSorting: false,
+    cell: ({ row }) => (
+      <div className={center}>
+        <SettingsRowActions
+          actions={[
+            {
+              key: "detail",
+              label: "Ver detalle",
+              icon: Eye,
+              tone: "blue",
+              onSelect: () => onViewDetail(row.original),
+            },
+          ]}
+        />
+      </div>
+    ),
   },
 ];

@@ -1,7 +1,8 @@
 "use client";
 
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import { useState } from "react";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, BriefcaseBusiness } from "lucide-react";
 import { useDeleteJobTitle } from "@/actions/general/cargo/actions";
 import { ConfirmDeleteDialog } from "@/components/dialogs/shared/ConfirmDeleteDialog";
 import {
@@ -9,13 +10,7 @@ import {
   type RowAction,
 } from "@/components/dropdowns/SettingsRowActions";
 import { CreateJobTitleForm } from "@/components/forms/general/CreateJobTitleForm";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog } from "@/components/ui/dialog";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { JobTitle } from "@/types";
 
@@ -47,21 +42,25 @@ const JobTitleDropdownActions = ({ jobTitle }: { jobTitle: JobTitle }) => {
       <SettingsRowActions actions={actions} />
 
       <Dialog open={openEdit} onOpenChange={setOpenEdit}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-105">
-          <DialogHeader>
-            <DialogTitle>Editar cargo</DialogTitle>
-            <DialogDescription>
+        <FormDialogContent
+          icon={BriefcaseBusiness}
+          title="Editar cargo"
+          description={
+            <>
               Modifique la información de{" "}
               <span className="font-medium text-foreground">
-                {jobTitle.name}
+                {" "}
+                {jobTitle.name}{" "}
               </span>
-            </DialogDescription>
-          </DialogHeader>
+            </>
+          }
+          className="sm:max-w-105"
+        >
           <CreateJobTitleForm
             jobTitle={jobTitle}
             onSuccess={() => setOpenEdit(false)}
           />
-        </DialogContent>
+        </FormDialogContent>
       </Dialog>
 
       <ConfirmDeleteDialog

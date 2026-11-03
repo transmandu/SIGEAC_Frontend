@@ -1,7 +1,9 @@
 "use client";
 
 import { AlertTriangle, Loader2 } from "lucide-react";
+import { fullScreenOnMobile } from "@/components/dialogs/shared/FormDialogContent";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -44,7 +46,13 @@ export function ConfirmDeleteDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[390px] rounded-3xl border border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl overflow-hidden p-0">
+      <DialogContent
+        className={cn(
+          "sm:max-w-[390px] rounded-3xl border border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl overflow-hidden p-0",
+          fullScreenOnMobile,
+          "max-sm:content-center",
+        )}
+      >
         <DialogHeader className="px-6 pt-8 pb-3 flex flex-col items-center text-center space-y-3">
           <div className="flex items-center justify-center size-12 rounded-2xl border border-red-500/15 bg-red-500/8">
             <AlertTriangle className="size-5 text-red-600" />

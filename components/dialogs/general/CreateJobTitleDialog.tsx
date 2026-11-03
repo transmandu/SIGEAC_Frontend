@@ -1,17 +1,11 @@
 "use client";
 
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 
 import { useState } from "react";
-import { Plus } from "lucide-react";
-import {
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
+import { Plus, BriefcaseBusiness } from "lucide-react";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { CreateJobTitleForm } from "@/components/forms/general/CreateJobTitleForm";
 
 export function CreateJobTitleDialog() {
@@ -26,16 +20,14 @@ export function CreateJobTitleDialog() {
         </ActionTriggerButton>
       </DialogTrigger>
 
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-105">
-        <DialogHeader>
-          <DialogTitle>Crear Cargo</DialogTitle>
-          <DialogDescription>
-            Completa la información para registrar un nuevo cargo.
-          </DialogDescription>
-        </DialogHeader>
-
+      <FormDialogContent
+        icon={BriefcaseBusiness}
+        title="Crear Cargo"
+        description="Completa la información para registrar un nuevo cargo."
+        className="sm:max-w-105"
+      >
         <CreateJobTitleForm onSuccess={() => setOpen(false)} />
-      </DialogContent>
+      </FormDialogContent>
     </Dialog>
   );
 }

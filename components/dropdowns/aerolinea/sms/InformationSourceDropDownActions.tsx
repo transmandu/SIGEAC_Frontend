@@ -1,7 +1,8 @@
 "use client";
 
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import { useState } from "react";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, Rss } from "lucide-react";
 import { useDeleteInformationSource } from "@/actions/ajustes/tipos_fuente/actions";
 import { ConfirmDeleteDialog } from "@/components/dialogs/shared/ConfirmDeleteDialog";
 import {
@@ -9,13 +10,7 @@ import {
   type RowAction,
 } from "@/components/dropdowns/SettingsRowActions";
 import { EditInformationSourceForm } from "@/components/forms/aerolinea/sms/EditInformationSourceForm";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog } from "@/components/ui/dialog";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { InformationSource } from "@/types";
 
@@ -51,25 +46,26 @@ const InformationSourceDropdownActions = ({
       <SettingsRowActions actions={actions} tourId="fuentes-actions" />
 
       <Dialog open={openEdit} onOpenChange={setOpenEdit}>
-        <DialogContent
-          className="max-h-[90vh] overflow-y-auto sm:max-w-lg"
-          onInteractOutside={(e) => e.preventDefault()}
-        >
-          <DialogHeader>
-            <DialogTitle>Editar fuente de información</DialogTitle>
-            <DialogDescription>
+        <FormDialogContent
+          icon={Rss}
+          title="Editar fuente de información"
+          description={
+            <>
               Modifique lo necesario de{" "}
               <span className="font-medium text-foreground">
-                {informationSource.name}
-              </span>
+                {" "}
+                {informationSource.name}{" "}
+              </span>{" "}
               ; solo se guardará lo que cambie.
-            </DialogDescription>
-          </DialogHeader>
+            </>
+          }
+          className="sm:max-w-lg"
+        >
           <EditInformationSourceForm
             initialData={informationSource}
             onClose={() => setOpenEdit(false)}
           />
-        </DialogContent>
+        </FormDialogContent>
       </Dialog>
 
       <ConfirmDeleteDialog

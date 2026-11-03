@@ -1,16 +1,10 @@
 "use client";
 
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Plus } from "lucide-react";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import { Plus, UserRoundCog } from "lucide-react";
 import { useState } from "react";
 import CreateThirdPartyForm from "@/components/forms/general/CreateThirdPartyForm";
 
@@ -24,18 +18,14 @@ export function CreateThirdPartyDialog() {
           Crear tercero
         </ActionTriggerButton>
       </DialogTrigger>
-      <DialogContent
-        className="max-h-[90vh] overflow-y-auto sm:max-w-lg"
-        onInteractOutside={(e) => e.preventDefault()}
+      <FormDialogContent
+        icon={UserRoundCog}
+        title="Creación de Tercero"
+        description="Cree un tercero rellenando la información necesaria."
+        className="sm:max-w-lg"
       >
-        <DialogHeader>
-          <DialogTitle>Creación de Tercero</DialogTitle>
-          <DialogDescription>
-            Cree un tercero rellenando la información necesaria.
-          </DialogDescription>
-        </DialogHeader>
         <CreateThirdPartyForm onClose={() => setOpen(false)} />
-      </DialogContent>
+      </FormDialogContent>
     </Dialog>
   );
 }

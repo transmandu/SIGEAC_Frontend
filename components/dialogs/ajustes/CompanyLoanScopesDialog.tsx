@@ -1,13 +1,9 @@
 "use client";
 
+import { SlidersHorizontal } from "lucide-react";
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import UpdateCompanyLoanScopesForm from "@/components/forms/ajustes/UpdateCompanyLoanScopesForm";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog } from "@/components/ui/dialog";
 import type { CompanyLoanAgreement } from "@/hooks/ajustes/convenios/types";
 
 interface Props {
@@ -26,20 +22,22 @@ export function CompanyLoanScopesDialog({
 }: Props) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        className="flex max-h-[90vh] flex-col overflow-hidden sm:max-w-lg"
-        onInteractOutside={(e) => e.preventDefault()}
-      >
-        <DialogHeader>
-          <DialogTitle>Configurar alcances</DialogTitle>
-          <DialogDescription>
+      <FormDialogContent
+        icon={SlidersHorizontal}
+        title="Configurar alcances"
+        description={
+          <>
             Qué puede hacer{" "}
             <span className="font-medium text-foreground">
-              {agreement.borrower_company_name}
+              {" "}
+              {agreement.borrower_company_name}{" "}
             </span>{" "}
             en su empresa; solo se guardará lo que cambie.
-          </DialogDescription>
-        </DialogHeader>
+          </>
+        }
+        fill
+        className="sm:max-w-lg"
+      >
         {open && (
           <UpdateCompanyLoanScopesForm
             agreement={agreement}
@@ -47,7 +45,7 @@ export function CompanyLoanScopesDialog({
             onClose={() => onOpenChange(false)}
           />
         )}
-      </DialogContent>
+      </FormDialogContent>
     </Dialog>
   );
 }

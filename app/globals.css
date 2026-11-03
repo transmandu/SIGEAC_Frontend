@@ -159,6 +159,30 @@
   }
 }
 
+/* En móvil los diálogos ocupan toda la pantalla y el botón del tour (que sigue
+   por encima de ellos en tablet y escritorio) taparía sus acciones. Radix pone
+   `data-scroll-locked` también con menús y selects, y el panel de alertas y la
+   cola llevan `role="dialog"` siempre en el DOM: por eso se exige un diálogo
+   Radix abierto de verdad (`data-state="open"`). */
+@media (max-width: 639px) {
+  body[data-scroll-locked]:has(
+      [role="dialog"][data-state="open"],
+      [role="alertdialog"][data-state="open"]
+    )
+    [data-tour-menu] {
+    display: none;
+  }
+}
+
+/* El panel de alertas críticas sale de su botón, y la cola de cumplimiento es un
+   panel lateral que se abre sobre la esquina: mientras alguno está abierto, el
+   botón del tour (apilado justo encima del de alertas) se retira. */
+html[data-alerts-open] [data-tour-menu],
+html[data-queue-open] [data-tour-menu] {
+  opacity: 0;
+  pointer-events: none;
+}
+
 @utility glass-surface {
   /* ============================================================
      LIQUID GLASS — Navbar

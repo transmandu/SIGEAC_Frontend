@@ -1,5 +1,6 @@
 "use client";
 
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import { useMemo, useState } from "react";
 import {
   AlertTriangle,
@@ -8,6 +9,7 @@ import {
   Search,
   SlidersHorizontal,
   Trash2,
+  ArrowLeftRight,
 } from "lucide-react";
 import { ConfirmDeleteDialog } from "@/components/dialogs/shared/ConfirmDeleteDialog";
 import {
@@ -17,13 +19,7 @@ import {
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { SettingsDataTable } from "@/components/tables/SettingsDataTable";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -202,18 +198,22 @@ function ConversionRowActions({ row }: { row: UnitConversionRow }) {
       <SettingsRowActions actions={actions} />
 
       <Dialog open={openEdit} onOpenChange={setOpenEdit}>
-        <DialogContent className="sm:max-w-105">
-          <DialogHeader>
-            <DialogTitle>Editar equivalencia</DialogTitle>
-            <DialogDescription>
+        <FormDialogContent
+          icon={ArrowLeftRight}
+          title="Editar equivalencia"
+          description={
+            <>
               Modifique la conversión de{" "}
               <span className="font-medium text-foreground">
-                {row.article?.name ?? "este artículo"}
+                {" "}
+                {row.article?.name ?? "este artículo"}{" "}
               </span>
-            </DialogDescription>
-          </DialogHeader>
+            </>
+          }
+          className="sm:max-w-105"
+        >
           <EditConversionForm row={row} onDone={() => setOpenEdit(false)} />
-        </DialogContent>
+        </FormDialogContent>
       </Dialog>
 
       <ConfirmDeleteDialog

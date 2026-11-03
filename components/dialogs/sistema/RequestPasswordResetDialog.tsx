@@ -1,20 +1,35 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { CheckCircle2, KeyRound, Loader2, Mail, ShieldCheck } from "lucide-react";
-import { useForm } from "react-hook-form";
+import {
+  CheckCircle2,
+  Info,
+  KeyRound,
+  Loader2,
+  Mail,
+  Send,
+  ShieldCheck,
+} from "lucide-react";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@/lib/zod-resolver";
 import { z } from "zod";
 
-import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  FieldLabelRow,
+  fieldClass,
+  hintClass,
+  labelClass,
+  textareaClass,
+} from "@/components/forms/mantenimiento/almacen/_components/form-theme";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import {
+  fullScreenOnMobile,
+  FormDialogBody,
+  FormDialogFooter,
+  FormDialogHeader,
+} from "@/components/dialogs/shared/FormDialogContent";
 import {
   Form,
   FormControl,
@@ -28,12 +43,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { useRequestPasswordReset } from "@/hooks/sistema/usuario/usePasswordResetRequests";
 
+const MAX_NOTE = 500;
+
 const FormSchema = z.object({
   email: z
     .string()
     .min(1, { message: "Ingrese su correo." })
     .email({ message: "El correo no es válido." }),
-  note: z.string().max(500, { message: "Máximo 500 caracteres." }).optional(),
+  note: z
+    .string()
+    .max(MAX_NOTE, { message: `Máximo ${MAX_NOTE} caracteres.` })
+    .optional(),
 });
 
 type FormSchemaType = z.infer<typeof FormSchema>;
@@ -50,11 +70,18 @@ interface Props {
   email?: string;
 }
 
-export default function RequestPasswordResetDialog({
-  open,
-  onOpenChange,
+/**
+ * El contenido vive en su propio componente: Radix lo desmonta al cerrar, así
+ * que cada apertura arranca limpia (sin la confirmación de la vez anterior ni
+ * el texto a medio escribir) sin necesidad de un efecto que lo reinicie.
+ */
+function ResetRequest({
   email,
-}: Props) {
+  onClose,
+}: {
+  email?: string;
+  onClose: () => void;
+}) {
   const reduceMotion = useReducedMotion();
   const [sent, setSent] = useState(false);
   const isAuthenticated = Boolean(email);
@@ -65,19 +92,7 @@ export default function RequestPasswordResetDialog({
     resolver: zodResolver(FormSchema),
     defaultValues: { email: email ?? "", note: "" },
   });
-
-  // Al reabrir se limpia el estado; si no, el usuario vería la confirmación
-  // de la vez anterior.
-  useEffect(() => {
-    if (!open) return;
-
-    const timeout = setTimeout(() => {
-      setSent(false);
-      form.reset({ email: email ?? "", note: "" });
-    }, 200);
-
-    return () => clearTimeout(timeout);
-  }, [open, form, email]);
+  const note = useWatch({ control: form.control, name: "note" });
 
   const onSubmit = async (data: FormSchemaType) => {
     try {
@@ -91,98 +106,121 @@ export default function RequestPasswordResetDialog({
   const fade = reduceMotion
     ? { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 } }
     : {
-        initial: { opacity: 0, y: 8, filter: "blur(4px)" },
-        animate: { opacity: 1, y: 0, filter: "blur(0px)" },
-        exit: { opacity: 0, y: -8, filter: "blur(4px)" },
+        initial: { opacity: 0, y: 8 },
+        animate: { opacity: 1, y: 0 },
+        exit: { opacity: 0, y: -8 },
       };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-104">
-        <DialogHeader>
-          <div className="flex items-center gap-3">
-            {/* El icono acompaña el estado: llave -> escudo al confirmar. */}
-            <div
-              className={cn(
-                "flex h-10 w-10 shrink-0 items-center justify-center rounded-full",
-                "border transition-colors duration-300",
-                sent
-                  ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                  : "border-primary/25 bg-primary/10 text-primary"
+    <>
+      {/* ───────── Encabezado ───────── */}
+      <FormDialogHeader
+        tone={sent ? "emerald" : "primary"}
+        iconNode={
+          // El icono acompaña el estado: llave -> escudo al confirmar.
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.span
+              key={sent ? "done" : "key"}
+              initial={
+                reduceMotion
+                  ? { opacity: 0 }
+                  : { opacity: 0, scale: 0.6, rotate: -25 }
+              }
+              animate={
+                reduceMotion
+                  ? { opacity: 1 }
+                  : { opacity: 1, scale: 1, rotate: 0 }
+              }
+              exit={
+                reduceMotion
+                  ? { opacity: 0 }
+                  : { opacity: 0, scale: 0.6, rotate: 25 }
+              }
+              transition={{ duration: 0.24, ease: EASE }}
+              className="flex"
+            >
+              {sent ? (
+                <ShieldCheck className="size-5" />
+              ) : (
+                <KeyRound className="size-5" />
               )}
-            >
-              <AnimatePresence mode="wait" initial={false}>
-                <motion.div
-                  key={sent ? "done" : "key"}
-                  initial={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.6, rotate: -25 }}
-                  animate={reduceMotion ? { opacity: 1 } : { opacity: 1, scale: 1, rotate: 0 }}
-                  exit={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.6, rotate: 25 }}
-                  transition={{ duration: 0.24, ease: EASE }}
-                >
-                  {sent ? (
-                    <ShieldCheck className="h-5 w-5" />
-                  ) : (
-                    <KeyRound className="h-5 w-5" />
-                  )}
-                </motion.div>
-              </AnimatePresence>
-            </div>
+            </motion.span>
+          </AnimatePresence>
+        }
+        title={sent ? "Solicitud enviada" : "Recuperar contraseña"}
+        description={
+          sent
+            ? "El administrador fue notificado."
+            : isAuthenticated
+              ? "Se solicitará una nueva contraseña para su cuenta."
+              : "Confirme su correo para solicitar una nueva contraseña."
+        }
+      />
 
-            <div className="min-w-0">
-              <DialogTitle className="text-left text-base">
-                {sent ? "Solicitud enviada" : "Recuperar contraseña"}
-              </DialogTitle>
-              <DialogDescription className="text-left text-xs">
-                {sent
-                  ? "El administrador fue notificado."
-                  : isAuthenticated
-                    ? "Se solicitará una nueva contraseña para su cuenta."
-                    : "Confirme su correo para solicitar una nueva contraseña."}
-              </DialogDescription>
-            </div>
-          </div>
-        </DialogHeader>
-
-        <AnimatePresence mode="wait" initial={false}>
-          {sent ? (
-            <motion.div
-              key="confirmacion"
-              {...fade}
-              transition={{ duration: 0.28, ease: EASE }}
-              className="flex flex-col items-center gap-3 py-4 text-center"
-            >
+      <AnimatePresence mode="wait" initial={false}>
+        {sent ? (
+          <motion.div
+            key="confirmacion"
+            {...fade}
+            transition={{ duration: 0.28, ease: EASE }}
+            className="flex min-h-0 flex-1 flex-col"
+          >
+            <FormDialogBody className="flex flex-col items-center gap-3 py-8 text-center">
               <motion.div
-                initial={reduceMotion ? { opacity: 0 } : { scale: 0.5, opacity: 0 }}
-                animate={reduceMotion ? { opacity: 1 } : { scale: 1, opacity: 1 }}
+                initial={
+                  reduceMotion ? { opacity: 0 } : { scale: 0.5, opacity: 0 }
+                }
+                animate={
+                  reduceMotion ? { opacity: 1 } : { scale: 1, opacity: 1 }
+                }
                 transition={{ duration: 0.4, ease: EASE, delay: 0.05 }}
               >
-                <CheckCircle2 className="h-12 w-12 text-emerald-500" />
+                <CheckCircle2 className="size-12 text-emerald-500" />
               </motion.div>
 
-              <p className="text-sm text-muted-foreground">
+              <p className="max-w-xs text-sm text-muted-foreground">
                 {isAuthenticated
                   ? "Un administrador le asignará una nueva contraseña y se la comunicará."
                   : "Si el correo corresponde a una cuenta, un administrador se encargará de asignarle una nueva contraseña y se la comunicará."}
               </p>
+            </FormDialogBody>
 
-              <Button
-                className="mt-2 w-full"
-                onClick={() => onOpenChange(false)}
-              >
+            <FormDialogFooter>
+              <Button type="button" className="min-w-35" onClick={onClose}>
                 Entendido
               </Button>
-            </motion.div>
-          ) : (
-            <motion.div key="formulario" {...fade} transition={{ duration: 0.28, ease: EASE }}>
-              <Form {...form}>
-                <form
-                  onSubmit={form.handleSubmit(onSubmit)}
-                  className="flex flex-col gap-4"
-                >
+            </FormDialogFooter>
+          </motion.div>
+        ) : (
+          <motion.div
+            key="formulario"
+            {...fade}
+            transition={{ duration: 0.28, ease: EASE }}
+            className="flex min-h-0 flex-1 flex-col"
+          >
+            <Form {...form}>
+              <form
+                // Desde el login este diálogo cuelga, por el árbol de React,
+                // del formulario de inicio de sesión: sin esto el envío
+                // también dispararía el de aquel.
+                onSubmit={(event) => {
+                  event.stopPropagation();
+                  void form.handleSubmit(onSubmit)(event);
+                }}
+                className="flex min-h-0 flex-1 flex-col"
+              >
+                <FormDialogBody className="space-y-4">
                   {isAuthenticated ? (
-                    <div className="flex items-center gap-2.5 rounded-lg border border-border/70 bg-muted/40 px-3 py-2.5">
-                      <Mail className="h-4 w-4 shrink-0 text-muted-foreground" />
-                      <span className="truncate text-sm">{email}</span>
+                    <div className="space-y-2">
+                      <p className={labelClass}>Correo electrónico</p>
+                      <div
+                        className={cn(
+                          "flex h-11 items-center gap-2.5 rounded-lg border border-slate-400/60 bg-muted/40 px-3 dark:border-slate-600/60",
+                        )}
+                      >
+                        <Mail className="size-4 shrink-0 text-muted-foreground" />
+                        <span className="truncate text-[15px]">{email}</span>
+                      </div>
                     </div>
                   ) : (
                     <FormField
@@ -190,16 +228,18 @@ export default function RequestPasswordResetDialog({
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Correo electrónico</FormLabel>
+                          <FormLabel className={labelClass}>
+                            Correo electrónico
+                          </FormLabel>
                           <FormControl>
                             <div className="relative">
-                              <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                              <Mail className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                               <Input
                                 {...field}
                                 type="email"
                                 autoComplete="email"
                                 placeholder="usuario@sigeac.com"
-                                className="h-10 rounded-lg pl-9"
+                                className={cn(fieldClass, "pl-9")}
                               />
                             </div>
                           </FormControl>
@@ -214,18 +254,33 @@ export default function RequestPasswordResetDialog({
                     name="note"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="flex items-center gap-1">
-                          Mensaje
-                          <span className="text-xs font-normal text-muted-foreground">
-                            (opcional)
-                          </span>
-                        </FormLabel>
+                        <FieldLabelRow
+                          action={
+                            <span
+                              className={cn(
+                                hintClass,
+                                "tabular-nums",
+                                (note?.length ?? 0) > MAX_NOTE &&
+                                  "text-destructive",
+                              )}
+                            >
+                              {note?.length ?? 0}/{MAX_NOTE}
+                            </span>
+                          }
+                        >
+                          <FormLabel className={labelClass}>
+                            Mensaje{" "}
+                            <span className="font-normal text-muted-foreground">
+                              (opcional)
+                            </span>
+                          </FormLabel>
+                        </FieldLabelRow>
                         <FormControl>
                           <Textarea
                             {...field}
                             rows={3}
                             placeholder="Algún detalle que ayude al administrador a identificarlo."
-                            className="resize-none rounded-lg"
+                            className={textareaClass}
                           />
                         </FormControl>
                         <FormMessage className="text-xs" />
@@ -233,53 +288,67 @@ export default function RequestPasswordResetDialog({
                     )}
                   />
 
-                  <p className="rounded-lg border border-border/70 bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
-                    Por políticas de seguridad, la nueva contraseña la asigna un
-                    administrador; no se define desde este formulario.
-                  </p>
-
-                  <div className="flex gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="flex-1"
-                      onClick={() => onOpenChange(false)}
-                      disabled={isPending}
-                    >
-                      Cancelar
-                    </Button>
-
-                    <Button type="submit" className="flex-1" disabled={isPending}>
-                      <AnimatePresence mode="wait" initial={false}>
-                        {isPending ? (
-                          <motion.span
-                            key="cargando"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="flex items-center gap-2"
-                          >
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                            Enviando…
-                          </motion.span>
-                        ) : (
-                          <motion.span
-                            key="idle"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                          >
-                            Enviar solicitud
-                          </motion.span>
-                        )}
-                      </AnimatePresence>
-                    </Button>
+                  <div className="flex items-start gap-3 rounded-lg border bg-muted/40 px-3 py-2.5">
+                    <Info className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+                    <p className="text-xs leading-relaxed text-muted-foreground">
+                      Por políticas de seguridad, la nueva contraseña la asigna
+                      un administrador; no se define desde este formulario.
+                    </p>
                   </div>
-                </form>
-              </Form>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                </FormDialogBody>
+
+                <FormDialogFooter>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={onClose}
+                    disabled={isPending}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={isPending}
+                    className="min-w-35"
+                  >
+                    {isPending ? (
+                      <>
+                        <Loader2 className="mr-2 size-4 animate-spin" />
+                        Enviando…
+                      </>
+                    ) : (
+                      <>
+                        <Send className="mr-2 size-4" />
+                        Enviar solicitud
+                      </>
+                    )}
+                  </Button>
+                </FormDialogFooter>
+              </form>
+            </Form>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  );
+}
+
+export default function RequestPasswordResetDialog({
+  open,
+  onOpenChange,
+  email,
+}: Props) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent
+        className={cn(
+          "flex max-h-[90vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-104",
+          fullScreenOnMobile,
+        )}
+        // Lo escrito no se recupera: un clic fuera no debe cerrarlo.
+        onInteractOutside={(event) => event.preventDefault()}
+      >
+        <ResetRequest email={email} onClose={() => onOpenChange(false)} />
       </DialogContent>
     </Dialog>
   );

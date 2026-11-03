@@ -1,18 +1,12 @@
 "use client";
 
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Handshake } from "lucide-react";
 
 import CreateCompanyLoanForm from "@/components/forms/ajustes/CreateCompanyLoanForm";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
 export function CreateCompanyLoanDialog() {
@@ -27,18 +21,17 @@ export function CreateCompanyLoanDialog() {
           Habilitar empresa
         </ActionTriggerButton>
       </DialogTrigger>
-      <DialogContent
-        className="flex max-h-[90vh] flex-col overflow-hidden sm:max-w-lg"
-        onInteractOutside={(e) => e.preventDefault()}
+      <FormDialogContent
+        icon={Handshake}
+        title="Habilitar empresa"
+        description={
+          <>Elija la empresa y qué podrá hacer en {selectedCompany?.name}.</>
+        }
+        fill
+        className="sm:max-w-lg"
       >
-        <DialogHeader>
-          <DialogTitle>Habilitar empresa</DialogTitle>
-          <DialogDescription>
-            Elija la empresa y qué podrá hacer en {selectedCompany?.name}.
-          </DialogDescription>
-        </DialogHeader>
         {open && <CreateCompanyLoanForm onClose={() => setOpen(false)} />}
-      </DialogContent>
+      </FormDialogContent>
     </Dialog>
   );
 }
