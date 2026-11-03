@@ -28,7 +28,9 @@ export interface ErrorReportsResponse {
   };
 }
 
-const fetchErrorReports = async (filters: ErrorReportFilters): Promise<ErrorReportsResponse> => {
+const fetchErrorReports = async (
+  filters: ErrorReportFilters,
+): Promise<ErrorReportsResponse> => {
   const params = new URLSearchParams();
   if (filters.status) params.set("status", filters.status);
   if (filters.module) params.set("module", filters.module);
@@ -42,7 +44,9 @@ const fetchErrorReports = async (filters: ErrorReportFilters): Promise<ErrorRepo
   params.set("page", String(filters.page ?? 1));
   params.set("per_page", String(filters.per_page ?? 25));
 
-  const { data } = await axiosInstance.get(`/error-reports?${params.toString()}`);
+  const { data } = await axiosInstance.get(
+    `/error-reports?${params.toString()}`,
+  );
 
   return {
     reports: data.data ?? [],

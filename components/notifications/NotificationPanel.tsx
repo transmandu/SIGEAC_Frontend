@@ -1,31 +1,37 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { createPortal } from 'react-dom';
-import { AnimatePresence, motion } from 'motion/react';
-import { Separator } from '@/components/ui/separator';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Inbox, CheckCheck, X } from 'lucide-react';
-import { useNotifications } from '@/hooks/notifications/useNotifications';
-import { useClearAllNotifications, useClearReadNotifications, useMarkAllNotificationsAsRead } from '@/actions/notifications/actions';
-import { useHideReadNotifications } from '@/hooks/helpers/use-hide-read-notifications';
-import { useCompanyStore } from '@/stores/CompanyStore';
-import { useAuth } from '@/contexts/AuthContext';
-import NotificationItem from './NotificationItem';
-import Link from 'next/link';
-import { canClearNotifications } from '@/lib/notifications';
-import { cn } from '@/lib/utils';
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+import { AnimatePresence, motion } from "motion/react";
+import { Separator } from "@/components/ui/separator";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Inbox, CheckCheck, X } from "lucide-react";
+import { useNotifications } from "@/hooks/notifications/useNotifications";
+import {
+  useClearAllNotifications,
+  useClearReadNotifications,
+  useMarkAllNotificationsAsRead,
+} from "@/actions/notifications/actions";
+import { useHideReadNotifications } from "@/hooks/helpers/use-hide-read-notifications";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { useAuth } from "@/contexts/AuthContext";
+import NotificationItem from "./NotificationItem";
+import Link from "next/link";
+import { canClearNotifications } from "@/lib/notifications";
+import { cn } from "@/lib/utils";
 
 interface Props {
   open: boolean;
   onClose: () => void;
 }
 
-export default function NotificationPanel({
-  open,
-  onClose,
-}: Props) {
+export default function NotificationPanel({ open, onClose }: Props) {
   const { selectedCompany } = useCompanyStore();
   const { user } = useAuth();
 
@@ -33,7 +39,7 @@ export default function NotificationPanel({
 
   // Eliminar no se deshace: el primer toque arma el botón y el segundo lo
   // ejecuta. Si no se confirma en unos segundos, se desarma solo.
-  const [armed, setArmed] = useState<'read' | 'all' | null>(null);
+  const [armed, setArmed] = useState<"read" | "all" | null>(null);
 
   useEffect(() => {
     if (!armed) return;
@@ -43,8 +49,9 @@ export default function NotificationPanel({
     return () => clearTimeout(timeout);
   }, [armed]);
 
-  const { notifications, unreadCount } =
-    useNotifications(selectedCompany?.slug);
+  const { notifications, unreadCount } = useNotifications(
+    selectedCompany?.slug,
+  );
 
   const { hideRead, setHideRead } = useHideReadNotifications();
 
@@ -52,10 +59,9 @@ export default function NotificationPanel({
     ? notifications.filter((notification) => !notification.read_at)
     : notifications;
 
-  const { mutate: markAllAsRead } =
-    useMarkAllNotificationsAsRead(
-      selectedCompany?.slug!
-    );
+  const { mutate: markAllAsRead } = useMarkAllNotificationsAsRead(
+    selectedCompany?.slug!,
+  );
 
   const { mutate: clearRead, isPending: isClearingRead } =
     useClearReadNotifications(selectedCompany?.slug!);
@@ -63,7 +69,7 @@ export default function NotificationPanel({
   const { mutate: clearAll, isPending: isClearingAll } =
     useClearAllNotifications(selectedCompany?.slug!);
 
-  if (typeof window === 'undefined') {
+  if (typeof window === "undefined") {
     return null;
   }
 
