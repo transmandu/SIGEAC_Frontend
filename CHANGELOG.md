@@ -1,3 +1,7 @@
+## v4.86.3 — 2026-11-03
+
+- style: change chart colors in sms statistics (#374)
+
 ## v4.86.2 — 2026-11-02
 
 - refactor: improve responsive design and accessibility across various … (#373)
