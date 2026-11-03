@@ -254,9 +254,12 @@ export const toCalendarPayload = (
  * UTC y en UTC−4 mostraría el día anterior.
  */
 export const parseCalendarDate = (
-  value: string | null | undefined,
+  value: string | Date | null | undefined,
 ): Date | undefined => {
   if (!value) return undefined;
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? undefined : value;
+  }
 
   const match = String(value).match(CALENDAR_DATE);
   if (!match) return undefined;

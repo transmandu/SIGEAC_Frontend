@@ -10,8 +10,9 @@ interface CourseData {
   course: {
     name: string;
     description: string;
-    start_date: Date;
-    end_date: Date;
+    /** Fecha de calendario en formato "yyyy-MM-dd". */
+    start_date: string;
+    end_date: string;
     start_time: string;
     end_time: string;
     course_type: string;
@@ -30,8 +31,9 @@ interface updateCourseData {
     description: string;
     instructor?: string;
     course_type: string;
-    start_date: Date;
-    end_date: Date;
+    /** Fecha de calendario en formato "yyyy-MM-dd". */
+    start_date: string;
+    end_date: string;
     start_time: string;
     end_time: string;
     hours: number;
@@ -162,8 +164,8 @@ export const useUpdateCourse = () => {
       formData.append("name", data.name);
       formData.append("description", data.description);
       formData.append("course_type", data.course_type);
-      formData.append("start_date", new Date(data.start_date).toISOString());
-      formData.append("end_date", new Date(data.end_date).toISOString());
+      formData.append("start_date", data.start_date);
+      formData.append("end_date", data.end_date);
       formData.append("start_time", data.start_time);
       formData.append("end_time", data.end_time);
       formData.append("hours", String(data.hours));

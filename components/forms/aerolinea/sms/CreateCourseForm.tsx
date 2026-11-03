@@ -24,7 +24,7 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Course } from "@/types";
-import { addDays } from "date-fns";
+import { parseCalendarDate, toCalendarPayload } from "@/lib/date";
 import { Loader2 } from "lucide-react";
 import {
   Select,
@@ -95,14 +95,17 @@ export function CreateCourseForm({
       instructor: initialData?.instructor,
       hours: initialData?.hours ?? 0,
 
+      // Son fechas de calendario: se leen sin convertir de zona. El antiguo
+      // addDays(+1) compensaba la medianoche UTC al mostrarlas, pero dejaba la
+      // fecha corrida un día al enviarla sin tocarla.
       start_date: initialData?.start_date
-        ? addDays(new Date(initialData.start_date), 1)
+        ? parseCalendarDate(initialData.start_date)
         : selectedDate
-          ? new Date(selectedDate)
+          ? parseCalendarDate(selectedDate)
           : undefined,
 
       end_date: initialData?.end_date
-        ? addDays(new Date(initialData.end_date), 1)
+        ? parseCalendarDate(initialData.end_date)
         : undefined,
 
       start_time: initialData
@@ -127,6 +130,13 @@ export function CreateCourseForm({
   });
 
   const onSubmit = async (data: FormSchemaType) => {
+    // Se envían como "yyyy-MM-dd" (fecha de calendario), no como instante: el
+    // toISOString() de un Date local puede caer en el día siguiente.
+    const start_date = toCalendarPayload(data.start_date);
+    const end_date = toCalendarPayload(data.end_date);
+
+    if (!start_date || !end_date) return;
+
     if (initialData && isEditing) {
       const value = {
         id: initialData.id,
@@ -136,8 +146,8 @@ export function CreateCourseForm({
           description: data.description,
           instructor: data.instructor,
           hours: data.hours,
-          start_date: data.start_date,
-          end_date: data.end_date,
+          start_date,
+          end_date,
           start_time: data.start_time,
           end_time: data.end_time,
           course_type: data.course_type,
@@ -151,7 +161,19 @@ export function CreateCourseForm({
         await createCourse.mutateAsync({
           company: selectedCompany!.slug,
           location_id: selectedStation!,
-          course: data,
+          course: {
+            name: data.name,
+            description: data.description,
+            instructor: data.instructor,
+            hours: data.hours,
+            start_date,
+            end_date,
+            start_time: data.start_time,
+            end_time: data.end_time,
+            course_type: data.course_type,
+            document: data.document,
+            library_folder_paths: data.library_folder_paths,
+          },
         });
       } catch (error) {
         console.error("Error al crear el curso:", error);
