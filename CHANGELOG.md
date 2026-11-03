@@ -1,3 +1,7 @@
+## v4.87.1 — 2026-11-03
+
+- fix(cursos): avoid adding a day when editing course dates (#376)
+
 ## v4.87.0 — 2026-11-03
 
 - feat: enhance compliance queue button and sidebar responsiveness (#375)
