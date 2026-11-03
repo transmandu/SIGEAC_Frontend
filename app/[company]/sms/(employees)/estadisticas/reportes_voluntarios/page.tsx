@@ -16,11 +16,11 @@ import { useGetRiskCountByDateRange } from "@/hooks/sms/useGetRiskByDateRange";
 import { useGetVoluntaryReportingStatsByYear } from "@/hooks/sms/useGetVoluntaryReportingStatisticsByYear";
 import { useGetVoluntaryReportsCountedByAirportLocation } from "@/hooks/sms/useGetVoluntaryReportsCountedByAirportLocation";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { getResultColor } from "@/lib/utils";
 import { format, startOfMonth } from "date-fns";
 import { Loader2 } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState, useEffect } from "react";
-
 
 const graphicsOptions = [
   { id: "Todos", label: "Todos los gráficos" },
@@ -145,8 +145,6 @@ const Statistics = () => {
 
     router.push(`${pathname}?${newParams.toString()}`, { scroll: false });
   };
-
-
 
   const shouldShow = (id: string) =>
     selectedGraphics.includes("Todos") || selectedGraphics.includes(id);
@@ -309,6 +307,7 @@ const Statistics = () => {
               <PieChartComponent
                 data={riskData}
                 title="Porcentaje de Indice de Riesgo Pre-Mitigacion"
+                getColor={getResultColor}
               />
             ) : (
               <>
@@ -334,6 +333,7 @@ const Statistics = () => {
               <MultipleBarChartComponent
                 data={riskData}
                 title="Numero de Reportes por Cada Indice de Riesgo"
+                getColor={getResultColor}
               />
             ) : (
               <>
@@ -359,6 +359,7 @@ const Statistics = () => {
               <PieChartComponent
                 data={postRiskData}
                 title="Indice de Riesgo Post-Mitigación"
+                getColor={getResultColor}
               />
             ) : (
               <>
@@ -384,6 +385,7 @@ const Statistics = () => {
               <MultipleBarChartComponent
                 data={postRiskData}
                 title="Numero de Reportes por Indice de Riesgo"
+                getColor={getResultColor}
               />
             ) : (
               <>
