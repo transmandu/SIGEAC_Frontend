@@ -7,6 +7,7 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  Cell,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -19,6 +20,8 @@ interface BarChartProps {
   height?: number;
   barSize?: number;
   forceLight?: boolean;
+  /** Color opcional por categoría (por ejemplo, índices de riesgo 5A…1E). */
+  getColor?: (name: string) => string | undefined;
 }
 
 const MultipleBarChartComponent: React.FC<BarChartProps> = ({
@@ -27,6 +30,7 @@ const MultipleBarChartComponent: React.FC<BarChartProps> = ({
   height = 260,
   barSize = 48,
   forceLight = false,
+  getColor,
 }) => {
   const { theme } = useTheme();
   const isDark = forceLight ? false : theme === "dark";
@@ -95,7 +99,15 @@ const MultipleBarChartComponent: React.FC<BarChartProps> = ({
               name="Valor"
               fill={barColor}
               radius={[6, 6, 0, 0]}
-            />
+            >
+              {getColor &&
+                data.map((entry, index) => (
+                  <Cell
+                    key={`cell-${entry.name}-${index}`}
+                    fill={getColor(entry.name) ?? barColor}
+                  />
+                ))}
+            </Bar>
           </BarChart>
         </ResponsiveContainer>
       </div>

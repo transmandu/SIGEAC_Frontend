@@ -15,6 +15,7 @@ import { useGetTotalReportsCountedByArea } from "@/hooks/sms/useGetTotalReportsC
 import { useGetTotalReportsStatsByYear } from "@/hooks/sms/useGetTotalReportsStatsByYear";
 import { useGetTotalRiskCountByDateRange } from "@/hooks/sms/useGetTotalRiskByDateRange";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { getResultColor } from "@/lib/utils";
 import { format, startOfYear } from "date-fns";
 import { Loader2 } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -319,6 +320,7 @@ const GeneralReportStats = () => {
               <MultipleBarChartComponent
                 data={totalRiskData}
                 title="Indice de riesgo por reporte (Pre-mitigación)"
+                getColor={getResultColor}
               />
             ) : (
               <>
@@ -352,6 +354,7 @@ const GeneralReportStats = () => {
               <PieChartComponent
                 title="Índice de Riesgo Pre-Mitigación"
                 data={totalRiskData}
+                getColor={getResultColor}
               />
             ) : (
               <>
@@ -385,6 +388,7 @@ const GeneralReportStats = () => {
               <MultipleBarChartComponent
                 data={totalPostRiskData}
                 title="Indice de Riesgo por Reporte (Post-Mitigación)"
+                getColor={getResultColor}
               />
             ) : (
               <>
@@ -418,6 +422,7 @@ const GeneralReportStats = () => {
               <PieChartComponent
                 data={totalPostRiskData}
                 title="Indice de Riesgo Post-Mitigacion"
+                getColor={getResultColor}
               />
             ) : (
               <>
