@@ -77,6 +77,8 @@ export interface EngineeringCheck {
 
 /** Recepción del almacén y compras · en tránsito. */
 export interface TransitQueueArticle extends QueueArticleBase {
+  /** Lote del consumible; con `serial` identifica la pieza física. */
+  lot_number: string | null;
   /** Entrada al estado actual (ISO). */
   status_since: string | null;
   reception_date: string | null;
