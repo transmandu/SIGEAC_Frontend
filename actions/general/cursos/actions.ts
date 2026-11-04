@@ -17,6 +17,7 @@ interface CourseData {
     course_type: string;
     hours?: number;
     instructor?: string;
+    training_group_ids?: number[];
     document?: File;
     library_folder_paths?: string[];
   };
