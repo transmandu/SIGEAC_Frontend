@@ -24,6 +24,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   useGenerateIncomingFormat,
+  useGetIncomingFormatCorrectionDraft,
+  type ChecklistResult,
   type IssuedIncomingFormat,
 } from "@/actions/mantenimiento/control_calidad/actions";
 import { toast } from "sonner";
@@ -31,6 +33,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { IncomingArticle } from "@/app/[company]/control_calidad/incoming/IncomingTypes";
 import { notifyError } from "@/lib/notify-error";
 import { useOnChange } from "@/hooks/useOnChange";
+import { cn } from "@/lib/utils";
+
+const RESULT_OPTIONS: {
+  value: ChecklistResult;
+  label: string;
+  active: string;
+}[] = [
+  { value: "PASS", label: "Sí", active: "bg-emerald-500 text-white" },
+  { value: "NA", label: "N/A", active: "bg-slate-400 text-white" },
+  { value: "FAIL", label: "No", active: "bg-red-500 text-white" },
+];
 
 export function GenerateReceptionFormButton({
   selected,
@@ -54,6 +67,10 @@ export function GenerateReceptionFormButton({
   const [voidReason, setVoidReason] = useState("");
   const [downloadFormat, setDownloadFormat] = useState(true);
   const [showChecklist, setShowChecklist] = useState(true);
+  const [checklist, setChecklist] = useState<Record<number, ChecklistResult>>(
+    {},
+  );
+  const [observations, setObservations] = useState<Record<number, string>>({});
 
   const isCorrection = !!correcting;
   const open = controlledOpen ?? uncontrolledOpen;
@@ -62,6 +79,10 @@ export function GenerateReceptionFormButton({
   };
 
   const generatePdf = useGenerateIncomingFormat();
+  const { data: draft, isLoading: loadingDraft } =
+    useGetIncomingFormatCorrectionDraft(
+      open && isCorrection ? correcting?.id : undefined,
+    );
 
   const canGenerate = selected.length > 0;
 
@@ -110,6 +131,19 @@ export function GenerateReceptionFormButton({
       setInspectionDate(new Date(correcting.inspection_date));
   });
 
+  /** Lo que el formato decía al emitirse: se corrige sobre eso, no desde cero. */
+  useOnChange([draft], () => {
+    if (!draft) return;
+    setChecklist(
+      Object.fromEntries(draft.checklist.map((r) => [r.check_id, r.result])),
+    );
+    setObservations(
+      Object.fromEntries(
+        draft.items.map((i) => [i.article_id, i.observation ?? ""]),
+      ),
+    );
+  });
+
   const confirm = async () => {
     if (!validation.ok) return;
 
@@ -123,6 +157,17 @@ export function GenerateReceptionFormButton({
       corrects_inspection_id: correcting?.id ?? null,
       void_reason: isCorrection ? voidReason.trim() : null,
       show_checklist: showChecklist,
+      ...(isCorrection && draft
+        ? {
+            checklist: draft.checks
+              .filter((c) => checklist[c.id])
+              .map((c) => ({ check_id: c.id, result: checklist[c.id] })),
+            observations: draft.items.map((i) => ({
+              article_id: i.article_id,
+              observation: observations[i.article_id]?.trim() || null,
+            })),
+          }
+        : {}),
     };
 
     try {
@@ -149,6 +194,8 @@ export function GenerateReceptionFormButton({
     setVoidReason("");
     setDownloadFormat(true);
     setShowChecklist(true);
+    setChecklist({});
+    setObservations({});
   };
 
   return (
@@ -174,7 +221,7 @@ export function GenerateReceptionFormButton({
           if (!v) reset();
         }}
       >
-        <DialogContent>
+        <DialogContent className={cn(isCorrection && "sm:max-w-2xl")}>
           <DialogHeader>
             <DialogTitle>
               {isCorrection
@@ -334,6 +381,99 @@ export function GenerateReceptionFormButton({
                 Mostrar resultados del checklist (Vo/Bo) en el formato
               </Label>
             </div>
+
+            {isCorrection ? (
+              loadingDraft ? (
+                <p className="text-sm text-muted-foreground">
+                  Cargando checklist y observaciones…
+                </p>
+              ) : draft ? (
+                <>
+                  <div className="space-y-2">
+                    <Label>Checklist (Vo/Bo)</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Rige para todo el formato. Un ítem crítico no puede ir en
+                      No: si no cumple, el artículo va a cuarentena.
+                    </p>
+                    <div className="divide-y rounded-md border">
+                      {draft.checks.map((c) => (
+                        <div
+                          key={c.id}
+                          className="flex items-center justify-between gap-3 px-3 py-2"
+                        >
+                          <p className="text-xs">
+                            <b>{c.code}</b> · {c.description}
+                          </p>
+                          <div className="inline-flex shrink-0 overflow-hidden rounded-md border">
+                            {RESULT_OPTIONS.map((o) => {
+                              const blocked =
+                                c.is_critical && o.value === "FAIL";
+                              return (
+                                <button
+                                  key={o.value}
+                                  type="button"
+                                  disabled={blocked}
+                                  aria-pressed={checklist[c.id] === o.value}
+                                  onClick={() =>
+                                    setChecklist((prev) => ({
+                                      ...prev,
+                                      [c.id]: o.value,
+                                    }))
+                                  }
+                                  className={cn(
+                                    "h-7 px-3 text-[11px] font-semibold transition-colors",
+                                    checklist[c.id] === o.value
+                                      ? o.active
+                                      : "bg-background text-muted-foreground hover:bg-muted",
+                                    blocked &&
+                                      "cursor-not-allowed opacity-40 hover:bg-background",
+                                  )}
+                                >
+                                  {o.label}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Observaciones por artículo</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Se imprimen junto a los ítems en N/A, que el formato
+                      agrega solo.
+                    </p>
+                    {draft.items.map((i) => (
+                      <div key={i.article_id} className="space-y-1">
+                        <p className="text-xs font-medium">
+                          {i.part_number ?? "S/N"}
+                          {i.description ? ` · ${i.description}` : ""}
+                          {i.serial ? ` · Serial ${i.serial}` : ""}
+                        </p>
+                        <Input
+                          value={observations[i.article_id] ?? ""}
+                          maxLength={300}
+                          onChange={(e) =>
+                            setObservations((prev) => ({
+                              ...prev,
+                              [i.article_id]: e.target.value,
+                            }))
+                          }
+                          placeholder="Sin observación"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  No se pudo cargar el checklist: se reemitirá con el que ya
+                  tenía el formato.
+                </p>
+              )
+            ) : null}
 
             {!validation.ok ? (
               <p className="text-sm text-red-600">{validation.reason}</p>
