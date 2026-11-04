@@ -18,7 +18,7 @@ function EventBadge({ event }: { event: string }) {
   const tone =
     event === "VENCIDO"
       ? "bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-400"
-      : event === "INICIAL TOMADO"
+      : event === "INICIAL_TOMADO"
         ? "bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400"
         : "bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-400";
 

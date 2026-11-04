@@ -1868,7 +1868,7 @@ export type CourseAttendance = {
 export type SMSTrainingHistoryEntry = {
   id: number;
   employee_dni: string;
-  /** VENCIDO | RENOVADO | INICIAL TOMADO */
+  /** VENCIDO | RENOVADO | INICIAL_TOMADO */
   event_type: string;
   base_course_id?: number | null;
   course_id?: number | null;

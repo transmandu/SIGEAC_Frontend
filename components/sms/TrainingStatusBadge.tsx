@@ -6,7 +6,7 @@ import { trainingStatusLabelEsUpper } from "@/lib/cursos/statuses";
 const STATUS_STYLES: Record<string, string> = {
   VALIDO:
     "border-transparent bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-400",
-  "PROXIMO A VENCER":
+  PROXIMO_A_VENCER:
     "border-transparent bg-yellow-100 text-yellow-700 dark:bg-yellow-500/15 dark:text-yellow-400",
   VENCIDO:
     "border-transparent bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-400",

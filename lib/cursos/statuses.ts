@@ -27,7 +27,7 @@ export const courseStatusLabelEsUpper = (status?: string | null) =>
  */
 export const TRAINING_STATUSES = [
   "VALIDO",
-  "PROXIMO A VENCER",
+  "PROXIMO_A_VENCER",
   "VENCIDO",
   "PENDIENTE",
 ] as const;
@@ -36,7 +36,7 @@ export type TrainingStatus = (typeof TRAINING_STATUSES)[number];
 
 const TRAINING_STATUS_ES: Record<string, string> = {
   VALIDO: "Válido",
-  "PROXIMO A VENCER": "Próximo a vencer",
+  PROXIMO_A_VENCER: "Próximo a vencer",
   VENCIDO: "Vencido",
   PENDIENTE: "Pendiente",
 };
@@ -55,7 +55,7 @@ export const trainingStatusLabelEsUpper = (status?: string | null) =>
 export const TRAINING_EVENT_ES: Record<string, string> = {
   VENCIDO: "Vencido",
   RENOVADO: "Renovado",
-  "INICIAL TOMADO": "Inicial tomado",
+  INICIAL_TOMADO: "Inicial tomado",
 };
 
 export const trainingEventLabelEs = (event?: string | null) => {
