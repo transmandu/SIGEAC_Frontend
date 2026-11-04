@@ -42,7 +42,10 @@ const InventarioArticulosPage = () => {
   const userRoles = Array.isArray(user?.roles)
     ? user.roles.map((role) => role.name)
     : [];
-  const canSeeAeronautical = hasAnyRole(userRoles, AERONAUTICAL_INVENTORY_ROLES);
+  const canSeeAeronautical = hasAnyRole(
+    userRoles,
+    AERONAUTICAL_INVENTORY_ROLES,
+  );
 
   const activeTab: InventoryTab = canSeeAeronautical ? tab : "general";
 

@@ -6,9 +6,7 @@ import React from "react";
 const WarehouseLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <InventoryRouteGuard>
-      <ProtectedLayout roles={[...WAREHOUSE_ROLES]}>
-        {children}
-      </ProtectedLayout>
+      <ProtectedLayout roles={[...WAREHOUSE_ROLES]}>{children}</ProtectedLayout>
     </InventoryRouteGuard>
   );
 };
