@@ -1,3 +1,4 @@
+import { WAREHOUSE_ROLES } from "@/lib/inventory-access";
 import type { Group, MenuContext } from "@/lib/menus/types";
 import {
   ClipboardCopy,
@@ -13,12 +14,7 @@ export function buildWarehouseGroup({
   pathname,
   currentCompany,
 }: MenuContext): Group {
-  const ALMACEN_ROLES = [
-    "ANALISTA_ALMACEN",
-    "JEFE_ALMACEN",
-    "JEFE_MANTENIMIENTO",
-    "SUPERUSER",
-  ];
+  const ALMACEN_ROLES = [...WAREHOUSE_ROLES];
 
   return {
     groupLabel: "Almacen",

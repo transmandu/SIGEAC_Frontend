@@ -164,6 +164,7 @@ function UnitsBody({
                       <AvailabilityBadge
                         quantity={article.available_quantity}
                         unit={article.unit?.value ?? article.unit?.label}
+                        status={article.status}
                       />
                     </TableCell>
                   </TableRow>

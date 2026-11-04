@@ -163,6 +163,7 @@ const baseCols: AppColumnDef<CompanyInventoryArticle>[] = [
         <AvailabilityBadge
           quantity={row.original.available_quantity}
           unit={row.original.unit?.value ?? row.original.unit?.label}
+          status={row.original.status}
         />
       ),
   },

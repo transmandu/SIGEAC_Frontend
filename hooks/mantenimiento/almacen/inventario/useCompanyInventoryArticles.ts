@@ -16,6 +16,7 @@ export interface CompanyInventoryFilters {
  */
 export const useCompanyInventoryArticles = (
   filters: CompanyInventoryFilters,
+  enabled: boolean = true,
 ) => {
   const { selectedCompany, selectedStation } = useCompanyStore();
 
@@ -31,6 +32,6 @@ export const useCompanyInventoryArticles = (
       ...filters,
       is_hazardous: filters.is_hazardous ? 1 : undefined,
     },
-    enabled: !!selectedCompany && !!selectedStation,
+    enabled: enabled && !!selectedCompany && !!selectedStation,
   });
 };

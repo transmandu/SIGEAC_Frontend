@@ -1,3 +1,4 @@
+import { WAREHOUSE_ROLES } from "@/lib/inventory-access";
 import type { Group, MenuContext } from "@/lib/menus/types";
 import {
   CalendarRange,
@@ -13,27 +14,8 @@ import {
 export function buildGeneralGroup({
   pathname,
   currentCompany,
-  userRoles,
 }: MenuContext): Group {
-  const hasInventarioArticulosAccess = [
-    "TESTER",
-    "JEFE_COMPRAS",
-    "ANALISTA_COMPRAS",
-    "JEFE_PLANIFICACION",
-    "ANALISTA_PLANIFICACION",
-    "JEFE_ADMINISTRACION",
-    "RRHH_ADMINISTRACION",
-    "ANALISTA_ADMINISTRACION",
-    "CONTADOR_ADMINISTRACION",
-    "JEFE_CONTROL_CALIDAD",
-    "JEFE_MANTENIMIENTO",
-    "TECNICO_MANTENIMIENTO_AERONAUTICO",
-    "ENGINEERING",
-  ].some((role) => userRoles.includes(role));
-
-  const inventarioHref = hasInventarioArticulosAccess
-    ? `/${currentCompany?.slug}/general/inventario_articulos`
-    : `/${currentCompany?.slug}/general/inventario_general`;
+  const inventoryHref = `/${currentCompany?.slug}/general/inventario_articulos`;
 
   return {
     groupLabel: "General",
@@ -127,17 +109,12 @@ export function buildGeneralGroup({
         ],
       },
       {
-        href: inventarioHref,
+        href: inventoryHref,
         label: "Inventario",
-        active: pathname.includes(inventarioHref),
+        active: pathname.includes(inventoryHref),
         icon: PackageSearch,
         roles: [],
-        excludedRoles: [
-          "ANALISTA_ALMACEN",
-          "JEFE_ALMACEN",
-          "JEFE_MANTENIMIENTO",
-          "SUPERUSER",
-        ],
+        excludedRoles: [...WAREHOUSE_ROLES],
         submenus: [],
         requiresOmac: true,
       },

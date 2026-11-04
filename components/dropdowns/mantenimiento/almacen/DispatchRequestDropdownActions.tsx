@@ -17,7 +17,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useReturnToWarehouse } from "@/actions/mantenimiento/almacen/solicitudes/salida/action";
 import DispatchReturnDialog from "@/components/dialogs/mantenimiento/almacen/DispatchReturnDialog";
 import DispatchReturnHistoryDialog from "@/components/dialogs/mantenimiento/almacen/DispatchReturnHistoryDialog";
 import DispatchWorkOrderDialog from "@/components/dialogs/mantenimiento/almacen/DispatchWorkOrderDialog";
@@ -39,14 +38,12 @@ import { useState } from "react";
 
 const DispatchRequestDropdownActions = ({
   id,
-  category,
   articles,
   status,
   requestNumber,
   canSetWorkOrder,
 }: {
   id: string | number;
-  category?: string;
   articles: DispatchArticle[];
   status?: string;
   requestNumber?: string;
@@ -54,15 +51,11 @@ const DispatchRequestDropdownActions = ({
 }) => {
   const [openWorkOrder, setOpenWorkOrder] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
-  const [openReturn, setOpenReturn] = useState(false);
   const [openReturnForm, setOpenReturnForm] = useState(false);
   const [openHistory, setOpenHistory] = useState(false);
 
   const { selectedCompany } = useCompanyStore();
   const { deleteDispatchRequest } = useDeleteDispatchRequest();
-  const returnToWarehouse = useReturnToWarehouse(selectedCompany?.slug);
-
-  const isHerramienta = category?.toLowerCase() === "herramienta";
 
   // Solo se devuelve lo que llegó a salir, y solo mientras quede algo fuera
   // del almacén. Si no aplica, la acción no se dibuja.
@@ -85,16 +78,6 @@ const DispatchRequestDropdownActions = ({
       company: selectedCompany.slug,
     });
     setOpenDelete(false);
-  };
-
-  const handleReturn = async () => {
-    if (!selectedCompany?.slug) return;
-    for (const article of articles) {
-      if (article.id !== null) {
-        await returnToWarehouse.mutateAsync(article.id);
-      }
-    }
-    setOpenReturn(false);
   };
 
   return (
@@ -120,41 +103,6 @@ const DispatchRequestDropdownActions = ({
         dispatchId={id}
         requestNumber={requestNumber ?? ""}
       />
-
-      {/* Dialog: Devolver a almacén */}
-      <Dialog open={openReturn} onOpenChange={setOpenReturn}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="text-center">
-              ¿Devolver la herramienta al almacén?
-            </DialogTitle>
-            <DialogDescription className="text-center p-2 mb-0 pb-0">
-              El artículo volverá a estar disponible en el inventario.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="flex flex-col gap-2 md:gap-0">
-            <Button
-              className="bg-rose-400 hover:bg-white hover:text-black hover:border hover:border-black"
-              onClick={() => setOpenReturn(false)}
-              type="button"
-            >
-              Cancelar
-            </Button>
-            <Button
-              disabled={returnToWarehouse.isPending}
-              className="hover:bg-white hover:text-black hover:border hover:border-black transition-all"
-              onClick={handleReturn}
-              type="button"
-            >
-              {returnToWarehouse.isPending ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <p>Confirmar</p>
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* Dialog: Eliminar solicitud */}
       <Dialog open={openDelete} onOpenChange={setOpenDelete}>
@@ -241,19 +189,6 @@ const DispatchRequestDropdownActions = ({
                 </DropdownMenuItem>
               </TooltipTrigger>
               <TooltipContent>Historial de devoluciones</TooltipContent>
-            </Tooltip>
-          )}
-          {isHerramienta && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <DropdownMenuItem
-                  className="cursor-pointer"
-                  onSelect={() => setOpenReturn(true)}
-                >
-                  <Undo2 className="size-5 text-slate-500" />
-                </DropdownMenuItem>
-              </TooltipTrigger>
-              <TooltipContent>Devolver herramienta al almacén</TooltipContent>
             </Tooltip>
           )}
           <Tooltip>

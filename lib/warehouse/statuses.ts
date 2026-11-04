@@ -102,11 +102,7 @@ export const statusOptionLabel = (status: string) => {
  * para que el inspector lo verifique. Editarlo por el camino del almacén se
  * saltaría ese registro.
  */
-const MODIFIABLE_STATUSES = new Set([
-  "STORED",
-  "CHECKING",
-  "INTOOLBOX",
-]);
+const MODIFIABLE_STATUSES = new Set(["STORED", "CHECKING", "INTOOLBOX"]);
 
 /**
  * El estado llega en mayúsculas de BD, pero hay vistas que lo pasan en minúsculas.
@@ -115,7 +111,12 @@ const MODIFIABLE_STATUSES = new Set([
  * inventario justo cuando el artículo quedó atascado fuera del almacén.
  */
 export const canModifyArticle = (status?: string | null, override = false) =>
-  override || MODIFIABLE_STATUSES.has(String(status ?? "").trim().toUpperCase());
+  override ||
+  MODIFIABLE_STATUSES.has(
+    String(status ?? "")
+      .trim()
+      .toUpperCase(),
+  );
 
 /**
  * Hitos que `movements` registra pero que no son un `articles.status`: vienen del
@@ -145,7 +146,11 @@ export const timelineEntryLabel = (value: string) => {
  * NOT_APPLICABLE queda fuera de las opciones de filtro (no es un estado del
  * ciclo, sino su ausencia) pero sí se traduce, porque se muestra en la tabla.
  */
-export const TOOL_STATUSES = ["CALIBRATED", "EXPIRED", "IN_CALIBRATION"] as const;
+export const TOOL_STATUSES = [
+  "CALIBRATED",
+  "EXPIRED",
+  "IN_CALIBRATION",
+] as const;
 
 export type ToolStatus = (typeof TOOL_STATUSES)[number];
 
@@ -191,3 +196,11 @@ export const TOOL_STATUS_OPTIONS = TOOL_STATUSES.map((value) => ({
   value: toolStatusFilterValue(value),
   label: `${TOOL_STATUS_ES[value]} (${formatStatusLabel(value)})`,
 }));
+
+/**
+ * El estado tal como viene del backend, con espacios donde la BD guarda guiones
+ * bajos: `WAITING_FOR_FORMAT` → `WAITING FOR FORMAT`. Para mostrar el estado en
+ * inglés sin traducirlo ni cambiarle las mayúsculas.
+ */
+export const statusDisplay = (status: string) =>
+  status.trim().replace(/_/g, " ");
