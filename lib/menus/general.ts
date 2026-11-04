@@ -65,6 +65,14 @@ export function buildGeneralGroup({
             active: pathname === `/${currentCompany?.slug}/general/cursos`,
           },
           {
+            href: `/${currentCompany?.slug}/general/cursos/matriz-capacitacion`,
+            label: "Matriz de capacitación",
+            roles: [],
+            active:
+              pathname ===
+              `/${currentCompany?.slug}/general/cursos/matriz-capacitacion`,
+          },
+          {
             href: `/${currentCompany?.slug}/general/cursos/estadisticas`,
             label: "Estadisticas",
             active:

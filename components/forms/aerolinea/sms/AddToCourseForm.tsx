@@ -10,11 +10,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useGetCourseEnrollementStatus } from "@/hooks/curso/useGetCourseEnrollementStatus";
+import { useGetSmsTrainingGroups } from "@/hooks/curso/useGetSmsTrainingGroups";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { Course } from "@/types";
+import { Course, SmsTrainingGroup } from "@/types";
 import { zodResolver } from "@/lib/zod-resolver";
-import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
+import { Check, ChevronsUpDown, Loader2, Users } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -44,6 +45,7 @@ interface EmployeeSelection {
   first_name: string;
   last_name: string;
   job_title: string;
+  job_title_id?: number;
   department: string;
   isSelected: boolean;
   wasEnrolled: boolean;
@@ -80,6 +82,8 @@ export function AddToCourseForm({ onClose, initialData }: FormProps) {
   };
   const { data: employeesData, isLoading: isLoadingEnrolledEmployee } =
     useGetCourseEnrollementStatus(value);
+  const { data: trainingGroups, isLoading: isLoadingTrainingGroups } =
+    useGetSmsTrainingGroups(selectedCompany?.slug);
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
@@ -121,15 +125,23 @@ export function AddToCourseForm({ onClose, initialData }: FormProps) {
       dni: string;
       first_name: string;
       last_name: string;
-      job_title?: { name: string } | null;
+      job_title?: { id?: string | number; name: string } | null;
+      job_title_id?: number | null;
       department?: { name: string } | null;
     }): EmployeeSelection => {
       const wasEnrolled = enrolledDni.has(employee.dni);
+      const jobTitleId =
+        employee.job_title_id ??
+        (employee.job_title?.id !== undefined
+          ? Number(employee.job_title.id)
+          : undefined);
+
       return {
         dni: employee.dni,
         first_name: employee.first_name,
         last_name: employee.last_name,
         job_title: employee.job_title?.name ?? "",
+        job_title_id: jobTitleId,
         department: employee.department?.name ?? "",
         isSelected: wasEnrolled,
         wasEnrolled,
@@ -160,6 +172,32 @@ export function AddToCourseForm({ onClose, initialData }: FormProps) {
     }));
 
     setEmployeeSelections(newSelections);
+  };
+
+  const employeesInGroup = (group: SmsTrainingGroup) => {
+    const jobTitleIds = new Set(
+      group.job_titles.map((jobTitle) => jobTitle.id),
+    );
+    return employeeSelections.filter(
+      (employee) =>
+        employee.job_title_id !== undefined &&
+        jobTitleIds.has(employee.job_title_id),
+    );
+  };
+
+  const applyTrainingGroup = (group: SmsTrainingGroup) => {
+    const jobTitleIds = new Set(
+      group.job_titles.map((jobTitle) => jobTitle.id),
+    );
+
+    setEmployeeSelections((current) =>
+      current.map((employee) =>
+        employee.job_title_id !== undefined &&
+        jobTitleIds.has(employee.job_title_id)
+          ? { ...employee, isSelected: true }
+          : employee,
+      ),
+    );
   };
 
   const filteredEmployees = employeeSelections.filter((employee) => {
@@ -202,6 +240,45 @@ export function AddToCourseForm({ onClose, initialData }: FormProps) {
         <FormLabel className="text-lg font-light">
           Gestionar participantes del curso
         </FormLabel>
+
+        {(isLoadingTrainingGroups || (trainingGroups?.length ?? 0) > 0) && (
+          <div className="space-y-2">
+            <FormLabel>Agregar por grupo:</FormLabel>
+            {isLoadingTrainingGroups ? (
+              <p className="text-sm text-muted-foreground">
+                Cargando grupos...
+              </p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {trainingGroups?.map((group) => {
+                  const groupEmployees = employeesInGroup(group);
+
+                  return (
+                    <Button
+                      key={group.id}
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={groupEmployees.length === 0}
+                      onClick={() => applyTrainingGroup(group)}
+                      title={
+                        groupEmployees.length === 0
+                          ? "No hay empleados activos con estos cargos"
+                          : `Agregar ${groupEmployees.length} empleado(s)`
+                      }
+                    >
+                      <Users className="mr-2 h-4 w-4" />
+                      {group.name}
+                      <span className="ml-2 rounded-full bg-muted px-1.5 text-xs text-muted-foreground">
+                        {groupEmployees.length}
+                      </span>
+                    </Button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
 
         <FormField
           control={form.control}

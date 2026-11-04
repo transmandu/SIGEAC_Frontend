@@ -1309,6 +1309,16 @@ export type JobTitle = {
   description: string;
 };
 
+export type SmsTrainingGroup = {
+  id: number;
+  name: string;
+  description?: string | null;
+  job_titles: JobTitle[];
+  active_employees_count: number;
+  registered_by?: string;
+  updated_by?: string | null;
+};
+
 export type Location = {
   id: number;
   name: string;
