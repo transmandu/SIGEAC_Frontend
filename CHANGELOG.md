@@ -1,3 +1,7 @@
+## v4.88.2 — 2026-11-04
+
+- refactor: SMS course form and localize statuses (#378)
+
 ## v4.88.1 — 2026-11-04
 
 - refactor: dispatch forms and improve component structure (#379)
