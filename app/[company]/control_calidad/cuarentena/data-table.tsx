@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import {
   ColumnFiltersState,
@@ -9,8 +9,8 @@ import {
 } from "@tanstack/react-table";
 import { appTableFeatures, type AppColumnDef } from "@/lib/table";
 
-import { DataTablePagination } from "@/components/tables/DataTablePagination"
-import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions"
+import { DataTablePagination } from "@/components/tables/DataTablePagination";
+import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions";
 import {
   Table,
   TableBody,
@@ -18,31 +18,20 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { useRouter } from "next/navigation"
-import { useState } from "react"
+} from "@/components/ui/table";
+import { useState } from "react";
 
 interface DataTableProps<TData extends RowData> {
-  columns: AppColumnDef<TData>[]
-  data: TData[]
+  columns: AppColumnDef<TData>[];
+  data: TData[];
 }
 
 export function DataTable<TData extends RowData>({
   columns,
   data,
 }: DataTableProps<TData>) {
-
-  const [sorting, setSorting] = useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(
-    []
-  )
-
-  const locations = [
-    {
-      label: 'Puerto Ordaz',
-      value: 'pzo'
-    }
-  ]
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
   const table = useTable({
     features: appTableFeatures,
@@ -52,9 +41,9 @@ export function DataTable<TData extends RowData>({
     onColumnFiltersChange: setColumnFilters,
     state: {
       sorting,
-      columnFilters
-    }
-  })
+      columnFilters,
+    },
+  });
 
   return (
     <div>
@@ -72,11 +61,11 @@ export function DataTable<TData extends RowData>({
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
                     </TableHead>
-                  )
+                  );
                 })}
               </TableRow>
             ))}
@@ -90,14 +79,20 @@ export function DataTable<TData extends RowData>({
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center text-muted-foreground">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center text-muted-foreground"
+                >
                   No se ha encontrado ningún resultado...
                 </TableCell>
               </TableRow>
@@ -107,5 +102,5 @@ export function DataTable<TData extends RowData>({
       </div>
       <DataTablePagination table={table} />
     </div>
-  )
+  );
 }

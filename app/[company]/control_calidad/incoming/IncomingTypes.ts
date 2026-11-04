@@ -10,7 +10,10 @@ export type ChecklistItem = {
   key: string;
   label: string;
   hint?: string;
+  /** No admite N/A (los de documentación solo si el artículo los declara). */
   requiredForAccept?: boolean;
+  /** Un NO aquí rechaza el artículo en el servidor: pasa a cuarentena. */
+  critical?: boolean;
 };
 
 export type ChecklistGroup = {
@@ -25,6 +28,9 @@ export type IncomingConfirmPayload = {
   notes?: string;
   final_zone?: string;
 };
+
+/** Estados en que Control de Calidad puede inspeccionar; el servidor aplica la misma regla. */
+export const INSPECTABLE_STATUSES = ["INCOMING", "PENDING_REINSPECTION"];
 
 /**
  * Fila de la cola de calidad (`articles/queues/inspection`): INCOMING,
