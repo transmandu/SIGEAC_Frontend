@@ -2,6 +2,7 @@
 
 import { type AppColumnDef } from "@/lib/table";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
+import { ArticleStatusPill } from "@/components/misc/ArticleStatusPill";
 import { Badge } from "@/components/ui/badge";
 import { formatQuantity } from "@/lib/utils";
 import type { CompanyInventoryGeneralArticle } from "@/types/inventory";
@@ -103,19 +104,23 @@ export const generalConsultaColumns: AppColumnDef<CompanyInventoryGeneralArticle
 
 /**
  * Disponibilidad de la vista de consulta: la cantidad disponible con su
- * unidad, o "No disponible" cuando no hay existencia.
+ * unidad, o "No disponible" cuando no hay existencia. Con `status`, la
+ * ausencia de existencia se explica con el estado del artículo tal como viene
+ * (QUARANTINE, WAITING FOR FORMAT, INCOMING…).
  */
 export function AvailabilityBadge({
   quantity,
   unit,
+  status,
 }: {
   quantity: number;
   unit?: string | null;
+  status?: string | null;
 }) {
   const available = Number(quantity ?? 0);
 
   return (
-    <div className="flex justify-center">
+    <div className="flex flex-col items-center gap-1.5">
       <Badge
         variant={available > 0 ? "default" : "destructive"}
         className="px-3 py-1 text-xs font-bold whitespace-nowrap tabular-nums"
@@ -124,6 +129,7 @@ export function AvailabilityBadge({
           ? `${formatQuantity(available)} ${unit ?? "u"}`
           : "No disponible"}
       </Badge>
+      {available <= 0 && status && <ArticleStatusPill status={status} />}
     </div>
   );
 }

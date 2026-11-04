@@ -191,3 +191,11 @@ export const TOOL_STATUS_OPTIONS = TOOL_STATUSES.map((value) => ({
   value: toolStatusFilterValue(value),
   label: `${TOOL_STATUS_ES[value]} (${formatStatusLabel(value)})`,
 }));
+
+/**
+ * El estado tal como viene del backend, con espacios donde la BD guarda guiones
+ * bajos: `WAITING_FOR_FORMAT` → `WAITING FOR FORMAT`. Para mostrar el estado en
+ * inglés sin traducirlo ni cambiarle las mayúsculas.
+ */
+export const statusDisplay = (status: string) =>
+  status.trim().replace(/_/g, " ");

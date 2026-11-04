@@ -1,126 +1,78 @@
 "use client";
 
+import { SearchAcrossLocationsDialog } from "@/components/dialogs/mantenimiento/almacen/SearchAcrossLocationsDialog";
 import { ContentLayout } from "@/components/layout/ContentLayout";
+import { PageHeader } from "@/components/layout/PageHeader";
+import LoadingPage from "@/components/misc/LoadingPage";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ALL_CONDITIONS, ConditionTabs } from "@/components/misc/ConditionTabs";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from "@/contexts/AuthContext";
 import { useDebounce } from "@/hooks/helpers/useDebounce";
-import { useCompanyInventoryArticles } from "@/hooks/mantenimiento/almacen/inventario/useCompanyInventoryArticles";
-import { useCompanyInventoryGeneralArticles } from "@/hooks/mantenimiento/almacen/inventario/useCompanyInventoryGeneralArticles";
-import type { InventoryCategory } from "@/hooks/mantenimiento/almacen/inventario/useWarehouseInventoryArticles";
 import {
-  Drill,
-  Loader2,
-  MapPin,
-  Package2,
-  PaintBucket,
-  Puzzle,
-  X,
-} from "lucide-react";
-import { SearchAcrossLocationsDialog } from "@/components/dialogs/mantenimiento/almacen/SearchAcrossLocationsDialog";
-import { useMemo, useState } from "react";
-import { getColumnsByCategory } from "./columns";
-import { DataTable } from "./data-table";
-import { generalConsultaColumns } from "@/components/tables/GeneralArticleConsultaColumns";
-import { PageHeader } from "@/components/layout/PageHeader";
-import type { CompanyInventoryArticle } from "@/types/inventory";
-import { PartNumberUnitsDialog } from "./PartNumberUnitsDialog";
+  AERONAUTICAL_INVENTORY_ROLES,
+  hasAnyRole,
+} from "@/lib/inventory-access";
+import { MapPin, X } from "lucide-react";
+import { useState } from "react";
+import { AeronauticalInventory } from "@/app/[company]/general/inventario_articulos/_components/AeronauticalInventory";
+import { GeneralInventory } from "@/app/[company]/general/inventario_articulos/_components/GeneralInventory";
 
-const ALL = ALL_CONDITIONS;
+type InventoryTab = "aeronautic" | "general";
 
-const formatCount = (value: number) => value.toLocaleString("es-VE");
+const PLACEHOLDERS: Record<InventoryTab, string> = {
+  aeronautic:
+    "Búsqueda Aeronáutica - Nro. de Parte (Ej: 65-50587-4, TORNILLO, ALT-123...)",
+  general: "Búsqueda General - Buscar por Descripcion",
+};
 
+/**
+ * Consulta de inventario para quien no lo opera. Los roles aeronáuticos ven los
+ * dos inventarios en tabs; el resto solo el de ferretería, sin tabs.
+ */
 const InventarioArticulosPage = () => {
-  const [activeMainTab, setActiveMainTab] = useState("aeronautic");
+  const { user, loading } = useAuth();
+  const [tab, setTab] = useState<InventoryTab>("aeronautic");
   const [searchAcrossOpen, setSearchAcrossOpen] = useState(false);
-  // El número de parte se conserva al cerrar para que el diálogo no se vacíe
-  // durante su animación de salida.
-  const [units, setUnits] = useState({ open: false, partNumber: "" });
-
-  const [activeCategory, setActiveCategory] =
-    useState<InventoryCategory>("all");
-  const [condition, setCondition] = useState<string>(ALL);
-  const [consumableFilter, setConsumableFilter] = useState<"all" | "QUIMICOS">(
-    "all",
-  );
-
   const [search, setSearch] = useState("");
-  const debouncedSearch = useDebounce(search.trim(), 400);
+  const debouncedSearch = useDebounce(search.trim(), 400) || undefined;
 
-  // Todos, componentes y partes llegan resumidos por número de parte desde el
-  // servidor; la condición y la mercancía peligrosa también se filtran allí,
-  // porque en el navegador solo está la página actual.
-  const aeronauticalFilters = {
-    category: activeCategory,
-    search: debouncedSearch || undefined,
-    condition:
-      (activeCategory === "COMPONENT" || activeCategory === "PART") &&
-      condition !== ALL
-        ? condition
-        : undefined,
-    is_hazardous:
-      activeCategory === "CONSUMABLE" && consumableFilter === "QUIMICOS",
-  };
+  if (loading) return <LoadingPage />;
 
-  const aeronautical = useCompanyInventoryArticles(aeronauticalFilters);
+  const userRoles = Array.isArray(user?.roles)
+    ? user.roles.map((role) => role.name)
+    : [];
+  const canSeeAeronautical = hasAnyRole(userRoles, AERONAUTICAL_INVENTORY_ROLES);
 
-  const general = useCompanyInventoryGeneralArticles(
-    debouncedSearch || undefined,
-    activeMainTab === "general",
-  );
-
-  const dynamicPlaceholder = useMemo(() => {
-    if (activeMainTab === "aeronautic") {
-      return "Búsqueda Aeronáutica - Nro. de Parte (Ej: 65-50587-4, TORNILLO, ALT-123...)";
-    }
-    return "Búsqueda General - Buscar por Descripcion";
-  }, [activeMainTab]);
-
-  const handleCategoryChange = (value: InventoryCategory) => {
-    setActiveCategory(value);
-    setCondition(ALL);
-    setConsumableFilter("all");
-  };
-
-  const aeronauticalColumns = useMemo(
-    () => getColumnsByCategory(activeCategory),
-    [activeCategory],
-  );
-
-  const aeronauticalUnit =
-    activeCategory === "CONSUMABLE" || activeCategory === "TOOL"
-      ? "artículo(s)"
-      : "nro. de parte";
+  const activeTab: InventoryTab = canSeeAeronautical ? tab : "general";
 
   return (
-    <ContentLayout title="Inventario General">
+    <ContentLayout title="Inventario">
       <div className="flex flex-col gap-y-4">
-        {/* Breadcrumbs */}
         <PageHeader className="mb-2" />
 
-        {/* Header */}
-        <div className="text-center space-y-2">
-          <h1 className="text-4xl font-bold">Inventario General</h1>
-          <p className="text-sm text-muted-foreground italic">
-            Visualiza todos los artículos organizados por tipo y sección
+        <div className="space-y-2 text-center">
+          <h1 className="text-4xl font-bold">Inventario</h1>
+          <p className="text-sm italic text-muted-foreground">
+            {canSeeAeronautical
+              ? "Visualiza todos los artículos organizados por tipo y sección"
+              : "Consulta de artículos generales / ferretería"}
           </p>
         </div>
 
-        {/* Búsqueda */}
         <div className="mx-auto flex w-full max-w-xl items-center gap-2">
           <div className="relative flex-1">
             <Input
-              placeholder={dynamicPlaceholder}
+              placeholder={PLACEHOLDERS[activeTab]}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pr-8 h-11"
+              className="h-11 pr-8"
             />
             {search && (
               <Button
                 variant="ghost"
                 size="sm"
-                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
+                className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 p-0"
                 onClick={() => setSearch("")}
               >
                 <X className="h-4 w-4" />
@@ -129,11 +81,10 @@ const InventarioArticulosPage = () => {
           </div>
 
           {/* El buscador de arriba filtra ESTA sede; este consulta las demás
-              sin cambiar la estación en la que se trabaja.
-              Solo en aeronáutico: la consulta es por número de parte y un
-              artículo general no tiene, así que ahí no habría nada que
-              preguntar. */}
-          {activeMainTab === "aeronautic" && (
+              sin cambiar la estación en la que se trabaja. Solo aeronáutico:
+              la consulta es por número de parte y un artículo general no
+              tiene. */}
+          {activeTab === "aeronautic" && (
             <Button
               type="button"
               variant="outline"
@@ -146,136 +97,52 @@ const InventarioArticulosPage = () => {
           )}
         </div>
 
-        {/* Tabs principales */}
-        <Tabs
-          value={activeMainTab}
-          onValueChange={setActiveMainTab}
-          className="w-full"
-        >
-          <TabsList className="w-full">
-            <TabsTrigger value="aeronautic">Aeronáutico</TabsTrigger>
-            <TabsTrigger value="general">General / Ferretería</TabsTrigger>
-          </TabsList>
+        {canSeeAeronautical ? (
+          // forceMount: cada inventario conserva su categoría y filtros al
+          // cambiar de tab; el que no está a la vista no consulta.
+          <Tabs
+            value={tab}
+            onValueChange={(value) => setTab(value as InventoryTab)}
+            className="w-full"
+          >
+            <TabsList className="w-full">
+              <TabsTrigger value="aeronautic">Aeronáutico</TabsTrigger>
+              <TabsTrigger value="general">General / Ferretería</TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="aeronautic" className="space-y-6">
-            <Tabs
-              value={activeCategory}
-              onValueChange={(v) =>
-                handleCategoryChange(v as InventoryCategory)
-              }
+            <TabsContent
+              value="aeronautic"
+              forceMount
+              className="data-[state=inactive]:hidden"
             >
-              <TabsList className="flex justify-center mb-4 space-x-3">
-                <TabsTrigger className="flex gap-2" value="all">
-                  <Package2 className="size-5" /> Todos
-                </TabsTrigger>
-                <TabsTrigger className="flex gap-2" value="COMPONENT">
-                  <Package2 className="size-5" /> Componentes
-                </TabsTrigger>
-                <TabsTrigger className="flex gap-2" value="PART">
-                  <Puzzle className="size-5" /> Partes
-                </TabsTrigger>
-                <TabsTrigger className="flex gap-2" value="CONSUMABLE">
-                  <PaintBucket className="size-5" /> Consumibles
-                </TabsTrigger>
-                <TabsTrigger className="flex gap-2" value="TOOL">
-                  <Drill className="size-5" /> Herramientas
-                </TabsTrigger>
-              </TabsList>
-
-              {(activeCategory === "COMPONENT" ||
-                activeCategory === "PART") && (
-                <div className="flex justify-center mb-4">
-                  <ConditionTabs
-                    value={condition}
-                    onValueChange={setCondition}
-                  />
-                </div>
-              )}
-
-              {activeCategory === "CONSUMABLE" && (
-                <div className="flex justify-center mb-4">
-                  <Tabs
-                    value={consumableFilter}
-                    onValueChange={(v) =>
-                      setConsumableFilter(v as typeof consumableFilter)
-                    }
-                  >
-                    <TabsList>
-                      <TabsTrigger value="all">Todos</TabsTrigger>
-                      <TabsTrigger value="QUIMICOS">
-                        Mercancia Peligrosa
-                      </TabsTrigger>
-                    </TabsList>
-                  </Tabs>
-                </div>
-              )}
-
-              {aeronautical.isLoading ? (
-                <div className="flex justify-center py-20">
-                  <Loader2 className="size-12 animate-spin text-primary" />
-                </div>
-              ) : (
-                <DataTable
-                  columns={aeronauticalColumns}
-                  data={aeronautical.rows}
-                  isFetching={aeronautical.isFetching}
-                  onRowClick={
-                    aeronautical.groupedBy === "part_number"
-                      ? (row: CompanyInventoryArticle) =>
-                          setUnits({ open: true, partNumber: row.part_number })
-                      : undefined
-                  }
-                  rowClassName={
-                    aeronautical.groupedBy === "part_number"
-                      ? () => "cursor-pointer hover:bg-muted/30"
-                      : undefined
-                  }
-                  pagination={{
-                    ...aeronautical.pagination,
-                    summary:
-                      aeronautical.total !== undefined
-                        ? `${formatCount(aeronautical.total)} ${aeronauticalUnit}`
-                        : undefined,
-                  }}
-                />
-              )}
-            </Tabs>
-          </TabsContent>
-
-          <TabsContent value="general">
-            {general.isLoading ? (
-              <div className="flex justify-center py-20">
-                <Loader2 className="size-12 animate-spin text-primary" />
-              </div>
-            ) : (
-              <DataTable
-                columns={generalConsultaColumns}
-                data={general.rows}
-                isFetching={general.isFetching}
-                pagination={{
-                  ...general.pagination,
-                  summary:
-                    general.total !== undefined
-                      ? `${formatCount(general.total)} artículo(s)`
-                      : undefined,
-                }}
+              <AeronauticalInventory
+                search={debouncedSearch}
+                active={tab === "aeronautic"}
               />
-            )}
-          </TabsContent>
-        </Tabs>
+            </TabsContent>
 
-        <PartNumberUnitsDialog
-          open={units.open}
-          onOpenChange={(open) => setUnits((prev) => ({ ...prev, open }))}
-          partNumber={units.partNumber}
-          filters={aeronauticalFilters}
-        />
+            <TabsContent
+              value="general"
+              forceMount
+              className="data-[state=inactive]:hidden"
+            >
+              <GeneralInventory
+                search={debouncedSearch}
+                active={tab === "general"}
+              />
+            </TabsContent>
+          </Tabs>
+        ) : (
+          <GeneralInventory search={debouncedSearch} active />
+        )}
 
-        <SearchAcrossLocationsDialog
-          open={searchAcrossOpen}
-          onOpenChange={setSearchAcrossOpen}
-          variant="general"
-        />
+        {canSeeAeronautical && (
+          <SearchAcrossLocationsDialog
+            open={searchAcrossOpen}
+            onOpenChange={setSearchAcrossOpen}
+            variant="general"
+          />
+        )}
       </div>
     </ContentLayout>
   );

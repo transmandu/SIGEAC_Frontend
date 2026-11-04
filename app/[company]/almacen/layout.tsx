@@ -1,19 +1,15 @@
+import InventoryRouteGuard from "@/components/layout/InventoryRouteGuard";
 import ProtectedLayout from "@/components/layout/ProtectedLayout";
+import { WAREHOUSE_ROLES } from "@/lib/inventory-access";
 import React from "react";
 
 const WarehouseLayout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <ProtectedLayout
-      roles={[
-        "ANALISTA_ALMACEN",
-        "JEFE_ALMACEN",
-        "JEFE_MANTENIMIENTO",
-        "SUPERUSER",
-        "REGULAR",
-      ]}
-    >
-      {children}
-    </ProtectedLayout>
+    <InventoryRouteGuard>
+      <ProtectedLayout roles={[...WAREHOUSE_ROLES]}>
+        {children}
+      </ProtectedLayout>
+    </InventoryRouteGuard>
   );
 };
 
