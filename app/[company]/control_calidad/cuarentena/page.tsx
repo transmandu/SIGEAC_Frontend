@@ -16,7 +16,10 @@ import {
 import { QueuePanel } from "@/app/[company]/control_calidad/_components/QueuePanel";
 import { useQuarantineLegalDays } from "@/hooks/general/useCompanySettings";
 import { useGetQuarantineArticles } from "@/hooks/mantenimiento/control_calidad/useGetQuarantineArticles";
-import { formatQuarantineDate, quarantineRisk } from "@/lib/warehouse/quarantine";
+import {
+  formatQuarantineDate,
+  quarantineRisk,
+} from "@/lib/warehouse/quarantine";
 import type {
   QuarantineRecord,
   QuarantineStatusFilter,
@@ -44,14 +47,20 @@ const QuarantineControlPage = () => {
     const list = allRecords ?? [];
 
     const open = list.filter((record) => record.status === "OPEN");
-    const pending = list.filter((record) => record.status === "PENDING_REINSPECTION");
+    const pending = list.filter(
+      (record) => record.status === "PENDING_REINSPECTION",
+    );
 
     // El más próximo a vencer entre los que siguen esperando corrección: es el
     // que puede obligar a reclamarle a compras.
     const closestToExpire = [...open]
       .map((record) => ({
         record,
-        risk: quarantineRisk(record.quarantine_entry_date, legalDays, record.days_in_quarantine),
+        risk: quarantineRisk(
+          record.quarantine_entry_date,
+          legalDays,
+          record.days_in_quarantine,
+        ),
       }))
       .filter((entry) => entry.risk.remaining !== null)
       .sort((a, b) => (a.risk.remaining ?? 0) - (b.risk.remaining ?? 0))[0];
@@ -81,12 +90,14 @@ const QuarantineControlPage = () => {
 
               <div className="space-y-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="text-2xl font-bold md:text-3xl">Control de Cuarentena</h1>
+                  <h1 className="text-2xl font-bold md:text-3xl">
+                    Control de Cuarentena
+                  </h1>
                 </div>
 
                 <p className="text-sm text-muted-foreground">
-                  Artículos retenidos por control de calidad. La re-inspección se habilita
-                  cuando Compras corrige el hallazgo y lo declara.
+                  Artículos retenidos por control de calidad. La re-inspección
+                  se habilita cuando Compras corrige el hallazgo y lo declara.
                 </p>
               </div>
             </div>
@@ -94,14 +105,20 @@ const QuarantineControlPage = () => {
             <div className="w-full md:w-64">
               <Select
                 value={status}
-                onValueChange={(value) => setStatus(value as QuarantineStatusFilter)}
+                onValueChange={(value) =>
+                  setStatus(value as QuarantineStatusFilter)
+                }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Estado" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="UNRESOLVED">En el ciclo (sin resolver)</SelectItem>
-                  <SelectItem value="PENDING_REINSPECTION">Listos para re-inspección</SelectItem>
+                  <SelectItem value="UNRESOLVED">
+                    En el ciclo (sin resolver)
+                  </SelectItem>
+                  <SelectItem value="PENDING_REINSPECTION">
+                    Listos para re-inspección
+                  </SelectItem>
                   <SelectItem value="OPEN">Esperando a compras</SelectItem>
                   <SelectItem value="RESOLVED">Resueltos</SelectItem>
                   <SelectItem value="ALL">Todos</SelectItem>
@@ -159,11 +176,13 @@ const QuarantineControlPage = () => {
                     <div className="space-y-1">
                       <p className="text-sm">
                         <span className="font-semibold">
-                          {metrics.closestToExpire.record.article?.part_number ?? "Sin parte"}
+                          {metrics.closestToExpire.record.article
+                            ?.part_number ?? "Sin parte"}
                         </span>
                         <span className="text-muted-foreground">
                           {" · "}
-                          {metrics.closestToExpire.record.article?.batch?.name ?? "Sin descripción"}
+                          {metrics.closestToExpire.record.article?.batch
+                            ?.name ?? "Sin descripción"}
                         </span>
                       </p>
 
@@ -190,7 +209,9 @@ const QuarantineControlPage = () => {
                         <>
                           Vencido por{" "}
                           <span className="font-semibold tabular-nums">
-                            {Math.abs(metrics.closestToExpire.risk.remaining ?? 0)}
+                            {Math.abs(
+                              metrics.closestToExpire.risk.remaining ?? 0,
+                            )}
                           </span>{" "}
                           días
                         </>
@@ -208,7 +229,9 @@ const QuarantineControlPage = () => {
         <Card className="rounded-2xl">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between gap-3">
-              <CardTitle className="text-base">Artículos en el ciclo de cuarentena</CardTitle>
+              <CardTitle className="text-base">
+                Artículos en el ciclo de cuarentena
+              </CardTitle>
               <Badge variant="secondary" className="rounded-full">
                 {visibleCount}
               </Badge>

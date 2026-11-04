@@ -15,8 +15,12 @@ export interface IncomingChecklistResponse {
   updated_at?: string;
 }
 
-const fetchIncomingChecks = async (company?: string): Promise<IncomingChecklistResponse[]> => {
-  const { data } = await axiosInstance.get(`/${company}/incoming-inspection-checks`);
+const fetchIncomingChecks = async (
+  company?: string,
+): Promise<IncomingChecklistResponse[]> => {
+  const { data } = await axiosInstance.get(
+    `/${company}/incoming-inspection-checks`,
+  );
   return data;
 };
 

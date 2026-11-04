@@ -78,10 +78,7 @@ const IncomingControlPage = () => {
               isError={incomingQueue.isError}
               onRetry={() => incomingQueue.refetch()}
             >
-              <QueueDataTable
-                columns={columns}
-                data={incomingArticles}
-              />
+              <QueueDataTable columns={columns} data={incomingArticles} />
             </QueuePanel>
           </TabsContent>
 

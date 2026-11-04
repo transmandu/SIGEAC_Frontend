@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import React, { useEffect, useEffectEvent, useState } from "react"
+import React, { useEffect, useEffectEvent, useState } from "react";
 import {
   ColumnFiltersState,
   flexRender,
@@ -11,16 +11,23 @@ import {
 } from "@tanstack/react-table";
 import { appTableFeatures, type AppColumnDef } from "@/lib/table";
 
-import { DataTablePagination } from "@/components/tables/DataTablePagination"
-import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { DataTablePagination } from "@/components/tables/DataTablePagination";
+import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 interface QueueDataTableProps<TData extends RowData> {
-  columns: AppColumnDef<TData>[]
-  data: TData[]
-  onSelectionChange?: (rows: TData[]) => void
-  toolbar?: React.ReactNode
-  getRowId?: (row: TData) => string
+  columns: AppColumnDef<TData>[];
+  data: TData[];
+  onSelectionChange?: (rows: TData[]) => void;
+  toolbar?: React.ReactNode;
+  getRowId?: (row: TData) => string;
 }
 
 /**
@@ -34,9 +41,9 @@ export function QueueDataTable<TData extends RowData>({
   toolbar,
   getRowId,
 }: QueueDataTableProps<TData>) {
-  const [sorting, setSorting] = useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-  const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
 
   const table = useTable({
     features: appTableFeatures,
@@ -48,7 +55,7 @@ export function QueueDataTable<TData extends RowData>({
     onRowSelectionChange: setRowSelection,
     state: { sorting, columnFilters, rowSelection },
     enableRowSelection: true,
-  })
+  });
 
   // `useTable` devuelve un objeto nuevo en cada render, así que `table` no sirve
   // como dependencia: el efecto se disparaba en cada render y, como el padre
@@ -57,18 +64,22 @@ export function QueueDataTable<TData extends RowData>({
   // desde el menú no se montaba hasta que esta tabla desaparecía). La selección
   // solo cambia cuando cambia `rowSelection` o los datos.
   const notifySelection = useEffectEvent(() => {
-    onSelectionChange?.(table.getSelectedRowModel().rows.map((r) => r.original))
-  })
+    onSelectionChange?.(
+      table.getSelectedRowModel().rows.map((r) => r.original),
+    );
+  });
 
   useEffect(() => {
-    notifySelection()
-  }, [rowSelection, data])
+    notifySelection();
+  }, [rowSelection, data]);
 
   return (
     <div>
       <div className="flex items-center justify-between py-4 gap-3">
         <DataTableViewOptions table={table} />
-        {toolbar ? <div className="flex items-center gap-2">{toolbar}</div> : null}
+        {toolbar ? (
+          <div className="flex items-center gap-2">{toolbar}</div>
+        ) : null}
       </div>
 
       <div className="rounded-md border mb-4">
@@ -78,7 +89,12 @@ export function QueueDataTable<TData extends RowData>({
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
                   <TableHead key={header.id}>
-                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
                   </TableHead>
                 ))}
               </TableRow>
@@ -88,17 +104,26 @@ export function QueueDataTable<TData extends RowData>({
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center text-muted-foreground">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center text-muted-foreground"
+                >
                   No se ha encontrado ningún resultado...
                 </TableCell>
               </TableRow>
@@ -109,5 +134,5 @@ export function QueueDataTable<TData extends RowData>({
 
       <DataTablePagination table={table} />
     </div>
-  )
+  );
 }

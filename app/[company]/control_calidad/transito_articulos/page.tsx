@@ -69,10 +69,7 @@ const TransitArticlesPage = () => {
               isError={transitQueue.isError}
               onRetry={() => transitQueue.refetch()}
             >
-              <QueueDataTable
-                columns={columns}
-                data={transit}
-              />
+              <QueueDataTable columns={columns} data={transit} />
             </QueuePanel>
           </TabsContent>
 
@@ -82,10 +79,7 @@ const TransitArticlesPage = () => {
               isError={receptionQueue.isError}
               onRetry={() => receptionQueue.refetch()}
             >
-              <QueueDataTable
-                columns={columns}
-                data={reception}
-              />
+              <QueueDataTable columns={columns} data={reception} />
             </QueuePanel>
           </TabsContent>
         </Tabs>

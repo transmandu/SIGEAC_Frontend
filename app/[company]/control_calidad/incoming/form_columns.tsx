@@ -41,7 +41,7 @@ export const form_columns: AppColumnDef<IncomingArticle>[] = [
     meta: { title: "Nro. Orden" },
     cell: ({ row }) => (
       <p className="text-center">{row.original.order_number ?? "-"}</p>
-    )
+    ),
   },
   {
     accessorKey: "batch.name",

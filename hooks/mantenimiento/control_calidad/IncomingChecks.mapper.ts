@@ -1,11 +1,14 @@
-import type { ChecklistGroup, ChecklistItem } from "@/app/[company]/control_calidad/incoming/IncomingTypes";
+import type {
+  ChecklistGroup,
+  ChecklistItem,
+} from "@/app/[company]/control_calidad/incoming/IncomingTypes";
 import { FileText, LucideIcon, Package } from "lucide-react";
 import type { IncomingChecklistResponse } from "./useGetIncomingInspectionChecks";
 
 const GROUP_ICON: Record<string, LucideIcon> = {
   "Coincidencia física": Package,
-  "Documentación": FileText,
-  "Otros": Package,
+  Documentación: FileText,
+  Otros: Package,
 };
 
 function groupFromCode(code: string) {
