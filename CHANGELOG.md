@@ -1,3 +1,7 @@
+## v4.90.0 — 2026-11-04
+
+- feat: add serial and lot number display in ArticleRow component (#382)
+
 ## v4.89.0 — 2026-11-04
 
 - feat: add incoming format correction draft functionality and checklis… (#380)
