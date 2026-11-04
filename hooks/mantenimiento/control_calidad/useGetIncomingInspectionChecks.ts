@@ -20,7 +20,7 @@ const fetchIncomingChecks = async (company?: string): Promise<IncomingChecklistR
   return data;
 };
 
-export const useGetIncomingChecks = (hasDocumentation: boolean) => {
+export const useGetIncomingChecks = () => {
   const { selectedCompany } = useCompanyStore();
 
   return useQuery({
@@ -28,6 +28,6 @@ export const useGetIncomingChecks = (hasDocumentation: boolean) => {
     queryFn: () => fetchIncomingChecks(selectedCompany?.slug),
     enabled: !!selectedCompany?.slug,
     staleTime: 1000 * 60 * 5,
-    select: (checks) => checksToGroups(checks, hasDocumentation) satisfies ChecklistGroup[],
+    select: checksToGroups,
   });
 };

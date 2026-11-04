@@ -13,23 +13,30 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import LoadingPage from "@/components/misc/LoadingPage";
+import { QueuePanel } from "@/app/[company]/control_calidad/_components/QueuePanel";
 import { useQuarantineLegalDays } from "@/hooks/general/useCompanySettings";
 import { useGetQuarantineArticles } from "@/hooks/mantenimiento/control_calidad/useGetQuarantineArticles";
 import { formatQuarantineDate, quarantineRisk } from "@/lib/warehouse/quarantine";
-import type { QuarantineStatusFilter } from "@/types/quarantine";
+import type {
+  QuarantineRecord,
+  QuarantineStatusFilter,
+} from "@/types/quarantine";
 import { PackageSearch, ShieldAlert, ShieldCheck } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { getColumns } from "./columns";
 import { DataTable } from "./data-table";
 
+// Referencia fija mientras no hay datos: ver incoming/page.tsx.
+const NO_RECORDS: QuarantineRecord[] = [];
+
 const QuarantineControlPage = () => {
   const [status, setStatus] = useState<QuarantineStatusFilter>("UNRESOLVED");
 
   const legalDays = useQuarantineLegalDays();
 
-  const { data: records, isLoading } = useGetQuarantineArticles(status);
+  const recordsQuery = useGetQuarantineArticles(status);
+  const records = recordsQuery.data;
   // Las métricas describen todo el ciclo, no solo lo que el filtro deja ver.
   const { data: allRecords } = useGetQuarantineArticles("ALL");
 
@@ -57,8 +64,6 @@ const QuarantineControlPage = () => {
   }, [allRecords, legalDays]);
 
   const columns = useMemo(() => getColumns(legalDays), [legalDays]);
-
-  if (isLoading) return <LoadingPage />;
 
   const visibleCount = records?.length ?? 0;
 
@@ -214,7 +219,13 @@ const QuarantineControlPage = () => {
           </CardHeader>
 
           <CardContent>
-            <DataTable columns={columns} data={records ?? []} />
+            <QueuePanel
+              isLoading={recordsQuery.isLoading}
+              isError={recordsQuery.isError}
+              onRetry={() => recordsQuery.refetch()}
+            >
+              <DataTable columns={columns} data={records ?? NO_RECORDS} />
+            </QueuePanel>
           </CardContent>
         </Card>
       </div>

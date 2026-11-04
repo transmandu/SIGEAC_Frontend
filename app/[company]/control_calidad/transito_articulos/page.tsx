@@ -2,14 +2,17 @@
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
-import LoadingPage from "@/components/misc/LoadingPage";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTransitQueue } from "@/hooks/mantenimiento/almacen/inventario/useArticleQueues";
 import type { TransitArticle } from "@/types/purchase/in-transit";
 
-import { DataTable } from "@/app/[company]/control_calidad/incoming/data-table";
+import { QueueDataTable } from "@/app/[company]/control_calidad/_components/QueueDataTable";
+import { QueuePanel } from "@/app/[company]/control_calidad/_components/QueuePanel";
 import { columns } from "./columns";
+
+// Referencia fija para las colas aún sin datos (ver incoming/page.tsx).
+const NO_ARTICLES: TransitArticle[] = [];
 
 /**
  * Lo que viene en camino y lo que ya llegó a recepción, para que Control de
@@ -17,20 +20,18 @@ import { columns } from "./columns";
  * consulta: las acciones (pasar a incoming, avisar, editar) son de almacén.
  */
 const TransitArticlesPage = () => {
-  const { data: transitArticles, isLoading: isTransitLoading } =
-    useTransitQueue("TRANSIT");
-  const { data: receptionArticles, isLoading: isReceptionLoading } =
-    useTransitQueue("RECEPTION");
+  const transitQueue = useTransitQueue("TRANSIT");
+  const receptionQueue = useTransitQueue("RECEPTION");
 
-  const transit = (transitArticles as TransitArticle[] | undefined) ?? [];
-  const reception = (receptionArticles as TransitArticle[] | undefined) ?? [];
+  const transit =
+    (transitQueue.data as TransitArticle[] | undefined) ?? NO_ARTICLES;
+  const reception =
+    (receptionQueue.data as TransitArticle[] | undefined) ?? NO_ARTICLES;
 
   // Los retenidos son lo que más interesa a calidad: se destacan en la pestaña.
   const heldCount = reception.filter(
     (article) => (article.incoming_readiness?.reasons ?? []).length > 0,
   ).length;
-
-  if (isTransitLoading) return <LoadingPage />;
 
   return (
     <ContentLayout title="Tránsito de Artículos">
@@ -63,23 +64,29 @@ const TransitArticlesPage = () => {
           </TabsList>
 
           <TabsContent value="transit">
-            <DataTable
-              groupBy="order_number"
-              columns={columns}
-              data={transit}
-            />
+            <QueuePanel
+              isLoading={transitQueue.isLoading}
+              isError={transitQueue.isError}
+              onRetry={() => transitQueue.refetch()}
+            >
+              <QueueDataTable
+                columns={columns}
+                data={transit}
+              />
+            </QueuePanel>
           </TabsContent>
 
           <TabsContent value="reception">
-            {isReceptionLoading ? (
-              <LoadingPage />
-            ) : (
-              <DataTable
-                groupBy="order_number"
+            <QueuePanel
+              isLoading={receptionQueue.isLoading}
+              isError={receptionQueue.isError}
+              onRetry={() => receptionQueue.refetch()}
+            >
+              <QueueDataTable
                 columns={columns}
                 data={reception}
               />
-            )}
+            </QueuePanel>
           </TabsContent>
         </Tabs>
       </div>

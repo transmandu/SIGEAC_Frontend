@@ -19,7 +19,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { useRouter } from "next/navigation"
 import { useState } from "react"
 
 interface DataTableProps<TData extends RowData> {
@@ -36,13 +35,6 @@ export function DataTable<TData extends RowData>({
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(
     []
   )
-
-  const locations = [
-    {
-      label: 'Puerto Ordaz',
-      value: 'pzo'
-    }
-  ]
 
   const table = useTable({
     features: appTableFeatures,

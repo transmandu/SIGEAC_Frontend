@@ -21,7 +21,6 @@ function keyFromCheck(c: IncomingChecklistResponse) {
 
 export function checksToGroups(
   checks: IncomingChecklistResponse[],
-  hasDocumentation: boolean
 ): ChecklistGroup[] {
   const active = checks.filter((c) => c.active);
 
@@ -38,8 +37,11 @@ export function checksToGroups(
       key: keyFromCheck(c),
       label: c.description,
       hint: c.regulation ?? undefined,
-      // docs solo requeridos si el artículo declara que aplica documentación
-      requiredForAccept: isDocGroup ? (hasDocumentation ? c.is_critical : false) : c.is_critical,
+      critical: c.is_critical,
+      // Solo los de coincidencia física no admiten N/A. Los de documentación
+      // sí, aunque el artículo declare documentación: un NO en uno crítico
+      // sigue rechazándolo en el servidor (ver `critical`).
+      requiredForAccept: isDocGroup ? false : c.is_critical,
     };
 
     const arr = map.get(title) ?? [];

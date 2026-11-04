@@ -6,9 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { columns } from "./columns";
-import { DataTable } from "./data-table";
-
-import LoadingPage from "@/components/misc/LoadingPage";
+import { QueueDataTable } from "@/app/[company]/control_calidad/_components/QueueDataTable";
+import { QueuePanel } from "@/app/[company]/control_calidad/_components/QueuePanel";
 import { useInspectionQueue } from "@/hooks/mantenimiento/almacen/inventario/useArticleQueues";
 import { useState } from "react";
 import { IncomingArticle } from "./IncomingTypes";
@@ -17,28 +16,27 @@ import { IssuedFormatsDialog } from "./_components/IssuedFormatsDialog";
 import { form_columns } from "./form_columns";
 import { PageHeader } from "@/components/layout/PageHeader";
 
+// Referencia fija para las colas aún sin datos: un `[]` nuevo en cada render
+// cambia la identidad de `data` y re-dispara lo que depende de ella.
+const NO_ARTICLES: IncomingArticle[] = [];
+
 const IncomingControlPage = () => {
   const [selectedForForm, setSelectedForForm] = useState<IncomingArticle[]>([]);
 
-  const { data: incomingArticles, isLoading: isIncomingLoading } =
-    useInspectionQueue("INCOMING");
-
-  const { data: waitingForFormArticles, isLoading: isWaitingForFormLoading } =
-    useInspectionQueue("WAITING_FOR_FORMAT");
-
+  const incomingQueue = useInspectionQueue("INCOMING");
+  const waitingForFormQueue = useInspectionQueue("WAITING_FOR_FORMAT");
   // Corregidos por compras y a la espera de que el inspector los re-inspeccione:
   // es trabajo pendiente de calidad, así que vive en su propio tablero y no solo
   // en la vista de cuarentena.
-  const {
-    data: pendingReinspectionArticles,
-    isLoading: isReinspectionLoading,
-  } = useInspectionQueue("PENDING_REINSPECTION");
+  const reinspectionQueue = useInspectionQueue("PENDING_REINSPECTION");
 
-  const waitingForFormCount = waitingForFormArticles?.length ?? 0;
-  const incomingCount = incomingArticles?.length ?? 0;
-  const reinspectionCount = pendingReinspectionArticles?.length ?? 0;
+  const incomingArticles = incomingQueue.data ?? NO_ARTICLES;
+  const waitingForFormArticles = waitingForFormQueue.data ?? NO_ARTICLES;
+  const pendingReinspectionArticles = reinspectionQueue.data ?? NO_ARTICLES;
 
-  if (isIncomingLoading) return <LoadingPage />;
+  const incomingCount = incomingArticles.length;
+  const waitingForFormCount = waitingForFormArticles.length;
+  const reinspectionCount = pendingReinspectionArticles.length;
 
   return (
     <ContentLayout title="Control de Incoming">
@@ -75,38 +73,41 @@ const IncomingControlPage = () => {
           </TabsList>
 
           <TabsContent value="incoming">
-            {isIncomingLoading ? (
-              <LoadingPage />
-            ) : (
-              <DataTable
-                groupBy="order_number"
+            <QueuePanel
+              isLoading={incomingQueue.isLoading}
+              isError={incomingQueue.isError}
+              onRetry={() => incomingQueue.refetch()}
+            >
+              <QueueDataTable
                 columns={columns}
-                data={incomingArticles ?? []}
+                data={incomingArticles}
               />
-            )}
+            </QueuePanel>
           </TabsContent>
 
           <TabsContent value="reinspection">
-            {isReinspectionLoading ? (
-              <LoadingPage />
-            ) : (
-              <DataTable
-                groupBy="order_number"
+            <QueuePanel
+              isLoading={reinspectionQueue.isLoading}
+              isError={reinspectionQueue.isError}
+              onRetry={() => reinspectionQueue.refetch()}
+            >
+              <QueueDataTable
                 columns={columns}
-                data={pendingReinspectionArticles ?? []}
+                data={pendingReinspectionArticles}
               />
-            )}
+            </QueuePanel>
           </TabsContent>
 
           <TabsContent value="waitingForm">
-            {isWaitingForFormLoading ? (
-              <LoadingPage />
-            ) : (
-              <DataTable
-                groupBy="order_number"
+            <QueuePanel
+              isLoading={waitingForFormQueue.isLoading}
+              isError={waitingForFormQueue.isError}
+              onRetry={() => waitingForFormQueue.refetch()}
+            >
+              <QueueDataTable
                 columns={form_columns}
-                data={waitingForFormArticles ?? []}
-                getRowId={(row) => String((row as any).id)}
+                data={waitingForFormArticles}
+                getRowId={(row) => String(row.id)}
                 onSelectionChange={setSelectedForForm}
                 toolbar={
                   <div className="flex items-center gap-2">
@@ -115,7 +116,7 @@ const IncomingControlPage = () => {
                   </div>
                 }
               />
-            )}
+            </QueuePanel>
           </TabsContent>
         </Tabs>
       </div>

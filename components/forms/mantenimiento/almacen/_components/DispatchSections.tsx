@@ -55,7 +55,7 @@ const departmentOption = (d: { id: number; name: string }) => ({
   label: d.name,
 });
 
-const DISPATCH_TYPES = [
+export const DISPATCH_TYPES = [
   { value: "aircraft" as const, label: "Aeronave", icon: Plane },
   { value: "department" as const, label: "Departamento", icon: Building2 },
   { value: "other_company" as const, label: "Otra empresa", icon: UserCheck },
@@ -63,6 +63,19 @@ const DISPATCH_TYPES = [
   // esperando que allá acusen recibo.
   { value: "location" as const, label: "Otra sede", icon: Truck },
   { value: "third_party" as const, label: "Terceros", icon: Users },
+];
+
+export type DispatchTypeValue = (typeof DISPATCH_TYPES)[number]["value"];
+
+/**
+ * Destinos de un componente o una parte: se instalan en una aeronave, viajan a
+ * otra sede o salen a un tercero. Departamento y otra empresa son para lo que
+ * se consume o se presta.
+ */
+export const WAREHOUSE_ASSET_DESTINATIONS: readonly DispatchTypeValue[] = [
+  "aircraft",
+  "location",
+  "third_party",
 ];
 
 // Despachar a un departamento o a otra empresa no pasa por una orden de trabajo.
@@ -216,7 +229,14 @@ export function DispatchResponsibleSection({
  * Tipo de despacho, orden de trabajo, fecha y destino (aeronave, departamento,
  * otra empresa, otra sede o tercero): lo común a todas las salidas.
  */
-export function DispatchRequestSection({ ctx }: { ctx: DispatchFormContext }) {
+export function DispatchRequestSection({
+  ctx,
+  types = DISPATCH_TYPES.map((type) => type.value),
+}: {
+  ctx: DispatchFormContext;
+  /** Destinos que ofrece la salida; cada categoría admite los suyos. */
+  types?: readonly DispatchTypeValue[];
+}) {
   const {
     form,
     openThirdParty,
@@ -264,7 +284,9 @@ export function DispatchRequestSection({ ctx }: { ctx: DispatchFormContext }) {
                 <div className="flex items-center justify-center gap-2">
                   <FormControl>
                     <div className="inline-flex max-w-full flex-wrap justify-center rounded-lg border bg-muted/30 p-1 gap-1">
-                      {DISPATCH_TYPES.map(({ value, label, icon: Icon }) => (
+                      {DISPATCH_TYPES.filter(({ value }) =>
+                        types.includes(value),
+                      ).map(({ value, label, icon: Icon }) => (
                         <button
                           key={value}
                           type="button"

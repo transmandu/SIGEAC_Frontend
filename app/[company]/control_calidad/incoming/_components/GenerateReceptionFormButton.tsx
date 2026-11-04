@@ -215,6 +215,7 @@ export function GenerateReceptionFormButton({
                     mode="single"
                     selected={inspectionDate}
                     onSelect={(d) => d && setInspectionDate(d)}
+                    disabled={{ after: new Date() }}
                     locale={es}
                   />
                 </PopoverContent>
