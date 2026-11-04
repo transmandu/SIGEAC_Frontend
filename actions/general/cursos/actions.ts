@@ -8,7 +8,6 @@ interface CourseData {
   company: string;
   location_id: string;
   course: {
-    name: string;
     description: string;
     /** Fecha de calendario en formato "yyyy-MM-dd". */
     start_date: string;
@@ -27,7 +26,6 @@ interface updateCourseData {
   company: string;
   id: string;
   data: {
-    name: string;
     description: string;
     instructor?: string;
     course_type: string;
@@ -161,7 +159,6 @@ export const useUpdateCourse = () => {
 
       const formData = new FormData();
       formData.append("_method", "PATCH");
-      formData.append("name", data.name);
       formData.append("description", data.description);
       formData.append("course_type", data.course_type);
       formData.append("start_date", data.start_date);
@@ -208,7 +205,7 @@ export const useUpdateCourseCalendar = () => {
 
   const updateCourseMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: any }) => {
-      if (data.status === "CLOSED") {
+      if (data.status === "CERRADO") {
         throw new Error(
           "No se puede actualizar el calendario de un curso cerrado.",
         );

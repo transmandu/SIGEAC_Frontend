@@ -92,7 +92,7 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
 
   const realnow = startOfDay(new Date());
   const CourseDate = startOfDay(course.end_date);
-  const isClosed = course.status === "CLOSED";
+  const isClosed = course.status === "CERRADO";
 
   return (
     <>

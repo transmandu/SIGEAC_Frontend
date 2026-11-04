@@ -219,9 +219,9 @@ const ShowCourse = () => {
                     <Badge
                       variant="outline"
                       className={`font-medium border px-2.5 py-0.5 ${
-                        course.status === "CLOSED"
+                        course.status === "CERRADO"
                           ? "bg-green-100 text-green-700 border-green-200 dark:bg-green-950/40 dark:text-green-400 dark:border-green-800"
-                          : course.status === "OPEN"
+                          : course.status === "ABIERTO"
                             ? "bg-red-100 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-400 dark:border-red-800"
                             : "bg-muted text-muted-foreground border-border/60"
                       }`}

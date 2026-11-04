@@ -35,6 +35,11 @@ import {
 } from "@/components/ui/select";
 import FolderSelect from "@/components/library/FolderSelect";
 
+const COURSE_HOURS_BY_TYPE: Record<"RECURRENTE" | "INICIAL", number[]> = {
+  RECURRENTE: [40, 16, 8],
+  INICIAL: [20, 8, 4],
+};
+
 interface FormProps {
   onClose: (open: boolean) => void;
   initialData?: Course;
@@ -53,13 +58,13 @@ export function CreateCourseForm({
 
   const FormSchema = z
     .object({
-      name: z.string(),
       description: z.string(),
       course_type: z.string(),
       instructor: z.string().optional(),
-      hours: z.coerce.number().int().min(0, {
-        message: "Las horas deben ser 0 o un número entero positivo",
-      }),
+      hours: z.coerce
+        .number({ error: "Seleccione las horas del curso" })
+        .int()
+        .min(1, { message: "Seleccione las horas del curso" }),
       end_date: z
         .date()
         .refine((val) => !isNaN(val.getTime()), { message: "Fecha no válida" }),
@@ -78,6 +83,18 @@ export function CreateCourseForm({
         .optional(),
       library_folder_paths: z.array(z.string()).optional().default([]),
     })
+    .refine(
+      (data) =>
+        (
+          COURSE_HOURS_BY_TYPE[
+            data.course_type as keyof typeof COURSE_HOURS_BY_TYPE
+          ] ?? []
+        ).includes(data.hours),
+      {
+        message: "Seleccione una duración válida para el tipo de curso",
+        path: ["hours"],
+      },
+    )
     .refine((data) => data.end_date >= data.start_date, {
       message:
         "La fecha de fin debe ser igual o posterior a la fecha de inicio",
@@ -89,11 +106,10 @@ export function CreateCourseForm({
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      name: initialData?.name,
       course_type: initialData?.course_type || "",
       description: initialData?.description,
       instructor: initialData?.instructor,
-      hours: initialData?.hours ?? 0,
+      hours: initialData?.hours,
 
       // Son fechas de calendario: se leen sin convertir de zona. El antiguo
       // addDays(+1) compensaba la medianoche UTC al mostrarlas, pero dejaba la
@@ -124,6 +140,17 @@ export function CreateCourseForm({
     },
   });
 
+  const selectedCourseType = useWatch({
+    control: form.control,
+    name: "course_type",
+  });
+
+  const hourOptions = selectedCourseType
+    ? (COURSE_HOURS_BY_TYPE[
+        selectedCourseType as keyof typeof COURSE_HOURS_BY_TYPE
+      ] ?? [])
+    : [];
+
   const selectedDocument = useWatch({
     control: form.control,
     name: "document",
@@ -142,7 +169,6 @@ export function CreateCourseForm({
         id: initialData.id,
         company: selectedCompany!.slug,
         data: {
-          name: data.name,
           description: data.description,
           instructor: data.instructor,
           hours: data.hours,
@@ -162,7 +188,6 @@ export function CreateCourseForm({
           company: selectedCompany!.slug,
           location_id: selectedStation!,
           course: {
-            name: data.name,
             description: data.description,
             instructor: data.instructor,
             hours: data.hours,
@@ -194,27 +219,29 @@ export function CreateCourseForm({
           <div className="flex  justify-center items-center w-full gap-10">
             <FormField
               control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem className="w-full" data-tour="cursos-create-nombre">
-                  <FormLabel>Nombre del Curso</FormLabel>
-                  <FormControl>
-                    <Input placeholder="" {...field} />
-                  </FormControl>
-                  <FormMessage className="text-xs" />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
               name="course_type"
               render={({ field }) => (
                 <FormItem className="w-full" data-tour="cursos-create-tipo">
                   <FormLabel>Tipo de Curso</FormLabel>
                   <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    value={field.value || undefined}
+                    onValueChange={(value) => {
+                      field.onChange(value);
+
+                      // Al cambiar de tipo, una duración que ya no aplica se
+                      // limpia para que el usuario elija una de las nuevas.
+                      const currentHours = form.getValues("hours");
+                      const allowed =
+                        COURSE_HOURS_BY_TYPE[
+                          value as keyof typeof COURSE_HOURS_BY_TYPE
+                        ] ?? [];
+
+                      if (currentHours && !allowed.includes(currentHours)) {
+                        form.setValue("hours", undefined as unknown as number, {
+                          shouldValidate: true,
+                        });
+                      }
+                    }}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -350,9 +377,30 @@ export function CreateCourseForm({
               render={({ field }) => (
                 <FormItem className="w-full" data-tour="cursos-create-horas">
                   <FormLabel>Horas del Curso</FormLabel>
-                  <FormControl>
-                    <Input type="number" min={0} placeholder="0" {...field} />
-                  </FormControl>
+                  <Select
+                    value={field.value ? String(field.value) : undefined}
+                    onValueChange={(value) => field.onChange(Number(value))}
+                    disabled={hourOptions.length === 0}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue
+                          placeholder={
+                            selectedCourseType
+                              ? "Seleccionar horas"
+                              : "Seleccione el tipo de curso"
+                          }
+                        />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {hourOptions.map((hours) => (
+                        <SelectItem key={hours} value={String(hours)}>
+                          {hours} H
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage className="text-xs" />
                 </FormItem>
               )}

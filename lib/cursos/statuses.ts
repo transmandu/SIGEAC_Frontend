@@ -1,14 +1,14 @@
 /**
  * Estado del curso (`courses.status`). Debe coincidir con Course::STATUSES
- * del backend. OPEN admite inscripciones y cambios de calendario.
+ * del backend. ABIERTO admite inscripciones y cambios de calendario.
  */
-export const COURSE_STATUSES = ["OPEN", "CLOSED"] as const;
+export const COURSE_STATUSES = ["ABIERTO", "CERRADO"] as const;
 
 export type CourseStatus = (typeof COURSE_STATUSES)[number];
 
 const COURSE_STATUS_ES: Record<string, string> = {
-  OPEN: "Abierto",
-  CLOSED: "Cerrado",
+  ABIERTO: "Abierto",
+  CERRADO: "Cerrado",
 };
 
 export const courseStatusLabelEs = (status?: string | null) => {
@@ -26,19 +26,19 @@ export const courseStatusLabelEsUpper = (status?: string | null) =>
  * de su fecha de expiración. Debe coincidir con EmployeeTraining::STATUSES.
  */
 export const TRAINING_STATUSES = [
-  "VALID",
-  "EXPIRING_SOON",
-  "EXPIRED",
-  "PENDING",
+  "VALIDO",
+  "PROXIMO A VENCER",
+  "VENCIDO",
+  "PENDIENTE",
 ] as const;
 
 export type TrainingStatus = (typeof TRAINING_STATUSES)[number];
 
 const TRAINING_STATUS_ES: Record<string, string> = {
-  VALID: "Válido",
-  EXPIRING_SOON: "Próximo a vencer",
-  EXPIRED: "Vencido",
-  PENDING: "Pendiente",
+  VALIDO: "Válido",
+  "PROXIMO A VENCER": "Próximo a vencer",
+  VENCIDO: "Vencido",
+  PENDIENTE: "Pendiente",
 };
 
 export const trainingStatusLabelEs = (status?: string | null) => {
@@ -53,9 +53,9 @@ export const trainingStatusLabelEsUpper = (status?: string | null) =>
 
 /** Eventos de la línea de tiempo del entrenamiento (employee_training_history). */
 export const TRAINING_EVENT_ES: Record<string, string> = {
-  EXPIRED: "Vencido",
-  RENEWED: "Renovado",
-  INITIAL_TAKEN: "Inicial tomado",
+  VENCIDO: "Vencido",
+  RENOVADO: "Renovado",
+  "INICIAL TOMADO": "Inicial tomado",
 };
 
 export const trainingEventLabelEs = (event?: string | null) => {
