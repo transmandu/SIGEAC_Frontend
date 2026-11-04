@@ -6,6 +6,7 @@ import { notifyError } from "@/lib/notify-error";
 export interface SmsTrainingGroupPayload {
   name: string;
   description?: string;
+  sms_training_module_pattern_id: number;
   job_title_ids: number[];
 }
 
