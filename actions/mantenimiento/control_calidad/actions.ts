@@ -14,6 +14,29 @@ export type GenerateReceptionFormPayload = {
   void_reason?: string | null;
   /** false = la columna Vo/Bo del checklist sale en blanco en el PDF. */
   show_checklist?: boolean;
+  /** Solo al corregir: ítems 01-09 corregidos, que rigen todo el formato. */
+  checklist?: { check_id: number; result: ChecklistResult }[];
+  /** Solo al corregir: observación escrita de cada artículo. */
+  observations?: { article_id: number; observation: string | null }[];
+};
+
+export type ChecklistResult = "PASS" | "FAIL" | "NA";
+
+export type IncomingFormatCorrectionDraft = {
+  checks: {
+    id: number;
+    code: string;
+    description: string;
+    is_critical: boolean;
+  }[];
+  checklist: { check_id: number; result: ChecklistResult }[];
+  items: {
+    article_id: number;
+    part_number: string | null;
+    description: string | null;
+    serial: string | null;
+    observation: string | null;
+  }[];
 };
 
 export type IssuedIncomingFormat = {
@@ -95,6 +118,28 @@ export function useGetIssuedIncomingFormats(search?: string) {
       return res.data;
     },
     enabled: !!company && !!selectedStation,
+  });
+}
+
+/** Lo que el formato dice hoy, para corregir solo lo errado. */
+export function useGetIncomingFormatCorrectionDraft(
+  formatId: number | undefined,
+) {
+  const { selectedCompany } = useCompanyStore();
+  const company = selectedCompany?.slug;
+
+  return useQuery({
+    queryKey: ["incoming-format-draft", company, formatId],
+    queryFn: async () => {
+      const res = await axiosInstance.get<IncomingFormatCorrectionDraft>(
+        `/${company}/incoming-formats/${formatId}/correction-draft`,
+      );
+      return res.data;
+    },
+    enabled: !!company && !!formatId,
+    // Es el punto de partida de un formulario: no debe cambiar mientras se edita.
+    staleTime: Infinity,
+    gcTime: 0,
   });
 }
 
