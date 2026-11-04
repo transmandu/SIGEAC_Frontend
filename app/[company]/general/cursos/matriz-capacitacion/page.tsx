@@ -6,6 +6,7 @@ import { SettingsDataTable } from "@/components/tables/SettingsDataTable";
 import { CreateSmsTrainingGroupDialog } from "@/components/dialogs/general/CreateSmsTrainingGroupDialog";
 import { useGetSmsTrainingGroups } from "@/hooks/curso/useGetSmsTrainingGroups";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { SmsTrainingGroupEmployees } from "./_components/SmsTrainingGroupEmployees";
 import { columns } from "./columns";
 
 const SmsTrainingMatrixPage = () => {
@@ -60,6 +61,7 @@ const SmsTrainingMatrixPage = () => {
         loading={isPending}
         emptyMessage="No se han encontrado grupos de capacitación."
         actions={<CreateSmsTrainingGroupDialog />}
+        renderSubRow={(group) => <SmsTrainingGroupEmployees group={group} />}
       />
     </SettingsListPage>
   );

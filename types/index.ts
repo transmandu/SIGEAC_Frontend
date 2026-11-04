@@ -1319,6 +1319,17 @@ export type SmsTrainingGroup = {
   updated_by?: string | null;
 };
 
+export type SmsTrainingGroupEmployee = {
+  dni: string;
+  dni_type?: string | null;
+  first_name: string;
+  last_name: string;
+  job_title?: {
+    id?: number;
+    name: string;
+  } | null;
+};
+
 export type Location = {
   id: number;
   name: string;

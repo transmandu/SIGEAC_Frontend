@@ -1,12 +1,31 @@
 "use client";
 
 import { type AppColumnDef } from "@/lib/table";
+import { ChevronRight } from "lucide-react";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import SmsTrainingGroupDropdownActions from "@/components/dropdowns/general/SmsTrainingGroupDropdownActions";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import { SmsTrainingGroup } from "@/types";
 
 export const columns: AppColumnDef<SmsTrainingGroup>[] = [
+  {
+    id: "expander",
+    size: 40,
+    header: () => null,
+    cell: ({ row }) => (
+      <div className="flex justify-center w-full">
+        <ChevronRight
+          className={cn(
+            "size-3.5 text-muted-foreground/50 transition-transform",
+            row.getIsExpanded() && "rotate-90 text-blue-600 dark:text-blue-400",
+          )}
+        />
+      </div>
+    ),
+    enableSorting: false,
+    enableHiding: false,
+  },
   {
     accessorKey: "name",
     size: 220,
