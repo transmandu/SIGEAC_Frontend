@@ -59,7 +59,7 @@ type CalendarProps = {
 
 const eventStatus = {
   // GREEN
-  OPEN: {
+  ABIERTO: {
     colorName: "abierto",
     lightColors: {
       main: "#2ADE99", // rojo fuerte
@@ -73,7 +73,7 @@ const eventStatus = {
     },
   },
   // RED
-  CLOSED: {
+  CERRADO: {
     colorName: "cerrado",
     lightColors: {
       main: "#FF1A1A", //

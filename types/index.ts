@@ -1309,6 +1309,27 @@ export type JobTitle = {
   description: string;
 };
 
+export type SmsTrainingGroup = {
+  id: number;
+  name: string;
+  description?: string | null;
+  job_titles: JobTitle[];
+  active_employees_count: number;
+  registered_by?: string;
+  updated_by?: string | null;
+};
+
+export type SmsTrainingGroupEmployee = {
+  dni: string;
+  dni_type?: string | null;
+  first_name: string;
+  last_name: string;
+  job_title?: {
+    id?: number;
+    name: string;
+  } | null;
+};
+
 export type Location = {
   id: number;
   name: string;
@@ -1868,7 +1889,7 @@ export type CourseAttendance = {
 export type SMSTrainingHistoryEntry = {
   id: number;
   employee_dni: string;
-  /** EXPIRED | RENEWED | INITIAL_TAKEN */
+  /** VENCIDO | RENOVADO | INICIAL_TOMADO */
   event_type: string;
   base_course_id?: number | null;
   course_id?: number | null;
@@ -1886,7 +1907,7 @@ export type SMSTraining = {
   /** Curso inicial (base). Null cuando venció el recurrente y hay que repetirlo. */
   course: Course | null;
   last_enrollment: CourseAttendance | null;
-  /** Null cuando no hay vigencia (PENDING). */
+  /** Null cuando no hay vigencia (PENDIENTE). */
   expiration: Date | null;
   status: string;
   is_initial: boolean | null;

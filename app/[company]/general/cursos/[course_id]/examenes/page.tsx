@@ -241,7 +241,7 @@ const ManageExamsPage = () => {
     (exam) => exam.id.toString() === selectedExamId,
   );
 
-  const isCourseClosed = course?.status === "CLOSED";
+  const isCourseClosed = course?.status === "CERRADO";
 
   const handleDeleteExam = async () => {
     if (!selectedExam) return;
