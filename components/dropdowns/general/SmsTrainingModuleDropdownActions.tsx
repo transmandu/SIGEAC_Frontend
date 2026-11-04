@@ -1,8 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { BookOpen, Pencil, Trash2 } from "lucide-react";
-import { useDeleteSmsTrainingModule } from "@/actions/general/cursos/training-modules";
+import { BookOpen, Pencil, Power, PowerOff, Trash2 } from "lucide-react";
+import {
+  useDeleteSmsTrainingModule,
+  useToggleSmsTrainingModuleActive,
+} from "@/actions/general/cursos/training-modules";
 import { ConfirmDeleteDialog } from "@/components/dialogs/shared/ConfirmDeleteDialog";
 import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import {
@@ -23,6 +26,7 @@ const SmsTrainingModuleDropdownActions = ({
   const [openDelete, setOpenDelete] = useState(false);
   const { selectedCompany } = useCompanyStore();
   const { deleteSmsTrainingModule } = useDeleteSmsTrainingModule();
+  const { toggleSmsTrainingModuleActive } = useToggleSmsTrainingModuleActive();
 
   const actions: RowAction[] = [
     {
@@ -31,6 +35,17 @@ const SmsTrainingModuleDropdownActions = ({
       icon: Pencil,
       tone: "blue",
       onSelect: () => setOpenEdit(true),
+    },
+    {
+      key: "toggle-active",
+      label: module.is_active ? "Desactivar módulo" : "Activar módulo",
+      icon: module.is_active ? PowerOff : Power,
+      tone: "default",
+      onSelect: () =>
+        toggleSmsTrainingModuleActive.mutate({
+          id: module.id,
+          company: selectedCompany!.slug,
+        }),
     },
     {
       key: "delete",

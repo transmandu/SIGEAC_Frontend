@@ -1,8 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Layers3, Pencil, Trash2 } from "lucide-react";
-import { useDeleteSmsTrainingModulePattern } from "@/actions/general/cursos/training-modules";
+import { Layers3, Pencil, Power, PowerOff, Trash2 } from "lucide-react";
+import {
+  useDeleteSmsTrainingModulePattern,
+  useToggleSmsTrainingModulePatternActive,
+} from "@/actions/general/cursos/training-modules";
 import { ConfirmDeleteDialog } from "@/components/dialogs/shared/ConfirmDeleteDialog";
 import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import {
@@ -24,6 +27,8 @@ const SmsTrainingModulePatternDropdownActions = ({
   const { selectedCompany } = useCompanyStore();
   const { deleteSmsTrainingModulePattern } =
     useDeleteSmsTrainingModulePattern();
+  const { toggleSmsTrainingModulePatternActive } =
+    useToggleSmsTrainingModulePatternActive();
 
   const actions: RowAction[] = [
     {
@@ -32,6 +37,17 @@ const SmsTrainingModulePatternDropdownActions = ({
       icon: Pencil,
       tone: "blue",
       onSelect: () => setOpenEdit(true),
+    },
+    {
+      key: "toggle-active",
+      label: pattern.is_active ? "Desactivar patrón" : "Activar patrón",
+      icon: pattern.is_active ? PowerOff : Power,
+      tone: "default",
+      onSelect: () =>
+        toggleSmsTrainingModulePatternActive.mutate({
+          id: pattern.id,
+          company: selectedCompany!.slug,
+        }),
     },
     {
       key: "delete",

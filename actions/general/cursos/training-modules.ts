@@ -117,6 +117,30 @@ export const useDeleteSmsTrainingModule = () => {
   return { deleteSmsTrainingModule: mutation };
 };
 
+export const useToggleSmsTrainingModuleActive = () => {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: async ({ company, id }: { company: string; id: number }) => {
+      const response = await axiosInstance.patch(
+        `/general/${company}/sms-training-modules/${id}/toggle-active`,
+      );
+      return response.data;
+    },
+    onSuccess: (_, { company }) => {
+      queryClient.invalidateQueries({
+        queryKey: ["sms-training-modules", company],
+      });
+      toast.success("Estado actualizado");
+    },
+    onError: (error) => {
+      notifyError(error, { action: "cambiar el estado del módulo" });
+    },
+  });
+
+  return { toggleSmsTrainingModuleActive: mutation };
+};
+
 export const useCreateSmsTrainingModulePattern = () => {
   const queryClient = useQueryClient();
 
@@ -211,4 +235,28 @@ export const useDeleteSmsTrainingModulePattern = () => {
   });
 
   return { deleteSmsTrainingModulePattern: mutation };
+};
+
+export const useToggleSmsTrainingModulePatternActive = () => {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: async ({ company, id }: { company: string; id: number }) => {
+      const response = await axiosInstance.patch(
+        `/general/${company}/sms-training-module-patterns/${id}/toggle-active`,
+      );
+      return response.data;
+    },
+    onSuccess: (_, { company }) => {
+      queryClient.invalidateQueries({
+        queryKey: ["sms-training-module-patterns", company],
+      });
+      toast.success("Estado actualizado");
+    },
+    onError: (error) => {
+      notifyError(error, { action: "cambiar el estado del patrón" });
+    },
+  });
+
+  return { toggleSmsTrainingModulePatternActive: mutation };
 };

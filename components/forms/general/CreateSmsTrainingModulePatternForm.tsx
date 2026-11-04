@@ -31,7 +31,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useGetSmsTrainingModules } from "@/hooks/curso/useGetSmsTrainingModules";
 import { zodResolver } from "@/lib/zod-resolver";
@@ -43,7 +42,6 @@ const patternSchema = z
   .object({
     name: z.string().min(1, "El nombre es obligatorio"),
     description: z.string().optional(),
-    is_active: z.boolean().default(true),
     modules: z
       .array(
         z.object({
@@ -96,7 +94,6 @@ export function CreateSmsTrainingModulePatternForm({
     defaultValues: {
       name: pattern?.name ?? "",
       description: pattern?.description ?? "",
-      is_active: pattern?.is_active ?? true,
       modules:
         pattern?.modules.map((module) => ({
           module_id: module.id,
@@ -118,6 +115,15 @@ export function CreateSmsTrainingModulePatternForm({
     0,
   );
   const totalRecurrent = totalInitial / 2;
+  const totalIsValid = [40, 16, 8].includes(
+    Math.round(totalInitial * 100) / 100,
+  );
+
+  const modulesError = form.formState.errors.modules as
+    { message?: string } | Array<{ message?: string }> | undefined;
+  const modulesErrorMessage = Array.isArray(modulesError)
+    ? modulesError[0]?.message
+    : modulesError?.message;
 
   const selectedIds = fields.map((field) => field.module_id);
   const availableModules =
@@ -128,7 +134,6 @@ export function CreateSmsTrainingModulePatternForm({
     const payload = {
       name: data.name.trim(),
       description: data.description?.trim() || undefined,
-      is_active: data.is_active,
       modules: data.modules.map((module, index) => ({
         module_id: module.module_id,
         initial_hours: Number(module.initial_hours),
@@ -184,7 +189,7 @@ export function CreateSmsTrainingModulePatternForm({
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Descripción</FormLabel>
+              <FormLabel>Descripción (opcional)</FormLabel>
               <FormControl>
                 <Textarea
                   placeholder="Descripción opcional"
@@ -298,7 +303,12 @@ export function CreateSmsTrainingModulePatternForm({
             </div>
           )}
 
-          <div className="flex items-center justify-between rounded-md bg-muted/50 px-3 py-2 text-sm">
+          <div
+            className={cn(
+              "flex items-center justify-between rounded-md bg-muted/50 px-3 py-2 text-sm",
+              !totalIsValid && "bg-destructive/10 text-destructive",
+            )}
+          >
             <span>Total inicial</span>
             <span className="font-semibold">{totalInitial}h</span>
           </div>
@@ -307,28 +317,19 @@ export function CreateSmsTrainingModulePatternForm({
             <span className="font-semibold">{totalRecurrent}h</span>
           </div>
 
-          {form.formState.errors.modules?.message && (
+          {!totalIsValid && (
             <p className="text-sm font-medium text-destructive">
-              {form.formState.errors.modules.message}
+              El total inicial debe ser 40, 16 u 8 horas. Actual: {totalInitial}
+              h
+            </p>
+          )}
+
+          {modulesErrorMessage && (
+            <p className="text-sm font-medium text-destructive">
+              {modulesErrorMessage}
             </p>
           )}
         </div>
-
-        <FormField
-          control={form.control}
-          name="is_active"
-          render={({ field }) => (
-            <FormItem className="flex items-center justify-between rounded-md border p-3">
-              <FormLabel className="m-0">Activo</FormLabel>
-              <FormControl>
-                <Switch
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
 
         <Button
           className="mt-2 w-full bg-primary text-white hover:bg-blue-900 disabled:bg-primary/70"

@@ -17,7 +17,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { zodResolver } from "@/lib/zod-resolver";
 import { useCompanyStore } from "@/stores/CompanyStore";
@@ -30,7 +29,6 @@ const moduleSchema = z.object({
     .min(1, "El número debe ser mayor a 0"),
   name: z.string().min(1, "El nombre es obligatorio"),
   description: z.string().optional(),
-  is_active: z.boolean().default(true),
 });
 
 type ModuleForm = z.infer<typeof moduleSchema>;
@@ -52,7 +50,6 @@ export function CreateSmsTrainingModuleForm({ onSuccess, module }: Props) {
       number: module?.number ?? 1,
       name: module?.name ?? "",
       description: module?.description ?? "",
-      is_active: module?.is_active ?? true,
     },
   });
 
@@ -62,7 +59,6 @@ export function CreateSmsTrainingModuleForm({ onSuccess, module }: Props) {
       number: data.number,
       name: data.name.trim(),
       description: data.description?.trim() || undefined,
-      is_active: data.is_active,
     };
 
     try {
@@ -124,7 +120,7 @@ export function CreateSmsTrainingModuleForm({ onSuccess, module }: Props) {
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Descripción</FormLabel>
+              <FormLabel>Descripción (opcional)</FormLabel>
               <FormControl>
                 <Textarea
                   placeholder="Descripción opcional"
@@ -133,22 +129,6 @@ export function CreateSmsTrainingModuleForm({ onSuccess, module }: Props) {
                 />
               </FormControl>
               <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="is_active"
-          render={({ field }) => (
-            <FormItem className="flex items-center justify-between rounded-md border p-3">
-              <FormLabel className="m-0">Activo</FormLabel>
-              <FormControl>
-                <Switch
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
             </FormItem>
           )}
         />
