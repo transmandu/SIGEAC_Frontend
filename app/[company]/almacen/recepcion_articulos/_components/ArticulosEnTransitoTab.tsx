@@ -212,6 +212,22 @@ const ArticleRow = memo(function ArticleRow({
           </span>
         </TableCell>
 
+        {/* Serial / Lote: lo único que distingue dos artículos con el mismo P/N y descripción */}
+        <TableCell className="text-center">
+          {article.serial || article.lot_number ? (
+            <div className="flex flex-col items-center gap-0.5">
+              <span className="text-[9px] font-semibold uppercase tracking-widest text-muted-foreground/60">
+                {article.serial ? "Serial" : "Lote"}
+              </span>
+              <span className="font-mono text-[12px] font-semibold">
+                {article.serial ?? article.lot_number}
+              </span>
+            </div>
+          ) : (
+            <span className="text-xs text-muted-foreground/40">N/A</span>
+          )}
+        </TableCell>
+
         {/* N° de requisición */}
         <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
           {article.requisition_order_number ? (
@@ -516,7 +532,7 @@ const ArticleRow = memo(function ArticleRow({
       {/* Sub-fila expandible */}
       {expanded && hasExtra && (
         <TableRow className="hover:bg-transparent">
-          <TableCell colSpan={9} className="p-0 border-b border-border/40">
+          <TableCell colSpan={10} className="p-0 border-b border-border/40">
             <div className="pl-10 pr-4 py-3 bg-muted/20 border-l-2 border-amber-300 dark:border-amber-700/60">
               <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs">
                 {article.manufacturer && (
@@ -644,6 +660,8 @@ export function ArticulosEnTransitoTab() {
           alt.toLowerCase().includes(q),
         ) ||
         a.batch?.name?.toLowerCase().includes(q) ||
+        a.serial?.toLowerCase().includes(q) ||
+        a.lot_number?.toLowerCase().includes(q) ||
         a.batch?.warehouse?.location?.address?.toLowerCase().includes(q),
     );
   }, [transitArticles, receptionArticles, statusFilter, search]);
@@ -756,7 +774,7 @@ export function ArticulosEnTransitoTab() {
         <div className="relative ml-auto">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
           <Input
-            placeholder="Buscar parte, nombre, ubicación..."
+            placeholder="Buscar parte, serial, lote, nombre, ubicación..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-8 h-8 text-xs w-64"
@@ -774,6 +792,9 @@ export function ArticulosEnTransitoTab() {
                 N° de Parte / Alterno
               </TableHead>
               <TableHead className="text-xs text-center">Descripción</TableHead>
+              <TableHead className="text-xs text-center">
+                Serial / Lote
+              </TableHead>
               <TableHead className="text-xs text-center">
                 Solicitud de Compra
               </TableHead>
@@ -794,7 +815,7 @@ export function ArticulosEnTransitoTab() {
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={9}
+                  colSpan={10}
                   className="h-24 text-center text-muted-foreground text-sm"
                 >
                   No se encontraron artículos
