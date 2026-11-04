@@ -1,3 +1,7 @@
+## v4.88.0 — 2026-11-04
+
+- feat: add dispatch sections and tool row card components (#377)
+
 ## v4.87.1 — 2026-11-03
 
 - fix(cursos): avoid adding a day when editing course dates (#376)
