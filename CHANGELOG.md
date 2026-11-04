@@ -1,3 +1,7 @@
+## v4.88.1 — 2026-11-04
+
+- refactor: dispatch forms and improve component structure (#379)
+
 ## v4.88.0 — 2026-11-04
 
 - feat: add dispatch sections and tool row card components (#377)
