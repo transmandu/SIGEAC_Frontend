@@ -67,7 +67,7 @@ export function buildGeneralGroup({
           {
             href: `/${currentCompany?.slug}/general/cursos/matriz-capacitacion`,
             label: "Matriz de capacitación",
-            roles: [],
+            roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
             active:
               pathname ===
               `/${currentCompany?.slug}/general/cursos/matriz-capacitacion`,
