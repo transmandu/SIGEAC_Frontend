@@ -1,3 +1,7 @@
+## v4.89.0 — 2026-11-04
+
+- feat: add incoming format correction draft functionality and checklis… (#380)
+
 ## v4.88.2 — 2026-11-04
 
 - refactor: SMS course form and localize statuses (#378)
