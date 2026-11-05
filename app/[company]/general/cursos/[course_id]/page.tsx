@@ -24,7 +24,6 @@ import {
   X,
 } from "lucide-react";
 
-import { downloadCourseCertificate } from "@/actions/general/cursos/certificates";
 import { PieChartComponent } from "@/components/charts/PieChartComponent";
 import { DownloadCourseCertificatesDialog } from "@/components/dialogs/general/DownloadCourseCertificatesDialog";
 import { PdfEndpointPreviewDialog } from "@/components/dialogs/shared/PdfEndpointPreviewDialog";
@@ -296,7 +295,9 @@ const ShowCourse = () => {
   const { selectedCompany } = useCompanyStore();
   const { user } = useAuth();
   const [openCertificates, setOpenCertificates] = useState(false);
-  const [downloadingDni, setDownloadingDni] = useState<string | null>(null);
+  const [certificateFocusDni, setCertificateFocusDni] = useState<string | null>(
+    null,
+  );
   const [employeeSearch, setEmployeeSearch] = useState("");
 
   const canDownloadCertificates = user?.roles?.some((role) =>
@@ -387,21 +388,6 @@ const ShowCourse = () => {
       : course.duration || "N/A"
     : "N/A";
 
-  const handleDownloadCertificate = async (dni: string) => {
-    if (!selectedCompany?.slug || !course) return;
-
-    setDownloadingDni(dni);
-    try {
-      await downloadCourseCertificate({
-        company: selectedCompany.slug,
-        courseId: course.id,
-        dni,
-      });
-    } finally {
-      setDownloadingDni(null);
-    }
-  };
-
   return (
     <ContentLayout title="Detalles del Curso">
       <PageHeader className="mb-6" currentLabel={course?.name} />
@@ -461,7 +447,10 @@ const ShowCourse = () => {
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => setOpenCertificates(true)}
+                    onClick={() => {
+                      setCertificateFocusDni(null);
+                      setOpenCertificates(true);
+                    }}
                     disabled={!attendance.length}
                     className="w-full shrink-0 sm:w-auto"
                   >
@@ -777,7 +766,10 @@ const ShowCourse = () => {
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => setOpenCertificates(true)}
+                    onClick={() => {
+                      setCertificateFocusDni(null);
+                      setOpenCertificates(true);
+                    }}
                     disabled={!attendance.length}
                   >
                     <Download className="mr-2 size-4" />
@@ -909,19 +901,13 @@ const ShowCourse = () => {
                                   variant="ghost"
                                   size="icon"
                                   className="size-8 text-muted-foreground hover:text-foreground"
-                                  disabled={
-                                    downloadingDni === item.employee_dni
-                                  }
-                                  onClick={() =>
-                                    handleDownloadCertificate(item.employee_dni)
-                                  }
+                                  onClick={() => {
+                                    setCertificateFocusDni(item.employee_dni);
+                                    setOpenCertificates(true);
+                                  }}
                                   title="Descargar certificado"
                                 >
-                                  {downloadingDni === item.employee_dni ? (
-                                    <Spinner className="size-4" />
-                                  ) : (
-                                    <Download className="size-4" />
-                                  )}
+                                  <Download className="size-4" />
                                   <span className="sr-only">
                                     Descargar certificado de{" "}
                                     {item.employee.first_name}{" "}
@@ -948,6 +934,7 @@ const ShowCourse = () => {
           onOpenChange={setOpenCertificates}
           course={course}
           company={selectedCompany.slug}
+          focusDni={certificateFocusDni}
           employees={attendanceList.map((attendanceItem) => ({
             dni: attendanceItem.employee_dni,
             first_name: attendanceItem.employee.first_name,

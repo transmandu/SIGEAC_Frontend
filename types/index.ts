@@ -1919,6 +1919,19 @@ export type CourseAttendance = {
   employee: Employee;
 };
 
+export type CourseUploadedCertificate = {
+  id: number;
+  employee_dni: string;
+  course_id: number;
+  completion_date: string;
+  document: string;
+  employee?: {
+    dni: string;
+    first_name: string;
+    last_name: string;
+  } | null;
+};
+
 export type SMSTrainingHistoryEntry = {
   id: number;
   employee_dni: string;

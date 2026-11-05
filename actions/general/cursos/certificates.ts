@@ -84,3 +84,32 @@ export const downloadCourseCertificatesBatch = async ({
     notifyError(error, { action: "descargar los certificados" });
   }
 };
+
+export const downloadUploadedCourseCertificates = async ({
+  company,
+  courseId,
+  certificateIds,
+}: {
+  company: string;
+  courseId: number | string;
+  certificateIds: number[];
+}) => {
+  try {
+    const response = await axiosInstance.post(
+      `/general/${company}/course/${courseId}/certificates/uploaded/download`,
+      { certificate_ids: certificateIds },
+      {
+        responseType: "blob",
+        timeout: PDF_GENERATION_TIMEOUT,
+      },
+    );
+
+    const filename =
+      filenameFromDisposition(response.headers["content-disposition"]) ??
+      `certificados_cargados_${courseId}.zip`;
+
+    saveBlob(response.data, filename);
+  } catch (error) {
+    notifyError(error, { action: "descargar los certificados cargados" });
+  }
+};
