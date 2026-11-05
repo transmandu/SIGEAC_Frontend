@@ -136,11 +136,11 @@ function TransitActionButton({ article }: { article: TransitArticle }) {
                   ))}
                 </ul>
                 <p className="mt-2 text-muted-foreground">
-                  Edítalo para completarlo. El pase a incoming lo hace almacén.
+                  Edítelo para completarlo. El pase a incoming lo hace almacén.
                 </p>
               </>
             ) : (
-              "Ya marcaste este artículo como entregado a recepción"
+              "Este artículo ya fue entregado a recepción"
             )}
           </TooltipContent>
         </Tooltip>
@@ -272,10 +272,10 @@ function EditTransitArticleAction({ article }: { article: TransitArticle }) {
                     </li>
                   ))}
                 </ul>
-                <p className="mt-2 font-medium">Presiona para editarlo.</p>
+                <p className="mt-2 font-medium">Presione para editarlo.</p>
               </>
             ) : !isEditable ? (
-              "Ya marcaste este artículo como entregado a recepción"
+              "Este artículo ya fue entregado a recepción"
             ) : pendingCount > 0 ? (
               `Editar artículo (${pendingCount} documento${pendingCount === 1 ? "" : "s"} pendiente${pendingCount === 1 ? "" : "s"})`
             ) : (

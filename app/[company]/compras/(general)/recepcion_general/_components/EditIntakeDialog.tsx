@@ -239,7 +239,7 @@ export default function EditIntakeDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         onClick={(e) => e.stopPropagation()}
-        className="w-[95vw] max-w-[95vw] sm:max-w-[640px] p-0 overflow-hidden max-h-[88vh] flex flex-col"
+        className="w-[95vw] max-w-[95vw] sm:max-w-160 p-0 overflow-hidden max-h-[88vh] flex flex-col"
       >
         <DialogHeader className="shrink-0 border-b border-border/40 bg-muted/20 px-6 pt-5 pb-4 text-left">
           <div className="flex items-center gap-3">
@@ -266,7 +266,7 @@ export default function EditIntakeDialog({
                     </span>
                   </>
                 )}
-                . Solo se guardan los campos que modifiques.
+                . Solo se guardan los campos que modifique.
               </DialogDescription>
             </div>
           </div>

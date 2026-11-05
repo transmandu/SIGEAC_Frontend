@@ -6,8 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 import type { PurchaseOrder } from "@/types/purchase"
-import { format } from "date-fns"
-import { es } from "date-fns/locale"
+import FormattedInstant from "@/components/misc/FormattedInstant"
 import Link from "next/link"
 import PurchaseOrderDropdownActions from "@/components/dropdowns/mantenimiento/compras/PurchaseOrderDropdownActions"
 import PreviewPanelIcon from "@/components/misc/PreviewPanelIcon"
@@ -170,17 +169,16 @@ export const getColumns = (
       title: "Fecha de Creación",
     },
 
-    cell: ({ row }) => {
-      const date = new Date(row.original.purchase_date);
-
-      return (
-        <div className="flex justify-center w-full">
-          <span className="text-s text-slate-600 dark:text-slate-300 text-center font-medium tracking-wide uppercase">
-            {format(date, "dd MMM yyyy", { locale: es })}
-          </span>
-        </div>
-      );
-    },
+    cell: ({ row }) => (
+      <div className="flex justify-center w-full">
+        <span className="text-s text-slate-600 dark:text-slate-300 text-center font-medium tracking-wide uppercase">
+          <FormattedInstant
+            value={row.original.purchase_date}
+            format="dd MMM yyyy"
+          />
+        </span>
+      </div>
+    ),
   },
 
   {

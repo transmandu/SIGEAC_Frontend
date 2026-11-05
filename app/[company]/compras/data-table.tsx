@@ -21,6 +21,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+import { AlertTriangle } from "lucide-react";
+import { EmptyState } from "@/components/misc/EmptyState";
 import { CursorPagination } from "@/components/tables/CursorPagination";
 import { DataTablePagination } from "@/components/tables/DataTablePagination";
 import { useComprasPageSize } from "./use-compras-page-size";
@@ -29,6 +31,9 @@ export interface DataTableProps<TData extends RowData> {
   columns: AppColumnDef<TData, any>[];
   data: TData[];
   loading?: boolean;
+  /** La consulta falló: se muestra el error en vez de "sin resultados". */
+  error?: boolean;
+  errorText?: string;
   disablePagination?: boolean;
   renderSubRow?: (row: AppRow<TData>) => React.ReactNode;
   canExpandRow?: (row: AppRow<TData>) => boolean;
@@ -85,6 +90,8 @@ function DataTableInner<TData extends RowData>({
   columns,
   data,
   loading = false,
+  error = false,
+  errorText = "Intente de nuevo en unos instantes.",
   disablePagination = false,
   renderSubRow,
   canExpandRow,
@@ -269,6 +276,17 @@ function DataTableInner<TData extends RowData>({
                   className="h-24 text-center text-muted-foreground"
                 >
                   {loadingText}
+                </TableCell>
+              </TableRow>
+            ) : error ? (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="h-40">
+                  <EmptyState
+                    icon={AlertTriangle}
+                    tone="error"
+                    title="No se pudo cargar la información"
+                    description={errorText}
+                  />
                 </TableCell>
               </TableRow>
             ) : isEmpty ? (

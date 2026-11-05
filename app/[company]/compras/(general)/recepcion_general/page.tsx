@@ -87,6 +87,7 @@ const RecepcionGeneralPage = () => {
         </div>
 
         <DataTable
+          error={isError}
           columns={columns}
           data={filtered}
           loading={isLoading}
@@ -95,14 +96,6 @@ const RecepcionGeneralPage = () => {
           emptyText="No se encontraron entradas"
           persistKey="recepcion_general"
         />
-
-        {isError && (
-          <div className="rounded-lg border border-red-500/20 bg-red-500/5 px-4 py-3">
-            <p className="text-sm text-red-500">
-              Error cargando recepciones de artículos generales.
-            </p>
-          </div>
-        )}
 
       </div>
     </ContentLayout>

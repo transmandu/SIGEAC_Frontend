@@ -2,6 +2,7 @@
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import LoadingPage from "@/components/misc/LoadingPage";
+import DetailLoadError from "@/components/misc/DetailLoadError";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useGetPurchaseOrder } from "@/hooks/mantenimiento/compras/useGetPurchaseOrder";
@@ -27,7 +28,7 @@ const PurchaseOrderPage = () => {
   const { selectedCompany } = useCompanyStore();
   const { order_number } = useParams<{ order_number: string }>();
 
-  const { data, isLoading } = useGetPurchaseOrder(
+  const { data, isLoading, isError, refetch } = useGetPurchaseOrder(
     selectedCompany?.slug,
     order_number,
   );
@@ -36,6 +37,16 @@ const PurchaseOrderPage = () => {
   const generalArticles = data?.general_article_purchase_order ?? [];
 
   if (isLoading) return <LoadingPage />;
+
+  if (isError)
+    return (
+      <DetailLoadError
+        title="Orden de Compra"
+        subject="La orden de compra"
+        label={order_number}
+        onRetry={() => refetch()}
+      />
+    );
 
   return (
     <ContentLayout title="Orden de Compra">

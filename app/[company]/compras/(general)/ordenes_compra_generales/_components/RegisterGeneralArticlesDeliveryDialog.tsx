@@ -242,11 +242,11 @@ export default function RegisterGeneralArticlesDeliveryDialog({
               </DialogTitle>
 
               <DialogDescription className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                Confirma qué artículos generales de{" "}
+                Confirme qué artículos generales de{" "}
                 <span className="font-medium text-foreground">
                   {po.order_number}
                 </span>{" "}
-                llegaron físicamente. Los que desmarques quedarán pendientes
+                llegaron físicamente. Los que desmarque quedarán pendientes
                 para una entrega posterior.
               </DialogDescription>
             </div>
@@ -343,22 +343,22 @@ export default function RegisterGeneralArticlesDeliveryDialog({
                       destinationType === "WAREHOUSE"
                         ? isWarehousesLoading
                           ? "Cargando almacenes..."
-                          : "Selecciona el almacén"
+                          : "Seleccione el almacén"
                         : destinationType === "DEPARTMENT"
                           ? isDepartmentsLoading
                             ? "Cargando departamentos..."
-                            : "Selecciona el departamento"
+                            : "Seleccione el departamento"
                           : destinationType === "EMPLOYEE"
                             ? isEmployeesLoading
                               ? "Cargando empleados..."
-                              : "Selecciona el empleado"
+                              : "Seleccione el empleado"
                             : destinationType === "AUTHORIZED"
                               ? isAuthorizedLoading
                                 ? "Cargando autorizados..."
-                                : "Selecciona el autorizado"
+                                : "Seleccione el autorizado"
                               : isThirdPartiesLoading
                                 ? "Cargando terceros..."
-                                : "Selecciona el tercero"
+                                : "Seleccione el tercero"
                     }
                   />
                 </SelectTrigger>
@@ -429,7 +429,7 @@ export default function RegisterGeneralArticlesDeliveryDialog({
               <p className="rounded-lg border border-blue-500/20 bg-blue-500/5 px-3 py-2 text-[11px] leading-relaxed text-blue-700 dark:text-blue-300">
                 Entrega directa: los artículos no entrarán al inventario del
                 almacén ni requieren confirmación. El registro quedará en
-                Recepción General y podrás descargar su{" "}
+                Recepción General y podrá descargar su{" "}
                 <span className="font-medium">Nota de Entrega</span>.
               </p>
             )}

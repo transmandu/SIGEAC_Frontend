@@ -133,7 +133,7 @@ export default function TransitSubRow({ row }: Props) {
           ) : null}
 
           <p className="mt-1.5 text-[11px] text-muted-foreground">
-            Usa el botón de editar para completarlo. El pase a incoming lo hace
+            Use el botón de editar para completarlo. El pase a incoming lo hace
             almacén.
           </p>
         </div>

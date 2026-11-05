@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/AuthContext"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { AlertOctagon, ClipboardCheck, FileDown, Receipt, Wallet } from "lucide-react"
+import { AlertOctagon, ClipboardCheck, Receipt, Wallet } from "lucide-react"
 import PurchaseOrderDropdownDialogs from "@/components/dialogs/mantenimiento/compras/PurchaseOrderDropdownDialogs"
 import InvoicePreviewDialog from "@/components/dialogs/mantenimiento/compras/InvoicePreviewDialog"
 import { useCompanyStore } from "@/stores/CompanyStore"
@@ -100,27 +100,6 @@ export default function PurchaseOrderActions({
             <TooltipContent>{invoices.length > 1 ? "Ver facturas" : "Ver factura"}</TooltipContent>
           </Tooltip>
         )}
-
-        {/* PDF DOWNLOAD (placeholder) */}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <span className="inline-flex">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => {
-                  console.log("PDF download not implemented yet")
-                }}
-                className={`${itemBase} text-blue-600`}
-              >
-                <FileDown className={iconBase} />
-              </Button>
-            </span>
-          </TooltipTrigger>
-          <TooltipContent side="top">
-            ¡Próximamente!
-          </TooltipContent>
-        </Tooltip>
 
         {/* CASCADE DELETE (SUPERUSER) */}
         {isSuperUser && (

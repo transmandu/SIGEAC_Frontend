@@ -12,6 +12,7 @@ import { columns } from "./columns";
 
 import UnknownDestinationToolbar from "./_components/UnknownDestinationToolbar";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { toAltPartNumbers } from "@/lib/utils";
 
 export default function UnknownDestinationPage() {
   const { selectedCompany } = useCompanyStore();
@@ -36,7 +37,7 @@ export default function UnknownDestinationPage() {
     return articles.filter((article) =>
       [
         article.part_number,
-        ...article.alternative_part_number,
+        ...toAltPartNumbers(article.alternative_part_number),
         article.serial,
         article.batch?.category,
         article.batch?.name,
@@ -75,6 +76,7 @@ export default function UnknownDestinationPage() {
 
         {/* TABLE / LOADING SPLIT */}
         <DataTable
+          error={isError}
           columns={columns}
           data={filteredArticles}
           loading={isLoading}
@@ -84,13 +86,6 @@ export default function UnknownDestinationPage() {
         />
 
         {/* Error */}
-        {isError && (
-          <div className="rounded-lg border border-red-500/20 bg-red-500/5 px-4 py-3">
-            <p className="text-sm text-red-500">
-              Error al cargar los artículos con destino indeterminado.
-            </p>
-          </div>
-        )}
       </div>
     </ContentLayout>
   );

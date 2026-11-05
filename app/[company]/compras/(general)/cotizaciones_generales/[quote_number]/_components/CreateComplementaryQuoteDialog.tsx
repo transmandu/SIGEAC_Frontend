@@ -175,7 +175,7 @@ export default function CreateComplementaryQuoteDialog({
               </DialogTitle>
 
               <DialogDescription className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                Registra la diferencia comprada que{" "}
+                Registre la diferencia comprada que{" "}
                 <span className="font-medium text-foreground">
                   {quote.quote_number}
                 </span>{" "}

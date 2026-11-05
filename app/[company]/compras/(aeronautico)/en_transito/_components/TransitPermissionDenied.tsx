@@ -72,7 +72,7 @@ const TransitPermissionDenied = () => {
                 leading-relaxed
               "
             >
-              No tienes permisos para visualizar los artículos en tránsito
+              No tiene permisos para visualizar los artículos en tránsito
               dentro del módulo de almacén y logística.
             </p>
 

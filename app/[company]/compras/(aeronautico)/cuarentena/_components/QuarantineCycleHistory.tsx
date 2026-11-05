@@ -1,27 +1,12 @@
 'use client'
 
 import { Badge } from '@/components/ui/badge'
+import { useCompanyTimezone } from '@/hooks/general/useCompanyTimezone'
+import { formatInstant } from '@/lib/date'
 import { cn } from '@/lib/utils'
 import type { QuarantineCycle } from '@/types/quarantine'
 import { CheckCircle2, CircleDot, MessageSquare, ShieldX, Wrench } from 'lucide-react'
 
-const formatDateTime = (value?: string | null) => {
-  if (!value) return null
-
-  // Los ciclos guardan momentos, no días: aquí sí interesa la hora, y el ISO
-  // que envía el backend se interpreta bien de forma nativa.
-  const date = new Date(value)
-
-  if (Number.isNaN(date.getTime())) return null
-
-  return date.toLocaleString('es-ES', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-}
 
 const OutcomeBadge = ({ outcome }: { outcome: QuarantineCycle['outcome'] }) => {
   if (!outcome) {
@@ -55,6 +40,12 @@ const OutcomeBadge = ({ outcome }: { outcome: QuarantineCycle['outcome'] }) => {
  * que la normativa pide poder demostrar.
  */
 export function QuarantineCycleHistory({ cycles }: { cycles: QuarantineCycle[] }) {
+  const timeZone = useCompanyTimezone()
+
+  // Los ciclos guardan momentos, no días: se leen en la zona de la compañía.
+  const formatDateTime = (value?: string | null) =>
+    value ? formatInstant(value, timeZone, 'dd MMM yyyy HH:mm', '') || null : null
+
   if (cycles.length === 0) {
     return (
       <p className="rounded-lg border border-dashed border-slate-200 p-4 text-center text-xs text-muted-foreground dark:border-slate-700">

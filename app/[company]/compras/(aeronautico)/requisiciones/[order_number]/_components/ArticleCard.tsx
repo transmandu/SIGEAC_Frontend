@@ -35,7 +35,7 @@ const ArticleCard = ({
 
   const showQuantityApproval =
     showApprovalDetails(article.status) &&
-    article.approved_quantity !== article.quantity;
+    Number(article.approved_quantity) !== Number(article.quantity);
 
   const getImageSrc = () => {
     if (!article.image) return null;

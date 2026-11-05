@@ -2,6 +2,7 @@
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import LoadingPage from "@/components/misc/LoadingPage";
+import DetailLoadError from "@/components/misc/DetailLoadError";
 import { Badge } from "@/components/ui/badge";
 import { useGetRequisitionByOrderNumber } from "@/hooks/mantenimiento/compras/useGetRequisitionByOrderNumber";
 import { useCompanyStore } from "@/stores/CompanyStore";
@@ -150,7 +151,7 @@ const RequisitionPage = () => {
   const { selectedCompany } = useCompanyStore();
   const { order_number } = useParams<{ order_number: string }>();
 
-  const { data, isLoading, refetch } = useGetRequisitionByOrderNumber({
+  const { data, isLoading, isError, refetch } = useGetRequisitionByOrderNumber({
     company: selectedCompany?.slug,
     order_number,
   });
@@ -190,19 +191,17 @@ const RequisitionPage = () => {
     return Array.from(new Set(merged));
   }, [data]);
 
-  const aircraftChunks = useMemo(() => {
-    return aircraftList.reduce((acc: string[][], item, idx) => {
-      const chunkIndex = Math.floor(idx / 2);
-
-      if (!acc[chunkIndex]) acc[chunkIndex] = [];
-
-      acc[chunkIndex].push(item);
-
-      return acc;
-    }, []);
-  }, [aircraftList]);
-
   if (isLoading) return <LoadingPage />;
+
+  if (isError)
+    return (
+      <DetailLoadError
+        title="Solicitud de Compra General"
+        subject="La solicitud de compra"
+        label={order_number}
+        onRetry={() => refetch()}
+      />
+    );
 
   if (isOutOfScope) return <RequisitionOutOfScope />;
 

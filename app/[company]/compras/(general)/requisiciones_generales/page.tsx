@@ -156,6 +156,7 @@ const RequisitionsPageContent = () => {
               data={rows}
               renderTable={(groupedRows) => (
                 <DataTable
+                  error={isError}
                   columns={columns}
                   data={groupedRows}
                   renderSubRow={(row) => (
@@ -179,6 +180,7 @@ const RequisitionsPageContent = () => {
           </>
         ) : (
           <DataTable
+            error={isError}
             columns={columns}
             data={rows}
             renderSubRow={(row) => (
@@ -191,15 +193,6 @@ const RequisitionsPageContent = () => {
             loading={isLoading}
             cursorPagination={cursorPagination}
           />
-        )}
-
-        {isError && (
-          <div className="rounded-lg border border-red-500/20 bg-red-500/5 px-4 py-3">
-            <p className="text-sm text-red-500">
-              Ha ocurrido un error al cargar las solicitudes de compra
-              generales.
-            </p>
-          </div>
         )}
       </div>
     </ContentLayout>

@@ -80,7 +80,7 @@ const PurchaseOrdersPageContent = () => {
           </h1>
 
           <p className="text-sm text-muted-foreground">
-            Gestiona y visualiza las órdenes generadas en el sistema de compras.
+            Gestione y visualice las órdenes generadas en el sistema de compras.
           </p>
         </div>
 
@@ -113,6 +113,7 @@ const PurchaseOrdersPageContent = () => {
             groupBy={groupBy}
             renderTable={(rows) => (
               <DataTable
+                error={isError}
                 columns={columns}
                 data={rows}
                 loading={isLoading}
@@ -124,6 +125,7 @@ const PurchaseOrdersPageContent = () => {
           />
         ) : (
           <DataTable
+            error={isError}
             columns={columns}
             data={filteredPO}
             loading={isLoading}
@@ -133,13 +135,6 @@ const PurchaseOrdersPageContent = () => {
         )}
 
         {/* ERROR */}
-        {isError && (
-          <div className="rounded-lg border border-red-500/20 bg-red-500/5 px-4 py-3">
-            <p className="text-sm text-red-500">
-              Error cargando órdenes de compra.
-            </p>
-          </div>
-        )}
 
       </div>
     </ContentLayout>

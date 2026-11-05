@@ -12,8 +12,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import type { PurchaseOrder } from "@/types/purchase";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
+import FormattedInstant from "@/components/misc/FormattedInstant";
 import Link from "next/link";
 import PurchaseOrderDropdownActions from "@/components/dropdowns/mantenimiento/compras/PurchaseOrderDropdownActions";
 import { Loader2 } from "lucide-react";
@@ -318,12 +317,12 @@ export const getColumns = (
     },
 
     cell: ({ row }) => {
-      const date = new Date(row.original.purchase_date);
+      const date = row.original.purchase_date;
 
       return (
         <div className="flex justify-center w-full">
           <span className="text-s text-slate-600 dark:text-slate-300 text-center font-medium tracking-wide uppercase">
-            {format(date, "dd MMM yyyy", { locale: es })}
+            <FormattedInstant value={date} format="dd MMM yyyy" />
           </span>
         </div>
       );

@@ -34,6 +34,8 @@ interface Props {
 
 type ConsignmentState = Record<number, { file?: File; isPhysical: boolean }>;
 
+const MAX_FILE_BYTES = 10 * 1024 * 1024;
+
 /**
  * Bloqueo documental del pase a recepción: muestra los requerimientos
  * (heredados desde la requisición) que aún no tienen documento consignado y
@@ -56,6 +58,11 @@ export function PendingDocumentsDialog({
   );
 
   const setFile = (requirementId: number, file?: File) => {
+    if (file && file.size > MAX_FILE_BYTES) {
+      toast.error("El archivo supera el máximo de 10 MB.");
+      return;
+    }
+
     setConsignments((prev) => ({
       ...prev,
       [requirementId]: {
@@ -80,6 +87,12 @@ export function PendingDocumentsDialog({
 
   const busy = consignRequirementDocuments.isPending;
 
+  // Lo elegido a medias no debe sobrevivir a un cierre: al reabrir se parte limpio.
+  const handleOpenChange = (next: boolean) => {
+    if (!next) setConsignments({});
+    onOpenChange(next);
+  };
+
   const handleConfirm = async () => {
     if (!selectedCompany?.slug || !allResolved) return;
 
@@ -91,23 +104,27 @@ export function PendingDocumentsDialog({
       }),
     );
 
-    await consignRequirementDocuments.mutateAsync({
-      company: selectedCompany.slug,
-      consignments: payload,
-    });
+    try {
+      await consignRequirementDocuments.mutateAsync({
+        company: selectedCompany.slug,
+        consignments: payload,
+      });
+    } catch {
+      // El aviso lo muestra la mutación; el diálogo sigue abierto para reintentar.
+      return;
+    }
 
     toast.success("Documentación consignada", {
       description:
         "Los documentos requeridos fueron registrados correctamente.",
     });
 
-    setConsignments({});
-    onOpenChange(false);
+    handleOpenChange(false);
     await onCompleted();
   };
 
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
+    <AlertDialog open={open} onOpenChange={handleOpenChange}>
       <AlertDialogContent className="max-w-lg">
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2">
@@ -162,7 +179,14 @@ export function PendingDocumentsDialog({
                     type="file"
                     accept=".pdf,.jpg,.jpeg,.png,.webp"
                     disabled={busy}
-                    onChange={(e) => setFile(req.id, e.target.files?.[0])}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      setFile(req.id, file);
+                      // Un archivo rechazado no debe quedar a la vista en el campo.
+                      if (file && file.size > MAX_FILE_BYTES) {
+                        e.target.value = "";
+                      }
+                    }}
                     className="h-9 cursor-pointer pl-9 text-xs"
                   />
                 </div>

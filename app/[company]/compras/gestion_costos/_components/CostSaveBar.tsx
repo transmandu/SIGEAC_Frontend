@@ -29,15 +29,16 @@ const CostSaveBar = ({
   return (
     <div
       className={cn(
-        'fixed bottom-4 right-4 z-50',
+        // Centrada y bajo los diálogos (z-40): a la derecha tapaba los
+        // botones flotantes de alertas y de tour.
+        'pointer-events-none fixed inset-x-4 bottom-4 z-40 flex justify-center',
         'transition-all duration-300 ease-out',
-        hasChanges
-          ? 'opacity-100 translate-y-0'
-          : 'opacity-0 translate-y-4 pointer-events-none'
+        hasChanges ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
       )}
     >
       <div
         className={cn(
+          hasChanges && 'pointer-events-auto',
           'flex items-center gap-4',
           'px-4 py-2 rounded-2xl border',
           'bg-white/80 dark:bg-slate-900/70',

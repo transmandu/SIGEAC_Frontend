@@ -10,6 +10,7 @@ import { useTransitArticles } from "./hooks/useTransitArticles";
 import type { TransitStatusFilter } from "@/types/purchase";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import { toAltPartNumbers } from "@/lib/utils";
 
 const EnTransitoPage = () => {
   const { selectedCompany } = useCompanyStore();
@@ -33,7 +34,7 @@ const EnTransitoPage = () => {
     return articles.filter(
       (a) =>
         a.part_number?.toLowerCase().includes(q) ||
-        a.alternative_part_number.some((alt) =>
+        toAltPartNumbers(a.alternative_part_number).some((alt) =>
           alt.toLowerCase().includes(q),
         ) ||
         a.batch?.name?.toLowerCase().includes(q) ||
@@ -59,7 +60,7 @@ const EnTransitoPage = () => {
           </h1>
 
           <p className="text-sm text-muted-foreground">
-            Gestiona artículos en proceso de tránsito y recepción dentro del
+            Gestione artículos en proceso de tránsito y recepción dentro del
             sistema logístico.
           </p>
         </div>
@@ -89,6 +90,7 @@ const EnTransitoPage = () => {
         </div>
 
         <DataTable
+          error={isError}
           columns={columns}
           data={filteredArticles}
           loading={isLoading}
@@ -97,14 +99,6 @@ const EnTransitoPage = () => {
           emptyText="No se encontraron artículos"
           persistKey="en_transito"
         />
-
-        {isError && (
-          <div className="rounded-lg border border-red-500/20 bg-red-500/5 px-4 py-3">
-            <p className="text-sm text-red-500">
-              Error cargando artículos en tránsito
-            </p>
-          </div>
-        )}
       </div>
     </ContentLayout>
   );

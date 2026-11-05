@@ -2,6 +2,7 @@
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import LoadingPage from "@/components/misc/LoadingPage";
+import DetailLoadError from "@/components/misc/DetailLoadError";
 import { Badge } from "@/components/ui/badge";
 import { useGetQuoteByQuoteNumber } from "@/hooks/mantenimiento/compras/useGetQuoteByQuoteNumber";
 import { useCompanyStore } from "@/stores/CompanyStore";
@@ -32,7 +33,7 @@ const QuotePage = () => {
   const { selectedCompany } = useCompanyStore();
   const { quote_number } = useParams<{ quote_number: string }>();
 
-  const { data, isLoading, refetch } = useGetQuoteByQuoteNumber(
+  const { data, isLoading, isError, refetch } = useGetQuoteByQuoteNumber(
     selectedCompany?.slug ?? null,
     quote_number,
   );
@@ -51,6 +52,16 @@ const QuotePage = () => {
   );
 
   if (isLoading) return <LoadingPage />;
+
+  if (isError)
+    return (
+      <DetailLoadError
+        title="Cotización"
+        subject="La cotización"
+        label={quote_number}
+        onRetry={() => refetch()}
+      />
+    );
 
   if (isOutOfScope) return <QuoteOutOfScope />;
 

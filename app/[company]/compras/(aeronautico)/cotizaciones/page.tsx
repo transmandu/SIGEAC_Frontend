@@ -147,6 +147,7 @@ const QuotesOrdersPageContent = () => {
             groupBy={groupBy as any}
             renderTable={(rows) => (
               <DataTable
+                error={isError}
                 columns={columns}
                 data={rows}
                 loading={isLoading}
@@ -156,19 +157,12 @@ const QuotesOrdersPageContent = () => {
           />
         ) : (
           <DataTable
+            error={isError}
             columns={columns}
             data={filteredQuotes}
             loading={isLoading}
             persistKey="cotizaciones"
           />
-        )}
-
-        {isError && (
-          <div className="rounded-lg border border-red-500/20 bg-red-500/5 px-4 py-3">
-            <p className="text-sm text-red-500">
-              Ha ocurrido un error al cargar las cotizaciones.
-            </p>
-          </div>
         )}
       </div>
     </ContentLayout>

@@ -27,7 +27,7 @@ const QuarantinePurchasesPage = () => {
   const deferredSearch = useDeferredValue(search);
   const legalDays = useQuarantineLegalDays();
 
-  const { data: records, isLoading } = useGetQuarantineArticles(status);
+  const { data: records, isLoading, isError } = useGetQuarantineArticles(status);
   // Las métricas deben contar todo el ciclo, no solo lo que el filtro muestra.
   const { data: allRecords } = useGetQuarantineArticles("ALL");
 
@@ -201,6 +201,7 @@ const QuarantinePurchasesPage = () => {
           columns={columns}
           data={filteredRecords}
           loading={isLoading}
+          error={isError}
           loadingText="Cargando artículos en cuarentena..."
           emptyText="No hay artículos en cuarentena para este filtro."
           persistKey="compras-cuarentena"

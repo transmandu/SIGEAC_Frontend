@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useCallback } from "react";
+import { toast } from "sonner";
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
 
@@ -122,8 +123,8 @@ const CostManagementPage = () => {
     drafts: costDrafts,
     hasChanges,
     onCostChange,
-    setDrafts,
-  } = useCostDrafts();
+    clearDrafts,
+  } = useCostDrafts(type);
 
   const bulkArticleMutation = useBulkUpdateArticleCost();
   const bulkGeneralMutation = useBulkUpdateGeneralCost();
@@ -136,32 +137,30 @@ const CostManagementPage = () => {
 
     if (!updates.length) return;
 
+    // Un borrador como "." o "1." no es un número: mandarlo como NaN lo
+    // convertiría en null en el servidor.
+    if (updates.some((update) => !Number.isFinite(update.cost))) {
+      toast.error("Hay costos con un valor no válido. Corríjalos para guardar.");
+      return;
+    }
+
     const payload = {
       company: selectedCompany?.slug!,
       updates,
     };
 
-    if (type === "ARTICLE") {
-      bulkArticleMutation.mutate(payload, {
-        onSuccess: () => setDrafts({}),
-      });
-    } else {
-      bulkGeneralMutation.mutate(payload, {
-        onSuccess: () => setDrafts({}),
-      });
-    }
+    const mutation =
+      type === "ARTICLE" ? bulkArticleMutation : bulkGeneralMutation;
+
+    mutation.mutate(payload, { onSuccess: clearDrafts });
   }, [
     costDrafts,
     type,
     selectedCompany,
     bulkArticleMutation,
     bulkGeneralMutation,
-    setDrafts,
+    clearDrafts,
   ]);
-
-  const handleReset = useCallback(() => {
-    setDrafts({});
-  }, [setDrafts]);
 
   const [historyRow, setHistoryRow] = useState<GeneralCostRow | null>(null);
   const history = useGeneralArticleCostHistory(historyRow?.id ?? null);
@@ -198,7 +197,7 @@ const CostManagementPage = () => {
               </h1>
 
               <p className="text-sm text-muted-foreground">
-                Administra y actualiza los costos unitarios de artículos y otros
+                Administre y actualice los costos unitarios de artículos y otros
                 elementos del inventario aeronáutico y general.
               </p>
             </div>
@@ -245,7 +244,7 @@ const CostManagementPage = () => {
           hasChanges={hasChanges}
           modifiedCount={Object.keys(costDrafts).length}
           onSave={handleSave}
-          onReset={handleReset}
+          onReset={clearDrafts}
         />
 
         {groupBy !== "NONE" ? (
@@ -253,6 +252,8 @@ const CostManagementPage = () => {
             data={rows}
             pagination={cursorPagination}
             isTransitioning={listing.isTransitioning}
+            isLoading={listing.isLoading}
+            isError={listing.isError}
             renderTable={(groupRows) => (
               <DataTable
                 columns={columns}
@@ -268,6 +269,7 @@ const CostManagementPage = () => {
             columns={columns}
             data={rows}
             loading={listing.isLoading}
+            error={listing.isError}
             meta={{ costDrafts }}
             overflowVisible
             cursorPagination={cursorPagination}

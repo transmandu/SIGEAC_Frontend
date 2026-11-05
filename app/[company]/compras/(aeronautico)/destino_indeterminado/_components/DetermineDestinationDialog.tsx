@@ -98,7 +98,9 @@ export function DetermineDestinationDialog({
 
   const assigned = allocations.reduce((sum, entry) => sum + entry.quantity, 0);
   const pending = Number((available - assigned).toFixed(4));
-  const exceeds = assigned > available;
+  // Se compara el sobrante ya redondeado: 0.1 + 0.2 > 0.3 en punto flotante
+  // marcaría "excede" un reparto exacto.
+  const exceeds = pending < 0;
 
   // Lo que se queda aquí no abre salida: solo los traslados necesitan a quién
   // atribuírsele en la sede que los recibe.
@@ -134,11 +136,17 @@ export function DetermineDestinationDialog({
   const submit = async () => {
     if (!canSubmit) return;
 
-    await determineDestination.mutateAsync({
-      id: article.id,
-      allocations,
-      justification: justification.trim() || undefined,
-    });
+    try {
+      await determineDestination.mutateAsync({
+        id: article.id,
+        allocations,
+        justification: justification.trim() || undefined,
+      });
+    } catch {
+      // El aviso del error lo muestra la mutación; el diálogo sigue abierto.
+      return;
+    }
+
     onOpenChange(false);
   };
 
