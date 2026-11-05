@@ -45,6 +45,32 @@ export const columns: AppColumnDef<TransitArticle>[] = [
     ),
   },
   {
+    id: "serial_lot",
+    accessorFn: (row) => row.serial ?? row.lot_number ?? "",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Serial / Lote" />
+    ),
+    meta: { title: "Serial / Lote" },
+    cell: ({ row }) => {
+      const { serial, lot_number } = row.original;
+
+      if (!serial && !lot_number) {
+        return <p className="text-center text-muted-foreground/40">-</p>;
+      }
+
+      return (
+        <div className="flex flex-col items-center gap-0.5">
+          <span className="text-[9px] font-semibold uppercase tracking-widest text-muted-foreground/60">
+            {serial ? "Serial" : "Lote"}
+          </span>
+          <span className="font-mono text-[12px] font-semibold">
+            {serial ?? lot_number}
+          </span>
+        </div>
+      );
+    },
+  },
+  {
     accessorKey: "quantity",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Cantidad" />

@@ -37,6 +37,8 @@ const EnTransitoPage = () => {
           alt.toLowerCase().includes(q),
         ) ||
         a.batch?.name?.toLowerCase().includes(q) ||
+        a.serial?.toLowerCase().includes(q) ||
+        a.lot_number?.toLowerCase().includes(q) ||
         a.batch?.warehouse?.location?.address?.toLowerCase().includes(q),
     );
   }, [articles, deferredSearch]);

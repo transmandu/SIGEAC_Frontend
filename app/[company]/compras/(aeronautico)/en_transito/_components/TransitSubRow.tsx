@@ -6,7 +6,7 @@ import {
   INCOMING_REASON_LABELS,
   isReadyForIncoming,
 } from "@/lib/incoming-readiness";
-import { FileWarning, Hash } from "lucide-react";
+import { FileWarning } from "lucide-react";
 import type { TransitArticle } from "@/types/purchase";
 
 type Props = {
@@ -27,7 +27,6 @@ export default function TransitSubRow({ row }: Props) {
     article.condition ||
     article.quantity != null ||
     article.unit ||
-    article.serial ||
     isBlocked;
 
   if (!hasInfo) {
@@ -40,23 +39,7 @@ export default function TransitSubRow({ row }: Props) {
 
   return (
     <div className="px-4 py-3 space-y-3">
-      <div className="grid grid-cols-4 gap-6 text-[11px]">
-        {/* SERIAL (AHORA COMO COLUMNA NORMAL) */}
-        <div className="space-y-0.5">
-          <div className="text-muted-foreground/60">Serial</div>
-
-          <div className="flex items-center gap-1.5 font-mono text-slate-700 dark:text-slate-200">
-            {article.serial ? (
-              <>
-                <Hash className="size-3 opacity-60" />
-                {article.serial}
-              </>
-            ) : (
-              "—"
-            )}
-          </div>
-        </div>
-
+      <div className="grid grid-cols-3 gap-6 text-[11px]">
         {/* MANUFACTURER */}
         <div className="space-y-0.5">
           <div className="text-muted-foreground/60">Fabricante</div>

@@ -55,7 +55,7 @@ const TransitToolBar = ({
   setSearch,
   status,
   setStatus,
-  placeholder = 'Buscar artículos, batch o ubicación...',
+  placeholder = 'Buscar parte, serial, lote, batch o ubicación...',
 }: Props) => {
   return (
     <div className="flex items-center gap-2">

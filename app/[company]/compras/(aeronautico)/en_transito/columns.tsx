@@ -433,6 +433,39 @@ export const getColumns = (
   },
 
   {
+    id: "serial_lot",
+    size: 150,
+
+    header: () => (
+      <div className="flex justify-center w-full text-xs font-medium text-muted-foreground">
+        Serial / Lote
+      </div>
+    ),
+
+    cell: ({ row }) => {
+      const { serial, lot_number } = row.original;
+
+      return (
+        <div className="flex justify-center w-full">
+          {serial || lot_number ? (
+            <div className="flex flex-col items-center gap-0.5">
+              <span className="text-[9px] font-semibold uppercase tracking-widest text-muted-foreground/60">
+                {serial ? "Serial" : "Lote"}
+              </span>
+              <span className="font-mono text-[12px] font-semibold">
+                {serial ?? lot_number}
+              </span>
+            </div>
+          ) : (
+            <span className="text-muted-foreground/40">—</span>
+          )}
+        </div>
+      );
+    },
+    enableSorting: false,
+  },
+
+  {
     accessorKey: "status_date",
     size: 180,
 
