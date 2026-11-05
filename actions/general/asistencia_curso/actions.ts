@@ -15,6 +15,7 @@ interface CourseAttendaceData {
   employees_list: {
     addedEmployees: EmployeeSelected[];
     removedEmployees: EmployeeSelected[];
+    training_group_ids?: number[];
   };
 }
 

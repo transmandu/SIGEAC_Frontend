@@ -31,8 +31,16 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useGetJobTitles } from "@/hooks/ajustes/cargo/useGetJobTitles";
+import { useGetSmsTrainingModulePatterns } from "@/hooks/curso/useGetSmsTrainingModulePatterns";
 import { zodResolver } from "@/lib/zod-resolver";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
@@ -41,6 +49,10 @@ import { SmsTrainingGroup } from "@/types";
 const groupSchema = z.object({
   name: z.string().min(1, "El nombre es obligatorio"),
   description: z.string().optional(),
+  sms_training_module_pattern_id: z.coerce
+    .number({ error: "Seleccione un patrón" })
+    .int()
+    .positive("Seleccione un patrón"),
   job_title_ids: z.array(z.number()).min(1, "Seleccione al menos un cargo"),
 });
 
@@ -57,6 +69,8 @@ export function CreateSmsTrainingGroupForm({ onSuccess, group }: Props) {
   const { data: jobTitles, isLoading: isLoadingJobTitles } = useGetJobTitles(
     selectedCompany?.slug,
   );
+  const { data: patterns, isLoading: isLoadingPatterns } =
+    useGetSmsTrainingModulePatterns(selectedCompany?.slug);
   const { createSmsTrainingGroup } = useCreateSmsTrainingGroup();
   const { updateSmsTrainingGroup } = useUpdateSmsTrainingGroup();
   const mutation = group ? updateSmsTrainingGroup : createSmsTrainingGroup;
@@ -66,6 +80,8 @@ export function CreateSmsTrainingGroupForm({ onSuccess, group }: Props) {
     defaultValues: {
       name: group?.name ?? "",
       description: group?.description ?? "",
+      sms_training_module_pattern_id:
+        group?.sms_training_module_pattern_id ?? undefined,
       job_title_ids: group?.job_titles?.map((jobTitle) => jobTitle.id) ?? [],
     },
   });
@@ -91,6 +107,7 @@ export function CreateSmsTrainingGroupForm({ onSuccess, group }: Props) {
     const payload = {
       name: data.name.trim(),
       description: data.description?.trim() || undefined,
+      sms_training_module_pattern_id: data.sms_training_module_pattern_id,
       job_title_ids: data.job_title_ids,
     };
 
@@ -147,6 +164,42 @@ export function CreateSmsTrainingGroupForm({ onSuccess, group }: Props) {
                   {...field}
                 />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="sms_training_module_pattern_id"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Patrón de módulos</FormLabel>
+              <Select
+                value={field.value ? String(field.value) : undefined}
+                onValueChange={(value) => field.onChange(Number(value))}
+                disabled={isLoadingPatterns}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue
+                      placeholder={
+                        isLoadingPatterns
+                          ? "Cargando patrones..."
+                          : "Seleccionar patrón"
+                      }
+                    />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {patterns?.map((pattern) => (
+                    <SelectItem key={pattern.id} value={String(pattern.id)}>
+                      {pattern.name} — {pattern.initial_total_hours}h inicial /{" "}
+                      {pattern.recurrent_total_hours}h recurrente
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}

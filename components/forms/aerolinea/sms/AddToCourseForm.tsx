@@ -56,6 +56,7 @@ type TabValue = "groups" | "people";
 export function AddToCourseForm({ onClose, initialData }: FormProps) {
   const [tab, setTab] = useState<TabValue>("groups");
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeGroupIds, setActiveGroupIds] = useState<number[]>([]);
   const { selectedCompany } = useCompanyStore();
   const { createCourseAttendance } = useCreateCourseAttendance();
 
@@ -173,6 +174,10 @@ export function AddToCourseForm({ onClose, initialData }: FormProps) {
       group.job_titles.map((jobTitle) => jobTitle.id),
     );
 
+    setActiveGroupIds((current) =>
+      current.includes(group.id) ? current : [...current, group.id],
+    );
+
     setEmployeeSelections((current) =>
       current.map((employee) =>
         employee.job_title_id !== undefined &&
@@ -208,6 +213,7 @@ export function AddToCourseForm({ onClose, initialData }: FormProps) {
       employees_list: {
         addedEmployees,
         removedEmployees,
+        training_group_ids: activeGroupIds,
       },
     };
     try {

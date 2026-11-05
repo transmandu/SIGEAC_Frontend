@@ -51,8 +51,8 @@ import { cn } from "@/lib/utils";
 import FolderSelect from "@/components/library/FolderSelect";
 
 const COURSE_HOURS_BY_TYPE: Record<"RECURRENTE" | "INICIAL", number[]> = {
-  RECURRENTE: [40, 16, 8],
-  INICIAL: [20, 8, 4],
+  INICIAL: [40, 16, 8],
+  RECURRENTE: [20, 8, 4],
 };
 
 interface FormProps {
@@ -160,6 +160,11 @@ export function CreateCourseForm({
   const selectedCourseType = useWatch({
     control: form.control,
     name: "course_type",
+  });
+
+  const selectedHours = useWatch({
+    control: form.control,
+    name: "hours",
   });
 
   const hourOptions = selectedCourseType
@@ -508,12 +513,23 @@ export function CreateCourseForm({
                               const isSelected = (field.value ?? []).includes(
                                 group.id,
                               );
+                              const requiredHours =
+                                selectedCourseType === "RECURRENTE"
+                                  ? (group.recurrent_total_hours ?? 0)
+                                  : (group.initial_total_hours ?? 0);
+                              const exceedsCourse =
+                                !!selectedHours &&
+                                requiredHours > Number(selectedHours);
 
                               return (
                                 <CommandItem
                                   key={group.id}
                                   value={group.name}
-                                  disabled={!group.active_employees_count}
+                                  disabled={
+                                    !group.pattern ||
+                                    !group.active_employees_count ||
+                                    exceedsCourse
+                                  }
                                   onSelect={() => toggleTrainingGroup(group.id)}
                                 >
                                   <Check
@@ -525,8 +541,15 @@ export function CreateCourseForm({
                                   <div className="flex flex-col">
                                     <span>{group.name}</span>
                                     <span className="text-xs text-muted-foreground">
+                                      {group.pattern?.name ?? "Sin patrón"} ·{" "}
+                                      {requiredHours}h requeridas
+                                    </span>
+                                    <span className="text-xs text-muted-foreground">
                                       {group.active_employees_count} empleado(s)
                                       activo(s)
+                                      {exceedsCourse
+                                        ? " · supera las horas del curso"
+                                        : ""}
                                     </span>
                                   </div>
                                 </CommandItem>

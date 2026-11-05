@@ -1313,8 +1313,41 @@ export type SmsTrainingGroup = {
   id: number;
   name: string;
   description?: string | null;
+  sms_training_module_pattern_id: number;
+  pattern?: SmsTrainingModulePattern | null;
   job_titles: JobTitle[];
   active_employees_count: number;
+  initial_total_hours?: number;
+  recurrent_total_hours?: number;
+  registered_by?: string;
+  updated_by?: string | null;
+};
+
+export type SmsTrainingModule = {
+  id: number;
+  number: number;
+  name: string;
+  description?: string | null;
+  is_active: boolean;
+  registered_by?: string;
+  updated_by?: string | null;
+};
+
+export type SmsTrainingPatternModule = SmsTrainingModule & {
+  pivot: {
+    initial_hours: string | number;
+    sort_order: number;
+  };
+};
+
+export type SmsTrainingModulePattern = {
+  id: number;
+  name: string;
+  description?: string | null;
+  is_active: boolean;
+  modules: SmsTrainingPatternModule[];
+  initial_total_hours: number;
+  recurrent_total_hours: number;
   registered_by?: string;
   updated_by?: string | null;
 };
@@ -1884,6 +1917,19 @@ export type CourseAttendance = {
   course: Course;
   employee_dni: string;
   employee: Employee;
+};
+
+export type CourseUploadedCertificate = {
+  id: number;
+  employee_dni: string;
+  course_id: number;
+  completion_date: string;
+  document: string;
+  employee?: {
+    dni: string;
+    first_name: string;
+    last_name: string;
+  } | null;
 };
 
 export type SMSTrainingHistoryEntry = {
