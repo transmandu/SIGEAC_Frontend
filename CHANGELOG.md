@@ -1,3 +1,7 @@
+## v4.91.0 — 2026-11-05
+
+- feat: add serial and lot number display in various components and update search functionality
+
 ## v4.90.0 — 2026-11-04
 
 - feat: add serial and lot number display in ArticleRow component (#382)
