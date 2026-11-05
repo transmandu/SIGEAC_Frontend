@@ -33,7 +33,7 @@ import { ResolveQuarantineDialog } from "./_components/ResolveQuarantineDialog";
 
 const pendingDocumentCount = (record: QuarantineRecord) =>
   (record.article?.document_requirements ?? []).filter(
-    (req) => req.documents.length === 0,
+    (req) => (req.documents ?? []).length === 0,
   ).length;
 
 /**

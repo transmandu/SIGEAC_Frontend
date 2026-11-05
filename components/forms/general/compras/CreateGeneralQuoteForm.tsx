@@ -13,7 +13,7 @@ import { useGetRetailers } from "@/hooks/general/comercios/useGetRetailers";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { zodResolver } from "@/lib/zod-resolver";
 import { Loader2, PackageSearch, Save, Send } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -233,9 +233,17 @@ export function CreateGeneralQuoteForm({
     name: "retailer_id",
   });
 
+  // Solo reaccionan a un cambio real de la cabecera: al reabrir un borrador ya
+  // trae su sede y lugar de compra, y bajarlos a todos los artículos pisaría
+  // los que el comprador había elegido artículo por artículo.
+  const syncedLocation = useRef(headerLocationId);
+  const syncedRetailer = useRef(headerRetailerId);
+
   // La ubicación de la cabecera baja a todos los artículos como valor por
   // defecto; cada uno sigue siendo editable después.
   useEffect(() => {
+    if (headerLocationId === syncedLocation.current) return;
+    syncedLocation.current = headerLocationId;
     if (!headerLocationId) return;
     form.getValues("general_articles").forEach((_, index) => {
       form.setValue(`general_articles.${index}.location_id`, headerLocationId);
@@ -246,6 +254,8 @@ export function CreateGeneralQuoteForm({
   // El lugar de compra de la cabecera baja a todos los artículos como valor
   // por defecto; se puede cambiar por artículo si la cotización mezcla varios.
   useEffect(() => {
+    if (headerRetailerId === syncedRetailer.current) return;
+    syncedRetailer.current = headerRetailerId;
     if (!headerRetailerId) return;
     form.getValues("general_articles").forEach((_, index) => {
       form.setValue(`general_articles.${index}.retailer_id`, headerRetailerId);
@@ -514,10 +524,16 @@ export function CreateGeneralQuoteForm({
         quote_justification: a.quote_justification || undefined,
       })),
     };
-    await createQuote.mutateAsync({
-      data: formattedData,
-      company: selectedCompany!.slug,
-    });
+    try {
+      await createQuote.mutateAsync({
+        data: formattedData,
+        company: selectedCompany!.slug,
+      });
+    } catch {
+      // La mutación ya avisó el error; el formulario conserva lo capturado.
+      return;
+    }
+
     onClose();
   };
 

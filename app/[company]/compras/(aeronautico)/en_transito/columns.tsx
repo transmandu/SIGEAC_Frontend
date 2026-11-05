@@ -39,7 +39,7 @@ import {
 
 const getPendingRequirements = (article: TransitArticle) =>
   (article.document_requirements ?? []).filter(
-    (req) => req.documents.length === 0,
+    (req) => (req.documents ?? []).length === 0,
   );
 
 function TransitActionButton({ article }: { article: TransitArticle }) {

@@ -109,6 +109,8 @@ const PurchaseOrdersPageContent = () => {
 
         {groupBy === 'quote' || groupBy === 'vendor' ? (
           <GroupedPurchaseOrderTable
+            isLoading={isLoading}
+            isError={isError}
             data={filteredPO}
             groupBy={groupBy}
             renderTable={(rows) => (

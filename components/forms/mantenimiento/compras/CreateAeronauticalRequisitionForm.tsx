@@ -278,6 +278,7 @@ export function CreateAeronauticalRequisitionForm({ onClose }: FormProps) {
         {
           batch: batchId,
           batch_name: batchName,
+          batch_category,
           batch_articles: [
             {
               part_number: "",
@@ -320,6 +321,7 @@ export function CreateAeronauticalRequisitionForm({ onClose }: FormProps) {
           {
             batch: batchId,
             batch_name: batch.name,
+            batch_category: batch.category,
             batch_articles: [
               {
                 part_number: article.part_number,
@@ -416,7 +418,7 @@ export function CreateAeronauticalRequisitionForm({ onClose }: FormProps) {
             {
               part_number: "",
               quantity: 1,
-              unit: getDefaultUnit(batch.batch_name),
+              unit: getDefaultUnit(batch.batch_category ?? ""),
               priority: "MEDIUM",
               aircraft_id: headerAircraftId,
               document_type_ids: [],
@@ -472,10 +474,16 @@ export function CreateAeronauticalRequisitionForm({ onClose }: FormProps) {
       aircraft_id: data.aircraft_id ? Number(data.aircraft_id) : undefined,
     };
 
-    await createRequisition.mutateAsync({
-      data: formattedData,
-      company: selectedCompany!.slug,
-    });
+    try {
+      await createRequisition.mutateAsync({
+        data: formattedData,
+        company: selectedCompany!.slug,
+      });
+    } catch {
+      // La mutación ya avisó el error; el formulario conserva lo capturado.
+      return;
+    }
+
     onClose();
   };
 

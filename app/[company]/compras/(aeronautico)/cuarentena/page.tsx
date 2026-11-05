@@ -177,7 +177,7 @@ const QuarantinePurchasesPage = () => {
                     </div>
                     <p className="text-xs text-muted-foreground">
                       {(metrics.mostUrgent.risk.remaining ?? 0) >= 0
-                        ? `Vence en ${metrics.mostUrgent.risk.remaining} días`
+                        ? `Vence en ${metrics.mostUrgent.risk.remaining} ${metrics.mostUrgent.risk.remaining === 1 ? "día" : "días"}`
                         : `Vencido por ${Math.abs(metrics.mostUrgent.risk.remaining ?? 0)} días`}
                     </p>
                   </div>

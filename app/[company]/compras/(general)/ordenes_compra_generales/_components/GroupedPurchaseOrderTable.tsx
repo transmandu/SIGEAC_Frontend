@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import GroupedEmpty from "@/app/[company]/compras/_components/GroupedEmpty";
 
 import PurchaseOrderGroupRow from "./PurchaseOrderGroupRow";
 import GroupPagination from "@/components/misc/GroupPagination";
@@ -10,6 +11,8 @@ import { useResettingState } from "@/hooks/useResettingState";
 type GroupableKey = "quote" | "retailer";
 
 type Props = {
+  isLoading?: boolean;
+  isError?: boolean;
   data: PurchaseOrder[];
   groupBy: GroupableKey;
   renderTable: (rows: PurchaseOrder[]) => React.ReactNode;
@@ -27,7 +30,7 @@ const formatGroupLabel = (value?: string | null) => {
   return value;
 };
 
-const GroupedPurchaseOrderTable = ({ data, groupBy, renderTable }: Props) => {
+const GroupedPurchaseOrderTable = ({ isLoading, isError, data, groupBy, renderTable }: Props) => {
   const groups = useMemo<Group[]>(() => {
     const groupedMap = new Map<string, PurchaseOrder[]>();
 
@@ -82,19 +85,11 @@ const GroupedPurchaseOrderTable = ({ data, groupBy, renderTable }: Props) => {
 
   if (!groups.length) {
     return (
-      <div
-        className="
-          rounded-xl border
-          bg-white dark:bg-slate-900/60
-          border-slate-200 dark:border-slate-700/60
-          px-6 py-10
-          text-center
-        "
-      >
-        <p className="text-sm text-muted-foreground">
-          No hay órdenes de compra agrupadas disponibles.
-        </p>
-      </div>
+      <GroupedEmpty
+        subject="órdenes de compra"
+        isLoading={isLoading}
+        isError={isError}
+      />
     );
   }
 

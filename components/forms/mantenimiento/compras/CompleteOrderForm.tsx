@@ -299,7 +299,10 @@ export function CompleteOrderForm({
 
     const missingJustification = data.articles_purchase_orders.some(
       (article) =>
-        Number(article.total) !== article.quoted_total &&
+        // En centavos: 3 × 1.1 da 3.3000000000000003 y no es igual al "3.30"
+        // del campo, aunque el usuario no haya cambiado nada.
+        Math.round(Number(article.total) * 100) !==
+          Math.round(article.quoted_total * 100) &&
         !article.total_justification?.trim(),
     );
     if (missingJustification) {

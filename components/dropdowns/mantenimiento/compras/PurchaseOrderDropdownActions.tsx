@@ -19,7 +19,6 @@ import { Button } from "@/components/ui/button";
 import {
   AlertOctagon,
   ClipboardCheck,
-  FileDown,
   MoreHorizontal,
   Receipt,
   Wallet,
@@ -132,24 +131,6 @@ const PurchaseOrderDropdownActions = ({ po }: { po: PurchaseOrder }) => {
                 </TooltipContent>
               </Tooltip>
             )}
-            {/* Descarga del PDF pendiente de implementar. */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <DropdownMenuItem asChild className="p-0 focus:bg-transparent">
-                  <button
-                    className={`
-                          ${itemBase}
-                          text-blue-600
-                        `}
-                  >
-                    <FileDown className={iconBase} />
-                  </button>
-                </DropdownMenuItem>
-              </TooltipTrigger>
-
-              <TooltipContent>¡Próximamente!</TooltipContent>
-            </Tooltip>
-
             {/* CASCADE DELETE (SUPERUSER) */}
             {isSuperUser && (
               <Tooltip>

@@ -20,12 +20,20 @@ type Props = {
 
 const isPdf = (path: string) => path.toLowerCase().endsWith(".pdf")
 
+const fileExtension = (path: string) => {
+  const match = path.match(/\.([a-z0-9]{2,5})$/i)
+  return match ? `.${match[1].toLowerCase()}` : ""
+}
+
 const invoiceLabel = (invoice: PurchaseOrderInvoice, index: number) =>
   invoice.invoice_number?.trim() || `Factura ${index + 1}`
 
 const InvoicePreviewDialog = ({ open, onOpenChange, invoices, company, orderNumber }: Props) => {
   const [activeIndex, setActiveIndex] = useState(0)
-  const active = invoices[activeIndex] ?? invoices[0]
+  // Si la lista se acorta (se eliminó una factura), el índice guardado puede
+  // quedar fuera: se acota para que la pestaña resaltada sea la que se ve.
+  const safeIndex = Math.min(activeIndex, Math.max(invoices.length - 1, 0))
+  const active = invoices[safeIndex]
 
   if (!active) return null
 
@@ -50,8 +58,8 @@ const InvoicePreviewDialog = ({ open, onOpenChange, invoices, company, orderNumb
                 key={invoice.id}
                 type="button"
                 size="sm"
-                variant={index === activeIndex ? "default" : "outline"}
-                className={cn("h-7 px-3 text-xs", index === activeIndex && "pointer-events-none")}
+                variant={index === safeIndex ? "default" : "outline"}
+                className={cn("h-7 px-3 text-xs", index === safeIndex && "pointer-events-none")}
                 onClick={() => setActiveIndex(index)}
               >
                 {invoiceLabel(invoice, index)}
@@ -95,7 +103,7 @@ const InvoicePreviewDialog = ({ open, onOpenChange, invoices, company, orderNumb
 
               <div className="flex justify-end border-t border-border/60 px-6 py-3">
                 <Button asChild variant="outline" size="sm" disabled={!url || isLoading || hasError}>
-                  <a href={url ?? "#"} download={`Factura-${orderNumber}-${invoiceLabel(active, activeIndex)}`}>
+                  <a href={url ?? "#"} download={`Factura-${orderNumber}-${invoiceLabel(active, safeIndex)}${fileExtension(active.file_path)}`}>
                     <Download className="mr-2 size-4" />
                     Descargar
                   </a>

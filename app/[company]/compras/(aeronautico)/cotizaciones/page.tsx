@@ -143,6 +143,8 @@ const QuotesOrdersPageContent = () => {
 
         {groupBy !== "NONE" ? (
           <GroupedQuotesTable
+            isLoading={isLoading}
+            isError={isError}
             data={filteredQuotes}
             groupBy={groupBy as any}
             renderTable={(rows) => (

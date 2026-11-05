@@ -115,13 +115,31 @@ export default function SignedQuoteDocumentDialog({
     if (!company || isOpening) return;
 
     setIsOpening(true);
+
+    // La pestaña se abre ya, dentro del clic: abrirla después de esperar la
+    // descarga hace que Safari y los navegadores móviles la traten como una
+    // ventana emergente no solicitada y la bloqueen.
+    const tab = window.open("", "_blank");
+    if (tab) tab.opener = null;
+
     try {
       const blob = await fetchSignedQuoteBlob(company, quote.id);
       const url = URL.createObjectURL(blob);
-      window.open(url, "_blank", "noopener");
+
+      if (tab) {
+        tab.location.href = url;
+      } else {
+        // Sin pestaña (bloqueada): se descarga en vez de fallar en silencio.
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = `${quote.quote_number ?? "cotizacion"}-firmada`;
+        anchor.click();
+      }
+
       // La pestaña nueva necesita el blob vivo un momento para cargarlo.
       setTimeout(() => URL.revokeObjectURL(url), 60_000);
     } catch (error) {
+      tab?.close();
       notifyError(error, { action: "abrir el documento firmado" });
     } finally {
       setIsOpening(false);

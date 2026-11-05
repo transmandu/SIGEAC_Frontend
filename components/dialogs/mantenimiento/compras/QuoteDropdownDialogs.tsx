@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { toast } from "sonner";
 
 /* =========================
    STYLES
@@ -106,15 +107,21 @@ const QuoteDropdownDialogs = ({
 
   if (!selectedCompany) return <LoadingPage />;
 
+  // Las mutaciones ya avisan su error por toast; aquí solo se evita la promesa
+  // sin capturar y se deja el diálogo abierto para reintentar.
   const handleReject = async () => {
-    await updateStatusQuote.mutateAsync({
-      id: quote.id,
-      data: {
-        status: "REJECTED",
-        observation: Observation.trim() || null,
-      },
-      company: selectedCompany.slug,
-    });
+    try {
+      await updateStatusQuote.mutateAsync({
+        id: quote.id,
+        data: {
+          status: "REJECTED",
+          observation: Observation.trim() || null,
+        },
+        company: selectedCompany.slug,
+      });
+    } catch {
+      return;
+    }
 
     setObservation("");
     setOpenReject(false);
@@ -131,6 +138,12 @@ const QuoteDropdownDialogs = ({
     const locationId =
       quote.article_quote_order.find((a) => a.location)?.location?.id ??
       quote.general_article_quote_order.find((a) => a.location)?.location?.id;
+
+    if (locationId == null) {
+      toast.error("Ningún artículo de la cotización tiene sede asignada.");
+      setOpenApprove(false);
+      return;
+    }
 
     // sub_total/total aren't sent here — a quote spanning multiple vendors
     // (or retailers) splits into one PO per vendor, and the backend computes
@@ -165,10 +178,14 @@ const QuoteDropdownDialogs = ({
     }
   };
   const handleDelete = async () => {
-    await deleteQuote.mutateAsync({
-      id: quote.id,
-      company: selectedCompany.slug,
-    });
+    try {
+      await deleteQuote.mutateAsync({
+        id: quote.id,
+        company: selectedCompany.slug,
+      });
+    } catch {
+      return;
+    }
 
     setOpenDelete(false);
 
@@ -176,10 +193,14 @@ const QuoteDropdownDialogs = ({
   };
 
   const handleCascadeDelete = async () => {
-    await cascadeDeleteQuote.mutateAsync({
-      id: quote.id,
-      company: selectedCompany.slug,
-    });
+    try {
+      await cascadeDeleteQuote.mutateAsync({
+        id: quote.id,
+        company: selectedCompany.slug,
+      });
+    } catch {
+      return;
+    }
 
     setOpenCascadeDelete(false);
 

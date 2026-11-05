@@ -149,6 +149,8 @@ const RequisitionsPageContent = () => {
         {groupBy === "requested_by" ? (
           <>
             <GroupedRequisitionTable
+              isLoading={isLoading}
+              isError={isError}
               data={rows}
               renderTable={(groupedRows) => (
                 <DataTable

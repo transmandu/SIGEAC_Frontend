@@ -22,6 +22,8 @@ import { Button } from "@/components/ui/button";
 import CopyPartNumberButton from "@/components/misc/CopyPartNumberButton";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import { formatInstant } from "@/lib/date";
 import type {
   ArticleQuoteOrder,
   GeneralArticleQuoteOrder,
@@ -56,17 +58,6 @@ const statusBadgeClass = (status?: string) => {
       !approved &&
       "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300",
   );
-};
-
-const formatDate = (date?: string | null) => {
-  if (!date) return "—";
-  const d = new Date(date);
-  if (Number.isNaN(d.getTime())) return "—";
-  return d.toLocaleDateString("es-VE", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
 };
 
 const money = (value: number | string | null | undefined) => {
@@ -400,6 +391,7 @@ const GeneralArticleRow = ({
 
 export default function QuotePreviewPanel({ quote, onClose }: Props) {
   const { selectedCompany } = useCompanyStore();
+  const timeZone = useCompanyTimezone();
 
   if (!quote) return null;
 
@@ -487,7 +479,7 @@ export default function QuotePreviewPanel({ quote, onClose }: Props) {
             />
             <MetaItem
               label="FECHA DE COTIZACIÓN"
-              value={formatDate(quote.quote_date)}
+              value={formatInstant(quote.quote_date, timeZone, "short", "—")}
               icon={CalendarDays}
             />
             <MetaItem

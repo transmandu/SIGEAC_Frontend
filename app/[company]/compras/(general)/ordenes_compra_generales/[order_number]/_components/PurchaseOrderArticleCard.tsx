@@ -46,7 +46,7 @@ const PurchaseOrderArticleCard = ({ article, orderStatus }: PurchaseOrderArticle
     ? Number(quoteArticle.total)
     : Number(quoteArticle?.quantity || 0) * Number(quoteArticle?.unit_price || 0);
   const amount = article.total != null ? Number(article.total) : quotedTotal;
-  const totalDiffers = article.total != null && Number(article.total) !== quotedTotal;
+  const totalDiffers = article.total != null && Math.round(Number(article.total) * 100) !== Math.round(quotedTotal * 100);
 
   return (
     <div className="rounded-lg border border-border/60 bg-background/70 overflow-hidden flex flex-col">

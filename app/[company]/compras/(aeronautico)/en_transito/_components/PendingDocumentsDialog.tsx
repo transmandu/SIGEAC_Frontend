@@ -54,7 +54,7 @@ export function PendingDocumentsDialog({
   const [consignments, setConsignments] = useState<ConsignmentState>({});
 
   const pendingRequirements = (article.document_requirements ?? []).filter(
-    (req) => req.documents.length === 0,
+    (req) => (req.documents ?? []).length === 0,
   );
 
   const setFile = (requirementId: number, file?: File) => {

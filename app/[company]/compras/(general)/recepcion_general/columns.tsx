@@ -87,7 +87,7 @@ const DeliveryNoteButton = ({ intake }: { intake: GeneralArticleIntake }) => {
       document.body.appendChild(a);
       a.click();
       a.remove();
-      window.URL.revokeObjectURL(url);
+      setTimeout(() => window.URL.revokeObjectURL(url), 100);
     } catch (error) {
       notifyError(error, { action: "descargar la nota de entrega" });
     } finally {

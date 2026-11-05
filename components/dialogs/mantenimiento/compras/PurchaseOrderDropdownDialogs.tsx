@@ -59,10 +59,15 @@ const PurchaseOrderDropdownDialogs = ({
   const handleCascadeDelete = async () => {
     if (!selectedCompany) return;
 
-    await cascadeDeletePurchaseOrder.mutateAsync({
-      id: po.id,
-      company: selectedCompany.slug,
-    });
+    try {
+      await cascadeDeletePurchaseOrder.mutateAsync({
+        id: po.id,
+        company: selectedCompany.slug,
+      });
+    } catch {
+      // El aviso lo muestra la mutación; el diálogo queda abierto.
+      return;
+    }
 
     setOpenCascadeDelete?.(false);
 

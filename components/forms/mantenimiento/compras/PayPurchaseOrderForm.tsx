@@ -298,7 +298,10 @@ export function PayPurchaseOrderForm({
 
     const missingJustification = data.articles_purchase_orders.some(
       (article) =>
-        Number(article.total) !== article.quoted_total &&
+        // En centavos: 3 × 1.1 da 3.3000000000000003 y no es igual al "3.30"
+        // del campo, aunque el usuario no haya cambiado nada.
+        Math.round(Number(article.total) * 100) !==
+          Math.round(article.quoted_total * 100) &&
         !article.total_justification?.trim(),
     );
     if (missingJustification) {
@@ -308,14 +311,16 @@ export function PayPurchaseOrderForm({
       return;
     }
 
-    // Una factura sin archivo no se puede guardar; la fila vacía del formulario
-    // se descarta sin avisar, pero un número escrito sin adjunto sí es un error.
+    // Una factura ya guardada (reintento tras un pago fallido) conserva su
+    // archivo aunque no se reemplace; una nueva sin adjunto no se puede
+    // persistir. La fila vacía se descarta sin avisar.
     const filledInvoices = invoices.filter(
-      (invoice) => invoice.file || invoice.invoice_number.trim(),
+      (invoice) =>
+        invoice.id != null || invoice.file || invoice.invoice_number.trim(),
     );
 
-    if (filledInvoices.some((invoice) => !invoice.file)) {
-      toast.error("¡Ops! Cada factura debe tener su archivo adjunto.");
+    if (filledInvoices.some((invoice) => invoice.id == null && !invoice.file)) {
+      toast.error("¡Ops! Cada factura nueva debe tener su archivo adjunto.");
       return;
     }
 
@@ -363,6 +368,7 @@ export function PayPurchaseOrderForm({
             : null,
         observation: data.observation || null,
         invoices: filledInvoices.map((invoice) => ({
+          id: invoice.id,
           invoice_number: invoice.invoice_number.trim() || null,
           file: invoice.file,
         })),

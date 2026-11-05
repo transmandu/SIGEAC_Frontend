@@ -67,8 +67,14 @@ export default function DownloadQuotePdfDialog({
       const anchor = document.createElement("a");
       anchor.href = url;
       anchor.download = `${quote.quote_number ?? "cotizacion"}.pdf`;
+      // El ancla debe estar en el documento: Firefox ignora el click sobre un
+      // elemento suelto y la descarga no ocurre.
+      document.body.appendChild(anchor);
       anchor.click();
-      URL.revokeObjectURL(url);
+      anchor.remove();
+      // Revocar en el mismo tick puede cancelar la descarga en algunos
+      // navegadores.
+      setTimeout(() => URL.revokeObjectURL(url), 100);
 
       toast.success(`Cotización ${quote.quote_number} generada`);
       handleOpenChange(false);

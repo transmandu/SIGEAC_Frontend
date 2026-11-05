@@ -19,6 +19,7 @@ import { useGetMyQuoteDrafts } from "@/hooks/mantenimiento/compras/useGetMyQuote
 import { useCompanyStore } from "@/stores/CompanyStore";
 import {
   isGeneralDraft,
+  quoteDraftProgress,
   requisitionFromDraft,
 } from "@/lib/purchases/quote-draft";
 
@@ -56,9 +57,9 @@ export function QuoteDraftEditorProvider({
 
   const editing = drafts?.find((draft) => draft.id === editingId) ?? null;
 
-  const pricedCount = (editing?.article_quote_order ?? []).filter(
-    (line) => !line.is_not_quoted && Number(line.unit_price) > 0,
-  ).length;
+  // Cuenta también las líneas generales: un borrador general descartaba sin
+  // advertir cuánto avance perdía.
+  const pricedCount = editing ? quoteDraftProgress(editing).priced : 0;
 
   return (
     <QuoteDraftEditorContext.Provider value={open}>

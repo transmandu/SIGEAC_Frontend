@@ -111,8 +111,14 @@ export default function DownloadRequisitionPdfDialog({
       const anchor = document.createElement("a");
       anchor.href = url;
       anchor.download = `${req.order_number}.pdf`;
+      // El ancla debe estar en el documento: Firefox ignora el click sobre un
+      // elemento suelto y la descarga no ocurre.
+      document.body.appendChild(anchor);
       anchor.click();
-      URL.revokeObjectURL(url);
+      anchor.remove();
+      // Revocar en el mismo tick puede cancelar la descarga en algunos
+      // navegadores.
+      setTimeout(() => URL.revokeObjectURL(url), 100);
 
       toast.success(`Requisición ${req.order_number} generada`);
       onOpenChange(false);

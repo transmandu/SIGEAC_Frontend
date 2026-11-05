@@ -335,17 +335,22 @@ export function CreateGeneralRequisitionForm({
       })),
     };
 
-    if (isEditing) {
-      await updateRequisition.mutateAsync({
-        id: id!,
-        data: formattedData,
-        company: selectedCompany.slug,
-      });
-    } else {
-      await createRequisition.mutateAsync({
-        data: formattedData,
-        company: selectedCompany.slug,
-      });
+    try {
+      if (isEditing) {
+        await updateRequisition.mutateAsync({
+          id: id!,
+          data: formattedData,
+          company: selectedCompany.slug,
+        });
+      } else {
+        await createRequisition.mutateAsync({
+          data: formattedData,
+          company: selectedCompany.slug,
+        });
+      }
+    } catch {
+      // La mutación ya avisó el error; el formulario conserva lo capturado.
+      return;
     }
 
     onClose();

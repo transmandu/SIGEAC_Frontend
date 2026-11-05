@@ -120,15 +120,20 @@ const PriorityForm = ({ req, setOpen, onSuccess }: Omit<Props, "open">) => {
       )
       .map((item) => ({ id: item.id, priority: articlePriorities[item.id] }));
 
-    await updatePriorityRequisition.mutateAsync({
-      id: req.id,
-      data: {
-        priority: headerPriority !== req.priority ? headerPriority : null,
-        articles,
-        general_articles,
-      },
-      company: selectedCompany.slug,
-    });
+    try {
+      await updatePriorityRequisition.mutateAsync({
+        id: req.id,
+        data: {
+          priority: headerPriority !== req.priority ? headerPriority : null,
+          articles,
+          general_articles,
+        },
+        company: selectedCompany.slug,
+      });
+    } catch {
+      // La mutación ya avisó el error; el diálogo queda abierto.
+      return;
+    }
 
     setOpen(false);
     onSuccess?.();

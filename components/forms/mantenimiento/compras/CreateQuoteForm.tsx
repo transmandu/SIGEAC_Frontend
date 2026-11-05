@@ -14,7 +14,7 @@ import { useGetConditions } from "@/hooks/general/condiciones/useGetConditions";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { zodResolver } from "@/lib/zod-resolver";
 import { Loader2, PackageSearch, Save, Send } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -383,7 +383,15 @@ export function CreateQuoteForm({
 
   // El proveedor y la ubicación de la cabecera bajan a todos los artículos
   // como valor por defecto; cada uno sigue siendo editable después.
+  // Solo reaccionan a un cambio real de la cabecera: al reabrir un borrador ya
+  // trae su proveedor y sede, y bajarlos a todos los artículos pisaría los que
+  // el comprador había elegido artículo por artículo.
+  const syncedVendor = useRef(headerVendorId);
+  const syncedLocation = useRef(headerLocationId);
+
   useEffect(() => {
+    if (headerVendorId === syncedVendor.current) return;
+    syncedVendor.current = headerVendorId;
     if (!headerVendorId) return;
     form.getValues("articles").forEach((_, index) => {
       form.setValue(`articles.${index}.vendor_id`, headerVendorId);
@@ -392,6 +400,8 @@ export function CreateQuoteForm({
   }, [headerVendorId]);
 
   useEffect(() => {
+    if (headerLocationId === syncedLocation.current) return;
+    syncedLocation.current = headerLocationId;
     if (!headerLocationId) return;
     form.getValues("articles").forEach((_, index) => {
       form.setValue(`articles.${index}.location_id`, headerLocationId);
@@ -646,8 +656,8 @@ export function CreateQuoteForm({
     toast.success("Borrador guardado", {
       description:
         pendingLinesCount > 0
-          ? `Quedan ${pendingLinesCount} artículo(s) sin precio. Puedes volver cuando los tengas.`
-          : "Ya puedes emitir la cotización cuando quieras.",
+          ? `Quedan ${pendingLinesCount} artículo(s) sin precio. Puede volver cuando los tenga.`
+          : "Ya puede emitir la cotización cuando guste.",
     });
   };
 
@@ -775,10 +785,16 @@ export function CreateQuoteForm({
         quote_justification: a.quote_justification || undefined,
       })),
     };
-    await createQuote.mutateAsync({
-      data: formattedData,
-      company: selectedCompany!.slug,
-    });
+    try {
+      await createQuote.mutateAsync({
+        data: formattedData,
+        company: selectedCompany!.slug,
+      });
+    } catch {
+      // La mutación ya avisó el error; el formulario conserva lo capturado.
+      return;
+    }
+
     onClose();
   };
 

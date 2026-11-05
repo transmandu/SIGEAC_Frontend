@@ -105,10 +105,15 @@ export function ResolveQuarantineDialog({ record, open, onOpenChange }: Props) {
   };
 
   const sendToQuality = async () => {
-    await sendToReinspection.mutateAsync({
-      id: record.id,
-      resolution_notes: notes.trim(),
-    });
+    try {
+      await sendToReinspection.mutateAsync({
+        id: record.id,
+        resolution_notes: notes.trim(),
+      });
+    } catch {
+      // La mutación ya avisó el error; el diálogo sigue abierto para reintentar.
+      return;
+    }
 
     close();
   };
@@ -240,10 +245,10 @@ export function ResolveQuarantineDialog({ record, open, onOpenChange }: Props) {
                 <CalendarClock className="size-3" />
                 {formatQuarantineDate(record.quarantine_entry_date)}
               </span>
-              {record.days_in_quarantine !== null && (
+              {record.days_in_quarantine != null && (
                 <span>
                   {record.days_in_quarantine} día(s) retenido
-                  {record.days_remaining !== null && (
+                  {record.days_remaining != null && (
                     <>
                       {" · "}
                       {record.days_remaining >= 0

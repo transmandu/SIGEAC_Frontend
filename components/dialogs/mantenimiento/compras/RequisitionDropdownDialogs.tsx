@@ -115,10 +115,16 @@ const RequisitionDropdownDialogs = ({
   if (!selectedCompany) return <LoadingPage />;
 
   const handleDelete = async (id: number) => {
-    await deleteRequisition.mutateAsync({
-      id,
-      company: selectedCompany.slug,
-    });
+    // Las mutaciones ya avisan su error por toast; aquí solo se evita la
+    // promesa sin capturar y el diálogo queda abierto para reintentar.
+    try {
+      await deleteRequisition.mutateAsync({
+        id,
+        company: selectedCompany.slug,
+      });
+    } catch {
+      return;
+    }
 
     setOpenDelete(false);
 
@@ -126,10 +132,14 @@ const RequisitionDropdownDialogs = ({
   };
 
   const handleCascadeDelete = async (id: number) => {
-    await cascadeDeleteRequisition.mutateAsync({
-      id,
-      company: selectedCompany.slug,
-    });
+    try {
+      await cascadeDeleteRequisition.mutateAsync({
+        id,
+        company: selectedCompany.slug,
+      });
+    } catch {
+      return;
+    }
 
     setOpenCascadeDelete?.(false);
 
@@ -141,15 +151,19 @@ const RequisitionDropdownDialogs = ({
     updated_by: string,
     status: string,
   ) => {
-    await updateStatusRequisition.mutateAsync({
-      id,
-      data: {
-        status,
-        updated_by,
-        observation: Observation.trim() || null,
-      },
-      company: selectedCompany.slug,
-    });
+    try {
+      await updateStatusRequisition.mutateAsync({
+        id,
+        data: {
+          status,
+          updated_by,
+          observation: Observation.trim() || null,
+        },
+        company: selectedCompany.slug,
+      });
+    } catch {
+      return;
+    }
 
     setObservation("");
     setOpenReject(false);
