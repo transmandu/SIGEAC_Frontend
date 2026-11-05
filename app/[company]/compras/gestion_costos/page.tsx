@@ -140,7 +140,9 @@ const CostManagementPage = () => {
     // Un borrador como "." o "1." no es un número: mandarlo como NaN lo
     // convertiría en null en el servidor.
     if (updates.some((update) => !Number.isFinite(update.cost))) {
-      toast.error("Hay costos con un valor no válido. Corríjalos para guardar.");
+      toast.error(
+        "Hay costos con un valor no válido. Corríjalos para guardar.",
+      );
       return;
     }
 

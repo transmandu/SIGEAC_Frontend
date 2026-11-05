@@ -246,8 +246,8 @@ export default function RegisterGeneralArticlesDeliveryDialog({
                 <span className="font-medium text-foreground">
                   {po.order_number}
                 </span>{" "}
-                llegaron físicamente. Los que desmarque quedarán pendientes
-                para una entrega posterior.
+                llegaron físicamente. Los que desmarque quedarán pendientes para
+                una entrega posterior.
               </DialogDescription>
             </div>
           </div>

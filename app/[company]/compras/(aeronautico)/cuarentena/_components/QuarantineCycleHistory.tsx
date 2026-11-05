@@ -1,37 +1,42 @@
-'use client'
+"use client";
 
-import { Badge } from '@/components/ui/badge'
-import { useCompanyTimezone } from '@/hooks/general/useCompanyTimezone'
-import { formatInstant } from '@/lib/date'
-import { cn } from '@/lib/utils'
-import type { QuarantineCycle } from '@/types/quarantine'
-import { CheckCircle2, CircleDot, MessageSquare, ShieldX, Wrench } from 'lucide-react'
+import { Badge } from "@/components/ui/badge";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import { formatInstant } from "@/lib/date";
+import { cn } from "@/lib/utils";
+import type { QuarantineCycle } from "@/types/quarantine";
+import {
+  CheckCircle2,
+  CircleDot,
+  MessageSquare,
+  ShieldX,
+  Wrench,
+} from "lucide-react";
 
-
-const OutcomeBadge = ({ outcome }: { outcome: QuarantineCycle['outcome'] }) => {
+const OutcomeBadge = ({ outcome }: { outcome: QuarantineCycle["outcome"] }) => {
   if (!outcome) {
     return (
       <Badge className="select-none rounded-md border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-amber-700 shadow-xs dark:text-amber-300">
         En curso
       </Badge>
-    )
+    );
   }
 
-  const approved = outcome === 'APPROVED'
+  const approved = outcome === "APPROVED";
 
   return (
     <Badge
       className={cn(
-        'select-none whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-xs',
+        "select-none whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-xs",
         approved
-          ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
-          : 'border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300',
+          ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+          : "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300",
       )}
     >
-      {approved ? 'Aprobado' : 'Rechazado'}
+      {approved ? "Aprobado" : "Rechazado"}
     </Badge>
-  )
-}
+  );
+};
 
 /**
  * El ida y vuelta completo sobre una misma retención. Importa mostrarlo entero
@@ -39,29 +44,35 @@ const OutcomeBadge = ({ outcome }: { outcome: QuarantineCycle['outcome'] }) => {
  * corrección distinta a la que se intentó, y esa es la evidencia de reincidencia
  * que la normativa pide poder demostrar.
  */
-export function QuarantineCycleHistory({ cycles }: { cycles: QuarantineCycle[] }) {
-  const timeZone = useCompanyTimezone()
+export function QuarantineCycleHistory({
+  cycles,
+}: {
+  cycles: QuarantineCycle[];
+}) {
+  const timeZone = useCompanyTimezone();
 
   // Los ciclos guardan momentos, no días: se leen en la zona de la compañía.
   const formatDateTime = (value?: string | null) =>
-    value ? formatInstant(value, timeZone, 'dd MMM yyyy HH:mm', '') || null : null
+    value
+      ? formatInstant(value, timeZone, "dd MMM yyyy HH:mm", "") || null
+      : null;
 
   if (cycles.length === 0) {
     return (
       <p className="rounded-lg border border-dashed border-slate-200 p-4 text-center text-xs text-muted-foreground dark:border-slate-700">
         Sin historial registrado.
       </p>
-    )
+    );
   }
 
-  const ordered = [...cycles].sort((a, b) => b.cycle_number - a.cycle_number)
+  const ordered = [...cycles].sort((a, b) => b.cycle_number - a.cycle_number);
 
   return (
     <div className="space-y-3">
       {ordered.map((cycle) => {
-        const reported = formatDateTime(cycle.reported_at)
-        const resolved = formatDateTime(cycle.resolved_at)
-        const closed = formatDateTime(cycle.outcome_at)
+        const reported = formatDateTime(cycle.reported_at);
+        const resolved = formatDateTime(cycle.resolved_at);
+        const closed = formatDateTime(cycle.outcome_at);
 
         return (
           <div
@@ -74,7 +85,9 @@ export function QuarantineCycleHistory({ cycles }: { cycles: QuarantineCycle[] }
                   {cycle.cycle_number}
                 </span>
                 <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  {cycle.cycle_number === 1 ? 'Retención original' : `Reincidencia ${cycle.cycle_number - 1}`}
+                  {cycle.cycle_number === 1
+                    ? "Retención original"
+                    : `Reincidencia ${cycle.cycle_number - 1}`}
                 </span>
               </div>
               <OutcomeBadge outcome={cycle.outcome} />
@@ -88,9 +101,13 @@ export function QuarantineCycleHistory({ cycles }: { cycles: QuarantineCycle[] }
                   <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                     Hallazgo de calidad
                   </p>
-                  <p className="text-sm text-slate-800 dark:text-slate-200">{cycle.reason}</p>
+                  <p className="text-sm text-slate-800 dark:text-slate-200">
+                    {cycle.reason}
+                  </p>
                   <p className="text-[11px] text-muted-foreground">
-                    {[cycle.reported_by, reported].filter(Boolean).join(' · ') || '—'}
+                    {[cycle.reported_by, reported]
+                      .filter(Boolean)
+                      .join(" · ") || "—"}
                   </p>
                 </div>
               </div>
@@ -103,9 +120,13 @@ export function QuarantineCycleHistory({ cycles }: { cycles: QuarantineCycle[] }
                     <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                       Corrección de compras
                     </p>
-                    <p className="text-sm text-slate-800 dark:text-slate-200">{cycle.resolution_notes}</p>
+                    <p className="text-sm text-slate-800 dark:text-slate-200">
+                      {cycle.resolution_notes}
+                    </p>
                     <p className="text-[11px] text-muted-foreground">
-                      {[cycle.resolved_by, resolved].filter(Boolean).join(' · ') || '—'}
+                      {[cycle.resolved_by, resolved]
+                        .filter(Boolean)
+                        .join(" · ") || "—"}
                     </p>
                   </div>
                 </div>
@@ -121,7 +142,7 @@ export function QuarantineCycleHistory({ cycles }: { cycles: QuarantineCycle[] }
               {/* Veredicto de la re-inspección */}
               {cycle.outcome && (
                 <div className="flex gap-2.5">
-                  {cycle.outcome === 'APPROVED' ? (
+                  {cycle.outcome === "APPROVED" ? (
                     <CheckCircle2 className="mt-0.5 size-3.5 shrink-0 text-emerald-500" />
                   ) : (
                     <MessageSquare className="mt-0.5 size-3.5 shrink-0 text-red-500" />
@@ -131,18 +152,21 @@ export function QuarantineCycleHistory({ cycles }: { cycles: QuarantineCycle[] }
                       Veredicto de re-inspección
                     </p>
                     {cycle.outcome_notes && (
-                      <p className="text-sm text-slate-800 dark:text-slate-200">{cycle.outcome_notes}</p>
+                      <p className="text-sm text-slate-800 dark:text-slate-200">
+                        {cycle.outcome_notes}
+                      </p>
                     )}
                     <p className="text-[11px] text-muted-foreground">
-                      {[cycle.outcome_by, closed].filter(Boolean).join(' · ') || '—'}
+                      {[cycle.outcome_by, closed].filter(Boolean).join(" · ") ||
+                        "—"}
                     </p>
                   </div>
                 </div>
               )}
             </div>
           </div>
-        )
+        );
       })}
     </div>
-  )
+  );
 }

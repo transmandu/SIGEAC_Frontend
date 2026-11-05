@@ -30,7 +30,13 @@ const formatGroupLabel = (value?: string | null) => {
   return value;
 };
 
-const GroupedPurchaseOrderTable = ({ isLoading, isError, data, groupBy, renderTable }: Props) => {
+const GroupedPurchaseOrderTable = ({
+  isLoading,
+  isError,
+  data,
+  groupBy,
+  renderTable,
+}: Props) => {
   const groups = useMemo<Group[]>(() => {
     const groupedMap = new Map<string, PurchaseOrder[]>();
 

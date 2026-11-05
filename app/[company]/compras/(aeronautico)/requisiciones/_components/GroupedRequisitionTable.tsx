@@ -26,7 +26,12 @@ const formatGroupLabel = (value?: string | null) => {
   return value;
 };
 
-const GroupedRequisitionTable = ({ isLoading, isError, data, renderTable }: Props) => {
+const GroupedRequisitionTable = ({
+  isLoading,
+  isError,
+  data,
+  renderTable,
+}: Props) => {
   const groups = useMemo<Group[]>(() => {
     const groupedMap = new Map<string, Requisition[]>();
 

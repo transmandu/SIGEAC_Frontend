@@ -1,28 +1,32 @@
-'use client'
+"use client";
 
 import { type AppColumnDef } from "@/lib/table";
-import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
-import { Badge } from "@/components/ui/badge"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { cn } from "@/lib/utils"
-import type { PurchaseOrder } from "@/types/purchase"
-import FormattedInstant from "@/components/misc/FormattedInstant"
-import Link from "next/link"
-import PurchaseOrderDropdownActions from "@/components/dropdowns/mantenimiento/compras/PurchaseOrderDropdownActions"
-import PreviewPanelIcon from "@/components/misc/PreviewPanelIcon"
+import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
+import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
+import type { PurchaseOrder } from "@/types/purchase";
+import FormattedInstant from "@/components/misc/FormattedInstant";
+import Link from "next/link";
+import PurchaseOrderDropdownActions from "@/components/dropdowns/mantenimiento/compras/PurchaseOrderDropdownActions";
+import PreviewPanelIcon from "@/components/misc/PreviewPanelIcon";
 
 const PO_STATUS_LABELS: Record<string, string> = {
-  PENDING: 'PENDIENTE',
-  PAID: 'PAGADA',
-  COMPLETED: 'COMPLETADA',
-}
+  PENDING: "PENDIENTE",
+  PAID: "PAGADA",
+  COMPLETED: "COMPLETADA",
+};
 
 export const getColumns = (
   selectedCompany?: { slug: string },
   onPreview?: (po: PurchaseOrder) => void,
-  selectedPreviewId?: number | null
+  selectedPreviewId?: number | null,
 ): AppColumnDef<PurchaseOrder>[] => [
-
   {
     accessorKey: "order_number",
     size: 210,
@@ -62,10 +66,13 @@ export const getColumns = (
     size: 40,
     header: () => null,
     cell: ({ row }) => {
-      const isActive = selectedPreviewId === row.original.id
+      const isActive = selectedPreviewId === row.original.id;
 
       return (
-        <div className="flex justify-center px-0" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="flex justify-center px-0"
+          onClick={(e) => e.stopPropagation()}
+        >
           <TooltipProvider delayDuration={120}>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -73,20 +80,24 @@ export const getColumns = (
                   type="button"
                   onClick={() => onPreview?.(row.original)}
                   className={cn(
-                    'flex items-center justify-center rounded-md p-1 transition-all duration-200',
+                    "flex items-center justify-center rounded-md p-1 transition-all duration-200",
                     isActive
-                      ? 'text-blue-600 dark:text-blue-400 drop-shadow-[0_0_3px_rgba(37,99,235,0.35)] dark:drop-shadow-[0_0_3px_rgba(96,165,250,0.4)]'
-                      : 'text-muted-foreground hover:text-blue-600 dark:hover:text-blue-400 hover:drop-shadow-[0_0_3px_rgba(37,99,235,0.3)] dark:hover:drop-shadow-[0_0_3px_rgba(96,165,250,0.35)]'
+                      ? "text-blue-600 dark:text-blue-400 drop-shadow-[0_0_3px_rgba(37,99,235,0.35)] dark:drop-shadow-[0_0_3px_rgba(96,165,250,0.4)]"
+                      : "text-muted-foreground hover:text-blue-600 dark:hover:text-blue-400 hover:drop-shadow-[0_0_3px_rgba(37,99,235,0.3)] dark:hover:drop-shadow-[0_0_3px_rgba(96,165,250,0.35)]",
                   )}
                 >
                   <PreviewPanelIcon active={isActive} className="size-4" />
                 </button>
               </TooltipTrigger>
-              <TooltipContent>{isActive ? 'Cerrar vista previa' : 'Vista previa de la orden de compra'}</TooltipContent>
+              <TooltipContent>
+                {isActive
+                  ? "Cerrar vista previa"
+                  : "Vista previa de la orden de compra"}
+              </TooltipContent>
             </Tooltip>
           </TooltipProvider>
         </div>
-      )
+      );
     },
     enableSorting: false,
     enableHiding: false,
@@ -113,9 +124,7 @@ export const getColumns = (
           onClick={(e) => e.stopPropagation()}
           className="text-sm text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-400 hover:underline underline-offset-4 decoration-1"
         >
-            
           {row.original.quote_order?.quote_number ?? "—"}
-
         </Link>
       </div>
     ),
@@ -136,7 +145,7 @@ export const getColumns = (
     },
 
     cell: ({ row }) => {
-      const name = row.original.vendor?.name
+      const name = row.original.vendor?.name;
 
       return (
         <div className="flex justify-center w-full">
@@ -145,13 +154,13 @@ export const getColumns = (
               "text-sm text-center",
               name
                 ? "font-medium text-slate-700 dark:text-slate-200"
-                : "text-muted-foreground"
+                : "text-muted-foreground",
             )}
           >
             {name ?? "N/A"}
           </span>
         </div>
-      )
+      );
     },
   },
 
@@ -196,10 +205,10 @@ export const getColumns = (
     },
 
     cell: ({ row }) => {
-      const status = row.original.status
+      const status = row.original.status;
 
-      const completed = status === "COMPLETED"
-      const paid = status === "PAID"
+      const completed = status === "COMPLETED";
+      const paid = status === "PAID";
 
       return (
         <div className="flex justify-center w-full">
@@ -217,19 +226,21 @@ export const getColumns = (
                 cursor-default
               `,
 
-              paid && `border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300`,
+              paid &&
+                `border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300`,
 
-              completed && `border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300`,
+              completed &&
+                `border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300`,
 
               !paid &&
                 !completed &&
-                `border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300`
+                `border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300`,
             )}
           >
             {PO_STATUS_LABELS[status] ?? status}
           </Badge>
         </div>
-      )
+      );
     },
   },
 
@@ -250,9 +261,9 @@ export const getColumns = (
     cell: ({ row }) => {
       const count =
         (row.original.article_purchase_order?.length ?? 0) +
-        (row.original.general_article_purchase_order?.length ?? 0)
+        (row.original.general_article_purchase_order?.length ?? 0);
 
-      const isEmpty = count === 0
+      const isEmpty = count === 0;
 
       return (
         <div className="flex justify-center w-full">
@@ -269,9 +280,7 @@ export const getColumns = (
               text-slate-600 dark:text-slate-300
             "
           >
-            <span className="font-medium">
-              {count}
-            </span>
+            <span className="font-medium">{count}</span>
 
             <span className="ml-1 text-muted-foreground">
               {count === 1 ? "artículo" : "artículos"}
@@ -284,7 +293,7 @@ export const getColumns = (
             )}
           </div>
         </div>
-      )
+      );
     },
   },
 
@@ -308,4 +317,4 @@ export const getColumns = (
       </div>
     ),
   },
-]
+];

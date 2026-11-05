@@ -1,41 +1,53 @@
-"use client"
+"use client";
 
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Button } from "@/components/ui/button"
-import { FileServer } from "@/components/misc/FileServer"
-import { cn } from "@/lib/utils"
-import type { PurchaseOrderInvoice } from "@/types/purchase"
-import { Download, Loader2 } from "lucide-react"
-import Image from "next/image"
-import { useState } from "react"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
+import { FileServer } from "@/components/misc/FileServer";
+import { cn } from "@/lib/utils";
+import type { PurchaseOrderInvoice } from "@/types/purchase";
+import { Download, Loader2 } from "lucide-react";
+import Image from "next/image";
+import { useState } from "react";
 
 type Props = {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  invoices: PurchaseOrderInvoice[]
-  company: string
-  orderNumber: string
-}
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  invoices: PurchaseOrderInvoice[];
+  company: string;
+  orderNumber: string;
+};
 
-const isPdf = (path: string) => path.toLowerCase().endsWith(".pdf")
+const isPdf = (path: string) => path.toLowerCase().endsWith(".pdf");
 
 const fileExtension = (path: string) => {
-  const match = path.match(/\.([a-z0-9]{2,5})$/i)
-  return match ? `.${match[1].toLowerCase()}` : ""
-}
+  const match = path.match(/\.([a-z0-9]{2,5})$/i);
+  return match ? `.${match[1].toLowerCase()}` : "";
+};
 
 const invoiceLabel = (invoice: PurchaseOrderInvoice, index: number) =>
-  invoice.invoice_number?.trim() || `Factura ${index + 1}`
+  invoice.invoice_number?.trim() || `Factura ${index + 1}`;
 
-const InvoicePreviewDialog = ({ open, onOpenChange, invoices, company, orderNumber }: Props) => {
-  const [activeIndex, setActiveIndex] = useState(0)
+const InvoicePreviewDialog = ({
+  open,
+  onOpenChange,
+  invoices,
+  company,
+  orderNumber,
+}: Props) => {
+  const [activeIndex, setActiveIndex] = useState(0);
   // Si la lista se acorta (se eliminó una factura), el índice guardado puede
   // quedar fuera: se acota para que la pestaña resaltada sea la que se ve.
-  const safeIndex = Math.min(activeIndex, Math.max(invoices.length - 1, 0))
-  const active = invoices[safeIndex]
+  const safeIndex = Math.min(activeIndex, Math.max(invoices.length - 1, 0));
+  const active = invoices[safeIndex];
 
-  if (!active) return null
+  if (!active) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -59,7 +71,10 @@ const InvoicePreviewDialog = ({ open, onOpenChange, invoices, company, orderNumb
                 type="button"
                 size="sm"
                 variant={index === safeIndex ? "default" : "outline"}
-                className={cn("h-7 px-3 text-xs", index === safeIndex && "pointer-events-none")}
+                className={cn(
+                  "h-7 px-3 text-xs",
+                  index === safeIndex && "pointer-events-none",
+                )}
                 onClick={() => setActiveIndex(index)}
               >
                 {invoiceLabel(invoice, index)}
@@ -68,7 +83,12 @@ const InvoicePreviewDialog = ({ open, onOpenChange, invoices, company, orderNumb
           </div>
         )}
 
-        <FileServer key={active.id} path={active.file_path} company={company} type="file">
+        <FileServer
+          key={active.id}
+          path={active.file_path}
+          company={company}
+          type="file"
+        >
           {(url, isLoading, hasError) => (
             <>
               <ScrollArea className="max-h-[75vh]">
@@ -102,8 +122,16 @@ const InvoicePreviewDialog = ({ open, onOpenChange, invoices, company, orderNumb
               </ScrollArea>
 
               <div className="flex justify-end border-t border-border/60 px-6 py-3">
-                <Button asChild variant="outline" size="sm" disabled={!url || isLoading || hasError}>
-                  <a href={url ?? "#"} download={`Factura-${orderNumber}-${invoiceLabel(active, safeIndex)}${fileExtension(active.file_path)}`}>
+                <Button
+                  asChild
+                  variant="outline"
+                  size="sm"
+                  disabled={!url || isLoading || hasError}
+                >
+                  <a
+                    href={url ?? "#"}
+                    download={`Factura-${orderNumber}-${invoiceLabel(active, safeIndex)}${fileExtension(active.file_path)}`}
+                  >
                     <Download className="mr-2 size-4" />
                     Descargar
                   </a>
@@ -114,7 +142,7 @@ const InvoicePreviewDialog = ({ open, onOpenChange, invoices, company, orderNumb
         </FileServer>
       </DialogContent>
     </Dialog>
-  )
-}
+  );
+};
 
-export default InvoicePreviewDialog
+export default InvoicePreviewDialog;

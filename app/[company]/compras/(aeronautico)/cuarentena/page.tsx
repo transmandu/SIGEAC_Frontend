@@ -27,7 +27,11 @@ const QuarantinePurchasesPage = () => {
   const deferredSearch = useDeferredValue(search);
   const legalDays = useQuarantineLegalDays();
 
-  const { data: records, isLoading, isError } = useGetQuarantineArticles(status);
+  const {
+    data: records,
+    isLoading,
+    isError,
+  } = useGetQuarantineArticles(status);
   // Las métricas deben contar todo el ciclo, no solo lo que el filtro muestra.
   const { data: allRecords } = useGetQuarantineArticles("ALL");
 

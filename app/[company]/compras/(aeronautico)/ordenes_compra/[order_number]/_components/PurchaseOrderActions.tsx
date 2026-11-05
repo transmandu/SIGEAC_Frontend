@@ -1,55 +1,57 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { useAuth } from "@/contexts/AuthContext"
-import { Button } from "@/components/ui/button"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { AlertOctagon, ClipboardCheck, Receipt, Wallet } from "lucide-react"
-import PurchaseOrderDropdownDialogs from "@/components/dialogs/mantenimiento/compras/PurchaseOrderDropdownDialogs"
-import InvoicePreviewDialog from "@/components/dialogs/mantenimiento/compras/InvoicePreviewDialog"
-import { useCompanyStore } from "@/stores/CompanyStore"
-import type { PurchaseOrder } from "@/types/purchase"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { AlertOctagon, ClipboardCheck, Receipt, Wallet } from "lucide-react";
+import PurchaseOrderDropdownDialogs from "@/components/dialogs/mantenimiento/compras/PurchaseOrderDropdownDialogs";
+import InvoicePreviewDialog from "@/components/dialogs/mantenimiento/compras/InvoicePreviewDialog";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import type { PurchaseOrder } from "@/types/purchase";
 
 /* =========================
    STYLES
 ========================= */
 
 const iconBase =
-  "size-[20px] transition-all duration-200 ease-out group-hover:scale-110"
+  "size-[20px] transition-all duration-200 ease-out group-hover:scale-110";
 
 const itemBase =
   "group relative flex items-center justify-center size-11 rounded-full transition-all duration-200 " +
   "hover:bg-muted/60 hover:shadow-xs active:scale-95 " +
-  "border border-transparent hover:border-border/40"
+  "border border-transparent hover:border-border/40";
 
 const toolbar =
   "flex items-center gap-1.5 px-2 py-1 rounded-full " +
   "bg-muted/30 border border-border/40 shadow-xs backdrop-blur-md " +
-  "flex-wrap sm:flex-nowrap"
+  "flex-wrap sm:flex-nowrap";
 
-export default function PurchaseOrderActions({
-  po,
-}: {
-  po: PurchaseOrder
-}) {
-  const router = useRouter()
-  const { user } = useAuth()
-  const { selectedCompany } = useCompanyStore()
-  const [openApprove, setOpenApprove] = useState(false)
-  const [openInvoice, setOpenInvoice] = useState(false)
-  const [openCascadeDelete, setOpenCascadeDelete] = useState(false)
+export default function PurchaseOrderActions({ po }: { po: PurchaseOrder }) {
+  const router = useRouter();
+  const { user } = useAuth();
+  const { selectedCompany } = useCompanyStore();
+  const [openApprove, setOpenApprove] = useState(false);
+  const [openInvoice, setOpenInvoice] = useState(false);
+  const [openCascadeDelete, setOpenCascadeDelete] = useState(false);
 
-  const canPay = po.status === "PENDING"
-  const canComplete = po.status === "PAID"
-  const invoices = po.invoices ?? []
-  const hasInvoice = invoices.length > 0
-  const isSuperUser = (user?.roles?.map((role) => role.name) || []).includes("SUPERUSER")
+  const canPay = po.status === "PENDING";
+  const canComplete = po.status === "PAID";
+  const invoices = po.invoices ?? [];
+  const hasInvoice = invoices.length > 0;
+  const isSuperUser = (user?.roles?.map((role) => role.name) || []).includes(
+    "SUPERUSER",
+  );
 
   return (
     <TooltipProvider delayDuration={120}>
       <div className={toolbar}>
-
         {/* PAY */}
         {canPay && (
           <Tooltip>
@@ -97,7 +99,9 @@ export default function PurchaseOrderActions({
                 <Receipt className={iconBase} />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>{invoices.length > 1 ? "Ver facturas" : "Ver factura"}</TooltipContent>
+            <TooltipContent>
+              {invoices.length > 1 ? "Ver facturas" : "Ver factura"}
+            </TooltipContent>
           </Tooltip>
         )}
 
@@ -126,9 +130,9 @@ export default function PurchaseOrderActions({
           openCascadeDelete={openCascadeDelete}
           setOpenCascadeDelete={setOpenCascadeDelete}
           onSuccessCascadeDelete={() => {
-            if (!selectedCompany) return
-            router.push(`/${selectedCompany.slug}/compras/ordenes_compra`)
-            router.refresh()
+            if (!selectedCompany) return;
+            router.push(`/${selectedCompany.slug}/compras/ordenes_compra`);
+            router.refresh();
           }}
         />
 
@@ -141,8 +145,7 @@ export default function PurchaseOrderActions({
             orderNumber={po.order_number}
           />
         )}
-
       </div>
     </TooltipProvider>
-  )
+  );
 }
