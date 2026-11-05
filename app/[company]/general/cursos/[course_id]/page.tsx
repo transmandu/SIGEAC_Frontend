@@ -11,6 +11,9 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { PdfEndpointPreviewDialog } from "@/components/dialogs/shared/PdfEndpointPreviewDialog";
+import { DownloadCourseCertificatesDialog } from "@/components/dialogs/general/DownloadCourseCertificatesDialog";
+import { downloadCourseCertificate } from "@/actions/general/cursos/certificates";
+import { useAuth } from "@/contexts/AuthContext";
 import { useGetCourseAttendanceList } from "@/hooks/curso/useGetCourseAttendanceList";
 import { useGetCourseAttendanceStats } from "@/hooks/curso/useGetCourseAttendanceStats";
 import {
@@ -28,6 +31,7 @@ import {
   Calendar,
   CheckCheck,
   Clock,
+  Download,
   Eye,
   FileText,
   Loader2,
@@ -115,6 +119,13 @@ const ExamPreviewCell = ({
 const ShowCourse = () => {
   const { course_id } = useParams<{ course_id: string }>();
   const { selectedCompany } = useCompanyStore();
+  const { user } = useAuth();
+  const [openCertificates, setOpenCertificates] = useState(false);
+  const [downloadingDni, setDownloadingDni] = useState<string | null>(null);
+
+  const canDownloadCertificates = user?.roles?.some((role) =>
+    ["JEFE_SMS", "ANALISTA_SMS", "SUPERUSER"].includes(role.name.toUpperCase()),
+  );
 
   const {
     data: course,
@@ -155,6 +166,21 @@ const ShowCourse = () => {
         },
       ]
     : [];
+
+  const handleDownloadCertificate = async (dni: string) => {
+    if (!selectedCompany?.slug || !course) return;
+
+    setDownloadingDni(dni);
+    try {
+      await downloadCourseCertificate({
+        company: selectedCompany.slug,
+        courseId: course.id,
+        dni,
+      });
+    } finally {
+      setDownloadingDni(null);
+    }
+  };
 
   return (
     <ContentLayout title="Detalles del Curso">
@@ -311,7 +337,21 @@ const ShowCourse = () => {
                     <Users className="w-6 h-6 text-blue-600" />
                     Empleados Inscritos
                   </h2>
-                  <Badge>{attendanceList?.length || 0} participantes</Badge>
+                  <div className="flex items-center gap-2">
+                    {canDownloadCertificates && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setOpenCertificates(true)}
+                        disabled={!attendanceList?.length}
+                      >
+                        <Download className="mr-2 h-4 w-4" />
+                        Certificados
+                      </Button>
+                    )}
+                    <Badge>{attendanceList?.length || 0} participantes</Badge>
+                  </div>
                 </div>
 
                 {isAttendanceListLoading ? (
@@ -341,6 +381,9 @@ const ShowCourse = () => {
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                             Examen
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                            Certificado
                           </th>
                         </tr>
                       </thead>
@@ -379,6 +422,32 @@ const ShowCourse = () => {
                                   employeeName={`${attendance.employee.first_name} ${attendance.employee.last_name}`}
                                   dni={attendance.employee_dni}
                                 />
+                              )}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">
+                              {canDownloadCertificates && course && (
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                  disabled={
+                                    downloadingDni === attendance.employee_dni
+                                  }
+                                  onClick={() =>
+                                    handleDownloadCertificate(
+                                      attendance.employee_dni,
+                                    )
+                                  }
+                                  title="Descargar certificado"
+                                >
+                                  {downloadingDni ===
+                                  attendance.employee_dni ? (
+                                    <Loader2 className="size-4 animate-spin" />
+                                  ) : (
+                                    <Download className="size-4" />
+                                  )}
+                                </Button>
                               )}
                             </td>
                           </tr>
@@ -452,6 +521,20 @@ const ShowCourse = () => {
           )}
         </div>
       </div>
+
+      {course && selectedCompany?.slug && attendanceList && (
+        <DownloadCourseCertificatesDialog
+          open={openCertificates}
+          onOpenChange={setOpenCertificates}
+          course={course}
+          company={selectedCompany.slug}
+          employees={attendanceList.map((attendance) => ({
+            dni: attendance.employee_dni,
+            first_name: attendance.employee.first_name,
+            last_name: attendance.employee.last_name,
+          }))}
+        />
+      )}
     </ContentLayout>
   );
 };
