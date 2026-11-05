@@ -147,7 +147,7 @@ export function DownloadCourseCertificatesDialog({
             disabled={pending !== null || employees.length === 0}
           >
             {pending === "all" ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <Loader2 className="mr-2 h-4 w-4 shrink-0 origin-center animate-spin" />
             ) : (
               <FileArchive className="mr-2 h-4 w-4" />
             )}
@@ -159,7 +159,7 @@ export function DownloadCourseCertificatesDialog({
             disabled={pending !== null || selected.length === 0}
           >
             {pending === "selected" ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <Loader2 className="mr-2 h-4 w-4 shrink-0 origin-center animate-spin" />
             ) : (
               <Download className="mr-2 h-4 w-4" />
             )}

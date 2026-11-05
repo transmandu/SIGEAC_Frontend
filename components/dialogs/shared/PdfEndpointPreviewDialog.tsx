@@ -111,7 +111,7 @@ export function PdfEndpointPreviewDialog({
         <div className="relative flex-1 w-full overflow-hidden rounded-xl border bg-muted/20 flex flex-col">
           {isLoading && (
             <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/80">
-              <Loader2 className="size-8 animate-spin text-primary" />
+              <Loader2 className="size-8 shrink-0 origin-center animate-spin text-primary" />
             </div>
           )}
 
@@ -135,7 +135,7 @@ export function PdfEndpointPreviewDialog({
             className="gap-2"
           >
             {isDownloading ? (
-              <Loader2 className="size-4 animate-spin" />
+              <Loader2 className="size-4 shrink-0 origin-center animate-spin" />
             ) : (
               <FileDown className="size-4" />
             )}
