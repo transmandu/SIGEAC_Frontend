@@ -283,12 +283,22 @@ export const buildAnalysisDetails = (
 ];
 
 export const getReportCode = (
-  report: { id: number; report_number?: string | null },
+  report: {
+    id: number;
+    report_number?: string | null;
+    hazard_notification?: unknown;
+  },
   type: "RVP" | "ROS",
 ) => {
   const prefix = type === "RVP" ? "RVP" : "ROS";
-  return report.report_number
-    ? `${prefix}-${report.report_number}`
+  // En aeronautical el correlativo vive en hazard_notifications; en airline
+  // está en la propia tabla del reporte. Se prefieren los datos del reporte
+  // y se cae al número de la notificación de peligro cuando no existe.
+  const notification = normalizeHazardNotification(report.hazard_notification);
+  const reportNumber = report.report_number || notification?.report_number;
+
+  return reportNumber
+    ? `${prefix}-${reportNumber}`
     : `${prefix}-${report.id}`;
 };
 
