@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@/lib/zod-resolver";
 import { z } from "zod";
 import { format } from "date-fns";
@@ -33,7 +32,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 
 // Hooks & Stores
 
@@ -61,8 +59,6 @@ const FormSchema = z.object({
     .string()
     .min(2, "Mínimo 2 caracteres")
     .max(1000, "Máximo 1000 caracteres"),
-  // possible_consequences: z.string().min(1, "Debe agregar al menos una consecuencia"),
-  // consequence_to_evaluate: z.string().min(1, "Seleccione la consecuencia principal"),
   analysis_of_root_causes: z
     .string()
     .min(1, "Debe agregar al menos un análisis"),
@@ -74,17 +70,43 @@ const FormSchema = z.object({
 type FormSchemaType = z.infer<typeof FormSchema>;
 
 interface FormProps {
-  id: number | string;
   initialData?: HazardNotification;
   isEditing?: boolean;
   reportType: string;
   reportId: string;
-  onClose?: () => void;
+}
+
+const AREAS = ["MANTENIMIENTO", "TALLER", "OFICINA", "OTROS"];
+const DANGER_TYPES = ["ORGANIZACIONAL", "TECNICO", "HUMANO", "NATURAL"];
+const ANALYSIS_SEPARATOR = ", ";
+const splitAnalyses = (value?: string | null) =>
+  value
+    ? value
+        .split(/[,~]/)
+        .map((item) => item.trim())
+        .filter(Boolean)
+    : [];
+
+function FormSection({
+  title,
+  children,
+  className,
+}: {
+  title: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <section className="space-y-4 border-t pt-5 first:border-t-0 first:pt-0">
+      <h3 className="text-sm font-semibold">{title}</h3>
+      <div className={cn("grid gap-4", className ?? "sm:grid-cols-2")}>
+        {children}
+      </div>
+    </section>
+  );
 }
 
 export default function CreateHazardNotification({
-  onClose,
-  id,
   reportId,
   isEditing,
   initialData,
@@ -92,30 +114,18 @@ export default function CreateHazardNotification({
 }: FormProps) {
   const { selectedCompany } = useCompanyStore();
 
-  const { data: informationSources, isLoading: isLoadingSources } =
-    useGetInformationSources();
+  const { data: informationSources } = useGetInformationSources();
 
   const { createHazardNotification } = useCreateHazardNotification();
   const { updateHazardNotification } = UpdateHazardNotification();
   const { data: locations, isLoading: isLocationsLoading } =
     useGetLocationsByCompany(selectedCompany!.slug);
 
-  // const [consequences, setConsequences] = useState<string[]>([]);
-  // const [newConsequence, setNewConsequence] = useState("");
   const [analyses, setAnalyses] = useResettingState<string[]>(
-    () =>
-      initialData?.analysis_of_root_causes
-        ? initialData.analysis_of_root_causes
-            .split(",")
-            .map((s) => s.trim())
-            .filter(Boolean)
-        : [],
+    () => splitAnalyses(initialData?.analysis_of_root_causes),
     [initialData],
   );
   const [newAnalysis, setNewAnalysis] = useState("");
-
-  const AREAS = ["MANTENIMIENTO", "TALLER", "OFICINA", "OTROS"];
-  const DANGER_TYPES = ["ORGANIZACIONAL", "TECNICO", "HUMANO", "NATURAL"];
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
@@ -128,8 +138,6 @@ export default function CreateHazardNotification({
       information_source_id:
         initialData?.information_source?.id.toString() || "",
       description: initialData?.description || "",
-      // possible_consequences: initialData?.possible_consequences || "",
-      // consequence_to_evaluate: initialData?.consequence_to_evaluate || "",
       analysis_of_root_causes: initialData?.analysis_of_root_causes || "",
       report_type: initialData?.report_type || reportType,
       report_number: initialData?.report_number || "",
@@ -137,29 +145,63 @@ export default function CreateHazardNotification({
     },
   });
 
-  // const addConsequence = () => {
-  //     if (newConsequence.trim()) {
-  //         const updated = [...consequences, newConsequence.trim()];
-  //         setConsequences(updated);
-  //         form.setValue("possible_consequences", updated.join(","));
-  //         setNewConsequence("");
-  //     }
-  // };
+  const descriptionValue =
+    useWatch({ control: form.control, name: "description" }) ?? "";
+
+  const syncAnalyses = (list: string[]) => {
+    form.setValue("analysis_of_root_causes", list.join(ANALYSIS_SEPARATOR), {
+      shouldValidate: form.formState.isSubmitted,
+    });
+  };
+
+  const handleAnalysisChange = (value: string) => {
+    setNewAnalysis(value);
+    const pending = value.trim();
+    form.setValue(
+      "analysis_of_root_causes",
+      [...analyses, pending].filter(Boolean).join(ANALYSIS_SEPARATOR),
+      { shouldValidate: form.formState.isSubmitted },
+    );
+  };
 
   const addAnalysis = () => {
-    if (newAnalysis.trim()) {
-      const updated = [...analyses, newAnalysis.trim()];
-      setAnalyses(updated);
-      form.setValue("analysis_of_root_causes", updated.join("~"));
-      setNewAnalysis("");
-    }
+    const value = newAnalysis.trim();
+    if (!value) return;
+
+    const updated = [...analyses, value];
+    setAnalyses(updated);
+    setNewAnalysis("");
+    syncAnalyses(updated);
+  };
+
+  const removeAnalysis = (index: number) => {
+    const pending = newAnalysis.trim();
+    const updated = analyses.filter((_, itemIndex) => itemIndex !== index);
+    setAnalyses(updated);
+    form.setValue(
+      "analysis_of_root_causes",
+      [...updated, pending].filter(Boolean).join(ANALYSIS_SEPARATOR),
+      { shouldValidate: form.formState.isSubmitted },
+    );
   };
 
   const onSubmit = async (values: FormSchemaType) => {
+    const mergedAnalyses = newAnalysis.trim()
+      ? [...analyses, newAnalysis.trim()]
+      : analyses;
+
+    if (!mergedAnalyses.length) {
+      form.setError("analysis_of_root_causes", {
+        type: "manual",
+        message: "Agregue al menos un análisis de causa raíz",
+      });
+      return;
+    }
+
     try {
-      // Preparamos el objeto 'data' tal cual lo pide tu interfaz de Action
       const dataPayload = {
         ...values,
+        analysis_of_root_causes: mergedAnalyses.join(ANALYSIS_SEPARATOR),
         voluntary_report_id: reportType === "RVP" ? reportId : undefined,
         obligatory_report_id: reportType === "ROS" ? reportId : undefined,
       };
@@ -168,28 +210,13 @@ export default function CreateHazardNotification({
         await updateHazardNotification.mutateAsync({
           company: selectedCompany!.slug,
           data: dataPayload,
-          id: initialData?.id.toString(),
+          id: initialData.id.toString(),
         });
-        onClose?.();
       } else {
         await createHazardNotification.mutateAsync({
           company: selectedCompany!.slug,
           data: dataPayload,
         });
-
-        form.reset({
-          reception_date: new Date(),
-          identification_area: "",
-          danger_type: "",
-          information_source_id: "",
-          description: "",
-          analysis_of_root_causes: "",
-          report_type: reportType,
-          report_number: "",
-          location_id: "",
-        });
-        setAnalyses([]);
-        setNewAnalysis("");
       }
     } catch (error) {
       console.error("Error submitting form:", error);
@@ -198,39 +225,33 @@ export default function CreateHazardNotification({
 
   const isPending =
     createHazardNotification.isPending || updateHazardNotification.isPending;
+  const analysisError = form.formState.errors.analysis_of_root_causes?.message;
 
   return (
     <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="flex flex-col space-y-5"
-      >
-        <h2 className="text-base font-semibold">Identificación de Peligro</h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {/* Fecha */}
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <FormSection title="Datos de la notificación">
           <FormField
             control={form.control}
             name="reception_date"
             render={({ field }) => (
               <FormItem className="flex flex-col">
-                <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  Fecha de Recepción
-                </FormLabel>
+                <FormLabel>Fecha de recepción</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button
+                        type="button"
                         variant="outline"
                         className={cn(
-                          "pl-3 text-left font-normal",
+                          "w-full justify-start pl-3 text-left font-normal",
                           !field.value && "text-muted-foreground",
                         )}
                       >
+                        <CalendarIcon className="mr-2 h-4 w-4 opacity-60" />
                         {field.value
                           ? format(field.value, "PPP", { locale: es })
                           : "Seleccione fecha"}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
@@ -251,82 +272,100 @@ export default function CreateHazardNotification({
             )}
           />
 
-          {/* Numero de reporte */}
           <FormField
             control={form.control}
             name="report_number"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  Number
-                </FormLabel>
+                <FormLabel>Número de reporte</FormLabel>
                 <FormControl>
-                  <Input placeholder="Number" {...field} />
+                  <Input placeholder="Ej. 2026-001" {...field} />
                 </FormControl>
-                <FormMessage className="text-xs" />
+                <FormMessage />
               </FormItem>
             )}
           />
-        </div>
 
-        <FormField
-          control={form.control}
-          name="location_id"
-          render={({ field }) => (
-            <FormItem className="w-full">
-              <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                Base donde se genera
-              </FormLabel>
-              {isLocationsLoading ? (
-                <div className="flex items-center gap-2 p-2 border rounded-md bg-muted">
-                  <Loader2 className="h-4 w-4 animate-spin " />
-                  <span className="text-sm">Cargando Bases...</span>
-                </div>
-              ) : (
+          <FormField
+            control={form.control}
+            name="location_id"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Base donde se genera</FormLabel>
                 <Select
                   onValueChange={field.onChange}
-                  defaultValue={field.value}
+                  value={field.value}
                   disabled={isLocationsLoading}
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar Base" />
+                      <SelectValue
+                        placeholder={
+                          isLocationsLoading
+                            ? "Cargando bases…"
+                            : "Seleccionar base"
+                        }
+                      />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {locations?.map((loc) => (
-                      <SelectItem key={loc.id} value={loc.id.toString()}>
-                        {loc.cod_iata}
+                    {locations?.map((location) => (
+                      <SelectItem
+                        key={location.id}
+                        value={location.id.toString()}
+                      >
+                        {location.cod_iata}
+                        {location.name ? ` — ${location.name}` : ""}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-              )}
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {/* Área */}
+          <FormField
+            control={form.control}
+            name="information_source_id"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Fuente de información</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccione la fuente" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {informationSources?.map((source: InformationSource) => (
+                      <SelectItem key={source.id} value={source.id.toString()}>
+                        {source.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <FormField
             control={form.control}
             name="identification_area"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  Área
-                </FormLabel>
+                <FormLabel>Área</FormLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Área" />
+                      <SelectValue placeholder="Seleccione el área" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {AREAS.map((a) => (
-                      <SelectItem key={a} value={a}>
-                        {a}
+                    {AREAS.map((area) => (
+                      <SelectItem key={area} value={area}>
+                        {area}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -336,25 +375,22 @@ export default function CreateHazardNotification({
             )}
           />
 
-          {/* Tipo Peligro */}
           <FormField
             control={form.control}
             name="danger_type"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  Tipo de Peligro
-                </FormLabel>
+                <FormLabel>Tipo de peligro</FormLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Tipo" />
+                      <SelectValue placeholder="Seleccione el tipo" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {DANGER_TYPES.map((t) => (
-                      <SelectItem key={t} value={t}>
-                        {t}
+                    {DANGER_TYPES.map((dangerType) => (
+                      <SelectItem key={dangerType} value={dangerType}>
+                        {dangerType}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -363,93 +399,94 @@ export default function CreateHazardNotification({
               </FormItem>
             )}
           />
-        </div>
+        </FormSection>
 
-        {/* Fuente de Información */}
-        <FormField
-          control={form.control}
-          name="information_source_id"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                Fuente de Información
-              </FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
+        <FormSection title="Descripción" className="grid-cols-1">
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Descripción</FormLabel>
                 <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccione fuente" />
-                  </SelectTrigger>
+                  <Textarea
+                    placeholder="Describa la situación de peligro identificada…"
+                    rows={5}
+                    maxLength={1000}
+                    {...field}
+                  />
                 </FormControl>
-                <SelectContent>
-                  {informationSources?.map((source: InformationSource) => (
-                    <SelectItem key={source.id} value={source.id.toString()}>
-                      {source.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                <div className="flex items-center justify-between gap-3">
+                  <FormMessage />
+                  <span className="ml-auto text-xs text-muted-foreground tabular-nums">
+                    {descriptionValue.length}/1000
+                  </span>
+                </div>
+              </FormItem>
+            )}
+          />
+        </FormSection>
 
-        {/* Descripción */}
-
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                Descripción
-              </FormLabel>
-              <FormControl>
-                <Textarea placeholder="Breve descripción" {...field} />
-              </FormControl>
-              <FormMessage className="text-xs" />
-            </FormItem>
-          )}
-        />
-
-        {/* Análisis Tags */}
-        <div className="space-y-2">
-          <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Análisis de Causas Raíz
-          </FormLabel>
-          <div className="flex gap-2">
-            <Input
-              value={newAnalysis}
-              onChange={(e) => setNewAnalysis(e.target.value)}
-              placeholder="Añadir análisis..."
-            />
-            <Button type="button" onClick={addAnalysis} size="icon">
-              <Plus className="h-4 w-4" />
-            </Button>
-          </div>
-          <div className="flex flex-col gap-1">
-            {analyses.map((a, i) => (
-              <div
-                key={i}
-                className="flex justify-between items-center bg-muted p-2 rounded-md text-sm"
+        <FormSection title="Causas raíz" className="grid-cols-1">
+          <div className="space-y-3">
+            <div className="flex gap-2">
+              <Input
+                value={newAnalysis}
+                onChange={(event) => handleAnalysisChange(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    addAnalysis();
+                  }
+                }}
+                placeholder="Escriba una causa y presione Enter…"
+              />
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={addAnalysis}
+                disabled={!newAnalysis.trim()}
               >
-                {a}{" "}
-                <X
-                  className="h-4 w-4 cursor-pointer"
-                  onClick={() => {
-                    const up = analyses.filter((_, idx) => idx !== i);
-                    setAnalyses(up);
-                    form.setValue("analysis_of_root_causes", up.join(","));
-                  }}
-                />
-              </div>
-            ))}
-          </div>
-        </div>
+                <Plus className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Agregar</span>
+              </Button>
+            </div>
 
-        <Button type="submit" className="w-full h-10" disabled={isPending}>
-          {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {isEditing ? "Actualizar Identificación" : "Registrar Identificación"}
-        </Button>
+            {analyses.length ? (
+              <div className="flex flex-wrap gap-2">
+                {analyses.map((analysis, index) => (
+                  <span
+                    key={`${analysis}-${index}`}
+                    className="inline-flex max-w-full items-center gap-1.5 rounded-full border bg-muted/50 py-1 pr-1.5 pl-3 text-sm"
+                  >
+                    <span className="truncate">{analysis}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeAnalysis(index)}
+                      aria-label={`Quitar ${analysis}`}
+                      className="rounded-full p-0.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            ) : null}
+
+            {analysisError && (
+              <p className="text-sm font-medium text-destructive">
+                {analysisError}
+              </p>
+            )}
+          </div>
+        </FormSection>
+
+        <div className="flex justify-end border-t pt-4">
+          <Button type="submit" disabled={isPending}>
+            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isEditing ? "Guardar cambios" : "Registrar notificación"}
+          </Button>
+        </div>
       </form>
     </Form>
   );
