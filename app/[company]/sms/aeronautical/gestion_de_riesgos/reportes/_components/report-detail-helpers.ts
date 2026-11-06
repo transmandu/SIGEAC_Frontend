@@ -2,6 +2,7 @@
 
 import { createElement } from "react";
 import { formatCalendarDate } from "@/lib/date";
+import { getResult } from "@/lib/utils";
 
 import {
   DetailItem,
@@ -237,26 +238,36 @@ export const getRiskMatrixTone = (analysis?: RiskAnalysisLike | null) => {
   const severity = String(analysis?.severity ?? "").toLowerCase();
   const result = String(analysis?.result ?? "").toLowerCase();
 
+  // Escala aeronáutica: probabilidad 1-5 + severidad A-E.
+  const matrixLevel = /^[1-5][a-e]$/i.test(result)
+    ? getResult(result.toUpperCase())
+    : null;
+
   const critical =
+    matrixLevel === "INTOLERABLE" ||
     probability.includes("alta") ||
     probability.includes("high") ||
     severity.includes("alto") ||
     severity.includes("high") ||
     result.includes("critico") ||
     result.includes("crítico") ||
-    result.includes("extremo");
+    result.includes("extremo") ||
+    result.includes("intolerable");
 
   const medium =
+    matrixLevel === "TOLERABLE" ||
     probability.includes("media") ||
     probability.includes("medium") ||
     severity.includes("medio") ||
     severity.includes("medium") ||
-    result.includes("moderado");
+    result.includes("moderado") ||
+    result.includes("tolerable");
 
   if (critical) {
     return {
       card: "border-red-200 bg-red-50/70 dark:border-red-900/40 dark:bg-red-950/20",
       chip: "bg-red-600 text-white",
+      accent: "border-l-red-500",
     };
   }
 
@@ -264,12 +275,14 @@ export const getRiskMatrixTone = (analysis?: RiskAnalysisLike | null) => {
     return {
       card: "border-amber-200 bg-amber-50/70 dark:border-amber-900/40 dark:bg-amber-950/20",
       chip: "bg-amber-500 text-black",
+      accent: "border-l-amber-500",
     };
   }
 
   return {
     card: "border-emerald-200 bg-emerald-50/70 dark:border-emerald-900/40 dark:bg-emerald-950/20",
     chip: "bg-emerald-600 text-white",
+    accent: "border-l-emerald-500",
   };
 };
 
@@ -278,7 +291,6 @@ export const buildAnalysisDetails = (
 ): DetailItem[] => [
   { label: "Probabilidad", value: analysis?.probability || "N/A" },
   { label: "Severidad", value: analysis?.severity || "N/A" },
-  { label: "Resultado", value: analysis?.result || "N/A" },
   { label: "Tipo", value: analysis?.type || "N/A" },
 ];
 
@@ -291,149 +303,228 @@ export const getReportCode = (
   type: "RVP" | "ROS",
 ) => {
   const prefix = type === "RVP" ? "RVP" : "ROS";
-  // En aeronautical el correlativo vive en hazard_notifications; en airline
-  // está en la propia tabla del reporte. Se prefieren los datos del reporte
-  // y se cae al número de la notificación de peligro cuando no existe.
+  // La notificación de peligro asigna el número oficial del reporte.
   const notification = normalizeHazardNotification(report.hazard_notification);
-  const reportNumber = report.report_number || notification?.report_number;
+  if (notification?.report_number) {
+    return notification.report_number;
+  }
 
-  return reportNumber
-    ? `${prefix}-${reportNumber}`
+  return report.report_number
+    ? `${prefix}-${report.report_number}`
     : `${prefix}-${report.id}`;
 };
 
 export const buildVoluntaryDetails = (
   report: VoluntaryReportView,
 ): DetailItem[] => [
-  { label: "Fecha del reporte", value: formatDisplayDate(report.report_date) },
   {
-    label: "Fecha de identificacion",
+    group: "Reporte",
+    label: "Fecha del reporte",
+    value: formatDisplayDate(report.report_date),
+  },
+  {
+    group: "Reporte",
+    label: "Fecha de identificación",
     value: formatDisplayDate(report.identification_date),
   },
-  { label: "Estado", value: report.status },
   {
-    label: "Area del peligro",
+    group: "Reporte",
+    label: "Área del peligro",
     value: report.danger_area || report.identification_area,
   },
-  { label: "Nombre", value: report.reporter_name || "N/A" },
-  { label: "Apellido", value: report.reporter_last_name || "N/A" },
-  { label: "Telefono", value: formatPhone(report.reporter_phone) || "N/A" },
-  { label: "Correo", value: report.reporter_email || "N/A" },
   {
-    label: "Descripcion",
+    group: "Reporte",
+    label: "Ubicación",
+    value:
+      report.danger_location ||
+      report.airport_location ||
+      (report.location ? formatLocationLabel(report.location) : undefined),
+  },
+  {
+    group: "Narración",
+    label: "Descripción",
     value: report.description,
     fullWidth: true,
     contentClassName: "whitespace-pre-wrap",
   },
   {
+    group: "Narración",
     label: "Posibles consecuencias",
     value: renderNumberedDetailValue(report.possible_consequences),
     fullWidth: true,
   },
 ];
 
+export const buildVoluntaryReporterDetails = (
+  report: VoluntaryReportView,
+): DetailItem[] => [
+  {
+    label: "Nombre",
+    value: [report.reporter_name, report.reporter_last_name]
+      .filter(Boolean)
+      .join(" "),
+  },
+  { label: "Teléfono", value: formatPhone(report.reporter_phone) },
+  { label: "Correo", value: report.reporter_email },
+];
+
 export const buildObligatoryDetails = (
   report: ObligatoryReportView,
-): DetailItem[] => [
-  { label: "Codigo", value: getReportCode(report, "ROS") },
-  { label: "Fecha del reporte", value: formatDisplayDate(report.report_date) },
-  { label: "Estado", value: report.status },
-  {
-    label: "Fecha del incidente",
-    value: formatDisplayDate(report.incident_date),
-  },
-  { label: "Hora del incidente", value: report.incident_time || "N/A" },
-  { label: "Tiempo de vuelo", value: report.flight_time || "N/A" },
-  { label: "Numero de vuelo", value: report.flight_number },
-  { label: "Origen", value: report.flight_origin },
-  { label: "Destino", value: report.flight_destiny },
-  { label: "Destino alterno", value: report.flight_alt_destiny },
-  { label: "Lugar del incidente", value: report.incident_location },
-  {
-    label: "Incidentes",
-    value: report.incidents || "Sin incidentes registrados",
-    fullWidth: true,
-    contentClassName: "whitespace-pre-wrap",
-  },
-  {
-    label: "Otros incidentes",
-    value: report.other_incidents || "N/A",
-    fullWidth: true,
-    contentClassName: "whitespace-pre-wrap",
-  },
-  {
-    label: "Descripcion",
-    value: report.description,
-    fullWidth: true,
-    contentClassName: "whitespace-pre-wrap",
-  },
-];
+): DetailItem[] => {
+  const reportTime = getAny(report, "report_time");
+
+  return [
+    {
+      group: "Reporte",
+      label: "Fecha del reporte",
+      value: formatDisplayDate(report.report_date),
+    },
+    { group: "Reporte", label: "Hora del reporte", value: reportTime },
+    {
+      group: "Incidente",
+      label: "Fecha del incidente",
+      value: formatDisplayDate(report.incident_date),
+    },
+    {
+      group: "Incidente",
+      label: "Hora del incidente",
+      value: report.incident_time,
+    },
+    {
+      group: "Incidente",
+      label: "Lugar del incidente",
+      value: report.incident_location,
+    },
+    {
+      group: "Incidente",
+      label: "Tiempo de vuelo",
+      value: report.flight_time,
+    },
+    { group: "Vuelo", label: "Número de vuelo", value: report.flight_number },
+    { group: "Vuelo", label: "Origen", value: report.flight_origin },
+    { group: "Vuelo", label: "Destino", value: report.flight_destiny },
+    {
+      group: "Vuelo",
+      label: "Destino alterno",
+      value: report.flight_alt_destiny,
+    },
+    {
+      group: "Narración",
+      label: "Incidentes",
+      value: report.incidents || "Sin incidentes registrados",
+      fullWidth: true,
+      contentClassName: "whitespace-pre-wrap",
+    },
+    {
+      group: "Narración",
+      label: "Otros incidentes",
+      value: report.other_incidents,
+      fullWidth: true,
+      contentClassName: "whitespace-pre-wrap",
+    },
+    {
+      group: "Narración",
+      label: "Descripción",
+      value: report.description,
+      fullWidth: true,
+      contentClassName: "whitespace-pre-wrap",
+    },
+  ];
+};
 
 export const buildCrewAndAircraftDetails = (
   report: ObligatoryReportView,
 ): DetailItem[] => [
-  { label: "Piloto", value: report.pilot?.employee_dni || "N/A" },
-  { label: "Licencia piloto", value: report.pilot?.license_number || "N/A" },
-  { label: "Copiloto", value: report.copilot?.employee_dni || "N/A" },
   {
-    label: "Licencia copiloto",
-    value: report.copilot?.license_number || "N/A",
+    group: "Tripulación",
+    label: "Piloto",
+    value: report.pilot?.employee_dni,
   },
-  { label: "Aeronave", value: report.aircraft?.acronym || "N/A" },
-  { label: "Marca", value: report.aircraft?.brand || "N/A" },
-  { label: "Modelo", value: report.aircraft?.model || "N/A" },
-  { label: "Serial", value: report.aircraft?.serial || "N/A" },
-  { label: "Estado aeronave", value: report.aircraft?.status || "N/A" },
+  {
+    group: "Tripulación",
+    label: "Licencia del piloto",
+    value: report.pilot?.license_number,
+  },
+  {
+    group: "Tripulación",
+    label: "Copiloto",
+    value: report.copilot?.employee_dni,
+  },
+  {
+    group: "Tripulación",
+    label: "Licencia del copiloto",
+    value: report.copilot?.license_number,
+  },
+  {
+    group: "Aeronave",
+    label: "Aeronave",
+    value: report.aircraft?.acronym,
+  },
+  { group: "Aeronave", label: "Marca", value: report.aircraft?.brand },
+  { group: "Aeronave", label: "Modelo", value: report.aircraft?.model },
+  { group: "Aeronave", label: "Serial", value: report.aircraft?.serial },
+  {
+    group: "Aeronave",
+    label: "Estado de la aeronave",
+    value: report.aircraft?.status,
+  },
 ];
 
 export const buildDangerIdentificationDetails = (
   notification: HazardNotificationLike,
 ): DetailItem[] => [
   {
-    label: "Codigo",
-    value: notification.report_number ?? notification.id ?? "N/A",
-  },
-  {
-    label: "Fecha de recepcion",
+    group: "Recepción",
+    label: "Fecha de recepción",
     value: formatDisplayDate(
       notification.reception_date || notification.risk_management_start_date,
     ),
   },
-  { label: "Tipo de reporte", value: notification.report_type || "N/A" },
   {
+    group: "Recepción",
+    label: "Tipo de reporte",
+    value: notification.report_type,
+  },
+  {
+    group: "Recepción",
     label: "Peligro",
-    value: notification.danger || notification.danger_type || "N/A",
+    value: notification.danger || notification.danger_type,
   },
   {
-    label: "Area",
-    value:
-      notification.identification_area || notification.danger_area || "N/A",
+    group: "Recepción",
+    label: "Área",
+    value: notification.identification_area || notification.danger_area,
   },
   {
-    label: "Ubicacion",
+    group: "Recepción",
+    label: "Ubicación",
     value: notification.location
       ? formatLocationLabel(notification.location)
-      : "N/A",
+      : undefined,
   },
   {
-    label: "Fuente de informacion",
-    value: notification.information_source?.name || "N/A",
+    group: "Recepción",
+    label: "Fuente de información",
+    value: notification.information_source?.name,
   },
   {
-    label: "Descripcion",
+    group: "Detalle",
+    label: "Descripción",
     value: notification.description,
     fullWidth: true,
     contentClassName: "whitespace-pre-wrap",
   },
   {
-    label: "Analisis de causas raiz",
+    group: "Detalle",
+    label: "Análisis de causas raíz",
     value: renderNumberedDetailValue(
       notification.analysis_of_root_causes || notification.root_cause_analysis,
     ),
     fullWidth: true,
   },
   {
-    label: "Fecha de gestion",
+    group: "Detalle",
+    label: "Fecha de gestión",
     value: formatDisplayDate(notification.risk_management_start_date),
   },
 ];

@@ -28,6 +28,7 @@ export type DetailItem = {
   value?: ReactNode;
   fullWidth?: boolean;
   contentClassName?: string;
+  group?: string;
 };
 
 export const REPORT_LABELS: Record<ReportType, string> = {
