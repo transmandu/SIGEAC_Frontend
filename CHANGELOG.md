@@ -1,3 +1,7 @@
+## v4.93.0 — 2026-11-06
+
+- feat(sms): improve aeronautical risk management UI/UX (#385)
+
 ## v4.92.0 — 2026-11-06
 
 - feat(courses): add all available modules to a training pattern (#384)
