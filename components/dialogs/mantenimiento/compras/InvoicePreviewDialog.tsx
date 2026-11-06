@@ -136,6 +136,6 @@ const InvoicePreviewDialog = ({
       </FormDialogContent>
     </Dialog>
   );
-}
+};
 
-export default InvoicePreviewDialog
+export default InvoicePreviewDialog;

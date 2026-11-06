@@ -545,18 +545,18 @@ export function CreateAeronauticalRequisitionForm({ onClose }: FormProps) {
 
         <AdditionalInfoSection form={form} />
 
-
         <FormActions>
-
-          <Button disabled={createRequisition.isPending} className="min-w-35 gap-2">
-          <>
-            <Send className="size-4" /> Generar requisición
-          </>
-          {createRequisition.isPending && (
-            <Loader2 className="size-4 animate-spin" />
-          )}
-        </Button>
-
+          <Button
+            disabled={createRequisition.isPending}
+            className="min-w-35 gap-2"
+          >
+            <>
+              <Send className="size-4" /> Generar requisición
+            </>
+            {createRequisition.isPending && (
+              <Loader2 className="size-4 animate-spin" />
+            )}
+          </Button>
         </FormActions>
       </form>
     </Form>

@@ -178,9 +178,7 @@ const ArticleRow = ({
 
     {/* ── Nivel 3: cantidad ─────────────────────────────── */}
     <div className="flex items-center justify-between border-t border-border/50 px-3 py-2">
-      <span className="text-xs text-muted-foreground">
-        Cantidad
-      </span>
+      <span className="text-xs text-muted-foreground">Cantidad</span>
       <span className="text-sm font-semibold tabular-nums">
         {quantity}{" "}
         <span className="text-xs font-normal text-muted-foreground">
@@ -339,9 +337,7 @@ export default function RequisitionPreviewPanel({
               Artículos solicitados
             </span>
             <div className="flex items-center gap-1.5 rounded-md border border-border/50 bg-muted/30 px-2 py-0.5">
-              <span className="text-xs text-muted-foreground">
-                Total
-              </span>
+              <span className="text-xs text-muted-foreground">Total</span>
               <span className="text-xs font-semibold tabular-nums">
                 {totalArticles}
               </span>

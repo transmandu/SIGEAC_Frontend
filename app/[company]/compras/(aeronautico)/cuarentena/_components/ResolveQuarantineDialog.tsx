@@ -195,27 +195,27 @@ export function ResolveQuarantineDialog({ record, open, onOpenChange }: Props) {
                     ? "Se guardarán los cambios del artículo y pasará a re-inspección."
                     : "El artículo pasará a re-inspección con la corrección descrita."}
             </p>
-              <Button variant="outline" onClick={close} disabled={busy}>
-                Cancelar
-              </Button>
-              <Button
-                onClick={handleConfirm}
-                disabled={busy || !notesAreValid}
-                className="gap-1.5"
-              >
-                {busy ? (
-                  <Loader2 className="size-3.5 animate-spin" />
-                ) : formState.canSave && !articleSaved ? (
-                  <PencilLine className="size-3.5" />
-                ) : (
-                  <SendHorizonal className="size-3.5" />
-                )}
-                {articleSaved
-                  ? "Reintentar envío a re-inspección"
-                  : formState.canSave
-                    ? "Guardar y enviar a re-inspección"
-                    : "Enviar a re-inspección"}
-              </Button>
+            <Button variant="outline" onClick={close} disabled={busy}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleConfirm}
+              disabled={busy || !notesAreValid}
+              className="gap-1.5"
+            >
+              {busy ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : formState.canSave && !articleSaved ? (
+                <PencilLine className="size-3.5" />
+              ) : (
+                <SendHorizonal className="size-3.5" />
+              )}
+              {articleSaved
+                ? "Reintentar envío a re-inspección"
+                : formState.canSave
+                  ? "Guardar y enviar a re-inspección"
+                  : "Enviar a re-inspección"}
+            </Button>
           </>
         }
       >

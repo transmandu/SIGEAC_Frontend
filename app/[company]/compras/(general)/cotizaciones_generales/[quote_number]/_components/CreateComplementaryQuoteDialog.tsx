@@ -20,8 +20,7 @@ type ItemState = {
   unitPrice: string;
 };
 
-const LABEL_CLS =
-  "select-none text-xs leading-none text-muted-foreground";
+const LABEL_CLS = "select-none text-xs leading-none text-muted-foreground";
 
 /**
  * Crea una cotización complementaria sobre una cotización general APROBADA:

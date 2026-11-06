@@ -38,43 +38,41 @@ export function PurchasesRequisitionDialog() {
         title="Centro de solicitudes"
         description="Cree solicitudes de compra según el tipo de operación."
       >
-          <SegmentedTabs defaultValue="AERONAUTICAL">
-                        <SegmentedTabsList className="mb-4 max-sm:flex-col max-sm:items-stretch">
-              <SegmentedTabsTrigger value="AERONAUTICAL">
-                <Plane className="size-4" />
-                Aeronáutica
-              </SegmentedTabsTrigger>
+        <SegmentedTabs defaultValue="AERONAUTICAL">
+          <SegmentedTabsList className="mb-4 max-sm:flex-col max-sm:items-stretch">
+            <SegmentedTabsTrigger value="AERONAUTICAL">
+              <Plane className="size-4" />
+              Aeronáutica
+            </SegmentedTabsTrigger>
 
-              <SegmentedTabsTrigger value="WAREHOUSE">
-                <Boxes className="size-4" />
-                Almacén
-              </SegmentedTabsTrigger>
+            <SegmentedTabsTrigger value="WAREHOUSE">
+              <Boxes className="size-4" />
+              Almacén
+            </SegmentedTabsTrigger>
 
-              <SegmentedTabsTrigger value="GENERAL">
-                <Package className="size-4" />
-                General
-              </SegmentedTabsTrigger>
-            </SegmentedTabsList>
+            <SegmentedTabsTrigger value="GENERAL">
+              <Package className="size-4" />
+              General
+            </SegmentedTabsTrigger>
+          </SegmentedTabsList>
 
-            {/* ===================== CONTENT ===================== */}
+          {/* ===================== CONTENT ===================== */}
 
-            <SegmentedTabsContent value="AERONAUTICAL" className="mt-4">
-              <CreateAeronauticalRequisitionForm
-                onClose={() => setOpen(false)}
-              />
-            </SegmentedTabsContent>
+          <SegmentedTabsContent value="AERONAUTICAL" className="mt-4">
+            <CreateAeronauticalRequisitionForm onClose={() => setOpen(false)} />
+          </SegmentedTabsContent>
 
-            <SegmentedTabsContent value="WAREHOUSE" className="mt-4">
-              <CreateWarehouseRequisitionForm onClose={() => setOpen(false)} />
-            </SegmentedTabsContent>
+          <SegmentedTabsContent value="WAREHOUSE" className="mt-4">
+            <CreateWarehouseRequisitionForm onClose={() => setOpen(false)} />
+          </SegmentedTabsContent>
 
-            <SegmentedTabsContent value="GENERAL" className="mt-4">
-              <CreateGeneralRequisitionForm
-                isEditing={false}
-                onClose={() => setOpen(false)}
-              />
-            </SegmentedTabsContent>
-          </SegmentedTabs>
+          <SegmentedTabsContent value="GENERAL" className="mt-4">
+            <CreateGeneralRequisitionForm
+              isEditing={false}
+              onClose={() => setOpen(false)}
+            />
+          </SegmentedTabsContent>
+        </SegmentedTabs>
       </FormDialogContent>
     </Dialog>
   );

@@ -46,8 +46,7 @@ import {
 import FormActions from "@/components/forms/mantenimiento/compras/_components/FormActions";
 import { ShippingAgencyCombobox } from "@/components/forms/general/compras/_components/ShippingAgencyCombobox";
 
-const LABEL_CLS =
-  "select-none text-xs leading-none text-muted-foreground";
+const LABEL_CLS = "select-none text-xs leading-none text-muted-foreground";
 
 const INPUT_CLS =
   "h-9 rounded-lg border-border/50 bg-background/80 text-sm shadow-xs transition-shadow focus-visible:ring-1 focus-visible:ring-primary/40 focus-visible:ring-offset-0";
@@ -929,11 +928,7 @@ export function PayPurchaseOrderForm({
         </div>
 
         <FormActions>
-          <Button
-            disabled={isPending}
-            type="submit"
-            className="min-w-35 gap-2"
-          >
+          <Button disabled={isPending} type="submit" className="min-w-35 gap-2">
             {isPending ? (
               <Loader2 className="size-4 animate-spin" />
             ) : (

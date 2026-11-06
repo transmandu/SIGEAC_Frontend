@@ -1,5 +1,5 @@
-import { Building2, CreditCard, Wallet } from 'lucide-react';
-import type { BankAccount, BankCard, PaymentMethod } from '@/types';
+import { Building2, CreditCard, Wallet } from "lucide-react";
+import type { BankAccount, BankCard, PaymentMethod } from "@/types";
 
 interface CostBreakdown {
   sub_total?: number | null;
@@ -19,14 +19,28 @@ interface PurchaseOrderCostSummaryProps {
   isAeronautical?: boolean;
 }
 
-const CostRow = ({ label, value }: { label: string; value: number | null | undefined }) => (
+const CostRow = ({
+  label,
+  value,
+}: {
+  label: string;
+  value: number | null | undefined;
+}) => (
   <div className="flex items-center justify-between py-1 border-b border-border/30 last:border-0">
     <span className="text-xs text-muted-foreground">{label}</span>
-    <span className="font-mono text-xs tabular-nums">${Number(value || 0).toFixed(2)}</span>
+    <span className="font-mono text-xs tabular-nums">
+      ${Number(value || 0).toFixed(2)}
+    </span>
   </div>
 );
 
-const PurchaseOrderCostSummary = ({ costs, paymentMethod, bankAccount, card, isAeronautical }: PurchaseOrderCostSummaryProps) => {
+const PurchaseOrderCostSummary = ({
+  costs,
+  paymentMethod,
+  bankAccount,
+  card,
+  isAeronautical,
+}: PurchaseOrderCostSummaryProps) => {
   return (
     <div className="relative mx-auto max-w-md w-full rounded-xl border border-slate-200 bg-white dark:border-slate-700/60 dark:bg-slate-900/60 p-4 shadow-xs">
       <div className="flex items-center gap-3 mb-2.5 select-none">
@@ -41,7 +55,10 @@ const PurchaseOrderCostSummary = ({ costs, paymentMethod, bankAccount, card, isA
         <CostRow label="Tax" value={costs.tax} />
         {!isAeronautical && <CostRow label="Wire Fee" value={costs.wire_fee} />}
         <CostRow label="Handling Fee" value={costs.handling_fee} />
-        <CostRow label="Envío internacional" value={costs.international_shipping} />
+        <CostRow
+          label="Envío internacional"
+          value={costs.international_shipping}
+        />
         <CostRow label="Envío nacional" value={costs.shipping_fee} />
       </div>
 
@@ -65,7 +82,7 @@ const PurchaseOrderCostSummary = ({ costs, paymentMethod, bankAccount, card, isA
           {bankAccount && (
             <span className="flex items-center gap-1.5">
               <Building2 className="size-3.5 shrink-0" />
-              {bankAccount.bank?.name ? `${bankAccount.bank.name} · ` : ''}
+              {bankAccount.bank?.name ? `${bankAccount.bank.name} · ` : ""}
               {bankAccount.name}
               <span className="font-mono">({bankAccount.account_number})</span>
             </span>

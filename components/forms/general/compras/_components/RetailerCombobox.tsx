@@ -151,20 +151,20 @@ export function RetailerCombobox({
 
       {canCreate && (
         <>
-        {/* Crear comercio modal — auto-selects the new retailer on success */}
-        <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-          <FormDialogContent
-            className="sm:max-w-lg"
-            icon={Store}
-            title="Creación de Comercio"
-            description="Registre un comercio o lugar de compra (tienda física o en línea) rellenando la información necesaria."
-          >
-            <CreateRetailerForm
-              onClose={() => setCreateOpen(false)}
-              onCreated={(retailer) => onChange(retailer.id.toString())}
-            />
-          </FormDialogContent>
-        </Dialog>
+          {/* Crear comercio modal — auto-selects the new retailer on success */}
+          <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+            <FormDialogContent
+              className="sm:max-w-lg"
+              icon={Store}
+              title="Creación de Comercio"
+              description="Registre un comercio o lugar de compra (tienda física o en línea) rellenando la información necesaria."
+            >
+              <CreateRetailerForm
+                onClose={() => setCreateOpen(false)}
+                onCreated={(retailer) => onChange(retailer.id.toString())}
+              />
+            </FormDialogContent>
+          </Dialog>
         </>
       )}
     </>

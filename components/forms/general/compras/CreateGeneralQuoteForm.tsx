@@ -589,10 +589,7 @@ export function CreateGeneralQuoteForm({
             conserva para quien ya tiene todos los precios. */}
         <FormActions>
           {onDiscard && draftId && (
-            <DiscardDraftButton
-              onClick={onDiscard}
-              disabled={isDiscarding}
-            />
+            <DiscardDraftButton onClick={onDiscard} disabled={isDiscarding} />
           )}
 
           {pendingLinesCount > 0 && (

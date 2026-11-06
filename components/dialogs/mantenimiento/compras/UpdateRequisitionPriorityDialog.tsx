@@ -142,7 +142,9 @@ const PriorityForm = ({ req, setOpen, onSuccess }: Omit<Props, "open">) => {
       description={
         <>
           Actualice la prioridad de la solicitud{" "}
-          <span className="font-medium text-foreground">{req.order_number}</span>
+          <span className="font-medium text-foreground">
+            {req.order_number}
+          </span>
           {items.length > 0 && " y, opcionalmente, la de sus artículos"}.
         </>
       }

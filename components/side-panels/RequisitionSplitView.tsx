@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import {
   createContext,
@@ -6,49 +6,49 @@ import {
   useContext,
   useEffect,
   useState,
-} from 'react'
-import { cn } from '@/lib/utils'
-import type { Requisition } from '@/types/purchase'
-import RequisitionPreviewPanel from './RequisitionPreviewPanel'
+} from "react";
+import { cn } from "@/lib/utils";
+import type { Requisition } from "@/types/purchase";
+import RequisitionPreviewPanel from "./RequisitionPreviewPanel";
 import {
   NO_LAST_PREVIEW_MARK,
   resolvePreviewRowMark,
   useLastPreviewMark,
   type LastPreviewMark,
   type PreviewRowMark,
-} from './preview-row-mark'
+} from "./preview-row-mark";
 
 const RequisitionPreviewContext = createContext<
   ((requisition: Requisition) => void) | null
->(null)
+>(null);
 
-const RequisitionPreviewSelectedContext = createContext<number | null>(null)
+const RequisitionPreviewSelectedContext = createContext<number | null>(null);
 
 const RequisitionPreviewLastContext =
-  createContext<LastPreviewMark>(NO_LAST_PREVIEW_MARK)
+  createContext<LastPreviewMark>(NO_LAST_PREVIEW_MARK);
 
 const RequisitionPreviewSyncContext = createContext<
   ((rows: Requisition[]) => void) | null
->(null)
+>(null);
 
 export function useRequisitionPreview() {
-  return useContext(RequisitionPreviewContext)
+  return useContext(RequisitionPreviewContext);
 }
 
 export function useRequisitionPreviewSelectedId() {
-  return useContext(RequisitionPreviewSelectedContext)
+  return useContext(RequisitionPreviewSelectedContext);
 }
 
 /** Marca que la tabla pinta en cada fila; ver `PreviewRowMark`. */
 export function useRequisitionRowMark() {
-  const openId = useContext(RequisitionPreviewSelectedContext)
-  const last = useContext(RequisitionPreviewLastContext)
+  const openId = useContext(RequisitionPreviewSelectedContext);
+  const last = useContext(RequisitionPreviewLastContext);
 
   return useCallback(
     (requisition: Requisition): PreviewRowMark | undefined =>
       resolvePreviewRowMark(requisition.id, openId, last),
-    [openId, last]
-  )
+    [openId, last],
+  );
 }
 
 /**
@@ -58,47 +58,49 @@ export function useRequisitionRowMark() {
  * lo mismo que la tabla.
  */
 export function useRequisitionPreviewSync(rows: Requisition[]) {
-  const sync = useContext(RequisitionPreviewSyncContext)
+  const sync = useContext(RequisitionPreviewSyncContext);
 
   useEffect(() => {
-    sync?.(rows)
-  }, [rows, sync])
+    sync?.(rows);
+  }, [rows, sync]);
 }
 
 interface RequisitionSplitViewProps {
-  children: React.ReactNode
+  children: React.ReactNode;
 }
 
-export default function RequisitionSplitView({ children }: RequisitionSplitViewProps) {
-  const [selected, setSelected] = useState<Requisition | null>(null)
-  const { last, markOpened } = useLastPreviewMark(selected !== null)
+export default function RequisitionSplitView({
+  children,
+}: RequisitionSplitViewProps) {
+  const [selected, setSelected] = useState<Requisition | null>(null);
+  const { last, markOpened } = useLastPreviewMark(selected !== null);
 
   const onPreview = (requisition: Requisition) => {
-    markOpened(requisition.id)
-    setSelected((prev) => (prev?.id === requisition.id ? null : requisition))
-  }
+    markOpened(requisition.id);
+    setSelected((prev) => (prev?.id === requisition.id ? null : requisition));
+  };
 
   // Si la fila ya no está en la tabla (se eliminó, o los filtros o la página la
   // sacaron), el panel se cierra: no debe seguir mostrando algo que la tabla no.
   const sync = useCallback((rows: Requisition[]) => {
     setSelected((prev) => {
-      if (!prev) return prev
-      const fresh = rows.find((row) => row.id === prev.id)
-      if (!fresh) return null
-      return fresh !== prev ? fresh : prev
-    })
-  }, [])
+      if (!prev) return prev;
+      const fresh = rows.find((row) => row.id === prev.id);
+      if (!fresh) return null;
+      return fresh !== prev ? fresh : prev;
+    });
+  }, []);
 
   useEffect(() => {
-    if (!selected) return
+    if (!selected) return;
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setSelected(null)
-    }
+      if (event.key === "Escape") setSelected(null);
+    };
 
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [selected])
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [selected]);
 
   return (
     <RequisitionPreviewContext.Provider value={onPreview}>
@@ -107,8 +109,8 @@ export default function RequisitionSplitView({ children }: RequisitionSplitViewP
           <RequisitionPreviewSyncContext.Provider value={sync}>
             <div
               className={cn(
-                'transition-[margin-right] duration-300 ease-in-out',
-                selected && 'lg:mr-105'
+                "transition-[margin-right] duration-300 ease-in-out",
+                selected && "lg:mr-105",
               )}
             >
               {children}
@@ -138,5 +140,5 @@ export default function RequisitionSplitView({ children }: RequisitionSplitViewP
         </RequisitionPreviewLastContext.Provider>
       </RequisitionPreviewSelectedContext.Provider>
     </RequisitionPreviewContext.Provider>
-  )
+  );
 }

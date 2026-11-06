@@ -283,9 +283,7 @@ export const getColumns = (
             </span>
 
             {isEmpty && (
-              <span className="ml-1 text-xs text-muted-foreground">
-                vacío
-              </span>
+              <span className="ml-1 text-xs text-muted-foreground">vacío</span>
             )}
           </div>
         </div>

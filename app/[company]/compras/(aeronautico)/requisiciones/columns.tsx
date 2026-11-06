@@ -118,16 +118,14 @@ const StatusCell = ({ requisition }: { requisition: Requisition }) => {
         const target = NEXT_REQUISITION_STATUS[active?.from ?? ""];
         if (!target || !selectedCompany) return;
 
-        await updateStatusRequisition.mutateAsync(
-          {
-            id: requisition.id,
-            data: {
-              status: target,
-              updated_by: `${user?.first_name} ${user?.last_name}`,
-            },
-            company: selectedCompany.slug,
+        await updateStatusRequisition.mutateAsync({
+          id: requisition.id,
+          data: {
+            status: target,
+            updated_by: `${user?.first_name} ${user?.last_name}`,
           },
-        );
+          company: selectedCompany.slug,
+        });
       }}
     />
   );

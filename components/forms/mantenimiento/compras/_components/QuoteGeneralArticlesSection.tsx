@@ -52,8 +52,7 @@ const GRID_COLS = "grid-cols-[2.2fr_1fr_1.3fr_1.5fr]";
 const W_COMPACT = "w-full"; // Cantidad / Unidad
 const W_WIDE = "w-full"; // Precio unitario / Ubicación
 
-const LABEL_CLS =
-  "select-none text-xs leading-none text-muted-foreground";
+const LABEL_CLS = "select-none text-xs leading-none text-muted-foreground";
 
 function normalizeQuantity(value: string, fallback: string): string {
   if (value === "") return fallback;

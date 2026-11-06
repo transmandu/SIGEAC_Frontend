@@ -417,24 +417,19 @@ export function CreateGeneralRequisitionForm({
 
         <AdditionalInfoSection form={form} />
 
-
         <FormActions>
-
-
           <Button disabled={isPending} className="min-w-35 gap-2">
-          {isEditing ? (
-            <>
-              <Pencil className="size-4" /> Editar requisición
-            </>
-          ) : (
-            <>
-              <Send className="size-4" /> Generar requisición
-            </>
-          )}
-          {isPending && <Loader2 className="size-4 animate-spin" />}
-        </Button>
-
-
+            {isEditing ? (
+              <>
+                <Pencil className="size-4" /> Editar requisición
+              </>
+            ) : (
+              <>
+                <Send className="size-4" /> Generar requisición
+              </>
+            )}
+            {isPending && <Loader2 className="size-4 animate-spin" />}
+          </Button>
         </FormActions>
       </form>
 

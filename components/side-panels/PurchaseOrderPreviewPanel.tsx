@@ -217,9 +217,7 @@ const BatchArticleRow = ({
         </div>
 
         <div className="pointer-events-none relative flex flex-col items-end gap-0.5 shrink-0">
-          <span className="text-xs text-muted-foreground">
-            Total
-          </span>
+          <span className="text-xs text-muted-foreground">Total</span>
           <span className="text-sm font-semibold tabular-nums">
             {money(amount)}
           </span>
@@ -381,9 +379,7 @@ const GeneralArticleRow = ({
         </div>
 
         <div className="flex flex-col items-end gap-0.5 shrink-0">
-          <span className="text-xs text-muted-foreground">
-            Total
-          </span>
+          <span className="text-xs text-muted-foreground">Total</span>
           <span className="text-sm font-semibold tabular-nums">
             {money(amount)}
           </span>
@@ -571,9 +567,7 @@ export default function PurchaseOrderPreviewPanel({
             />
             <MetaItem
               label="Creado por"
-              value={
-                purchaseOrder.created_by
-              }
+              value={purchaseOrder.created_by}
               icon={User}
             />
             <MetaItem
@@ -628,9 +622,7 @@ export default function PurchaseOrderPreviewPanel({
               Artículos
             </span>
             <div className="flex items-center gap-1.5 rounded-md border border-border/50 bg-muted/30 px-2 py-0.5">
-              <span className="text-xs text-muted-foreground">
-                Total
-              </span>
+              <span className="text-xs text-muted-foreground">Total</span>
               <span className="text-xs font-semibold tabular-nums">
                 {totalArticles}
               </span>

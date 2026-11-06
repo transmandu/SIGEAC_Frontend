@@ -76,8 +76,9 @@ interface IndicatorBox {
   height: number;
 }
 
-interface SegmentedTabsListProps
-  extends ComponentPropsWithoutRef<typeof TabsList> {
+interface SegmentedTabsListProps extends ComponentPropsWithoutRef<
+  typeof TabsList
+> {
   size?: "md" | "sm";
 }
 

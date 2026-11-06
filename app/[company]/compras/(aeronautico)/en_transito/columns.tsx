@@ -520,9 +520,7 @@ export const getColumns = (
           <span className="text-sm font-medium">{formatDate(date)}</span>
 
           {label && (
-            <span className="text-xs text-muted-foreground">
-              {label}
-            </span>
+            <span className="text-xs text-muted-foreground">{label}</span>
           )}
         </div>
       );

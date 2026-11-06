@@ -89,7 +89,9 @@ export const columns: AppColumnDef<DestinationArticle>[] = [
     ),
 
     cell: ({ row }) => {
-      const alternatives = toAltPartNumbers(row.original.alternative_part_number);
+      const alternatives = toAltPartNumbers(
+        row.original.alternative_part_number,
+      );
 
       return (
         <div className="flex w-full justify-start">

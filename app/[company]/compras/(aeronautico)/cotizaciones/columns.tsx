@@ -1,51 +1,56 @@
-'use client'
+"use client";
 
 import { type AppColumnDef } from "@/lib/table";
 
-import { DataTableColumnHeader } from '@/components/tables/DataTableHeader'
-import QuoteDropdownActions from '@/components/dropdowns/mantenimiento/compras/QuoteDropdownActions'
+import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
+import QuoteDropdownActions from "@/components/dropdowns/mantenimiento/compras/QuoteDropdownActions";
 
-import { Badge } from '@/components/ui/badge'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { cn } from '@/lib/utils'
+import { Badge } from "@/components/ui/badge";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 
-import { Truck } from 'lucide-react'
+import { Truck } from "lucide-react";
 
-import type { Quote } from '@/types/purchase'
+import type { Quote } from "@/types/purchase";
 
-import Link from 'next/link'
-import PreviewPanelIcon from '@/components/misc/PreviewPanelIcon'
-import { DEFAULT_TIMEZONE, formatInstant } from "@/lib/date"
+import Link from "next/link";
+import PreviewPanelIcon from "@/components/misc/PreviewPanelIcon";
+import { DEFAULT_TIMEZONE, formatInstant } from "@/lib/date";
 
 const QUOTE_STATUS_LABELS: Record<string, string> = {
-  PENDING: 'Pendiente',
-  APPROVED: 'Aprobada',
-  REJECTED: 'Rechazada',
-}
+  PENDING: "Pendiente",
+  APPROVED: "Aprobada",
+  REJECTED: "Rechazada",
+};
 
 export const getColumns = (
   selectedCompany?: { slug: string },
   onPreview?: (quote: Quote) => void,
   selectedPreviewId?: number | null,
-  timeZone: string = DEFAULT_TIMEZONE
+  timeZone: string = DEFAULT_TIMEZONE,
 ): AppColumnDef<Quote>[] => [
   {
-    accessorKey: 'quote_number',
+    accessorKey: "quote_number",
     size: 210,
 
     header: ({ column }) => (
       <div className="flex justify-center w-full">
-        <DataTableColumnHeader
-          filter
-          column={column}
-          title="Nro. Cotización"
-        />
+        <DataTableColumnHeader filter column={column} title="Nro. Cotización" />
       </div>
     ),
 
     meta: {
-      title: 'Nro. Cotización',
+      title: "Nro. Cotización",
     },
 
     cell: ({ row }) => (
@@ -67,20 +72,17 @@ export const getColumns = (
   },
 
   {
-    accessorKey: 'requisition_order',
+    accessorKey: "requisition_order",
     size: 210,
 
     header: ({ column }) => (
       <div className="flex justify-center w-full">
-        <DataTableColumnHeader
-          column={column}
-          title="Nro. Requisición"
-        />
+        <DataTableColumnHeader column={column} title="Nro. Requisición" />
       </div>
     ),
 
     meta: {
-      title: 'Nro. Requisición',
+      title: "Nro. Requisición",
     },
 
     cell: ({ row }) => (
@@ -98,27 +100,24 @@ export const getColumns = (
             decoration-1
           "
         >
-          {row.original.requisition_order?.order_number ?? 'N/A'}
+          {row.original.requisition_order?.order_number ?? "N/A"}
         </Link>
       </div>
     ),
   },
 
   {
-    accessorKey: 'quote_date',
+    accessorKey: "quote_date",
     size: 180,
 
     header: ({ column }) => (
       <div className="flex justify-center w-full">
-        <DataTableColumnHeader
-          column={column}
-          title="Fecha de Cotización"
-        />
+        <DataTableColumnHeader column={column} title="Fecha de Cotización" />
       </div>
     ),
 
     meta: {
-      title: 'Fecha de Cotización',
+      title: "Fecha de Cotización",
     },
 
     cell: ({ row }) => {
@@ -133,33 +132,30 @@ export const getColumns = (
   },
 
   {
-    accessorKey: 'vendor',
+    accessorKey: "vendor",
     size: 180,
 
     header: ({ column }) => (
       <div className="flex justify-center w-full">
-        <DataTableColumnHeader
-          column={column}
-          title="Proveedor"
-        />
+        <DataTableColumnHeader column={column} title="Proveedor" />
       </div>
     ),
 
     meta: {
-      title: 'Proveedor',
+      title: "Proveedor",
     },
 
     cell: ({ row }) => {
-      const quote = row.original
+      const quote = row.original;
 
       const vendorNames = Array.from(
         new Set(
           [
             quote.vendor?.name,
             ...(quote.article_quote_order?.map((a) => a.vendor?.name) ?? []),
-          ].filter((name): name is string => !!name)
-        )
-      )
+          ].filter((name): name is string => !!name),
+        ),
+      );
 
       if (vendorNames.length === 0) {
         return (
@@ -174,7 +170,7 @@ export const getColumns = (
               N/A
             </span>
           </div>
-        )
+        );
       }
 
       if (vendorNames.length === 1) {
@@ -190,7 +186,7 @@ export const getColumns = (
               {vendorNames[0]}
             </span>
           </div>
-        )
+        );
       }
 
       return (
@@ -213,10 +209,7 @@ export const getColumns = (
               </button>
             </PopoverTrigger>
 
-            <PopoverContent
-              align="center"
-              className="w-56 p-2"
-            >
+            <PopoverContent align="center" className="w-56 p-2">
               <span className="block px-1 pb-1.5 text-xs font-medium text-muted-foreground select-none">
                 Proveedores
               </span>
@@ -238,32 +231,29 @@ export const getColumns = (
             </PopoverContent>
           </Popover>
         </div>
-      )
+      );
     },
   },
 
   {
-    accessorKey: 'status',
+    accessorKey: "status",
     size: 150,
 
     header: ({ column }) => (
       <div className="flex justify-center w-full">
-        <DataTableColumnHeader
-          column={column}
-          title="Estado"
-        />
+        <DataTableColumnHeader column={column} title="Estado" />
       </div>
     ),
 
     meta: {
-      title: 'Estado',
+      title: "Estado",
     },
 
     cell: ({ row }) => {
-      const status = row.original.status
+      const status = row.original.status;
 
-      const pending = status === 'PENDING'
-      const approved = status === 'APPROVED'
+      const pending = status === "PENDING";
+      const approved = status === "APPROVED";
 
       return (
         <div className="flex justify-center w-full">
@@ -279,47 +269,49 @@ export const getColumns = (
                 hover:translate-y-0
               `,
 
-              pending && `border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300`,
+              pending &&
+                `border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300`,
 
-              approved && `border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300`,
+              approved &&
+                `border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300`,
 
               !pending &&
                 !approved &&
-                `border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300`
+                `border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300`,
             )}
           >
-            {QUOTE_STATUS_LABELS[status] ?? status?.toUpperCase?.() ?? 'N/A'}
+            {QUOTE_STATUS_LABELS[status] ?? status?.toUpperCase?.() ?? "N/A"}
           </Badge>
         </div>
-      )
-    }
+      );
+    },
   },
 
   {
-    accessorKey: 'article_quote_order',
+    accessorKey: "article_quote_order",
     size: 150,
 
     header: ({ column }) => (
       <div className="flex justify-center w-full">
-        <DataTableColumnHeader
-          column={column}
-          title="Artículos"
-        />
+        <DataTableColumnHeader column={column} title="Artículos" />
       </div>
     ),
 
     meta: {
-      title: 'Artículos',
+      title: "Artículos",
     },
 
     cell: ({ row }) => {
       const total =
         (row.original.article_quote_order?.length ?? 0) +
-        (row.original.general_article_quote_order?.length ?? 0)
-      const isActive = selectedPreviewId === row.original.id
+        (row.original.general_article_quote_order?.length ?? 0);
+      const isActive = selectedPreviewId === row.original.id;
 
       return (
-        <div className="flex justify-center w-full" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="flex justify-center w-full"
+          onClick={(e) => e.stopPropagation()}
+        >
           <TooltipProvider delayDuration={120}>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -327,41 +319,41 @@ export const getColumns = (
                   type="button"
                   onClick={() => onPreview?.(row.original)}
                   className={cn(
-                    'flex min-w-28 items-center justify-center gap-1.5 rounded-md border px-2 py-1 text-xs font-medium tabular-nums transition-colors',
-                    'border-slate-500/30 bg-slate-500/10 text-slate-600 dark:text-slate-300',
-                    'hover:border-blue-500/40 hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-400',
-                    isActive && 'border-blue-500/40 bg-blue-500/10 text-blue-600 dark:text-blue-400'
+                    "flex min-w-28 items-center justify-center gap-1.5 rounded-md border px-2 py-1 text-xs font-medium tabular-nums transition-colors",
+                    "border-slate-500/30 bg-slate-500/10 text-slate-600 dark:text-slate-300",
+                    "hover:border-blue-500/40 hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-400",
+                    isActive &&
+                      "border-blue-500/40 bg-blue-500/10 text-blue-600 dark:text-blue-400",
                   )}
                 >
                   <PreviewPanelIcon active={isActive} className="size-3.5" />
-                  {total} {total === 1 ? 'artículo' : 'artículos'}
+                  {total} {total === 1 ? "artículo" : "artículos"}
                 </button>
               </TooltipTrigger>
               <TooltipContent>
-                {isActive ? 'Cerrar vista previa' : 'Vista previa de la cotización'}
+                {isActive
+                  ? "Cerrar vista previa"
+                  : "Vista previa de la cotización"}
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
         </div>
-      )
+      );
     },
   },
 
   {
-    id: 'actions',
+    id: "actions",
     size: 80,
 
     header: ({ column }) => (
       <div className="flex justify-center w-full">
-        <DataTableColumnHeader
-          column={column}
-          title="Acciones"
-        />
+        <DataTableColumnHeader column={column} title="Acciones" />
       </div>
     ),
 
     meta: {
-      title: 'Acciones',
+      title: "Acciones",
     },
 
     cell: ({ row }) => (
@@ -370,4 +362,4 @@ export const getColumns = (
       </div>
     ),
   },
-]
+];

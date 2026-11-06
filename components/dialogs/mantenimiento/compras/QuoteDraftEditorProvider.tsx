@@ -80,50 +80,50 @@ export function QuoteDraftEditorProvider({
             </>
           }
         >
-            {/* key: este diálogo no se desmonta al cerrarse, solo cambia el
+          {/* key: este diálogo no se desmonta al cerrarse, solo cambia el
                 borrador en edición. Sin remontar el formulario, react-hook-form
                 conservaría los defaultValues del borrador anterior y el
                 siguiente guardado escribiría los precios de otra solicitud. */}
-            {editing ? (
-              isGeneralDraft(editing) ? (
-                <CreateGeneralQuoteForm
-                  key={editing.id}
-                  req={requisitionFromDraft(editing)}
-                  draft={editing}
-                  onDiscard={() => setDiscarding(true)}
-                  isDiscarding={deleteQuoteDraft.isPending}
-                  onClose={() => setEditingId(null)}
-                />
-              ) : (
-                <CreateQuoteForm
-                  key={editing.id}
-                  req={requisitionFromDraft(editing)}
-                  draft={editing}
-                  onDiscard={() => setDiscarding(true)}
-                  isDiscarding={deleteQuoteDraft.isPending}
-                  onClose={() => setEditingId(null)}
-                />
-              )
-            ) : isLoading ? (
-              <LoadingPage />
+          {editing ? (
+            isGeneralDraft(editing) ? (
+              <CreateGeneralQuoteForm
+                key={editing.id}
+                req={requisitionFromDraft(editing)}
+                draft={editing}
+                onDiscard={() => setDiscarding(true)}
+                isDiscarding={deleteQuoteDraft.isPending}
+                onClose={() => setEditingId(null)}
+              />
             ) : (
-              /* La lista llegó y el borrador no está: lo emitió o descartó otra
+              <CreateQuoteForm
+                key={editing.id}
+                req={requisitionFromDraft(editing)}
+                draft={editing}
+                onDiscard={() => setDiscarding(true)}
+                isDiscarding={deleteQuoteDraft.isPending}
+                onClose={() => setEditingId(null)}
+              />
+            )
+          ) : isLoading ? (
+            <LoadingPage />
+          ) : (
+            /* La lista llegó y el borrador no está: lo emitió o descartó otra
                  pestaña. Sin este caso el diálogo se quedaría cargando para
                  siempre, sin forma de salir más que cerrarlo. */
-              <div className="flex flex-col items-center gap-3 py-10 text-center">
-                <p className="text-sm text-muted-foreground">
-                  Este borrador ya no está disponible: puede haberse emitido o
-                  descartado.
-                </p>
-                <Button
-                  variant="outline"
-                  className="h-8 px-3 text-xs"
-                  onClick={() => setEditingId(null)}
-                >
-                  Cerrar
-                </Button>
-              </div>
-            )}
+            <div className="flex flex-col items-center gap-3 py-10 text-center">
+              <p className="text-sm text-muted-foreground">
+                Este borrador ya no está disponible: puede haberse emitido o
+                descartado.
+              </p>
+              <Button
+                variant="outline"
+                className="h-8 px-3 text-xs"
+                onClick={() => setEditingId(null)}
+              >
+                Cerrar
+              </Button>
+            </div>
+          )}
         </FormDialogContent>
       </Dialog>
 

@@ -131,11 +131,7 @@ const QuotePage = () => {
               />
             )}
 
-            <MetaItem
-              label="Creado por"
-              value={data?.created_by}
-              icon={User}
-            />
+            <MetaItem label="Creado por" value={data?.created_by} icon={User} />
 
             <MetaItem
               label="Fecha de cotización"
@@ -178,9 +174,7 @@ const QuotePage = () => {
             </div>
 
             <div className="flex items-center gap-2 rounded-md border border-border/50 bg-muted/30 px-2.5 py-1 select-none">
-              <span className="text-xs text-muted-foreground">
-                Total
-              </span>
+              <span className="text-xs text-muted-foreground">Total</span>
 
               <span className="text-sm font-semibold tabular-nums">
                 {articles.length + generalArticles.length}

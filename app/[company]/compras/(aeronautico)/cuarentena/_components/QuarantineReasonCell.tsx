@@ -113,9 +113,7 @@ export function QuarantineReasonCell({ record }: { record: QuarantineRecord }) {
                 <li key={point.label}>
                   <p className="font-medium">{point.label}</p>
                   {point.observation && (
-                    <p className="text-muted-foreground">
-                      {point.observation}
-                    </p>
+                    <p className="text-muted-foreground">{point.observation}</p>
                   )}
                 </li>
               ))}

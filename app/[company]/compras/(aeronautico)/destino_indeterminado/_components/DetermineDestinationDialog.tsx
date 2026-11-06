@@ -199,9 +199,7 @@ export function DetermineDestinationDialog({
               <p className="font-mono text-sm font-semibold tabular-nums">
                 {available} {unit}
               </p>
-              <p className="text-xs text-muted-foreground">
-                por repartir
-              </p>
+              <p className="text-xs text-muted-foreground">por repartir</p>
             </div>
           </section>
 
@@ -369,7 +367,9 @@ export function DetermineDestinationDialog({
                               }
                               disabled={!chosenDepartment}
                               placeholder={
-                                chosenDepartment ? "Seleccione..." : "Elija el departamento"
+                                chosenDepartment
+                                  ? "Seleccione..."
+                                  : "Elija el departamento"
                               }
                               searchPlaceholder="Buscar empleado..."
                               triggerClassName="h-9 text-xs"

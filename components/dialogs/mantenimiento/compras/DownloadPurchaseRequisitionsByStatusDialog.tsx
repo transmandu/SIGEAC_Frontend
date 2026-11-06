@@ -192,39 +192,41 @@ export function DownloadPurchaseRequisitionsByStatusDialog({ type }: Props) {
         }
       >
         <div className="space-y-3">
-        <div className="flex items-center justify-between px-1">
-          <span className="text-xs text-muted-foreground tabular-nums">
-            {selected.length === 0
-              ? "Ningún estado seleccionado"
-              : `${selected.length} de ${STATUS_OPTIONS.length} seleccionados`}
-          </span>
+          <div className="flex items-center justify-between px-1">
+            <span className="text-xs text-muted-foreground tabular-nums">
+              {selected.length === 0
+                ? "Ningún estado seleccionado"
+                : `${selected.length} de ${STATUS_OPTIONS.length} seleccionados`}
+            </span>
 
-          <button
-            type="button"
-            onClick={() =>
-              setSelected(
-                allSelected ? [] : STATUS_OPTIONS.map((option) => option.value),
-              )
-            }
-            className="text-xs font-medium text-primary hover:underline"
-          >
-            {allSelected ? "Limpiar" : "Seleccionar todos"}
-          </button>
-        </div>
+            <button
+              type="button"
+              onClick={() =>
+                setSelected(
+                  allSelected
+                    ? []
+                    : STATUS_OPTIONS.map((option) => option.value),
+                )
+              }
+              className="text-xs font-medium text-primary hover:underline"
+            >
+              {allSelected ? "Limpiar" : "Seleccionar todos"}
+            </button>
+          </div>
 
-        {/* Dos columnas: con seis estados una sola lista obligaba a desplazar
+          {/* Dos columnas: con seis estados una sola lista obligaba a desplazar
             el diálogo, y la retícula deja ver el ciclo completo de una vez. */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[50vh] overflow-y-auto px-1">
-          {STATUS_OPTIONS.map((option) => {
-            const isSelected = selected.includes(option.value);
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[50vh] overflow-y-auto px-1">
+            {STATUS_OPTIONS.map((option) => {
+              const isSelected = selected.includes(option.value);
 
-            return (
-              <button
-                key={option.value}
-                type="button"
-                onClick={() => toggleStatus(option.value)}
-                aria-pressed={isSelected}
-                /* El contorno va por dentro (ring-inset) y no como borde: así
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => toggleStatus(option.value)}
+                  aria-pressed={isSelected}
+                  /* El contorno va por dentro (ring-inset) y no como borde: así
                    la tarjeta tiene filo sin el trazo duro que endurecía la
                    retícula, y al seleccionar solo cambia de color —la caja no
                    se engrosa ni desplaza el contenido.
@@ -232,48 +234,48 @@ export function DownloadPurchaseRequisitionsByStatusDialog({ type }: Props) {
                    El relleno por sí solo no bastaba: sobre el fondo claro del
                    diálogo la tarjeta sin contorno desaparecía y su contenido
                    quedaba flotando. */
-                className={cn(
-                  "group relative flex flex-col gap-1.5 rounded-2xl p-3 text-left",
-                  "ring-1 ring-inset transition-colors duration-200",
-                  isSelected
-                    ? "bg-primary/8 ring-primary/30"
-                    : "bg-muted/30 ring-border/70 hover:bg-muted/60 hover:ring-border",
-                )}
-              >
-                <span className="flex items-center justify-between gap-2">
-                  {/* Sin borde ni sombra: dentro de la tarjeta la píldora ya
+                  className={cn(
+                    "group relative flex flex-col gap-1.5 rounded-2xl p-3 text-left",
+                    "ring-1 ring-inset transition-colors duration-200",
+                    isSelected
+                      ? "bg-primary/8 ring-primary/30"
+                      : "bg-muted/30 ring-border/70 hover:bg-muted/60 hover:ring-border",
+                  )}
+                >
+                  <span className="flex items-center justify-between gap-2">
+                    {/* Sin borde ni sombra: dentro de la tarjeta la píldora ya
                       está contenida, y el trazo solo sumaba otro filo. El
                       color de fondo basta para identificar el estado. */}
-                  <span
-                    className={cn(
-                      "select-none whitespace-nowrap rounded-md px-2 py-0.5 text-xs font-medium",
-                      option.pill,
-                    )}
-                  >
-                    {option.label}
-                  </span>
+                    <span
+                      className={cn(
+                        "select-none whitespace-nowrap rounded-md px-2 py-0.5 text-xs font-medium",
+                        option.pill,
+                      )}
+                    >
+                      {option.label}
+                    </span>
 
-                  {/* El check ocupa su sitio siempre: si apareciera solo al
+                    {/* El check ocupa su sitio siempre: si apareciera solo al
                       marcar, la píldora se correría en cada clic. */}
-                  <span
-                    className={cn(
-                      "flex size-4 shrink-0 items-center justify-center rounded-full transition-colors",
-                      isSelected
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-background ring-1 ring-inset ring-muted-foreground/35",
-                    )}
-                  >
-                    {isSelected && <Check className="size-2.5" />}
+                    <span
+                      className={cn(
+                        "flex size-4 shrink-0 items-center justify-center rounded-full transition-colors",
+                        isSelected
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-background ring-1 ring-inset ring-muted-foreground/35",
+                      )}
+                    >
+                      {isSelected && <Check className="size-2.5" />}
+                    </span>
                   </span>
-                </span>
 
-                <span className="text-xs leading-snug text-muted-foreground">
-                  {option.description}
-                </span>
-              </button>
-            );
-          })}
-        </div>
+                  <span className="text-xs leading-snug text-muted-foreground">
+                    {option.description}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </FormDialogContent>
     </Dialog>

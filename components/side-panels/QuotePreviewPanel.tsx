@@ -197,9 +197,7 @@ const BatchArticleRow = ({ article }: { article: ArticleQuoteOrder }) => {
         </div>
 
         <div className="flex flex-col items-end gap-0.5 shrink-0">
-          <span className="text-xs text-muted-foreground">
-            Total
-          </span>
+          <span className="text-xs text-muted-foreground">Total</span>
           <span className="text-sm font-semibold tabular-nums">
             {money(amount)}
           </span>
@@ -323,9 +321,7 @@ const GeneralArticleRow = ({
         </div>
 
         <div className="flex flex-col items-end gap-0.5 shrink-0">
-          <span className="text-xs text-muted-foreground">
-            Total
-          </span>
+          <span className="text-xs text-muted-foreground">Total</span>
           <span className="text-sm font-semibold tabular-nums">
             {money(amount)}
           </span>
@@ -482,11 +478,7 @@ export default function QuotePreviewPanel({ quote, onClose }: Props) {
               value={placeLabel || undefined}
               icon={Truck}
             />
-            <MetaItem
-              label="Creado por"
-              value={quote.created_by}
-              icon={User}
-            />
+            <MetaItem label="Creado por" value={quote.created_by} icon={User} />
             <MetaItem
               label="Fecha de cotización"
               value={formatInstant(quote.quote_date, timeZone, "short", "—")}
@@ -537,9 +529,7 @@ export default function QuotePreviewPanel({ quote, onClose }: Props) {
               ARTÍCULOS COTIZADOS
             </span>
             <div className="flex items-center gap-1.5 rounded-md border border-border/50 bg-muted/30 px-2 py-0.5">
-              <span className="text-xs text-muted-foreground">
-                Total
-              </span>
+              <span className="text-xs text-muted-foreground">Total</span>
               <span className="text-xs font-semibold tabular-nums">
                 {totalArticles}
               </span>

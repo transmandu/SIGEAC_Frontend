@@ -31,9 +31,7 @@ const InfoSection = ({
         ) : (
           <div className="flex flex-col items-center gap-1.5 text-muted-foreground select-none">
             <Icon className="size-4 opacity-60" />
-            <span className="text-xs">
-              {emptyMessage}
-            </span>
+            <span className="text-xs">{emptyMessage}</span>
           </div>
         )}
       </div>

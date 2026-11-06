@@ -136,7 +136,13 @@ const peopleOf = (entry: GeneralArticleCostHistoryEntry): PersonProps[] => {
 
     return [
       ...(registered
-        ? [{ label: "Registró la compra", name: registered, icon: ShoppingCart }]
+        ? [
+            {
+              label: "Registró la compra",
+              name: registered,
+              icon: ShoppingCart,
+            },
+          ]
         : []),
       { label: "Confirmó el ingreso", name: confirmed, icon: PackageCheck },
     ];
@@ -144,7 +150,8 @@ const peopleOf = (entry: GeneralArticleCostHistoryEntry): PersonProps[] => {
 
   return [
     {
-      label: entry.source === "MANUAL" ? "Costo editado por" : "Costo cargado por",
+      label:
+        entry.source === "MANUAL" ? "Costo editado por" : "Costo cargado por",
       name: entry.by,
       icon: UserRound,
     },
@@ -193,7 +200,8 @@ const GeneralCostHistorySheet = ({
   const entries = useMemo(
     () =>
       [...(history ?? [])].sort(
-        (a, b) => (Date.parse(b.date ?? "") || 0) - (Date.parse(a.date ?? "") || 0),
+        (a, b) =>
+          (Date.parse(b.date ?? "") || 0) - (Date.parse(a.date ?? "") || 0),
       ),
     [history],
   );
@@ -201,7 +209,9 @@ const GeneralCostHistorySheet = ({
   const current = entries[0];
   const first = entries[entries.length - 1];
   const overall =
-    entries.length > 1 && current && first ? changeBetween(current, first) : null;
+    entries.length > 1 && current && first
+      ? changeBetween(current, first)
+      : null;
 
   const detail = [brandModel, variantType].filter(Boolean).join(" · ");
 

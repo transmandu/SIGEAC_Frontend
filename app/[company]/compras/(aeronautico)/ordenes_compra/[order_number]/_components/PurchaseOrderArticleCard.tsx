@@ -44,9 +44,7 @@ const Field = ({
             Pendiente
           </span>
         ) : (
-          <span className="text-xs text-muted-foreground leading-none">
-            —
-          </span>
+          <span className="text-xs text-muted-foreground leading-none">—</span>
         )
       ) : (
         <div className="flex w-full min-w-0 items-center gap-1">

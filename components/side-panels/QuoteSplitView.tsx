@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import {
   createContext,
@@ -6,49 +6,49 @@ import {
   useContext,
   useEffect,
   useState,
-} from 'react'
-import { cn } from '@/lib/utils'
-import type { Quote } from '@/types/purchase'
-import QuotePreviewPanel from './QuotePreviewPanel'
+} from "react";
+import { cn } from "@/lib/utils";
+import type { Quote } from "@/types/purchase";
+import QuotePreviewPanel from "./QuotePreviewPanel";
 import {
   NO_LAST_PREVIEW_MARK,
   resolvePreviewRowMark,
   useLastPreviewMark,
   type LastPreviewMark,
   type PreviewRowMark,
-} from './preview-row-mark'
+} from "./preview-row-mark";
 
-const QuotePreviewContext = createContext<
-  ((quote: Quote) => void) | null
->(null)
+const QuotePreviewContext = createContext<((quote: Quote) => void) | null>(
+  null,
+);
 
-const QuotePreviewSelectedContext = createContext<number | null>(null)
+const QuotePreviewSelectedContext = createContext<number | null>(null);
 
 const QuotePreviewLastContext =
-  createContext<LastPreviewMark>(NO_LAST_PREVIEW_MARK)
+  createContext<LastPreviewMark>(NO_LAST_PREVIEW_MARK);
 
-const QuotePreviewSyncContext = createContext<
-  ((rows: Quote[]) => void) | null
->(null)
+const QuotePreviewSyncContext = createContext<((rows: Quote[]) => void) | null>(
+  null,
+);
 
 export function useQuotePreview() {
-  return useContext(QuotePreviewContext)
+  return useContext(QuotePreviewContext);
 }
 
 export function useQuotePreviewSelectedId() {
-  return useContext(QuotePreviewSelectedContext)
+  return useContext(QuotePreviewSelectedContext);
 }
 
 /** Marca que la tabla pinta en cada fila; ver `PreviewRowMark`. */
 export function useQuoteRowMark() {
-  const openId = useContext(QuotePreviewSelectedContext)
-  const last = useContext(QuotePreviewLastContext)
+  const openId = useContext(QuotePreviewSelectedContext);
+  const last = useContext(QuotePreviewLastContext);
 
   return useCallback(
     (quote: Quote): PreviewRowMark | undefined =>
       resolvePreviewRowMark(quote.id, openId, last),
-    [openId, last]
-  )
+    [openId, last],
+  );
 }
 
 /**
@@ -58,47 +58,47 @@ export function useQuoteRowMark() {
  * lo mismo que la tabla.
  */
 export function useQuotePreviewSync(rows: Quote[]) {
-  const sync = useContext(QuotePreviewSyncContext)
+  const sync = useContext(QuotePreviewSyncContext);
 
   useEffect(() => {
-    sync?.(rows)
-  }, [rows, sync])
+    sync?.(rows);
+  }, [rows, sync]);
 }
 
 interface QuoteSplitViewProps {
-  children: React.ReactNode
+  children: React.ReactNode;
 }
 
 export default function QuoteSplitView({ children }: QuoteSplitViewProps) {
-  const [selected, setSelected] = useState<Quote | null>(null)
-  const { last, markOpened } = useLastPreviewMark(selected !== null)
+  const [selected, setSelected] = useState<Quote | null>(null);
+  const { last, markOpened } = useLastPreviewMark(selected !== null);
 
   const onPreview = (quote: Quote) => {
-    markOpened(quote.id)
-    setSelected((prev) => (prev?.id === quote.id ? null : quote))
-  }
+    markOpened(quote.id);
+    setSelected((prev) => (prev?.id === quote.id ? null : quote));
+  };
 
   // Si la fila ya no está en la tabla (se eliminó, o los filtros o la página la
   // sacaron), el panel se cierra: no debe seguir mostrando algo que la tabla no.
   const sync = useCallback((rows: Quote[]) => {
     setSelected((prev) => {
-      if (!prev) return prev
-      const fresh = rows.find((row) => row.id === prev.id)
-      if (!fresh) return null
-      return fresh !== prev ? fresh : prev
-    })
-  }, [])
+      if (!prev) return prev;
+      const fresh = rows.find((row) => row.id === prev.id);
+      if (!fresh) return null;
+      return fresh !== prev ? fresh : prev;
+    });
+  }, []);
 
   useEffect(() => {
-    if (!selected) return
+    if (!selected) return;
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setSelected(null)
-    }
+      if (event.key === "Escape") setSelected(null);
+    };
 
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [selected])
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [selected]);
 
   return (
     <QuotePreviewContext.Provider value={onPreview}>
@@ -107,8 +107,8 @@ export default function QuoteSplitView({ children }: QuoteSplitViewProps) {
           <QuotePreviewSyncContext.Provider value={sync}>
             <div
               className={cn(
-                'transition-[margin-right] duration-300 ease-in-out',
-                selected && 'lg:mr-105'
+                "transition-[margin-right] duration-300 ease-in-out",
+                selected && "lg:mr-105",
               )}
             >
               {children}
@@ -138,5 +138,5 @@ export default function QuoteSplitView({ children }: QuoteSplitViewProps) {
         </QuotePreviewLastContext.Provider>
       </QuotePreviewSelectedContext.Provider>
     </QuotePreviewContext.Provider>
-  )
+  );
 }

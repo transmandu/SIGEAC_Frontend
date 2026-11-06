@@ -194,7 +194,10 @@ export function AudienceEditor({
         void submit();
       }}
     >
-      <SegmentedTabs defaultValue="employees" className="flex min-h-0 flex-1 flex-col">
+      <SegmentedTabs
+        defaultValue="employees"
+        className="flex min-h-0 flex-1 flex-col"
+      >
         <SegmentedTabsList className="mb-4 shrink-0">
           <SegmentedTabsTrigger value="employees">
             <Users className="size-4" />

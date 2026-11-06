@@ -1,13 +1,12 @@
-'use client'
+"use client";
 
-import { PackageSearch } from 'lucide-react'
+import { PackageSearch } from "lucide-react";
 
-import { ContentLayout } from '@/components/layout/ContentLayout'
+import { ContentLayout } from "@/components/layout/ContentLayout";
 
 const RequisitionOutOfScope = () => {
   return (
     <ContentLayout title="Solicitud de Compra">
-
       <div
         className="
           flex items-center justify-center
@@ -31,7 +30,6 @@ const RequisitionOutOfScope = () => {
             dark:shadow-[0_10px_35px_rgba(0,0,0,0.35)]
           "
         >
-
           <div
             className="
               flex items-center justify-center
@@ -54,7 +52,6 @@ const RequisitionOutOfScope = () => {
           </div>
 
           <div className="flex flex-col items-center text-center gap-1.5">
-
             <h2
               className="
                 text-lg
@@ -72,17 +69,14 @@ const RequisitionOutOfScope = () => {
                 leading-relaxed
               "
             >
-              Esta requisición corresponde a compras generales y no se
-              gestiona dentro del módulo de compras aeronáuticas.
+              Esta requisición corresponde a compras generales y no se gestiona
+              dentro del módulo de compras aeronáuticas.
             </p>
-
           </div>
-
         </div>
       </div>
-
     </ContentLayout>
-  )
-}
+  );
+};
 
-export default RequisitionOutOfScope
+export default RequisitionOutOfScope;

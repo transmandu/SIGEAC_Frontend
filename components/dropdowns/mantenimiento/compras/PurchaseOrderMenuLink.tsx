@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { useRouter } from "next/navigation"
-import { ExternalLink } from "lucide-react"
+import { useRouter } from "next/navigation";
+import { ExternalLink } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,27 +9,27 @@ import {
   DropdownMenuSub,
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
-  DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu"
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Tooltip,
   TooltipContent,
-  TooltipTrigger
-} from "@/components/ui/tooltip"
-import { useGetPurchaseOrderByQuoteId } from "@/hooks/mantenimiento/compras/useGetPurchaseOrderByQuoteId"
-import { isAeronauticalPurchaseOrder } from "@/lib/purchases/purchase-order-scope"
-import { cn } from "@/lib/utils"
-import { RowAction, rowActionBarItemClass } from "./RowAction"
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { useGetPurchaseOrderByQuoteId } from "@/hooks/mantenimiento/compras/useGetPurchaseOrderByQuoteId";
+import { isAeronauticalPurchaseOrder } from "@/lib/purchases/purchase-order-scope";
+import { cn } from "@/lib/utils";
+import { RowAction, rowActionBarItemClass } from "./RowAction";
 
 type Props = {
-  company: string
-  quoteId: number
-  enabled: boolean
-  itemClassName: string
-  iconClassName: string
+  company: string;
+  quoteId: number;
+  enabled: boolean;
+  itemClassName: string;
+  iconClassName: string;
   /** En la barra del panel lateral en vez de dentro del menú flotante. */
-  inBar?: boolean
-}
+  inBar?: boolean;
+};
 
 const PurchaseOrderMenuLink = ({
   company,
@@ -37,34 +37,34 @@ const PurchaseOrderMenuLink = ({
   enabled,
   itemClassName,
   iconClassName,
-  inBar = false
+  inBar = false,
 }: Props) => {
-  const router = useRouter()
+  const router = useRouter();
 
   const { data: purchaseOrders, isFetching } = useGetPurchaseOrderByQuoteId({
     company,
     quoteId,
-    enabled
-  })
+    enabled,
+  });
 
-  const orders = purchaseOrders ?? []
-  const hasSingle = orders.length === 1
-  const hasMultiple = orders.length > 1
+  const orders = purchaseOrders ?? [];
+  const hasSingle = orders.length === 1;
+  const hasMultiple = orders.length > 1;
 
   const goToPO = (orderNumber: string) => {
     const segment = isAeronauticalPurchaseOrder(orderNumber)
       ? "ordenes_compra"
-      : "ordenes_compra_generales"
-    router.push(`/${company}/compras/${segment}/${orderNumber}`)
-  }
+      : "ordenes_compra_generales";
+    router.push(`/${company}/compras/${segment}/${orderNumber}`);
+  };
 
   const tooltipLabel = isFetching
     ? "Cargando..."
     : hasMultiple
-    ? "Ver órdenes de compra"
-    : orders.length
-    ? "Ver orden de compra"
-    : "No existe orden de compra"
+      ? "Ver órdenes de compra"
+      : orders.length
+        ? "Ver orden de compra"
+        : "No existe orden de compra";
 
   const orderItems = orders.map((po) => (
     <DropdownMenuItem
@@ -87,16 +87,16 @@ const PurchaseOrderMenuLink = ({
 
       <ExternalLink className="size-3.5 shrink-0 text-primary" />
     </DropdownMenuItem>
-  ))
+  ));
 
   const listClassName =
-    "rounded-2xl border border-border/50 bg-background/95 backdrop-blur-xl shadow-xl p-1.5 w-64"
+    "rounded-2xl border border-border/50 bg-background/95 backdrop-blur-xl shadow-xl p-1.5 w-64";
 
   const listHeading = (
     <p className="px-2.5 pt-1.5 pb-2 text-xs tracking-wide text-muted-foreground select-none">
       ÓRDENES DE COMPRA
     </p>
-  )
+  );
 
   if (inBar) {
     if (!hasMultiple) {
@@ -109,7 +109,7 @@ const PurchaseOrderMenuLink = ({
           disabled={!orders.length}
           onSelect={() => hasSingle && goToPO(orders[0].order_number)}
         />
-      )
+      );
     }
 
     return (
@@ -134,7 +134,7 @@ const PurchaseOrderMenuLink = ({
           {orderItems}
         </DropdownMenuContent>
       </DropdownMenu>
-    )
+    );
   }
 
   if (hasMultiple) {
@@ -145,7 +145,7 @@ const PurchaseOrderMenuLink = ({
             <DropdownMenuSubTrigger
               className={cn(
                 itemClassName,
-                "text-primary [&>svg:last-child]:hidden"
+                "text-primary [&>svg:last-child]:hidden",
               )}
             >
               <ExternalLink className={iconClassName} />
@@ -159,7 +159,7 @@ const PurchaseOrderMenuLink = ({
           {orderItems}
         </DropdownMenuSubContent>
       </DropdownMenuSub>
-    )
+    );
   }
 
   return (
@@ -184,7 +184,7 @@ const PurchaseOrderMenuLink = ({
 
       <TooltipContent>{tooltipLabel}</TooltipContent>
     </Tooltip>
-  )
-}
+  );
+};
 
-export default PurchaseOrderMenuLink
+export default PurchaseOrderMenuLink;

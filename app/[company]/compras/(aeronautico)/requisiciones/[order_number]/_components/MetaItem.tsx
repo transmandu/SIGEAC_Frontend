@@ -1,4 +1,4 @@
-import { ElementType } from 'react';
+import { ElementType } from "react";
 
 interface MetaItemProps {
   label: string;
@@ -13,11 +13,13 @@ const MetaItem = ({ label, value, icon: Icon }: MetaItemProps) => {
         {label}
       </span>
       <span className="text-sm font-medium flex items-center gap-1.5">
-        {Icon && <Icon className="size-3.5 text-muted-foreground/50 shrink-0" />}
-        {value ?? '—'}
+        {Icon && (
+          <Icon className="size-3.5 text-muted-foreground/50 shrink-0" />
+        )}
+        {value ?? "—"}
       </span>
     </div>
   );
-}
+};
 
 export default MetaItem;

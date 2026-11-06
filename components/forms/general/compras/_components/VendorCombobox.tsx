@@ -133,20 +133,20 @@ export function VendorCombobox({
 
       {canCreate && (
         <>
-        {/* Crear proveedor modal — auto-selects the new vendor on success */}
-        <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-          <FormDialogContent
-            className="sm:max-w-2xl"
-            icon={Truck}
-            title="Creación de Proveedor"
-            description="Registre un proveedor o beneficiario rellenando la información necesaria."
-          >
-            <CreateVendorForm
-              onClose={() => setCreateOpen(false)}
-              onCreated={(created) => onChange(created.id.toString())}
-            />
-          </FormDialogContent>
-        </Dialog>
+          {/* Crear proveedor modal — auto-selects the new vendor on success */}
+          <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+            <FormDialogContent
+              className="sm:max-w-2xl"
+              icon={Truck}
+              title="Creación de Proveedor"
+              description="Registre un proveedor o beneficiario rellenando la información necesaria."
+            >
+              <CreateVendorForm
+                onClose={() => setCreateOpen(false)}
+                onCreated={(created) => onChange(created.id.toString())}
+              />
+            </FormDialogContent>
+          </Dialog>
         </>
       )}
     </>

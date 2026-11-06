@@ -100,16 +100,14 @@ function StatusBadge({
         const target = NEXT_REQUISITION_STATUS[confirmingFrom ?? ""];
         if (!target || !selectedCompany || !id) return;
 
-        await updateStatusRequisition.mutateAsync(
-          {
-            id,
-            data: {
-              status: target,
-              updated_by: `${user?.first_name} ${user?.last_name}`,
-            },
-            company: selectedCompany.slug,
+        await updateStatusRequisition.mutateAsync({
+          id,
+          data: {
+            status: target,
+            updated_by: `${user?.first_name} ${user?.last_name}`,
           },
-        );
+          company: selectedCompany.slug,
+        });
 
         onSuccess();
       }}
@@ -348,9 +346,7 @@ const RequisitionPage = () => {
             </div>
 
             <div className="flex items-center gap-2 rounded-md border border-border/50 bg-muted/30 px-2.5 py-1 select-none">
-              <span className="text-xs text-muted-foreground">
-                Total
-              </span>
+              <span className="text-xs text-muted-foreground">Total</span>
 
               <span className="text-sm font-semibold tabular-nums">
                 {generalArticles?.length ?? 0}

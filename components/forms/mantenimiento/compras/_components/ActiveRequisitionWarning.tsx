@@ -1,17 +1,17 @@
-"use client"
+"use client";
 
-import { formatDistanceToNow, parseISO } from "date-fns"
-import { es } from "date-fns/locale"
-import { AlertTriangle } from "lucide-react"
-import { cn } from "@/lib/utils"
-import type { ActiveGeneralArticleRequisition } from "@/types/purchase"
+import { formatDistanceToNow, parseISO } from "date-fns";
+import { es } from "date-fns/locale";
+import { AlertTriangle } from "lucide-react";
+import { cn } from "@/lib/utils";
+import type { ActiveGeneralArticleRequisition } from "@/types/purchase";
 
 const STATUS_LABELS: Record<string, string> = {
   CREATED: "Creada",
   RECEIVED: "Recibida",
   IN_PROGRESS: "En proceso",
   QUOTED: "Cotizada",
-}
+};
 
 /** `compact` es la variante en línea del formulario; la extendida va en el diálogo. */
 export function ActiveRequisitionWarning({
@@ -19,30 +19,38 @@ export function ActiveRequisitionWarning({
   compact = false,
   className,
 }: {
-  entries: ActiveGeneralArticleRequisition[]
-  compact?: boolean
-  className?: string
+  entries: ActiveGeneralArticleRequisition[];
+  compact?: boolean;
+  className?: string;
 }) {
-  if (entries.length === 0) return null
+  if (entries.length === 0) return null;
 
-  const total = entries.reduce((sum, entry) => sum + Number(entry.quantity ?? 0), 0)
+  const total = entries.reduce(
+    (sum, entry) => sum + Number(entry.quantity ?? 0),
+    0,
+  );
   // Sumar 1 GALON + 3 METRO no significa nada: solo hay total si la unidad es una sola.
-  const units = Array.from(new Set(entries.map((entry) => entry.unit_label ?? "")))
-  const sharedUnit = units.length === 1 ? units[0] : null
+  const units = Array.from(
+    new Set(entries.map((entry) => entry.unit_label ?? "")),
+  );
+  const sharedUnit = units.length === 1 ? units[0] : null;
 
   const describeAge = (createdAt: string) => {
     try {
-      return formatDistanceToNow(parseISO(createdAt), { locale: es, addSuffix: true })
+      return formatDistanceToNow(parseISO(createdAt), {
+        locale: es,
+        addSuffix: true,
+      });
     } catch {
-      return null
+      return null;
     }
-  }
+  };
 
   return (
     <div
       className={cn(
         "rounded-md border border-amber-500/40 bg-amber-500/[0.07] px-2.5 py-2",
-        className
+        className,
       )}
     >
       <div className="flex items-start gap-2">
@@ -57,10 +65,11 @@ export function ActiveRequisitionWarning({
 
           <ul className="flex flex-col gap-0.5">
             {entries.map((entry) => {
-              const age = describeAge(entry.created_at)
-              const requester = entry.created_by === "SYSTEM"
-                ? "alerta de stock"
-                : entry.requested_by
+              const age = describeAge(entry.created_at);
+              const requester =
+                entry.created_by === "SYSTEM"
+                  ? "alerta de stock"
+                  : entry.requested_by;
 
               return (
                 <li
@@ -72,11 +81,12 @@ export function ActiveRequisitionWarning({
                   </span>
                   {" · "}
                   <span className="font-medium">{entry.order_number}</span>
-                  {STATUS_LABELS[entry.order_status] && ` · ${STATUS_LABELS[entry.order_status]}`}
+                  {STATUS_LABELS[entry.order_status] &&
+                    ` · ${STATUS_LABELS[entry.order_status]}`}
                   {!compact && requester && ` · ${requester}`}
                   {age && ` · ${age}`}
                 </li>
-              )
+              );
             })}
           </ul>
 
@@ -88,5 +98,5 @@ export function ActiveRequisitionWarning({
         </div>
       </div>
     </div>
-  )
+  );
 }

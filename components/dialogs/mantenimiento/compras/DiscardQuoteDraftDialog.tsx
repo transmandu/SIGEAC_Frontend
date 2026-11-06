@@ -31,7 +31,9 @@ export function DiscardQuoteDraftDialog({
       onOpenChange={onOpenChange}
       title="Descartar borrador"
       entityName={
-        orderNumber ? `el borrador de la solicitud ${orderNumber}` : "el borrador"
+        orderNumber
+          ? `el borrador de la solicitud ${orderNumber}`
+          : "el borrador"
       }
       confirmLabel="Descartar"
       isPending={isPending}

@@ -138,20 +138,20 @@ export function UnitCombobox({
 
       {canCreate && (
         <>
-        {/* Crear unidad modal — auto-selects the new unit on success */}
-        <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-          <FormDialogContent
-            className="sm:max-w-lg"
-            icon={Ruler}
-            title="Creación de Unidad"
-            description="Registre una unidad de medida rellenando la información necesaria."
-          >
-            <CreateUnitForm
-              onClose={() => setCreateOpen(false)}
-              onCreated={(unit) => onChange(unit.id.toString())}
-            />
-          </FormDialogContent>
-        </Dialog>
+          {/* Crear unidad modal — auto-selects the new unit on success */}
+          <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+            <FormDialogContent
+              className="sm:max-w-lg"
+              icon={Ruler}
+              title="Creación de Unidad"
+              description="Registre una unidad de medida rellenando la información necesaria."
+            >
+              <CreateUnitForm
+                onClose={() => setCreateOpen(false)}
+                onCreated={(unit) => onChange(unit.id.toString())}
+              />
+            </FormDialogContent>
+          </Dialog>
         </>
       )}
     </>

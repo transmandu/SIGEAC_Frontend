@@ -259,10 +259,10 @@ export default function EditIntakeDialog({
         footer={
           <>
             <span className="mr-auto text-xs text-muted-foreground tabular-nums">
-            {changedFieldCount === 0
-              ? "Sin cambios"
-              : `${changedFieldCount} campo${changedFieldCount === 1 ? "" : "s"} modificado${changedFieldCount === 1 ? "" : "s"}`}
-          </span>
+              {changedFieldCount === 0
+                ? "Sin cambios"
+                : `${changedFieldCount} campo${changedFieldCount === 1 ? "" : "s"} modificado${changedFieldCount === 1 ? "" : "s"}`}
+            </span>
 
             <Button
               variant="outline"

@@ -473,9 +473,9 @@ export function BatchArticlesSection({
                                   placeholder="Ej: Unidad"
                                   searchPlaceholder="Buscar unidad..."
                                   triggerClassName={cn(
-                                      "text-xs h-8",
-                                      !article.unit && "text-muted-foreground",
-                                    )}
+                                    "text-xs h-8",
+                                    !article.unit && "text-muted-foreground",
+                                  )}
                                   options={(units ?? []).map((unit) => ({
                                     value: unit.id.toString(),
                                     label: unit.label,

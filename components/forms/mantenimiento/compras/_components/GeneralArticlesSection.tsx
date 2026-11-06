@@ -921,11 +921,11 @@ export function GeneralArticlesSection({
                                 placeholder="Ej: Unidad"
                                 searchPlaceholder="Buscar unidad..."
                                 triggerClassName={cn(
-                                    "text-xs h-8",
-                                    !article.unit_id && "text-muted-foreground",
-                                    isUnitInvalid(article) &&
-                                      "border-destructive focus-visible:ring-destructive",
-                                  )}
+                                  "text-xs h-8",
+                                  !article.unit_id && "text-muted-foreground",
+                                  isUnitInvalid(article) &&
+                                    "border-destructive focus-visible:ring-destructive",
+                                )}
                                 options={(units ?? []).map((unit) => ({
                                   value: unit.id.toString(),
                                   label: unit.label,
@@ -1097,11 +1097,11 @@ export function GeneralArticlesSection({
                                 placeholder="Ej: Unidad"
                                 searchPlaceholder="Buscar unidad..."
                                 triggerClassName={cn(
-                                    "text-xs h-8",
-                                    !article.unit_id && "text-muted-foreground",
-                                    isUnitInvalid(article) &&
-                                      "border-destructive focus-visible:ring-destructive",
-                                  )}
+                                  "text-xs h-8",
+                                  !article.unit_id && "text-muted-foreground",
+                                  isUnitInvalid(article) &&
+                                    "border-destructive focus-visible:ring-destructive",
+                                )}
                                 options={(units ?? []).map((unit) => ({
                                   value: unit.id.toString(),
                                   label: unit.label,

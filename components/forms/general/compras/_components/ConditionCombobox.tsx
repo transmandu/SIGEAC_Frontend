@@ -133,20 +133,20 @@ export function ConditionCombobox({
 
       {canCreate && (
         <>
-        {/* Crear condición modal — auto-selects the new condition on success */}
-        <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-          <FormDialogContent
-            className="sm:max-w-lg"
-            icon={Tag}
-            title="Creación de Condición"
-            description="Registre una condición de artículo rellenando la información necesaria."
-          >
-            <CreateConditionForm
-              onClose={() => setCreateOpen(false)}
-              onSuccess={(condition) => onChange(condition.id.toString())}
-            />
-          </FormDialogContent>
-        </Dialog>
+          {/* Crear condición modal — auto-selects the new condition on success */}
+          <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+            <FormDialogContent
+              className="sm:max-w-lg"
+              icon={Tag}
+              title="Creación de Condición"
+              description="Registre una condición de artículo rellenando la información necesaria."
+            >
+              <CreateConditionForm
+                onClose={() => setCreateOpen(false)}
+                onSuccess={(condition) => onChange(condition.id.toString())}
+              />
+            </FormDialogContent>
+          </Dialog>
         </>
       )}
     </>

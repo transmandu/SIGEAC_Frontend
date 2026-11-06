@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import {
   createContext,
@@ -6,49 +6,49 @@ import {
   useContext,
   useEffect,
   useState,
-} from 'react'
-import { cn } from '@/lib/utils'
-import type { PurchaseOrder } from '@/types/purchase'
-import PurchaseOrderPreviewPanel from './PurchaseOrderPreviewPanel'
+} from "react";
+import { cn } from "@/lib/utils";
+import type { PurchaseOrder } from "@/types/purchase";
+import PurchaseOrderPreviewPanel from "./PurchaseOrderPreviewPanel";
 import {
   NO_LAST_PREVIEW_MARK,
   resolvePreviewRowMark,
   useLastPreviewMark,
   type LastPreviewMark,
   type PreviewRowMark,
-} from './preview-row-mark'
+} from "./preview-row-mark";
 
 const PurchaseOrderPreviewContext = createContext<
   ((purchaseOrder: PurchaseOrder) => void) | null
->(null)
+>(null);
 
-const PurchaseOrderPreviewSelectedContext = createContext<number | null>(null)
+const PurchaseOrderPreviewSelectedContext = createContext<number | null>(null);
 
 const PurchaseOrderPreviewLastContext =
-  createContext<LastPreviewMark>(NO_LAST_PREVIEW_MARK)
+  createContext<LastPreviewMark>(NO_LAST_PREVIEW_MARK);
 
 const PurchaseOrderPreviewSyncContext = createContext<
   ((rows: PurchaseOrder[]) => void) | null
->(null)
+>(null);
 
 export function usePurchaseOrderPreview() {
-  return useContext(PurchaseOrderPreviewContext)
+  return useContext(PurchaseOrderPreviewContext);
 }
 
 export function usePurchaseOrderPreviewSelectedId() {
-  return useContext(PurchaseOrderPreviewSelectedContext)
+  return useContext(PurchaseOrderPreviewSelectedContext);
 }
 
 /** Marca que la tabla pinta en cada fila; ver `PreviewRowMark`. */
 export function usePurchaseOrderRowMark() {
-  const openId = useContext(PurchaseOrderPreviewSelectedContext)
-  const last = useContext(PurchaseOrderPreviewLastContext)
+  const openId = useContext(PurchaseOrderPreviewSelectedContext);
+  const last = useContext(PurchaseOrderPreviewLastContext);
 
   return useCallback(
     (purchaseOrder: PurchaseOrder): PreviewRowMark | undefined =>
       resolvePreviewRowMark(purchaseOrder.id, openId, last),
-    [openId, last]
-  )
+    [openId, last],
+  );
 }
 
 /**
@@ -58,57 +58,63 @@ export function usePurchaseOrderRowMark() {
  * lo mismo que la tabla.
  */
 export function usePurchaseOrderPreviewSync(rows: PurchaseOrder[]) {
-  const sync = useContext(PurchaseOrderPreviewSyncContext)
+  const sync = useContext(PurchaseOrderPreviewSyncContext);
 
   useEffect(() => {
-    sync?.(rows)
-  }, [rows, sync])
+    sync?.(rows);
+  }, [rows, sync]);
 }
 
 interface PurchaseOrderSplitViewProps {
-  children: React.ReactNode
+  children: React.ReactNode;
 }
 
-export default function PurchaseOrderSplitView({ children }: PurchaseOrderSplitViewProps) {
-  const [selected, setSelected] = useState<PurchaseOrder | null>(null)
-  const { last, markOpened } = useLastPreviewMark(selected !== null)
+export default function PurchaseOrderSplitView({
+  children,
+}: PurchaseOrderSplitViewProps) {
+  const [selected, setSelected] = useState<PurchaseOrder | null>(null);
+  const { last, markOpened } = useLastPreviewMark(selected !== null);
 
   const onPreview = (purchaseOrder: PurchaseOrder) => {
-    markOpened(purchaseOrder.id)
-    setSelected((prev) => (prev?.id === purchaseOrder.id ? null : purchaseOrder))
-  }
+    markOpened(purchaseOrder.id);
+    setSelected((prev) =>
+      prev?.id === purchaseOrder.id ? null : purchaseOrder,
+    );
+  };
 
   // Si la fila ya no está en la tabla (se eliminó, o los filtros o la página la
   // sacaron), el panel se cierra: no debe seguir mostrando algo que la tabla no.
   const sync = useCallback((rows: PurchaseOrder[]) => {
     setSelected((prev) => {
-      if (!prev) return prev
-      const fresh = rows.find((row) => row.id === prev.id)
-      if (!fresh) return null
-      return fresh !== prev ? fresh : prev
-    })
-  }, [])
+      if (!prev) return prev;
+      const fresh = rows.find((row) => row.id === prev.id);
+      if (!fresh) return null;
+      return fresh !== prev ? fresh : prev;
+    });
+  }, []);
 
   useEffect(() => {
-    if (!selected) return
+    if (!selected) return;
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setSelected(null)
-    }
+      if (event.key === "Escape") setSelected(null);
+    };
 
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [selected])
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [selected]);
 
   return (
     <PurchaseOrderPreviewContext.Provider value={onPreview}>
-      <PurchaseOrderPreviewSelectedContext.Provider value={selected?.id ?? null}>
+      <PurchaseOrderPreviewSelectedContext.Provider
+        value={selected?.id ?? null}
+      >
         <PurchaseOrderPreviewLastContext.Provider value={last}>
           <PurchaseOrderPreviewSyncContext.Provider value={sync}>
             <div
               className={cn(
-                'transition-[margin-right] duration-300 ease-in-out',
-                selected && 'lg:mr-105'
+                "transition-[margin-right] duration-300 ease-in-out",
+                selected && "lg:mr-105",
               )}
             >
               {children}
@@ -138,5 +144,5 @@ export default function PurchaseOrderSplitView({ children }: PurchaseOrderSplitV
         </PurchaseOrderPreviewLastContext.Provider>
       </PurchaseOrderPreviewSelectedContext.Provider>
     </PurchaseOrderPreviewContext.Provider>
-  )
+  );
 }

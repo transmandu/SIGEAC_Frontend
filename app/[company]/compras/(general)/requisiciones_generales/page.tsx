@@ -193,7 +193,7 @@ const RequisitionsPageContent = () => {
               />
             )}
             canExpandRow={(row) => !!row.original.quotes?.length}
-                  getRowMark={rowMark}
+            getRowMark={rowMark}
             loading={isLoading}
             cursorPagination={cursorPagination}
           />
