@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useId } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { CalendarIcon, Loader2, Paperclip } from "lucide-react";
+import { CalendarIcon, FileText, ImageIcon } from "lucide-react";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@/lib/zod-resolver";
@@ -22,7 +22,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import {
   Popover,
   PopoverContent,
@@ -32,6 +31,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { FollowUpControl } from "@/types/sms/mantenimiento";
+
+import { FileInput, FormActions, FormSection } from "./_components/form-parts";
 
 const FORM_SCHEMA = z.object({
   description: z.string().min(3, "Describa el control de seguimiento"),
@@ -111,151 +112,131 @@ export default function CreateFollowUpControl({
     control: form.control,
     name: "document",
   });
+  const imageInputId = useId();
+  const documentInputId = useId();
   const isPending =
     createFollowUpControl.isPending || updateFollowUpControl.isPending;
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                Descripción del control
-              </FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Describa el seguimiento realizado"
-                  className="min-h-25"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="date"
-          render={({ field }) => (
-            <FormItem className="flex flex-col">
-              <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                Fecha del seguimiento
-              </FormLabel>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "pl-3 text-left font-normal",
-                        !field.value && "text-muted-foreground",
-                      )}
-                    >
-                      {field.value ? (
-                        format(field.value, "PPP", {
-                          locale: es,
-                        })
-                      ) : (
-                        <span>Seleccione una fecha</span>
-                      )}
-                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={field.value}
-                    onSelect={field.onChange}
-                    autoFocus
-                    startMonth={new Date(1980, 0)}
-                    endMonth={new Date(new Date().getFullYear() + 20, 11)}
-                    captionLayout="dropdown"
-                  />
-                </PopoverContent>
-              </Popover>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <div className="grid gap-4 md:grid-cols-2">
+        <FormSection title="Seguimiento">
           <FormField
             control={form.control}
-            name="image"
+            name="description"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  Imagen adjunta
-                </FormLabel>
+                <FormLabel>Descripción del control</FormLabel>
                 <FormControl>
-                  <Input
-                    type="file"
+                  <Textarea
+                    placeholder="Describa el seguimiento realizado"
+                    className="min-h-25"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="date"
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel>Fecha del seguimiento</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start pl-3 text-left font-normal",
+                          !field.value && "text-muted-foreground",
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4 opacity-60" />
+                        {field.value
+                          ? format(field.value, "PPP", { locale: es })
+                          : "Seleccione una fecha"}
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      autoFocus
+                      startMonth={new Date(1980, 0)}
+                      endMonth={new Date(new Date().getFullYear() + 20, 11)}
+                      captionLayout="dropdown"
+                    />
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </FormSection>
+
+        <FormSection
+          title="Evidencias"
+          hint="Adjunte una imagen o un PDF si respalda el seguimiento."
+        >
+          <div className="grid gap-4 sm:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="image"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel htmlFor={imageInputId}>Imagen adjunta</FormLabel>
+                  <FileInput
+                    id={imageInputId}
                     accept="image/*"
+                    icon={ImageIcon}
+                    fileName={selectedImage?.name || initialData?.image}
+                    placeholder="Imagen (JPG, PNG…)"
                     onChange={(event) =>
                       field.onChange(event.target.files?.[0] || undefined)
                     }
                   />
-                </FormControl>
-                {(selectedImage || initialData?.image) && (
-                  <p className="text-xs text-muted-foreground">
-                    {selectedImage?.name || initialData?.image}
-                  </p>
-                )}
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={form.control}
-            name="document"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  Documento adjunto
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    type="file"
+            <FormField
+              control={form.control}
+              name="document"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel htmlFor={documentInputId}>
+                    Documento adjunto
+                  </FormLabel>
+                  <FileInput
+                    id={documentInputId}
                     accept="application/pdf"
+                    icon={FileText}
+                    fileName={selectedDocument?.name || initialData?.document}
+                    placeholder="Documento PDF"
                     onChange={(event) =>
                       field.onChange(event.target.files?.[0] || undefined)
                     }
                   />
-                </FormControl>
-                {(selectedDocument || initialData?.document) && (
-                  <p className="text-xs text-muted-foreground">
-                    {selectedDocument?.name || initialData?.document}
-                  </p>
-                )}
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </FormSection>
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-          {onCancel && (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onCancel}
-              disabled={isPending}
-            >
-              Cancelar
-            </Button>
-          )}
-          <Button type="submit" className="w-full h-10" disabled={isPending}>
-            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            <Paperclip className="mr-2 h-4 w-4" />
-            {isEditing ? "Guardar cambios" : "Agregar control"}
-          </Button>
-        </div>
+        <FormActions
+          onCancel={onCancel}
+          submitLabel={isEditing ? "Guardar cambios" : "Agregar control"}
+          isPending={isPending}
+        />
       </form>
     </Form>
   );

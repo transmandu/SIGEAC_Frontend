@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@/lib/zod-resolver";
-import { Loader2, X } from "lucide-react";
+import { X } from "lucide-react";
 
 import {
   useCreateMitigationAnalysis,
@@ -15,7 +15,6 @@ import {
 } from "@/actions/mantenimiento/sms/evaluacion_mitigacion/actions";
 import RiskMatrix from "@/components/misc/RiskMatrix";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -41,6 +40,8 @@ import {
   HazardNotification,
   MitigationPlan,
 } from "@/types/sms/mantenimiento";
+
+import { FormActions, FormSection } from "./_components/form-parts";
 
 const FORM_SCHEMA = z.object({
   area_responsible: z.string().min(1, "Seleccione el área responsable"),
@@ -385,48 +386,28 @@ export default function CreateMitigationPlanAnalysis({
     createMitigationAnalysis.isPending ||
     updateMitigationAnalysis.isPending;
 
+  const submitLabel = isAnalysisOnly
+    ? analysis
+      ? "Guardar análisis"
+      : "Registrar análisis"
+    : mitigationPlan || analysis
+      ? "Guardar cambios"
+      : "Registrar plan y análisis";
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
         {!isAnalysisOnly && (
-          <>
-            <div className="grid gap-3 md:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="area_responsible"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                      Área responsable
-                    </FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Seleccione un área" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {RESPONSIBLE_AREAS.map((area) => (
-                          <SelectItem key={area.value} value={area.value}>
-                            {area.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
+          <FormSection
+            title="Plan de mitigación"
+            hint="Documente el plan y las consecuencias que busca controlar."
+          >
             <FormField
               control={form.control}
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                    Descripción del plan
-                  </FormLabel>
+                  <FormLabel>Descripción del plan</FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="Describa el enfoque del plan de mitigación"
@@ -444,9 +425,7 @@ export default function CreateMitigationPlanAnalysis({
               name="possible_consequences"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                    Posibles consecuencias
-                  </FormLabel>
+                  <FormLabel>Posibles consecuencias</FormLabel>
                   <FormControl>
                     <div className="space-y-3">
                       <input
@@ -476,26 +455,108 @@ export default function CreateMitigationPlanAnalysis({
                                 type="button"
                                 className="rounded-full p-0.5 hover:bg-background/60"
                                 onClick={() => removeConsequence(consequence)}
+                                aria-label={`Eliminar ${consequence}`}
                               >
                                 <X className="h-3 w-3" />
-                                <span className="sr-only">
-                                  Eliminar consecuencia
-                                </span>
                               </button>
                             </Badge>
                           ))}
                         </div>
                       ) : (
-                        <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
-                          Todavía no ha agregado consecuencias. Presione Enter
-                          para registrarlas una por una.
-                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Aún no ha agregado consecuencias.
+                        </p>
                       )}
                     </div>
                   </FormControl>
-                  <FormDescription>
-                    Cada consecuencia se agrega con Enter
-                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="area_responsible"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Área responsable</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Seleccione un área" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {RESPONSIBLE_AREAS.map((area) => (
+                          <SelectItem key={area.value} value={area.value}>
+                            {area.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="consequence_to_evaluate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Consecuencia a evaluar</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      disabled={!consequenceOptions.length}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Seleccione una consecuencia" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {consequenceOptions.map((consequence) => (
+                          <SelectItem key={consequence} value={consequence}>
+                            {consequence}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </FormSection>
+        )}
+
+        <FormSection
+          title="Evaluación del riesgo"
+          hint="Seleccione probabilidad y severidad, o haga clic directamente en la matriz."
+        >
+          <div className="grid gap-4 sm:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="probability"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Probabilidad</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccione la probabilidad" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {PROBABILITY_OPTIONS.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
@@ -503,108 +564,36 @@ export default function CreateMitigationPlanAnalysis({
 
             <FormField
               control={form.control}
-              name="consequence_to_evaluate"
+              name="severity"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                    Consecuencia a evaluar
-                  </FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value}
-                    disabled={!consequenceOptions.length}
-                  >
+                  <FormLabel>Severidad</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Seleccione una consecuencia" />
+                        <SelectValue placeholder="Seleccione la severidad" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {consequenceOptions.map((consequence) => (
-                        <SelectItem key={consequence} value={consequence}>
-                          {consequence}
+                      {SEVERITY_OPTIONS.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                  <FormDescription>
-                    La consecuencia a evaluar se selecciona de la lista creada
-                    abajo.
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
-          </>
-        )}
+          </div>
 
-        <div className="grid gap-3 md:grid-cols-2">
-          <FormField
-            control={form.control}
-            name="probability"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  Probabilidad
-                </FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccione la probabilidad" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {PROBABILITY_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormDescription>
-                  Puede tomar como referencia la evaluación estimada guardada
-                  para la notificación.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
+          <RiskMatrix
+            onCellClick={handleCellClick}
+            selectedProbability={watchedProbability}
+            selectedSeverity={watchedSeverity}
           />
 
-          <FormField
-            control={form.control}
-            name="severity"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  Severidad
-                </FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccione la severidad" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {SEVERITY_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <RiskMatrix
-          onCellClick={handleCellClick}
-          selectedProbability={watchedProbability}
-          selectedSeverity={watchedSeverity}
-        />
-
-        <div className="rounded-lg border bg-muted/20 p-4">
           <div className="flex flex-wrap items-center gap-2 text-sm">
             <span className="font-medium">Selección actual:</span>
             {selectedResult ? (
@@ -624,30 +613,13 @@ export default function CreateMitigationPlanAnalysis({
               </span>
             )}
           </div>
-        </div>
+        </FormSection>
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-          {onCancel && (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onCancel}
-              disabled={isPending}
-            >
-              Cancelar
-            </Button>
-          )}
-          <Button type="submit" className="w-full h-10" disabled={isPending}>
-            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {isAnalysisOnly
-              ? analysis
-                ? "Guardar "
-                : "Registrar "
-              : mitigationPlan || analysis
-                ? "Guardar "
-                : "Guardar "}
-          </Button>
-        </div>
+        <FormActions
+          onCancel={onCancel}
+          submitLabel={submitLabel}
+          isPending={isPending}
+        />
       </form>
     </Form>
   );
