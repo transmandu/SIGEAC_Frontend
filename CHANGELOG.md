@@ -1,3 +1,8 @@
+## v4.92.0 — 2026-11-06
+
+- feat(courses): add all available modules to a training pattern (#384)
+- feat(courses): add training modules and patterns management (#381)
+
 ## v4.91.0 — 2026-11-05
 
 - feat: add serial and lot number display in various components and update search functionality
