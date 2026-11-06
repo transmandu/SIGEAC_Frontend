@@ -27,7 +27,7 @@ const PriorityIndicator = ({ priority }: PriorityIndicatorProps) => {
   return (
     <div
       className={cn(
-        'inline-flex items-center h-6 gap-1.5 px-2 py-0.5 rounded-md border text-[10px] font-semibold tracking-wide leading-none select-none',
+        'inline-flex items-center h-6 gap-1.5 px-2 py-0.5 rounded-md border text-xs font-semibold leading-none select-none',
         tone
       )}
     >

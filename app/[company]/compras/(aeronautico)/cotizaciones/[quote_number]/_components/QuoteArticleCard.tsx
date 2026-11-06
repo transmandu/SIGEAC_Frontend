@@ -25,17 +25,17 @@ const QuoteArticleCard = ({ article }: QuoteArticleCardProps) => {
     req.unit.label !== article.unit.label;
 
   return (
-    <div className="rounded-lg border border-border/60 bg-background/70 overflow-hidden mx-3">
+    <div className="rounded-xl border border-slate-200 bg-white dark:border-slate-700/60 dark:bg-slate-900/60 overflow-hidden mx-3">
       {/* HEADER */}
       <div className="flex items-center justify-between border-b border-border/50 bg-muted/25 px-3 py-1.5">
         <div className="flex items-center gap-2 min-w-0">
           <span className="truncate text-sm font-medium text-foreground">
-            {req?.batch?.name ?? "SIN LOTE"}
+            {req?.batch?.name ?? "Sin lote"}
           </span>
           {req?.batch?.category && (
             <Badge
               variant="secondary"
-              className="h-4 px-1.5 text-[9px] uppercase tracking-wide text-muted-foreground select-none"
+              className="h-5 px-1.5 text-xs text-muted-foreground select-none"
             >
               {req.batch.category}
             </Badge>
@@ -50,11 +50,11 @@ const QuoteArticleCard = ({ article }: QuoteArticleCardProps) => {
           <div className="min-w-0 space-y-2.5">
             {/* PART NUMBER */}
             <div className="space-y-1">
-              <span className="text-[10px] leading-none uppercase tracking-wide text-muted-foreground select-none">
+              <span className="text-xs leading-none text-muted-foreground select-none">
                 Part Number
               </span>
               <div className="flex items-center gap-2 min-w-0">
-                <span className="shrink-0 text-[10px] px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 font-medium select-none">
+                <span className="shrink-0 text-xs px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 font-medium select-none">
                   P/N
                 </span>
                 <div className="w-75 text-sm bg-muted/40 border border-border/40 rounded px-2 py-1 truncate">
@@ -66,14 +66,14 @@ const QuoteArticleCard = ({ article }: QuoteArticleCardProps) => {
 
             {/* ALT PART */}
             <div className="space-y-1">
-              <span className="text-[10px] leading-none uppercase tracking-wide text-muted-foreground select-none">
+              <span className="text-xs leading-none text-muted-foreground select-none">
                 Alternative Part Number
               </span>
               <div className="flex items-center gap-2 min-w-0">
-                <span className="shrink-0 text-[10px] px-1.5 py-0.5 rounded bg-slate-500/10 text-slate-600 border border-slate-500/20 font-medium select-none">
+                <span className="shrink-0 text-xs px-1.5 py-0.5 rounded bg-slate-500/10 text-slate-600 border border-slate-500/20 font-medium select-none">
                   ALT
                 </span>
-                <div className="w-75 text-[11px] border border-dashed border-border/40 rounded px-2 py-1 truncate text-muted-foreground">
+                <div className="w-75 text-xs border border-dashed border-border/40 rounded px-2 py-1 truncate text-muted-foreground">
                   {req?.article_alt_part_number || "N/A"}
                 </div>
                 <CopyPartNumberButton
@@ -92,7 +92,7 @@ const QuoteArticleCard = ({ article }: QuoteArticleCardProps) => {
               <div className={cn("grid gap-x-5", FIELDS_GRID_COLS)}>
                 {/* CANTIDAD */}
                 <div className="flex flex-col items-start min-w-0">
-                  <span className="h-4 text-[10px] uppercase tracking-wide text-muted-foreground select-none mb-2 block">
+                  <span className="h-4 text-xs text-muted-foreground select-none mb-2 block">
                     Cantidad
                   </span>
                   <span className="text-sm tabular-nums leading-none block">
@@ -102,7 +102,7 @@ const QuoteArticleCard = ({ article }: QuoteArticleCardProps) => {
 
                 {/* PROVEEDOR */}
                 <div className="flex flex-col items-start min-w-0">
-                  <span className="h-4 text-[10px] uppercase tracking-wide text-muted-foreground select-none mb-2 block">
+                  <span className="h-4 text-xs text-muted-foreground select-none mb-2 block">
                     Proveedor
                   </span>
                   <span className="text-sm leading-none block truncate w-full">
@@ -112,7 +112,7 @@ const QuoteArticleCard = ({ article }: QuoteArticleCardProps) => {
 
                 {/* LEAD TIME */}
                 <div className="flex flex-col items-start min-w-0">
-                  <span className="h-4 text-[10px] uppercase tracking-wide text-muted-foreground select-none mb-2 block">
+                  <span className="h-4 text-xs text-muted-foreground select-none mb-2 block">
                     Lead Time
                   </span>
                   <span className="text-sm text-muted-foreground leading-none block">
@@ -122,7 +122,7 @@ const QuoteArticleCard = ({ article }: QuoteArticleCardProps) => {
 
                 {/* PRECIO UNITARIO */}
                 <div className="flex flex-col items-start min-w-0">
-                  <span className="h-4 text-[10px] uppercase tracking-wide text-muted-foreground select-none mb-2 block">
+                  <span className="h-4 text-xs text-muted-foreground select-none mb-2 block">
                     P. Unitario
                   </span>
                   <span className="text-sm tabular-nums leading-none block">
@@ -135,7 +135,7 @@ const QuoteArticleCard = ({ article }: QuoteArticleCardProps) => {
               <div className={cn("grid gap-x-5", FIELDS_GRID_COLS)}>
                 {/* UNIDAD */}
                 <div className="flex flex-col items-start min-w-0">
-                  <span className="h-4 text-[10px] uppercase tracking-wide text-muted-foreground select-none mb-2 block">
+                  <span className="h-4 text-xs text-muted-foreground select-none mb-2 block">
                     Unidad
                   </span>
                   <span className="text-sm leading-none block">
@@ -145,7 +145,7 @@ const QuoteArticleCard = ({ article }: QuoteArticleCardProps) => {
 
                 {/* CONDICIÓN */}
                 <div className="flex flex-col items-start min-w-0">
-                  <span className="h-4 text-[10px] uppercase tracking-wide text-muted-foreground select-none mb-2 block">
+                  <span className="h-4 text-xs text-muted-foreground select-none mb-2 block">
                     Condición
                   </span>
                   <span className="text-sm leading-none block">
@@ -155,7 +155,7 @@ const QuoteArticleCard = ({ article }: QuoteArticleCardProps) => {
 
                 {/* REFERENCIA */}
                 <div className="flex flex-col items-start min-w-0">
-                  <span className="h-4 text-[10px] uppercase tracking-wide text-muted-foreground select-none mb-2 block">
+                  <span className="h-4 text-xs text-muted-foreground select-none mb-2 block">
                     Referencia
                   </span>
                   <span className="text-sm leading-none block truncate w-full">
@@ -165,7 +165,7 @@ const QuoteArticleCard = ({ article }: QuoteArticleCardProps) => {
 
                 {/* DESTINO */}
                 <div className="flex flex-col items-start min-w-0">
-                  <span className="h-4 text-[10px] uppercase tracking-wide text-muted-foreground select-none mb-2 block">
+                  <span className="h-4 text-xs text-muted-foreground select-none mb-2 block">
                     Destino
                   </span>
                   <span className="text-sm leading-none block truncate w-full">
@@ -177,7 +177,7 @@ const QuoteArticleCard = ({ article }: QuoteArticleCardProps) => {
 
             {/* TOTAL (separado horizontalmente, centrado verticalmente respecto a ambas filas) */}
             <div className="flex flex-col items-start min-w-25 pl-6 border-border/40 self-stretch justify-center">
-              <span className="h-4 text-[10px] uppercase tracking-wide text-muted-foreground select-none mb-2 block">
+              <span className="h-4 text-xs text-muted-foreground select-none mb-2 block">
                 Total
               </span>
               <span className="text-sm font-semibold tabular-nums block">

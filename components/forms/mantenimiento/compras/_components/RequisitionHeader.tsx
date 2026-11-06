@@ -46,7 +46,11 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  SegmentedTabs,
+  SegmentedTabsList,
+  SegmentedTabsTrigger,
+} from "@/components/misc/SegmentedTabs";
 import { RequiredIndicator } from "@/components/misc/RequiredIndicator";
 
 // Los empleados propios y los autorizados de otra empresa viven en tablas
@@ -149,7 +153,7 @@ export function RequisitionHeader({
   return (
     <div className="rounded-lg border bg-card p-3 space-y-1.5">
       <div className="flex items-center gap-1.5">
-        <h4 className="text-xs font-semibold text-muted-foreground tracking-wider select-none">
+        <h4 className="text-xs font-semibold text-muted-foreground select-none">
           DATOS DE LA REQUISICIÓN
         </h4>
         <Separator className="flex-1" />
@@ -269,22 +273,25 @@ export function RequisitionHeader({
                       employeeList
                     ) : (
                       <>
-                        <Tabs
+                        <SegmentedTabs
                           value={requesterTab}
                           onValueChange={(v) =>
                             setRequesterTab(v as RequesterTab)
                           }
                         >
-                          <TabsList className="grid w-full grid-cols-2 h-9 rounded-none">
-                            <TabsTrigger value="employee" className="text-xs">
+                          <SegmentedTabsList
+                            size="sm"
+                            className="w-full rounded-none border-x-0 border-t-0"
+                          >
+                            <SegmentedTabsTrigger value="employee">
                               Empleado
-                            </TabsTrigger>
+                            </SegmentedTabsTrigger>
                             {/* Abreviado: el label completo no cabe en la mitad del popover */}
-                            <TabsTrigger value="authorized" className="text-xs">
+                            <SegmentedTabsTrigger value="authorized">
                               Empleado Ext.
-                            </TabsTrigger>
-                          </TabsList>
-                        </Tabs>
+                            </SegmentedTabsTrigger>
+                          </SegmentedTabsList>
+                        </SegmentedTabs>
                         {requesterTab === "employee" ? (
                           employeeList
                         ) : (
@@ -353,19 +360,19 @@ export function RequisitionHeader({
             const priorityOptions = [
               {
                 value: "HIGH",
-                label: "ALTA",
+                label: "Alta",
                 icon: ArrowUp,
                 className: "text-red-500",
               },
               {
                 value: "MEDIUM",
-                label: "MEDIA",
+                label: "Media",
                 icon: Minus,
                 className: "text-amber-500",
               },
               {
                 value: "LOW",
-                label: "BAJA",
+                label: "Baja",
                 icon: ArrowDown,
                 className: "text-green-500",
               },

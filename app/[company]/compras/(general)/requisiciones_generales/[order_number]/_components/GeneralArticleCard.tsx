@@ -42,7 +42,7 @@ interface DestinationEntry {
 const DestinationChip = ({ icon: Icon, value, tooltip }: DestinationEntry) => (
   <Tooltip>
     <TooltipTrigger asChild>
-      <span className="inline-flex items-center justify-center gap-1 text-[11px] text-muted-foreground bg-background/60 border border-border/40 rounded-full px-2 py-1 w-fit max-w-37.5 cursor-default">
+      <span className="inline-flex items-center justify-center gap-1 text-xs text-muted-foreground bg-background/60 border border-border/40 rounded-md px-2 py-1 w-fit max-w-37.5 cursor-default">
         <Icon className="size-3 shrink-0 opacity-70" />
         <span className="truncate font-medium text-foreground/80">{value}</span>
       </span>
@@ -83,7 +83,7 @@ const DestinationChips = ({
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="inline-flex items-center justify-center gap-1 text-[11px] text-muted-foreground bg-background/60 border border-border/40 rounded-full px-2 py-1 w-fit cursor-pointer hover:bg-muted/60 transition-colors"
+          className="inline-flex items-center justify-center gap-1 text-xs text-muted-foreground bg-background/60 border border-border/40 rounded-md px-2 py-1 w-fit cursor-pointer hover:bg-muted/60 transition-colors"
         >
           <MapPin className="size-3 shrink-0 opacity-70" />
           <span className="font-medium text-foreground/80">
@@ -169,7 +169,7 @@ const GeneralArticleCard = ({
   ].filter(Boolean) as DestinationEntry[];
 
   return (
-    <div className="rounded-lg border border-border/60 bg-background/70 overflow-hidden mx-3">
+    <div className="rounded-xl border border-slate-200 bg-white dark:border-slate-700/60 dark:bg-slate-900/60 overflow-hidden mx-3">
       <div className="relative">
         <AnimatePresence>
           {isRejected && (
@@ -201,7 +201,7 @@ const GeneralArticleCard = ({
               </span>
             </div>
             {article.requested_date && (
-              <div className="flex items-center gap-1 shrink-0 text-[11px] text-muted-foreground">
+              <div className="flex items-center gap-1 shrink-0 text-xs text-muted-foreground">
                 <CalendarDays className="size-3 opacity-70" />
                 <span>
                   Solicitado el{" "}
@@ -218,8 +218,8 @@ const GeneralArticleCard = ({
               {/* IZQUIERDA */}
               <div className="min-w-0 space-y-2.5">
                 <div className="space-y-1">
-                  <span className="text-[10px] tracking-wide text-muted-foreground">
-                    DESCRIPCIÓN
+                  <span className="text-xs text-muted-foreground">
+                    Descripción
                   </span>
                   <div className="w-75 text-sm bg-muted/40 border border-border/40 rounded px-2 py-1 truncate">
                     {article.description}
@@ -227,10 +227,10 @@ const GeneralArticleCard = ({
                 </div>
 
                 <div className="space-y-1">
-                  <span className="text-[10px] tracking-wide text-muted-foreground">
-                    PRESENT. / ESPECIF.
+                  <span className="text-xs text-muted-foreground">
+                    Presentación / especificación
                   </span>
-                  <div className="w-75 text-[11px] border border-dashed border-border/40 rounded px-2 py-1 truncate text-muted-foreground">
+                  <div className="w-75 text-xs border border-dashed border-border/40 rounded px-2 py-1 truncate text-muted-foreground">
                     {article.variant_type ?? "N/A"}
                   </div>
                 </div>
@@ -243,8 +243,8 @@ const GeneralArticleCard = ({
                   {/* DESTINO */}
                   {destinationEntries.length > 0 && (
                     <div className="flex flex-col items-center min-w-22.5">
-                      <span className="h-4 w-full flex items-center justify-center text-[10px] tracking-wide text-muted-foreground mb-2 select-none">
-                        DESTINO
+                      <span className="h-4 w-full flex items-center justify-center text-xs text-muted-foreground mb-2 select-none">
+                        Destino
                       </span>
                       <DestinationChips entries={destinationEntries} />
                     </div>
@@ -252,8 +252,8 @@ const GeneralArticleCard = ({
 
                   {/* ESTATUS */}
                   <div className="flex flex-col items-center min-w-22.5">
-                    <span className="h-4 w-full flex items-center justify-center text-[10px] tracking-wide text-muted-foreground mb-2 select-none">
-                      ESTATUS
+                    <span className="h-4 w-full flex items-center justify-center text-xs text-muted-foreground mb-2 select-none">
+                      Estatus
                     </span>
                     <div className="flex items-center justify-center w-full">
                       <Badge
@@ -266,8 +266,8 @@ const GeneralArticleCard = ({
 
                   {/* PRIORIDAD */}
                   <div className="flex flex-col items-center min-w-22.5">
-                    <span className="h-4 w-full flex items-center justify-center text-[10px] tracking-wide text-muted-foreground mb-2 select-none">
-                      PRIORIDAD
+                    <span className="h-4 w-full flex items-center justify-center text-xs text-muted-foreground mb-2 select-none">
+                      Prioridad
                     </span>
                     <div className="flex items-center justify-center w-full">
                       <Badge
@@ -284,14 +284,14 @@ const GeneralArticleCard = ({
                   <div className="flex flex-col items-center min-w-13.75">
                     {showQuantityApproval ? (
                       <>
-                        <span className="h-4 w-full flex items-center justify-center text-[10px] tracking-wide text-muted-foreground select-none">
-                          CANTIDAD SOLICITADA
+                        <span className="h-4 w-full flex items-center justify-center text-xs text-muted-foreground select-none">
+                          Cantidad solicitada
                         </span>
                         <span className="text-sm tabular-nums leading-none">
                           {article.quantity}
                         </span>
-                        <span className="h-4 w-full flex items-center justify-center text-[10px] tracking-wide text-muted-foreground mt-1 select-none">
-                          CANTIDAD APROBADA
+                        <span className="h-4 w-full flex items-center justify-center text-xs text-muted-foreground mt-1 select-none">
+                          Cantidad aprobada
                         </span>
                         <span className="text-sm tabular-nums leading-none">
                           {article.approved_quantity ?? "—"}
@@ -299,8 +299,8 @@ const GeneralArticleCard = ({
                       </>
                     ) : (
                       <>
-                        <span className="h-4 w-full flex items-center justify-center text-[10px] tracking-wide text-muted-foreground mb-2 select-none">
-                          CANTIDAD
+                        <span className="h-4 w-full flex items-center justify-center text-xs text-muted-foreground mb-2 select-none">
+                          Cantidad
                         </span>
                         <div className="flex items-center justify-center w-full">
                           <span className="text-sm tabular-nums leading-none">
@@ -313,8 +313,8 @@ const GeneralArticleCard = ({
 
                   {/* UNIDAD */}
                   <div className="flex flex-col items-center min-w-18.75">
-                    <span className="h-4 w-full flex items-center justify-center text-[10px] tracking-wide text-muted-foreground mb-2 select-none">
-                      UNIDAD
+                    <span className="h-4 w-full flex items-center justify-center text-xs text-muted-foreground mb-2 select-none">
+                      Unidad
                     </span>
                     <div className="flex items-center justify-center w-full">
                       <span className="text-sm text-muted-foreground leading-none">
@@ -325,8 +325,8 @@ const GeneralArticleCard = ({
 
                   {/* IMAGEN */}
                   <div className="flex flex-col items-center">
-                    <span className="h-4 w-full flex items-center justify-center text-[10px] tracking-wide text-muted-foreground mb-2 select-none">
-                      IMAGEN
+                    <span className="h-4 w-full flex items-center justify-center text-xs text-muted-foreground mb-2 select-none">
+                      Imagen
                     </span>
                     <div className="flex items-center justify-center w-full">
                       {imageSrc ? (
@@ -358,8 +358,8 @@ const GeneralArticleCard = ({
               <div className="space-y-3">
                 {/* DESCRIPCIÓN */}
                 <div className="space-y-1">
-                  <span className="text-[10px] tracking-wide text-muted-foreground">
-                    DESCRIPCIÓN
+                  <span className="text-xs text-muted-foreground">
+                    Descripción
                   </span>
                   <div className="flex-1 text-sm bg-muted/40 border border-border/40 rounded px-2 py-1 truncate">
                     {article.description}
@@ -368,18 +368,18 @@ const GeneralArticleCard = ({
 
                 {/* PRESENT. / ESPECIF. */}
                 <div className="space-y-1">
-                  <span className="text-[10px] tracking-wide text-muted-foreground">
-                    PRESENT. / ESPECIF.
+                  <span className="text-xs text-muted-foreground">
+                    Presentación / especificación
                   </span>
-                  <div className="flex-1 text-[11px] border border-dashed border-border/40 rounded px-2 py-1 truncate text-muted-foreground">
+                  <div className="flex-1 text-xs border border-dashed border-border/40 rounded px-2 py-1 truncate text-muted-foreground">
                     {article.variant_type ?? "N/A"}
                   </div>
                 </div>
 
                 {destinationEntries.length > 0 && (
                   <div className="space-y-1">
-                    <span className="text-[10px] tracking-wide text-muted-foreground">
-                      DESTINO
+                    <span className="text-xs text-muted-foreground">
+                      Destino
                     </span>
                     <DestinationChips entries={destinationEntries} wrap />
                   </div>
@@ -390,8 +390,8 @@ const GeneralArticleCard = ({
               <div className="grid grid-cols-3 gap-3">
                 {/* ESTATUS */}
                 <div className="flex flex-col items-center">
-                  <span className="text-[9px] tracking-wide text-muted-foreground mb-1.5 select-none">
-                    ESTATUS
+                  <span className="text-xs text-muted-foreground mb-1.5 select-none">
+                    Estatus
                   </span>
                   <Badge className={articleStatusUI(article.status).className}>
                     {articleStatusUI(article.status).label}
@@ -400,8 +400,8 @@ const GeneralArticleCard = ({
 
                 {/* PRIORIDAD */}
                 <div className="flex flex-col items-center">
-                  <span className="text-[9px] tracking-wide text-muted-foreground mb-1.5 select-none">
-                    PRIORIDAD
+                  <span className="text-xs text-muted-foreground mb-1.5 select-none">
+                    Prioridad
                   </span>
                   <Badge
                     className={priorityCardBadgeCls(article.priority).className}
@@ -412,19 +412,19 @@ const GeneralArticleCard = ({
 
                 {/* CANTIDAD / UNIDAD combined */}
                 <div className="flex flex-col items-center justify-center">
-                  <span className="text-[9px] tracking-wide text-muted-foreground mb-1.5 select-none">
-                    {showQuantityApproval ? "SOLICITADA" : "CANT."}
+                  <span className="text-xs text-muted-foreground mb-1.5 select-none">
+                    {showQuantityApproval ? "Solicitada" : "Cant."}
                   </span>
                   <span className="text-sm tabular-nums leading-none">
                     {article.quantity}
                   </span>
-                  <span className="text-[9px] text-muted-foreground leading-none mt-0.5">
+                  <span className="text-xs text-muted-foreground leading-none mt-0.5">
                     {article.unit?.label ?? "—"}
                   </span>
                   {showQuantityApproval && (
                     <>
-                      <span className="text-[9px] tracking-wide text-muted-foreground mb-1.5 mt-1.5 select-none">
-                        APROBADA
+                      <span className="text-xs text-muted-foreground mb-1.5 mt-1.5 select-none">
+                        Aprobada
                       </span>
                       <span className="text-sm tabular-nums leading-none">
                         {article.approved_quantity ?? "—"}
@@ -462,7 +462,7 @@ const GeneralArticleCard = ({
       {/* JUSTIFICACIÓN */}
       {article.justification && (
         <div className="border-t border-border/50 bg-muted/20 px-3 py-1.5">
-          <span className="select-none text-[9px] leading-none text-muted-foreground uppercase">
+          <span className="select-none text-xs leading-none text-muted-foreground">
             Justificación
           </span>
           <p className="mt-0.5 text-xs text-foreground/80">

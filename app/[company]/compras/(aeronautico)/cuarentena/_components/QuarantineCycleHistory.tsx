@@ -16,7 +16,7 @@ import {
 const OutcomeBadge = ({ outcome }: { outcome: QuarantineCycle["outcome"] }) => {
   if (!outcome) {
     return (
-      <Badge className="select-none rounded-md border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-amber-700 shadow-xs dark:text-amber-300">
+      <Badge className="select-none rounded-md border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-xs font-semibold text-amber-700 shadow-xs dark:text-amber-300">
         En curso
       </Badge>
     );
@@ -27,7 +27,7 @@ const OutcomeBadge = ({ outcome }: { outcome: QuarantineCycle["outcome"] }) => {
   return (
     <Badge
       className={cn(
-        "select-none whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-xs",
+        "select-none whitespace-nowrap rounded-md border h-6 px-2.5 text-xs font-medium",
         approved
           ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
           : "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300",
@@ -81,10 +81,10 @@ export function QuarantineCycleHistory({
           >
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <span className="inline-flex size-6 items-center justify-center rounded-full bg-slate-100 text-[11px] font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                <span className="inline-flex size-6 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
                   {cycle.cycle_number}
                 </span>
-                <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                <span className="text-xs font-semibold text-muted-foreground">
                   {cycle.cycle_number === 1
                     ? "Retención original"
                     : `Reincidencia ${cycle.cycle_number - 1}`}
@@ -98,13 +98,13 @@ export function QuarantineCycleHistory({
               <div className="flex gap-2.5">
                 <ShieldX className="mt-0.5 size-3.5 shrink-0 text-red-500" />
                 <div className="min-w-0 space-y-0.5">
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  <p className="text-xs font-semibold text-muted-foreground">
                     Hallazgo de calidad
                   </p>
                   <p className="text-sm text-slate-800 dark:text-slate-200">
                     {cycle.reason}
                   </p>
-                  <p className="text-[11px] text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     {[cycle.reported_by, reported]
                       .filter(Boolean)
                       .join(" · ") || "—"}
@@ -117,13 +117,13 @@ export function QuarantineCycleHistory({
                 <div className="flex gap-2.5">
                   <Wrench className="mt-0.5 size-3.5 shrink-0 text-sky-500" />
                   <div className="min-w-0 space-y-0.5">
-                    <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    <p className="text-xs font-semibold text-muted-foreground">
                       Corrección de compras
                     </p>
                     <p className="text-sm text-slate-800 dark:text-slate-200">
                       {cycle.resolution_notes}
                     </p>
-                    <p className="text-[11px] text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                       {[cycle.resolved_by, resolved]
                         .filter(Boolean)
                         .join(" · ") || "—"}
@@ -133,7 +133,7 @@ export function QuarantineCycleHistory({
               ) : (
                 <div className="flex gap-2.5">
                   <CircleDot className="mt-0.5 size-3.5 shrink-0 text-muted-foreground/50" />
-                  <p className="text-[11px] italic text-muted-foreground">
+                  <p className="text-xs italic text-muted-foreground">
                     Sin corrección registrada todavía.
                   </p>
                 </div>
@@ -148,7 +148,7 @@ export function QuarantineCycleHistory({
                     <MessageSquare className="mt-0.5 size-3.5 shrink-0 text-red-500" />
                   )}
                   <div className="min-w-0 space-y-0.5">
-                    <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    <p className="text-xs font-semibold text-muted-foreground">
                       Veredicto de re-inspección
                     </p>
                     {cycle.outcome_notes && (
@@ -156,7 +156,7 @@ export function QuarantineCycleHistory({
                         {cycle.outcome_notes}
                       </p>
                     )}
-                    <p className="text-[11px] text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                       {[cycle.outcome_by, closed].filter(Boolean).join(" · ") ||
                         "—"}
                     </p>

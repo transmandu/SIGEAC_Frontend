@@ -1,3 +1,4 @@
+import { CATALOG_ROLES } from "@/lib/menus/catalog-roles";
 import type { Group, MenuContext } from "@/lib/menus/types";
 import { Building2, Globe, KeyRound } from "lucide-react";
 
@@ -46,17 +47,7 @@ export function buildSettingsGroup({
             href: `/${slug}/ajustes/unidades`,
             label: "Unidades",
             active: pathname === `/${slug}/ajustes/unidades`,
-            roles: [
-              "JEFE_ALMACEN",
-              "ANALISTA_ALMACEN",
-              "SUPERUSER",
-              "ENGINEERING",
-              "ASISTENTE_COMPRAS",
-              "JEFE_COMPRAS",
-              "ANALISTA_COMPRAS",
-              "JEFE_ADMINISTRACION",
-              "ANALISTA_ADMINISTRACION",
-            ],
+            roles: [...CATALOG_ROLES.units],
           },
           {
             href: `/${slug}/ajustes/fabricantes`,
@@ -75,24 +66,13 @@ export function buildSettingsGroup({
             href: `/${slug}/ajustes/proveedores`,
             label: "Proveedores",
             active: pathname === `/${slug}/ajustes/proveedores`,
-            roles: [
-              "JEFE_COMPRAS",
-              "ANALISTA_COMPRAS",
-              "JEFE_ADMINISTRACION",
-              "ANALISTA_ADMINISTRACION",
-              "SUPERUSER",
-            ],
+            roles: [...CATALOG_ROLES.vendors],
           },
           {
             href: `/${slug}/ajustes/comercios`,
             label: "Comercios",
             active: pathname === `/${slug}/ajustes/comercios`,
-            roles: [
-              "ASISTENTE_COMPRAS",
-              "JEFE_ADMINISTRACION",
-              "ANALISTA_ADMINISTRACION",
-              "SUPERUSER",
-            ],
+            roles: [...CATALOG_ROLES.retailers],
           },
           {
             href: `/${slug}/ajustes/clientes`,
@@ -131,12 +111,7 @@ export function buildSettingsGroup({
             href: `/${slug}/ajustes/condiciones`,
             label: "Condiciones",
             active: pathname === `/${slug}/ajustes/condiciones`,
-            roles: [
-              "JEFE_PLANIFICACION",
-              "ANALISTA_PLANIFICACION",
-              "SUPERUSER",
-              "ENGINEERING",
-            ],
+            roles: [...CATALOG_ROLES.conditions],
           },
           {
             href: `/${slug}/ajustes/fuentes_informacion`,
@@ -155,14 +130,7 @@ export function buildSettingsGroup({
             href: `/${slug}/ajustes/agencias_envio`,
             label: "Agencias de Envío",
             active: pathname === `/${slug}/ajustes/agencias_envio`,
-            roles: [
-              "JEFE_COMPRAS",
-              "ANALISTA_COMPRAS",
-              "JEFE_ADMINISTRACION",
-              "ANALISTA_ADMINISTRACION",
-              "ASISTENTE_COMPRAS",
-              "SUPERUSER",
-            ],
+            roles: [...CATALOG_ROLES.shippingAgencies],
           },
           {
             href: `/${slug}/ajustes/pilotos`,

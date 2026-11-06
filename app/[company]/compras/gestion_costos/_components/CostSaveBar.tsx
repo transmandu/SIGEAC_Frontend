@@ -56,7 +56,7 @@ const CostSaveBar = ({
 
           <Badge
             variant="secondary"
-            className="text-[10px] bg-primary/10 text-primary border-0"
+            className="text-xs bg-primary/10 text-primary border-0"
           >
             {modifiedCount}
           </Badge>

@@ -68,6 +68,7 @@ import { ActiveRequisitionWarning } from "./ActiveRequisitionWarning";
 import { getRequisitionArticleKey } from "@/hooks/mantenimiento/compras/useGetActiveGeneralArticleRequisitions";
 import type { ActiveGeneralArticleRequisition } from "@/types/purchase";
 import { toCalendarPayload } from "@/lib/date";
+import { SearchableSelect } from "@/components/misc/SearchableSelect";
 
 interface GeneralArticlesSectionProps {
   form: UseFormReturn<any>;
@@ -226,7 +227,7 @@ function DestinationFieldsRow({
           )}
         >
           <CalendarIcon className="size-3" />
-          Fecha Solicitud
+          Fecha de solicitud
         </label>
         <Popover>
           <PopoverTrigger asChild>
@@ -555,7 +556,7 @@ export function GeneralArticlesSection({
 }: GeneralArticlesSectionProps) {
   const isLg = size === "lg";
   const labelTextClass = cn(
-    isLg ? "text-sm text-foreground/80" : "text-[10px] text-muted-foreground",
+    isLg ? "text-sm text-foreground/80" : "text-xs text-muted-foreground",
     "whitespace-nowrap",
   );
   const dateColClass = isLg ? "w-40" : "w-32";
@@ -627,7 +628,7 @@ export function GeneralArticlesSection({
                   onClick={(e) => e.preventDefault()}
                 >
                   <Layers className="size-3.5 text-muted-foreground" />
-                  Artículo General
+                  Artículo general
                 </FormLabel>
                 <div className="flex items-center gap-1.5">
                   <Popover>
@@ -761,7 +762,7 @@ export function GeneralArticlesSection({
                     <div className="flex items-center justify-between mb-2">
                       {isUnregistered ? (
                         <h4 className="font-medium text-sm select-none">
-                          Solicitar Artículo No Registrado
+                          Solicitar artículo no registrado
                         </h4>
                       ) : (
                         <h4 className="font-medium text-sm select-none">
@@ -907,38 +908,29 @@ export function GeneralArticlesSection({
                                   invalid={isUnitInvalid(article)}
                                 />
                               </label>
-                              <Select
+                              <SearchableSelect
                                 value={article.unit_id || ""}
-                                onValueChange={(value) =>
+                                onChange={(value) =>
                                   handleGeneralArticleChange(
                                     index,
                                     "unit_id",
                                     value,
                                   )
                                 }
-                                disabled={isUnitsLoading}
-                              >
-                                <SelectTrigger
-                                  className={cn(
+                                loading={isUnitsLoading}
+                                placeholder="Ej: Unidad"
+                                searchPlaceholder="Buscar unidad..."
+                                triggerClassName={cn(
                                     "text-xs h-8",
                                     !article.unit_id && "text-muted-foreground",
                                     isUnitInvalid(article) &&
                                       "border-destructive focus-visible:ring-destructive",
                                   )}
-                                >
-                                  <SelectValue placeholder="Ej: Unidad" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {units?.map((u) => (
-                                    <SelectItem
-                                      key={u.id}
-                                      value={u.id.toString()}
-                                    >
-                                      {u.label}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
+                                options={(units ?? []).map((unit) => ({
+                                  value: unit.id.toString(),
+                                  label: unit.label,
+                                }))}
+                              />
                             </div>
 
                             <div
@@ -1092,38 +1084,29 @@ export function GeneralArticlesSection({
                                   invalid={isUnitInvalid(article)}
                                 />
                               </label>
-                              <Select
+                              <SearchableSelect
                                 value={article.unit_id || ""}
-                                onValueChange={(value) =>
+                                onChange={(value) =>
                                   handleGeneralArticleChange(
                                     index,
                                     "unit_id",
                                     value,
                                   )
                                 }
-                                disabled={isUnitsLoading}
-                              >
-                                <SelectTrigger
-                                  className={cn(
+                                loading={isUnitsLoading}
+                                placeholder="Ej: Unidad"
+                                searchPlaceholder="Buscar unidad..."
+                                triggerClassName={cn(
                                     "text-xs h-8",
                                     !article.unit_id && "text-muted-foreground",
                                     isUnitInvalid(article) &&
                                       "border-destructive focus-visible:ring-destructive",
                                   )}
-                                >
-                                  <SelectValue placeholder="Ej: Unidad" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {units?.map((u) => (
-                                    <SelectItem
-                                      key={u.id}
-                                      value={u.id.toString()}
-                                    >
-                                      {u.label}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
+                                options={(units ?? []).map((unit) => ({
+                                  value: unit.id.toString(),
+                                  label: unit.label,
+                                }))}
+                              />
                             </div>
 
                             <div

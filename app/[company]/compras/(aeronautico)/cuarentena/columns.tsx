@@ -11,24 +11,19 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import {
-  formatQuarantineDate,
-  quarantineRisk,
-} from "@/lib/warehouse/quarantine";
+import { quarantineRisk } from "@/lib/warehouse/quarantine";
 import type { QuarantineRecord } from "@/types/quarantine";
 import { type AppColumnDef } from "@/lib/table";
 import {
   AlertTriangle,
-  CalendarClock,
   CheckCircle2,
   ChevronRight,
   FileWarning,
-  Repeat2,
   ShieldCheck,
-  User,
   Wrench,
 } from "lucide-react";
 import { useState } from "react";
+import { QuarantineReasonCell } from "./_components/QuarantineReasonCell";
 import { ResolveQuarantineDialog } from "./_components/ResolveQuarantineDialog";
 
 const pendingDocumentCount = (record: QuarantineRecord) =>
@@ -51,7 +46,7 @@ function ResolveAction({ record }: { record: QuarantineRecord }) {
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
+            <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
               {record.status === "PENDING_REINSPECTION" ? (
                 <>
                   <ShieldCheck className="size-3.5 text-sky-500" />
@@ -84,7 +79,7 @@ function ResolveAction({ record }: { record: QuarantineRecord }) {
           e.stopPropagation();
           setOpen(true);
         }}
-        className="h-7 gap-1.5 rounded-full border border-slate-200/60 bg-white/50 px-3 text-[11px] hover:bg-slate-100 dark:border-slate-700/60 dark:bg-slate-800/40 dark:hover:bg-slate-800"
+        className="h-7 gap-1.5 rounded-md border border-slate-200/60 bg-white/50 px-3 text-xs hover:bg-slate-100 dark:border-slate-700/60 dark:bg-slate-800/40 dark:hover:bg-slate-800"
       >
         {pendingDocs > 0 ? (
           <FileWarning className="size-3 text-amber-500" />
@@ -93,7 +88,7 @@ function ResolveAction({ record }: { record: QuarantineRecord }) {
         )}
         Resolver
         {pendingDocs > 0 && (
-          <span className="flex size-3.5 items-center justify-center rounded-full bg-amber-500 text-[9px] font-semibold text-white">
+          <span className="flex size-4 items-center justify-center rounded-full bg-amber-500 text-[10px] font-semibold text-white">
             {pendingDocs}
           </span>
         )}
@@ -151,7 +146,7 @@ export const getColumns = (
         <div className="flex w-full justify-start">
           <div className="min-w-0 space-y-1">
             <div className="flex items-center gap-2">
-              <span className="select-none rounded-md border border-emerald-200/50 bg-emerald-100/60 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-widest text-emerald-700 dark:border-emerald-800/40 dark:bg-emerald-900/30 dark:text-emerald-300">
+              <span className="select-none rounded-md border border-emerald-200/50 bg-emerald-100/60 px-1.5 py-0.5 text-xs font-semibold text-emerald-700 dark:border-emerald-800/40 dark:bg-emerald-900/30 dark:text-emerald-300">
                 P/N
               </span>
               <span className="rounded px-1 py-0.5 text-[13px] font-semibold tracking-tight text-slate-900 dark:text-slate-100">
@@ -163,7 +158,7 @@ export const getColumns = (
             <div className="flex items-center gap-2">
               <span
                 className={cn(
-                  "rounded-md px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-widest",
+                  "rounded-md px-1.5 py-0.5 text-xs font-semibold",
                   serial
                     ? "border border-slate-300/40 bg-slate-200/60 text-slate-600 dark:border-slate-600/40 dark:bg-slate-700/40 dark:text-slate-300"
                     : "bg-slate-100 text-slate-400 dark:bg-slate-800",
@@ -172,11 +167,11 @@ export const getColumns = (
                 S/N
               </span>
               {serial ? (
-                <span className="font-mono text-[11px] text-muted-foreground">
+                <span className="font-mono text-xs text-muted-foreground">
                   {serial}
                 </span>
               ) : (
-                <span className="text-[11px] italic text-muted-foreground/40">
+                <span className="text-xs italic text-muted-foreground/60">
                   Sin serial
                 </span>
               )}
@@ -208,7 +203,7 @@ export const getColumns = (
 
   {
     id: "reason",
-    size: 260,
+    size: 340,
 
     header: ({ column }) => (
       <div className="flex w-full justify-center">
@@ -218,39 +213,12 @@ export const getColumns = (
 
     accessorFn: (row) => row.reason,
 
-    cell: ({ row }) => {
-      const record = row.original;
-      const attempts = record.cycles?.length ?? 0;
-
-      return (
-        <div className="space-y-1">
-          <p className="max-w-65 text-sm text-slate-800 dark:text-slate-200">
-            {record.reason}
-          </p>
-          <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
-            <span className="inline-flex items-center gap-1">
-              <User className="size-3" />
-              {record.inspector ?? "—"}
-            </span>
-            <span className="inline-flex items-center gap-1">
-              <CalendarClock className="size-3" />
-              {formatQuarantineDate(record.quarantine_entry_date)}
-            </span>
-            {attempts > 1 && (
-              <span className="inline-flex items-center gap-1 font-semibold text-amber-600 dark:text-amber-400">
-                <Repeat2 className="size-3" />
-                {attempts} intentos
-              </span>
-            )}
-          </div>
-        </div>
-      );
-    },
+    cell: ({ row }) => <QuarantineReasonCell record={row.original} />,
   },
 
   {
     id: "legal_window",
-    size: 150,
+    size: 130,
 
     header: ({ column }) => (
       <div className="flex w-full justify-center">
@@ -280,7 +248,7 @@ export const getColumns = (
       if (risk.days === null) {
         return (
           <div className="flex w-full justify-center">
-            <span className="text-xs text-muted-foreground/40">Sin fecha</span>
+            <span className="text-xs text-muted-foreground/60">Sin fecha</span>
           </div>
         );
       }
@@ -292,7 +260,7 @@ export const getColumns = (
         <div className="flex w-full flex-col items-center gap-1">
           <Badge
             className={cn(
-              "select-none whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-xs",
+              "select-none whitespace-nowrap rounded-md border h-6 px-2.5 text-xs font-medium",
               expired &&
                 "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300",
               warning &&
@@ -309,7 +277,7 @@ export const getColumns = (
             {risk.days} / {legalDays}
           </span>
 
-          <span className="text-[10px] tabular-nums text-muted-foreground">
+          <span className="text-xs tabular-nums text-muted-foreground">
             {risk.remaining !== null && risk.remaining >= 0
               ? `Restan ${risk.remaining} días`
               : `Vencido por ${Math.abs(risk.remaining ?? 0)} días`}
@@ -321,7 +289,7 @@ export const getColumns = (
 
   {
     accessorKey: "status",
-    size: 170,
+    size: 150,
 
     header: ({ column }) => (
       <div className="flex w-full justify-center">
@@ -339,7 +307,7 @@ export const getColumns = (
         <div className="flex w-full justify-center">
           <Badge
             className={cn(
-              "gap-1 whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-xs transition-colors duration-150",
+              "gap-1 whitespace-nowrap rounded-md border h-6 px-2.5 text-xs font-medium transition-colors duration-150",
               isOpen &&
                 "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300",
               isPending &&
@@ -373,7 +341,7 @@ export const getColumns = (
 
   {
     id: "actions",
-    size: 150,
+    size: 130,
 
     header: () => (
       <div className="flex w-full justify-center text-xs font-medium text-muted-foreground">

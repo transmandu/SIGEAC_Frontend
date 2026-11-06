@@ -28,20 +28,20 @@ const Field = ({
 
   return (
     <div className="flex flex-col items-start min-w-0">
-      <span className="text-[9px] uppercase tracking-wide text-muted-foreground select-none mb-0.5">
+      <span className="text-xs text-muted-foreground select-none mb-0.5">
         {label}
       </span>
       {isEmpty ? (
         completed ? (
-          <span className="text-xs text-muted-foreground/50 leading-none">
+          <span className="text-xs text-muted-foreground leading-none">
             N/A
           </span>
         ) : pending ? (
-          <span className="text-xs text-muted-foreground/50 italic leading-none">
+          <span className="text-xs text-muted-foreground italic leading-none">
             Pendiente
           </span>
         ) : (
-          <span className="text-xs text-muted-foreground/50 leading-none">
+          <span className="text-xs text-muted-foreground leading-none">
             —
           </span>
         )
@@ -57,10 +57,10 @@ const Field = ({
 };
 
 const INTAKE_STATUS_LABELS: Record<string, string> = {
-  PENDING: "POR CONFIRMAR",
-  CONFIRMED: "CONFIRMADA",
-  REJECTED: "RECHAZADA",
-  DELIVERED: "ENTREGADA",
+  PENDING: "Por confirmar",
+  CONFIRMED: "Confirmada",
+  REJECTED: "Rechazada",
+  DELIVERED: "Entregada",
 };
 
 const IntakeStatusBadge = ({ status }: { status?: string }) => {
@@ -68,7 +68,7 @@ const IntakeStatusBadge = ({ status }: { status?: string }) => {
     return (
       <Badge
         variant="secondary"
-        className="h-4 px-1.5 text-[9px] uppercase tracking-wide text-muted-foreground select-none shrink-0"
+        className="h-5 px-1.5 text-xs text-muted-foreground select-none shrink-0"
       >
         Sin entrega
       </Badge>
@@ -81,7 +81,7 @@ const IntakeStatusBadge = ({ status }: { status?: string }) => {
 
   return (
     <Badge
-      className={`h-4 px-1.5 text-[9px] font-semibold uppercase tracking-wide shrink-0 border shadow-none transition-colors duration-150 cursor-default ${
+      className={`h-5 px-1.5 text-xs font-semibold shrink-0 border shadow-none transition-colors duration-150 cursor-default ${
         confirmed
           ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
           : rejected
@@ -117,7 +117,7 @@ const PurchaseOrderGeneralArticleCard = ({
     Math.round(Number(article.total) * 100) !== Math.round(quotedTotal * 100);
 
   return (
-    <div className="rounded-lg border border-border/60 bg-background/70 overflow-hidden flex flex-col">
+    <div className="rounded-xl border border-slate-200 bg-white dark:border-slate-700/60 dark:bg-slate-900/60 overflow-hidden flex flex-col">
       {/* HEADER */}
       <div className="flex items-center justify-between gap-2 border-b border-border/50 bg-muted/25 px-2.5 py-1">
         <span className="truncate text-xs font-medium text-foreground min-w-0">
@@ -127,7 +127,7 @@ const PurchaseOrderGeneralArticleCard = ({
           <IntakeStatusBadge status={article.general_article_intake?.status} />
           <Badge
             variant="secondary"
-            className="h-4 px-1.5 text-[9px] uppercase tracking-wide text-muted-foreground select-none shrink-0"
+            className="h-5 px-1.5 text-xs text-muted-foreground select-none shrink-0"
           >
             General
           </Badge>
@@ -188,7 +188,7 @@ const PurchaseOrderGeneralArticleCard = ({
       {/* JUSTIFICACIÓN (cotización) */}
       {quoteArticle?.justification && (
         <div className="border-t border-border/50 bg-muted/20 px-2.5 py-1">
-          <span className="select-none text-[9px] leading-none text-muted-foreground uppercase">
+          <span className="select-none text-xs leading-none text-muted-foreground">
             Justificación
           </span>
           <p className="mt-0.5 text-xs text-foreground/80 line-clamp-2">
@@ -200,7 +200,7 @@ const PurchaseOrderGeneralArticleCard = ({
       {/* JUSTIFICACIÓN DE DIFERENCIA DE TOTAL (pago) */}
       {article.total_justification && (
         <div className="border-t border-amber-500/30 bg-amber-50/40 px-2.5 py-1 dark:bg-amber-900/10">
-          <span className="select-none text-[9px] leading-none text-amber-700 dark:text-amber-400 uppercase">
+          <span className="select-none text-xs leading-none text-amber-700 dark:text-amber-400">
             Justificación de diferencia de total
           </span>
           <p className="mt-0.5 text-xs text-foreground/80 line-clamp-2">

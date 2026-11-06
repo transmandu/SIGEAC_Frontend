@@ -31,6 +31,8 @@ import {
   IssueQuoteDraftDialog,
   type IssueDraftSummaryLine,
 } from "@/components/forms/mantenimiento/compras/_components/IssueQuoteDraftDialog";
+import FormActions from "@/components/forms/mantenimiento/compras/_components/FormActions";
+import DiscardDraftButton from "@/components/forms/mantenimiento/compras/_components/DiscardDraftButton";
 
 const FormSchema = z
   .object({
@@ -110,9 +112,14 @@ export function CreateGeneralQuoteForm({
   onClose,
   req,
   draft,
+  onDiscard,
+  isDiscarding,
 }: {
   onClose: () => void;
   req: QuoteableRequisition;
+  /** Con borrador abierto en un diálogo: abre la confirmación de descartarlo. */
+  onDiscard?: () => void;
+  isDiscarding?: boolean;
   /**
    * Borrador en curso sobre esta requisición. Con borrador, el formulario
    * guarda avance sin exigir precios completos y emite aparte; sin él, crea la
@@ -567,7 +574,7 @@ export function CreateGeneralQuoteForm({
         {/* ── Total general ── */}
         <div className="flex justify-end pt-2 border-t border-border/60">
           <div className="flex items-center justify-between gap-6 rounded-md bg-muted/10 px-4 py-2 border border-border/40 min-w-50">
-            <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground whitespace-nowrap">
+            <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">
               Total general
             </span>
             <span className="font-mono text-xl font-semibold tabular-nums leading-none">
@@ -576,71 +583,75 @@ export function CreateGeneralQuoteForm({
           </div>
         </div>
 
-        {/* ── Enviar ── */}
         {/* Dos caminos: guardar avance (el borrador acepta precios
             incompletos) o emitir, que exige una decisión por artículo y no
             tiene vuelta atrás. El "crear cotización" de una sentada se
             conserva para quien ya tiene todos los precios. */}
-        <div className="flex flex-col items-center gap-2">
+        <FormActions>
+          {onDiscard && draftId && (
+            <DiscardDraftButton
+              onClick={onDiscard}
+              disabled={isDiscarding}
+            />
+          )}
+
           {pendingLinesCount > 0 && (
-            <p className="text-xs text-muted-foreground">
+            <p className="mr-auto text-xs text-muted-foreground">
               {pendingLinesCount} artículo(s) sin precio ni marca de “no
               cotizado”. Puede guardar el borrador y volver después.
             </p>
           )}
 
-          <div className="flex w-100 flex-col gap-2 sm:flex-row">
+          <Button
+            type="button"
+            variant="outline"
+            disabled={isSavingDraft}
+            onClick={handleSaveDraft}
+            className="min-w-35 gap-2"
+          >
+            {isSavingDraft ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <>
+                <Save className="size-4" />
+                Guardar borrador
+              </>
+            )}
+          </Button>
+
+          {draftId ? (
             <Button
               type="button"
-              variant="outline"
-              disabled={isSavingDraft}
-              onClick={handleSaveDraft}
-              className="h-10 flex-1 rounded-lg shadow-xs transition-colors flex items-center justify-center gap-2"
+              disabled={issueQuoteDraft.isPending}
+              onClick={() => setIssueDialogOpen(true)}
+              className="min-w-35 gap-2"
             >
-              {isSavingDraft ? (
+              {issueQuoteDraft.isPending ? (
                 <Loader2 className="size-4 animate-spin" />
               ) : (
                 <>
-                  <Save className="size-4" />
-                  Guardar borrador
+                  <Send className="size-4" />
+                  Emitir cotización
                 </>
               )}
             </Button>
-
-            {draftId ? (
-              <Button
-                type="button"
-                disabled={issueQuoteDraft.isPending}
-                onClick={() => setIssueDialogOpen(true)}
-                className="h-10 flex-1 rounded-lg shadow-xs transition-colors flex items-center justify-center gap-2"
-              >
-                {issueQuoteDraft.isPending ? (
-                  <Loader2 className="size-4 animate-spin" />
-                ) : (
-                  <>
-                    <Send className="size-4" />
-                    Emitir cotización
-                  </>
-                )}
-              </Button>
-            ) : (
-              <Button
-                disabled={createQuote.isPending}
-                type="submit"
-                className="h-10 flex-1 rounded-lg shadow-xs transition-colors flex items-center justify-center gap-2"
-              >
-                {createQuote.isPending ? (
-                  <Loader2 className="size-4 animate-spin" />
-                ) : (
-                  <>
-                    <PackageSearch className="size-4" />
-                    Crear cotización
-                  </>
-                )}
-              </Button>
-            )}
-          </div>
-        </div>
+          ) : (
+            <Button
+              disabled={createQuote.isPending}
+              type="submit"
+              className="min-w-35 gap-2"
+            >
+              {createQuote.isPending ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <>
+                  <PackageSearch className="size-4" />
+                  Crear cotización
+                </>
+              )}
+            </Button>
+          )}
+        </FormActions>
       </form>
 
       <IssueQuoteDraftDialog

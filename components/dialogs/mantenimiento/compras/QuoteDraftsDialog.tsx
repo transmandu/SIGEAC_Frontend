@@ -5,14 +5,8 @@ import { FileClock, Loader2, Trash2 } from "lucide-react";
 import { useDeleteQuoteDraft } from "@/actions/mantenimiento/compras/cotizaciones/actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DiscardQuoteDraftDialog } from "./DiscardQuoteDraftDialog";
 import { useOpenQuoteDraftEditor } from "./QuoteDraftEditorProvider";
@@ -81,7 +75,7 @@ export function QuoteDraftsDialog({
             {count > 0 && (
               <Badge
                 variant="outline"
-                className="ml-0.5 select-none rounded-md border-amber-500/30 bg-amber-500/10 px-1.5 py-0 text-[9px] font-semibold tabular-nums text-amber-700 dark:text-amber-300"
+                className="ml-0.5 select-none rounded-md border-amber-500/30 bg-amber-500/10 px-1.5 py-0 text-xs font-semibold tabular-nums text-amber-700 dark:text-amber-300"
               >
                 {count}
               </Badge>
@@ -89,38 +83,12 @@ export function QuoteDraftsDialog({
           </Button>
         </DialogTrigger>
 
-        <DialogContent className="w-[95vw] max-w-[95vw] sm:max-w-150 p-0 overflow-hidden max-h-[85vh] flex flex-col">
-          {/* HEADER — mismo lenguaje que los diálogos del módulo: degradado
-              suave, icono en cuadro redondeado y título en dos niveles. */}
-          <div className="shrink-0 relative bg-linear-to-br from-primary/5 via-background to-background px-4 sm:px-6 pt-6 sm:pt-7 pb-4">
-            <div className="absolute inset-0 bg-grid-white/[0.02]" />
-
-            <DialogHeader className="relative">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-3xl border bg-background shadow-xs">
-                  <FileClock className="h-6 w-6 text-primary" />
-                </div>
-
-                <div className="space-y-1">
-                  <DialogTitle className="text-xl font-bold tracking-tight leading-none">
-                    Borradores de cotización
-                  </DialogTitle>
-
-                  <p className="text-sm font-medium text-primary">
-                    Cotizaciones sin emitir
-                  </p>
-
-                  <DialogDescription className="max-w-107.5 text-sm leading-relaxed">
-                    Retome una cotización a medio capturar. Mientras no se
-                    emita, su solicitud sigue contando como pendiente.
-                  </DialogDescription>
-                </div>
-              </div>
-            </DialogHeader>
-          </div>
-
-          {/* BODY */}
-          <div className="overflow-y-auto px-4 sm:px-6 py-5">
+        <FormDialogContent
+          className="sm:max-w-150"
+          icon={FileClock}
+          title="Borradores de cotización"
+          description="Retome una cotización a medio capturar. Mientras no se emita, su solicitud sigue contando como pendiente."
+        >
             {isLoading ? (
               <div className="flex justify-center py-10">
                 <Loader2 className="size-5 animate-spin text-muted-foreground" />
@@ -162,7 +130,7 @@ export function QuoteDraftsDialog({
                               {idle >= DRAFT_STALE_AFTER_DAYS && (
                                 <Badge
                                   variant="outline"
-                                  className="select-none rounded-md border-amber-500/30 bg-amber-500/10 px-1.5 py-0 text-[9px] font-semibold tracking-wide text-amber-700 dark:text-amber-300"
+                                  className="select-none rounded-md border-amber-500/30 bg-amber-500/10 px-1.5 py-0 text-xs font-semibold tracking-wide text-amber-700 dark:text-amber-300"
                                 >
                                   se descarta en{" "}
                                   {Math.max(0, DRAFT_DISCARD_AFTER_DAYS - idle)}{" "}
@@ -171,7 +139,7 @@ export function QuoteDraftsDialog({
                               )}
                             </div>
 
-                            <span className="truncate text-[11px] text-muted-foreground">
+                            <span className="truncate text-xs text-muted-foreground">
                               {priced} con precio
                               {pending > 0 && ` · ${pending} sin responder`}
                               {excluded > 0 && ` · ${excluded} no cotizado`}
@@ -213,8 +181,7 @@ export function QuoteDraftsDialog({
                 </div>
               </ScrollArea>
             )}
-          </div>
-        </DialogContent>
+        </FormDialogContent>
       </Dialog>
 
       <DiscardQuoteDraftDialog
@@ -223,12 +190,12 @@ export function QuoteDraftsDialog({
         open={!!discarding}
         onOpenChange={(next) => !next && setDiscarding(null)}
         isPending={deleteQuoteDraft.isPending}
-        onConfirm={() => {
+        onConfirm={async () => {
           if (!discarding || !selectedCompany) return;
-          deleteQuoteDraft.mutate(
-            { id: discarding.id, company: selectedCompany.slug },
-            { onSettled: () => setDiscarding(null) },
-          );
+          await deleteQuoteDraft.mutateAsync({
+            id: discarding.id,
+            company: selectedCompany.slug,
+          });
         }}
       />
     </>

@@ -1,12 +1,12 @@
 import { cn } from '@/lib/utils';
-import { formatLongUpperDate } from '@/lib/date';
+import { formatCalendarDate } from '@/lib/date';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 const PO_STATUS_LABELS: Record<string, string> = {
-  PENDING: 'PENDIENTE',
-  PAID: 'PAGADA',
-  COMPLETED: 'COMPLETADA',
+  PENDING: 'Pendiente',
+  PAID: 'Pagada',
+  COMPLETED: 'Completada',
 };
 
 export const statusLabel = (status?: string) =>
@@ -17,7 +17,7 @@ export const statusBadgeCls = (status?: string) => {
   const pending = status === 'PENDING';
 
   return cn(
-    'rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-xs transition-colors duration-150 cursor-default hover:scale-100 hover:translate-y-0 select-none',
+    'rounded-md border h-6 px-2.5 text-xs font-medium transition-colors duration-150 cursor-default hover:scale-100 hover:translate-y-0 select-none',
 
     completed &&
       'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/15 dark:hover:text-emerald-200',
@@ -29,4 +29,4 @@ export const statusBadgeCls = (status?: string) => {
 
 // Fecha de calendario: se muestra tal cual, sin convertir de zona.
 export const formatPurchaseDate = (date?: string | Date | null): string | undefined =>
-  formatLongUpperDate(date);
+  formatCalendarDate(date, 'dd MMM yyyy', '—');

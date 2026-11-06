@@ -15,6 +15,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import CopyPartNumberButton from "@/components/misc/CopyPartNumberButton";
+import RequisitionDropdownActions from "@/components/dropdowns/mantenimiento/compras/RequisitionDropdownActions";
 import { cn, formatRequestedDate } from "@/lib/utils";
 import type { Requisition } from "@/types/purchase";
 
@@ -24,12 +25,12 @@ interface Props {
 }
 
 const STATUS_LABELS: Record<string, string> = {
-  CREATED: "CREADA",
-  RECEIVED: "RECIBIDA",
-  IN_PROGRESS: "EN PROCESO",
-  QUOTED: "COTIZADA",
-  APPROVED: "APROBADA",
-  REJECTED: "RECHAZADA",
+  CREATED: "Creada",
+  RECEIVED: "Recibida",
+  IN_PROGRESS: "En proceso",
+  QUOTED: "Cotizada",
+  APPROVED: "Aprobada",
+  REJECTED: "Rechazada",
 };
 
 const statusLabel = (status?: string) =>
@@ -42,7 +43,7 @@ const statusBadgeClass = (status?: string) => {
   const approved = status === "APPROVED";
 
   return cn(
-    "select-none whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-xs",
+    "select-none whitespace-nowrap rounded-md border h-6 px-2.5 text-xs font-medium",
     created &&
       "border-slate-500/30 bg-slate-500/10 text-slate-700 dark:text-slate-300",
     received &&
@@ -60,21 +61,29 @@ const statusBadgeClass = (status?: string) => {
 };
 
 const PRIORITY_LABELS: Record<string, string> = {
-  LOW: "BAJA",
-  MEDIUM: "MEDIA",
-  HIGH: "ALTA",
+  LOW: "Baja",
+  MEDIUM: "Media",
+  HIGH: "Alta",
 };
 
 const priorityBadgeClass = (priority?: string) =>
   cn(
-    "select-none whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide",
+    "select-none whitespace-nowrap gap-1.5 rounded-md border h-6 px-2.5 text-xs font-medium",
     priority === "LOW" &&
-      "border-green-500/30 bg-green-500/10 text-green-700 dark:text-green-300",
+      "border-green-500/30 bg-green-500/10 text-green-600 dark:text-green-300",
     priority === "MEDIUM" &&
       "border-orange-500/30 bg-orange-500/10 text-orange-700 dark:text-orange-300",
     priority === "HIGH" &&
       "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300",
     !priority && "border-slate-500/30 bg-slate-500/10 text-slate-400",
+  );
+
+const priorityDotClass = (priority?: string) =>
+  cn(
+    "size-1.5 rounded-full",
+    priority === "LOW" && "bg-green-400",
+    priority === "MEDIUM" && "bg-orange-500",
+    priority === "HIGH" && "bg-red-500",
   );
 
 interface MetaItemProps {
@@ -85,7 +94,7 @@ interface MetaItemProps {
 
 const MetaItem = ({ label, value, icon: Icon }: MetaItemProps) => (
   <div className="flex flex-col gap-0.5">
-    <span className="text-[10px] font-medium tracking-wider text-muted-foreground/60 select-none">
+    <span className="text-xs font-medium text-muted-foreground select-none">
       {label}
     </span>
     <span className="text-sm font-medium flex items-center gap-1.5">
@@ -132,7 +141,7 @@ const ArticleRow = ({
           {title}
         </span>
         {typeBadge && (
-          <span className="select-none shrink-0 rounded bg-muted/60 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide text-muted-foreground/80">
+          <span className="select-none shrink-0 rounded bg-muted/60 px-1.5 py-0.5 text-xs font-medium text-muted-foreground">
             {typeBadge}
           </span>
         )}
@@ -143,7 +152,7 @@ const ArticleRow = ({
           {details.map((d) => (
             <span
               key={d.label}
-              className="inline-flex items-center gap-1 text-[11px] text-muted-foreground"
+              className="inline-flex items-center gap-1 text-xs text-muted-foreground"
             >
               {d.label}: <span className="text-foreground/70">{d.value}</span>
               {d.copyable && (
@@ -159,8 +168,8 @@ const ArticleRow = ({
     {destinations.length > 0 && (
       <div className="flex flex-col gap-1 border-t border-border/50 px-3 py-2">
         {destinations.map(({ key, label, value }) => (
-          <div key={key} className="flex items-baseline gap-1.5 text-[11px]">
-            <span className="shrink-0 text-muted-foreground/60">{label}:</span>
+          <div key={key} className="flex items-baseline gap-1.5 text-xs">
+            <span className="shrink-0 text-muted-foreground">{label}:</span>
             <span className="text-foreground/80 wrap-break-word">{value}</span>
           </div>
         ))}
@@ -169,12 +178,12 @@ const ArticleRow = ({
 
     {/* ── Nivel 3: cantidad ─────────────────────────────── */}
     <div className="flex items-center justify-between border-t border-border/50 px-3 py-2">
-      <span className="text-[10px] uppercase tracking-wide text-muted-foreground/60">
+      <span className="text-xs text-muted-foreground">
         Cantidad
       </span>
       <span className="text-sm font-semibold tabular-nums">
         {quantity}{" "}
-        <span className="text-[11px] font-normal text-muted-foreground">
+        <span className="text-xs font-normal text-muted-foreground">
           {unit}
         </span>
       </span>
@@ -204,15 +213,26 @@ export default function RequisitionPreviewPanel({
     <div className="flex h-full flex-col overflow-hidden">
       <div className="flex items-start justify-between gap-2 border-b px-4 py-3">
         <div className="flex flex-col gap-1.5 min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="font-semibold truncate">
+          <div className="flex items-center gap-2">
+            <span
+              className="min-w-0 truncate text-sm font-semibold"
+              title={requisition.order_number}
+            >
               {requisition.order_number}
             </span>
-            <Badge className={statusBadgeClass(requisition.status)}>
+            <Badge
+              className={cn(statusBadgeClass(requisition.status), "shrink-0")}
+            >
               {statusLabel(requisition.status)}
             </Badge>
             {requisition.priority && (
-              <Badge className={priorityBadgeClass(requisition.priority)}>
+              <Badge
+                className={cn(
+                  priorityBadgeClass(requisition.priority),
+                  "shrink-0",
+                )}
+              >
+                <span className={priorityDotClass(requisition.priority)} />
                 {PRIORITY_LABELS[requisition.priority] ?? requisition.priority}
               </Badge>
             )}
@@ -232,47 +252,51 @@ export default function RequisitionPreviewPanel({
         </Button>
       </div>
 
+      <div className="flex justify-center px-4 pt-3 empty:hidden">
+        <RequisitionDropdownActions req={requisition} variant="bar" />
+      </div>
+
       <div className="flex flex-col gap-5 overflow-y-auto px-4 py-4">
         {/* ── Resumen ─────────────────────────────────────── */}
         <div className="rounded-md border border-border/50 bg-muted/20 px-3 py-3">
           <div className="grid grid-cols-2 gap-x-4 gap-y-3">
             <MetaItem
-              label="CREADO POR"
+              label="Creado por"
               value={
                 requisition.created_by
-                  ? `${requisition.created_by.first_name} ${requisition.created_by.last_name}`.toUpperCase()
-                  : "SISTEMA"
+                  ? `${requisition.created_by.first_name} ${requisition.created_by.last_name}`
+                  : "Sistema"
               }
               icon={UserCheck}
             />
             <MetaItem
-              label="SOLICITADO POR"
-              value={requisition.requested_by?.toUpperCase()}
+              label="Solicitado por"
+              value={requisition.requested_by}
               icon={UserPlus}
             />
             <MetaItem
-              label="FECHA DE SOLICITUD"
+              label="Fecha de solicitud"
               value={formatRequestedDate(requisition.submission_date)}
               icon={CalendarDays}
             />
             {requisition.aircraft?.acronym && (
               <MetaItem
-                label="AERONAVE"
+                label="Aeronave"
                 value={requisition.aircraft.acronym}
                 icon={Plane}
               />
             )}
             {requisition.department && (
               <MetaItem
-                label="DEPARTAMENTO"
-                value={requisition.department.name?.toUpperCase()}
+                label="Departamento"
+                value={requisition.department.name}
                 icon={Building2}
               />
             )}
             {requisition.third_party && (
               <MetaItem
-                label="TERCERO"
-                value={requisition.third_party.name?.toUpperCase()}
+                label="Tercero"
+                value={requisition.third_party.name}
                 icon={Handshake}
               />
             )}
@@ -284,8 +308,8 @@ export default function RequisitionPreviewPanel({
           <div className="rounded-md border border-border/60 bg-linear-to-b from-muted/30 to-muted/10 p-3">
             <div className="flex items-center gap-2 mb-2 select-none">
               <FileText className="size-3.5 text-muted-foreground/60" />
-              <span className="text-[10px] font-semibold tracking-widest text-muted-foreground">
-                JUSTIFICACIÓN
+              <span className="text-xs font-semibold text-muted-foreground">
+                Justificación
               </span>
             </div>
             <p className="text-sm text-foreground/80 whitespace-pre-wrap">
@@ -297,8 +321,8 @@ export default function RequisitionPreviewPanel({
             <div className="rounded-md border border-border/60 bg-linear-to-b from-muted/30 to-muted/10 p-3">
               <div className="flex items-center gap-2 mb-2 select-none">
                 <MessageSquare className="size-3.5 text-muted-foreground/60" />
-                <span className="text-[10px] font-semibold tracking-widest text-muted-foreground">
-                  OBSERVACIÓN
+                <span className="text-xs font-semibold text-muted-foreground">
+                  Observación
                 </span>
               </div>
               <p className="text-sm text-foreground/80 whitespace-pre-wrap">
@@ -311,12 +335,12 @@ export default function RequisitionPreviewPanel({
         {/* ── Artículos ────────────────────────────────────── */}
         <div className="space-y-2">
           <div className="flex items-center justify-between border-b border-border/60 pb-2 select-none">
-            <span className="text-xs font-semibold tracking-wide text-foreground/90">
-              ARTÍCULOS SOLICITADOS
+            <span className="text-xs font-semibold text-foreground/90">
+              Artículos solicitados
             </span>
             <div className="flex items-center gap-1.5 rounded-md border border-border/50 bg-muted/30 px-2 py-0.5">
-              <span className="text-[9px] tracking-wider text-muted-foreground">
-                TOTAL
+              <span className="text-xs text-muted-foreground">
+                Total
               </span>
               <span className="text-xs font-semibold tabular-nums">
                 {totalArticles}

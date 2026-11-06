@@ -56,13 +56,13 @@ export function QuoteMetaSection({
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
       {/* ───────────── IZQUIERDA ───────────── */}
-      <div className="h-full rounded-xl border bg-muted/15 overflow-hidden">
+      <div className="h-full rounded-xl border border-slate-200 bg-white dark:border-slate-700/60 dark:bg-slate-900/60 overflow-hidden">
         <div className="flex items-center justify-between border-b bg-muted/30 px-4 py-1.5">
           <div className="flex flex-col">
-            <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <span className="text-xs font-semibold text-muted-foreground">
               Datos de cotización
             </span>
-            <span className="text-[11px] text-muted-foreground/70">
+            <span className="text-xs text-muted-foreground">
               Información principal de la cotización
             </span>
           </div>
@@ -78,8 +78,8 @@ export function QuoteMetaSection({
               render={({ field }) => (
                 <FormItem className="space-y-2">
                   <div className="flex items-center gap-2 min-h-4 pb-1.5">
-                    <FormLabel className="m-0 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                      Fecha de Cotización
+                    <FormLabel className="m-0 text-xs font-medium text-muted-foreground">
+                      Fecha de cotización
                       <RequiredIndicator />
                     </FormLabel>
                     <div className="h-px flex-1 bg-border/60" />
@@ -126,7 +126,7 @@ export function QuoteMetaSection({
               render={({ field }) => (
                 <FormItem className="space-y-2">
                   <div className="flex items-center gap-2 min-h-4 pb-1.5">
-                    <FormLabel className="m-0 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                    <FormLabel className="m-0 text-xs font-medium text-muted-foreground">
                       Destino
                       <RequiredIndicator />
                     </FormLabel>
@@ -168,7 +168,7 @@ export function QuoteMetaSection({
             render={({ field }) => (
               <FormItem className="space-y-2">
                 <div className="flex items-center gap-2 min-h-4 pb-1.5">
-                  <FormLabel className="m-0 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                  <FormLabel className="m-0 text-xs font-medium text-muted-foreground">
                     Proveedor
                     <RequiredIndicator />
                   </FormLabel>
@@ -193,13 +193,13 @@ export function QuoteMetaSection({
       </div>
 
       {/* ───────────── DERECHA ───────────── */}
-      <div className="h-full rounded-xl border bg-muted/15 overflow-hidden">
+      <div className="h-full rounded-xl border border-slate-200 bg-white dark:border-slate-700/60 dark:bg-slate-900/60 overflow-hidden">
         <div className="flex items-center justify-between border-b bg-muted/30 px-4 py-1.5">
           <div className="flex flex-col">
-            <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <span className="text-xs font-semibold text-muted-foreground">
               Contexto de la cotización
             </span>
-            <span className="text-[11px] text-muted-foreground/70">
+            <span className="text-xs text-muted-foreground">
               Información extra asociada
             </span>
           </div>
@@ -209,7 +209,7 @@ export function QuoteMetaSection({
           {/* Justificación */}
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+              <span className="text-xs font-medium text-muted-foreground">
                 Justificación de la requisición
               </span>
               <div className="h-px flex-1 bg-border/60" />
@@ -229,7 +229,7 @@ export function QuoteMetaSection({
             render={({ field }) => (
               <FormItem className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <FormLabel className="m-0 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                  <FormLabel className="m-0 text-xs font-medium text-muted-foreground">
                     Observación (opcional)
                   </FormLabel>
                   <div className="h-px flex-1 bg-border/60" />

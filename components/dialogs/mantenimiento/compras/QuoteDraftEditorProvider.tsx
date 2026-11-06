@@ -1,19 +1,14 @@
 "use client";
 
 import { createContext, useCallback, useContext, useState } from "react";
-import { FileClock, Trash2 } from "lucide-react";
+import { FileClock } from "lucide-react";
 import { useDeleteQuoteDraft } from "@/actions/mantenimiento/compras/cotizaciones/actions";
 import { CreateQuoteForm } from "@/components/forms/mantenimiento/compras/CreateQuoteForm";
 import { CreateGeneralQuoteForm } from "@/components/forms/general/compras/CreateGeneralQuoteForm";
 import { Button } from "@/components/ui/button";
 import { DiscardQuoteDraftDialog } from "./DiscardQuoteDraftDialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog } from "@/components/ui/dialog";
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import LoadingPage from "@/components/misc/LoadingPage";
 import { useGetMyQuoteDrafts } from "@/hooks/mantenimiento/compras/useGetMyQuoteDrafts";
 import { useCompanyStore } from "@/stores/CompanyStore";
@@ -69,48 +64,22 @@ export function QuoteDraftEditorProvider({
         open={editingId !== null}
         onOpenChange={(next) => !next && setEditingId(null)}
       >
-        <DialogContent className="w-[95vw] max-w-[95vw] sm:max-w-215 p-0 overflow-hidden max-h-[85vh] flex flex-col">
-          <div className="shrink-0 relative bg-linear-to-br from-primary/5 via-background to-background px-4 sm:px-6 pt-6 sm:pt-7 pb-4">
-            <div className="absolute inset-0 bg-grid-white/[0.02]" />
-
-            <DialogHeader className="relative">
-              <div className="flex flex-col sm:flex-row items-start gap-4 sm:items-center">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-3xl border bg-background shadow-xs">
-                  <FileClock className="h-6 w-6 text-primary" />
-                </div>
-
-                <div className="space-y-1">
-                  <DialogTitle className="text-xl font-bold tracking-tight leading-none">
-                    Continuar cotización
-                  </DialogTitle>
-
-                  <p className="text-sm font-medium text-primary">
-                    {editing?.requisition_order?.order_number ?? ""}
-                  </p>
-
-                  <DialogDescription className="max-w-107.5 text-sm leading-relaxed">
-                    Guarde el avance cuantas veces necesite. Al emitirla tomará
-                    su número y no podrá editarse.
-                  </DialogDescription>
-                </div>
-
-                {/* Descartar vive en el header y no junto a guardar/emitir: es
-                    la salida del borrador, no un paso de la captura. Separado
-                    del botón de cerrar (×) de Radix para no pulsarlo por error. */}
-                <Button
-                  variant="outline"
-                  disabled={!editing || deleteQuoteDraft.isPending}
-                  onClick={() => setDiscarding(true)}
-                  className="h-8 shrink-0 gap-1.5 px-2.5 text-xs border-slate-200/60 dark:border-slate-700/60 text-muted-foreground hover:border-destructive/40 hover:text-destructive sm:ml-auto sm:mr-8"
-                >
-                  <Trash2 className="size-3.5" />
-                  Descartar borrador
-                </Button>
-              </div>
-            </DialogHeader>
-          </div>
-
-          <div className="overflow-y-auto px-4 sm:px-6 py-5">
+        <FormDialogContent
+          className="sm:max-w-215"
+          icon={FileClock}
+          title="Continuar cotización"
+          description={
+            <>
+              {editing?.requisition_order?.order_number && (
+                <span className="mb-1 block text-sm font-medium text-primary">
+                  {editing.requisition_order.order_number}
+                </span>
+              )}
+              Guarde el avance cuantas veces necesite. Al emitirla tomará su
+              número y no podrá editarse.
+            </>
+          }
+        >
             {/* key: este diálogo no se desmonta al cerrarse, solo cambia el
                 borrador en edición. Sin remontar el formulario, react-hook-form
                 conservaría los defaultValues del borrador anterior y el
@@ -121,6 +90,8 @@ export function QuoteDraftEditorProvider({
                   key={editing.id}
                   req={requisitionFromDraft(editing)}
                   draft={editing}
+                  onDiscard={() => setDiscarding(true)}
+                  isDiscarding={deleteQuoteDraft.isPending}
                   onClose={() => setEditingId(null)}
                 />
               ) : (
@@ -128,6 +99,8 @@ export function QuoteDraftEditorProvider({
                   key={editing.id}
                   req={requisitionFromDraft(editing)}
                   draft={editing}
+                  onDiscard={() => setDiscarding(true)}
+                  isDiscarding={deleteQuoteDraft.isPending}
                   onClose={() => setEditingId(null)}
                 />
               )
@@ -151,8 +124,7 @@ export function QuoteDraftEditorProvider({
                 </Button>
               </div>
             )}
-          </div>
-        </DialogContent>
+        </FormDialogContent>
       </Dialog>
 
       <DiscardQuoteDraftDialog
@@ -161,15 +133,13 @@ export function QuoteDraftEditorProvider({
         open={discarding}
         onOpenChange={setDiscarding}
         isPending={deleteQuoteDraft.isPending}
-        onConfirm={() => {
+        onConfirm={async () => {
           if (!editing || !selectedCompany) return;
-          deleteQuoteDraft.mutate(
-            { id: editing.id, company: selectedCompany.slug },
-            {
-              onSuccess: () => setEditingId(null),
-              onSettled: () => setDiscarding(false),
-            },
-          );
+          await deleteQuoteDraft.mutateAsync({
+            id: editing.id,
+            company: selectedCompany.slug,
+          });
+          setEditingId(null);
         }}
       />
     </QuoteDraftEditorContext.Provider>

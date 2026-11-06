@@ -43,9 +43,11 @@ import {
   createInvoiceEntry,
   type InvoiceEntry,
 } from "./InvoicesField";
+import FormActions from "@/components/forms/mantenimiento/compras/_components/FormActions";
+import { ShippingAgencyCombobox } from "@/components/forms/general/compras/_components/ShippingAgencyCombobox";
 
 const LABEL_CLS =
-  "select-none text-[10px] leading-none text-muted-foreground uppercase";
+  "select-none text-xs leading-none text-muted-foreground";
 
 const INPUT_CLS =
   "h-9 rounded-lg border-border/50 bg-background/80 text-sm shadow-xs transition-shadow focus-visible:ring-1 focus-visible:ring-primary/40 focus-visible:ring-offset-0";
@@ -429,13 +431,13 @@ export function PayPurchaseOrderForm({
               <Truck
                 className={cn(
                   "size-3.5",
-                  field.value ? "text-primary" : "text-muted-foreground/60",
+                  field.value ? "text-primary" : "text-muted-foreground",
                 )}
               />
               <FormLabel className="mt-0! text-xs font-medium cursor-pointer select-none text-foreground/90">
                 Ya conozco los datos de envío
               </FormLabel>
-              <span className="text-[11px] text-muted-foreground/70 select-none">
+              <span className="text-xs text-muted-foreground select-none">
                 — agencia, costos y tracking por artículo
               </span>
             </FormItem>
@@ -478,7 +480,7 @@ export function PayPurchaseOrderForm({
                         {article.batchCategory && (
                           <Badge
                             variant="secondary"
-                            className="h-5 px-2 text-[10px] font-medium uppercase tracking-wide text-muted-foreground select-none"
+                            className="h-5 px-2 text-xs font-medium text-muted-foreground select-none"
                           >
                             {article.batchCategory}
                           </Badge>
@@ -490,7 +492,7 @@ export function PayPurchaseOrderForm({
                     <div className="relative px-3 py-2.5">
                       <div className="grid grid-cols-[2fr_1fr_1fr_1fr] gap-x-3 gap-y-2.5">
                         <div className="flex items-center gap-1.5 min-w-0">
-                          <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20 shrink-0 select-none">
+                          <span className="text-xs px-1.5 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20 shrink-0 select-none">
                             P/N
                           </span>
                           <span className="truncate text-sm font-medium text-foreground">
@@ -550,7 +552,7 @@ export function PayPurchaseOrderForm({
 
                       {currentTotal !== article.quotedTotal && (
                         <div className="mt-2.5 border-t border-amber-500/30 bg-amber-50/40 -mx-3 px-3 py-2 dark:bg-amber-900/10">
-                          <span className="select-none text-[10px] leading-none text-amber-700 dark:text-amber-400 uppercase">
+                          <span className="select-none text-xs leading-none text-amber-700 dark:text-amber-400">
                             Justificación de la diferencia
                           </span>
                           <FormField
@@ -632,7 +634,7 @@ export function PayPurchaseOrderForm({
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Costos de compra */}
           <div className="space-y-3 rounded-xl border border-border/60 bg-muted/10 p-4">
-            <span className="text-xs font-semibold uppercase tracking-wider text-foreground select-none">
+            <span className="text-xs font-semibold text-foreground select-none">
               Costos de compra
             </span>
 
@@ -739,28 +741,15 @@ export function PayPurchaseOrderForm({
                         <FormLabel className={LABEL_CLS}>
                           Agencia de envío
                         </FormLabel>
-                        <Select
-                          disabled={isAgenciesLoading}
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger className={SELECT_TRIGGER_CLS}>
-                              <SelectValue placeholder="Seleccionar agencia..." />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {shippingAgencies?.map((agency) => (
-                              <SelectItem
-                                value={agency.id.toString()}
-                                key={agency.id}
-                                className="text-sm"
-                              >
-                                {agency.name} ({agency.code})
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <FormControl>
+                          <ShippingAgencyCombobox
+                            value={field.value}
+                            onChange={field.onChange}
+                            agencies={shippingAgencies}
+                            loading={isAgenciesLoading}
+                            triggerClassName={SELECT_TRIGGER_CLS}
+                          />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -772,7 +761,7 @@ export function PayPurchaseOrderForm({
 
           {/* Pago */}
           <div className="space-y-3 rounded-xl border border-border/60 bg-muted/10 p-4">
-            <span className="text-xs font-semibold uppercase tracking-wider text-foreground select-none">
+            <span className="text-xs font-semibold text-foreground select-none">
               Pago
             </span>
 
@@ -926,10 +915,10 @@ export function PayPurchaseOrderForm({
         <div className="flex justify-end pt-2 border-t border-border/60">
           <div className="flex items-center justify-between gap-6 rounded-md bg-muted/10 px-4 py-2 border border-border/40 min-w-55">
             <div className="flex flex-col">
-              <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground whitespace-nowrap">
+              <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">
                 Total general
               </span>
-              <span className="text-[10px] text-muted-foreground/70 tabular-nums">
+              <span className="text-xs text-muted-foreground tabular-nums">
                 Subtotal ${subTotal.toFixed(2)}
               </span>
             </div>
@@ -939,17 +928,11 @@ export function PayPurchaseOrderForm({
           </div>
         </div>
 
-        {/* ── Enviar ── */}
-        <div className="flex justify-center">
+        <FormActions>
           <Button
             disabled={isPending}
             type="submit"
-            className="
-              w-100 h-10 rounded-lg
-              shadow-xs
-              transition-colors
-              flex items-center justify-center gap-2
-            "
+            className="min-w-35 gap-2"
           >
             {isPending ? (
               <Loader2 className="size-4 animate-spin" />
@@ -960,7 +943,7 @@ export function PayPurchaseOrderForm({
               </>
             )}
           </Button>
-        </div>
+        </FormActions>
       </form>
     </Form>
   );

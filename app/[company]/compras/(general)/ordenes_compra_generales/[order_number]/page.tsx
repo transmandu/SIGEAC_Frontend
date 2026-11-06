@@ -103,29 +103,29 @@ const PurchaseOrderPage = () => {
         </div>
 
         {/* ── Meta ────────────────────────────────────────────────────── */}
-        <div className="mx-auto w-full max-w-4xl px-4 py-3 rounded-md border border-border/50 bg-muted/20">
+        <div className="mx-auto w-full max-w-4xl px-4 py-3 rounded-xl border border-slate-200 bg-white dark:border-slate-700/60 dark:bg-slate-900/60">
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-x-4 sm:gap-x-6 md:gap-x-10 gap-y-3 md:gap-y-4 justify-items-center">
             <MetaItem
-              label="LUGAR DE COMPRA"
+              label="Lugar de compra"
               value={data?.retailer?.name}
               icon={Truck}
             />
 
             <MetaItem
-              label="CREADO POR"
-              value={data?.created_by?.toUpperCase()}
+              label="Creado por"
+              value={data?.created_by}
               icon={User}
             />
 
             <MetaItem
-              label="FECHA DE COMPRA"
+              label="Fecha de compra"
               value={formatPurchaseDate(data?.purchase_date)}
               icon={CalendarDays}
             />
 
             {data?.shipping_agency?.name && (
               <MetaItem
-                label="AGENCIA DE ENVÍO"
+                label="Agencia de envío"
                 value={data.shipping_agency.name}
                 icon={Ship}
               />
@@ -137,10 +137,10 @@ const PurchaseOrderPage = () => {
         <div className="w-full">
           {/* JUSTIFICACIÓN */}
           <InfoSection
-            title="JUSTIFICACIÓN DE LA SOLICITUD ORIGEN"
+            title="Justificación de la solicitud de origen"
             icon={FileText}
             content={data?.justification}
-            emptyMessage="SIN JUSTIFICACIÓN"
+            emptyMessage="Sin justificación"
             compact
           />
         </div>
@@ -156,8 +156,8 @@ const PurchaseOrderPage = () => {
             </div>
 
             <div className="flex items-center gap-2 rounded-md border border-border/50 bg-muted/30 px-2.5 py-1 select-none">
-              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                TOTAL
+              <span className="text-xs text-muted-foreground">
+                Total
               </span>
 
               <span className="text-sm font-semibold tabular-nums">

@@ -10,6 +10,10 @@ import { useGetGeneralArticleIntakes } from "@/hooks/mantenimiento/almacen/almac
 import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
 import type { GeneralArticleIntakeStatus } from "@/types/purchase";
 import { PageHeader } from "@/components/layout/PageHeader";
+import {
+  PurchasesHeading,
+  PurchasesToolbar,
+} from "@/app/[company]/compras/_components/PurchasesPageParts";
 
 type StatusFilter = "ALL" | GeneralArticleIntakeStatus;
 
@@ -59,28 +63,12 @@ const RecepcionGeneralPage = () => {
       <div className="flex flex-col gap-6">
         <PageHeader />
 
-        <div className="flex flex-col gap-2 border-b pb-4">
-          <h1 className="text-3xl font-semibold tracking-tight">
-            Recepción General
-          </h1>
+        <PurchasesHeading
+          heading="Recepción General"
+          description="Seguimiento de las entregas físicas de artículos generales registradas por el comprador."
+        />
 
-          <p className="text-sm text-muted-foreground">
-            Seguimiento de las entregas físicas de artículos generales
-            registradas por el comprador.
-          </p>
-        </div>
-
-        <div
-          className="
-          flex items-center justify-between gap-4
-          px-3 py-2
-          rounded-xl border
-          bg-slate-200/40 border-slate-200/40
-          dark:bg-slate-800/70 dark:border-slate-700/60
-          backdrop-blur-md
-          dark:shadow-[0_4px_20px_rgba(0,0,0,0.35)]
-        "
-        >
+        <PurchasesToolbar>
           <IntakeToolBar
             search={search}
             setSearch={setSearch}
@@ -91,7 +79,7 @@ const RecepcionGeneralPage = () => {
           <span className="text-xs text-muted-foreground tabular-nums">
             {filtered.length} {filtered.length === 1 ? "entrada" : "entradas"}
           </span>
-        </div>
+        </PurchasesToolbar>
 
         <DataTable
           error={isError}

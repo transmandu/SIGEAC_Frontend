@@ -10,9 +10,9 @@ interface InfoSectionProps {
 
 const InfoSection = ({ title, icon: Icon, content, emptyMessage }: InfoSectionProps) => {
   return (
-    <div className="relative h-full min-w-0 flex flex-col rounded-xl border border-border/60 bg-linear-to-b from-muted/30 to-muted/10 p-4 sm:p-5 shadow-xs">
+    <div className="relative h-full min-w-0 flex flex-col rounded-xl border border-slate-200 bg-white dark:border-slate-700/60 dark:bg-slate-900/60 p-4 sm:p-5 shadow-xs">
       <div className="flex items-center gap-3 mb-3 select-none shrink-0">
-        <span className="text-[10px] sm:text-[11px] font-semibold tracking-widest text-muted-foreground whitespace-nowrap">
+        <span className="text-xs font-semibold text-muted-foreground whitespace-nowrap">
           {title}
         </span>
         <div className="h-px flex-1 bg-border/50" />
@@ -24,9 +24,9 @@ const InfoSection = ({ title, icon: Icon, content, emptyMessage }: InfoSectionPr
             <LinkifiedText text={content} />
           </p>
         ) : (
-          <div className="flex flex-col items-center gap-1.5 text-muted-foreground/60 select-none">
+          <div className="flex flex-col items-center gap-1.5 text-muted-foreground select-none">
             <Icon className="size-4 opacity-60" />
-            <span className="text-[10px] sm:text-[11px] tracking-widest">
+            <span className="text-xs">
               {emptyMessage}
             </span>
           </div>

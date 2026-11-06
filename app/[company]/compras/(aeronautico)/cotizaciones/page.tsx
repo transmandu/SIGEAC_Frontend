@@ -13,10 +13,16 @@ import GroupedQuotesTable from "./_components/GroupedQuotesTable";
 import { isAeronauticalQuoteScope } from "@/lib/purchases/quote-scope";
 import QuoteSplitView, {
   useQuotePreview,
+  useQuotePreviewSync,
   useQuotePreviewSelectedId,
+  useQuoteRowMark,
 } from "@/components/side-panels/QuoteSplitView";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import {
+  PurchasesHeading,
+  PurchasesToolbar,
+} from "@/app/[company]/compras/_components/PurchasesPageParts";
 
 const QuotesOrdersPage = () => {
   return (
@@ -34,6 +40,7 @@ const QuotesOrdersPageContent = () => {
   const timeZone = useCompanyTimezone();
   const onPreview = useQuotePreview();
   const selectedPreviewId = useQuotePreviewSelectedId();
+  const rowMark = useQuoteRowMark();
 
   const {
     data: quotes,
@@ -78,6 +85,9 @@ const QuotesOrdersPageContent = () => {
     });
   }, [quotes, deferredSearch, status]);
 
+  // El panel lateral sigue a la tabla: si el documento cambia, el panel también.
+  useQuotePreviewSync(filteredQuotes);
+
   const columns = useMemo(
     () =>
       getColumns(
@@ -94,32 +104,12 @@ const QuotesOrdersPageContent = () => {
       <div className="flex flex-col gap-6">
         <PageHeader />
 
-        <div className="flex flex-col gap-2 border-b pb-4">
-          <div className="flex items-end justify-between">
-            <div className="flex flex-col">
-              <h1 className="text-3xl font-semibold tracking-tight">
-                Cotizaciones de Compra
-              </h1>
+        <PurchasesHeading
+          heading="Cotizaciones de Compra"
+          description="Visualice y gestione las cotizaciones generadas dentro del sistema de compras."
+        />
 
-              <p className="text-sm text-muted-foreground">
-                Visualiza y gestiona las cotizaciones generadas dentro del
-                sistema de compras.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div
-          className="
-          flex items-center justify-between gap-4
-          px-3 py-2
-          rounded-xl border
-          bg-slate-200/40 border-slate-200/40
-          dark:bg-slate-800/70 dark:border-slate-700/60
-          backdrop-blur-md
-          dark:shadow-[0_4px_20px_rgba(0,0,0,0.35)]
-        "
-        >
+        <PurchasesToolbar>
           <QuotesToolBar
             search={search}
             setSearch={setSearch}
@@ -139,7 +129,7 @@ const QuotesOrdersPageContent = () => {
               {filteredQuotes.length === 1 ? "cotización" : "cotizaciones"}
             </span>
           </div>
-        </div>
+        </PurchasesToolbar>
 
         {groupBy !== "NONE" ? (
           <GroupedQuotesTable
@@ -151,6 +141,7 @@ const QuotesOrdersPageContent = () => {
               <DataTable
                 error={isError}
                 columns={columns}
+                getRowMark={rowMark}
                 data={rows}
                 loading={isLoading}
                 persistKey="cotizaciones"
@@ -161,6 +152,7 @@ const QuotesOrdersPageContent = () => {
           <DataTable
             error={isError}
             columns={columns}
+            getRowMark={rowMark}
             data={filteredQuotes}
             loading={isLoading}
             persistKey="cotizaciones"

@@ -24,7 +24,6 @@ import {
 
 import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { Loader2, Pencil, Send } from "lucide-react";
 import type { RequisitionGeneralArticleForm } from "@/types/purchase";
 import type { GeneralArticle } from "@/types";
@@ -40,6 +39,7 @@ import { getStoragePathFromUrl } from "./_components/imageUtils";
 import { canAddRequisitionArticle } from "@/lib/purchases/requisition-article-limit";
 import { toCalendarPayload } from "@/lib/date";
 import { useResettingState } from "@/hooks/useResettingState";
+import FormActions from "@/components/forms/mantenimiento/compras/_components/FormActions";
 
 /* -------------------------------------------------------------------------- */
 /*                                   SCHEMA                                   */
@@ -417,24 +417,25 @@ export function CreateGeneralRequisitionForm({
 
         <AdditionalInfoSection form={form} />
 
-        <div className="flex justify-between items-center gap-x-4">
-          <Separator className="flex-1" />
-          <p className="text-muted-foreground text-xs select-none">SIGEAC</p>
-          <Separator className="flex-1" />
-        </div>
 
-        <Button disabled={isPending} className="gap-2">
+        <FormActions>
+
+
+          <Button disabled={isPending} className="min-w-35 gap-2">
           {isEditing ? (
             <>
-              <Pencil className="size-4" /> Editar Requisición
+              <Pencil className="size-4" /> Editar requisición
             </>
           ) : (
             <>
-              <Send className="size-4" /> Generar Requisición
+              <Send className="size-4" /> Generar requisición
             </>
           )}
           {isPending && <Loader2 className="size-4 animate-spin" />}
         </Button>
+
+
+        </FormActions>
       </form>
 
       <DuplicateRequisitionDialog

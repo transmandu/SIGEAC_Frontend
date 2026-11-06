@@ -47,6 +47,7 @@ import { isHigherPriority, type Priority } from "./_components/priorityUtils";
 import { getStoragePathFromUrl } from "./_components/imageUtils";
 import { canAddRequisitionArticle } from "@/lib/purchases/requisition-article-limit";
 import { toCalendarPayload } from "@/lib/date";
+import FormActions from "@/components/forms/mantenimiento/compras/_components/FormActions";
 
 type WarehouseRequisitionType = "AERONAUTICAL" | "GENERAL";
 
@@ -749,7 +750,7 @@ export function CreateWarehouseRequisitionForm({
                 type="button"
                 onClick={() => handleRequisitionTypeChange("AERONAUTICAL")}
                 className={cn(
-                  "flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium transition-colors duration-200",
+                  "flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-colors duration-200",
                   requisitionType === "AERONAUTICAL"
                     ? "bg-background text-blue-600 shadow-xs"
                     : "text-muted-foreground hover:text-blue-600",
@@ -762,7 +763,7 @@ export function CreateWarehouseRequisitionForm({
                 type="button"
                 onClick={() => handleRequisitionTypeChange("GENERAL")}
                 className={cn(
-                  "flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium transition-colors duration-200",
+                  "flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-colors duration-200",
                   requisitionType === "GENERAL"
                     ? "bg-background text-blue-600 shadow-xs"
                     : "text-muted-foreground hover:text-blue-600",
@@ -836,20 +837,21 @@ export function CreateWarehouseRequisitionForm({
 
         <AdditionalInfoSection form={form} />
 
-        <div className="flex justify-between items-center gap-x-4">
-          <Separator className="flex-1" />
-          <p className="text-muted-foreground text-xs select-none">SIGEAC</p>
-          <Separator className="flex-1" />
-        </div>
 
-        <Button disabled={createRequisition.isPending} className="gap-2">
+        <FormActions>
+
+
+          <Button disabled={createRequisition.isPending} className="min-w-35 gap-2">
           <>
-            <Send className="size-4" /> Generar Requisición
+            <Send className="size-4" /> Generar requisición
           </>
           {createRequisition.isPending && (
             <Loader2 className="size-4 animate-spin" />
           )}
         </Button>
+
+
+        </FormActions>
       </form>
 
       <DuplicateRequisitionDialog

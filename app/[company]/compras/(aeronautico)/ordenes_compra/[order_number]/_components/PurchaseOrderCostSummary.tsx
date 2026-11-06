@@ -28,10 +28,10 @@ const CostRow = ({ label, value }: { label: string; value: number | null | undef
 
 const PurchaseOrderCostSummary = ({ costs, paymentMethod, bankAccount, card, isAeronautical }: PurchaseOrderCostSummaryProps) => {
   return (
-    <div className="relative mx-auto max-w-md w-full rounded-xl border border-border/60 bg-linear-to-b from-muted/30 to-muted/10 p-4 shadow-xs">
+    <div className="relative mx-auto max-w-md w-full rounded-xl border border-slate-200 bg-white dark:border-slate-700/60 dark:bg-slate-900/60 p-4 shadow-xs">
       <div className="flex items-center gap-3 mb-2.5 select-none">
-        <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground whitespace-nowrap">
-          COSTOS
+        <span className="text-xs font-semibold text-muted-foreground whitespace-nowrap">
+          Costos
         </span>
         <div className="h-px flex-1 bg-border/50" />
       </div>
@@ -47,7 +47,7 @@ const PurchaseOrderCostSummary = ({ costs, paymentMethod, bankAccount, card, isA
 
       {/* Total */}
       <div className="flex items-baseline justify-between mt-2 pt-2 border-t border-border/60">
-        <span className="text-xs font-semibold uppercase tracking-wide text-foreground/80">Total</span>
+        <span className="text-xs font-semibold text-foreground/80">Total</span>
         <span className="font-mono text-lg font-bold tabular-nums">
           ${Number(costs.total || costs.sub_total || 0).toFixed(2)}
         </span>

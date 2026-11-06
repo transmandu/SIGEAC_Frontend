@@ -6,14 +6,8 @@ import { Check, Link2, Loader2, PackagePlus } from "lucide-react";
 import { useCreateComplementaryQuote } from "@/actions/mantenimiento/compras/cotizaciones/actions";
 import { AmountInput } from "@/components/misc/AmountInput";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog } from "@/components/ui/dialog";
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
@@ -27,7 +21,7 @@ type ItemState = {
 };
 
 const LABEL_CLS =
-  "select-none text-[10px] leading-none text-muted-foreground uppercase";
+  "select-none text-xs leading-none text-muted-foreground";
 
 /**
  * Crea una cotización complementaria sobre una cotización general APROBADA:
@@ -132,62 +126,55 @@ export default function CreateComplementaryQuoteDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        className="
-          w-[95vw]
-          max-w-[95vw]
-          sm:max-w-180
-          p-0
-          overflow-hidden
-          max-h-[85vh]
-          flex
-          flex-col
-        "
-      >
-        {/* ===================== HEADER ===================== */}
-        <DialogHeader
-          className="
-            shrink-0
-            border-b border-border/40
-            bg-muted/20
-            px-6
-            pt-5
-            pb-4
-            text-left
-          "
-        >
-          <div className="flex items-center gap-3">
-            <div
-              className="
-                flex items-center justify-center
-                size-10 shrink-0
-                rounded-xl
-                border border-primary/10
-                bg-primary/8
-              "
+      <FormDialogContent
+        className="sm:max-w-180"
+        icon={PackagePlus}
+        title="Cotización complementaria"
+        description={
+          <>
+            Registre la diferencia comprada que{" "}
+            <span className="font-medium text-foreground">
+              {quote.quote_number}
+            </span>{" "}
+            no amparaba. Indique solo la cantidad extra por artículo, no el
+            total recibido.
+          </>
+        }
+        footer={
+          <>
+            <div className="mr-auto flex items-center gap-2 rounded-md border border-slate-200/60 bg-white/80 px-3 py-1.5 dark:border-slate-700/60 dark:bg-slate-900/60">
+              <Link2 className="size-3.5 text-primary" />
+              <span className="text-xs text-muted-foreground">Total</span>
+              <span className="font-mono text-sm font-semibold tabular-nums">
+                ${total.toFixed(2)}
+              </span>
+            </div>
+
+            <Button
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={createComplementaryQuote.isPending}
             >
-              <PackagePlus className="size-4.5 text-primary" />
-            </div>
-
-            <div className="min-w-0 flex-1">
-              <DialogTitle className="text-base font-semibold tracking-tight leading-none">
-                Cotización complementaria
-              </DialogTitle>
-
-              <DialogDescription className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                Registre la diferencia comprada que{" "}
-                <span className="font-medium text-foreground">
-                  {quote.quote_number}
-                </span>{" "}
-                no amparaba. Indique solo la cantidad extra por artículo, no el
-                total recibido.
-              </DialogDescription>
-            </div>
-          </div>
-        </DialogHeader>
-
-        {/* ===================== BODY ===================== */}
-        <div className="overflow-y-auto px-6 py-5 space-y-4">
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={!canSubmit}
+              className="min-w-35 gap-2"
+            >
+              {createComplementaryQuote.isPending ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <>
+                  <PackagePlus className="size-4" />
+                  Crear complementaria
+                </>
+              )}
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-4">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-foreground select-none">
               Artículos de la cotización original
@@ -241,7 +228,7 @@ export default function CreateComplementaryQuoteDialog({
                         </span>
                       </div>
 
-                      <span className="shrink-0 text-[11px] text-muted-foreground">
+                      <span className="shrink-0 text-xs text-muted-foreground">
                         Cotizado: {item.quantity} {item.unit?.label ?? ""} · $
                         {Number(item.unit_price).toFixed(2)} c/u
                       </span>
@@ -304,7 +291,7 @@ export default function CreateComplementaryQuoteDialog({
           {/* ── Justificación ── */}
           <div className="mx-auto w-full max-w-xl space-y-2">
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+              <span className="text-xs font-medium text-muted-foreground">
                 Justificación<span className="ml-0.5 text-destructive">*</span>
               </span>
               <div className="h-px flex-1 bg-border/60" />
@@ -319,68 +306,7 @@ export default function CreateComplementaryQuoteDialog({
             />
           </div>
         </div>
-
-        {/* ===================== FOOTER ===================== */}
-        <DialogFooter
-          className="
-            shrink-0
-            flex flex-row items-center justify-between gap-3
-            border-t border-border/40 bg-muted/20
-            px-6 py-4
-          "
-        >
-          <div className="flex items-center gap-2 rounded-md border border-border/50 bg-background/70 px-3 py-1.5">
-            <Link2 className="size-3.5 text-primary" />
-            <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
-              Total
-            </span>
-            <span className="font-mono text-sm font-semibold tabular-nums">
-              ${total.toFixed(2)}
-            </span>
-          </div>
-
-          <div className="flex gap-2">
-            <Button
-              onClick={() => onOpenChange(false)}
-              disabled={createComplementaryQuote.isPending}
-              className="
-                h-10 rounded-lg px-5
-                bg-slate-500/10 text-slate-600
-                hover:bg-slate-500/20
-                active:bg-slate-500/30
-                border border-slate-500/20
-                shadow-xs
-                transition-colors
-                dark:bg-slate-400/10
-                dark:text-slate-300
-                dark:hover:bg-slate-400/20
-                dark:border-slate-400/20
-              "
-            >
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleSubmit}
-              disabled={!canSubmit}
-              className="
-                h-10 rounded-lg px-5
-                shadow-xs
-                transition-colors
-                flex items-center justify-center gap-2
-              "
-            >
-              {createComplementaryQuote.isPending ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <>
-                  <PackagePlus className="size-4" />
-                  Crear complementaria
-                </>
-              )}
-            </Button>
-          </div>
-        </DialogFooter>
-      </DialogContent>
+      </FormDialogContent>
     </Dialog>
   );
 }

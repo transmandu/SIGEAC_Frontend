@@ -12,9 +12,15 @@ import PurchaseOrderToolBar from "./_components/PurchaseOrderToolBar";
 import GroupedPurchaseOrderTable from "./_components/GroupedPurchaseOrderTable";
 import PurchaseOrderSplitView, {
   usePurchaseOrderPreview,
+  usePurchaseOrderPreviewSync,
   usePurchaseOrderPreviewSelectedId,
+  usePurchaseOrderRowMark,
 } from "@/components/side-panels/PurchaseOrderSplitView";
 import { PageHeader } from "@/components/layout/PageHeader";
+import {
+  PurchasesHeading,
+  PurchasesToolbar,
+} from "@/app/[company]/compras/_components/PurchasesPageParts";
 
 const PurchaseOrdersPage = () => {
   return (
@@ -28,6 +34,7 @@ const PurchaseOrdersPageContent = () => {
   const { selectedCompany, selectedStation } = useCompanyStore();
   const onPreview = usePurchaseOrderPreview();
   const selectedPreviewId = usePurchaseOrderPreviewSelectedId();
+  const rowMark = usePurchaseOrderRowMark();
 
   const {
     data: po,
@@ -62,6 +69,9 @@ const PurchaseOrdersPageContent = () => {
     });
   }, [po, deferredSearch, status]);
 
+  // El panel lateral sigue a la tabla: si el documento cambia, el panel también.
+  usePurchaseOrderPreviewSync(filteredPO);
+
   const columns = useMemo(
     () =>
       getColumns(
@@ -77,26 +87,12 @@ const PurchaseOrdersPageContent = () => {
       <div className="flex flex-col gap-6">
         <PageHeader />
 
-        <div className="flex flex-col gap-2 border-b pb-4">
-          <h1 className="text-3xl font-semibold tracking-tight">
-            Órdenes de Compra
-          </h1>
+        <PurchasesHeading
+          heading="Órdenes de Compra"
+          description="Gestione y visualice las órdenes generadas en el sistema de compras."
+        />
 
-          <p className="text-sm text-muted-foreground">
-            Gestione y visualice las órdenes generadas en el sistema de compras.
-          </p>
-        </div>
-
-        <div
-          className="
-          flex items-center justify-between gap-4
-          px-3 py-2
-          rounded-xl border
-          bg-slate-200/40 border-slate-200/40
-          dark:bg-slate-800/70 dark:border-slate-700/60
-          backdrop-blur-md
-        "
-        >
+        <PurchasesToolbar>
           <PurchaseOrderToolBar
             search={search}
             setSearch={setSearch}
@@ -109,7 +105,7 @@ const PurchaseOrdersPageContent = () => {
           <span className="text-xs text-muted-foreground tabular-nums">
             {filteredPO.length} {filteredPO.length === 1 ? "orden" : "órdenes"}
           </span>
-        </div>
+        </PurchasesToolbar>
 
         {groupBy === "quote" || groupBy === "vendor" ? (
           <GroupedPurchaseOrderTable
@@ -121,9 +117,10 @@ const PurchaseOrdersPageContent = () => {
               <DataTable
                 error={isError}
                 columns={columns}
+                getRowMark={rowMark}
                 data={rows}
                 loading={isLoading}
-                emptyText="No se ha encontrado ningún resultado..."
+                emptyText="No se encontraron resultados"
                 overflowVisible
                 persistKey="ordenes_compra"
               />
@@ -133,9 +130,10 @@ const PurchaseOrdersPageContent = () => {
           <DataTable
             error={isError}
             columns={columns}
+            getRowMark={rowMark}
             data={filteredPO}
             loading={isLoading}
-            emptyText="No se ha encontrado ningún resultado..."
+            emptyText="No se encontraron resultados"
             persistKey="ordenes_compra"
           />
         )}

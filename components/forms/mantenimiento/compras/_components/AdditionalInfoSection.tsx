@@ -116,7 +116,7 @@ function ImageUploadField({
         ) : (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 p-2">
             <Upload className="size-5 text-muted-foreground/60" />
-            <span className="text-xs text-muted-foreground/60 leading-tight text-center">
+            <span className="text-xs text-muted-foreground leading-tight text-center">
               Click para subir imagen
             </span>
           </div>
@@ -130,7 +130,7 @@ export function AdditionalInfoSection({ form }: AdditionalInfoSectionProps) {
   return (
     <div className="rounded-lg border bg-card p-3 space-y-1.5">
       <div className="flex items-center gap-1.5">
-        <h4 className="text-xs font-semibold text-muted-foreground tracking-wider select-none">
+        <h4 className="text-xs font-semibold text-muted-foreground select-none">
           INFORMACIÓN ADICIONAL
         </h4>
         <Separator className="flex-1" />
@@ -170,7 +170,7 @@ export function AdditionalInfoSection({ form }: AdditionalInfoSectionProps) {
             <FormItem className="space-y-1.5 lg:flex lg:flex-col lg:flex-1 lg:gap-1.5">
               <FormLabel className="flex items-center gap-1.5 select-none">
                 <ImageIcon className="size-3.5 text-muted-foreground" />
-                Imagen General
+                Imagen general
               </FormLabel>
               <FormControl>
                 <ImageUploadField

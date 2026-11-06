@@ -33,6 +33,10 @@ import {
 } from "@/actions/mantenimiento/compras/gestion_costos/actions";
 import type { GeneralCostRow } from "@/types/purchase";
 import { PageHeader } from "@/components/layout/PageHeader";
+import {
+  PurchasesHeading,
+  PurchasesToolbar,
+} from "@/app/[company]/compras/_components/PurchasesPageParts";
 
 type CostType = "ARTICLE" | "GENERAL";
 
@@ -191,20 +195,10 @@ const CostManagementPage = () => {
       <div className="flex flex-col gap-6">
         <PageHeader />
 
-        <div className="flex flex-col gap-2 border-b pb-4">
-          <div className="flex items-end justify-between">
-            <div className="flex flex-col">
-              <h1 className="text-3xl font-semibold tracking-tight">
-                Gestión de Costos
-              </h1>
-
-              <p className="text-sm text-muted-foreground">
-                Administre y actualice los costos unitarios de artículos y otros
-                elementos del inventario aeronáutico y general.
-              </p>
-            </div>
-          </div>
-        </div>
+        <PurchasesHeading
+          heading="Gestión de Costos"
+          description="Administre y actualice los costos unitarios de artículos y otros elementos del inventario aeronáutico y general."
+        />
 
         <div className="flex justify-center">
           <CostTypeToggle
@@ -216,17 +210,7 @@ const CostManagementPage = () => {
           />
         </div>
 
-        <div
-          className="
-          flex items-center justify-between gap-4
-          px-3 py-2
-          rounded-xl border
-          bg-slate-200/40 border-slate-200/40
-          dark:bg-slate-800/70 dark:border-slate-700/60
-          backdrop-blur-md
-          dark:shadow-[0_4px_20px_rgba(0,0,0,0.35)]
-        "
-        >
+        <PurchasesToolbar>
           <CostToolbar
             search={search}
             setSearch={setSearch}
@@ -238,7 +222,7 @@ const CostManagementPage = () => {
           <span className="text-xs text-muted-foreground tabular-nums">
             {summary}
           </span>
-        </div>
+        </PurchasesToolbar>
 
         {/* Los borradores se conservan al cambiar de página: se guardan todos
             juntos. */}

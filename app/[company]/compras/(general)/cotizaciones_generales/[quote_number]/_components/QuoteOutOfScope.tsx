@@ -36,7 +36,7 @@ const QuoteOutOfScope = () => {
             className="
               flex items-center justify-center
               size-14
-              rounded-full
+              rounded-2xl
               bg-amber-50
               dark:bg-amber-950/30
               border

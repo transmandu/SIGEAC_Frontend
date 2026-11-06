@@ -3,17 +3,13 @@
 import { useMemo, useState } from "react";
 import { Loader2, MapPin, Package, Truck } from "lucide-react";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog } from "@/components/ui/dialog";
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { SearchableSelect } from "@/components/misc/SearchableSelect";
 import CopyPartNumberButton from "@/components/misc/CopyPartNumberButton";
 import { cn } from "@/lib/utils";
 
@@ -21,13 +17,6 @@ import { useDetermineArticleDestination } from "@/actions/mantenimiento/almacen/
 import { useGetLocationsByCompany } from "@/hooks/sistema/useGetLocationsByCompany";
 import { useGetEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetEmployees";
 import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import type { DestinationArticle } from "@/types/purchase";
 
@@ -152,17 +141,37 @@ export function DetermineDestinationDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[92vh] max-w-2xl flex-col gap-0 overflow-hidden p-0">
-        <DialogHeader className="shrink-0 border-b px-6 py-4">
-          <DialogTitle className="text-lg">Determinar destino</DialogTitle>
-          <DialogDescription>
-            Indique a qué sede pertenece el artículo. Puede repartirlo entre
-            varias.
-          </DialogDescription>
-        </DialogHeader>
+      <FormDialogContent
+        className="sm:max-w-2xl"
+        icon={MapPin}
+        title="Determinar destino"
+        description="Indique a qué sede pertenece el artículo. Puede repartirlo entre varias."
+        footer={
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={busy}
+              onClick={() => onOpenChange(false)}
+            >
+              Cancelar
+            </Button>
 
-        {/* El overflow va en el cuerpo: el footer queda fijo y visible. */}
-        <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-6 py-5">
+            {canSubmit && (
+              <Button
+                type="button"
+                disabled={busy}
+                onClick={submit}
+                className="min-w-35"
+              >
+                {busy && <Loader2 className="mr-2 size-4 animate-spin" />}
+                Confirmar destino
+              </Button>
+            )}
+          </>
+        }
+      >
+        <div className="space-y-5">
           {/* Identidad del artículo */}
           <section className="flex items-start gap-3 rounded-xl border border-slate-200/70 p-4 dark:border-slate-700/60">
             <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted">
@@ -190,7 +199,7 @@ export function DetermineDestinationDialog({
               <p className="font-mono text-sm font-semibold tabular-nums">
                 {available} {unit}
               </p>
-              <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 por repartir
               </p>
             </div>
@@ -320,9 +329,9 @@ export function DetermineDestinationDialog({
                               Departamento{" "}
                               <span className="text-red-500">*</span>
                             </Label>
-                            <Select
+                            <SearchableSelect
                               value={chosenDepartment ?? ""}
-                              onValueChange={(value) => {
+                              onChange={(value) => {
                                 setDepartments((prev) => ({
                                   ...prev,
                                   [location.id]: value,
@@ -335,21 +344,14 @@ export function DetermineDestinationDialog({
                                   return next;
                                 });
                               }}
-                            >
-                              <SelectTrigger className="h-9 text-xs">
-                                <SelectValue placeholder="Seleccione..." />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {allDepartments.map((department) => (
-                                  <SelectItem
-                                    key={department.id}
-                                    value={String(department.id)}
-                                  >
-                                    {department.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                              placeholder="Seleccione..."
+                              searchPlaceholder="Buscar departamento..."
+                              triggerClassName="h-9 text-xs"
+                              options={allDepartments.map((department) => ({
+                                value: String(department.id),
+                                label: department.name,
+                              }))}
+                            />
                           </div>
 
                           <div className="space-y-1.5">
@@ -357,41 +359,29 @@ export function DetermineDestinationDialog({
                               Solicitado por{" "}
                               <span className="text-red-500">*</span>
                             </Label>
-                            <Select
+                            <SearchableSelect
                               value={requesters[location.id] ?? ""}
-                              onValueChange={(value) =>
+                              onChange={(value) =>
                                 setRequesters((prev) => ({
                                   ...prev,
                                   [location.id]: value,
                                 }))
                               }
-                            >
-                              <SelectTrigger className="h-9 text-xs">
-                                <SelectValue
-                                  placeholder={
-                                    chosenDepartment
-                                      ? "Seleccione..."
-                                      : "Elija el departamento"
-                                  }
-                                />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {locationEmployees.map((employee) => (
-                                  <SelectItem
-                                    key={employee.id}
-                                    value={employee.dni}
-                                  >
-                                    {employee.first_name} {employee.last_name}
-                                    {employee.job_title?.name
-                                      ? ` — ${employee.job_title.name}`
-                                      : ""}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                              disabled={!chosenDepartment}
+                              placeholder={
+                                chosenDepartment ? "Seleccione..." : "Elija el departamento"
+                              }
+                              searchPlaceholder="Buscar empleado..."
+                              triggerClassName="h-9 text-xs"
+                              options={locationEmployees.map((employee) => ({
+                                value: employee.dni,
+                                label: `${employee.first_name} ${employee.last_name}`,
+                                description: employee.job_title?.name,
+                              }))}
+                            />
                             {chosenDepartment &&
                               locationEmployees.length === 0 && (
-                                <p className="text-[11px] text-amber-600 dark:text-amber-400">
+                                <p className="text-xs text-amber-600 dark:text-amber-400">
                                   Ese departamento no tiene empleados
                                   registrados.
                                 </p>
@@ -447,25 +437,7 @@ export function DetermineDestinationDialog({
             </p>
           </section>
         </div>
-
-        <div className="flex shrink-0 items-center justify-end gap-2 border-t px-6 py-4">
-          <Button
-            type="button"
-            variant="ghost"
-            disabled={busy}
-            onClick={() => onOpenChange(false)}
-          >
-            Cancelar
-          </Button>
-
-          {canSubmit && (
-            <Button type="button" disabled={busy} onClick={submit}>
-              {busy && <Loader2 className="mr-2 size-4 animate-spin" />}
-              Confirmar destino
-            </Button>
-          )}
-        </div>
-      </DialogContent>
+      </FormDialogContent>
     </Dialog>
   );
 }

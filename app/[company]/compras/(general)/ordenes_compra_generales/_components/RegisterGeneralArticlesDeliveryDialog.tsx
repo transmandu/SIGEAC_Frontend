@@ -22,15 +22,13 @@ import {
 } from "@/actions/mantenimiento/compras/ordenes_compras/actions";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog } from "@/components/ui/dialog";
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import { Input } from "@/components/ui/input";
+import {
+  SearchableSelect,
+  type SearchableOption,
+} from "@/components/misc/SearchableSelect";
 import {
   Popover,
   PopoverContent,
@@ -194,6 +192,53 @@ export default function RegisterGeneralArticlesDeliveryDialog({
 
   const isDirectDelivery = destinationType !== "WAREHOUSE";
 
+  const destinationOptions: SearchableOption[] = (() => {
+    switch (destinationType) {
+      case "WAREHOUSE":
+        return generalWarehouses.map((warehouse) => ({
+          value: warehouse.id.toString(),
+          label: warehouse.name,
+        }));
+      case "DEPARTMENT":
+        return allDepartments.map((department) => ({
+          value: department.id.toString(),
+          label: department.name,
+        }));
+      case "EMPLOYEE":
+        return (employees ?? []).map((employee) => ({
+          value: employee.id.toString(),
+          label: `${employee.first_name} ${employee.last_name}`,
+          description: employee.dni || undefined,
+        }));
+      case "AUTHORIZED":
+        return (authorizedEmployees ?? []).map((authorized) => ({
+          value: authorized.id.toString(),
+          label: authorized.employee_name,
+        }));
+      default:
+        return (thirdParties ?? []).map((thirdParty) => ({
+          value: thirdParty.id.toString(),
+          label: thirdParty.name,
+        }));
+    }
+  })();
+
+  const destinationLoading = {
+    WAREHOUSE: isWarehousesLoading,
+    DEPARTMENT: isDepartmentsLoading,
+    EMPLOYEE: isEmployeesLoading,
+    AUTHORIZED: isAuthorizedLoading,
+    THIRD_PARTY: isThirdPartiesLoading,
+  }[destinationType];
+
+  const destinationPlaceholder = {
+    WAREHOUSE: "Seleccione el almacén",
+    DEPARTMENT: "Seleccione el departamento",
+    EMPLOYEE: "Seleccione el empleado",
+    AUTHORIZED: "Seleccione el autorizado",
+    THIRD_PARTY: "Seleccione el tercero",
+  }[destinationType];
+
   const canSubmit =
     selectedCount > 0 &&
     resolvedDestinationId !== "" &&
@@ -225,36 +270,48 @@ export default function RegisterGeneralArticlesDeliveryDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
+      <FormDialogContent
         onClick={(e) => e.stopPropagation()}
-        className="w-[95vw] max-w-[95vw] sm:max-w-140 p-0 overflow-hidden max-h-[85vh] flex flex-col"
+        className="sm:max-w-140"
+        icon={PackageCheck}
+        title="Registrar entrega de artículos"
+        description={
+          <>
+            Confirme qué artículos generales de{" "}
+            <span className="font-medium text-foreground">
+              {po.order_number}
+            </span>{" "}
+            llegaron físicamente. Los que desmarque quedarán pendientes para
+            una entrega posterior.
+          </>
+        }
+        footer={
+          <>
+            <Button
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={registerGeneralArticlesDelivery.isPending}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={!canSubmit}
+              className="min-w-35 gap-2"
+            >
+              {registerGeneralArticlesDelivery.isPending ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <>
+                  <PackageCheck className="size-4" />
+                  Confirmar entrega
+                </>
+              )}
+            </Button>
+          </>
+        }
       >
-        {/* HEADER */}
-        <DialogHeader className="shrink-0 border-b border-border/40 bg-muted/20 px-6 pt-5 pb-4 text-left">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center size-10 shrink-0 rounded-xl border border-primary/10 bg-primary/8">
-              <PackageCheck className="size-4.5 text-primary" />
-            </div>
-
-            <div className="min-w-0 flex-1">
-              <DialogTitle className="text-base font-semibold tracking-tight leading-none">
-                Registrar entrega de artículos
-              </DialogTitle>
-
-              <DialogDescription className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                Confirme qué artículos generales de{" "}
-                <span className="font-medium text-foreground">
-                  {po.order_number}
-                </span>{" "}
-                llegaron físicamente. Los que desmarque quedarán pendientes para
-                una entrega posterior.
-              </DialogDescription>
-            </div>
-          </div>
-        </DialogHeader>
-
-        {/* BODY */}
-        <div className="overflow-y-auto px-6 py-5 space-y-4">
+        <div className="space-y-4">
           <div className="flex items-center justify-between">
             <button
               type="button"
@@ -304,7 +361,7 @@ export default function RegisterGeneralArticlesDeliveryDialog({
           {/* Destino de la entrega */}
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+              <span className="text-xs font-semibold text-muted-foreground">
                 Destino de la entrega
               </span>
               <div className="h-px flex-1 bg-border/60" />
@@ -333,100 +390,24 @@ export default function RegisterGeneralArticlesDeliveryDialog({
                 </SelectContent>
               </Select>
 
-              <Select
+              <SearchableSelect
                 value={resolvedDestinationId}
-                onValueChange={setDestinationId}
-              >
-                <SelectTrigger className="h-9 flex-1 bg-background/70 text-sm">
-                  <SelectValue
-                    placeholder={
-                      destinationType === "WAREHOUSE"
-                        ? isWarehousesLoading
-                          ? "Cargando almacenes..."
-                          : "Seleccione el almacén"
-                        : destinationType === "DEPARTMENT"
-                          ? isDepartmentsLoading
-                            ? "Cargando departamentos..."
-                            : "Seleccione el departamento"
-                          : destinationType === "EMPLOYEE"
-                            ? isEmployeesLoading
-                              ? "Cargando empleados..."
-                              : "Seleccione el empleado"
-                            : destinationType === "AUTHORIZED"
-                              ? isAuthorizedLoading
-                                ? "Cargando autorizados..."
-                                : "Seleccione el autorizado"
-                              : isThirdPartiesLoading
-                                ? "Cargando terceros..."
-                                : "Seleccione el tercero"
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {destinationType === "WAREHOUSE" &&
-                    generalWarehouses.map((warehouse) => (
-                      <SelectItem
-                        key={warehouse.id}
-                        value={warehouse.id.toString()}
-                      >
-                        {warehouse.name}
-                      </SelectItem>
-                    ))}
-
-                  {destinationType === "WAREHOUSE" &&
-                    !isWarehousesLoading &&
-                    generalWarehouses.length === 0 && (
-                      <p className="px-2 py-1.5 text-xs text-muted-foreground italic">
-                        No hay almacenes de tipo General en esta estación.
-                      </p>
-                    )}
-
-                  {destinationType === "DEPARTMENT" &&
-                    allDepartments.map((department) => (
-                      <SelectItem
-                        key={department.id}
-                        value={department.id.toString()}
-                      >
-                        {department.name}
-                      </SelectItem>
-                    ))}
-
-                  {destinationType === "EMPLOYEE" &&
-                    (employees ?? []).map((employee) => (
-                      <SelectItem
-                        key={employee.id}
-                        value={employee.id.toString()}
-                      >
-                        {employee.first_name} {employee.last_name}
-                        {employee.dni ? ` — ${employee.dni}` : ""}
-                      </SelectItem>
-                    ))}
-
-                  {destinationType === "AUTHORIZED" &&
-                    (authorizedEmployees ?? []).map((authorized) => (
-                      <SelectItem
-                        key={authorized.id}
-                        value={authorized.id.toString()}
-                      >
-                        {authorized.employee_name}
-                      </SelectItem>
-                    ))}
-
-                  {destinationType === "THIRD_PARTY" &&
-                    (thirdParties ?? []).map((thirdParty) => (
-                      <SelectItem
-                        key={thirdParty.id}
-                        value={thirdParty.id.toString()}
-                      >
-                        {thirdParty.name}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
+                onChange={setDestinationId}
+                loading={destinationLoading}
+                options={destinationOptions}
+                placeholder={destinationPlaceholder}
+                searchPlaceholder="Buscar..."
+                emptyText={
+                  destinationType === "WAREHOUSE"
+                    ? "No hay almacenes de tipo General en esta estación."
+                    : "Sin resultados"
+                }
+                triggerClassName="h-9 flex-1 text-sm"
+              />
             </div>
 
             {isDirectDelivery && (
-              <p className="rounded-lg border border-blue-500/20 bg-blue-500/5 px-3 py-2 text-[11px] leading-relaxed text-blue-700 dark:text-blue-300">
+              <p className="rounded-lg border border-blue-500/20 bg-blue-500/5 px-3 py-2 text-xs leading-relaxed text-blue-700 dark:text-blue-300">
                 Entrega directa: los artículos no entrarán al inventario del
                 almacén ni requieren confirmación. El registro quedará en
                 Recepción General y podrá descargar su{" "}
@@ -438,7 +419,7 @@ export default function RegisterGeneralArticlesDeliveryDialog({
           {/* Fecha y hora de llegada */}
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+              <span className="text-xs font-semibold text-muted-foreground">
                 Fecha y hora de llegada
               </span>
               <div className="h-px flex-1 bg-border/60" />
@@ -478,49 +459,7 @@ export default function RegisterGeneralArticlesDeliveryDialog({
             </div>
           </div>
         </div>
-
-        {/* FOOTER */}
-        <DialogFooter className="shrink-0 flex flex-row items-center justify-end gap-2 border-t border-border/40 bg-muted/20 px-6 py-4">
-          <Button
-            onClick={() => onOpenChange(false)}
-            disabled={registerGeneralArticlesDelivery.isPending}
-            className="
-              h-10 rounded-lg px-5
-              bg-slate-500/10 text-slate-600
-              hover:bg-slate-500/20
-              active:bg-slate-500/30
-              border border-slate-500/20
-              shadow-xs
-              transition-colors
-              dark:bg-slate-400/10
-              dark:text-slate-300
-              dark:hover:bg-slate-400/20
-              dark:border-slate-400/20
-            "
-          >
-            Cancelar
-          </Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={!canSubmit}
-            className="
-              h-10 rounded-lg px-5
-              shadow-xs
-              transition-colors
-              flex items-center justify-center gap-2
-            "
-          >
-            {registerGeneralArticlesDelivery.isPending ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              <>
-                <PackageCheck className="size-4" />
-                Confirmar entrega
-              </>
-            )}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
+      </FormDialogContent>
     </Dialog>
   );
 }
@@ -567,7 +506,7 @@ const ArticleRow = ({
       </div>
 
       {quantity != null && (
-        <span className="shrink-0 text-[11px] text-muted-foreground tabular-nums">
+        <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
           {quantity} unid.
         </span>
       )}

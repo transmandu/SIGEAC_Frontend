@@ -7,10 +7,10 @@ import { cn } from "@/lib/utils"
 import type { ActiveGeneralArticleRequisition } from "@/types/purchase"
 
 const STATUS_LABELS: Record<string, string> = {
-  CREATED: "CREADA",
-  RECEIVED: "RECIBIDA",
-  IN_PROGRESS: "EN PROCESO",
-  QUOTED: "COTIZADA",
+  CREATED: "Creada",
+  RECEIVED: "Recibida",
+  IN_PROGRESS: "En proceso",
+  QUOTED: "Cotizada",
 }
 
 /** `compact` es la variante en línea del formulario; la extendida va en el diálogo. */
@@ -65,7 +65,7 @@ export function ActiveRequisitionWarning({
               return (
                 <li
                   key={`${entry.order_number}-${entry.description}-${entry.variant_type ?? ""}`}
-                  className="text-[11px] text-muted-foreground"
+                  className="text-xs text-muted-foreground"
                 >
                   <span className="tabular-nums font-medium text-foreground/80">
                     {entry.quantity} {entry.unit_label ?? ""}
@@ -81,7 +81,7 @@ export function ActiveRequisitionWarning({
           </ul>
 
           {!compact && (
-            <p className="text-[11px] text-muted-foreground/80">
+            <p className="text-xs text-muted-foreground">
               Puede continuar si la situación lo amerita.
             </p>
           )}

@@ -176,7 +176,7 @@ export function getGeneralCostColumns({
                         {baseCostValue}
                       </span>
                       {convertedFromUnit ? (
-                        <span className="text-[10px] text-muted-foreground">
+                        <span className="text-xs text-muted-foreground">
                           /{row.original.general_primary_unit?.value}
                         </span>
                       ) : null}

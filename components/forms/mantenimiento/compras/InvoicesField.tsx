@@ -36,7 +36,7 @@ export function createInvoiceEntry(): InvoiceEntry {
   return { key: `new-${entryCounter}`, invoice_number: "" };
 }
 
-const LABEL_CLS = "select-none text-[10px] leading-none text-muted-foreground uppercase";
+const LABEL_CLS = "select-none text-xs leading-none text-muted-foreground";
 
 const INPUT_CLS =
   "h-9 rounded-lg border-border/50 bg-background/80 text-sm shadow-xs transition-shadow focus-visible:ring-1 focus-visible:ring-teal-500/40 focus-visible:ring-offset-0";

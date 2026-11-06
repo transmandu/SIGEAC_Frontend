@@ -28,12 +28,12 @@ import { useState } from "react";
 import { DEFAULT_TIMEZONE, formatInstant } from "@/lib/date";
 
 const STATUS_LABELS: Record<string, string> = {
-  CREATED: "CREADA",
-  RECEIVED: "RECIBIDA",
-  IN_PROGRESS: "EN PROCESO",
-  QUOTED: "COTIZADA",
-  APPROVED: "APROBADA",
-  REJECTED: "RECHAZADA",
+  CREATED: "Creada",
+  RECEIVED: "Recibida",
+  IN_PROGRESS: "En proceso",
+  QUOTED: "Cotizada",
+  APPROVED: "Aprobada",
+  REJECTED: "Rechazada",
 };
 
 const statusLabel = (status?: string) =>
@@ -46,7 +46,7 @@ const statusBadgeClass = (status?: string) => {
   const approved = status === "APPROVED";
 
   return cn(
-    "whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-xs transition-colors duration-150 hover:scale-100 hover:translate-y-0",
+    "whitespace-nowrap rounded-md border h-6 px-2.5 text-xs font-medium transition-colors duration-150 hover:scale-100 hover:translate-y-0",
     created &&
       "border-slate-500/30 bg-slate-500/10 text-slate-700 dark:text-slate-300 hover:bg-slate-500/15 dark:hover:text-slate-200",
     received &&
@@ -114,11 +114,11 @@ const StatusCell = ({ requisition }: { requisition: Requisition }) => {
       open={!!active}
       onOpenChange={(next) => !next && setConfirming(null)}
       isPending={updateStatusRequisition.isPending}
-      onConfirm={() => {
+      onConfirm={async () => {
         const target = NEXT_REQUISITION_STATUS[active?.from ?? ""];
         if (!target || !selectedCompany) return;
 
-        updateStatusRequisition.mutate(
+        await updateStatusRequisition.mutateAsync(
           {
             id: requisition.id,
             data: {
@@ -127,7 +127,6 @@ const StatusCell = ({ requisition }: { requisition: Requisition }) => {
             },
             company: selectedCompany.slug,
           },
-          { onSettled: () => setConfirming(null) },
         );
       }}
     />
@@ -344,25 +343,25 @@ export const getColumns = (
       const config =
         priority === "LOW"
           ? {
-              label: "BAJA",
-              base: "bg-green-500/10 text-green-600 dark:text-green-300",
+              label: "Baja",
+              base: "border-green-500/30 bg-green-500/10 text-green-600 dark:text-green-300",
               glow: "shadow-green-400/30",
             }
           : priority === "MEDIUM"
             ? {
-                label: "MEDIA",
-                base: "bg-orange-500/10 text-orange-700 dark:text-orange-300",
+                label: "Media",
+                base: "border-orange-500/30 bg-orange-500/10 text-orange-700 dark:text-orange-300",
                 glow: "shadow-orange-500/30",
               }
             : priority === "HIGH"
               ? {
-                  label: "ALTA",
-                  base: "bg-red-500/10 text-red-700 dark:text-red-300",
+                  label: "Alta",
+                  base: "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300",
                   glow: "shadow-red-500/40",
                 }
               : {
                   label: "—",
-                  base: "bg-slate-500/10 text-slate-400",
+                  base: "border-slate-500/30 bg-slate-500/10 text-slate-400",
                   glow: "",
                 };
 
@@ -370,7 +369,7 @@ export const getColumns = (
         <div className="flex justify-center w-full select-none">
           <div
             className={cn(
-              "select-none flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium border border-transparent",
+              "select-none flex items-center gap-1.5 h-6 px-2.5 rounded-md text-xs font-medium border",
               config.base,
               config.glow,
             )}
@@ -403,7 +402,7 @@ export const getColumns = (
     cell: ({ row }) => {
       return (
         <div className="flex justify-center w-full">
-          <span className="text-s text-slate-600 dark:text-slate-300 text-center font-medium tracking-wide uppercase">
+          <span className="text-s text-slate-600 dark:text-slate-300 text-center font-medium">
             {formatInstant(row.original.submission_date, timeZone, "short")}
           </span>
         </div>

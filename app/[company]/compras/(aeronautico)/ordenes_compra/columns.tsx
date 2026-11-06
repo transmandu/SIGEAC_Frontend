@@ -17,9 +17,9 @@ import PurchaseOrderDropdownActions from "@/components/dropdowns/mantenimiento/c
 import PreviewPanelIcon from "@/components/misc/PreviewPanelIcon";
 
 const PO_STATUS_LABELS: Record<string, string> = {
-  PENDING: "PENDIENTE",
-  PAID: "PAGADA",
-  COMPLETED: "COMPLETADA",
+  PENDING: "Pendiente",
+  PAID: "Pagada",
+  COMPLETED: "Completada",
 };
 
 export const getColumns = (
@@ -180,7 +180,7 @@ export const getColumns = (
 
     cell: ({ row }) => (
       <div className="flex justify-center w-full">
-        <span className="text-s text-slate-600 dark:text-slate-300 text-center font-medium tracking-wide uppercase">
+        <span className="text-s text-slate-600 dark:text-slate-300 text-center font-medium">
           <FormattedInstant
             value={row.original.purchase_date}
             format="dd MMM yyyy"
@@ -217,11 +217,7 @@ export const getColumns = (
               `
                 rounded-md
                 border
-                px-2 py-0.5
-                text-[10px]
-                font-semibold
-                tracking-wide
-                shadow-xs
+                h-6 px-2.5 text-xs font-medium
                 transition-colors duration-150
                 cursor-default
               `,
@@ -270,7 +266,7 @@ export const getColumns = (
           <div
             className="
               flex items-center justify-center
-              px-2 py-0.5
+              min-w-26 px-2 py-0.5
               rounded-md
               text-xs tabular-nums
               border
@@ -287,7 +283,7 @@ export const getColumns = (
             </span>
 
             {isEmpty && (
-              <span className="ml-1 text-[10px] text-muted-foreground/70">
+              <span className="ml-1 text-xs text-muted-foreground">
                 vacío
               </span>
             )}

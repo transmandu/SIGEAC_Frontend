@@ -20,6 +20,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import CopyPartNumberButton from "@/components/misc/CopyPartNumberButton";
+import PurchaseOrderDropdownActions from "@/components/dropdowns/mantenimiento/compras/PurchaseOrderDropdownActions";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { isAeronauticalPurchaseOrder } from "@/lib/purchases/purchase-order-scope";
@@ -72,9 +73,9 @@ interface Props {
 }
 
 const STATUS_LABELS: Record<string, string> = {
-  PENDING: "PENDIENTE",
-  PAID: "PAGADA",
-  COMPLETED: "COMPLETADA",
+  PENDING: "Pendiente",
+  PAID: "Pagada",
+  COMPLETED: "Completada",
 };
 
 const statusLabel = (status?: string) =>
@@ -85,7 +86,7 @@ const statusBadgeClass = (status?: string) => {
   const completed = status === "COMPLETED";
 
   return cn(
-    "select-none whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-xs",
+    "select-none whitespace-nowrap rounded-md border h-6 px-2.5 text-xs font-medium",
     paid &&
       "border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300",
     completed &&
@@ -97,10 +98,10 @@ const statusBadgeClass = (status?: string) => {
 };
 
 const INTAKE_STATUS_LABELS: Record<string, string> = {
-  PENDING: "POR CONFIRMAR",
-  CONFIRMED: "CONFIRMADA",
-  REJECTED: "RECHAZADA",
-  DELIVERED: "ENTREGADA",
+  PENDING: "Por confirmar",
+  CONFIRMED: "Confirmada",
+  REJECTED: "Rechazada",
+  DELIVERED: "Entregada",
 };
 
 const intakeBadgeClass = (status?: string) => {
@@ -109,7 +110,7 @@ const intakeBadgeClass = (status?: string) => {
   const delivered = status === "DELIVERED";
 
   return cn(
-    "h-4 px-1.5 text-[9px] font-semibold uppercase tracking-wide shrink-0 border shadow-none transition-colors duration-150 cursor-default",
+    "h-6 px-2.5 text-xs font-medium shrink-0 border transition-colors duration-150 cursor-default",
     confirmed &&
       "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/15",
     rejected &&
@@ -136,7 +137,7 @@ interface MetaItemProps {
 
 const MetaItem = ({ label, value, icon: Icon }: MetaItemProps) => (
   <div className="flex flex-col gap-0.5">
-    <span className="text-[10px] font-medium tracking-wider text-muted-foreground/60 select-none">
+    <span className="text-xs font-medium text-muted-foreground select-none">
       {label}
     </span>
     <span className="text-sm font-medium flex items-center gap-1.5">
@@ -196,13 +197,13 @@ const BatchArticleRow = ({
           </span>
 
           {batchCategory && (
-            <span className="select-none inline-block shrink-0 rounded bg-muted/60 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide text-muted-foreground/80">
+            <span className="select-none inline-block shrink-0 rounded bg-muted/60 px-1.5 py-0.5 text-xs font-medium text-muted-foreground">
               {batchCategory}
             </span>
           )}
 
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="shrink-0 text-[9px] px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 font-medium select-none">
+            <span className="shrink-0 text-xs px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 font-medium select-none">
               P/N
             </span>
             <span className="text-[13px] font-medium text-foreground/90 wrap-break-word">
@@ -216,7 +217,7 @@ const BatchArticleRow = ({
         </div>
 
         <div className="pointer-events-none relative flex flex-col items-end gap-0.5 shrink-0">
-          <span className="text-[10px] uppercase tracking-wide text-muted-foreground/60">
+          <span className="text-xs text-muted-foreground">
             Total
           </span>
           <span className="text-sm font-semibold tabular-nums">
@@ -226,15 +227,15 @@ const BatchArticleRow = ({
       </div>
 
       <div className="flex items-center justify-between border-t border-border/50 px-3 py-2">
-        <div className="flex items-center gap-4 text-[11px]">
-          <span className="text-muted-foreground/60">
+        <div className="flex items-center gap-4 text-xs">
+          <span className="text-muted-foreground">
             Cant.{" "}
             <span className="font-medium tabular-nums text-foreground/80">
               {quoteArticle?.quantity ?? "—"}
             </span>{" "}
             {unitLabel ?? ""}
           </span>
-          <span className="text-muted-foreground/60">
+          <span className="text-muted-foreground">
             P/U{" "}
             <span className="font-medium tabular-nums text-foreground/80">
               {money(quoteArticle?.unit_price)}
@@ -245,7 +246,7 @@ const BatchArticleRow = ({
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
-          className="flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-medium text-primary hover:bg-primary/10 transition-colors"
+          className="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-primary hover:bg-primary/10 transition-colors"
         >
           Detalles
           <ChevronDown
@@ -259,8 +260,8 @@ const BatchArticleRow = ({
 
       {expanded && (
         <div className="border-t border-border/50 bg-muted/10 px-3 py-2.5 space-y-2">
-          <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[11px]">
-            <span className="inline-flex items-center gap-1 text-muted-foreground/70">
+          <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-xs">
+            <span className="inline-flex items-center gap-1 text-muted-foreground">
               P/N Alterno:{" "}
               <span className="text-foreground/80">
                 {emptyLabel(req?.article_alt_part_number)}
@@ -270,13 +271,13 @@ const BatchArticleRow = ({
                 label="P/N alterno"
               />
             </span>
-            <span className="text-muted-foreground/70">
+            <span className="text-muted-foreground">
               Proveedor:{" "}
               <span className="text-foreground/80">
                 {emptyLabel(vendorName)}
               </span>
             </span>
-            <span className="text-muted-foreground/70">
+            <span className="text-muted-foreground">
               Condición:{" "}
               <span className="text-foreground/80">
                 {emptyLabel(conditionName)}
@@ -288,13 +289,13 @@ const BatchArticleRow = ({
                 <span className="font-medium">{money(quotedTotal)}</span>
               </span>
             )}
-            <span className="text-muted-foreground/70">
+            <span className="text-muted-foreground">
               Tracking Nacional:{" "}
               <span className="font-mono text-foreground/80">
                 {emptyLabel(article.shipping_tracking)}
               </span>
             </span>
-            <span className="text-muted-foreground/70">
+            <span className="text-muted-foreground">
               Tracking Int&apos;l:{" "}
               <span className="font-mono text-foreground/80">
                 {emptyLabel(article.international_shipping_tracking)}
@@ -304,7 +305,7 @@ const BatchArticleRow = ({
 
           {quoteArticle?.justification && (
             <div className="border-t border-border/50 pt-2">
-              <span className="block text-[9px] font-semibold uppercase tracking-widest text-muted-foreground mb-0.5">
+              <span className="block text-xs font-semibold text-muted-foreground mb-0.5">
                 Justificación
               </span>
               <p className="text-xs text-foreground/80 leading-snug">
@@ -315,7 +316,7 @@ const BatchArticleRow = ({
 
           {article.total_justification && (
             <div className="border-t border-amber-500/30 pt-2">
-              <span className="block text-[9px] font-semibold uppercase tracking-widest text-amber-700 dark:text-amber-400 mb-0.5">
+              <span className="block text-xs font-semibold text-amber-700 dark:text-amber-400 mb-0.5">
                 Justificación de diferencia de total
               </span>
               <p className="text-xs text-foreground/80 leading-snug">
@@ -380,7 +381,7 @@ const GeneralArticleRow = ({
         </div>
 
         <div className="flex flex-col items-end gap-0.5 shrink-0">
-          <span className="text-[10px] uppercase tracking-wide text-muted-foreground/60">
+          <span className="text-xs text-muted-foreground">
             Total
           </span>
           <span className="text-sm font-semibold tabular-nums">
@@ -390,15 +391,15 @@ const GeneralArticleRow = ({
       </button>
 
       <div className="flex items-center justify-between border-t border-border/50 px-3 py-2">
-        <div className="flex items-center gap-4 text-[11px]">
-          <span className="text-muted-foreground/60">
+        <div className="flex items-center gap-4 text-xs">
+          <span className="text-muted-foreground">
             Cant.{" "}
             <span className="font-medium tabular-nums text-foreground/80">
               {quoteArticle?.quantity ?? "—"}
             </span>{" "}
             {unitLabel ?? ""}
           </span>
-          <span className="text-muted-foreground/60">
+          <span className="text-muted-foreground">
             P/U{" "}
             <span className="font-medium tabular-nums text-foreground/80">
               {money(quoteArticle?.unit_price)}
@@ -409,7 +410,7 @@ const GeneralArticleRow = ({
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
-          className="flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-medium text-primary hover:bg-primary/10 transition-colors"
+          className="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-primary hover:bg-primary/10 transition-colors"
         >
           Detalles
           <ChevronDown
@@ -423,27 +424,27 @@ const GeneralArticleRow = ({
 
       {expanded && (
         <div className="border-t border-border/50 bg-muted/10 px-3 py-2.5 space-y-2">
-          <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[11px]">
-            <span className="text-muted-foreground/70">
+          <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-xs">
+            <span className="text-muted-foreground">
               Present. / Especif.:{" "}
               <span className="text-foreground/80">
                 {emptyLabel(req?.variant_type)}
               </span>
             </span>
-            <span className="text-muted-foreground/70">
+            <span className="text-muted-foreground">
               Marca / Modelo:{" "}
               <span className="text-foreground/80">
                 {emptyLabel(quoteArticle?.brand_model)}
               </span>
             </span>
-            <span className="text-muted-foreground/70">
+            <span className="text-muted-foreground">
               Lugar de compra:{" "}
               <span className="text-foreground/80">
                 {emptyLabel(quoteArticle?.retailer?.name)}
               </span>
             </span>
             {intakeDestination && (
-              <span className="text-muted-foreground/70 flex items-center gap-1">
+              <span className="text-muted-foreground flex items-center gap-1">
                 <intakeDestination.Icon className="size-3 shrink-0 opacity-70" />
                 {intakeDestination.type}:{" "}
                 <span className="text-foreground/80">
@@ -457,13 +458,13 @@ const GeneralArticleRow = ({
                 <span className="font-medium">{money(quotedTotal)}</span>
               </span>
             )}
-            <span className="text-muted-foreground/70">
+            <span className="text-muted-foreground">
               Tracking Nacional:{" "}
               <span className="font-mono text-foreground/80">
                 {emptyLabel(article.shipping_tracking)}
               </span>
             </span>
-            <span className="text-muted-foreground/70">
+            <span className="text-muted-foreground">
               Tracking Int&apos;l:{" "}
               <span className="font-mono text-foreground/80">
                 {emptyLabel(article.international_shipping_tracking)}
@@ -473,7 +474,7 @@ const GeneralArticleRow = ({
 
           {quoteArticle?.justification && (
             <div className="border-t border-border/50 pt-2">
-              <span className="block text-[9px] font-semibold uppercase tracking-widest text-muted-foreground mb-0.5">
+              <span className="block text-xs font-semibold text-muted-foreground mb-0.5">
                 Justificación
               </span>
               <p className="text-xs text-foreground/80 leading-snug">
@@ -484,7 +485,7 @@ const GeneralArticleRow = ({
 
           {article.total_justification && (
             <div className="border-t border-amber-500/30 pt-2">
-              <span className="block text-[9px] font-semibold uppercase tracking-widest text-amber-700 dark:text-amber-400 mb-0.5">
+              <span className="block text-xs font-semibold text-amber-700 dark:text-amber-400 mb-0.5">
                 Justificación de diferencia de total
               </span>
               <p className="text-xs text-foreground/80 leading-snug">
@@ -527,11 +528,16 @@ export default function PurchaseOrderPreviewPanel({
     <div className="flex h-full flex-col overflow-hidden">
       <div className="flex items-start justify-between gap-2 border-b px-4 py-3">
         <div className="flex flex-col gap-1.5 min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="font-semibold truncate">
+          <div className="flex items-center gap-2">
+            <span
+              className="min-w-0 truncate text-sm font-semibold"
+              title={purchaseOrder.order_number}
+            >
               {purchaseOrder.order_number}
             </span>
-            <Badge className={statusBadgeClass(purchaseOrder.status)}>
+            <Badge
+              className={cn(statusBadgeClass(purchaseOrder.status), "shrink-0")}
+            >
               {statusLabel(purchaseOrder.status)}
             </Badge>
           </div>
@@ -550,25 +556,28 @@ export default function PurchaseOrderPreviewPanel({
         </Button>
       </div>
 
+      <div className="flex justify-center px-4 pt-3 empty:hidden">
+        <PurchaseOrderDropdownActions po={purchaseOrder} variant="bar" />
+      </div>
+
       <div className="flex flex-col gap-5 overflow-y-auto px-4 py-4">
         {/* ── Resumen ─────────────────────────────────────── */}
         <div className="rounded-md border border-border/50 bg-muted/20 px-3 py-3">
           <div className="grid grid-cols-2 gap-x-4 gap-y-3">
             <MetaItem
-              label={isAeronautical ? "PROVEEDOR" : "LUGAR DE COMPRA"}
+              label={isAeronautical ? "Proveedor" : "Lugar de compra"}
               value={placeLabel}
               icon={Truck}
             />
             <MetaItem
-              label="CREADO POR"
+              label="Creado por"
               value={
-                purchaseOrder.created_by?.toUpperCase?.() ??
                 purchaseOrder.created_by
               }
               icon={User}
             />
             <MetaItem
-              label="FECHA DE COMPRA"
+              label="Fecha de compra"
               value={
                 formatInstant(
                   purchaseOrder.purchase_date,
@@ -580,7 +589,7 @@ export default function PurchaseOrderPreviewPanel({
               icon={CalendarDays}
             />
             <MetaItem
-              label="COTIZACIÓN ORIGEN"
+              label="Cotización de origen"
               value={purchaseOrder.quote_order?.quote_number}
               icon={Package}
             />
@@ -602,8 +611,8 @@ export default function PurchaseOrderPreviewPanel({
           <div className="rounded-md border border-border/60 bg-linear-to-b from-muted/30 to-muted/10 p-3">
             <div className="flex items-center gap-2 mb-2 select-none">
               <FileText className="size-3.5 text-muted-foreground/60" />
-              <span className="text-[10px] font-semibold tracking-widest text-muted-foreground">
-                OBSERVACIÓN
+              <span className="text-xs font-semibold text-muted-foreground">
+                Observación
               </span>
             </div>
             <p className="text-sm text-foreground/80 whitespace-pre-wrap">
@@ -615,12 +624,12 @@ export default function PurchaseOrderPreviewPanel({
         {/* ── Artículos ────────────────────────────────────── */}
         <div className="space-y-2">
           <div className="flex items-center justify-between border-b border-border/60 pb-2 select-none">
-            <span className="text-xs font-semibold tracking-wide text-foreground/90">
-              ARTÍCULOS
+            <span className="text-xs font-semibold text-foreground/90">
+              Artículos
             </span>
             <div className="flex items-center gap-1.5 rounded-md border border-border/50 bg-muted/30 px-2 py-0.5">
-              <span className="text-[9px] tracking-wider text-muted-foreground">
-                TOTAL
+              <span className="text-xs text-muted-foreground">
+                Total
               </span>
               <span className="text-xs font-semibold tabular-nums">
                 {totalArticles}
@@ -655,9 +664,9 @@ export default function PurchaseOrderPreviewPanel({
 
         {/* ── Total general ──────────────────────────────── */}
         <div className="flex items-center justify-between gap-4 rounded-md bg-muted/10 px-4 py-2.5 border border-border/40">
-          <span className="flex items-center gap-1.5 text-[10px] font-medium tracking-wide text-muted-foreground">
+          <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
             <FileText className="size-3.5" />
-            TOTAL GENERAL
+            Total general
           </span>
           <span className="font-mono text-lg font-semibold tabular-nums leading-none">
             {money(purchaseOrder.total)}

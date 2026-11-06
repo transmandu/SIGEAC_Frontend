@@ -1,15 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { Dialog } from "@/components/ui/dialog";
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -124,14 +117,14 @@ export function PendingDocumentsDialog({
   };
 
   return (
-    <AlertDialog open={open} onOpenChange={handleOpenChange}>
-      <AlertDialogContent className="max-w-lg">
-        <AlertDialogHeader>
-          <AlertDialogTitle className="flex items-center gap-2">
-            <FileWarning className="size-5 text-amber-500" />
-            Documentación requerida pendiente
-          </AlertDialogTitle>
-          <AlertDialogDescription>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <FormDialogContent
+        className="sm:max-w-lg"
+        icon={FileWarning}
+        tone="amber"
+        title="Documentación requerida pendiente"
+        description={
+          <>
             El artículo{" "}
             <span className="inline-flex items-center gap-1 align-middle">
               <span className="font-mono font-medium">
@@ -142,10 +135,33 @@ export function PendingDocumentsDialog({
             no puede pasar a recepción hasta consignar la documentación exigida
             en la requisición. Suba cada documento o marque su recepción en
             físico.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-
-        <div className="max-h-[50vh] space-y-4 overflow-y-auto py-1 pr-1">
+          </>
+        }
+        footer={
+          <>
+            <Button
+              variant="outline"
+              disabled={busy}
+              onClick={() => handleOpenChange(false)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              disabled={busy || !allResolved}
+              onClick={handleConfirm}
+              className="gap-1.5"
+            >
+              {busy ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <PackageCheck className="size-3.5" />
+              )}
+              Consignar y recibir
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-4">
           {pendingRequirements.map((req) => {
             const entry = consignments[req.id];
             const resolved = !!entry?.file || !!entry?.isPhysical;
@@ -167,7 +183,7 @@ export function PendingDocumentsDialog({
                     </span>
                   </p>
                   {req.document_type?.regulation && (
-                    <p className="text-[10px] text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                       {req.document_type.regulation}
                     </p>
                   )}
@@ -208,7 +224,7 @@ export function PendingDocumentsDialog({
                   </Label>
                 </div>
 
-                <p className="text-[10px] text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   {entry?.file
                     ? entry.file.name
                     : "PDF o imagen. Máx. 10 MB. Requerido: archivo o constancia física."}
@@ -217,23 +233,7 @@ export function PendingDocumentsDialog({
             );
           })}
         </div>
-
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={busy}>Cancelar</AlertDialogCancel>
-          <Button
-            disabled={busy || !allResolved}
-            onClick={handleConfirm}
-            className="gap-1.5"
-          >
-            {busy ? (
-              <Loader2 className="size-3.5 animate-spin" />
-            ) : (
-              <PackageCheck className="size-3.5" />
-            )}
-            Consignar y recibir
-          </Button>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+      </FormDialogContent>
+    </Dialog>
   );
 }

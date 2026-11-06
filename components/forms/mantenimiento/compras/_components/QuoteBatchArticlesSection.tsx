@@ -60,7 +60,7 @@ const W_MEDIUM = "w-full"; // Proveedor / Condición
 const W_WIDE = "w-full"; // Lead time / Referencia / Precio unitario / Ubicación
 
 const LABEL_CLS =
-  "select-none text-[10px] leading-none text-muted-foreground uppercase";
+  "select-none text-xs leading-none text-muted-foreground";
 
 function normalizeQuantity(value: string, fallback: string): string {
   if (value === "") return fallback;
@@ -139,9 +139,9 @@ export function QuoteBatchArticlesSection({
                             damping: 18,
                             mass: 0.6,
                           }}
-                          className="select-none whitespace-nowrap rounded border-2 border-red-500/50 px-4 py-1 text-xl font-extrabold uppercase tracking-widest text-red-500/50"
+                          className="select-none whitespace-nowrap rounded border-2 border-red-500/50 px-4 py-1 text-xl font-extrabold text-red-500/50"
                         >
-                          No Cotizado
+                          No cotizado
                         </motion.span>
                       </div>
                     )}
@@ -158,7 +158,7 @@ export function QuoteBatchArticlesSection({
                         {article.batch?.category && (
                           <Badge
                             variant="secondary"
-                            className="h-5 px-2 text-[10px] font-medium uppercase tracking-wide text-muted-foreground select-none"
+                            className="h-5 px-2 text-xs font-medium text-muted-foreground select-none"
                           >
                             {article.batch.category}
                           </Badge>
@@ -180,7 +180,7 @@ export function QuoteBatchArticlesSection({
                                 "z-20 shrink-0 rounded-md p-1 transition-colors",
                                 isNotQuoted
                                   ? "bg-red-500/15 text-red-600"
-                                  : "text-muted-foreground/60 hover:bg-muted/60 hover:text-red-500",
+                                  : "text-muted-foreground hover:bg-muted/60 hover:text-red-500",
                               )}
                             >
                               <Ban className="size-3.5" />
@@ -217,7 +217,7 @@ export function QuoteBatchArticlesSection({
                             <RequiredIndicator />
                           </span>
                           <div className="flex items-center gap-1.5">
-                            <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20 shrink-0 select-none">
+                            <span className="text-xs px-1.5 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20 shrink-0 select-none">
                               P/N
                             </span>
                             <FormField
@@ -283,7 +283,7 @@ export function QuoteBatchArticlesSection({
                             )}
                           />
                           {quantityChanged && (
-                            <div className="flex items-center justify-center gap-1 text-[10px] text-amber-600 dark:text-amber-400">
+                            <div className="flex items-center justify-center gap-1 text-xs text-amber-600 dark:text-amber-400">
                               <span className="tabular-nums line-through opacity-70">
                                 {article.original_quantity}
                               </span>
@@ -337,7 +337,7 @@ export function QuoteBatchArticlesSection({
                             </PopoverTrigger>
                             <PopoverContent className="w-56 p-3" align="start">
                               <div className="space-y-2">
-                                <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground select-none">
+                                <span className="text-xs font-medium text-muted-foreground select-none">
                                   Tiempo de entrega
                                 </span>
                                 <div className="flex items-center gap-2">
@@ -430,7 +430,7 @@ export function QuoteBatchArticlesSection({
                             Número de parte alterno
                           </span>
                           <div className="flex items-center gap-1.5">
-                            <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-slate-500/10 text-slate-600 border border-slate-500/20 shrink-0 select-none">
+                            <span className="text-xs px-1.5 py-0.5 rounded-md bg-slate-500/10 text-slate-600 border border-slate-500/20 shrink-0 select-none">
                               ALT
                             </span>
                             <FormField
@@ -559,7 +559,7 @@ export function QuoteBatchArticlesSection({
                 {/* JUSTIFICACIÓN (solo si hay cambio de cantidad/unidad o exclusión) — siempre editable */}
                 {needsJustification && (
                   <div className="border-t border-border/50 bg-amber-50/40 px-3 py-2 dark:bg-amber-900/10">
-                    <span className="select-none text-[10px] leading-none text-amber-700 dark:text-amber-400 uppercase">
+                    <span className="select-none text-xs leading-none text-amber-700 dark:text-amber-400">
                       Justificación{" "}
                       {isNotQuoted ? "de exclusión" : "del cambio"}
                     </span>

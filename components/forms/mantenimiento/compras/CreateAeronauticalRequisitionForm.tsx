@@ -20,12 +20,12 @@ import { z } from "zod";
 import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits";
 import { useDebounce } from "@/lib/useDebounce";
 import type { RequisitionBatchForm } from "@/types/purchase";
-import { Separator } from "@/components/ui/separator";
 import { RequisitionHeader } from "./_components/RequisitionHeader";
 import { BatchArticlesSection } from "./_components/BatchArticlesSection";
 import { AdditionalInfoSection } from "./_components/AdditionalInfoSection";
 import { isHigherPriority, type Priority } from "./_components/priorityUtils";
 import { canAddRequisitionArticle } from "@/lib/purchases/requisition-article-limit";
+import FormActions from "@/components/forms/mantenimiento/compras/_components/FormActions";
 
 const FormSchema = z.object({
   justification: z
@@ -545,20 +545,19 @@ export function CreateAeronauticalRequisitionForm({ onClose }: FormProps) {
 
         <AdditionalInfoSection form={form} />
 
-        <div className="flex justify-between items-center gap-x-4">
-          <Separator className="flex-1" />
-          <p className="text-muted-foreground text-xs select-none">SIGEAC</p>
-          <Separator className="flex-1" />
-        </div>
 
-        <Button disabled={createRequisition.isPending} className="gap-2">
+        <FormActions>
+
+          <Button disabled={createRequisition.isPending} className="min-w-35 gap-2">
           <>
-            <Send className="size-4" /> Generar Requisición
+            <Send className="size-4" /> Generar requisición
           </>
           {createRequisition.isPending && (
             <Loader2 className="size-4 animate-spin" />
           )}
         </Button>
+
+        </FormActions>
       </form>
     </Form>
   );

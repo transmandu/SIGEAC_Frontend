@@ -102,7 +102,7 @@ const GroupRow = ({
 
           <span
             className="
-              text-xs uppercase tracking-wide
+              text-xs
               text-muted-foreground
             "
           >
@@ -152,7 +152,7 @@ const GroupRow = ({
 
         <div
           className="
-            rounded-full
+            rounded-md
             border
 
             border-slate-200

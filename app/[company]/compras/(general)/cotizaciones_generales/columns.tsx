@@ -20,9 +20,9 @@ import PreviewPanelIcon from '@/components/misc/PreviewPanelIcon'
 import { DEFAULT_TIMEZONE, formatInstant } from "@/lib/date"
 
 const QUOTE_STATUS_LABELS: Record<string, string> = {
-  PENDING: 'PENDIENTE',
-  APPROVED: 'APROBADA',
-  REJECTED: 'RECHAZADA',
+  PENDING: 'Pendiente',
+  APPROVED: 'Aprobada',
+  REJECTED: 'Rechazada',
 }
 
 export const getColumns = (
@@ -65,7 +65,7 @@ export const getColumns = (
         </Link>
         {row.original.parent_quote_order && (
           <span
-            className="select-none inline-flex items-center gap-1 rounded border border-violet-500/40 bg-violet-500/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-violet-700 dark:text-violet-300"
+            className="select-none inline-flex items-center gap-1 rounded border border-violet-500/40 bg-violet-500/10 px-1.5 py-0.5 text-xs font-semibold text-violet-700 dark:text-violet-300"
             title={`Complementaria de ${row.original.parent_quote_order.quote_number}`}
           >
             <Link2 className="size-2.5" />
@@ -134,7 +134,7 @@ export const getColumns = (
     cell: ({ row }) => {
       return (
         <div className="flex justify-center w-full">
-          <span className="text-s text-slate-600 dark:text-slate-300 text-center font-medium tracking-wide uppercase">
+          <span className="text-s text-slate-600 dark:text-slate-300 text-center font-medium">
             {formatInstant(row.original.quote_date, timeZone, "short")}
           </span>
         </div>
@@ -212,9 +212,7 @@ export const getColumns = (
                 onClick={(e) => e.stopPropagation()}
                 className="
                   inline-flex items-center gap-1.5
-                  rounded-md border px-2 py-0.5
-                  text-[10px] font-semibold tracking-wide
-                  shadow-xs transition-colors duration-150
+                  rounded-md border h-6 px-2.5 text-xs font-medium transition-colors duration-150
                   border-slate-500/30 bg-slate-500/10
                   text-slate-700 dark:text-slate-300
                   hover:bg-slate-500/15 dark:hover:text-slate-200
@@ -229,7 +227,7 @@ export const getColumns = (
               align="center"
               className="w-56 p-2"
             >
-              <span className="block px-1 pb-1.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground/60 select-none">
+              <span className="block px-1 pb-1.5 text-xs font-medium text-muted-foreground select-none">
                 Comercios
               </span>
 
@@ -284,11 +282,7 @@ export const getColumns = (
               `
                 rounded-md
                 border
-                px-2 py-0.5
-                text-[10px]
-                font-semibold
-                tracking-wide
-                shadow-xs
+                h-6 px-2.5 text-xs font-medium
                 transition-colors duration-150
                 cursor-default
                 hover:scale-100
@@ -343,7 +337,7 @@ export const getColumns = (
                   type="button"
                   onClick={() => onPreview?.(row.original)}
                   className={cn(
-                    'flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs font-medium transition-colors',
+                    'flex min-w-28 items-center justify-center gap-1.5 rounded-md border px-2 py-1 text-xs font-medium tabular-nums transition-colors',
                     'border-slate-500/30 bg-slate-500/10 text-slate-600 dark:text-slate-300',
                     'hover:border-blue-500/40 hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-400',
                     isActive && 'border-blue-500/40 bg-blue-500/10 text-blue-600 dark:text-blue-400'

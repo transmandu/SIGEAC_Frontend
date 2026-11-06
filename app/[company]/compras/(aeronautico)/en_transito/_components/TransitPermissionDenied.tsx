@@ -34,7 +34,7 @@ const TransitPermissionDenied = () => {
             className="
               flex items-center justify-center
               size-14
-              rounded-full
+              rounded-2xl
               bg-red-50
               dark:bg-red-950/30
               border
@@ -78,9 +78,9 @@ const TransitPermissionDenied = () => {
             className="
               px-3 py-1.5
               rounded-md
-              text-[11px]
+              text-xs
               font-medium
-              tracking-wide
+
               bg-muted/50
               border border-border/50
               text-muted-foreground

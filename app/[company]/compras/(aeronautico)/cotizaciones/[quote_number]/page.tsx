@@ -120,25 +120,25 @@ const QuotePage = () => {
         </div>
 
         {/* ── Meta ────────────────────────────────────────────────────── */}
-        <div className="mx-auto w-full max-w-4xl px-4 py-3 rounded-md border border-border/50 bg-muted/20">
+        <div className="mx-auto w-full max-w-4xl px-4 py-3 rounded-xl border border-slate-200 bg-white dark:border-slate-700/60 dark:bg-slate-900/60">
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-x-4 sm:gap-x-6 md:gap-x-10 gap-y-3 md:gap-y-4 justify-items-center">
             {vendorNames.length > 0 && (
               <MetaItem
-                label={vendorNames.length > 1 ? "PROVEEDORES" : "PROVEEDOR"}
-                value={vendorNames.join(", ").toUpperCase()}
+                label={vendorNames.length > 1 ? "Proveedores" : "Proveedor"}
+                value={vendorNames.join(", ")}
                 icon={Truck}
                 wrap={vendorNames.length > 1}
               />
             )}
 
             <MetaItem
-              label="CREADO POR"
-              value={data?.created_by?.toUpperCase()}
+              label="Creado por"
+              value={data?.created_by}
               icon={User}
             />
 
             <MetaItem
-              label="FECHA DE COTIZACIÓN"
+              label="Fecha de cotización"
               value={formatQuoteDate(data?.quote_date)}
               icon={CalendarDays}
             />
@@ -151,18 +151,18 @@ const QuotePage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {/* JUSTIFICACIÓN */}
             <InfoSection
-              title="JUSTIFICACIÓN DE LA SOLICITUD ORIGEN"
+              title="Justificación de la solicitud de origen"
               icon={FileText}
               content={data?.requisition_order?.justification}
-              emptyMessage="SIN JUSTIFICACIÓN"
+              emptyMessage="Sin justificación"
             />
 
             {/* OBSERVACIÓN */}
             <InfoSection
-              title="OBSERVACIÓN DE COTIZACIÓN"
+              title="Observación de la cotización"
               icon={MessageSquare}
               content={data?.observation}
-              emptyMessage="SIN OBSERVACIONES"
+              emptyMessage="Sin observaciones"
             />
           </div>
         </div>
@@ -178,8 +178,8 @@ const QuotePage = () => {
             </div>
 
             <div className="flex items-center gap-2 rounded-md border border-border/50 bg-muted/30 px-2.5 py-1 select-none">
-              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                TOTAL
+              <span className="text-xs text-muted-foreground">
+                Total
               </span>
 
               <span className="text-sm font-semibold tabular-nums">
@@ -207,8 +207,8 @@ const QuotePage = () => {
           {/* ── Total general ──────────────────────────────────────── */}
           <div className="flex justify-end pt-2 border-t border-border/60">
             <div className="flex items-center justify-between gap-6 rounded-md bg-muted/10 px-4 py-2 border border-border/40 min-w-50">
-              <span className="text-[10px] font-medium tracking-wide text-muted-foreground whitespace-nowrap">
-                TOTAL GENERAL
+              <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">
+                Total general
               </span>
 
               <span className="font-mono text-xl font-semibold tabular-nums leading-none">

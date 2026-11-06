@@ -6,15 +6,8 @@ import { Check, FileDown, Loader2 } from "lucide-react";
 
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useDownloadPurchaseRequisitionsByStatusPdf } from "@/hooks/mantenimiento/compras/useDownloadPurchaseRequisitionsByStatusPdf";
@@ -33,37 +26,37 @@ import { notifyError } from "@/lib/notify-error";
 const STATUS_OPTIONS = [
   {
     value: "CREATED",
-    label: "CREADA",
+    label: "Creada",
     description: "Registrada, aún no revisada por compras.",
     pill: "bg-slate-500/15 text-slate-700 dark:text-slate-300",
   },
   {
     value: "RECEIVED",
-    label: "RECIBIDA",
+    label: "Recibida",
     description: "Ya un usuario de compras visualizó la solicitud.",
     pill: "bg-sky-500/15 text-sky-700 dark:text-sky-300",
   },
   {
     value: "IN_PROGRESS",
-    label: "EN PROCESO",
+    label: "En proceso",
     description: "Se está procesando; no significa que ya esté cotizada.",
     pill: "bg-yellow-500/15 text-yellow-700 dark:text-yellow-300",
   },
   {
     value: "QUOTED",
-    label: "COTIZADA",
+    label: "Cotizada",
     description: "Con cotización cargada, a la espera de aprobación.",
     pill: "bg-amber-600/15 text-amber-800 dark:text-amber-300",
   },
   {
     value: "APPROVED",
-    label: "APROBADA",
+    label: "Aprobada",
     description: "La compra ya fue autorizada.",
     pill: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
   },
   {
     value: "REJECTED",
-    label: "NO APROBADA",
+    label: "No aprobada",
     description: "Rechazada; no continuó en el ciclo de compra.",
     pill: "bg-rose-500/15 text-rose-700 dark:text-rose-300",
   },
@@ -167,38 +160,38 @@ export function DownloadPurchaseRequisitionsByStatusDialog({ type }: Props) {
         </ActionTriggerButton>
       </DialogTrigger>
 
-      <DialogContent
-        className="
-          sm:max-w-120
-          rounded-3xl
-          border border-border/50
-          bg-background/95
-          backdrop-blur-xl
-          shadow-2xl
-          overflow-hidden
-        "
+      <FormDialogContent
+        className="sm:max-w-120"
+        icon={FileDown}
+        title="Generar reporte de requisiciones"
+        description="Elija los estados a incluir. El PDF lista los artículos de cada requisición con una columna en blanco para cotizar a mano."
+        footer={
+          <>
+            <Button variant="outline" onClick={() => setOpen(false)}>
+              Cancelar
+            </Button>
+
+            <Button
+              onClick={handleDownload}
+              disabled={isPending || selected.length === 0}
+              className="min-w-35"
+            >
+              {isPending ? (
+                <>
+                  <Loader2 className="mr-2 size-4 animate-spin" />
+                  Generando…
+                </>
+              ) : (
+                <>
+                  <FileDown className="mr-2 size-4" />
+                  Descargar PDF
+                </>
+              )}
+            </Button>
+          </>
+        }
       >
-        <DialogHeader className="flex flex-col items-center text-center space-y-3">
-          <div
-            className="
-              flex items-center justify-center
-              size-12 rounded-2xl
-              bg-primary/10
-            "
-          >
-            <FileDown className="size-5 text-primary" />
-          </div>
-
-          <DialogTitle className="text-[16px] font-semibold tracking-tight">
-            Generar reporte de requisiciones
-          </DialogTitle>
-
-          <DialogDescription className="text-sm text-muted-foreground text-center leading-relaxed max-w-sm">
-            Elija los estados a incluir. El PDF lista los artículos de cada
-            requisición con una columna en blanco para cotizar a mano.
-          </DialogDescription>
-        </DialogHeader>
-
+        <div className="space-y-3">
         <div className="flex items-center justify-between px-1">
           <span className="text-xs text-muted-foreground tabular-nums">
             {selected.length === 0
@@ -253,7 +246,7 @@ export function DownloadPurchaseRequisitionsByStatusDialog({ type }: Props) {
                       color de fondo basta para identificar el estado. */}
                   <span
                     className={cn(
-                      "select-none whitespace-nowrap rounded-md px-2 py-0.5 text-[10px] font-semibold tracking-wide",
+                      "select-none whitespace-nowrap rounded-md px-2 py-0.5 text-xs font-medium",
                       option.pill,
                     )}
                   >
@@ -274,44 +267,15 @@ export function DownloadPurchaseRequisitionsByStatusDialog({ type }: Props) {
                   </span>
                 </span>
 
-                <span className="text-[11px] leading-snug text-muted-foreground">
+                <span className="text-xs leading-snug text-muted-foreground">
                   {option.description}
                 </span>
               </button>
             );
           })}
         </div>
-
-        <DialogFooter className="pt-2">
-          {/* Secundario, pero con forma propia: sin contorno se fundía con el
-              fondo del diálogo y parecía texto suelto junto al botón azul. */}
-          <Button
-            variant="outline"
-            onClick={() => setOpen(false)}
-            className="rounded-xl border-border/70 bg-background text-muted-foreground hover:bg-muted/60 hover:text-foreground"
-          >
-            Cancelar
-          </Button>
-
-          <Button
-            onClick={handleDownload}
-            disabled={isPending || selected.length === 0}
-            className="rounded-xl"
-          >
-            {isPending ? (
-              <>
-                <Loader2 className="mr-2 size-4 animate-spin" />
-                Generando…
-              </>
-            ) : (
-              <>
-                <FileDown className="mr-2 size-4" />
-                Descargar PDF
-              </>
-            )}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
+        </div>
+      </FormDialogContent>
     </Dialog>
   );
 }

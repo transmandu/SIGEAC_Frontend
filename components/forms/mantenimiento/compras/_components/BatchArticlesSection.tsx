@@ -1,12 +1,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog } from "@/components/ui/dialog";
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import {
   FormField,
   FormItem,
@@ -16,6 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import {
+  Boxes,
   Check,
   ChevronsUpDown,
   Hash,
@@ -63,6 +59,8 @@ import { CreateBatchForm } from "@/components/forms/mantenimiento/almacen/Create
 import { ArticleDocumentTypesAttachment } from "./ArticleDocumentTypesAttachment";
 import { ArticleImageAttachment } from "./ArticleImageAttachment";
 import { RequiredIndicator } from "@/components/misc/RequiredIndicator";
+import { SearchableSelect } from "@/components/misc/SearchableSelect";
+import { useCanManageCatalog } from "@/hooks/helpers/useCanManageCatalog";
 
 interface BatchArticlesSectionProps {
   form: UseFormReturn<any>;
@@ -138,9 +136,11 @@ export function BatchArticlesSection({
   handleArticleSelect,
 }: BatchArticlesSectionProps) {
   const [isCreateBatchOpen, setIsCreateBatchOpen] = useState(false);
+  // Crear renglones es de almacén: sin ese rol no se ofrece, aunque el formulario lo habilite.
+  const canCreateBatch = useCanManageCatalog("batches") && enableCreateBatch;
   const isLg = size === "lg";
   const labelTextClass = cn(
-    isLg ? "text-sm text-foreground/80" : "text-[10px] text-muted-foreground",
+    isLg ? "text-sm text-foreground/80" : "text-xs text-muted-foreground",
     "whitespace-nowrap",
   );
   const priorityColClass = isLg ? "w-40" : "w-28";
@@ -164,7 +164,7 @@ export function BatchArticlesSection({
               <FormItem
                 className={cn(
                   "flex flex-col",
-                  enableCreateBatch ? "w-59" : "w-50",
+                  canCreateBatch ? "w-59" : "w-50",
                 )}
               >
                 <FormLabel
@@ -240,7 +240,7 @@ export function BatchArticlesSection({
                     </PopoverContent>
                   </Popover>
 
-                  {enableCreateBatch && (
+                  {canCreateBatch && (
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button
@@ -459,9 +459,9 @@ export function BatchArticlesSection({
                                   Unidad.
                                   <RequiredIndicator />
                                 </label>
-                                <Select
+                                <SearchableSelect
                                   value={article.unit}
-                                  onValueChange={(value) =>
+                                  onChange={(value) =>
                                     handleBatchArticleChange(
                                       batch.batch,
                                       index,
@@ -469,27 +469,18 @@ export function BatchArticlesSection({
                                       value,
                                     )
                                   }
-                                  disabled={isUnitsLoading}
-                                >
-                                  <SelectTrigger
-                                    className={cn(
+                                  loading={isUnitsLoading}
+                                  placeholder="Ej: Unidad"
+                                  searchPlaceholder="Buscar unidad..."
+                                  triggerClassName={cn(
                                       "text-xs h-8",
                                       !article.unit && "text-muted-foreground",
                                     )}
-                                  >
-                                    <SelectValue placeholder="Ej: Unidad" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {units?.map((secU) => (
-                                      <SelectItem
-                                        key={secU.id}
-                                        value={secU.id.toString()}
-                                      >
-                                        {secU.label}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
+                                  options={(units ?? []).map((unit) => ({
+                                    value: unit.id.toString(),
+                                    label: unit.label,
+                                  }))}
+                                />
                               </div>
                             </div>
 
@@ -733,18 +724,17 @@ export function BatchArticlesSection({
           </div>
           <FormMessage />
 
-          {enableCreateBatch && (
+          {canCreateBatch && (
             <Dialog
               open={isCreateBatchOpen}
               onOpenChange={setIsCreateBatchOpen}
             >
-              <DialogContent className="w-full max-w-2xl">
-                <DialogHeader className="px-4">
-                  <DialogTitle>Crear Renglón</DialogTitle>
-                  <DialogDescription>
-                    Cree un nuevo renglón para utilizarlo en esta requisición.
-                  </DialogDescription>
-                </DialogHeader>
+              <FormDialogContent
+                className="sm:max-w-2xl"
+                icon={Boxes}
+                title="Crear renglón"
+                description="Cree un nuevo renglón para utilizarlo en esta requisición."
+              >
                 <CreateBatchForm
                   onClose={() => setIsCreateBatchOpen(false)}
                   onSuccess={(batchName) => {
@@ -752,7 +742,7 @@ export function BatchArticlesSection({
                     onBatchCreated?.(batchName);
                   }}
                 />
-              </DialogContent>
+              </FormDialogContent>
             </Dialog>
           )}
         </FormItem>

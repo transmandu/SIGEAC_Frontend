@@ -24,12 +24,12 @@ const iconBase =
   "size-[20px] transition-all duration-200 ease-out group-hover:scale-110";
 
 const itemBase =
-  "group relative flex items-center justify-center size-11 rounded-full transition-all duration-200 " +
+  "group relative flex items-center justify-center size-11 rounded-xl transition-all duration-200 " +
   "hover:bg-muted/60 hover:shadow-xs active:scale-95 " +
   "border border-transparent hover:border-border/40";
 
 const toolbar =
-  "flex items-center gap-1.5 px-2 py-1 rounded-full " +
+  "flex items-center gap-1.5 px-2 py-1 rounded-xl " +
   "bg-muted/30 border border-border/40 shadow-xs backdrop-blur-md " +
   "flex-wrap sm:flex-nowrap";
 

@@ -93,7 +93,7 @@ const QuoteLinkButton = ({
         align="center"
         className="w-64 rounded-2xl border border-border/50 bg-background/95 backdrop-blur-xl shadow-xl p-1.5"
       >
-        <p className="px-2.5 pt-1.5 pb-2 text-[10px] tracking-wide text-muted-foreground select-none">
+        <p className="px-2.5 pt-1.5 pb-2 text-xs tracking-wide text-muted-foreground select-none">
           COTIZACIONES
         </p>
 
@@ -114,7 +114,7 @@ const QuoteLinkButton = ({
                 <span className="truncate font-medium text-foreground">
                   {quote.vendor?.name ?? quote.retailer?.name ?? "Sin proveedor"}
                 </span>
-                <span className="truncate text-[11px] text-muted-foreground">
+                <span className="truncate text-xs text-muted-foreground">
                   {quote.quote_number}
                 </span>
               </span>
