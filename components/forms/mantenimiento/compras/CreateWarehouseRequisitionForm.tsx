@@ -47,6 +47,7 @@ import { isHigherPriority, type Priority } from "./_components/priorityUtils";
 import { getStoragePathFromUrl } from "./_components/imageUtils";
 import { canAddRequisitionArticle } from "@/lib/purchases/requisition-article-limit";
 import { toCalendarPayload } from "@/lib/date";
+import FormActions from "@/components/forms/mantenimiento/compras/_components/FormActions";
 
 type WarehouseRequisitionType = "AERONAUTICAL" | "GENERAL";
 
@@ -384,6 +385,7 @@ export function CreateWarehouseRequisitionForm({
         {
           batch: batchId,
           batch_name: batchName,
+          batch_category,
           batch_articles: [
             {
               part_number: "",
@@ -426,6 +428,7 @@ export function CreateWarehouseRequisitionForm({
           {
             batch: batchId,
             batch_name: batch.name,
+            batch_category: batch.category,
             batch_articles: [
               {
                 part_number: article.part_number,
@@ -522,7 +525,7 @@ export function CreateWarehouseRequisitionForm({
             {
               part_number: "",
               quantity: 1,
-              unit: getDefaultUnit(batch.batch_name),
+              unit: getDefaultUnit(batch.batch_category ?? ""),
               priority: "MEDIUM",
               aircraft_id: headerAircraftId,
               document_type_ids: [],
@@ -687,10 +690,16 @@ export function CreateWarehouseRequisitionForm({
       })),
     };
 
-    await createRequisition.mutateAsync({
-      data: formattedData,
-      company: selectedCompany!.slug,
-    });
+    try {
+      await createRequisition.mutateAsync({
+        data: formattedData,
+        company: selectedCompany!.slug,
+      });
+    } catch {
+      // La mutación ya avisó el error; el formulario conserva lo capturado.
+      return;
+    }
+
     onClose();
   };
 
@@ -741,7 +750,7 @@ export function CreateWarehouseRequisitionForm({
                 type="button"
                 onClick={() => handleRequisitionTypeChange("AERONAUTICAL")}
                 className={cn(
-                  "flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium transition-colors duration-200",
+                  "flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-colors duration-200",
                   requisitionType === "AERONAUTICAL"
                     ? "bg-background text-blue-600 shadow-xs"
                     : "text-muted-foreground hover:text-blue-600",
@@ -754,7 +763,7 @@ export function CreateWarehouseRequisitionForm({
                 type="button"
                 onClick={() => handleRequisitionTypeChange("GENERAL")}
                 className={cn(
-                  "flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium transition-colors duration-200",
+                  "flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-colors duration-200",
                   requisitionType === "GENERAL"
                     ? "bg-background text-blue-600 shadow-xs"
                     : "text-muted-foreground hover:text-blue-600",
@@ -828,20 +837,19 @@ export function CreateWarehouseRequisitionForm({
 
         <AdditionalInfoSection form={form} />
 
-        <div className="flex justify-between items-center gap-x-4">
-          <Separator className="flex-1" />
-          <p className="text-muted-foreground text-xs select-none">SIGEAC</p>
-          <Separator className="flex-1" />
-        </div>
-
-        <Button disabled={createRequisition.isPending} className="gap-2">
-          <>
-            <Send className="size-4" /> Generar Requisición
-          </>
-          {createRequisition.isPending && (
-            <Loader2 className="size-4 animate-spin" />
-          )}
-        </Button>
+        <FormActions>
+          <Button
+            disabled={createRequisition.isPending}
+            className="min-w-35 gap-2"
+          >
+            <>
+              <Send className="size-4" /> Generar requisición
+            </>
+            {createRequisition.isPending && (
+              <Loader2 className="size-4 animate-spin" />
+            )}
+          </Button>
+        </FormActions>
       </form>
 
       <DuplicateRequisitionDialog

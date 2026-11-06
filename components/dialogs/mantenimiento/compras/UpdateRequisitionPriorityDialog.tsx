@@ -7,14 +7,8 @@ import { useUpdateRequisitionPriority } from "@/actions/mantenimiento/compras/re
 import { useCompanyStore } from "@/stores/CompanyStore";
 import type { MyRequisition, Requisition } from "@/types/purchase";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog } from "@/components/ui/dialog";
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import {
   Select,
   SelectContent,
@@ -25,9 +19,9 @@ import {
 import LoadingPage from "@/components/misc/LoadingPage";
 
 const priorityOptions = [
-  { value: "HIGH", label: "ALTA", icon: ArrowUp, className: "text-red-500" },
-  { value: "MEDIUM", label: "MEDIA", icon: Minus, className: "text-amber-500" },
-  { value: "LOW", label: "BAJA", icon: ArrowDown, className: "text-green-500" },
+  { value: "HIGH", label: "Alta", icon: ArrowUp, className: "text-red-500" },
+  { value: "MEDIUM", label: "Media", icon: Minus, className: "text-amber-500" },
+  { value: "LOW", label: "Baja", icon: ArrowDown, className: "text-green-500" },
 ];
 
 const PriorityOptionLabel = ({ value }: { value: string }) => {
@@ -120,58 +114,60 @@ const PriorityForm = ({ req, setOpen, onSuccess }: Omit<Props, "open">) => {
       )
       .map((item) => ({ id: item.id, priority: articlePriorities[item.id] }));
 
-    await updatePriorityRequisition.mutateAsync({
-      id: req.id,
-      data: {
-        priority: headerPriority !== req.priority ? headerPriority : null,
-        articles,
-        general_articles,
-      },
-      company: selectedCompany.slug,
-    });
+    try {
+      await updatePriorityRequisition.mutateAsync({
+        id: req.id,
+        data: {
+          priority: headerPriority !== req.priority ? headerPriority : null,
+          articles,
+          general_articles,
+        },
+        company: selectedCompany.slug,
+      });
+    } catch {
+      // La mutación ya avisó el error; el diálogo queda abierto.
+      return;
+    }
 
     setOpen(false);
     onSuccess?.();
   };
 
   return (
-    <DialogContent
-      className="
-          sm:max-w-115
-          rounded-3xl
-          border border-border/50
-          bg-background/95
-          backdrop-blur-xl
-          shadow-2xl
-          overflow-hidden
-        "
-    >
-      <DialogHeader className="flex flex-col items-center text-center space-y-3">
-        <div
-          className="
-              flex items-center justify-center
-              size-12 rounded-2xl
-              border border-amber-500/15
-              bg-amber-500/8
-            "
-        >
-          <Tag className="size-5 text-amber-600" />
-        </div>
-
-        <DialogTitle className="text-[16px] font-semibold tracking-tight">
-          Cambiar prioridad
-        </DialogTitle>
-
-        <DialogDescription className="text-sm text-muted-foreground text-center leading-relaxed max-w-sm">
-          Actualiza la prioridad de la solicitud{" "}
+    <FormDialogContent
+      className="sm:max-w-115"
+      icon={Tag}
+      tone="amber"
+      title="Cambiar prioridad"
+      description={
+        <>
+          Actualice la prioridad de la solicitud{" "}
           <span className="font-medium text-foreground">
             {req.order_number}
           </span>
           {items.length > 0 && " y, opcionalmente, la de sus artículos"}.
-        </DialogDescription>
-      </DialogHeader>
+        </>
+      }
+      footer={
+        <>
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            Cancelar
+          </Button>
 
-      <div className="flex flex-col gap-4 max-h-[50vh] overflow-y-auto px-1">
+          <Button
+            onClick={handleSubmit}
+            disabled={updatePriorityRequisition.isPending}
+            className="min-w-35"
+          >
+            {updatePriorityRequisition.isPending && (
+              <Loader2 className="mr-2 size-4 animate-spin" />
+            )}
+            Guardar
+          </Button>
+        </>
+      }
+    >
+      <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-medium text-muted-foreground">
             Prioridad de la solicitud (opcional)
@@ -226,28 +222,7 @@ const PriorityForm = ({ req, setOpen, onSuccess }: Omit<Props, "open">) => {
           </div>
         )}
       </div>
-
-      <DialogFooter className="pt-2">
-        <Button
-          variant="outline"
-          onClick={() => setOpen(false)}
-          className="rounded-xl"
-        >
-          Cancelar
-        </Button>
-
-        <Button
-          onClick={handleSubmit}
-          disabled={updatePriorityRequisition.isPending}
-          className="rounded-xl bg-amber-500/90 hover:bg-amber-500"
-        >
-          {updatePriorityRequisition.isPending && (
-            <Loader2 className="mr-2 size-4 animate-spin" />
-          )}
-          Guardar
-        </Button>
-      </DialogFooter>
-    </DialogContent>
+    </FormDialogContent>
   );
 };
 

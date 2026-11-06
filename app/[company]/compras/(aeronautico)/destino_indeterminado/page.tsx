@@ -12,6 +12,11 @@ import { columns } from "./columns";
 
 import UnknownDestinationToolbar from "./_components/UnknownDestinationToolbar";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { toAltPartNumbers } from "@/lib/utils";
+import {
+  PurchasesHeading,
+  PurchasesToolbar,
+} from "@/app/[company]/compras/_components/PurchasesPageParts";
 
 export default function UnknownDestinationPage() {
   const { selectedCompany } = useCompanyStore();
@@ -36,7 +41,7 @@ export default function UnknownDestinationPage() {
     return articles.filter((article) =>
       [
         article.part_number,
-        ...article.alternative_part_number,
+        ...toAltPartNumbers(article.alternative_part_number),
         article.serial,
         article.batch?.category,
         article.batch?.name,
@@ -52,29 +57,24 @@ export default function UnknownDestinationPage() {
         <PageHeader />
 
         {/* Header */}
-        <div className="flex flex-col gap-2 border-b pb-4">
-          <h1 className="text-3xl font-semibold tracking-tight">
-            Destino indeterminado
-          </h1>
-
-          <p className="text-sm text-muted-foreground">
-            Artículos pendientes de confirmación de destino dentro del sistema
-            logístico.
-          </p>
-        </div>
+        <PurchasesHeading
+          heading="Destino indeterminado"
+          description="Artículos pendientes de confirmación de destino dentro del sistema logístico."
+        />
 
         {/* Toolbar */}
-        <div className="flex items-center justify-between gap-4 px-3 py-2 rounded-xl border bg-slate-200/40 border-slate-200/40 dark:bg-slate-800/70 dark:border-slate-700/60 backdrop-blur-md dark:shadow-[0_4px_20px_rgba(0,0,0,0.35)]">
+        <PurchasesToolbar>
           <UnknownDestinationToolbar search={search} setSearch={setSearch} />
 
           <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
             {filteredArticles.length}{" "}
-            {filteredArticles.length === 1 ? "artículo" : "artículo(s)"}
+            {filteredArticles.length === 1 ? "artículo" : "artículos"}
           </span>
-        </div>
+        </PurchasesToolbar>
 
         {/* TABLE / LOADING SPLIT */}
         <DataTable
+          error={isError}
           columns={columns}
           data={filteredArticles}
           loading={isLoading}
@@ -84,13 +84,6 @@ export default function UnknownDestinationPage() {
         />
 
         {/* Error */}
-        {isError && (
-          <div className="rounded-lg border border-red-500/20 bg-red-500/5 px-4 py-3">
-            <p className="text-sm text-red-500">
-              Error al cargar los artículos con destino indeterminado.
-            </p>
-          </div>
-        )}
       </div>
     </ContentLayout>
   );

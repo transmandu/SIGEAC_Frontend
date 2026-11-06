@@ -35,7 +35,7 @@ const ArticleCard = ({
 
   const showQuantityApproval =
     showApprovalDetails(article.status) &&
-    article.approved_quantity !== article.quantity;
+    Number(article.approved_quantity) !== Number(article.quantity);
 
   const getImageSrc = () => {
     if (!article.image) return null;
@@ -74,7 +74,7 @@ const ArticleCard = ({
   }[];
 
   return (
-    <div className="rounded-lg border border-border/60 bg-background/70 overflow-hidden mx-3">
+    <div className="rounded-xl border border-slate-200 bg-white dark:border-slate-700/60 dark:bg-slate-900/60 overflow-hidden mx-3">
       <div className="relative">
         <AnimatePresence>
           {isRejected && (
@@ -107,7 +107,7 @@ const ArticleCard = ({
               {batchCategory && (
                 <Badge
                   variant="secondary"
-                  className="h-4 px-1.5 text-[9px] uppercase tracking-wide text-muted-foreground select-none"
+                  className="h-5 px-1.5 text-xs text-muted-foreground select-none"
                 >
                   {batchCategory}
                 </Badge>
@@ -123,11 +123,11 @@ const ArticleCard = ({
               <div className="min-w-0 space-y-2.5">
                 {/* PN */}
                 <div className="space-y-1">
-                  <span className="text-[10px] leading-none tracking-wide text-muted-foreground select-none">
-                    PART NUMBER
+                  <span className="text-xs leading-none text-muted-foreground select-none">
+                    Part number
                   </span>
                   <div className="flex items-center gap-2 min-w-0">
-                    <span className="shrink-0 text-[10px] px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 font-medium select-none">
+                    <span className="shrink-0 text-xs px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 font-medium select-none">
                       P/N
                     </span>
                     <div className="w-75 text-sm bg-muted/40 border border-border/40 rounded px-2 py-1 truncate">
@@ -139,14 +139,14 @@ const ArticleCard = ({
 
                 {/* ALT */}
                 <div className="space-y-1">
-                  <span className="text-[10px] leading-none tracking-wide text-muted-foreground select-none">
-                    ALTERNATIVE PART NUMBER
+                  <span className="text-xs leading-none text-muted-foreground select-none">
+                    Alternative part number
                   </span>
                   <div className="flex items-center gap-2 min-w-0">
-                    <span className="shrink-0 text-[10px] px-1.5 py-0.5 rounded bg-slate-500/10 text-slate-600 border border-slate-500/20 font-medium select-none">
+                    <span className="shrink-0 text-xs px-1.5 py-0.5 rounded bg-slate-500/10 text-slate-600 border border-slate-500/20 font-medium select-none">
                       ALT
                     </span>
-                    <div className="w-75 text-[11px] border border-dashed border-border/40 rounded px-2 py-1 truncate text-muted-foreground">
+                    <div className="w-75 text-xs border border-dashed border-border/40 rounded px-2 py-1 truncate text-muted-foreground">
                       {article.article_alt_part_number || "N/A"}
                     </div>
                     <CopyPartNumberButton
@@ -164,8 +164,8 @@ const ArticleCard = ({
                   {/* DESTINO */}
                   {destinationEntries.length > 0 && (
                     <div className="flex flex-col items-center min-w-20">
-                      <span className="h-4 w-full flex items-center justify-center text-[10px] tracking-wide text-muted-foreground mb-2 select-none">
-                        DESTINO
+                      <span className="h-4 w-full flex items-center justify-center text-xs text-muted-foreground mb-2 select-none">
+                        Destino
                       </span>
                       <div className="flex items-center justify-center w-full">
                         <div className="flex flex-col items-center gap-1.5">
@@ -173,7 +173,7 @@ const ArticleCard = ({
                             ({ key, icon: Icon, label, value, tooltip }) => (
                               <Tooltip key={key}>
                                 <TooltipTrigger asChild>
-                                  <span className="inline-flex items-center justify-center gap-1 text-[11px] text-muted-foreground bg-background/60 border border-border/40 rounded-full px-2 py-1 w-fit max-w-27.5 cursor-default">
+                                  <span className="inline-flex items-center justify-center gap-1 text-xs text-muted-foreground bg-background/60 border border-border/40 rounded-md px-2 py-1 w-fit max-w-27.5 cursor-default">
                                     <Icon className="size-3 shrink-0 opacity-70" />
                                     <span className="truncate font-medium text-foreground/80">
                                       {value}
@@ -193,8 +193,8 @@ const ArticleCard = ({
 
                   {/* ESTATUS */}
                   <div className="flex flex-col items-center min-w-22.5">
-                    <span className="h-4 w-full flex items-center justify-center text-[10px] tracking-wide text-muted-foreground mb-2 select-none">
-                      ESTATUS
+                    <span className="h-4 w-full flex items-center justify-center text-xs text-muted-foreground mb-2 select-none">
+                      Estatus
                     </span>
                     <div className="flex items-center justify-center w-full">
                       <Badge
@@ -207,8 +207,8 @@ const ArticleCard = ({
 
                   {/* PRIORIDAD */}
                   <div className="flex flex-col items-center min-w-22.5">
-                    <span className="h-4 w-full flex items-center justify-center text-[10px] tracking-wide text-muted-foreground mb-2 select-none">
-                      PRIORIDAD
+                    <span className="h-4 w-full flex items-center justify-center text-xs text-muted-foreground mb-2 select-none">
+                      Prioridad
                     </span>
                     <div className="flex items-center justify-center w-full">
                       <PriorityIndicator priority={article.priority} />
@@ -219,14 +219,14 @@ const ArticleCard = ({
                   <div className="flex flex-col items-center min-w-13.75">
                     {showQuantityApproval ? (
                       <>
-                        <span className="h-4 w-full flex items-center justify-center text-[10px] tracking-wide text-muted-foreground select-none">
-                          CANTIDAD SOLICITADA
+                        <span className="h-4 w-full flex items-center justify-center text-xs text-muted-foreground select-none">
+                          Cantidad solicitada
                         </span>
                         <span className="text-sm tabular-nums leading-none">
                           {article.quantity}
                         </span>
-                        <span className="h-4 w-full flex items-center justify-center text-[10px] tracking-wide text-muted-foreground mt-1 select-none">
-                          CANTIDAD APROBADA
+                        <span className="h-4 w-full flex items-center justify-center text-xs text-muted-foreground mt-1 select-none">
+                          Cantidad aprobada
                         </span>
                         <span className="text-sm tabular-nums leading-none">
                           {article.approved_quantity ?? "—"}
@@ -234,8 +234,8 @@ const ArticleCard = ({
                       </>
                     ) : (
                       <>
-                        <span className="h-4 w-full flex items-center justify-center text-[10px] tracking-wide text-muted-foreground mb-2 select-none">
-                          CANTIDAD
+                        <span className="h-4 w-full flex items-center justify-center text-xs text-muted-foreground mb-2 select-none">
+                          Cantidad
                         </span>
                         <div className="flex items-center justify-center w-full">
                           <span className="text-sm tabular-nums leading-none">
@@ -248,8 +248,8 @@ const ArticleCard = ({
 
                   {/* UNIDAD */}
                   <div className="flex flex-col items-center min-w-18.75">
-                    <span className="h-4 w-full flex items-center justify-center text-[10px] tracking-wide text-muted-foreground mb-2 select-none">
-                      UNIDAD
+                    <span className="h-4 w-full flex items-center justify-center text-xs text-muted-foreground mb-2 select-none">
+                      Unidad
                     </span>
                     <div className="flex items-center justify-center w-full">
                       <span className="text-sm text-muted-foreground leading-none">
@@ -260,8 +260,8 @@ const ArticleCard = ({
 
                   {/* IMAGEN */}
                   <div className="flex flex-col items-center">
-                    <span className="h-4 w-full flex items-center justify-center text-[10px] tracking-wide text-muted-foreground mb-2 select-none">
-                      IMAGEN
+                    <span className="h-4 w-full flex items-center justify-center text-xs text-muted-foreground mb-2 select-none">
+                      Imagen
                     </span>
                     <div className="flex items-center justify-center w-full">
                       {imageSrc ? (
@@ -293,11 +293,11 @@ const ArticleCard = ({
               <div className="space-y-3">
                 {/* PN */}
                 <div className="space-y-1">
-                  <span className="text-[10px] leading-none tracking-wide text-muted-foreground select-none">
-                    PART NUMBER
+                  <span className="text-xs leading-none text-muted-foreground select-none">
+                    Part number
                   </span>
                   <div className="flex items-center gap-2 min-w-0">
-                    <span className="shrink-0 text-[10px] px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 font-medium select-none">
+                    <span className="shrink-0 text-xs px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 font-medium select-none">
                       P/N
                     </span>
                     <div className="flex-1 text-sm bg-muted/40 border border-border/40 rounded px-2 py-1 truncate">
@@ -309,14 +309,14 @@ const ArticleCard = ({
 
                 {/* ALT */}
                 <div className="space-y-1">
-                  <span className="text-[10px] leading-none tracking-wide text-muted-foreground select-none">
-                    ALTERNATIVE PART NUMBER
+                  <span className="text-xs leading-none text-muted-foreground select-none">
+                    Alternative part number
                   </span>
                   <div className="flex items-center gap-2 min-w-0">
-                    <span className="shrink-0 text-[10px] px-1.5 py-0.5 rounded bg-slate-500/10 text-slate-600 border border-slate-500/20 font-medium select-none">
+                    <span className="shrink-0 text-xs px-1.5 py-0.5 rounded bg-slate-500/10 text-slate-600 border border-slate-500/20 font-medium select-none">
                       ALT
                     </span>
-                    <div className="flex-1 text-[11px] border border-dashed border-border/40 rounded px-2 py-1 truncate text-muted-foreground">
+                    <div className="flex-1 text-xs border border-dashed border-border/40 rounded px-2 py-1 truncate text-muted-foreground">
                       {article.article_alt_part_number || "N/A"}
                     </div>
                     <CopyPartNumberButton
@@ -328,15 +328,15 @@ const ArticleCard = ({
 
                 {destinationEntries.length > 0 && (
                   <div className="space-y-1">
-                    <span className="text-[10px] tracking-wide text-muted-foreground">
-                      DESTINO
+                    <span className="text-xs text-muted-foreground">
+                      Destino
                     </span>
                     <div className="flex items-center gap-1.5 flex-wrap">
                       {destinationEntries.map(
                         ({ key, icon: Icon, label, value, tooltip }) => (
                           <Tooltip key={key}>
                             <TooltipTrigger asChild>
-                              <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground bg-background/60 border border-border/40 rounded-full px-2 py-1 w-fit max-w-35 cursor-default">
+                              <span className="inline-flex items-center gap-1 text-xs text-muted-foreground bg-background/60 border border-border/40 rounded-md px-2 py-1 w-fit max-w-35 cursor-default">
                                 <Icon className="size-3 shrink-0 opacity-70" />
                                 <span className="truncate font-medium text-foreground/80">
                                   {value}
@@ -358,8 +358,8 @@ const ArticleCard = ({
               <div className="grid grid-cols-3 gap-3">
                 {/* ESTATUS */}
                 <div className="flex flex-col items-center">
-                  <span className="text-[9px] tracking-wide text-muted-foreground mb-1.5 select-none">
-                    ESTATUS
+                  <span className="text-xs text-muted-foreground mb-1.5 select-none">
+                    Estatus
                   </span>
                   <Badge className={articleStatusUI(article.status).className}>
                     {articleStatusUI(article.status).label}
@@ -368,27 +368,27 @@ const ArticleCard = ({
 
                 {/* PRIORIDAD */}
                 <div className="flex flex-col items-center">
-                  <span className="text-[9px] tracking-wide text-muted-foreground mb-1.5 select-none">
-                    PRIORIDAD
+                  <span className="text-xs text-muted-foreground mb-1.5 select-none">
+                    Prioridad
                   </span>
                   <PriorityIndicator priority={article.priority} />
                 </div>
 
                 {/* CANTIDAD / UNIDAD combined */}
                 <div className="flex flex-col items-center justify-center">
-                  <span className="text-[9px] tracking-wide text-muted-foreground mb-1.5 select-none">
-                    {showQuantityApproval ? "SOLICITADA" : "CANT."}
+                  <span className="text-xs text-muted-foreground mb-1.5 select-none">
+                    {showQuantityApproval ? "Solicitada" : "Cant."}
                   </span>
                   <span className="text-sm tabular-nums leading-none">
                     {article.quantity}
                   </span>
-                  <span className="text-[9px] text-muted-foreground leading-none mt-0.5">
+                  <span className="text-xs text-muted-foreground leading-none mt-0.5">
                     {article.unit?.label ?? "—"}
                   </span>
                   {showQuantityApproval && (
                     <>
-                      <span className="text-[9px] tracking-wide text-muted-foreground mb-1.5 mt-1.5 select-none">
-                        APROBADA
+                      <span className="text-xs text-muted-foreground mb-1.5 mt-1.5 select-none">
+                        Aprobada
                       </span>
                       <span className="text-sm tabular-nums leading-none">
                         {article.approved_quantity ?? "—"}
@@ -426,7 +426,7 @@ const ArticleCard = ({
       {/* JUSTIFICACIÓN */}
       {article.justification && (
         <div className="border-t border-border/50 bg-muted/20 px-3 py-1.5">
-          <span className="select-none text-[9px] leading-none text-muted-foreground uppercase">
+          <span className="select-none text-xs leading-none text-muted-foreground">
             Justificación
           </span>
           <p className="mt-0.5 text-xs text-foreground/80">

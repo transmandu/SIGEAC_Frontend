@@ -10,6 +10,11 @@ import { useTransitArticles } from "./hooks/useTransitArticles";
 import type { TransitStatusFilter } from "@/types/purchase";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import { toAltPartNumbers } from "@/lib/utils";
+import {
+  PurchasesHeading,
+  PurchasesToolbar,
+} from "@/app/[company]/compras/_components/PurchasesPageParts";
 
 const EnTransitoPage = () => {
   const { selectedCompany } = useCompanyStore();
@@ -33,7 +38,7 @@ const EnTransitoPage = () => {
     return articles.filter(
       (a) =>
         a.part_number?.toLowerCase().includes(q) ||
-        a.alternative_part_number.some((alt) =>
+        toAltPartNumbers(a.alternative_part_number).some((alt) =>
           alt.toLowerCase().includes(q),
         ) ||
         a.batch?.name?.toLowerCase().includes(q) ||
@@ -53,28 +58,12 @@ const EnTransitoPage = () => {
       <div className="flex flex-col gap-6">
         <PageHeader />
 
-        <div className="flex flex-col gap-2 border-b pb-4">
-          <h1 className="text-3xl font-semibold tracking-tight">
-            Artículos en Tránsito
-          </h1>
+        <PurchasesHeading
+          heading="Artículos en Tránsito"
+          description="Gestione artículos en proceso de tránsito y recepción dentro del sistema logístico."
+        />
 
-          <p className="text-sm text-muted-foreground">
-            Gestiona artículos en proceso de tránsito y recepción dentro del
-            sistema logístico.
-          </p>
-        </div>
-
-        <div
-          className="
-          flex items-center justify-between gap-4
-          px-3 py-2
-          rounded-xl border
-          bg-slate-200/40 border-slate-200/40
-          dark:bg-slate-800/70 dark:border-slate-700/60
-          backdrop-blur-md
-          dark:shadow-[0_4px_20px_rgba(0,0,0,0.35)]
-        "
-        >
+        <PurchasesToolbar>
           <TransitToolbar
             search={search}
             setSearch={setSearch}
@@ -86,9 +75,10 @@ const EnTransitoPage = () => {
             {filteredArticles.length}{" "}
             {filteredArticles.length === 1 ? "artículo" : "artículos"}
           </span>
-        </div>
+        </PurchasesToolbar>
 
         <DataTable
+          error={isError}
           columns={columns}
           data={filteredArticles}
           loading={isLoading}
@@ -97,14 +87,6 @@ const EnTransitoPage = () => {
           emptyText="No se encontraron artículos"
           persistKey="en_transito"
         />
-
-        {isError && (
-          <div className="rounded-lg border border-red-500/20 bg-red-500/5 px-4 py-3">
-            <p className="text-sm text-red-500">
-              Error cargando artículos en tránsito
-            </p>
-          </div>
-        )}
       </div>
     </ContentLayout>
   );

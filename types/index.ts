@@ -2155,6 +2155,10 @@ export type GeneralArticleCostHistoryEntry = {
   unit_label?: string | null;
   date: string | null;
   by: string | null;
+  /** Solo en compras: quien registró la entrega desde compras. Nombre completo. */
+  registered_by?: string | null;
+  /** Solo en compras: quien confirmó el ingreso al almacén. Nombre completo. */
+  confirmed_by?: string | null;
   purchase_order_number?: string | null;
   requisition_order_number?: string | null;
 };

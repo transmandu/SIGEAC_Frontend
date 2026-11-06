@@ -2,7 +2,12 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { validateDocumentFile } from "@/lib/warehouse/documents";
 import { FileText, ImageIcon, Paperclip, Plus, Trash2 } from "lucide-react";
@@ -36,14 +41,15 @@ export function createInvoiceEntry(): InvoiceEntry {
   return { key: `new-${entryCounter}`, invoice_number: "" };
 }
 
-const LABEL_CLS = "select-none text-[10px] leading-none text-muted-foreground uppercase";
+const LABEL_CLS = "select-none text-xs leading-none text-muted-foreground";
 
 const INPUT_CLS =
   "h-9 rounded-lg border-border/50 bg-background/80 text-sm shadow-xs transition-shadow focus-visible:ring-1 focus-visible:ring-teal-500/40 focus-visible:ring-offset-0";
 
 function fileLabel(entry: InvoiceEntry) {
   if (entry.file) return entry.file.name;
-  if (entry.file_path) return entry.file_path.split("/").pop() ?? "Archivo adjunto";
+  if (entry.file_path)
+    return entry.file_path.split("/").pop() ?? "Archivo adjunto";
   return null;
 }
 
@@ -91,7 +97,9 @@ function InvoiceRow({ entry, onChange, onRemove }: InvoiceRowProps) {
           placeholder="INV-0001"
           className={INPUT_CLS}
           value={entry.invoice_number}
-          onChange={(e) => onChange({ ...entry, invoice_number: e.target.value })}
+          onChange={(e) =>
+            onChange({ ...entry, invoice_number: e.target.value })
+          }
         />
       </div>
 
@@ -106,18 +114,24 @@ function InvoiceRow({ entry, onChange, onRemove }: InvoiceRowProps) {
                 "h-9 max-w-[190px] shrink-0 justify-start gap-1.5 rounded-lg border-border/50 bg-background/80 px-3 text-sm shadow-xs",
                 label
                   ? "border-teal-500/30 bg-teal-500/10 text-teal-700 hover:bg-teal-500/20 dark:text-teal-300"
-                  : "text-muted-foreground"
+                  : "text-muted-foreground",
               )}
             >
               {label ? (
-                isPdf(label) ? <FileText className="size-4 shrink-0" /> : <ImageIcon className="size-4 shrink-0" />
+                isPdf(label) ? (
+                  <FileText className="size-4 shrink-0" />
+                ) : (
+                  <ImageIcon className="size-4 shrink-0" />
+                )
               ) : (
                 <Paperclip className="size-4 shrink-0" />
               )}
               <span className="truncate">{label ?? "Adjuntar"}</span>
             </Button>
           </TooltipTrigger>
-          <TooltipContent>{label ? "Cambiar archivo" : "Adjuntar factura (imagen o PDF)"}</TooltipContent>
+          <TooltipContent>
+            {label ? "Cambiar archivo" : "Adjuntar factura (imagen o PDF)"}
+          </TooltipContent>
         </Tooltip>
       </TooltipProvider>
 
@@ -150,7 +164,8 @@ export function InvoicesField({ value, onChange }: InvoicesFieldProps) {
   const updateAt = (index: number, entry: InvoiceEntry) =>
     onChange(value.map((item, i) => (i === index ? entry : item)));
 
-  const removeAt = (index: number) => onChange(value.filter((_, i) => i !== index));
+  const removeAt = (index: number) =>
+    onChange(value.filter((_, i) => i !== index));
 
   return (
     <div className="col-span-2 space-y-2">

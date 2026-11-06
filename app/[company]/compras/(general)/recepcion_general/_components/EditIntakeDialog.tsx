@@ -13,14 +13,8 @@ import {
 import { useUpdateGeneralArticleIntake } from "@/actions/mantenimiento/almacen/inventario/articulos_generales/actions";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog } from "@/components/ui/dialog";
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -36,6 +30,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { SearchableSelect } from "@/components/misc/SearchableSelect";
 import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits";
 import { useGetWarehousesByLocation } from "@/hooks/administracion/useGetWarehousesByUser";
 import { useCompanyStore } from "@/stores/CompanyStore";
@@ -237,42 +232,64 @@ export default function EditIntakeDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
+      <FormDialogContent
         onClick={(e) => e.stopPropagation()}
-        className="w-[95vw] max-w-[95vw] sm:max-w-[640px] p-0 overflow-hidden max-h-[88vh] flex flex-col"
-      >
-        <DialogHeader className="shrink-0 border-b border-border/40 bg-muted/20 px-6 pt-5 pb-4 text-left">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center size-10 shrink-0 rounded-xl border border-amber-500/20 bg-amber-500/10">
-              <AlertTriangle className="size-4.5 text-amber-700 dark:text-amber-300" />
-            </div>
-
-            <div className="min-w-0 flex-1">
-              <DialogTitle className="text-base font-semibold tracking-tight leading-none">
-                Corregir recepción
-              </DialogTitle>
-
-              <DialogDescription className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                Edición administrativa de la entrada de{" "}
+        className="sm:max-w-160"
+        icon={AlertTriangle}
+        tone="amber"
+        title="Corregir recepción"
+        description={
+          <>
+            Edición administrativa de la entrada de{" "}
+            <span className="font-medium text-foreground">
+              {intake.description}
+            </span>
+            {orderNumber && (
+              <>
+                {" "}
+                · solicitud{" "}
                 <span className="font-medium text-foreground">
-                  {intake.description}
+                  {orderNumber}
                 </span>
-                {orderNumber && (
-                  <>
-                    {" "}
-                    · solicitud{" "}
-                    <span className="font-medium text-foreground">
-                      {orderNumber}
-                    </span>
-                  </>
-                )}
-                . Solo se guardan los campos que modifiques.
-              </DialogDescription>
-            </div>
-          </div>
-        </DialogHeader>
+              </>
+            )}
+            . Solo se guardan los campos que modifique.
+          </>
+        }
+        footer={
+          <>
+            <span className="mr-auto text-xs text-muted-foreground tabular-nums">
+              {changedFieldCount === 0
+                ? "Sin cambios"
+                : `${changedFieldCount} campo${changedFieldCount === 1 ? "" : "s"} modificado${changedFieldCount === 1 ? "" : "s"}`}
+            </span>
 
-        <div className="overflow-y-auto px-6 py-5 space-y-5">
+            <Button
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={updateGeneralArticleIntake.isPending}
+            >
+              Cancelar
+            </Button>
+
+            <Button
+              onClick={handleSubmit}
+              disabled={!canSubmit}
+              className="min-w-35 gap-2"
+            >
+              {updateGeneralArticleIntake.isPending ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <>
+                  <Save className="size-4" />
+                  Guardar cambios
+                </>
+              )}
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-5">
           <Section title="Artículo">
             <div className="space-y-1.5">
               <Label className="text-xs">Descripción</Label>
@@ -326,23 +343,18 @@ export default function EditIntakeDialog({
 
               <div className="space-y-1.5">
                 <Label className="text-xs">Unidad</Label>
-                <Select
+                <SearchableSelect
                   value={form.unit_id}
-                  onValueChange={(value) => set("unit_id", value)}
-                >
-                  <SelectTrigger className="h-9 text-sm">
-                    <SelectValue
-                      placeholder={isUnitsLoading ? "Cargando..." : "Unidad"}
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(units ?? []).map((unit) => (
-                      <SelectItem key={unit.id} value={String(unit.id)}>
-                        {unit.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  onChange={(value) => set("unit_id", value)}
+                  loading={isUnitsLoading}
+                  placeholder="Unidad"
+                  searchPlaceholder="Buscar unidad..."
+                  triggerClassName="h-9 text-sm"
+                  options={(units ?? []).map((unit) => ({
+                    value: String(unit.id),
+                    label: unit.label,
+                  }))}
+                />
               </div>
 
               <div className="space-y-1.5">
@@ -422,7 +434,7 @@ export default function EditIntakeDialog({
                 {timelineErrors.map((error) => (
                   <p
                     key={error}
-                    className="text-[11px] leading-relaxed text-red-600 dark:text-red-400"
+                    className="text-xs leading-relaxed text-red-600 dark:text-red-400"
                   >
                     {error}
                   </p>
@@ -455,7 +467,7 @@ export default function EditIntakeDialog({
 
           {affectsStock && (
             <div className="rounded-lg border border-amber-500/25 bg-amber-500/5 px-3 py-2.5">
-              <p className="text-[11px] leading-relaxed text-amber-700 dark:text-amber-300">
+              <p className="text-xs leading-relaxed text-amber-700 dark:text-amber-300">
                 Esta entrada ya fue confirmada. Al cambiar la cantidad, la
                 unidad o el almacén, el stock del artículo se reajustará
                 automáticamente y quedará registrado en su historial.
@@ -463,57 +475,7 @@ export default function EditIntakeDialog({
             </div>
           )}
         </div>
-
-        <DialogFooter className="shrink-0 flex flex-row items-center justify-between gap-2 border-t border-border/40 bg-muted/20 px-6 py-4">
-          <span className="text-[11px] text-muted-foreground tabular-nums">
-            {changedFieldCount === 0
-              ? "Sin cambios"
-              : `${changedFieldCount} campo${changedFieldCount === 1 ? "" : "s"} modificado${changedFieldCount === 1 ? "" : "s"}`}
-          </span>
-
-          <div className="flex items-center gap-2">
-            <Button
-              onClick={() => onOpenChange(false)}
-              disabled={updateGeneralArticleIntake.isPending}
-              className="
-                h-10 rounded-lg px-5
-                bg-slate-500/10 text-slate-600
-                hover:bg-slate-500/20
-                border border-slate-500/20
-                shadow-xs transition-colors
-                dark:bg-slate-400/10 dark:text-slate-300
-                dark:hover:bg-slate-400/20 dark:border-slate-400/20
-              "
-            >
-              Cancelar
-            </Button>
-
-            <Button
-              onClick={handleSubmit}
-              disabled={!canSubmit}
-              className="
-                h-10 rounded-lg px-5
-                bg-amber-500/20 text-amber-900
-                hover:bg-amber-500/30
-                border border-amber-500/30
-                shadow-xs transition-colors
-                flex items-center justify-center gap-2
-                dark:bg-amber-400/10 dark:text-amber-100
-                dark:hover:bg-amber-400/20 dark:border-amber-400/20
-              "
-            >
-              {updateGeneralArticleIntake.isPending ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <>
-                  <Save className="size-4" />
-                  Guardar cambios
-                </>
-              )}
-            </Button>
-          </div>
-        </DialogFooter>
-      </DialogContent>
+      </FormDialogContent>
     </Dialog>
   );
 }
@@ -527,7 +489,7 @@ const Section = ({
 }) => (
   <div className="space-y-3">
     <div className="flex items-center gap-2">
-      <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+      <span className="text-xs font-semibold text-muted-foreground">
         {title}
       </span>
       <div className="h-px flex-1 bg-border/60" />

@@ -12,13 +12,8 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog } from "@/components/ui/dialog";
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import { DEFAULT_TIMEZONE, formatInstant } from "@/lib/date";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import {
@@ -115,13 +110,31 @@ export default function SignedQuoteDocumentDialog({
     if (!company || isOpening) return;
 
     setIsOpening(true);
+
+    // La pestaña se abre ya, dentro del clic: abrirla después de esperar la
+    // descarga hace que Safari y los navegadores móviles la traten como una
+    // ventana emergente no solicitada y la bloqueen.
+    const tab = window.open("", "_blank");
+    if (tab) tab.opener = null;
+
     try {
       const blob = await fetchSignedQuoteBlob(company, quote.id);
       const url = URL.createObjectURL(blob);
-      window.open(url, "_blank", "noopener");
+
+      if (tab) {
+        tab.location.href = url;
+      } else {
+        // Sin pestaña (bloqueada): se descarga en vez de fallar en silencio.
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = `${quote.quote_number ?? "cotizacion"}-firmada`;
+        anchor.click();
+      }
+
       // La pestaña nueva necesita el blob vivo un momento para cargarlo.
       setTimeout(() => URL.revokeObjectURL(url), 60_000);
     } catch (error) {
+      tab?.close();
       notifyError(error, { action: "abrir el documento firmado" });
     } finally {
       setIsOpening(false);
@@ -130,32 +143,54 @@ export default function SignedQuoteDocumentDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-lg p-0 gap-0 overflow-hidden">
-        <DialogHeader className="px-6 pt-6 pb-5 border-b bg-muted/30">
-          <div className="flex items-start gap-3.5">
-            <div className="flex size-11 shrink-0 items-center justify-center rounded-xl border bg-background shadow-xs text-emerald-600">
-              <FileCheck2 className="size-5" />
-            </div>
-
-            <div className="min-w-0 space-y-1 text-left">
-              <DialogTitle className="text-base leading-snug">
-                Documento firmado
-              </DialogTitle>
-              <div
-                className="inline-flex max-w-full items-center rounded-md border bg-background px-2 py-0.5 font-mono text-xs font-medium tracking-wide text-muted-foreground"
-                title={quote.quote_number ?? undefined}
-              >
-                <span className="truncate">{quote.quote_number}</span>
-              </div>
-              <DialogDescription className="text-xs leading-relaxed">
-                Cargue el escaneo del formato ya firmado y sellado. Un solo
-                archivo por cotización: cargar otro reemplaza al anterior.
-              </DialogDescription>
-            </div>
-          </div>
-        </DialogHeader>
-
-        <div className="px-6 py-6 space-y-5">
+      <FormDialogContent
+        className="sm:max-w-lg"
+        icon={FileCheck2}
+        tone="emerald"
+        title="Documento firmado"
+        description={
+          <>
+            <span
+              className="mb-1 inline-flex max-w-full items-center rounded-md border bg-background px-2 py-0.5 font-mono text-xs font-medium tracking-wide text-muted-foreground"
+              title={quote.quote_number ?? undefined}
+            >
+              <span className="truncate">{quote.quote_number}</span>
+            </span>
+            <span className="block">
+              Cargue el escaneo del formato ya firmado y sellado. Un solo
+              archivo por cotización: cargar otro reemplaza al anterior.
+            </span>
+          </>
+        }
+        footer={
+          <>
+            <Button
+              variant="outline"
+              onClick={() => handleOpenChange(false)}
+              disabled={busy}
+            >
+              Cerrar
+            </Button>
+            <Button
+              className="min-w-37.5 gap-2"
+              onClick={handleUpload}
+              disabled={!file || busy}
+            >
+              {isUploading ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Upload className="size-4" />
+              )}
+              {isUploading
+                ? "Guardando..."
+                : current
+                  ? "Reemplazar"
+                  : "Guardar"}
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-5">
           {current && (
             <div className="flex items-center gap-3 rounded-md border bg-muted/30 px-3 py-2.5">
               <FileCheck2 className="size-5 shrink-0 text-emerald-600" />
@@ -244,29 +279,7 @@ export default function SignedQuoteDocumentDialog({
             </button>
           </div>
         </div>
-
-        <div className="flex items-center justify-end gap-2 px-6 py-4 border-t bg-muted/30">
-          <Button
-            variant="ghost"
-            onClick={() => handleOpenChange(false)}
-            disabled={busy}
-          >
-            Cerrar
-          </Button>
-          <Button
-            className="gap-2 min-w-37.5"
-            onClick={handleUpload}
-            disabled={!file || busy}
-          >
-            {isUploading ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              <Upload className="size-4" />
-            )}
-            {isUploading ? "Guardando..." : current ? "Reemplazar" : "Guardar"}
-          </Button>
-        </div>
-      </DialogContent>
+      </FormDialogContent>
     </Dialog>
   );
 }

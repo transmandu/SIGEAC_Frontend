@@ -1,25 +1,16 @@
-'use client'
+"use client";
 
-import {
-  Users,
-  ChevronDown,
-  ChevronRight,
-} from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { Users, ChevronDown, ChevronRight } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 type Props = {
-  title: string
-  count: number
-  expanded: boolean
-  onToggle: () => void
-}
+  title: string;
+  count: number;
+  expanded: boolean;
+  onToggle: () => void;
+};
 
-const RequisitionGroupRow = ({
-  title,
-  count,
-  expanded,
-  onToggle,
-}: Props) => {
+const RequisitionGroupRow = ({ title, count, expanded, onToggle }: Props) => {
   return (
     <button
       type="button"
@@ -44,12 +35,10 @@ const RequisitionGroupRow = ({
           hover:bg-slate-100/70
           dark:hover:bg-slate-800
         `,
-        !expanded && 'border-b-0'
+        !expanded && "border-b-0",
       )}
     >
-
       <div className="flex items-center gap-3 min-w-0">
-
         <div
           className="
             flex items-center justify-center
@@ -91,10 +80,9 @@ const RequisitionGroupRow = ({
         </div>
 
         <div className="flex flex-col items-start min-w-0">
-
           <span
             className="
-              text-xs uppercase tracking-wide
+              text-xs
               text-muted-foreground
             "
           >
@@ -115,10 +103,9 @@ const RequisitionGroupRow = ({
       </div>
 
       <div className="flex items-center gap-2 shrink-0">
-
         <div
           className="
-            rounded-full
+            rounded-md
             border
 
             border-slate-200
@@ -135,12 +122,11 @@ const RequisitionGroupRow = ({
             tabular-nums
           "
         >
-          {count} {count === 1 ? 'requisición' : 'requisiciones'}
+          {count} {count === 1 ? "requisición" : "requisiciones"}
         </div>
-
       </div>
     </button>
-  )
-}
+  );
+};
 
-export default RequisitionGroupRow
+export default RequisitionGroupRow;

@@ -1,23 +1,8 @@
 "use client";
 
-import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import {
-  ArrowRight,
-  BellRing,
-  Loader2,
-  PackageCheck,
-  PlayCircle,
-} from "lucide-react";
+import { ConfirmActionDialog } from "@/components/dialogs/shared/ConfirmActionDialog";
+import { TagBadge, type TagTone } from "@/components/misc/TagBadge";
+import { ArrowRight, BellRing, PackageCheck, PlayCircle } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useState } from "react";
 
@@ -34,7 +19,6 @@ export const ADVANCE_REQUISITION_TOOLTIP: Record<string, string> = {
 
 interface StepCopy {
   icon: LucideIcon;
-  accent: string;
   title: string;
   /** Qué significa el estado nuevo, en los términos del solicitante. */
   meaning: string;
@@ -47,7 +31,6 @@ interface StepCopy {
 const STEP_COPY: Record<string, StepCopy> = {
   CREATED: {
     icon: PackageCheck,
-    accent: "text-sky-500",
     title: "Marcar la requisición como recibida",
     meaning:
       "Compras confirma que la solicitud llegó y queda bajo su resguardo.",
@@ -59,7 +42,6 @@ const STEP_COPY: Record<string, StepCopy> = {
   },
   RECEIVED: {
     icon: PlayCircle,
-    accent: "text-yellow-500",
     title: "Iniciar el proceso de la requisición",
     meaning:
       "Compras empezó a gestionar esta solicitud: pasa a estar en proceso frente a las demás recibidas.",
@@ -71,36 +53,16 @@ const STEP_COPY: Record<string, StepCopy> = {
   },
 };
 
-const STATUS_PILL: Record<string, { label: string; className: string }> = {
-  CREATED: {
-    label: "CREADA",
-    className:
-      "border-slate-500/30 bg-slate-500/10 text-slate-700 dark:text-slate-300",
-  },
-  RECEIVED: {
-    label: "RECIBIDA",
-    className: "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300",
-  },
-  IN_PROGRESS: {
-    label: "EN PROCESO",
-    className:
-      "border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300",
-  },
+const STATUS_PILL: Record<string, { label: string; tone: TagTone }> = {
+  CREATED: { label: "Creada", tone: "slate" },
+  RECEIVED: { label: "Recibida", tone: "sky" },
+  IN_PROGRESS: { label: "En proceso", tone: "amber" },
 };
 
 const StatusPill = ({ status }: { status: string }) => {
   const pill = STATUS_PILL[status];
 
-  return (
-    <span
-      className={cn(
-        "select-none whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-xs",
-        pill?.className,
-      )}
-    >
-      {pill?.label ?? status}
-    </span>
-  );
+  return <TagBadge tone={pill?.tone}>{pill?.label ?? status}</TagBadge>;
 };
 
 interface Props {
@@ -109,7 +71,8 @@ interface Props {
   orderNumber?: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onConfirm: () => void;
+  /** Debe lanzar si falla: el diálogo solo se cierra si resuelve. */
+  onConfirm: () => Promise<unknown> | void;
   isPending?: boolean;
 }
 
@@ -153,71 +116,37 @@ export function AdvanceRequisitionStatusDialog({
 
   if (!shown) return null;
 
-  const Icon = shown.copy.icon;
-
   return (
-    <AlertDialog
+    <ConfirmActionDialog
       open={open}
-      onOpenChange={(next) => !isPending && onOpenChange(next)}
-    >
-      <AlertDialogContent className="max-w-md gap-3 p-5">
-        <AlertDialogHeader className="space-y-1.5">
-          <AlertDialogTitle className="flex items-center gap-2 text-base">
-            <Icon className={cn("size-5", shown.copy.accent)} />
-            {shown.copy.title}
-          </AlertDialogTitle>
-          <AlertDialogDescription className="text-xs">
-            {orderNumber ? (
-              <>
-                Requisición{" "}
-                <span className="font-mono font-medium text-foreground">
-                  {orderNumber}
-                </span>
-                .{" "}
-              </>
-            ) : null}
-            {shown.copy.meaning}
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-
+      onOpenChange={onOpenChange}
+      title={shown.copy.title}
+      entityName={orderNumber ? `la requisición ${orderNumber}` : undefined}
+      icon={shown.copy.icon}
+      tone="primary"
+      confirmLabel={shown.copy.action}
+      isPending={isPending}
+      onConfirm={onConfirm}
+      extra={
         <div className="space-y-2.5">
-          <div className="flex items-center justify-center gap-3 rounded-lg border border-border/70 bg-muted/30 py-2.5">
+          <div className="flex items-center justify-center gap-3 rounded-xl border border-border/70 bg-muted/30 py-2.5">
             <StatusPill status={shown.from} />
             <ArrowRight className="size-3.5 text-muted-foreground" />
             <StatusPill status={shown.to} />
           </div>
 
-          <p className="rounded-lg border border-amber-300/50 bg-amber-50/50 px-3 py-2 text-[11px] leading-relaxed text-amber-900 dark:border-amber-700/40 dark:bg-amber-950/20 dark:text-amber-200">
+          <p className="rounded-xl border border-amber-300/50 bg-amber-50/50 px-3 py-2 text-xs leading-relaxed text-amber-900 dark:border-amber-700/40 dark:bg-amber-950/20 dark:text-amber-200">
             {shown.copy.caveat}
           </p>
 
-          <p className="flex items-start gap-2 text-[11px] leading-relaxed text-muted-foreground">
+          <p className="flex items-start gap-2 text-xs leading-relaxed text-muted-foreground">
             <BellRing className="mt-px size-3.5 shrink-0" />
             {shown.copy.notice}
           </p>
         </div>
-
-        <AlertDialogFooter className="gap-2 border-t pt-4 sm:gap-0">
-          <AlertDialogCancel
-            disabled={isPending}
-            className="mt-0 h-9 border-border/70 bg-background/70 text-xs font-medium text-muted-foreground hover:text-foreground"
-          >
-            Cancelar
-          </AlertDialogCancel>
-          <Button
-            onClick={onConfirm}
-            disabled={isPending}
-            className="h-9 gap-1.5 text-xs font-semibold shadow-xs transition-all hover:shadow-md"
-          >
-            {isPending ? (
-              <Loader2 className="size-3.5 animate-spin" />
-            ) : (
-              <Icon className="size-3.5" />
-            )}
-            {shown.copy.action}
-          </Button>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+      }
+    >
+      {shown.copy.meaning}
+    </ConfirmActionDialog>
   );
 }

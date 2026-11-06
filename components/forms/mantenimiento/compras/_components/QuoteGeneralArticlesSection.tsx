@@ -52,8 +52,7 @@ const GRID_COLS = "grid-cols-[2.2fr_1fr_1.3fr_1.5fr]";
 const W_COMPACT = "w-full"; // Cantidad / Unidad
 const W_WIDE = "w-full"; // Precio unitario / Ubicación
 
-const LABEL_CLS =
-  "select-none text-[10px] leading-none text-muted-foreground uppercase";
+const LABEL_CLS = "select-none text-xs leading-none text-muted-foreground";
 
 function normalizeQuantity(value: string, fallback: string): string {
   if (value === "") return fallback;
@@ -190,7 +189,7 @@ function BrandCombobox({
                     {a.brand_model ?? "Sin marca"}
                   </span>
                   {a.cost != null && (
-                    <span className="text-[10px] text-muted-foreground tabular-nums">
+                    <span className="text-xs text-muted-foreground tabular-nums">
                       Costo registrado: ${Number(a.cost).toFixed(2)}
                     </span>
                   )}
@@ -408,9 +407,9 @@ export function QuoteGeneralArticlesSection({
                             damping: 18,
                             mass: 0.6,
                           }}
-                          className="select-none whitespace-nowrap rounded border-2 border-red-500/50 px-4 py-1 text-xl font-extrabold uppercase tracking-widest text-red-500/50"
+                          className="select-none whitespace-nowrap rounded border-2 border-red-500/50 px-4 py-1 text-xl font-extrabold text-red-500/50"
                         >
-                          No Cotizado
+                          No cotizado
                         </motion.span>
                       </div>
                     )}
@@ -426,7 +425,7 @@ export function QuoteGeneralArticlesSection({
 
                         <Badge
                           variant="secondary"
-                          className="h-5 px-2 text-[10px] font-medium uppercase tracking-wide text-muted-foreground select-none"
+                          className="h-5 px-2 text-xs font-medium text-muted-foreground select-none"
                         >
                           General/Ferreteria
                         </Badge>
@@ -447,7 +446,7 @@ export function QuoteGeneralArticlesSection({
                                 "z-20 shrink-0 rounded-md p-1 transition-colors",
                                 isNotQuoted
                                   ? "bg-red-500/15 text-red-600"
-                                  : "text-muted-foreground/60 hover:bg-muted/60 hover:text-red-500",
+                                  : "text-muted-foreground hover:bg-muted/60 hover:text-red-500",
                               )}
                             >
                               <Ban className="size-3.5" />
@@ -482,7 +481,7 @@ export function QuoteGeneralArticlesSection({
                           <span className={LABEL_CLS}>
                             Present. / Especif.
                             {variantCandidates.length > 0 && (
-                              <span className="ml-1 text-[9px] text-primary select-none normal-case not-italic">
+                              <span className="ml-1 text-xs text-primary select-none normal-case not-italic">
                                 sugerencias
                               </span>
                             )}
@@ -551,7 +550,7 @@ export function QuoteGeneralArticlesSection({
                             )}
                           />
                           {quantityChanged && (
-                            <div className="flex items-center justify-center gap-1 text-[10px] text-amber-600 dark:text-amber-400">
+                            <div className="flex items-center justify-center gap-1 text-xs text-amber-600 dark:text-amber-400">
                               <span className="tabular-nums line-through opacity-70">
                                 {article.original_quantity}
                               </span>
@@ -598,7 +597,7 @@ export function QuoteGeneralArticlesSection({
                             Marca / Modelo
                             <RequiredIndicator />
                             {brandCandidates.length > 0 && (
-                              <span className="ml-1 text-[9px] text-primary select-none normal-case not-italic">
+                              <span className="ml-1 text-xs text-primary select-none normal-case not-italic">
                                 sugerencias
                               </span>
                             )}
@@ -743,7 +742,7 @@ export function QuoteGeneralArticlesSection({
                 {/* JUSTIFICACIÓN (solo si hay cambio de cantidad/unidad o exclusión) — siempre editable */}
                 {needsJustification && (
                   <div className="border-t border-border/50 bg-amber-50/40 px-3 py-2 dark:bg-amber-900/10">
-                    <span className="select-none text-[10px] leading-none text-amber-700 dark:text-amber-400 uppercase">
+                    <span className="select-none text-xs leading-none text-amber-700 dark:text-amber-400">
                       Justificación{" "}
                       {isNotQuoted ? "de exclusión" : "del cambio"}
                     </span>

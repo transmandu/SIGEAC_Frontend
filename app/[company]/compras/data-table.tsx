@@ -21,17 +21,31 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+import { AlertTriangle, SearchX } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/misc/EmptyState";
 import { CursorPagination } from "@/components/tables/CursorPagination";
 import { DataTablePagination } from "@/components/tables/DataTablePagination";
 import { useComprasPageSize } from "./use-compras-page-size";
+
+const SKELETON_ROWS = 6;
 
 export interface DataTableProps<TData extends RowData> {
   columns: AppColumnDef<TData, any>[];
   data: TData[];
   loading?: boolean;
+  /** La consulta falló: se muestra el error en vez de "sin resultados". */
+  error?: boolean;
+  errorText?: string;
   disablePagination?: boolean;
   renderSubRow?: (row: AppRow<TData>) => React.ReactNode;
   canExpandRow?: (row: AppRow<TData>) => boolean;
+  /**
+   * Marca una fila como la que se está revisando ("active"), la última que se
+   * revisó ("recent") o la que está dejando de estarlo ("fading"): fondo suave
+   * y una barra en el borde izquierdo, que en "fading" se apagan poco a poco.
+   */
+  getRowMark?: (original: TData) => "active" | "recent" | "fading" | undefined;
   /** Pass arbitrary meta to the table instance (e.g. { costDrafts }) */
   meta?: Record<string, unknown>;
   /** Custom slot rendered above the table (e.g. toolbar buttons) */
@@ -85,13 +99,16 @@ function DataTableInner<TData extends RowData>({
   columns,
   data,
   loading = false,
+  error = false,
+  errorText = "Intente de nuevo en unos instantes.",
   disablePagination = false,
   renderSubRow,
   canExpandRow,
+  getRowMark,
   meta,
   toolbar,
   loadingText = "Cargando datos...",
-  emptyText = "No se encontraron resultados...",
+  emptyText = "No se encontraron resultados",
   overflowVisible = false,
   pageSize = 10,
   persistKey,
@@ -240,14 +257,7 @@ function DataTableInner<TData extends RowData>({
                   <TableHead
                     key={header.id}
                     style={{ width: header.getSize() }}
-                    className="
-                      py-3
-                      text-[11px]
-                      font-semibold
-                      uppercase
-                      tracking-wide
-                      text-muted-foreground
-                    "
+                    className="py-3 font-semibold text-muted-foreground"
                   >
                     {header.isPlaceholder
                       ? null
@@ -263,21 +273,38 @@ function DataTableInner<TData extends RowData>({
 
           <TableBody>
             {loading ? (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center text-muted-foreground"
+              Array.from({ length: SKELETON_ROWS }, (_, rowIndex) => (
+                <TableRow
+                  key={rowIndex}
+                  className="border-b border-slate-200/70 hover:bg-transparent dark:border-slate-700/50"
                 >
-                  {loadingText}
+                  {columns.map((_, columnIndex) => (
+                    <TableCell key={columnIndex} className="py-3">
+                      {rowIndex === 0 && columnIndex === 0 && (
+                        <span className="sr-only" role="status">
+                          {loadingText}
+                        </span>
+                      )}
+                      <Skeleton className="h-4 w-3/4" />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : error ? (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="h-40">
+                  <EmptyState
+                    icon={AlertTriangle}
+                    tone="error"
+                    title="No se pudo cargar la información"
+                    description={errorText}
+                  />
                 </TableCell>
               </TableRow>
             ) : isEmpty ? (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center text-muted-foreground"
-                >
-                  {emptyText}
+              <TableRow className="hover:bg-transparent">
+                <TableCell colSpan={columns.length} className="h-40">
+                  <EmptyState icon={SearchX} title={emptyText} />
                 </TableCell>
               </TableRow>
             ) : (
@@ -288,6 +315,7 @@ function DataTableInner<TData extends RowData>({
                   <React.Fragment key={row.id}>
                     <TableRow
                       data-state={row.getIsSelected() && "selected"}
+                      data-mark={getRowMark?.(row.original)}
                       onClick={() => {
                         if (canExpand) {
                           row.toggleExpanded();
@@ -297,6 +325,13 @@ function DataTableInner<TData extends RowData>({
                         border-b border-slate-200/70 dark:border-slate-700/50
                         hover:bg-slate-50 dark:hover:bg-slate-800/60
                         transition-colors
+                        [&>td:first-child]:transition-shadow [&>td:first-child]:duration-500
+                        data-[mark=active]:bg-primary/6 data-[mark=active]:hover:bg-primary/6
+                        data-[mark=recent]:bg-primary/3 data-[mark=recent]:hover:bg-primary/5
+                        data-[mark=active]:[&>td:first-child]:shadow-[inset_2px_0_0_0_var(--color-primary)]
+                        data-[mark=recent]:[&>td:first-child]:shadow-[inset_2px_0_0_0_color-mix(in_oklab,var(--color-primary)_45%,transparent)]
+                        data-[mark=fading]:bg-transparent data-[mark=fading]:duration-2500
+                        data-[mark=fading]:[&>td:first-child]:shadow-[inset_2px_0_0_0_transparent] data-[mark=fading]:[&>td:first-child]:duration-2500
                         ${canExpand ? "cursor-pointer select-none" : ""}
                       `}
                     >

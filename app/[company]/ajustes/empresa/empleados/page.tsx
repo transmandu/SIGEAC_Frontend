@@ -7,7 +7,11 @@ import { CreateEmployeeDialog } from "@/components/dialogs/general/CreateEmploye
 import { useGetEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetEmployees";
 import { useGetInactiveEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetInactiveEmployees";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  SegmentedTabs,
+  SegmentedTabsList,
+  SegmentedTabsTrigger,
+} from "@/components/misc/SegmentedTabs";
 import { Employee } from "@/types";
 import { getEmployeeColumns } from "./columns";
 import { EmployeeExpandedRow } from "./_components/EmployeeExpandedRow";
@@ -77,19 +81,19 @@ const EmployeePage = () => {
         plural: "empleados",
       }}
     >
-      <Tabs
+      <SegmentedTabs
         value={tab}
         onValueChange={(value) => setTab(value as "active" | "inactive")}
       >
-        <TabsList className="grid grid-cols-2 w-[320px] max-w-full">
-          <TabsTrigger value="active">
+        <SegmentedTabsList>
+          <SegmentedTabsTrigger value="active">
             Activos ({activeEmployees?.length ?? "…"})
-          </TabsTrigger>
-          <TabsTrigger value="inactive">
+          </SegmentedTabsTrigger>
+          <SegmentedTabsTrigger value="inactive">
             Inactivos ({inactiveEmployees?.length ?? "…"})
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
+          </SegmentedTabsTrigger>
+        </SegmentedTabsList>
+      </SegmentedTabs>
 
       <SettingsDataTable
         key={tab}

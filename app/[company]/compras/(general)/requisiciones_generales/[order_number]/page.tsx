@@ -2,6 +2,7 @@
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import LoadingPage from "@/components/misc/LoadingPage";
+import DetailLoadError from "@/components/misc/DetailLoadError";
 import { Badge } from "@/components/ui/badge";
 import { useGetRequisitionByOrderNumber } from "@/hooks/mantenimiento/compras/useGetRequisitionByOrderNumber";
 import { useCompanyStore } from "@/stores/CompanyStore";
@@ -95,24 +96,20 @@ function StatusBadge({
       open={!!confirmingFrom}
       onOpenChange={(next) => !next && setConfirmingFrom(null)}
       isPending={updateStatusRequisition.isPending}
-      onConfirm={() => {
+      onConfirm={async () => {
         const target = NEXT_REQUISITION_STATUS[confirmingFrom ?? ""];
         if (!target || !selectedCompany || !id) return;
 
-        updateStatusRequisition.mutate(
-          {
-            id,
-            data: {
-              status: target,
-              updated_by: `${user?.first_name} ${user?.last_name}`,
-            },
-            company: selectedCompany.slug,
+        await updateStatusRequisition.mutateAsync({
+          id,
+          data: {
+            status: target,
+            updated_by: `${user?.first_name} ${user?.last_name}`,
           },
-          {
-            onSuccess,
-            onSettled: () => setConfirmingFrom(null),
-          },
-        );
+          company: selectedCompany.slug,
+        });
+
+        onSuccess();
       }}
     />
   );
@@ -150,7 +147,7 @@ const RequisitionPage = () => {
   const { selectedCompany } = useCompanyStore();
   const { order_number } = useParams<{ order_number: string }>();
 
-  const { data, isLoading, refetch } = useGetRequisitionByOrderNumber({
+  const { data, isLoading, isError, refetch } = useGetRequisitionByOrderNumber({
     company: selectedCompany?.slug,
     order_number,
   });
@@ -190,19 +187,17 @@ const RequisitionPage = () => {
     return Array.from(new Set(merged));
   }, [data]);
 
-  const aircraftChunks = useMemo(() => {
-    return aircraftList.reduce((acc: string[][], item, idx) => {
-      const chunkIndex = Math.floor(idx / 2);
-
-      if (!acc[chunkIndex]) acc[chunkIndex] = [];
-
-      acc[chunkIndex].push(item);
-
-      return acc;
-    }, []);
-  }, [aircraftList]);
-
   if (isLoading) return <LoadingPage />;
+
+  if (isError)
+    return (
+      <DetailLoadError
+        title="Solicitud de Compra General"
+        subject="La solicitud de compra"
+        label={order_number}
+        onRetry={() => refetch()}
+      />
+    );
 
   if (isOutOfScope) return <RequisitionOutOfScope />;
 
@@ -218,13 +213,13 @@ const RequisitionPage = () => {
             {/* Title block */}
             <div className="flex flex-col min-w-0 w-full">
               <div className="flex items-end gap-3 sm:gap-4 flex-wrap">
-                <h1 className="text-xl sm:text-2xl md:text-3xl font-semibold tracking-tight min-w-0 wrap-break-word">
+                <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight min-w-0 wrap-break-word">
                   {order_number}
                 </h1>
 
                 <div className="flex flex-col items-center justify-start gap-1 min-w-17.5 sm:min-w-20">
-                  <span className="text-[8px] sm:text-[9px] leading-none tracking-widest text-muted-foreground select-none">
-                    ESTADO
+                  <span className="text-xs leading-none text-muted-foreground select-none">
+                    Estado
                   </span>
 
                   <StatusBadge
@@ -235,8 +230,8 @@ const RequisitionPage = () => {
                 </div>
 
                 <div className="flex flex-col items-center justify-start gap-1 min-w-17.5 sm:min-w-20">
-                  <span className="text-[8px] sm:text-[9px] leading-none tracking-widest text-muted-foreground select-none">
-                    PRIORIDAD
+                  <span className="text-xs leading-none text-muted-foreground select-none">
+                    Prioridad
                   </span>
 
                   <div className={priorityPageBadgeCls(data?.priority)}>
@@ -268,45 +263,45 @@ const RequisitionPage = () => {
         </div>
 
         {/* ── Meta ────────────────────────────────────────────────────── */}
-        <div className="mx-auto w-full max-w-4xl px-3 sm:px-4 py-2 sm:py-3 rounded-md border border-border/50 bg-muted/20">
+        <div className="mx-auto w-full max-w-4xl px-3 sm:px-4 py-2 sm:py-3 rounded-xl border border-slate-200 bg-white dark:border-slate-700/60 dark:bg-slate-900/60">
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-x-4 sm:gap-x-6 md:gap-x-10 gap-y-2 sm:gap-y-3 md:gap-y-4 justify-items-center">
             <MetaItem
-              label="CREADO POR"
+              label="Creado por"
               value={
                 data?.created_by
-                  ? `${data.created_by.first_name} ${data.created_by.last_name}`.toUpperCase()
-                  : "SISTEMA"
+                  ? `${data.created_by.first_name} ${data.created_by.last_name}`
+                  : "Sistema"
               }
               icon={UserCheck}
             />
             <MetaItem
-              label="SOLICITADO POR"
-              value={data?.requested_by?.toUpperCase()}
+              label="Solicitado por"
+              value={data?.requested_by}
               icon={UserPlus}
             />
             <MetaItem
-              label="FECHA DE SOLICITUD"
+              label="Fecha de solicitud"
               value={formatSolicitudDate(data?.submission_date)}
               icon={CalendarDays}
             />
             {aircraftList.length > 0 && (
               <MetaItem
-                label={aircraftList.length > 1 ? "AERONAVES" : "AERONAVE"}
+                label={aircraftList.length > 1 ? "Aeronaves" : "Aeronave"}
                 value={aircraftList.join(", ")}
                 icon={Plane}
               />
             )}
             {data?.department && (
               <MetaItem
-                label="DEPARTAMENTO"
-                value={data.department.name?.toUpperCase()}
+                label="Departamento"
+                value={data.department.name}
                 icon={Building2}
               />
             )}
             {data?.third_party && (
               <MetaItem
-                label="TERCERO"
-                value={data.third_party.name?.toUpperCase()}
+                label="Tercero"
+                value={data.third_party.name}
                 icon={Handshake}
               />
             )}
@@ -319,18 +314,18 @@ const RequisitionPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
             {/* JUSTIFICACIÓN */}
             <InfoSection
-              title="JUSTIFICACIÓN DE SOLICITUD"
+              title="Justificación de la solicitud"
               icon={FileText}
               content={data?.justification}
-              emptyMessage="SIN JUSTIFICACIÓN"
+              emptyMessage="Sin justificación"
             />
 
             {/* OBSERVACIÓN */}
             <InfoSection
-              title="OBSERVACIÓN"
+              title="Observación"
               icon={MessageSquare}
               content={data?.observation}
-              emptyMessage="SIN OBSERVACIONES"
+              emptyMessage="Sin observaciones"
             />
           </div>
 
@@ -346,14 +341,12 @@ const RequisitionPage = () => {
           <div className="flex items-end justify-between border-b border-border/60 pb-2 select-none">
             <div className="flex flex-col">
               <h2 className="text-lg sm:text-xl font-semibold tracking-tight text-foreground/90">
-                ARTÍCULOS SOLICITADOS
+                Artículos solicitados
               </h2>
             </div>
 
             <div className="flex items-center gap-2 rounded-md border border-border/50 bg-muted/30 px-2.5 py-1 select-none">
-              <span className="text-[9px] sm:text-[10px] tracking-wider text-muted-foreground">
-                TOTAL
-              </span>
+              <span className="text-xs text-muted-foreground">Total</span>
 
               <span className="text-sm font-semibold tabular-nums">
                 {generalArticles?.length ?? 0}

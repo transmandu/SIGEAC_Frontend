@@ -344,6 +344,8 @@ export interface RequisitionBatchArticleForm {
 export interface RequisitionBatchForm {
   batch: string;
   batch_name: string;
+  /** Define la unidad por defecto de las filas que se agreguen después. */
+  batch_category?: string;
   batch_articles: RequisitionBatchArticleForm[];
 }
 
