@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import * as z from "zod";
-import { Check, ChevronsUpDown, Loader2, Plus, Trash2 } from "lucide-react";
+import { Check, ListPlus, Loader2, Plus, Trash2 } from "lucide-react";
 import {
   useCreateSmsTrainingModulePattern,
   useUpdateSmsTrainingModulePattern,
@@ -129,6 +129,18 @@ export function CreateSmsTrainingModulePatternForm({
   const availableModules =
     modules?.filter((module) => !selectedIds.includes(module.id)) ?? [];
 
+  const addAllModules = () => {
+    if (availableModules.length === 0) return;
+
+    append(
+      availableModules.map((module) => ({
+        module_id: module.id,
+        initial_hours: 0,
+        sort_order: module.number,
+      })),
+    );
+  };
+
   const onSubmit = async (data: PatternForm) => {
     const company = selectedCompany!.slug;
     const payload = {
@@ -203,48 +215,66 @@ export function CreateSmsTrainingModulePatternForm({
         />
 
         <div className="space-y-2">
-          <div className="flex items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="text-sm font-medium">Módulos del patrón</p>
-            <Popover open={openModules} onOpenChange={setOpenModules}>
-              <PopoverTrigger asChild>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  disabled={isLoadingModules || availableModules.length === 0}
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Agregar módulo
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-80 p-0" align="end">
-                <Command>
-                  <CommandInput placeholder="Buscar módulo..." />
-                  <CommandList>
-                    <CommandEmpty>No hay módulos disponibles.</CommandEmpty>
-                    <CommandGroup>
-                      {availableModules.map((module) => (
-                        <CommandItem
-                          key={module.id}
-                          value={`${module.number} ${module.name}`}
-                          onSelect={() => {
-                            append({
-                              module_id: module.id,
-                              initial_hours: 0,
-                              sort_order: module.number,
-                            });
-                            setOpenModules(false);
-                          }}
-                        >
-                          <Check className="mr-2 h-4 w-4 opacity-0" />
-                          {module.number}. {module.name}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={addAllModules}
+                disabled={isLoadingModules || availableModules.length === 0}
+                title={
+                  availableModules.length > 0
+                    ? `Agregar los ${availableModules.length} módulos disponibles`
+                    : "No hay módulos disponibles"
+                }
+              >
+                <ListPlus className="mr-2 h-4 w-4" />
+                Agregar todos
+              </Button>
+
+              <Popover open={openModules} onOpenChange={setOpenModules}>
+                <PopoverTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={isLoadingModules || availableModules.length === 0}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Agregar módulo
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80 p-0" align="end">
+                  <Command>
+                    <CommandInput placeholder="Buscar módulo..." />
+                    <CommandList>
+                      <CommandEmpty>No hay módulos disponibles.</CommandEmpty>
+                      <CommandGroup>
+                        {availableModules.map((module) => (
+                          <CommandItem
+                            key={module.id}
+                            value={`${module.number} ${module.name}`}
+                            onSelect={() => {
+                              append({
+                                module_id: module.id,
+                                initial_hours: 0,
+                                sort_order: module.number,
+                              });
+                              setOpenModules(false);
+                            }}
+                          >
+                            <Check className="mr-2 h-4 w-4 opacity-0" />
+                            {module.number}. {module.name}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
           </div>
 
           {fields.length === 0 ? (
