@@ -2,15 +2,25 @@
 
 import { useMemo, useState } from "react";
 import { useParams } from "next/navigation";
+import { ClipboardList } from "lucide-react";
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { useGetObligatoryReports } from "@/hooks/sms/mantenimiento/useGetObligatoryReports";
 import { useGetVoluntaryReports } from "@/hooks/sms/mantenimiento/useGetVoluntaryReports";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
 import {
   getHazardNotification,
-  getHazardNotificationDetails,
   getObligatoryMeta,
   getObligatoryReportDetails,
   getReportCode,
@@ -22,8 +32,6 @@ import {
 } from "@/app/[company]/sms/aeronautical/gestion_de_riesgos/_components/report-helpers";
 import { ReportDetailsPanel } from "@/app/[company]/sms/aeronautical/gestion_de_riesgos/_components/report-details-panel";
 import { ReportSelectionPanel } from "@/app/[company]/sms/aeronautical/gestion_de_riesgos/_components/report-selection-panel";
-import { PageHeader } from "@/components/layout/PageHeader";
-import { useOnChange } from "@/hooks/useOnChange";
 
 const Identification = () => {
   const params = useParams<{ company: string }>();
@@ -34,10 +42,7 @@ const Identification = () => {
   const [selectedReport, setSelectedReport] = useState<SelectedReport | null>(
     null,
   );
-  const [isReportDetailsOpen, setIsReportDetailsOpen] = useState(false);
-  const [isNotificationDetailsOpen, setIsNotificationDetailsOpen] =
-    useState(false);
-  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isSelectorOpen, setIsSelectorOpen] = useState(false);
 
   const {
     data: voluntaryReports,
@@ -102,81 +107,89 @@ const Identification = () => {
     return [];
   }, [currentObligatoryReport, currentVoluntaryReport]);
 
-  const notificationDetails = useMemo(
-    () =>
-      currentNotification
-        ? getHazardNotificationDetails(currentNotification)
-        : [],
-    [currentNotification],
-  );
-
   const currentReportLocationLabel = currentVoluntaryReport
     ? getVoluntaryMeta(currentVoluntaryReport)
     : currentObligatoryReport
       ? getObligatoryMeta(currentObligatoryReport)
       : "";
 
-  useOnChange([selectedReport?.id, selectedReport?.type], () => {
-    setIsReportDetailsOpen(false);
-    setIsNotificationDetailsOpen(false);
-    setIsFormOpen(false);
-  });
+  const openSelector = () => {
+    if (selectedReport) {
+      setActiveTab(selectedReport.type);
+    }
+    setIsSelectorOpen(true);
+  };
+
+  const handleSelectReport = (report: SelectedReport) => {
+    setSelectedReport(report);
+    setIsSelectorOpen(false);
+  };
 
   return (
-    <ContentLayout title="Notificación de peligro">
+    <ContentLayout title="Identificación de peligros">
       <PageHeader className="mb-6" />
 
-      <div className="grid gap-6 xl:grid-cols-[380px_minmax(0,1fr)]">
-        <ReportSelectionPanel
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          voluntaryReports={normalizedVoluntaryReports}
-          obligatoryReports={normalizedObligatoryReports}
-          isLoadingVoluntaryReports={isLoadingVoluntaryReports}
-          isLoadingObligatoryReports={isLoadingObligatoryReports}
-          isVoluntaryReportsError={isVoluntaryReportsError}
-          isObligatoryReportsError={isObligatoryReportsError}
-          selectedReport={selectedReport}
-          onSelectReport={setSelectedReport}
+      {!currentReport || !currentReportType || !currentReportCode ? (
+        <Card className="border-dashed">
+          <CardContent className="flex min-h-[55vh] flex-col items-center justify-center gap-4 px-6 py-12 text-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <ClipboardList className="h-5 w-5" />
+            </div>
+            <div className="space-y-1">
+              <h2 className="text-lg font-semibold">Seleccione un reporte</h2>
+              <p className="mx-auto max-w-sm text-sm text-muted-foreground">
+                Elija un reporte voluntario u obligatorio para registrar o
+                editar su notificación de peligro.
+              </p>
+            </div>
+            <Button type="button" onClick={openSelector}>
+              <ClipboardList className="mr-2 h-4 w-4" />
+              Seleccionar reporte
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <ReportDetailsPanel
+          currentReport={currentReport}
+          currentReportType={currentReportType}
+          currentReportCode={currentReportCode}
+          currentNotification={currentNotification}
+          reportLocationLabel={currentReportLocationLabel}
+          reportDetails={reportDetails}
+          onChangeReport={openSelector}
         />
+      )}
 
-        {!currentReport || !currentReportType || !currentReportCode ? (
-          <div className="flex min-h-[420px] flex-col items-center justify-center rounded-lg border border-dashed px-6 py-10 text-center">
-            <h3 className="text-lg font-semibold">
-              Aun no hay un reporte seleccionado
-            </h3>
-            <p className="mt-2 max-w-xl text-sm text-muted-foreground">
-              Elija un reporte voluntario u obligatorio para cargar su
-              información y abrir el formulario de notificación de peligro.
-            </p>
-          </div>
-        ) : (
-          <ReportDetailsPanel
-            currentReport={currentReport}
-            currentReportType={currentReportType}
-            currentReportCode={currentReportCode}
-            currentNotification={currentNotification}
-            reportLocationLabel={currentReportLocationLabel}
-            reportDetails={reportDetails}
-            notificationDetails={notificationDetails}
-            isReportDetailsOpen={isReportDetailsOpen}
-            isNotificationDetailsOpen={isNotificationDetailsOpen}
-            isFormOpen={isFormOpen}
-            onToggleReportDetails={() =>
-              setIsReportDetailsOpen((value) => !value)
-            }
-            onToggleNotificationDetails={() =>
-              setIsNotificationDetailsOpen((value) => !value)
-            }
-            onToggleForm={() => setIsFormOpen((value) => !value)}
-            onReportDetailsOpenChange={setIsReportDetailsOpen}
-            onNotificationDetailsOpenChange={setIsNotificationDetailsOpen}
-            onFormOpenChange={setIsFormOpen}
-            onCloseForm={() => setIsFormOpen(false)}
-            formMode={currentNotification ? "edit" : "create"}
+      <Sheet open={isSelectorOpen} onOpenChange={setIsSelectorOpen}>
+        <SheetContent
+          side="left"
+          className="w-full overflow-y-auto sm:max-w-md"
+        >
+          <SheetHeader className="mb-4">
+            <SheetTitle>Seleccionar reporte</SheetTitle>
+            <SheetDescription>
+              Elija un reporte para registrar o editar su notificación de
+              peligro.
+            </SheetDescription>
+          </SheetHeader>
+
+          <ReportSelectionPanel
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            voluntaryReports={normalizedVoluntaryReports}
+            obligatoryReports={normalizedObligatoryReports}
+            isLoadingVoluntaryReports={isLoadingVoluntaryReports}
+            isLoadingObligatoryReports={isLoadingObligatoryReports}
+            isVoluntaryReportsError={isVoluntaryReportsError}
+            isObligatoryReportsError={isObligatoryReportsError}
+            selectedReport={selectedReport}
+            onSelectReport={handleSelectReport}
+            hideHeader
+            className="border-0 bg-transparent shadow-none"
+            contentClassName="px-0"
           />
-        )}
-      </div>
+        </SheetContent>
+      </Sheet>
     </ContentLayout>
   );
 };

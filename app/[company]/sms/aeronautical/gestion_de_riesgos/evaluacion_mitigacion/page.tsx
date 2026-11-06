@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { PanelLeftOpen, ShieldAlert } from "lucide-react";
+import { ShieldAlert } from "lucide-react";
 import {
   useParams,
   usePathname,
@@ -10,6 +10,7 @@ import {
 } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Sheet,
   SheetContent,
@@ -18,19 +19,18 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { ContentLayout } from "@/components/layout/ContentLayout";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { useGetHazardNotifications } from "@/hooks/sms/mantenimiento/useGetHazardNotifications";
 import { useGetHazardNotificationByReportNumber } from "@/hooks/sms/mantenimiento/useGetHazardNotificationByReportNumber";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { useOnChange } from "@/hooks/useOnChange";
 
 import { EvaluationWorkflowPanel } from "./_components/evaluation-workflow-panel";
 import { NotificationSelectionPanel } from "./_components/notification-selection-panel";
 import {
   getNotificationReportNumber,
-  getNotificationSource,
   sortByNewestDate,
 } from "./_components/workflow-helpers";
-import { PageHeader } from "@/components/layout/PageHeader";
-import { useOnChange } from "@/hooks/useOnChange";
 
 const EvaluationMitigationPage = () => {
   const params = useParams<{ company: string }>();
@@ -52,8 +52,10 @@ const EvaluationMitigationPage = () => {
     isError,
   } = useGetHazardNotifications(companySlug);
 
-  const { data: notificationFromUrl, isLoading: isLoadingDirect } =
-    useGetHazardNotificationByReportNumber(companySlug, reportNumberParam);
+  const { data: notificationFromUrl } = useGetHazardNotificationByReportNumber(
+    companySlug,
+    reportNumberParam,
+  );
 
   const sortedNotifications = useMemo(
     () => sortByNewestDate(notifications || []),
@@ -103,91 +105,70 @@ const EvaluationMitigationPage = () => {
     <ContentLayout title="Evaluación y mitigación">
       <PageHeader className="mb-6" />
 
-      <div className="space-y-6">
-        <div className="flex flex-col gap-4 rounded-lg border bg-muted/20 p-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="space-y-1">
-            <p className="text-sm font-medium">Notificación activa</p>
-            {selectedNotification ? (
-              <div className="space-y-1">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                  Reporte asociado:{" "}
-                  {getNotificationSource(selectedNotification)}
-                </p>
-                <p className="text-base font-semibold">
-                  {getNotificationSource(selectedNotification)}
-                </p>
-                <p className="text-sm text-muted-foreground line-clamp-2">
-                  {selectedNotification.description}
-                </p>
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                Todavía no hay una notificación seleccionada.
+      {!selectedNotification ? (
+        <Card className="border-dashed">
+          <CardContent className="flex min-h-[55vh] flex-col items-center justify-center gap-4 px-6 py-12 text-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <ShieldAlert className="h-5 w-5" />
+            </div>
+            <div className="space-y-1">
+              <h2 className="text-lg font-semibold">
+                Seleccione una notificación
+              </h2>
+              <p className="mx-auto max-w-sm text-sm text-muted-foreground">
+                Elija la notificación de peligro para desarrollar el plan, las
+                medidas y el seguimiento.
               </p>
-            )}
-          </div>
-
-          <Sheet
-            open={isNotificationSheetOpen}
-            onOpenChange={setIsNotificationSheetOpen}
-          >
+            </div>
             <Button
               type="button"
               onClick={() => setIsNotificationSheetOpen(true)}
             >
-              <PanelLeftOpen className="mr-2 h-4 w-4" />
-              {selectedNotification
-                ? "Cambiar notificación"
-                : "Seleccionar notificación"}
+              Seleccionar notificación
             </Button>
-            <SheetContent
-              side="left"
-              className="w-full overflow-y-auto sm:max-w-xl"
-            >
-              <SheetHeader className="mb-4">
-                <SheetTitle>Selección de notificación</SheetTitle>
-                <SheetDescription>
-                  Elija la notificación de peligro que desea evaluar o editar.
-                </SheetDescription>
-              </SheetHeader>
+          </CardContent>
+        </Card>
+      ) : (
+        <EvaluationWorkflowPanel
+          key={selectedNotification.id}
+          company={companySlug}
+          selectedNotification={selectedNotification}
+          currentMitigationPlan={currentMitigationPlan}
+          currentPlanAnalysis={currentPlanAnalysis}
+          currentPostMitigationAnalysis={currentPostMitigationAnalysis}
+          currentMeasures={currentMeasures}
+          onChangeNotification={() => setIsNotificationSheetOpen(true)}
+        />
+      )}
 
-              <NotificationSelectionPanel
-                notifications={sortedNotifications}
-                selectedNotificationId={selectedNotificationId}
-                isLoading={isLoading}
-                isError={isError}
-                onSelectNotification={handleSelectNotification}
-                showSticky={false}
-                className="border-0 shadow-none"
-              />
-            </SheetContent>
-          </Sheet>
-        </div>
+      <Sheet
+        open={isNotificationSheetOpen}
+        onOpenChange={setIsNotificationSheetOpen}
+      >
+        <SheetContent
+          side="left"
+          className="w-full overflow-y-auto sm:max-w-md"
+        >
+          <SheetHeader className="mb-4">
+            <SheetTitle>Seleccionar notificación</SheetTitle>
+            <SheetDescription>
+              Elija la notificación de peligro que desea evaluar o editar.
+            </SheetDescription>
+          </SheetHeader>
 
-        {!selectedNotification ? (
-          <div className="flex min-h-[420px] flex-col items-center justify-center rounded-lg border border-dashed px-6 py-10 text-center">
-            <ShieldAlert className="h-10 w-10 text-muted-foreground" />
-            <h3 className="mt-4 text-lg font-semibold">
-              No hay una notificación seleccionada
-            </h3>
-            <p className="mt-2 max-w-xl text-sm text-muted-foreground">
-              Abra el selector para elegir la notificación con la que desea
-              trabajar y continuar con el plan, las medidas y los controles de
-              seguimiento.
-            </p>
-          </div>
-        ) : (
-          <EvaluationWorkflowPanel
-            key={selectedNotification.id}
-            company={companySlug}
-            selectedNotification={selectedNotification}
-            currentMitigationPlan={currentMitigationPlan}
-            currentPlanAnalysis={currentPlanAnalysis}
-            currentPostMitigationAnalysis={currentPostMitigationAnalysis}
-            currentMeasures={currentMeasures}
+          <NotificationSelectionPanel
+            notifications={sortedNotifications}
+            selectedNotificationId={selectedNotificationId}
+            isLoading={isLoading}
+            isError={isError}
+            onSelectNotification={handleSelectNotification}
+            hideHeader
+            showSticky={false}
+            className="border-0 bg-transparent shadow-none"
+            contentClassName="px-0"
           />
-        )}
-      </div>
+        </SheetContent>
+      </Sheet>
     </ContentLayout>
   );
 };

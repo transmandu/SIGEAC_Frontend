@@ -28,6 +28,7 @@ export type DetailItem = {
   value?: ReactNode;
   fullWidth?: boolean;
   contentClassName?: string;
+  group?: string;
 };
 
 export const REPORT_LABELS: Record<ReportType, string> = {
@@ -105,6 +106,12 @@ export const getReportCode = <T extends ReportCodeSource>(
   report: ReportWithHazard<T>,
   type: ReportType,
 ) => {
+  // La notificación de peligro es la que asigna el número de reporte oficial.
+  const notificationCode = getHazardNotification(report)?.report_number;
+  if (notificationCode) {
+    return notificationCode;
+  }
+
   const prefix = type === "RVP" ? "RVP" : "ROS";
   return report.report_number
     ? `${prefix}-${report.report_number}`
