@@ -1,14 +1,19 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { Calendar, Clock, FileText, MapPin, Plane, User } from "lucide-react";
+import {
+  Calendar,
+  CalendarCheck,
+  Clock,
+  FileText,
+  MapPin,
+  Plane,
+  User,
+} from "lucide-react";
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { getBadgeStatusClass } from "@/lib/sms/utils";
-import { cn } from "@/lib/utils";
 
 import {
   buildAnalysisEntries,
@@ -27,6 +32,7 @@ import { ReportDataGrid } from "./report-data-grid";
 import { ReportHazardNotificationSection } from "./report-hazard-notification-section";
 import { ReportMitigationPlanSection } from "./report-mitigation-plan-section";
 import { ReportSection } from "./report-section";
+import { ReportStatusBadge } from "./report-status-badge";
 import {
   ObligatoryReportView,
   ReportDetailViewProps,
@@ -113,18 +119,18 @@ export function ReportDetailView({
         <div className="space-y-6">
           <Card>
             <CardContent className="space-y-3 p-5 sm:p-6">
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge variant="outline">{KIND_LABELS[kind]}</Badge>
-                <Badge
-                  className={cn("border", getBadgeStatusClass(report.status))}
-                >
-                  {report.status}
-                </Badge>
-              </div>
+              <div className="space-y-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h1 className="text-2xl font-semibold tracking-tight">
+                    {getReportCode(report, kind)}
+                  </h1>
+                  <ReportStatusBadge status={report.status} />
+                </div>
 
-              <h1 className="text-2xl font-semibold tracking-tight">
-                {getReportCode(report, kind)}
-              </h1>
+                <p className="text-sm text-muted-foreground">
+                  {KIND_LABELS[kind]}
+                </p>
+              </div>
 
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-muted-foreground">
                 <span className="inline-flex items-center gap-1.5">
@@ -153,6 +159,14 @@ export function ReportDetailView({
                     {obligatoryReport.flight_number
                       ? ` · Vuelo ${obligatoryReport.flight_number}`
                       : ""}
+                  </span>
+                ) : null}
+
+                {report.status?.toUpperCase() === "CERRADO" &&
+                report.close_date ? (
+                  <span className="inline-flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400">
+                    <CalendarCheck className="h-4 w-4" />
+                    Cerrado el {formatDisplayDate(report.close_date)}
                   </span>
                 ) : null}
               </div>
