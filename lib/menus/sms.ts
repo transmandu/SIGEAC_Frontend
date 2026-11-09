@@ -11,7 +11,10 @@ import {
   Shirt,
 } from "lucide-react";
 
-export function buildSmsGroup({ pathname, currentCompany }: MenuContext): Group {
+export function buildSmsGroup({
+  pathname,
+  currentCompany,
+}: MenuContext): Group {
   return {
     groupLabel: "SMS",
     moduleValue: "sms",
@@ -66,8 +69,7 @@ export function buildSmsGroup({ pathname, currentCompany }: MenuContext): Group 
             label: "General",
             roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
             active:
-              pathname ===
-              `/${currentCompany?.slug}/sms/estadisticas/general`,
+              pathname === `/${currentCompany?.slug}/sms/estadisticas/general`,
           },
           {
             href: `/${currentCompany?.slug}/sms/estadisticas/reportes_voluntarios`,
@@ -106,15 +108,30 @@ export function buildSmsGroup({ pathname, currentCompany }: MenuContext): Group 
       {
         href: "",
         label: "Aseguramiento de la Calidad",
-        active: pathname.includes(`/${currentCompany?.slug}/sms/aseguramiento_calidad`),
+        active: pathname.includes(
+          `/${currentCompany?.slug}/sms/aseguramiento_calidad`,
+        ),
         icon: ShieldCheck,
-        roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
-        requiresOmac: false,
+        roles: [
+          "SUPERUSER",
+          "JEFE_SMS",
+          "ANALISTA_SMS",
+          "COORDINADOR_SMS",
+          "GERENTE_SMS",
+          "PRESIDENCIA",
+        ],
         submenus: [
           {
             href: `/${currentCompany?.slug}/sms/aseguramiento_calidad/gestion_de_cambio`,
             label: "Gestion de Cambio",
-            roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
+            roles: [
+              "SUPERUSER",
+              "JEFE_SMS",
+              "ANALISTA_SMS",
+              "COORDINADOR_SMS",
+              "GERENTE_SMS",
+              "PRESIDENCIA",
+            ],
             active:
               pathname ===
               `/${currentCompany?.slug}/sms/aseguramiento_calidad/gestion_de_cambio`,
@@ -126,13 +143,26 @@ export function buildSmsGroup({ pathname, currentCompany }: MenuContext): Group 
         label: "Promoción de la seguridad operacional",
         active: pathname.includes(`/${currentCompany?.slug}/sms/promocion`),
         icon: CalendarClock,
-        roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
-        requiresOmac: false,
+        roles: [
+          "SUPERUSER",
+          "JEFE_SMS",
+          "ANALISTA_SMS",
+          "COORDINADOR_SMS",
+          "GERENTE_SMS",
+          "PRESIDENCIA",
+        ],
         submenus: [
           {
             href: `/${currentCompany?.slug}/sms/promocion/actividades/calendario`,
             label: "Calendario Actividades",
-            roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
+            roles: [
+              "SUPERUSER",
+              "JEFE_SMS",
+              "ANALISTA_SMS",
+              "COORDINADOR_SMS",
+              "GERENTE_SMS",
+              "PRESIDENCIA",
+            ],
             active:
               pathname ===
               `/${currentCompany?.slug}/sms/promocion/actividades/calendario`,
@@ -140,15 +170,22 @@ export function buildSmsGroup({ pathname, currentCompany }: MenuContext): Group 
           {
             href: `/${currentCompany?.slug}/sms/promocion/actividades`,
             label: "Actividades",
-            roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
+            roles: [
+              "SUPERUSER",
+              "JEFE_SMS",
+              "ANALISTA_SMS",
+              "COORDINADOR_SMS",
+              "GERENTE_SMS",
+              "PRESIDENCIA",
+            ],
             active:
-              pathname ===
-              `/${currentCompany?.slug}/sms/promocion/actividades`,
+              pathname === `/${currentCompany?.slug}/sms/promocion/actividades`,
           },
           {
             href: `/${currentCompany?.slug}/sms/promocion/capacitacion_personal`,
             label: "Capacitación",
             roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
+            requiresOmac: false,
             active:
               pathname ===
               `/${currentCompany?.slug}/sms/promocion/capacitacion_personal`,
@@ -156,7 +193,14 @@ export function buildSmsGroup({ pathname, currentCompany }: MenuContext): Group 
           {
             href: `/${currentCompany?.slug}/sms/promocion/minutas_reunion`,
             label: "Minutas de Reunión",
-            roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
+            roles: [
+              "SUPERUSER",
+              "JEFE_SMS",
+              "ANALISTA_SMS",
+              "COORDINADOR_SMS",
+              "GERENTE_SMS",
+              "PRESIDENCIA",
+            ],
             active:
               pathname ===
               `/${currentCompany?.slug}/sms/promocion/minutas_reunion`,
@@ -203,7 +247,8 @@ export function buildSmsGroup({ pathname, currentCompany }: MenuContext): Group 
             href: `/${currentCompany?.slug}/sms/ajustes/encuesta`,
             label: "Encuesta",
             roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
-            active: pathname === `/${currentCompany?.slug}/sms/ajustes/encuesta`,
+            active:
+              pathname === `/${currentCompany?.slug}/sms/ajustes/encuesta`,
           },
           {
             href: `/${currentCompany?.slug}/sms/ajustes/boletin`,
@@ -221,12 +266,26 @@ export function buildSmsGroup({ pathname, currentCompany }: MenuContext): Group 
         ),
         icon: ShieldAlert,
         requiresOmac: true,
-        roles: ["COORDINADOR_SMS", "GERENTE_SMS", "SUPERUSER", "PRESIDENCIA", "COORDINADOR_SMS", "ANALISTA_SMS"],
+        roles: [
+          "COORDINADOR_SMS",
+          "GERENTE_SMS",
+          "SUPERUSER",
+          "PRESIDENCIA",
+          "COORDINADOR_SMS",
+          "ANALISTA_SMS",
+        ],
         submenus: [
           {
             href: `/${currentCompany?.slug}/sms/aeronautical/gestion_de_riesgos/reportes`,
             label: "Reportes",
-            roles: ["COORDINADOR_SMS", "GERENTE_SMS", "SUPERUSER", "PRESIDENCIA", "COORDINADOR_SMS", "ANALISTA_SMS"],
+            roles: [
+              "COORDINADOR_SMS",
+              "GERENTE_SMS",
+              "SUPERUSER",
+              "PRESIDENCIA",
+              "COORDINADOR_SMS",
+              "ANALISTA_SMS",
+            ],
             active:
               pathname ===
               `/${currentCompany?.slug}/sms/aeronautical/gestion_de_riesgos/reportes`,
@@ -234,7 +293,14 @@ export function buildSmsGroup({ pathname, currentCompany }: MenuContext): Group 
           {
             href: `/${currentCompany?.slug}/sms/aeronautical/gestion_de_riesgos/identificacion`,
             label: "Identificacion de Peligros",
-            roles: ["COORDINADOR_SMS", "GERENTE_SMS", "SUPERUSER", "PRESIDENCIA", "COORDINADOR_SMS", "ANALISTA_SMS"],
+            roles: [
+              "COORDINADOR_SMS",
+              "GERENTE_SMS",
+              "SUPERUSER",
+              "PRESIDENCIA",
+              "COORDINADOR_SMS",
+              "ANALISTA_SMS",
+            ],
             active:
               pathname ===
               `/${currentCompany?.slug}/sms/aeronautical/gestion_de_riesgos/identificacion`,
@@ -242,7 +308,14 @@ export function buildSmsGroup({ pathname, currentCompany }: MenuContext): Group 
           {
             href: `/${currentCompany?.slug}/sms/aeronautical/gestion_de_riesgos/evaluacion_mitigacion`,
             label: "Eval y Mitigacion",
-            roles: ["COORDINADOR_SMS", "GERENTE_SMS", "SUPERUSER", "PRESIDENCIA", "COORDINADOR_SMS", "ANALISTA_SMS"],
+            roles: [
+              "COORDINADOR_SMS",
+              "GERENTE_SMS",
+              "SUPERUSER",
+              "PRESIDENCIA",
+              "COORDINADOR_SMS",
+              "ANALISTA_SMS",
+            ],
             active:
               pathname ===
               `/${currentCompany?.slug}/sms/aeronautical/gestion_de_riesgos/evaluacion_mitigacion`,
