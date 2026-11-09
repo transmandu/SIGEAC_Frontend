@@ -1,3 +1,10 @@
+## v4.95.0 — 2026-11-09
+
+- Merge pull request #387 from transmandu/fix/toolbox-creation-error
+- refactor(responsive): adapt counter and cargo modules across mobile and desktop
+- feat(counter): add WhatsApp flight import modal and cargo manifest linking
+- fix(ui): prevent Radix Select layout shift and dropdown height collapse
+
 ## v4.94.0 — 2026-11-09
 
 - Merge pull request #386 from transmandu/fix/toolbox-creation-error
