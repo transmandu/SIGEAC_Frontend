@@ -89,6 +89,7 @@ export function CreateToolBoxForm({ onClose, initialData }: FormProps) {
       created_by: initialData?.created_by || "",
       delivered_by: initialData?.delivered_by || "",
       employee_dni: initialData?.employee?.dni || "",
+      tool_id: [],
     },
   })
 
@@ -109,6 +110,7 @@ export function CreateToolBoxForm({ onClose, initialData }: FormProps) {
   const onSubmit = async (data: FormSchemaType) => {
     const formattedData = {
       ...data,
+      location_id: selectedStation ? Number(selectedStation) : undefined,
       created_by: `${user?.first_name} ${user?.last_name}`,
       delivered_by: `${user?.first_name} ${user?.last_name}`,
     }
