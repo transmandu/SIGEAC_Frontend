@@ -2,7 +2,12 @@ import axiosInstance from "@/lib/axios";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { notifyError } from "@/lib/notify-error";
-import type { CreatePaxFlightInput, PaxFlight } from "@/types";
+import type {
+  CreatePaxFlightInput,
+  PaxFlight,
+  WhatsAppParseResult,
+  WhatsAppParsedFlight,
+} from "@/types";
 
 export const usePaxFlights = (
   company: string,
@@ -64,9 +69,17 @@ export const useAvailableCargoManifests = (
   month: number,
   year: number,
   aircraftId?: number | null,
+  currentFlightId?: number | null,
 ) => {
   return useQuery({
-    queryKey: ["available-cargo-manifests", company, month, year, aircraftId],
+    queryKey: [
+      "available-cargo-manifests",
+      company,
+      month,
+      year,
+      aircraftId,
+      currentFlightId,
+    ],
     queryFn: async () => {
       const response = await axiosInstance.get(
         `/${company}/pax-flights/available-cargo-manifests`,
@@ -75,6 +88,7 @@ export const useAvailableCargoManifests = (
             month,
             year,
             ...(aircraftId ? { aircraft_id: aircraftId } : {}),
+            ...(currentFlightId ? { current_flight_id: currentFlightId } : {}),
           },
         },
       );
@@ -229,4 +243,44 @@ export const downloadPaxFlightPdf = async (
   } catch (error) {
     notifyError(error, { action: "descargar el PDF del manifiesto" });
   }
+};
+
+export const useParseWhatsApp = (company: string) => {
+  return useMutation({
+    mutationFn: async (text: string): Promise<WhatsAppParseResult> => {
+      const response = await axiosInstance.post(
+        `/${company}/pax-flights/parse-whatsapp`,
+        { text },
+      );
+      return response.data;
+    },
+    onError: (error) => {
+      notifyError(error, { action: "analizar la lista de WhatsApp" });
+    },
+  });
+};
+
+export const useImportWhatsAppDrafts = (company: string) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (payload: {
+      flight_date: string;
+      route?: string;
+      flights: WhatsAppParsedFlight[];
+    }): Promise<{ message: string; flights: PaxFlight[] }> => {
+      const response = await axiosInstance.post(
+        `/${company}/pax-flights/import-whatsapp-drafts`,
+        payload,
+      );
+      return response.data;
+    },
+    onSuccess: (data) => {
+      toast.success(data.message);
+      queryClient.invalidateQueries({ queryKey: ["pax-flights", company] });
+    },
+    onError: (error) => {
+      notifyError(error, { action: "guardar borradores de vuelos" });
+    },
+  });
 };
