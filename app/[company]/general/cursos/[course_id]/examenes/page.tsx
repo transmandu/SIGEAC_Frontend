@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { CreateExamForm } from "@/components/forms/aerolinea/sms/CreateExamForm";
+import { BulkCreateCourseExamForm } from "@/components/forms/general/examenes/BulkCreateCourseExamForm";
 import { useGetCourseExamAttendance } from "@/hooks/curso/useGetCourseExamAttendance";
 import { useGetCourseExams } from "@/hooks/curso/useGetCourseExams";
 import { useGetCourseById } from "@/hooks/curso/useGetCourseById";
@@ -25,10 +26,11 @@ import {
   FileText,
   Loader2,
   Trash2,
+  UploadCloud,
   Users,
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import {
   Select,
   SelectContent,
@@ -75,6 +77,7 @@ const ExamAttendanceRow = ({
 
   const { updateCourseExamResult } = useUpdateCourseExamResult();
   const isAttended = attendance.attended === true || attendance.attended === 1;
+  const canEdit = !readOnly && isAttended;
 
   const handleSave = () => {
     const formData = new FormData();
@@ -125,14 +128,14 @@ const ExamAttendanceRow = ({
             placeholder="Ej: 85"
             className="w-24"
             value={score}
-            disabled={readOnly}
+            disabled={!canEdit}
             onChange={(e) => setScore(e.target.value)}
           />
         </td>
         <td className="px-6 py-4 whitespace-nowrap text-sm">
           <Switch
             checked={approved}
-            disabled={readOnly}
+            disabled={!canEdit}
             onCheckedChange={setApproved}
           />
         </td>
@@ -149,32 +152,29 @@ const ExamAttendanceRow = ({
               No asistió al curso, no puede subir examen
             </span>
           )}
-          {isAttended &&
-            attendance.document_path &&
-            documentEndpoint &&
-            !file && (
-              <span className="flex items-center gap-1 text-[10px] text-blue-500 mt-1 font-medium">
-                Documento guardado
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-5 w-5"
-                  onClick={() =>
-                    setPreviewDoc({
-                      endpoint: documentEndpoint,
-                      fileName: `examen_${attendance.employee_dni}`,
-                      title: `Examen - ${employeeName}`,
-                    })
-                  }
-                >
-                  <Eye className="size-3.5" />
-                </Button>
-              </span>
-            )}
+          {attendance.document_path && documentEndpoint && !file && (
+            <span className="flex items-center gap-1 text-[10px] text-blue-500 mt-1 font-medium">
+              Documento guardado
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-5 w-5"
+                onClick={() =>
+                  setPreviewDoc({
+                    endpoint: documentEndpoint,
+                    fileName: `examen_${attendance.employee_dni}`,
+                    title: `Examen - ${employeeName}`,
+                  })
+                }
+              >
+                <Eye className="size-3.5" />
+              </Button>
+            </span>
+          )}
         </td>
         <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
-          {!readOnly && (
+          {canEdit && (
             <Button
               size="sm"
               onClick={handleSave}
@@ -213,6 +213,8 @@ const ManageExamsPage = () => {
   const [selectedExamId, setSelectedExamId] = useState<string>("");
   const [openCreateExam, setOpenCreateExam] = useState(false);
   const [openDeleteExam, setOpenDeleteExam] = useState(false);
+  const [openBulkExam, setOpenBulkExam] = useState(false);
+  const [bulkRunning, setBulkRunning] = useState(false);
 
   const { deleteCourseExam } = useDeleteCourseExam();
 
@@ -254,6 +256,14 @@ const ManageExamsPage = () => {
     setSelectedExamId("");
     setOpenDeleteExam(false);
   };
+
+  const handleBulkOpenChange = useCallback(
+    (next: boolean) => {
+      if (!next && bulkRunning) return;
+      setOpenBulkExam(next);
+    },
+    [bulkRunning],
+  );
 
   return (
     <ContentLayout title="Gestionar Exámenes">
@@ -344,12 +354,24 @@ const ManageExamsPage = () => {
 
             {selectedExam && (
               <div className="border border-gray-300 dark:bg-gray-800 p-6 rounded-lg">
-                <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center justify-between gap-3 mb-6">
                   <h2 className="text-xl font-semibold flex items-center gap-2">
                     <Users className="w-6 h-6 text-blue-600" />
                     Resultados de los Empleados
                   </h2>
-                  <Badge>{attendanceList?.length || 0} inscritos</Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge>{attendanceList?.length || 0} inscritos</Badge>
+                    {!isCourseClosed && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setOpenBulkExam(true)}
+                      >
+                        <UploadCloud className="w-4 h-4 mr-2" />
+                        Carga masiva
+                      </Button>
+                    )}
+                  </div>
                 </div>
 
                 {isAttendanceListLoading ? (
@@ -429,6 +451,29 @@ const ManageExamsPage = () => {
             courseId={course_id}
             onClose={() => setOpenCreateExam(false)}
           />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={openBulkExam} onOpenChange={handleBulkOpenChange}>
+        <DialogContent className="flex flex-col max-w-2xl m-2">
+          <DialogHeader>
+            <DialogTitle className="text-center font-bold">
+              Cargar exámenes en lote
+            </DialogTitle>
+            <DialogDescription className="text-center">
+              Asigna cada archivo a un empleado inscrito usando el DNI del
+              nombre.
+            </DialogDescription>
+          </DialogHeader>
+          {selectedExam && (
+            <BulkCreateCourseExamForm
+              examId={selectedExam.id.toString()}
+              examName={selectedExam.name}
+              courseId={course_id}
+              onClose={() => setOpenBulkExam(false)}
+              onRunningChange={setBulkRunning}
+            />
+          )}
         </DialogContent>
       </Dialog>
 
