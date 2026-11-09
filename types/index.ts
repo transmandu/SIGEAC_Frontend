@@ -2291,6 +2291,40 @@ export interface SMSCertificateImport {
   started_at: string | null;
   finished_at: string | null;
 }
+
+export type CourseExamImportStatus =
+  "queued" | "running" | "completed" | "failed";
+
+export interface CourseExamImportResult {
+  /** Nombre original del archivo. */
+  file: string;
+  /** DNI leído del nombre del archivo. */
+  dni: string | null;
+  /** Empleado al que se asignó, si se encontró. */
+  employee: string | null;
+  status: "imported" | "failed";
+  /** Motivo del fallo, solo cuando `status` es `failed`. */
+  message: string | null;
+}
+
+export interface CourseExamImport {
+  id: string;
+  status: CourseExamImportStatus;
+  course_exam_id: number;
+  exam_name: string;
+  course_name: string;
+  total: number;
+  processed: number;
+  imported: number;
+  failed: number;
+  percentage: number;
+  results: CourseExamImportResult[];
+  error: string | null;
+  created_at: string;
+  updated_at: string;
+  started_at: string | null;
+  finished_at: string | null;
+}
 export interface ShippingAgency {
   id: number;
   name: string;
