@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,7 +33,12 @@ import { useGetAircrafts } from "@/hooks/aerolinea/aeronaves/useGetAircrafts";
 import { useGetExternalAircraftSuggestions } from "@/hooks/operaciones/cargo/useGetExternalAircraftSuggestions";
 import { useGetPilots } from "@/hooks/sms/useGetPilots";
 import { useGetExternalPilots } from "@/hooks/operaciones/cargo/useGetExternalPilots";
-import { FlightType, PaxFlight, PaxPassenger } from "@/types";
+import {
+  AvailableCargoManifestSummary,
+  FlightType,
+  PaxFlight,
+  PaxPassenger,
+} from "@/types";
 import {
   Loader2,
   Plane,
@@ -41,8 +46,11 @@ import {
   Layers,
   Calendar,
   UserCheck,
+  FileText,
+  Eye,
 } from "lucide-react";
 import { toast } from "sonner";
+import { PdfEndpointPreviewDialog } from "@/components/dialogs/shared/PdfEndpointPreviewDialog";
 
 interface PaxFlightFormProps {
   company: string;
@@ -121,16 +129,47 @@ export const PaxFlightForm = ({
           id_number: p.id_number,
           lodge_type: p.lodge_type,
           agency: p.agency || "",
-          luggage_weight: p.luggage_weight || 0,
-          body_weight: p.body_weight || 0,
+          luggage_weight:
+            p.luggage_weight != null ? String(p.luggage_weight) : "",
+          body_weight: p.body_weight != null ? Number(p.body_weight) : null,
           payment_method: p.payment_method || null,
-          amount_paid: p.amount_paid || null,
-          return_flight: p.return_flight || null,
+          amount_paid: p.amount_paid != null ? Number(p.amount_paid) : null,
+          return_flight:
+            p.return_flight != null ? Boolean(p.return_flight) : false,
         }));
       }
       return [];
     },
   );
+
+  const [importedNotice, setImportedNotice] = useState<string | null>(null);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+
+  useEffect(() => {
+    if (!isEditing && !initialData && typeof window !== "undefined") {
+      const stored = sessionStorage.getItem("sigeac_prefill_pax_flight");
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          if (parsed.flightType) {
+            setFlightType(parsed.flightType);
+          }
+          if (
+            Array.isArray(parsed.passengers) &&
+            parsed.passengers.length > 0
+          ) {
+            setPassengers(parsed.passengers);
+          }
+          if (parsed.source) {
+            setImportedNotice(parsed.source);
+          }
+          sessionStorage.removeItem("sigeac_prefill_pax_flight");
+        } catch {
+          // ignore parsing error
+        }
+      }
+    }
+  }, [isEditing, initialData]);
 
   // Queries externas
   const { data: aircrafts } = useGetAircrafts(company);
@@ -144,28 +183,82 @@ export const PaxFlightForm = ({
     month,
     year,
     aircraftId,
+    initialData?.id,
   );
 
   // Peso total del vuelo (pasajeros × 100 kg + carga del manifiesto)
   const PAX_WEIGHT_KG = 100;
-  const MAX_WEIGHT_KG = 1800;
+  const MAX_PAX_SEATS = 19;
+
+  const selectedCargoManifest = useMemo(() => {
+    if (!cargoManifestId || !availableManifests) return null;
+    return (
+      (
+        availableManifests as (AvailableCargoManifestSummary & {
+          items?: any[];
+        })[]
+      ).find((m) => m.id === cargoManifestId) || null
+    );
+  }, [cargoManifestId, availableManifests]);
+
+  const manifestDetails = useMemo(() => {
+    if (!cargoManifestId) return null;
+    if (selectedCargoManifest) {
+      return {
+        number: selectedCargoManifest.manifest_number,
+        aircraft: selectedCargoManifest.aircraft_label || "No asignada",
+        totalWeight: Number(selectedCargoManifest.total_weight ?? 0),
+        itemsCount:
+          selectedCargoManifest.items_count ??
+          selectedCargoManifest.items?.length ??
+          0,
+        breakdown: selectedCargoManifest.client_breakdown || {},
+      };
+    }
+    if (initialData?.cargo_manifest_id === cargoManifestId) {
+      const breakdown = initialData.cargo_breakdown || {};
+      const total = Object.values(breakdown).reduce((a, b) => a + Number(b), 0);
+      return {
+        number:
+          initialData.cargo_manifest_number ||
+          `#${initialData.cargo_manifest_id}`,
+        aircraft:
+          initialData.aircraft_label ||
+          initialData.external_aircraft ||
+          "No asignada",
+        totalWeight: total,
+        itemsCount: undefined,
+        breakdown,
+      };
+    }
+    return null;
+  }, [cargoManifestId, selectedCargoManifest, initialData]);
 
   const passengerWeight = passengers.length * PAX_WEIGHT_KG;
   const cargoWeight = (() => {
     if (!cargoManifestId) return 0;
-    const manifest = availableManifests?.find(
-      (m: any) => m.id === cargoManifestId,
-    );
-    if (manifest) return Number(manifest.total_weight ?? 0);
+    if (selectedCargoManifest) {
+      return Number(selectedCargoManifest.total_weight ?? 0);
+    }
     if (initialData?.cargo_manifest_id === cargoManifestId) {
       const breakdown = initialData?.cargo_breakdown ?? {};
-      return Object.values(breakdown).reduce((a, b) => a + b, 0);
+      return Object.values(breakdown).reduce((a, b) => a + Number(b), 0);
     }
     return 0;
   })();
-  const totalWeight = passengerWeight + cargoWeight;
-  const availableWeight = MAX_WEIGHT_KG - totalWeight;
-  const isOverweight = totalWeight > MAX_WEIGHT_KG;
+  const totalWeight = Math.round((passengerWeight + cargoWeight) * 100) / 100;
+
+  // Si el vuelo es exclusivamente de pasajeros (PAX sin carga), la aeronave admite hasta 19 pasajeros (1900 kg).
+  // Si lleva carga (Híbrido o Solo Carga), el peso máximo de la aeronave es 1800 kg.
+  const isPurePax = flightType === "PAX" && cargoWeight === 0;
+  const maxWeightKg = isPurePax ? 1900 : 1800;
+
+  const availableWeight = Math.round((maxWeightKg - totalWeight) * 100) / 100;
+  const excessWeight = Math.round((totalWeight - maxWeightKg) * 100) / 100;
+  const exceedsSeats =
+    passengers.length > MAX_PAX_SEATS && flightType !== "CARGO_ONLY";
+  const exceedsWeight = totalWeight > maxWeightKg;
+  const isOverweight = exceedsSeats || exceedsWeight;
 
   // Mutations
   const createMutation = useCreatePaxFlight(company);
@@ -228,6 +321,20 @@ export const PaxFlightForm = ({
       }
     }
 
+    if (exceedsSeats) {
+      toast.error(
+        `La aeronave solo tiene capacidad para ${MAX_PAX_SEATS} pasajeros.`,
+      );
+      return;
+    }
+
+    if (exceedsWeight) {
+      toast.error(
+        `El peso total (${totalWeight} kg) supera la capacidad máxima de la aeronave (${maxWeightKg} kg).`,
+      );
+      return;
+    }
+
     const payload = {
       flight_date: flightDate,
       route: route.trim().toUpperCase(),
@@ -260,11 +367,29 @@ export const PaxFlightForm = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+    <form
+      onSubmit={handleSubmit}
+      className="flex flex-col gap-6 w-full max-w-full"
+    >
+      {importedNotice && (
+        <div className="rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-900 flex items-center justify-between dark:border-green-900 dark:bg-green-950/30 dark:text-green-300">
+          <div className="flex items-center gap-2">
+            <span className="font-semibold">📋 Datos importados:</span>
+            <span>{importedNotice}</span>
+          </div>
+          <Badge
+            variant="outline"
+            className="bg-green-100 text-green-800 border-green-300 dark:bg-green-900/50 dark:text-green-200"
+          >
+            Pre-cargado
+          </Badge>
+        </div>
+      )}
+
       {/* Cabecera del Vuelo */}
       <Card>
         <CardHeader>
-          <div className="flex justify-between items-start">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
             <div>
               <CardTitle className="text-xl">
                 Datos Principales del Vuelo
@@ -273,7 +398,10 @@ export const PaxFlightForm = ({
                 Información técnica y operativa de la aeronave y tripulación.
               </CardDescription>
             </div>
-            <Badge variant="outline" className="text-sm font-mono py-1 px-3">
+            <Badge
+              variant="outline"
+              className="text-sm font-mono py-1 px-3 self-start sm:self-auto"
+            >
               Código: {initialData?.flight_code || nextCode || "TMD-XXXX"}
             </Badge>
           </div>
@@ -529,7 +657,7 @@ export const PaxFlightForm = ({
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
-            <div className="max-w-md flex flex-col gap-2">
+            <div className="w-full max-w-md flex flex-col gap-2">
               <Label htmlFor="cargo_manifest">Manifiesto de Carga *</Label>
               <Select
                 value={cargoManifestId ? String(cargoManifestId) : ""}
@@ -565,30 +693,83 @@ export const PaxFlightForm = ({
               </Select>
             </div>
 
-            {/* Desglose previo de carga si existe en initialData */}
-            {initialData?.cargo_breakdown &&
-              Object.keys(initialData.cargo_breakdown).length > 0 && (
-                <div className="bg-background/80 rounded border p-3 mt-2">
-                  <span className="text-xs font-semibold block mb-1 text-muted-foreground uppercase">
-                    Desglose de clientes en este manifiesto:
-                  </span>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
-                    {Object.entries(initialData.cargo_breakdown).map(
-                      ([client, weight]) => (
-                        <div
-                          key={client}
-                          className="flex justify-between border-b pb-0.5"
-                        >
-                          <span className="font-medium">{client}:</span>
-                          <span className="font-mono text-muted-foreground">
-                            {weight} KG
-                          </span>
-                        </div>
-                      ),
-                    )}
+            {/* Vista previa y cotejo del Manifiesto de Carga seleccionado contra hoja física */}
+            {manifestDetails && (
+              <div className="rounded-lg border border-amber-300 dark:border-amber-800 bg-amber-50/70 dark:bg-amber-950/20 p-4 space-y-3 mt-1">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-200 dark:border-amber-900 pb-2">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-amber-700 dark:text-amber-400" />
+                    <span className="font-semibold text-sm text-foreground">
+                      Cotejo de Manifiesto Físico: N° {manifestDetails.number}
+                    </span>
+                  </div>
+                  <Badge
+                    variant="outline"
+                    className="text-xs bg-background border-amber-300 dark:border-amber-700 font-mono"
+                  >
+                    Aeronave: {manifestDetails.aircraft}
+                  </Badge>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
+                  <div>
+                    <span className="text-muted-foreground block">
+                      Peso Total Carga:
+                    </span>
+                    <span className="font-bold text-sm text-foreground">
+                      {manifestDetails.totalWeight} KG
+                    </span>
+                  </div>
+                  {manifestDetails.itemsCount !== undefined && (
+                    <div>
+                      <span className="text-muted-foreground block">
+                        Bultos / Ítems:
+                      </span>
+                      <span className="font-medium text-foreground">
+                        {manifestDetails.itemsCount} ítems
+                      </span>
+                    </div>
+                  )}
+                  <div>
+                    <span className="text-muted-foreground block">
+                      Clientes Registrados:
+                    </span>
+                    <span className="font-medium text-foreground">
+                      {Object.keys(manifestDetails.breakdown).length} cliente(s)
+                    </span>
                   </div>
                 </div>
-              )}
+
+                {Object.keys(manifestDetails.breakdown).length > 0 && (
+                  <div className="pt-2 border-t border-amber-200/70 dark:border-amber-900/50">
+                    <span className="text-xs font-semibold block mb-1.5 text-muted-foreground uppercase tracking-wider">
+                      Desglose de clientes y pesos (verificar contra la hoja
+                      física):
+                    </span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 text-xs">
+                      {Object.entries(manifestDetails.breakdown).map(
+                        ([client, weight]) => (
+                          <div
+                            key={client}
+                            className="flex justify-between items-center bg-background/80 rounded px-2.5 py-1.5 border border-border/60"
+                          >
+                            <span
+                              className="font-medium truncate max-w-37.5"
+                              title={client}
+                            >
+                              {client}:
+                            </span>
+                            <span className="font-mono font-semibold text-amber-700 dark:text-amber-400">
+                              {weight} KG
+                            </span>
+                          </div>
+                        ),
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
@@ -629,7 +810,7 @@ export const PaxFlightForm = ({
                   </span>
                 )}
                 <span className="font-bold border-l pl-4">
-                  Total: {totalWeight} / {MAX_WEIGHT_KG} kg
+                  Total: {totalWeight} / {maxWeightKg} kg
                 </span>
               </div>
               <span
@@ -638,7 +819,9 @@ export const PaxFlightForm = ({
                 }`}
               >
                 {isOverweight
-                  ? `⚠ Exceso: ${totalWeight - MAX_WEIGHT_KG} kg`
+                  ? exceedsSeats
+                    ? `⚠ Asientos excedidos: máx ${MAX_PAX_SEATS} pax`
+                    : `⚠ Exceso: ${excessWeight} kg`
                   : `Disponible: ${availableWeight} kg`}
               </span>
             </div>
@@ -665,21 +848,68 @@ export const PaxFlightForm = ({
         </Card>
       )}
 
+      {/* Alerta de Sobrepeso o Asientos Excedidos */}
+      {isOverweight && (
+        <div className="rounded-lg border border-destructive bg-destructive/10 p-3.5 text-sm text-destructive font-medium flex items-center justify-between shadow-sm">
+          <div className="flex items-center gap-2">
+            <span className="text-base font-bold">⚠</span>
+            <span>
+              {exceedsSeats
+                ? `Capacidad de asientos excedida: La aeronave tiene capacidad máxima de ${MAX_PAX_SEATS} pasajeros (actualmente tiene ${passengers.length}).`
+                : `Capacidad excedida: El peso total (${totalWeight} kg) supera el límite máximo de ${maxWeightKg} kg por ${excessWeight} kg. Ajuste los pasajeros o el manifiesto de carga.`}
+            </span>
+          </div>
+          <Badge
+            variant="destructive"
+            className="uppercase text-[11px] tracking-wide"
+          >
+            Guardado bloqueado
+          </Badge>
+        </div>
+      )}
+
       {/* Acciones */}
-      <div className="flex justify-end items-center gap-3 pt-4 border-t">
+      <div className="flex flex-col-reverse sm:flex-row sm:justify-end items-stretch sm:items-center gap-3 pt-4 border-t">
+        {isEditing && initialData?.id && (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setIsPreviewOpen(true)}
+            className="w-full sm:w-auto text-sky-600 border-sky-200 hover:bg-sky-50 dark:border-sky-900 dark:hover:bg-sky-950/40"
+            title="Previsualizar el diseño actual del PDF sin salir"
+          >
+            <Eye className="h-4 w-4 mr-2" /> Previsualizar PDF
+          </Button>
+        )}
         <Button
           type="button"
           variant="outline"
+          className="w-full sm:w-auto"
           onClick={() => router.push(`/${company}/operaciones/counter`)}
           disabled={isSubmitting}
         >
           Cancelar
         </Button>
-        <Button type="submit" disabled={isSubmitting}>
+        <Button
+          type="submit"
+          className="w-full sm:w-auto"
+          disabled={isSubmitting || isOverweight}
+        >
           {isSubmitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
           {isEditing ? "Guardar Cambios" : "Emitir Manifiesto"}
         </Button>
       </div>
+
+      {isEditing && initialData?.id && (
+        <PdfEndpointPreviewDialog
+          open={isPreviewOpen}
+          onOpenChange={setIsPreviewOpen}
+          endpoint={`/${company}/pax-flights/${initialData.id}/pdf`}
+          fileName={`MANIFIESTO_PAX_${initialData.flight_code}`}
+          title={`Vista Previa — Manifiesto ${initialData.flight_code}`}
+          description="Previsualización en tiempo real del documento PDF."
+        />
+      )}
     </form>
   );
 };

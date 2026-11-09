@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -19,9 +20,12 @@ import {
   downloadPaxFlightPdf,
 } from "@/actions/counter/actions";
 import { useAuth } from "@/contexts/AuthContext";
+import { PdfEndpointPreviewDialog } from "@/components/dialogs/shared/PdfEndpointPreviewDialog";
+import { PassengerSummaryCard } from "@/components/forms/operaciones/counter/PassengerSummaryCard";
 import {
   Loader2,
   FileDown,
+  Eye,
   Edit,
   ArrowLeft,
   Plane,
@@ -44,10 +48,14 @@ const PaxFlightDetailPage = () => {
   const { data: flight, isLoading, isError } = usePaxFlight(company, id);
   const markInFlightMutation = useMarkInFlight(company);
   const finalizeMutation = useFinalizeFlight(company);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   const userRoles = user?.roles?.map((r) => r.name) || [];
   const canWrite = userRoles.some((r) =>
     ["OPERADOR_COUNTER", "OPERADOR_CARGA", "SUPERUSER"].includes(r),
+  );
+  const isCounter = userRoles.some((r) =>
+    ["OPERADOR_COUNTER", "SUPERUSER"].includes(r),
   );
 
   if (isLoading) {
@@ -98,7 +106,7 @@ const PaxFlightDetailPage = () => {
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-2xl font-bold font-mono tracking-tight text-primary">
                   {flight.flight_code}
                 </h1>
@@ -139,7 +147,7 @@ const PaxFlightDetailPage = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {canWrite && flight.status === "BORRADOR" && (
               <Button
                 variant="outline"
@@ -160,6 +168,15 @@ const PaxFlightDetailPage = () => {
                 <CheckCircle2 className="h-4 w-4 mr-2" /> Finalizar Manifiesto
               </Button>
             )}
+
+            {/* Previsualizar PDF en modal sin descargar */}
+            <Button
+              variant="outline"
+              onClick={() => setIsPreviewOpen(true)}
+              title="Previsualizar el manifiesto de vuelo en pantalla"
+            >
+              <Eye className="h-4 w-4 mr-2" /> Previsualizar PDF
+            </Button>
 
             {flight.status === "FINALIZADO" && (
               <Button variant="outline" onClick={handleDownload}>
@@ -182,7 +199,7 @@ const PaxFlightDetailPage = () => {
         </div>
 
         {/* Información Técnica */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           <Card>
             <CardHeader className="pb-2">
               <CardDescription className="flex items-center gap-1.5">
@@ -278,53 +295,131 @@ const PaxFlightDetailPage = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="rounded-md border overflow-x-auto">
-                <table className="w-full text-xs">
+              {/* Móvil: ficha de solo lectura por pasajero. */}
+              <div className="flex flex-col gap-3 md:hidden">
+                {flight.passengers.length === 0 ? (
+                  <p className="text-sm italic text-muted-foreground">
+                    Sin pasajeros registrados.
+                  </p>
+                ) : (
+                  flight.passengers.map((pax) => (
+                    <PassengerSummaryCard
+                      key={pax.id ?? pax.seat_number}
+                      pax={pax}
+                      isCounter={isCounter}
+                    />
+                  ))
+                )}
+              </div>
+
+              {/* Tablet / escritorio: tabla original con soporte para Counter */}
+              <div className="hidden rounded-md border overflow-x-auto md:block">
+                <table
+                  className={`w-full text-sm ${isCounter ? "min-w-[1250px]" : "min-w-[850px]"}`}
+                >
                   <thead className="bg-muted/50 border-b">
                     <tr>
-                      <th className="py-2 px-2 text-center w-12 font-semibold">
+                      <th className="py-2.5 px-3 text-center w-12 font-semibold whitespace-nowrap">
                         #
                       </th>
-                      <th className="py-2 px-3 text-left font-semibold">
+                      <th className="py-2.5 px-3 text-left font-semibold whitespace-nowrap">
                         Nombre Completo
                       </th>
-                      <th className="py-2 px-2 text-center w-36 font-semibold">
+                      <th className="py-2.5 px-3 text-center w-36 font-semibold whitespace-nowrap">
                         Nacionalidad
                       </th>
-                      <th className="py-2 px-2 text-center w-36 font-semibold">
+                      <th className="py-2.5 px-3 text-center w-36 font-semibold whitespace-nowrap">
                         Cédula / ID
                       </th>
-                      <th className="py-2 px-2 text-center w-32 font-semibold">
+                      {isCounter && (
+                        <>
+                          <th className="py-2.5 px-3 text-center w-32 font-semibold whitespace-nowrap">
+                            Luggage
+                          </th>
+                          <th className="py-2.5 px-3 text-center w-24 font-semibold whitespace-nowrap">
+                            W (Kg)
+                          </th>
+                        </>
+                      )}
+                      <th className="py-2.5 px-3 text-center w-32 font-semibold whitespace-nowrap">
                         Tipo
                       </th>
-                      <th className="py-2 px-3 text-left w-40 font-semibold">
+                      <th className="py-2.5 px-3 text-left w-48 font-semibold whitespace-nowrap">
                         Agencia
                       </th>
+                      {isCounter && (
+                        <>
+                          <th className="py-2.5 px-3 text-center w-28 font-semibold whitespace-nowrap">
+                            FP
+                          </th>
+                          <th className="py-2.5 px-3 text-center w-28 font-semibold whitespace-nowrap">
+                            Monto
+                          </th>
+                          <th className="py-2.5 px-3 text-center w-20 font-semibold whitespace-nowrap">
+                            Return
+                          </th>
+                        </>
+                      )}
                     </tr>
                   </thead>
                   <tbody className="divide-y">
                     {flight.passengers.map((pax) => (
                       <tr key={pax.id} className="hover:bg-muted/30">
-                        <td className="py-2 px-2 text-center font-bold text-muted-foreground">
+                        <td className="py-2.5 px-3 text-center font-bold text-muted-foreground">
                           {pax.seat_number}
                         </td>
-                        <td className="py-2 px-3 font-semibold">
+                        <td className="py-2.5 px-3 font-semibold">
                           {pax.full_name}
                         </td>
-                        <td className="py-2 px-2 text-center">
+                        <td className="py-2.5 px-3 text-center">
                           {pax.nationality}
                         </td>
-                        <td className="py-2 px-2 text-center font-mono">
+                        <td className="py-2.5 px-3 text-center font-mono">
                           {pax.id_number}
                         </td>
-                        <td className="py-2 px-2 text-center">
-                          <Badge variant="outline" className="text-[10px]">
+                        {isCounter && (
+                          <>
+                            <td className="py-2.5 px-3 text-center uppercase font-medium">
+                              {pax.luggage_weight || "—"}
+                            </td>
+                            <td className="py-2.5 px-3 text-center font-mono">
+                              {pax.body_weight != null
+                                ? `${pax.body_weight} kg`
+                                : "—"}
+                            </td>
+                          </>
+                        )}
+                        <td className="py-2.5 px-3 text-center">
+                          <Badge variant="outline" className="text-xs">
                             {pax.lodge_type}
                           </Badge>
                         </td>
-                        <td className="py-2 px-3 text-muted-foreground">
+                        <td className="py-2.5 px-3 text-muted-foreground">
                           {pax.agency || "—"}
                         </td>
+                        {isCounter && (
+                          <>
+                            <td className="py-2.5 px-3 text-center font-mono">
+                              {pax.payment_method || "—"}
+                            </td>
+                            <td className="py-2.5 px-3 text-center font-mono font-medium">
+                              {pax.amount_paid != null
+                                ? `$${Number(pax.amount_paid).toFixed(2)}`
+                                : "—"}
+                            </td>
+                            <td className="py-2.5 px-3 text-center">
+                              {pax.return_flight ? (
+                                <Badge className="bg-sky-500/10 text-sky-600 border-sky-300 text-xs">
+                                  SÍ
+                                </Badge>
+                              ) : (
+                                <span className="text-muted-foreground text-xs">
+                                  NO
+                                </span>
+                              )}
+                            </td>
+                          </>
+                        )}
                       </tr>
                     ))}
                   </tbody>
@@ -342,6 +437,17 @@ const PaxFlightDetailPage = () => {
           </Card>
         )}
       </div>
+
+      {flight && (
+        <PdfEndpointPreviewDialog
+          open={isPreviewOpen}
+          onOpenChange={setIsPreviewOpen}
+          endpoint={`/${company}/pax-flights/${flight.id}/pdf`}
+          fileName={`MANIFIESTO_PAX_${flight.flight_code}`}
+          title={`Vista Previa — Manifiesto de Vuelo ${flight.flight_code}`}
+          description="Previsualización en tiempo real del manifiesto de pasajeros y carga generado por el sistema."
+        />
+      )}
     </ContentLayout>
   );
 };

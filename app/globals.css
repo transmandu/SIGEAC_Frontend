@@ -159,6 +159,17 @@
   }
 }
 
+/* Evita saltos de página y desplazamiento horizontal involuntario cuando Radix UI
+   (selects, dropdowns, diálogos) bloquea el scroll del body */
+html {
+  scrollbar-gutter: stable;
+}
+
+body[data-scroll-locked] {
+  --removed-body-scroll-bar-size: 0px !important;
+  margin-right: 0px !important;
+}
+
 /* En móvil los diálogos ocupan toda la pantalla y el botón del tour (que sigue
    por encima de ellos en tablet y escritorio) taparía sus acciones. Radix pone
    `data-scroll-locked` también con menús y selects, y el panel de alertas y la
