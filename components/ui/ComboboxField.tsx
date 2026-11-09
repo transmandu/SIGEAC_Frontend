@@ -26,6 +26,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { UseFormReturn, Path, FieldValues } from "react-hook-form";
+import { RequiredIndicator } from "@/components/misc/RequiredIndicator";
 
 export interface ComboboxOption {
   value: string | number;
@@ -44,6 +45,8 @@ interface ComboboxFieldProps<T extends FieldValues> {
   emptyText?: string;
   options: ComboboxOption[];
   disabled?: boolean;
+  /** Muestra el asterisco de campo obligatorio junto al rótulo. */
+  required?: boolean;
   /** Agrega una acción "Registrar nuevo …" al final de la lista */
   onCreateNew?: () => void;
   createNewLabel?: string;
@@ -65,6 +68,7 @@ export function ComboboxField<T extends FieldValues>({
   emptyText = "No se encontraron resultados.",
   options,
   disabled = false,
+  required = false,
   onCreateNew,
   createNewLabel = "Registrar nuevo",
   createNewDataTour,
@@ -83,8 +87,9 @@ export function ComboboxField<T extends FieldValues>({
 
         return (
           <FormItem className="flex flex-col">
-            <FormLabel className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <FormLabel className="flex items-center gap-0.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               {label}
+              <RequiredIndicator show={required} />
             </FormLabel>
             <Popover open={open} onOpenChange={setOpen}>
               <PopoverTrigger asChild>

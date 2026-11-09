@@ -120,10 +120,13 @@ export function buildSmsGroup({
           "GERENTE_SMS",
           "PRESIDENCIA",
         ],
+        // La ruta es única para ambos tipos de empresa: adentro, `useIsOmac`
+        // decide si se muestran los datos aeronáuticos (OMAC) o los de
+        // aerolínea. El menú no necesita distinguirlos.
         submenus: [
           {
             href: `/${currentCompany?.slug}/sms/aseguramiento_calidad/gestion_de_cambio`,
-            label: "Gestion de Cambio",
+            label: "Gestión de Cambio",
             roles: [
               "SUPERUSER",
               "JEFE_SMS",
@@ -132,9 +135,9 @@ export function buildSmsGroup({
               "GERENTE_SMS",
               "PRESIDENCIA",
             ],
-            active:
-              pathname ===
+            active: pathname.includes(
               `/${currentCompany?.slug}/sms/aseguramiento_calidad/gestion_de_cambio`,
+            ),
           },
         ],
       },

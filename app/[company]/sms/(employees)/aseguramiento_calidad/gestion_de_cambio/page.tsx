@@ -1,35 +1,38 @@
 "use client";
 
-import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Loader2 } from "lucide-react";
-import { columns } from "./columns";
-import { DataTable } from "./data-table";
+
+import { ContentLayout } from "@/components/layout/ContentLayout";
+import { useIsOmac } from "@/hooks/sistema/useIsOmac";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { useGetChangeRequests } from "@/hooks/sms/gestion_de_cambio/useGetChangeRequests";
+import { AirlineChangeRequestsView } from "./_components/airline-change-requests-view";
+import { AeronauticalChangeRequestsView } from "./_components/aeronautical-change-requests-view";
 
 const GestionDeCambioPage = () => {
   const { selectedCompany } = useCompanyStore();
-  const {
-    data: changeRequests,
-    isLoading,
-    isError,
-  } = useGetChangeRequests(selectedCompany?.slug);
+  const company = selectedCompany?.slug;
+  const { data: isOMAC, isLoading } = useIsOmac(company);
 
   return (
     <ContentLayout title="Gestión de Cambios">
-      <div className="flex flex-col gap-y-2">
-        {isLoading && (
-          <div className="flex w-full h-full justify-center items-center">
-            <Loader2 className="size-24 animate-spin mt-48" />
-          </div>
-        )}
-        {changeRequests && (
-          <DataTable columns={columns} data={changeRequests} />
-        )}
-        {isError && (
+      <div className="flex flex-col gap-2">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Gestión de Cambios
+          </h1>
           <p className="text-sm text-muted-foreground">
-            Ha ocurrido un error al cargar las solicitudes de cambio...
+            Solicitudes de cambio del sistema de gestión de seguridad.
           </p>
+        </div>
+
+        {isLoading ? (
+          <div className="flex w-full items-center justify-center py-24">
+            <Loader2 className="size-10 animate-spin text-muted-foreground" />
+          </div>
+        ) : isOMAC ? (
+          <AeronauticalChangeRequestsView company={company} />
+        ) : (
+          <AirlineChangeRequestsView company={company} />
         )}
       </div>
     </ContentLayout>
