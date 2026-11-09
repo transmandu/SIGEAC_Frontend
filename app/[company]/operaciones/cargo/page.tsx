@@ -135,7 +135,7 @@ const CargoPage = () => {
 
         <div className="flex flex-col gap-2 text-center md:text-left">
           <h1
-            className="text-4xl font-bold text-center"
+            className="break-words text-2xl font-bold sm:text-4xl text-center"
             data-tour="cargo-dashboard-title"
           >
             Módulo de Carga
@@ -146,8 +146,8 @@ const CargoPage = () => {
         </div>
 
         {/* Filtro de Mes y Año */}
-        <div className="flex justify-between bg-muted/30 p-3 rounded-lg border mt-4">
-          <div className="flex items-center gap-3">
+        <div className="mt-4 flex flex-col gap-3 rounded-lg border bg-muted/30 p-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-wrap items-center justify-center gap-3 sm:justify-start">
             <span className="text-sm font-medium text-muted-foreground">
               Período:
             </span>
@@ -160,9 +160,13 @@ const CargoPage = () => {
             />
           </div>
 
-          <div className="flex justify-end gap-2">
+          <div className="flex flex-wrap justify-center gap-2 sm:justify-end">
             {canWrite && (
-              <Button asChild data-tour="cargo-dashboard-btn-nuevo">
+              <Button
+                asChild
+                data-tour="cargo-dashboard-btn-nuevo"
+                className="w-full sm:w-auto"
+              >
                 <Link
                   href={
                     activeTab === "registered"
@@ -178,6 +182,7 @@ const CargoPage = () => {
             <Button
               data-tour="cargo-dashboard-btn-exportar"
               variant="outline"
+              className="w-full sm:w-auto"
               onClick={() => exportAll(month, year)}
               disabled={isExporting || isLoading}
             >
@@ -189,15 +194,17 @@ const CargoPage = () => {
 
         {/* Tabs de Aeronaves */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-2">
-          <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto">
+          <TabsList className="mx-auto grid h-auto w-full max-w-md grid-cols-1 gap-1 sm:grid-cols-2">
             <TabsTrigger
               value="registered"
+              className="h-auto whitespace-normal py-2 text-center"
               data-tour="cargo-dashboard-tab-registered"
             >
               Aeronaves de la Empresa ({registeredAircrafts.length})
             </TabsTrigger>
             <TabsTrigger
               value="external"
+              className="h-auto whitespace-normal py-2 text-center"
               data-tour="cargo-dashboard-tab-external"
             >
               Aeronaves Externas ({externalAircrafts.length})
