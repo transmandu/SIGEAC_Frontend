@@ -21,7 +21,8 @@ import {
   SelectGroup,
   SelectLabel,
 } from "@/components/ui/select";
-import { Loader2, Plus, Plane, Users } from "lucide-react";
+import { Loader2, Plus, Plane, Users, MessageSquare } from "lucide-react";
+import WhatsAppImportModal from "@/components/forms/operaciones/counter/WhatsAppImportModal";
 
 const CounterPage = () => {
   const params = useParams();
@@ -36,6 +37,7 @@ const CounterPage = () => {
   });
   const [filterAircraftId, setFilterAircraftId] = useState<number | null>(null);
   const [filterType, setFilterType] = useState<string>("all");
+  const [importModalOpen, setImportModalOpen] = useState<boolean>(false);
 
   const month = filterDate.getMonth() + 1;
   const year = filterDate.getFullYear();
@@ -82,27 +84,29 @@ const CounterPage = () => {
         </div>
 
         {/* Filtros superiores */}
-        <div className="flex flex-wrap items-center justify-between gap-4 bg-muted/30 p-3 rounded-lg border mt-4">
-          <div className="flex items-center gap-3">
-            <span className="text-sm font-medium text-muted-foreground">
-              Periodo:
-            </span>
-            <DayMonthYearPicker
-              date={filterDate}
-              onDateChange={setFilterDate}
-            />
+        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3 sm:gap-4 bg-muted/30 p-3 sm:p-4 rounded-lg border mt-2 sm:mt-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full xl:w-auto">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <span className="text-xs sm:text-sm font-medium text-muted-foreground whitespace-nowrap">
+                Periodo:
+              </span>
+              <DayMonthYearPicker
+                date={filterDate}
+                onDateChange={setFilterDate}
+              />
+            </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 w-full xl:w-auto">
             {/* Filtro por Aeronave */}
-            <div className="w-56">
+            <div className="w-full sm:w-52">
               <Select
                 value={filterAircraftId ? String(filterAircraftId) : "all"}
                 onValueChange={(val) =>
                   setFilterAircraftId(val === "all" ? null : Number(val))
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Todas las aeronaves" />
                 </SelectTrigger>
                 <SelectContent>
@@ -122,9 +126,9 @@ const CounterPage = () => {
             </div>
 
             {/* Filtro por Modalidad */}
-            <div className="w-48">
+            <div className="w-full sm:w-48">
               <Select value={filterType} onValueChange={setFilterType}>
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Todos los tipos" />
                 </SelectTrigger>
                 <SelectContent>
@@ -138,11 +142,22 @@ const CounterPage = () => {
           </div>
 
           {canWrite && (
-            <Button asChild>
-              <Link href={`/${company}/operaciones/counter/nuevo`}>
-                <Plus className="size-4 mr-2" /> Emitir Manifiesto
-              </Link>
-            </Button>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full xl:w-auto pt-1 xl:pt-0 border-t xl:border-t-0">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setImportModalOpen(true)}
+                className="gap-2 border-green-600/30 text-green-700 hover:bg-green-50 hover:text-green-800 dark:border-green-800 dark:text-green-400 dark:hover:bg-green-950/40 w-full sm:w-auto"
+              >
+                <MessageSquare className="size-4 text-green-600" />
+                Importar WhatsApp
+              </Button>
+              <Button asChild className="w-full sm:w-auto">
+                <Link href={`/${company}/operaciones/counter/nuevo`}>
+                  <Plus className="size-4 mr-2" /> Emitir Manifiesto
+                </Link>
+              </Button>
+            </div>
           )}
         </div>
 
@@ -158,6 +173,12 @@ const CounterPage = () => {
         ) : (
           <DataTable columns={columns} data={flights || []} />
         )}
+
+        <WhatsAppImportModal
+          open={importModalOpen}
+          onClose={() => setImportModalOpen(false)}
+          company={company}
+        />
       </div>
     </ContentLayout>
   );

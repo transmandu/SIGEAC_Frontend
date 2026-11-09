@@ -45,6 +45,7 @@ import {
   useFinalizeFlight,
   downloadPaxFlightPdf,
 } from "@/actions/counter/actions";
+import { PdfEndpointPreviewDialog } from "@/components/dialogs/shared/PdfEndpointPreviewDialog";
 
 const ActionsCell = ({
   row,
@@ -58,6 +59,7 @@ const ActionsCell = ({
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const deleteMutation = useDeletePaxFlight(company);
   const markInFlightMutation = useMarkInFlight(company);
   const finalizeMutation = useFinalizeFlight(company);
@@ -108,6 +110,16 @@ const ActionsCell = ({
           </Button>
         )}
 
+        {/* Botón Previsualizar PDF — disponible para cualquier vuelo */}
+        <Button
+          variant="ghost"
+          size="icon"
+          title="Previsualizar PDF"
+          onClick={() => setIsPreviewOpen(true)}
+        >
+          <Eye className="h-4 w-4 text-sky-600" />
+        </Button>
+
         {/* Botón PDF — solo en FINALIZADO */}
         {status === "FINALIZADO" && (
           <Button
@@ -135,6 +147,11 @@ const ActionsCell = ({
               }
             >
               <Eye className="h-4 w-4 mr-2" /> Ver Detalle
+            </DropdownMenuItem>
+
+            <DropdownMenuItem onClick={() => setIsPreviewOpen(true)}>
+              <FileText className="h-4 w-4 mr-2 text-sky-600" /> Previsualizar
+              PDF
             </DropdownMenuItem>
 
             {status === "FINALIZADO" && (
@@ -194,6 +211,15 @@ const ActionsCell = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <PdfEndpointPreviewDialog
+        open={isPreviewOpen}
+        onOpenChange={setIsPreviewOpen}
+        endpoint={`/${company}/pax-flights/${flight.id}/pdf`}
+        fileName={`MANIFIESTO_PAX_${flight.flight_code}`}
+        title={`Vista Previa — Manifiesto ${flight.flight_code}`}
+        description="Previsualización en tiempo real del documento PDF antes de descargarlo o finalizarlo."
+      />
     </>
   );
 };

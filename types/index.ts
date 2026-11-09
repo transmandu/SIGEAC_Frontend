@@ -2386,6 +2386,15 @@ export type CargoManifest = {
   items: CargoManifestItem[];
 };
 
+export type AvailableCargoManifestSummary = {
+  id: number;
+  manifest_number: string;
+  total_weight: number;
+  aircraft_label?: string | null;
+  items_count?: number;
+  client_breakdown?: Record<string, number>;
+};
+
 export type CargoManifestItem = {
   id: number;
   manifest_id: number;
@@ -2907,7 +2916,7 @@ export type UpdateChangeRequestPayload = {
 export type FlightType = "PAX" | "CARGO_ONLY" | "HYBRID";
 export type FlightStatus = "BORRADOR" | "EN_VUELO" | "FINALIZADO";
 export type LodgeType =
-  "TURISTAS" | "TURISTA" | "RESIDENTE" | "EMPLEADO" | "N/A";
+  "TURISTAS" | "TURISTA" | "PARTICULAR" | "RESIDENTE" | "EMPLEADO" | "N/A";
 
 export type PaxPassenger = {
   id?: number;
@@ -2918,7 +2927,7 @@ export type PaxPassenger = {
   id_number: string;
   lodge_type: LodgeType;
   agency?: string | null;
-  luggage_weight?: number | null;
+  luggage_weight?: string | null;
   body_weight?: number | null;
   payment_method?: string | null;
   amount_paid?: number | null;
@@ -2967,3 +2976,26 @@ export type CreatePaxFlightInput = {
   cargo_manifest_id?: number | null;
   passengers?: Omit<PaxPassenger, "id">[];
 };
+
+// ─── WhatsApp Import ────────────────────────────────────────────────────────
+
+export type WhatsAppItemType = "pax" | "frio" | "carga" | "agua";
+
+export interface WhatsAppParsedItem {
+  client: string;
+  type: WhatsAppItemType;
+  weight: number;
+  pax_count: number;
+}
+
+export interface WhatsAppParsedFlight {
+  items: WhatsAppParsedItem[];
+  total_weight: number;
+  pax_count: number;
+  cargo_weight: number;
+}
+
+export interface WhatsAppParseResult {
+  flights: WhatsAppParsedFlight[];
+  warnings: string[];
+}

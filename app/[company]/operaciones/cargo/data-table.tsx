@@ -25,12 +25,18 @@ interface DataTableProps<TData extends RowData> {
   data: TData[];
   renderSubComponent?: (props: { row: AppRow<TData> }) => React.ReactElement;
   getRowCanExpand?: (row: AppRow<TData>) => boolean;
+  /**
+   * Render alternativo para pantallas chicas. Cuando se provee, la tabla se
+   * oculta en móvil y cada fila se muestra como tarjeta.
+   */
+  renderMobileCard?: (props: { row: AppRow<TData> }) => React.ReactNode;
 }
 export function DataTable<TData extends RowData>({
   columns,
   data,
   renderSubComponent,
   getRowCanExpand,
+  renderMobileCard,
 }: DataTableProps<TData>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -48,6 +54,7 @@ export function DataTable<TData extends RowData>({
       columnFilters,
     },
   });
+  const mobileCard = renderMobileCard;
   return (
     <div data-tour="cargo-guia-tabla">
       <div className="flex items-center py-4 gap-2">
@@ -65,9 +72,17 @@ export function DataTable<TData extends RowData>({
           }
           className="max-w-sm text-center"
         />
-        <DataTableViewOptions table={table} />
+        <div className={mobileCard ? "hidden md:block" : undefined}>
+          <DataTableViewOptions table={table} />
+        </div>
       </div>
-      <div className="rounded-md border bg-background">
+      <div
+        className={
+          renderMobileCard
+            ? "hidden rounded-md border bg-background md:block"
+            : "rounded-md border bg-background"
+        }
+      >
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -126,6 +141,19 @@ export function DataTable<TData extends RowData>({
           </TableBody>
         </Table>
       </div>
+      {mobileCard && (
+        <div className="flex flex-col gap-3 md:hidden">
+          {table.getRowModel().rows?.length ? (
+            table
+              .getRowModel()
+              .rows.map((row) => <div key={row.id}>{mobileCard({ row })}</div>)
+          ) : (
+            <div className="rounded-md border bg-background py-10 text-center text-sm text-muted-foreground">
+              No hay registros creados.
+            </div>
+          )}
+        </div>
+      )}
       <div className="mt-4">
         <DataTablePagination table={table} />
       </div>
