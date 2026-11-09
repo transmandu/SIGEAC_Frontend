@@ -138,7 +138,10 @@ const ActionsCell = ({
             </DropdownMenuItem>
 
             {status === "FINALIZADO" && (
-              <DropdownMenuItem onClick={handleDownload} disabled={isDownloading}>
+              <DropdownMenuItem
+                onClick={handleDownload}
+                disabled={isDownloading}
+              >
                 <FileDown className="h-4 w-4 mr-2" /> Descargar PDF
               </DropdownMenuItem>
             )}
@@ -171,7 +174,9 @@ const ActionsCell = ({
       <AlertDialog open={isDeleting} onOpenChange={setIsDeleting}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar este manifiesto de vuelo?</AlertDialogTitle>
+            <AlertDialogTitle>
+              ¿Eliminar este manifiesto de vuelo?
+            </AlertDialogTitle>
             <AlertDialogDescription>
               Esta acción no se puede deshacer. Se eliminará el manifiesto{" "}
               <strong>{flight.flight_code}</strong> y la lista de sus pasajeros
@@ -302,9 +307,13 @@ export const getCounterColumns = (
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Pasajeros" />
     ),
-  cell: ({ row }) => {
+    cell: ({ row }) => {
       if (row.original.flight_type === "CARGO_ONLY") {
-        return <span className="text-muted-foreground text-xs italic">(Solo Carga)</span>;
+        return (
+          <span className="text-muted-foreground text-xs italic">
+            (Solo Carga)
+          </span>
+        );
       }
       const count = row.original.passengers?.length || 0;
       return <span className="font-medium">{count} pasajeros</span>;

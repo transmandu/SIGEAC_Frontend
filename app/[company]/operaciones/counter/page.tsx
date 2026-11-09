@@ -76,7 +76,8 @@ const CounterPage = () => {
             <h1 className="text-4xl font-bold">Counter y Despacho</h1>
           </div>
           <p className="text-sm text-muted-foreground italic">
-            Gestión y emisión de manifiestos diarios de pasajeros y vuelos de carga.
+            Gestión y emisión de manifiestos diarios de pasajeros y vuelos de
+            carga.
           </p>
         </div>
 

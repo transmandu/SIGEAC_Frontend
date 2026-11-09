@@ -2904,9 +2904,10 @@ export type UpdateChangeRequestPayload = {
   library_folder_paths?: string[];
 };
 
-export type FlightType = 'PAX' | 'CARGO_ONLY' | 'HYBRID';
-export type FlightStatus = 'BORRADOR' | 'EN_VUELO' | 'FINALIZADO';
-export type LodgeType = 'TURISTAS' | 'TURISTA' | 'RESIDENTE' | 'EMPLEADO' | 'N/A';
+export type FlightType = "PAX" | "CARGO_ONLY" | "HYBRID";
+export type FlightStatus = "BORRADOR" | "EN_VUELO" | "FINALIZADO";
+export type LodgeType =
+  "TURISTAS" | "TURISTA" | "RESIDENTE" | "EMPLEADO" | "N/A";
 
 export type PaxPassenger = {
   id?: number;
@@ -2964,5 +2965,5 @@ export type CreatePaxFlightInput = {
   external_first_officer_id?: number | null;
   flight_type: FlightType;
   cargo_manifest_id?: number | null;
-  passengers?: Omit<PaxPassenger, 'id'>[];
+  passengers?: Omit<PaxPassenger, "id">[];
 };

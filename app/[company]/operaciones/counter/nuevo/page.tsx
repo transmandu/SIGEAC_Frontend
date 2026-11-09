@@ -19,7 +19,8 @@ const NewPaxFlightPage = () => {
             Emisión de Manifiesto de Vuelo
           </h1>
           <p className="text-muted-foreground text-sm">
-            Complete la ficha del vuelo para generar el manifiesto oficial de pasajeros y/o carga.
+            Complete la ficha del vuelo para generar el manifiesto oficial de
+            pasajeros y/o carga.
           </p>
         </div>
 

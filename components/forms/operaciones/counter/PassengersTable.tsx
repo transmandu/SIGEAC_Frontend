@@ -35,7 +35,15 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
-import { Plus, Trash2, AlertCircle, Check, ChevronsUpDown, Globe, Building2 } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  AlertCircle,
+  Check,
+  ChevronsUpDown,
+  Globe,
+  Building2,
+} from "lucide-react";
 import { LodgeType, PaxPassenger } from "@/types";
 import { useGetClients } from "@/hooks/aerolinea/clientes/useGetClients";
 
@@ -68,11 +76,14 @@ export const PassengersTable = ({
 
   // Estados de modales para agregar nuevas opciones
   const [nationalityModalOpen, setNationalityModalOpen] = useState(false);
-  const [targetPaxIndexForNationality, setTargetPaxIndexForNationality] = useState<number | null>(null);
+  const [targetPaxIndexForNationality, setTargetPaxIndexForNationality] =
+    useState<number | null>(null);
   const [newNationalityInput, setNewNationalityInput] = useState("");
 
   const [agencyModalOpen, setAgencyModalOpen] = useState(false);
-  const [targetPaxIndexForAgency, setTargetPaxIndexForAgency] = useState<number | null>(null);
+  const [targetPaxIndexForAgency, setTargetPaxIndexForAgency] = useState<
+    number | null
+  >(null);
   const [newAgencyInput, setNewAgencyInput] = useState("");
 
   // Lista unificada de nacionalidades
@@ -82,7 +93,9 @@ export const PassengersTable = ({
       .map((p) => p.nationality?.trim().toUpperCase())
       .filter((n): n is string => Boolean(n));
 
-    return Array.from(new Set([...base, ...customNationalities, ...fromPassengers]));
+    return Array.from(
+      new Set([...base, ...customNationalities, ...fromPassengers]),
+    );
   }, [customNationalities, passengers]);
 
   // Lista unificada de agencias (clientes de la BD + personalizadas)
@@ -95,7 +108,9 @@ export const PassengersTable = ({
       .map((p) => p.agency?.trim().toUpperCase())
       .filter((a): a is string => Boolean(a));
 
-    return Array.from(new Set([...fromDb, ...customAgencies, ...fromPassengers])).sort();
+    return Array.from(
+      new Set([...fromDb, ...customAgencies, ...fromPassengers]),
+    ).sort();
   }, [clients, customAgencies, passengers]);
 
   const handleAddRow = () => {
@@ -133,7 +148,9 @@ export const PassengersTable = ({
       ...updated[index],
       [field]:
         field === "full_name" || field === "id_number" || field === "agency"
-          ? typeof value === "string" ? value.toUpperCase() : value
+          ? typeof value === "string"
+            ? value.toUpperCase()
+            : value
           : value,
     };
     onChange(updated);
@@ -189,7 +206,9 @@ export const PassengersTable = ({
   };
 
   // Detección de cédulas duplicadas
-  const ids = passengers.map((p) => p.id_number.trim().toUpperCase()).filter(Boolean);
+  const ids = passengers
+    .map((p) => p.id_number.trim().toUpperCase())
+    .filter(Boolean);
   const duplicateIds = ids.filter((id, i) => ids.indexOf(id) !== i);
 
   return (
@@ -220,7 +239,8 @@ export const PassengersTable = ({
         <div className="flex items-center gap-2 text-xs text-destructive bg-destructive/10 border border-destructive/20 p-2.5 rounded-md">
           <AlertCircle className="h-4 w-4 shrink-0" />
           <span>
-            Atención: Hay cédulas o documentos duplicados en el manifiesto ({duplicateIds.join(", ")}).
+            Atención: Hay cédulas o documentos duplicados en el manifiesto (
+            {duplicateIds.join(", ")}).
           </span>
         </div>
       )}
@@ -257,7 +277,8 @@ export const PassengersTable = ({
                   colSpan={readOnly ? 6 : 7}
                   className="py-8 text-center text-muted-foreground italic"
                 >
-                  No hay pasajeros registrados. Haga clic en &quot;Agregar Asiento&quot; para registrar uno.
+                  No hay pasajeros registrados. Haga clic en &quot;Agregar
+                  Asiento&quot; para registrar uno.
                 </td>
               </tr>
             ) : (
@@ -291,7 +312,9 @@ export const PassengersTable = ({
                       <Select
                         value={pax.nationality}
                         disabled={readOnly}
-                        onValueChange={(val) => handleNationalitySelect(index, val)}
+                        onValueChange={(val) =>
+                          handleNationalitySelect(index, val)
+                        }
                       >
                         <SelectTrigger className="h-8 text-xs text-center font-medium">
                           <SelectValue placeholder="Nacionalidad" />
@@ -299,8 +322,12 @@ export const PassengersTable = ({
                         <SelectContent>
                           <SelectGroup>
                             <SelectLabel>Opciones Principales</SelectLabel>
-                            <SelectItem value="VENEZOLANO">VENEZOLANO</SelectItem>
-                            <SelectItem value="EXTRANJERO">EXTRANJERO</SelectItem>
+                            <SelectItem value="VENEZOLANO">
+                              VENEZOLANO
+                            </SelectItem>
+                            <SelectItem value="EXTRANJERO">
+                              EXTRANJERO
+                            </SelectItem>
                             <SelectItem value="JURIDICO">JURIDICO</SelectItem>
                           </SelectGroup>
 
@@ -312,7 +339,8 @@ export const PassengersTable = ({
                               <SelectLabel>Otras Nacionalidades</SelectLabel>
                               {allNationalities
                                 .filter(
-                                  (n) => n !== "VENEZOLANO" && n !== "EXTRANJERO",
+                                  (n) =>
+                                    n !== "VENEZOLANO" && n !== "EXTRANJERO",
                                 )
                                 .map((nat) => (
                                   <SelectItem key={nat} value={nat}>
@@ -329,7 +357,8 @@ export const PassengersTable = ({
                                 className="pl-2 text-primary font-semibold cursor-pointer"
                               >
                                 <span className="flex items-center gap-1.5 text-xs text-primary">
-                                  <Plus className="h-3.5 w-3.5" /> Otra nacionalidad...
+                                  <Plus className="h-3.5 w-3.5" /> Otra
+                                  nacionalidad...
                                 </span>
                               </SelectItem>
                             </SelectGroup>
@@ -348,7 +377,9 @@ export const PassengersTable = ({
                           handleChangeField(index, "id_number", e.target.value)
                         }
                         className={`h-8 text-xs text-center uppercase ${
-                          isDuplicate ? "border-destructive focus-visible:ring-destructive" : ""
+                          isDuplicate
+                            ? "border-destructive focus-visible:ring-destructive"
+                            : ""
                         }`}
                       />
                     </td>
@@ -359,7 +390,11 @@ export const PassengersTable = ({
                         value={pax.lodge_type}
                         disabled={readOnly}
                         onValueChange={(val) =>
-                          handleChangeField(index, "lodge_type", val as LodgeType)
+                          handleChangeField(
+                            index,
+                            "lodge_type",
+                            val as LodgeType,
+                          )
                         }
                       >
                         <SelectTrigger className="h-8 text-xs">
@@ -382,7 +417,9 @@ export const PassengersTable = ({
                         disabled={readOnly}
                         agencies={allAgencies}
                         loading={loadingClients}
-                        onChange={(val) => handleChangeField(index, "agency", val)}
+                        onChange={(val) =>
+                          handleChangeField(index, "agency", val)
+                        }
                         onOpenNewModal={() => {
                           setTargetPaxIndexForAgency(index);
                           setNewAgencyInput("");
@@ -414,23 +451,32 @@ export const PassengersTable = ({
       </div>
 
       {/* MODAL: AGREGAR OTRA NACIONALIDAD */}
-      <Dialog open={nationalityModalOpen} onOpenChange={setNationalityModalOpen}>
+      <Dialog
+        open={nationalityModalOpen}
+        onOpenChange={setNationalityModalOpen}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Globe className="h-5 w-5 text-primary" /> Agregar Nacionalidad
             </DialogTitle>
             <DialogDescription>
-              Especifique la nacionalidad para asignarla al pasajero y añadirla a la lista.
+              Especifique la nacionalidad para asignarla al pasajero y añadirla
+              a la lista.
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleConfirmNewNationality} className="flex flex-col gap-4 py-2">
+          <form
+            onSubmit={handleConfirmNewNationality}
+            className="flex flex-col gap-4 py-2"
+          >
             <div className="flex flex-col gap-2">
               <Input
                 placeholder="Ej. COLOMBIANO, ESPAÑOL, CHILENO..."
                 value={newNationalityInput}
-                onChange={(e) => setNewNationalityInput(e.target.value.toUpperCase())}
+                onChange={(e) =>
+                  setNewNationalityInput(e.target.value.toUpperCase())
+                }
                 className="uppercase"
                 autoFocus
               />
@@ -444,10 +490,7 @@ export const PassengersTable = ({
               >
                 Cancelar
               </Button>
-              <Button
-                type="submit"
-                disabled={!newNationalityInput.trim()}
-              >
+              <Button type="submit" disabled={!newNationalityInput.trim()}>
                 Agregar Nacionalidad
               </Button>
             </DialogFooter>
@@ -460,19 +503,26 @@ export const PassengersTable = ({
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Building2 className="h-5 w-5 text-primary" /> Registrar Nueva Agencia
+              <Building2 className="h-5 w-5 text-primary" /> Registrar Nueva
+              Agencia
             </DialogTitle>
             <DialogDescription>
-              Ingrese el nombre de la agencia o cliente asociado a los pasajeros de este vuelo.
+              Ingrese el nombre de la agencia o cliente asociado a los pasajeros
+              de este vuelo.
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleConfirmNewAgency} className="flex flex-col gap-4 py-2">
+          <form
+            onSubmit={handleConfirmNewAgency}
+            className="flex flex-col gap-4 py-2"
+          >
             <div className="flex flex-col gap-2">
               <Input
                 placeholder="Ej. WAKU, CANAIMA TOURS, VENETUR..."
                 value={newAgencyInput}
-                onChange={(e) => setNewAgencyInput(e.target.value.toUpperCase())}
+                onChange={(e) =>
+                  setNewAgencyInput(e.target.value.toUpperCase())
+                }
                 className="uppercase"
                 autoFocus
               />
@@ -486,10 +536,7 @@ export const PassengersTable = ({
               >
                 Cancelar
               </Button>
-              <Button
-                type="submit"
-                disabled={!newAgencyInput.trim()}
-              >
+              <Button type="submit" disabled={!newAgencyInput.trim()}>
                 Guardar Agencia
               </Button>
             </DialogFooter>
@@ -543,7 +590,11 @@ const AgencyCombobox = ({
           className="h-8 text-xs w-full justify-between font-normal px-2.5 bg-background"
         >
           <span className="truncate">
-            {value || <span className="text-muted-foreground italic">Sin Agencia (—)</span>}
+            {value || (
+              <span className="text-muted-foreground italic">
+                Sin Agencia (—)
+              </span>
+            )}
           </span>
           <ChevronsUpDown className="ml-1 h-3 w-3 shrink-0 opacity-50" />
         </Button>
@@ -572,7 +623,8 @@ const AgencyCombobox = ({
                       setSearch("");
                     }}
                   >
-                    <Plus className="h-3 w-3 mr-1" /> Usar &quot;{searchUpper}&quot;
+                    <Plus className="h-3 w-3 mr-1" /> Usar &quot;{searchUpper}
+                    &quot;
                   </Button>
                 )}
               </div>
@@ -587,14 +639,22 @@ const AgencyCombobox = ({
                 }}
                 className="text-xs flex items-center justify-between cursor-pointer"
               >
-                <span className="italic text-muted-foreground">Sin Agencia (—)</span>
+                <span className="italic text-muted-foreground">
+                  Sin Agencia (—)
+                </span>
                 {!value && <Check className="h-3 w-3 text-primary" />}
               </CommandItem>
             </CommandGroup>
 
             <CommandSeparator />
 
-            <CommandGroup heading={loading ? "Cargando clientes..." : "Clientes / Agencias Registradas"}>
+            <CommandGroup
+              heading={
+                loading
+                  ? "Cargando clientes..."
+                  : "Clientes / Agencias Registradas"
+              }
+            >
               {filtered.map((agency) => (
                 <CommandItem
                   key={agency}
@@ -606,7 +666,9 @@ const AgencyCombobox = ({
                   className="text-xs flex items-center justify-between cursor-pointer"
                 >
                   <span className="truncate font-medium">{agency}</span>
-                  {value === agency && <Check className="h-3 w-3 text-primary" />}
+                  {value === agency && (
+                    <Check className="h-3 w-3 text-primary" />
+                  )}
                 </CommandItem>
               ))}
             </CommandGroup>

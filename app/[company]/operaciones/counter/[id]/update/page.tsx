@@ -36,7 +36,8 @@ const UpdatePaxFlightPage = () => {
             Editar Manifiesto {flight?.flight_code}
           </h1>
           <p className="text-muted-foreground text-sm">
-            Modifique los datos operativos o los pasajeros registrados en este vuelo.
+            Modifique los datos operativos o los pasajeros registrados en este
+            vuelo.
           </p>
         </div>
 

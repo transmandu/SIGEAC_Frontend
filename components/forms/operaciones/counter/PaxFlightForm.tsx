@@ -14,7 +14,13 @@ import {
   SelectGroup,
   SelectLabel,
 } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PassengersTable } from "./PassengersTable";
 import {
@@ -27,12 +33,15 @@ import { useGetAircrafts } from "@/hooks/aerolinea/aeronaves/useGetAircrafts";
 import { useGetExternalAircraftSuggestions } from "@/hooks/operaciones/cargo/useGetExternalAircraftSuggestions";
 import { useGetPilots } from "@/hooks/sms/useGetPilots";
 import { useGetExternalPilots } from "@/hooks/operaciones/cargo/useGetExternalPilots";
+import { FlightType, PaxFlight, PaxPassenger } from "@/types";
 import {
-  FlightType,
-  PaxFlight,
-  PaxPassenger,
-} from "@/types";
-import { Loader2, Plane, Package, Layers, Calendar, UserCheck } from "lucide-react";
+  Loader2,
+  Plane,
+  Package,
+  Layers,
+  Calendar,
+  UserCheck,
+} from "lucide-react";
 import { toast } from "sonner";
 
 interface PaxFlightFormProps {
@@ -86,15 +95,15 @@ export const PaxFlightForm = ({
     initialData?.external_captain_id || null,
   );
 
-  const [firstOfficerType, setFirstOfficerType] = useState<"internal" | "external">(
-    initialData?.external_first_officer_id ? "external" : "internal",
-  );
+  const [firstOfficerType, setFirstOfficerType] = useState<
+    "internal" | "external"
+  >(initialData?.external_first_officer_id ? "external" : "internal");
   const [firstOfficerId, setFirstOfficerId] = useState<number | null>(
     initialData?.first_officer_id || null,
   );
-  const [externalFirstOfficerId, setExternalFirstOfficerId] = useState<number | null>(
-    initialData?.external_first_officer_id || null,
-  );
+  const [externalFirstOfficerId, setExternalFirstOfficerId] = useState<
+    number | null
+  >(initialData?.external_first_officer_id || null);
 
   // Manifiesto de Carga Asociado
   const [cargoManifestId, setCargoManifestId] = useState<number | null>(
@@ -102,28 +111,31 @@ export const PaxFlightForm = ({
   );
 
   // Pasajeros
-  const [passengers, setPassengers] = useState<Omit<PaxPassenger, "id">[]>(() => {
-    if (initialData?.passengers && initialData.passengers.length > 0) {
-      return initialData.passengers.map((p) => ({
-        seat_number: p.seat_number,
-        full_name: p.full_name,
-        nationality: p.nationality,
-        id_number: p.id_number,
-        lodge_type: p.lodge_type,
-        agency: p.agency || "",
-        luggage_weight: p.luggage_weight || 0,
-        body_weight: p.body_weight || 0,
-        payment_method: p.payment_method || null,
-        amount_paid: p.amount_paid || null,
-        return_flight: p.return_flight || null,
-      }));
-    }
-    return [];
-  });
+  const [passengers, setPassengers] = useState<Omit<PaxPassenger, "id">[]>(
+    () => {
+      if (initialData?.passengers && initialData.passengers.length > 0) {
+        return initialData.passengers.map((p) => ({
+          seat_number: p.seat_number,
+          full_name: p.full_name,
+          nationality: p.nationality,
+          id_number: p.id_number,
+          lodge_type: p.lodge_type,
+          agency: p.agency || "",
+          luggage_weight: p.luggage_weight || 0,
+          body_weight: p.body_weight || 0,
+          payment_method: p.payment_method || null,
+          amount_paid: p.amount_paid || null,
+          return_flight: p.return_flight || null,
+        }));
+      }
+      return [];
+    },
+  );
 
   // Queries externas
   const { data: aircrafts } = useGetAircrafts(company);
-  const { data: externalAircrafts } = useGetExternalAircraftSuggestions(company);
+  const { data: externalAircrafts } =
+    useGetExternalAircraftSuggestions(company);
   const { data: pilots } = useGetPilots(company);
   const { data: externalPilots } = useGetExternalPilots(company);
   const { data: nextCode } = useNextFlightCode(company, month, year);
@@ -221,7 +233,9 @@ export const PaxFlightForm = ({
       route: route.trim().toUpperCase(),
       aircraft_id: aircraftType === "internal" ? aircraftId : null,
       external_aircraft:
-        aircraftType === "external" ? externalAircraft.trim().toUpperCase() : null,
+        aircraftType === "external"
+          ? externalAircraft.trim().toUpperCase()
+          : null,
       captain_id: captainType === "internal" ? captainId : null,
       external_captain_id:
         captainType === "external" ? externalCaptainId : null,
@@ -229,8 +243,7 @@ export const PaxFlightForm = ({
       external_first_officer_id:
         firstOfficerType === "external" ? externalFirstOfficerId : null,
       flight_type: flightType,
-      cargo_manifest_id:
-        flightType !== "PAX" ? cargoManifestId : null,
+      cargo_manifest_id: flightType !== "PAX" ? cargoManifestId : null,
       passengers: flightType === "CARGO_ONLY" ? [] : passengers,
     };
 
@@ -253,7 +266,9 @@ export const PaxFlightForm = ({
         <CardHeader>
           <div className="flex justify-between items-start">
             <div>
-              <CardTitle className="text-xl">Datos Principales del Vuelo</CardTitle>
+              <CardTitle className="text-xl">
+                Datos Principales del Vuelo
+              </CardTitle>
               <CardDescription>
                 Información técnica y operativa de la aeronave y tripulación.
               </CardDescription>
@@ -267,7 +282,8 @@ export const PaxFlightForm = ({
           {/* Fecha */}
           <div className="flex flex-col gap-2">
             <Label htmlFor="flight_date" className="flex items-center gap-1.5">
-              <Calendar className="h-4 w-4 text-muted-foreground" /> Fecha del Vuelo *
+              <Calendar className="h-4 w-4 text-muted-foreground" /> Fecha del
+              Vuelo *
             </Label>
             <Input
               id="flight_date"
@@ -330,11 +346,15 @@ export const PaxFlightForm = ({
               <button
                 type="button"
                 onClick={() =>
-                  setAircraftType(aircraftType === "internal" ? "external" : "internal")
+                  setAircraftType(
+                    aircraftType === "internal" ? "external" : "internal",
+                  )
                 }
                 className="text-xs text-primary hover:underline"
               >
-                {aircraftType === "internal" ? "Cambiar a Externa" : "Cambiar a Flota"}
+                {aircraftType === "internal"
+                  ? "Cambiar a Externa"
+                  : "Cambiar a Flota"}
               </button>
             </div>
             {aircraftType === "internal" ? (
@@ -357,7 +377,9 @@ export const PaxFlightForm = ({
               <Input
                 placeholder="Matrícula externa (Ej. YV-3450)"
                 value={externalAircraft}
-                onChange={(e) => setExternalAircraft(e.target.value.toUpperCase())}
+                onChange={(e) =>
+                  setExternalAircraft(e.target.value.toUpperCase())
+                }
                 list="external-aircraft-list"
               />
             )}
@@ -377,11 +399,15 @@ export const PaxFlightForm = ({
               <button
                 type="button"
                 onClick={() =>
-                  setCaptainType(captainType === "internal" ? "external" : "internal")
+                  setCaptainType(
+                    captainType === "internal" ? "external" : "internal",
+                  )
                 }
                 className="text-xs text-primary hover:underline"
               >
-                {captainType === "internal" ? "Piloto Externo" : "Piloto Interno"}
+                {captainType === "internal"
+                  ? "Piloto Externo"
+                  : "Piloto Interno"}
               </button>
             </div>
             {captainType === "internal" ? (
@@ -436,7 +462,9 @@ export const PaxFlightForm = ({
                 }
                 className="text-xs text-primary hover:underline"
               >
-                {firstOfficerType === "internal" ? "Piloto Externo" : "Piloto Interno"}
+                {firstOfficerType === "internal"
+                  ? "Piloto Externo"
+                  : "Piloto Interno"}
               </button>
             </div>
             {firstOfficerType === "internal" ? (
@@ -462,7 +490,11 @@ export const PaxFlightForm = ({
               </Select>
             ) : (
               <Select
-                value={externalFirstOfficerId ? String(externalFirstOfficerId) : "none"}
+                value={
+                  externalFirstOfficerId
+                    ? String(externalFirstOfficerId)
+                    : "none"
+                }
                 onValueChange={(val) =>
                   setExternalFirstOfficerId(val === "none" ? null : Number(val))
                 }
@@ -492,8 +524,8 @@ export const PaxFlightForm = ({
               <Package className="h-5 w-5" /> Vinculación de Carga
             </CardTitle>
             <CardDescription>
-              Seleccione el manifiesto de carga emitido para este vuelo. La lista y
-              pesos por cliente se calcularán automáticamente.
+              Seleccione el manifiesto de carga emitido para este vuelo. La
+              lista y pesos por cliente se calcularán automáticamente.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
@@ -509,7 +541,9 @@ export const PaxFlightForm = ({
                 <SelectContent>
                   {initialData?.cargo_manifest_id && (
                     <SelectItem value={String(initialData.cargo_manifest_id)}>
-                      {initialData.cargo_manifest_number || `Manifiesto #${initialData.cargo_manifest_id}`} (Actual)
+                      {initialData.cargo_manifest_number ||
+                        `Manifiesto #${initialData.cargo_manifest_id}`}{" "}
+                      (Actual)
                     </SelectItem>
                   )}
                   {availableManifests && availableManifests.length > 0 ? (
@@ -517,7 +551,8 @@ export const PaxFlightForm = ({
                       <SelectLabel>Disponibles para este mes</SelectLabel>
                       {availableManifests.map((m: any) => (
                         <SelectItem key={m.id} value={String(m.id)}>
-                          {m.manifest_number} — Total: {m.total_weight} kg ({m.items?.length || 0} ítems)
+                          {m.manifest_number} — Total: {m.total_weight} kg (
+                          {m.items?.length || 0} ítems)
                         </SelectItem>
                       ))}
                     </SelectGroup>
@@ -540,9 +575,14 @@ export const PaxFlightForm = ({
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
                     {Object.entries(initialData.cargo_breakdown).map(
                       ([client, weight]) => (
-                        <div key={client} className="flex justify-between border-b pb-0.5">
+                        <div
+                          key={client}
+                          className="flex justify-between border-b pb-0.5"
+                        >
                           <span className="font-medium">{client}:</span>
-                          <span className="font-mono text-muted-foreground">{weight} KG</span>
+                          <span className="font-mono text-muted-foreground">
+                            {weight} KG
+                          </span>
                         </div>
                       ),
                     )}
@@ -561,8 +601,8 @@ export const PaxFlightForm = ({
               <Plane className="h-5 w-5 text-sky-500" /> Manifiesto de Pasajeros
             </CardTitle>
             <CardDescription>
-              Complete la información de cada pasajero. El número de asiento se asigna
-              secuencialmente de 1 a 19.
+              Complete la información de cada pasajero. El número de asiento se
+              asigna secuencialmente de 1 a 19.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
@@ -572,18 +612,20 @@ export const PaxFlightForm = ({
                 isOverweight
                   ? "bg-destructive/10 border-destructive/30 text-destructive"
                   : availableWeight < 200
-                  ? "bg-yellow-500/10 border-yellow-300 text-yellow-700 dark:text-yellow-400"
-                  : "bg-muted/50 border-border"
+                    ? "bg-yellow-500/10 border-yellow-300 text-yellow-700 dark:text-yellow-400"
+                    : "bg-muted/50 border-border"
               }`}
             >
               <div className="flex items-center gap-4 flex-wrap">
                 <span>
                   <span className="font-semibold">{passengers.length}</span> pax
-                  × 100 kg = <span className="font-semibold">{passengerWeight} kg</span>
+                  × 100 kg ={" "}
+                  <span className="font-semibold">{passengerWeight} kg</span>
                 </span>
                 {cargoWeight > 0 && (
                   <span>
-                    + carga: <span className="font-semibold">{cargoWeight} kg</span>
+                    + carga:{" "}
+                    <span className="font-semibold">{cargoWeight} kg</span>
                   </span>
                 )}
                 <span className="font-bold border-l pl-4">
@@ -612,9 +654,12 @@ export const PaxFlightForm = ({
         <Card className="border-dashed bg-muted/20">
           <CardContent className="py-8 text-center text-muted-foreground">
             <Package className="h-10 w-10 mx-auto mb-2 text-amber-500/50" />
-            <p className="font-semibold text-foreground">Vuelo configurado como SOLO CARGA</p>
+            <p className="font-semibold text-foreground">
+              Vuelo configurado como SOLO CARGA
+            </p>
             <p className="text-xs">
-              El manifiesto impreso mostrará la leyenda central en rojo y el desglose de los clientes de carga.
+              El manifiesto impreso mostrará la leyenda central en rojo y el
+              desglose de los clientes de carga.
             </p>
           </CardContent>
         </Card>

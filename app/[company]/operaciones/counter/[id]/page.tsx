@@ -5,7 +5,13 @@ import { ContentLayout } from "@/components/layout/ContentLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import {
   usePaxFlight,
   useMarkInFlight,
@@ -58,8 +64,13 @@ const PaxFlightDetailPage = () => {
     return (
       <ContentLayout title="Detalle del Manifiesto">
         <div className="text-center py-12">
-          <p className="text-muted-foreground mb-4">No se pudo cargar el manifiesto de vuelo.</p>
-          <Button variant="outline" onClick={() => router.push(`/${company}/operaciones/counter`)}>
+          <p className="text-muted-foreground mb-4">
+            No se pudo cargar el manifiesto de vuelo.
+          </p>
+          <Button
+            variant="outline"
+            onClick={() => router.push(`/${company}/operaciones/counter`)}
+          >
             <ArrowLeft className="h-4 w-4 mr-2" /> Volver al listado
           </Button>
         </div>
@@ -159,7 +170,9 @@ const PaxFlightDetailPage = () => {
             {canWrite && flight.status === "BORRADOR" && (
               <Button
                 onClick={() =>
-                  router.push(`/${company}/operaciones/counter/${flight.id}/update`)
+                  router.push(
+                    `/${company}/operaciones/counter/${flight.id}/update`,
+                  )
                 }
               >
                 <Edit className="h-4 w-4 mr-2" /> Editar Vuelo
@@ -182,15 +195,21 @@ const PaxFlightDetailPage = () => {
           <Card>
             <CardHeader className="pb-2">
               <CardDescription>Ruta</CardDescription>
-              <CardTitle className="text-lg font-mono">{flight.route}</CardTitle>
+              <CardTitle className="text-lg font-mono">
+                {flight.route}
+              </CardTitle>
             </CardHeader>
           </Card>
 
           <Card>
             <CardHeader className="pb-2">
               <CardDescription>Aeronave</CardDescription>
-              <CardTitle className="text-lg font-semibold">{flight.aircraft_label}</CardTitle>
-              <span className="text-xs text-muted-foreground">{flight.aircraft_model}</span>
+              <CardTitle className="text-lg font-semibold">
+                {flight.aircraft_label}
+              </CardTitle>
+              <span className="text-xs text-muted-foreground">
+                {flight.aircraft_model}
+              </span>
             </CardHeader>
           </Card>
 
@@ -200,8 +219,14 @@ const PaxFlightDetailPage = () => {
                 <UserCheck className="h-4 w-4" /> Tripulación
               </CardDescription>
               <div className="text-xs flex flex-col gap-0.5 mt-1">
-                <div><span className="font-semibold">CAP:</span> {flight.captain_label}</div>
-                <div><span className="font-semibold">F/O:</span> {flight.first_officer_label}</div>
+                <div>
+                  <span className="font-semibold">CAP:</span>{" "}
+                  {flight.captain_label}
+                </div>
+                <div>
+                  <span className="font-semibold">F/O:</span>{" "}
+                  {flight.first_officer_label}
+                </div>
               </div>
             </CardHeader>
           </Card>
@@ -212,21 +237,32 @@ const PaxFlightDetailPage = () => {
           <Card className="border-amber-200 dark:border-amber-900 bg-amber-500/5">
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2 text-amber-700 dark:text-amber-400">
-                <Package className="h-4 w-4" /> Manifiesto de Carga Asociado: {flight.cargo_manifest_number}
+                <Package className="h-4 w-4" /> Manifiesto de Carga Asociado:{" "}
+                {flight.cargo_manifest_number}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {flight.cargo_breakdown && Object.keys(flight.cargo_breakdown).length > 0 ? (
+              {flight.cargo_breakdown &&
+              Object.keys(flight.cargo_breakdown).length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 text-xs">
-                  {Object.entries(flight.cargo_breakdown).map(([client, weight]) => (
-                    <div key={client} className="bg-background/80 p-2 rounded border flex justify-between">
-                      <span className="font-semibold">{client}</span>
-                      <span className="font-mono text-muted-foreground">{weight} KG</span>
-                    </div>
-                  ))}
+                  {Object.entries(flight.cargo_breakdown).map(
+                    ([client, weight]) => (
+                      <div
+                        key={client}
+                        className="bg-background/80 p-2 rounded border flex justify-between"
+                      >
+                        <span className="font-semibold">{client}</span>
+                        <span className="font-mono text-muted-foreground">
+                          {weight} KG
+                        </span>
+                      </div>
+                    ),
+                  )}
                 </div>
               ) : (
-                <p className="text-xs text-muted-foreground italic">Sin desglose registrado.</p>
+                <p className="text-xs text-muted-foreground italic">
+                  Sin desglose registrado.
+                </p>
               )}
             </CardContent>
           </Card>
@@ -237,7 +273,8 @@ const PaxFlightDetailPage = () => {
           <Card>
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
-                <Plane className="h-4 w-4 text-sky-500" /> Lista de Pasajeros Registrados ({flight.passengers.length})
+                <Plane className="h-4 w-4 text-sky-500" /> Lista de Pasajeros
+                Registrados ({flight.passengers.length})
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -245,12 +282,24 @@ const PaxFlightDetailPage = () => {
                 <table className="w-full text-xs">
                   <thead className="bg-muted/50 border-b">
                     <tr>
-                      <th className="py-2 px-2 text-center w-12 font-semibold">#</th>
-                      <th className="py-2 px-3 text-left font-semibold">Nombre Completo</th>
-                      <th className="py-2 px-2 text-center w-36 font-semibold">Nacionalidad</th>
-                      <th className="py-2 px-2 text-center w-36 font-semibold">Cédula / ID</th>
-                      <th className="py-2 px-2 text-center w-32 font-semibold">Tipo</th>
-                      <th className="py-2 px-3 text-left w-40 font-semibold">Agencia</th>
+                      <th className="py-2 px-2 text-center w-12 font-semibold">
+                        #
+                      </th>
+                      <th className="py-2 px-3 text-left font-semibold">
+                        Nombre Completo
+                      </th>
+                      <th className="py-2 px-2 text-center w-36 font-semibold">
+                        Nacionalidad
+                      </th>
+                      <th className="py-2 px-2 text-center w-36 font-semibold">
+                        Cédula / ID
+                      </th>
+                      <th className="py-2 px-2 text-center w-32 font-semibold">
+                        Tipo
+                      </th>
+                      <th className="py-2 px-3 text-left w-40 font-semibold">
+                        Agencia
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y">
@@ -259,15 +308,23 @@ const PaxFlightDetailPage = () => {
                         <td className="py-2 px-2 text-center font-bold text-muted-foreground">
                           {pax.seat_number}
                         </td>
-                        <td className="py-2 px-3 font-semibold">{pax.full_name}</td>
-                        <td className="py-2 px-2 text-center">{pax.nationality}</td>
-                        <td className="py-2 px-2 text-center font-mono">{pax.id_number}</td>
+                        <td className="py-2 px-3 font-semibold">
+                          {pax.full_name}
+                        </td>
+                        <td className="py-2 px-2 text-center">
+                          {pax.nationality}
+                        </td>
+                        <td className="py-2 px-2 text-center font-mono">
+                          {pax.id_number}
+                        </td>
                         <td className="py-2 px-2 text-center">
                           <Badge variant="outline" className="text-[10px]">
                             {pax.lodge_type}
                           </Badge>
                         </td>
-                        <td className="py-2 px-3 text-muted-foreground">{pax.agency || "—"}</td>
+                        <td className="py-2 px-3 text-muted-foreground">
+                          {pax.agency || "—"}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -278,7 +335,9 @@ const PaxFlightDetailPage = () => {
         ) : (
           <Card className="border-dashed bg-muted/20">
             <CardContent className="py-8 text-center text-muted-foreground">
-              <p className="font-semibold text-foreground">Vuelo sin pasajeros registrados (SOLO CARGA)</p>
+              <p className="font-semibold text-foreground">
+                Vuelo sin pasajeros registrados (SOLO CARGA)
+              </p>
             </CardContent>
           </Card>
         )}

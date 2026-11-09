@@ -170,9 +170,7 @@ export const useMarkInFlight = (company: string) => {
       return response.data;
     },
     onSuccess: (updated) => {
-      toast.success(
-        `Vuelo ${updated.flight_code} marcado como EN VUELO.`,
-      );
+      toast.success(`Vuelo ${updated.flight_code} marcado como EN VUELO.`);
       queryClient.invalidateQueries({ queryKey: ["pax-flights", company] });
       queryClient.invalidateQueries({
         queryKey: ["pax-flight", company, updated.id],
