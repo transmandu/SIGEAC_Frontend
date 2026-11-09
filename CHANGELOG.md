@@ -1,3 +1,10 @@
+## v4.94.0 — 2026-11-09
+
+- Merge pull request #386 from transmandu/fix/toolbox-creation-error
+- style: formato automatico (prettier)
+- fix(warehouse): send tool_id and location_id when creating a toolbox
+- feat(operation): add counter pages for passenger flights
+
 ## v4.93.0 — 2026-11-06
 
 - feat(sms): improve aeronautical risk management UI/UX (#385)
