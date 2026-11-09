@@ -1,3 +1,8 @@
+## v4.96.1 — 2026-11-09
+
+- Merge pull request #389 from transmandu/fix/toolbox-creation-error
+- fix(warehouse): correct preview of documents and images during receiving
+
 ## v4.96.0 — 2026-11-09
 
 - feat(courses): add bulk exam upload and redesign exam management (#388)
