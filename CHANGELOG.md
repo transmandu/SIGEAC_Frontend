@@ -1,3 +1,7 @@
+## v4.96.0 — 2026-11-09
+
+- feat(courses): add bulk exam upload and redesign exam management (#388)
+
 ## v4.95.0 — 2026-11-09
 
 - Merge pull request #387 from transmandu/fix/toolbox-creation-error
