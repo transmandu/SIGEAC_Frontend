@@ -120,7 +120,7 @@ export function FormDialogBody({
         // relleno abajo el pie quedaba a 20 px del borde y por esa franja se
         // veía el contenido desplazándose. Sin relleno, queda al ras.
         "has-data-dialog-actions:pb-0",
-        fill ? "flex flex-col" : "overflow-y-auto",
+        fill ? "flex flex-col" : "overflow-y-auto overscroll-contain",
         className,
       )}
     >

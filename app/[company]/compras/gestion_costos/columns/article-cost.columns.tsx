@@ -4,7 +4,6 @@ import { type AppColumnDef } from "@/lib/table";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import React from "react";
 import { CopyPlus } from "lucide-react";
 import {
   Tooltip,
@@ -35,6 +34,7 @@ export function getArticleCostColumns({
   const unitColumn: AppColumnDef<ArticleCostRow> = {
     accessorKey: "unit_label",
     size: 120,
+    meta: { title: "Unidad" },
     header: ({ column }) => (
       <div className="flex justify-center w-full">
         <DataTableColumnHeader column={column} title="Unidad" />
@@ -53,6 +53,7 @@ export function getArticleCostColumns({
     {
       accessorKey: "part_number",
       size: 220,
+      meta: { title: "Part Number", mobileTitle: true },
       header: ({ column }) => (
         <div className="flex justify-center w-full">
           <DataTableColumnHeader filter column={column} title="Part Number" />
@@ -70,6 +71,7 @@ export function getArticleCostColumns({
     {
       accessorKey: "batch_name",
       size: 320,
+      meta: { title: "Descripción", mobile: "wide" },
       header: ({ column }) => (
         <div className="flex justify-center w-full">
           <DataTableColumnHeader column={column} title="Descripción" />
@@ -87,6 +89,7 @@ export function getArticleCostColumns({
     {
       accessorKey: "serial",
       size: 220,
+      meta: { title: "Serial / Lote" },
       header: ({ column }) => (
         <div className="flex justify-center w-full">
           <DataTableColumnHeader column={column} title="Serial / Lote" />
@@ -104,6 +107,7 @@ export function getArticleCostColumns({
     {
       accessorKey: "condition",
       size: 120,
+      meta: { title: "Condición" },
       header: ({ column }) => (
         <div className="flex justify-center w-full">
           <DataTableColumnHeader column={column} title="Condición" />
@@ -123,6 +127,7 @@ export function getArticleCostColumns({
     {
       accessorKey: "cost",
       size: 140,
+      meta: { title: "Costo Unitario" },
       header: ({ column }) => (
         <div className="flex justify-center w-full">
           <DataTableColumnHeader

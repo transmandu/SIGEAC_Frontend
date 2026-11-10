@@ -36,13 +36,6 @@ import { Control, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { PhoneInput } from "@/components/ui/PhoneInput";
 import { phoneSchema } from "@/lib/phone";
 import { notifyError } from "@/lib/notify-error";
@@ -55,7 +48,7 @@ const optionalCode = z.preprocess((val) => {
 }, z.string().min(3, "El código debe tener la longitud correcta.").max(6, "El código debe tener la longitud correcta.").optional());
 
 const LocationSchema = z.object({
-  type: z.string().min(1, "El tipo es requerido"),
+  name: z.string().optional(),
   address: z.string().min(5, "Dirección requerida"),
   cod_iata: optionalCode,
   isMainBase: z.boolean().default(false),
@@ -357,7 +350,7 @@ export function CreateCompanyForm({ onClose }: FormProps) {
             <FormField
               control={form.control}
               name="modules"
-              render={({ field }) => (
+              render={() => (
                 <FormItem className="flex flex-col">
                   <FormLabel>Modulos</FormLabel>
 
@@ -422,7 +415,7 @@ export function CreateCompanyForm({ onClose }: FormProps) {
                       </Button>
                     </PopoverTrigger>
 
-                    <PopoverContent className="w-[200px] p-0">
+                    <PopoverContent className="w-50 p-0">
                       <Command>
                         <CommandInput placeholder="Buscar modulos..." />
                         <CommandList>
@@ -475,7 +468,7 @@ export function CreateCompanyForm({ onClose }: FormProps) {
                   setStep("locations");
                 } else {
                   toast.error(
-                    "¡Ops! Completa todos los campos requeridos antes de continuar",
+                    "¡Ops! Complete todos los campos requeridos antes de continuar",
                   );
                 }
               }}
@@ -539,26 +532,13 @@ const LocationsStep = ({ control }: { control: Control<FormSchemaType> }) => {
           <div className="grid grid-cols-2 gap-4 mt-2">
             <FormField
               control={control}
-              name={`locations.${index}.type`}
+              name={`locations.${index}.name`}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Tipo *</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={
-                      typeof field.value === "string" ? field.value : undefined
-                    }
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Seleccione..." />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="principal">Principal</SelectItem>
-                      <SelectItem value="alterno">Alterno</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <FormLabel>Nombre (opcional)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Ej: Edificio Norte" {...field} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -617,7 +597,7 @@ const LocationsStep = ({ control }: { control: Control<FormSchemaType> }) => {
         variant="outline"
         onClick={() =>
           append({
-            type: "",
+            name: "",
             address: "",
             cod_iata: "",
             isMainBase: false,

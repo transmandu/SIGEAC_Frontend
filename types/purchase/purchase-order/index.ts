@@ -72,6 +72,9 @@ export interface PurchaseOrderArticle {
   total_justification?: string | null;
   shipping_tracking?: string | null;
   international_shipping_tracking?: string | null;
+  /** Solo en el detalle: artículo físico de la línea y novedades vigentes de su bitácora de tránsito. */
+  transit_article_id?: number | null;
+  transit_updates_count?: number;
   article_quote_order: PurchaseOrderArticleQuoteOrder | null;
   /** Only present on the `show` (detail) endpoint — resolved from the requisition's matching batch article. */
   unit?: Unit | null;

@@ -4,19 +4,16 @@ import { Contact, IdCard, MapPin } from "lucide-react";
 import { Control } from "react-hook-form";
 
 import {
-  FieldLabelRow,
-  FormSection,
   fieldClass,
-  labelClass,
   selectTriggerClass,
 } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
+import { PanelSection, PanelFieldLabel } from "@/components/forms/PanelSection";
 import { NumericTextInput } from "@/components/forms/mantenimiento/almacen/_components/NumericInput";
 import { RequiredIndicator } from "@/components/misc/RequiredIndicator";
 import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -48,7 +45,7 @@ export function ClientFormFields({
 }) {
   return (
     <div className="grid gap-4 md:grid-cols-2">
-      <FormSection compact icon={IdCard} title="Identificación">
+      <PanelSection compact icon={IdCard} title="Identificación">
         <div className="space-y-3">
           <div className="grid grid-cols-[6.5rem_1fr] gap-3">
             <FormField
@@ -63,12 +60,10 @@ export function ClientFormFields({
 
                 return (
                   <FormItem data-tour="clientes-crear-dni-type">
-                    <FieldLabelRow>
-                      <FormLabel className={labelClass}>
-                        Doc.
-                        <RequiredIndicator invalid={!!fieldState.error} />
-                      </FormLabel>
-                    </FieldLabelRow>
+                    <PanelFieldLabel>
+                      Doc.
+                      <RequiredIndicator invalid={!!fieldState.error} />
+                    </PanelFieldLabel>
                     <Select
                       value={field.value || undefined}
                       onValueChange={field.onChange}
@@ -97,12 +92,10 @@ export function ClientFormFields({
               name="dni"
               render={({ field, fieldState }) => (
                 <FormItem data-tour="clientes-crear-dni">
-                  <FieldLabelRow>
-                    <FormLabel className={labelClass}>
-                      Número de documento
-                      <RequiredIndicator invalid={!!fieldState.error} />
-                    </FormLabel>
-                  </FieldLabelRow>
+                  <PanelFieldLabel>
+                    Número de documento
+                    <RequiredIndicator invalid={!!fieldState.error} />
+                  </PanelFieldLabel>
                   <FormControl>
                     <NumericTextInput
                       integerOnly
@@ -127,12 +120,10 @@ export function ClientFormFields({
             name="name"
             render={({ field, fieldState }) => (
               <FormItem data-tour="clientes-crear-name">
-                <FieldLabelRow>
-                  <FormLabel className={labelClass}>
-                    Nombre o razón social
-                    <RequiredIndicator invalid={!!fieldState.error} />
-                  </FormLabel>
-                </FieldLabelRow>
+                <PanelFieldLabel>
+                  Nombre o razón social
+                  <RequiredIndicator invalid={!!fieldState.error} />
+                </PanelFieldLabel>
                 <FormControl>
                   <Input
                     placeholder="Ingresa el nombre"
@@ -148,21 +139,19 @@ export function ClientFormFields({
             )}
           />
         </div>
-      </FormSection>
+      </PanelSection>
 
-      <FormSection compact icon={Contact} title="Contacto">
+      <PanelSection compact icon={Contact} title="Contacto">
         <div className="space-y-3">
           <FormField
             control={control}
             name="phone"
             render={({ field, fieldState }) => (
               <FormItem data-tour="clientes-crear-phone">
-                <FieldLabelRow>
-                  <FormLabel className={labelClass}>
-                    Teléfono
-                    <RequiredIndicator invalid={!!fieldState.error} />
-                  </FormLabel>
-                </FieldLabelRow>
+                <PanelFieldLabel>
+                  Teléfono
+                  <RequiredIndicator invalid={!!fieldState.error} />
+                </PanelFieldLabel>
                 <FormControl>
                   <PhoneInput
                     disabled={disabled}
@@ -182,12 +171,10 @@ export function ClientFormFields({
             name="email"
             render={({ field, fieldState }) => (
               <FormItem data-tour="clientes-crear-email">
-                <FieldLabelRow>
-                  <FormLabel className={labelClass}>
-                    Correo electrónico
-                    <RequiredIndicator invalid={!!fieldState.error} />
-                  </FormLabel>
-                </FieldLabelRow>
+                <PanelFieldLabel>
+                  Correo electrónico
+                  <RequiredIndicator invalid={!!fieldState.error} />
+                </PanelFieldLabel>
                 <FormControl>
                   <Input
                     type="email"
@@ -204,9 +191,9 @@ export function ClientFormFields({
             )}
           />
         </div>
-      </FormSection>
+      </PanelSection>
 
-      <FormSection
+      <PanelSection
         compact
         icon={MapPin}
         title="Ubicación y crédito"
@@ -218,12 +205,10 @@ export function ClientFormFields({
             name="address"
             render={({ field, fieldState }) => (
               <FormItem data-tour="clientes-crear-address">
-                <FieldLabelRow>
-                  <FormLabel className={labelClass}>
-                    Dirección
-                    <RequiredIndicator invalid={!!fieldState.error} />
-                  </FormLabel>
-                </FieldLabelRow>
+                <PanelFieldLabel>
+                  Dirección
+                  <RequiredIndicator invalid={!!fieldState.error} />
+                </PanelFieldLabel>
                 <FormControl>
                   <Input
                     placeholder="Ingresa la dirección"
@@ -243,12 +228,10 @@ export function ClientFormFields({
             name="pay_credit_days"
             render={({ field, fieldState }) => (
               <FormItem data-tour="clientes-crear-credit">
-                <FieldLabelRow>
-                  <FormLabel className={labelClass}>
-                    Días de crédito
-                    <RequiredIndicator invalid={!!fieldState.error} />
-                  </FormLabel>
-                </FieldLabelRow>
+                <PanelFieldLabel>
+                  Días de crédito
+                  <RequiredIndicator invalid={!!fieldState.error} />
+                </PanelFieldLabel>
                 <FormControl>
                   <NumericTextInput
                     integerOnly
@@ -268,7 +251,7 @@ export function ClientFormFields({
             )}
           />
         </div>
-      </FormSection>
+      </PanelSection>
     </div>
   );
 }

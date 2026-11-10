@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { AlertTriangle } from "lucide-react";
+import { EmptyState } from "@/components/misc/EmptyState";
 import GroupRow from "./GroupRow";
 import { CursorPagination } from "@/components/tables/CursorPagination";
 import type { CursorPaginationState } from "@/hooks/helpers/useCursorListing";
@@ -17,6 +19,8 @@ type Props<T extends GroupableRow> = {
   renderTable: (rows: T[]) => React.ReactNode;
   pagination: CursorPaginationState & { summary?: string };
   isTransitioning?: boolean;
+  isLoading?: boolean;
+  isError?: boolean;
 };
 
 type Group<T> = {
@@ -42,6 +46,8 @@ const GroupedCostTable = <T extends GroupableRow>({
   renderTable,
   pagination,
   isTransitioning = false,
+  isLoading = false,
+  isError = false,
 }: Props<T>) => {
   const groups = useMemo<Group<T>[]>(() => {
     const result: Group<T>[] = [];
@@ -72,18 +78,23 @@ const GroupedCostTable = <T extends GroupableRow>({
 
   if (!groups.length) {
     return (
-      <div
-        className="
-        rounded-xl border
-        bg-white dark:bg-slate-900/60
-        border-slate-200 dark:border-slate-700/60
-        px-6 py-10
-        text-center
-      "
-      >
-        <p className="text-sm text-muted-foreground">
-          No hay datos agrupados disponibles.
-        </p>
+      <div className="rounded-xl border border-slate-200 bg-white px-6 py-10 dark:border-slate-700/60 dark:bg-slate-900/60">
+        {isLoading ? (
+          <p className="text-center text-sm text-muted-foreground">
+            Cargando datos...
+          </p>
+        ) : isError ? (
+          <EmptyState
+            icon={AlertTriangle}
+            tone="error"
+            title="No se pudo cargar la información"
+            description="Intente de nuevo en unos instantes."
+          />
+        ) : (
+          <p className="text-center text-sm text-muted-foreground">
+            No hay datos agrupados disponibles.
+          </p>
+        )}
       </div>
     );
   }

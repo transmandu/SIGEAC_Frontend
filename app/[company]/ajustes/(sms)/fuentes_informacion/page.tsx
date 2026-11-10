@@ -42,7 +42,7 @@ const InformationSourcePage = () => {
     <SettingsListPage
       title="Fuentes de Información"
       heading="Fuentes de Información"
-      description="Administra las fuentes desde las que se identifican los peligros del SMS."
+      description="Administre las fuentes desde las que se identifican los peligros del SMS."
       search={{
         value: search,
         onChange: setSearch,

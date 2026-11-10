@@ -4,20 +4,17 @@ import { Contact, Handshake } from "lucide-react";
 import { Control } from "react-hook-form";
 
 import {
-  FieldLabelRow,
-  FormSection,
   fieldClass,
   hintClass,
-  labelClass,
   selectTriggerClass,
 } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
+import { PanelSection, PanelFieldLabel } from "@/components/forms/PanelSection";
 import { RequiredIndicator } from "@/components/misc/RequiredIndicator";
 import {
   FormControl,
   FormDescription,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -41,7 +38,7 @@ export function VendorFormFields({
 }) {
   return (
     <>
-      <FormSection
+      <PanelSection
         icon={Handshake}
         title="Identificación"
         hint="Quién es y para qué se usa en las compras."
@@ -52,12 +49,10 @@ export function VendorFormFields({
             name="name"
             render={({ field, fieldState }) => (
               <FormItem data-tour="proveedores-dialog-name">
-                <FieldLabelRow>
-                  <FormLabel className={labelClass}>
-                    Nombre
-                    <RequiredIndicator invalid={!!fieldState.error} />
-                  </FormLabel>
-                </FieldLabelRow>
+                <PanelFieldLabel>
+                  Nombre
+                  <RequiredIndicator invalid={!!fieldState.error} />
+                </PanelFieldLabel>
                 <FormControl>
                   <Input
                     placeholder="Ej: Boeing, Airbus"
@@ -77,12 +72,10 @@ export function VendorFormFields({
             name="type"
             render={({ field, fieldState }) => (
               <FormItem data-tour="proveedores-dialog-type">
-                <FieldLabelRow>
-                  <FormLabel className={labelClass}>
-                    Tipo
-                    <RequiredIndicator invalid={!!fieldState.error} />
-                  </FormLabel>
-                </FieldLabelRow>
+                <PanelFieldLabel>
+                  Tipo
+                  <RequiredIndicator invalid={!!fieldState.error} />
+                </PanelFieldLabel>
                 <Select
                   value={field.value}
                   onValueChange={field.onChange}
@@ -108,9 +101,9 @@ export function VendorFormFields({
             )}
           />
         </div>
-      </FormSection>
+      </PanelSection>
 
-      <FormSection
+      <PanelSection
         icon={Contact}
         title="Contacto"
         hint="Cómo comunicarse y dónde ubicarlo."
@@ -121,12 +114,10 @@ export function VendorFormFields({
             name="phone"
             render={({ field, fieldState }) => (
               <FormItem data-tour="proveedores-dialog-phone">
-                <FieldLabelRow>
-                  <FormLabel className={labelClass}>
-                    Teléfono
-                    <RequiredIndicator invalid={!!fieldState.error} />
-                  </FormLabel>
-                </FieldLabelRow>
+                <PanelFieldLabel>
+                  Teléfono
+                  <RequiredIndicator invalid={!!fieldState.error} />
+                </PanelFieldLabel>
                 <FormControl>
                   <PhoneInput
                     disabled={disabled}
@@ -146,12 +137,10 @@ export function VendorFormFields({
             name="email"
             render={({ field, fieldState }) => (
               <FormItem data-tour="proveedores-dialog-email">
-                <FieldLabelRow>
-                  <FormLabel className={labelClass}>
-                    Correo electrónico
-                    <RequiredIndicator invalid={!!fieldState.error} />
-                  </FormLabel>
-                </FieldLabelRow>
+                <PanelFieldLabel>
+                  Correo electrónico
+                  <RequiredIndicator invalid={!!fieldState.error} />
+                </PanelFieldLabel>
                 <FormControl>
                   <Input
                     type="email"
@@ -175,9 +164,7 @@ export function VendorFormFields({
                 className="sm:col-span-2"
                 data-tour="proveedores-dialog-address"
               >
-                <FieldLabelRow>
-                  <FormLabel className={labelClass}>Dirección</FormLabel>
-                </FieldLabelRow>
+                <PanelFieldLabel>Dirección</PanelFieldLabel>
                 <FormControl>
                   <Input
                     placeholder="Ubicación fiscal"
@@ -196,7 +183,7 @@ export function VendorFormFields({
             )}
           />
         </div>
-      </FormSection>
+      </PanelSection>
     </>
   );
 }

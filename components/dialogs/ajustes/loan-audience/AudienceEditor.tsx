@@ -7,7 +7,12 @@ import { Building2, Users } from "lucide-react";
 import { useSetLoanAudience } from "@/actions/ajustes/convenios/actions";
 import { hintClass } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
 import { ArticleFormShell } from "@/components/forms/mantenimiento/almacen/articulos/ArticleFormShell";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  SegmentedTabs,
+  SegmentedTabsContent,
+  SegmentedTabsList,
+  SegmentedTabsTrigger,
+} from "@/components/misc/SegmentedTabs";
 import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment";
 import { useGetEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetEmployees";
 import type {
@@ -16,17 +21,9 @@ import type {
   LoanAudience,
 } from "@/hooks/ajustes/convenios/types";
 import { flattenDepartments } from "@/lib/departments";
-import { cn } from "@/lib/utils";
 import { DateCell } from "./DateCell";
 import { PickTable, type PickRow } from "./PickTable";
 import { useAudienceDraft } from "./useAudienceDraft";
-
-const tabTriggerClass = cn(
-  "flex items-center justify-center gap-2 rounded-lg text-sm transition-all duration-200",
-  "data-[state=active]:bg-background data-[state=active]:text-primary",
-  "data-[state=active]:shadow-md data-[state=active]:shadow-primary/10",
-  "data-[state=active]:ring-1 data-[state=active]:ring-primary/20",
-);
 
 const dash = <span className="text-muted-foreground">—</span>;
 
@@ -197,25 +194,28 @@ export function AudienceEditor({
         void submit();
       }}
     >
-      <Tabs defaultValue="employees" className="flex min-h-0 flex-1 flex-col">
-        <TabsList className="mb-4 grid h-auto w-full shrink-0 grid-cols-2">
-          <TabsTrigger value="employees" className={tabTriggerClass}>
+      <SegmentedTabs
+        defaultValue="employees"
+        className="flex min-h-0 flex-1 flex-col"
+      >
+        <SegmentedTabsList className="mb-4 shrink-0">
+          <SegmentedTabsTrigger value="employees">
             <Users className="size-4" />
             Personas
             <span className="text-xs tabular-nums text-muted-foreground">
               {draft.chosenDnis.size}
             </span>
-          </TabsTrigger>
-          <TabsTrigger value="departments" className={tabTriggerClass}>
+          </SegmentedTabsTrigger>
+          <SegmentedTabsTrigger value="departments">
             <Building2 className="size-4" />
             Departamentos
             <span className="text-xs tabular-nums text-muted-foreground">
               {draft.departmentIds.size}
             </span>
-          </TabsTrigger>
-        </TabsList>
+          </SegmentedTabsTrigger>
+        </SegmentedTabsList>
 
-        <TabsContent
+        <SegmentedTabsContent
           value="employees"
           className="mt-0 flex min-h-0 flex-1 flex-col"
         >
@@ -235,9 +235,9 @@ export function AudienceEditor({
             emptyMessage="No hay personas que coincidan."
             loading={loadingEmployees}
           />
-        </TabsContent>
+        </SegmentedTabsContent>
 
-        <TabsContent
+        <SegmentedTabsContent
           value="departments"
           className="mt-0 flex min-h-0 flex-1 flex-col gap-2"
         >
@@ -260,8 +260,8 @@ export function AudienceEditor({
             Un departamento incluye a sus subdepartamentos y a todos sus
             miembros activos.
           </p>
-        </TabsContent>
-      </Tabs>
+        </SegmentedTabsContent>
+      </SegmentedTabs>
     </ArticleFormShell>
   );
 }

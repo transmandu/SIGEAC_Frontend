@@ -11,12 +11,10 @@ import {
   serverFieldErrors,
 } from "@/components/forms/mantenimiento/almacen/_components/form-feedback";
 import {
-  FieldLabelRow,
-  FormSection,
   hintClass,
-  labelClass,
   selectTriggerClass,
 } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
+import { PanelSection, PanelFieldLabel } from "@/components/forms/PanelSection";
 import { ArticleFormShell } from "@/components/forms/mantenimiento/almacen/articulos/ArticleFormShell";
 import { RequiredIndicator } from "@/components/misc/RequiredIndicator";
 import {
@@ -25,7 +23,6 @@ import {
   FormDescription,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import {
@@ -98,7 +95,7 @@ export default function CreateCompanyLoanForm({
           form.handleSubmit(onSubmit, invalidFormHandler(LOAN_FIELD_LABELS))(e);
         }}
       >
-        <FormSection
+        <PanelSection
           icon={Building2}
           title="Empresa"
           hint="La que podrá usar módulos de la suya."
@@ -108,12 +105,10 @@ export default function CreateCompanyLoanForm({
             name="borrower_company_slug"
             render={({ field, fieldState }) => (
               <FormItem>
-                <FieldLabelRow>
-                  <FormLabel className={labelClass}>
-                    Empresa a habilitar
-                    <RequiredIndicator invalid={!!fieldState.error} />
-                  </FormLabel>
-                </FieldLabelRow>
+                <PanelFieldLabel>
+                  Empresa a habilitar
+                  <RequiredIndicator invalid={!!fieldState.error} />
+                </PanelFieldLabel>
                 <Select
                   value={field.value}
                   onValueChange={field.onChange}
@@ -149,7 +144,7 @@ export default function CreateCompanyLoanForm({
               </FormItem>
             )}
           />
-        </FormSection>
+        </PanelSection>
 
         <LoanScopesField
           companySlug={slug}

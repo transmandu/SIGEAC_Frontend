@@ -4,14 +4,16 @@ import { useMemo } from "react";
 import { Plane, ShieldCheck } from "lucide-react";
 import { Control, UseFormReturn, useWatch } from "react-hook-form";
 
-import { CheckboxCard } from "@/components/forms/mantenimiento/almacen/_components/CheckboxCard";
 import {
-  FieldLabelRow,
-  FormSection,
   fieldClass,
   labelClass,
   selectTriggerClass,
 } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
+import {
+  PanelSection,
+  PanelFieldLabel,
+  SwitchRow,
+} from "@/components/forms/PanelSection";
 import { RequiredIndicator } from "@/components/misc/RequiredIndicator";
 import { DatePickerField } from "@/components/ui/DatePickerField";
 import {
@@ -67,19 +69,17 @@ export function AircraftFormFields({
 
   return (
     <div className="flex flex-col gap-4">
-      <FormSection compact icon={Plane} title="Aeronave">
+      <PanelSection compact icon={Plane} title="Aeronave">
         <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
           <FormField
             control={control}
             name="acronym"
             render={({ field, fieldState }) => (
               <FormItem>
-                <FieldLabelRow>
-                  <FormLabel className={labelClass}>
-                    Matrícula
-                    <RequiredIndicator invalid={!!fieldState.error} />
-                  </FormLabel>
-                </FieldLabelRow>
+                <PanelFieldLabel>
+                  Matrícula
+                  <RequiredIndicator invalid={!!fieldState.error} />
+                </PanelFieldLabel>
                 <FormControl>
                   <Input
                     placeholder="Ej: YV2272"
@@ -102,12 +102,10 @@ export function AircraftFormFields({
             name="serial"
             render={({ field, fieldState }) => (
               <FormItem>
-                <FieldLabelRow>
-                  <FormLabel className={labelClass}>
-                    Serial
-                    <RequiredIndicator invalid={!!fieldState.error} />
-                  </FormLabel>
-                </FieldLabelRow>
+                <PanelFieldLabel>
+                  Serial
+                  <RequiredIndicator invalid={!!fieldState.error} />
+                </PanelFieldLabel>
                 <FormControl>
                   <Input
                     placeholder="Ej: 208B0555"
@@ -130,12 +128,10 @@ export function AircraftFormFields({
             name="brand"
             render={({ field, fieldState }) => (
               <FormItem>
-                <FieldLabelRow>
-                  <FormLabel className={labelClass}>
-                    Marca
-                    <RequiredIndicator invalid={!!fieldState.error} />
-                  </FormLabel>
-                </FieldLabelRow>
+                <PanelFieldLabel>
+                  Marca
+                  <RequiredIndicator invalid={!!fieldState.error} />
+                </PanelFieldLabel>
                 <FormControl>
                   <Input
                     placeholder="Ej: Cessna"
@@ -155,12 +151,10 @@ export function AircraftFormFields({
             name="model"
             render={({ field, fieldState }) => (
               <FormItem>
-                <FieldLabelRow>
-                  <FormLabel className={labelClass}>
-                    Modelo
-                    <RequiredIndicator invalid={!!fieldState.error} />
-                  </FormLabel>
-                </FieldLabelRow>
+                <PanelFieldLabel>
+                  Modelo
+                  <RequiredIndicator invalid={!!fieldState.error} />
+                </PanelFieldLabel>
                 <FormControl>
                   <Input
                     placeholder="Ej: Caravan 208B"
@@ -180,15 +174,13 @@ export function AircraftFormFields({
             name="manufacturer_id"
             render={({ field, fieldState }) => (
               <FormItem>
-                <FieldLabelRow>
-                  <FormLabel className={labelClass}>
-                    Fabricante
-                    <RequiredIndicator
-                      show={!isExternal}
-                      invalid={!!fieldState.error}
-                    />
-                  </FormLabel>
-                </FieldLabelRow>
+                <PanelFieldLabel>
+                  Fabricante
+                  <RequiredIndicator
+                    show={!isExternal}
+                    invalid={!!fieldState.error}
+                  />
+                </PanelFieldLabel>
                 <Select
                   value={field.value || undefined}
                   onValueChange={field.onChange}
@@ -230,12 +222,10 @@ export function AircraftFormFields({
             name="location_id"
             render={({ field, fieldState }) => (
               <FormItem>
-                <FieldLabelRow>
-                  <FormLabel className={labelClass}>
-                    Ubicación
-                    <RequiredIndicator invalid={!!fieldState.error} />
-                  </FormLabel>
-                </FieldLabelRow>
+                <PanelFieldLabel>
+                  Ubicación
+                  <RequiredIndicator invalid={!!fieldState.error} />
+                </PanelFieldLabel>
                 <Select
                   value={field.value || undefined}
                   onValueChange={field.onChange}
@@ -267,12 +257,10 @@ export function AircraftFormFields({
             name="owner"
             render={({ field, fieldState }) => (
               <FormItem>
-                <FieldLabelRow>
-                  <FormLabel className={labelClass}>
-                    Propietario
-                    <RequiredIndicator invalid={!!fieldState.error} />
-                  </FormLabel>
-                </FieldLabelRow>
+                <PanelFieldLabel>
+                  Propietario
+                  <RequiredIndicator invalid={!!fieldState.error} />
+                </PanelFieldLabel>
                 <FormControl>
                   <Input
                     placeholder="Ej: Transmandu"
@@ -292,12 +280,10 @@ export function AircraftFormFields({
             name="status"
             render={({ field, fieldState }) => (
               <FormItem>
-                <FieldLabelRow>
-                  <FormLabel className={labelClass}>
-                    Estado
-                    <RequiredIndicator invalid={!!fieldState.error} />
-                  </FormLabel>
-                </FieldLabelRow>
+                <PanelFieldLabel>
+                  Estado
+                  <RequiredIndicator invalid={!!fieldState.error} />
+                </PanelFieldLabel>
                 <Select
                   value={field.value}
                   onValueChange={field.onChange}
@@ -376,16 +362,16 @@ export function AircraftFormFields({
             )}
           />
         </div>
-      </FormSection>
+      </PanelSection>
 
-      <FormSection compact icon={ShieldCheck} title="Registro">
+      <PanelSection compact icon={ShieldCheck} title="Registro">
         <div className="grid gap-3 md:grid-cols-2">
           <FormField
             control={control}
             name="is_external"
             render={({ field }) => (
               <FormItem>
-                <CheckboxCard
+                <SwitchRow
                   id="aircraft-is-external"
                   checked={field.value}
                   onCheckedChange={(checked) => {
@@ -404,7 +390,7 @@ export function AircraftFormFields({
             name="inac"
             render={({ field }) => (
               <FormItem>
-                <CheckboxCard
+                <SwitchRow
                   id="aircraft-inac"
                   checked={field.value}
                   onCheckedChange={field.onChange}
@@ -416,7 +402,7 @@ export function AircraftFormFields({
             )}
           />
         </div>
-      </FormSection>
+      </PanelSection>
     </div>
   );
 }

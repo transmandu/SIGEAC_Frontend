@@ -40,7 +40,7 @@ const ConditionsPage = () => {
     <SettingsListPage
       title="Condiciones"
       heading="Control de Condiciones"
-      description="Administra las condiciones de los artículos del almacén y cuáles no cuentan como gasto en los reportes."
+      description="Administre las condiciones de los artículos del almacén y cuáles no cuentan como gasto en los reportes."
       tourPrefix="condiciones"
       search={{
         value: search,

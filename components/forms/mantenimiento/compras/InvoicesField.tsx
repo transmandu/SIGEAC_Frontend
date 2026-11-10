@@ -2,8 +2,14 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { fieldClass } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
 import { validateDocumentFile } from "@/lib/warehouse/documents";
 import { FileText, ImageIcon, Paperclip, Plus, Trash2 } from "lucide-react";
 import { useRef } from "react";
@@ -36,14 +42,17 @@ export function createInvoiceEntry(): InvoiceEntry {
   return { key: `new-${entryCounter}`, invoice_number: "" };
 }
 
-const LABEL_CLS = "select-none text-[10px] leading-none text-muted-foreground uppercase";
+const LABEL_CLS = "select-none text-[13px] leading-none text-muted-foreground";
 
-const INPUT_CLS =
-  "h-9 rounded-lg border-border/50 bg-background/80 text-sm shadow-xs transition-shadow focus-visible:ring-1 focus-visible:ring-teal-500/40 focus-visible:ring-offset-0";
+const INPUT_CLS = cn(
+  fieldClass,
+  "h-9 rounded-lg text-sm max-sm:h-10 max-sm:text-base",
+);
 
 function fileLabel(entry: InvoiceEntry) {
   if (entry.file) return entry.file.name;
-  if (entry.file_path) return entry.file_path.split("/").pop() ?? "Archivo adjunto";
+  if (entry.file_path)
+    return entry.file_path.split("/").pop() ?? "Archivo adjunto";
   return null;
 }
 
@@ -76,7 +85,7 @@ function InvoiceRow({ entry, onChange, onRemove }: InvoiceRowProps) {
   };
 
   return (
-    <div className="flex items-end gap-2">
+    <div className="flex items-end gap-2 max-sm:flex-wrap">
       <input
         type="file"
         ref={fileInputRef}
@@ -85,13 +94,15 @@ function InvoiceRow({ entry, onChange, onRemove }: InvoiceRowProps) {
         onChange={handleFileChange}
       />
 
-      <div className="min-w-0 flex-1 space-y-1">
+      <div className="min-w-0 flex-1 space-y-1 max-sm:basis-full">
         <span className={LABEL_CLS}>Nro. Factura</span>
         <Input
           placeholder="INV-0001"
           className={INPUT_CLS}
           value={entry.invoice_number}
-          onChange={(e) => onChange({ ...entry, invoice_number: e.target.value })}
+          onChange={(e) =>
+            onChange({ ...entry, invoice_number: e.target.value })
+          }
         />
       </div>
 
@@ -103,21 +114,27 @@ function InvoiceRow({ entry, onChange, onRemove }: InvoiceRowProps) {
               variant="outline"
               onClick={() => fileInputRef.current?.click()}
               className={cn(
-                "h-9 max-w-[190px] shrink-0 justify-start gap-1.5 rounded-lg border-border/50 bg-background/80 px-3 text-sm shadow-xs",
+                "h-9 max-w-47.5 shrink-0 justify-start gap-1.5 rounded-lg border-slate-400/60 bg-linear-to-br from-background/70 to-background/40 px-3 text-sm shadow-xs max-sm:h-10 max-sm:max-w-none max-sm:flex-1 dark:border-slate-600/60",
                 label
                   ? "border-teal-500/30 bg-teal-500/10 text-teal-700 hover:bg-teal-500/20 dark:text-teal-300"
-                  : "text-muted-foreground"
+                  : "text-muted-foreground",
               )}
             >
               {label ? (
-                isPdf(label) ? <FileText className="size-4 shrink-0" /> : <ImageIcon className="size-4 shrink-0" />
+                isPdf(label) ? (
+                  <FileText className="size-4 shrink-0" />
+                ) : (
+                  <ImageIcon className="size-4 shrink-0" />
+                )
               ) : (
                 <Paperclip className="size-4 shrink-0" />
               )}
               <span className="truncate">{label ?? "Adjuntar"}</span>
             </Button>
           </TooltipTrigger>
-          <TooltipContent>{label ? "Cambiar archivo" : "Adjuntar factura (imagen o PDF)"}</TooltipContent>
+          <TooltipContent>
+            {label ? "Cambiar archivo" : "Adjuntar factura (imagen o PDF)"}
+          </TooltipContent>
         </Tooltip>
       </TooltipProvider>
 
@@ -129,7 +146,8 @@ function InvoiceRow({ entry, onChange, onRemove }: InvoiceRowProps) {
               variant="outline"
               size="icon"
               onClick={onRemove}
-              className="h-9 w-9 shrink-0 rounded-lg border-border/50 bg-background/80 text-muted-foreground shadow-xs hover:text-destructive"
+              aria-label="Quitar factura"
+              className="h-9 w-9 shrink-0 max-sm:size-10 rounded-lg border-slate-400/60 bg-linear-to-br from-background/70 to-background/40 text-muted-foreground shadow-xs hover:text-destructive dark:border-slate-600/60"
             >
               <Trash2 className="size-4" />
             </Button>
@@ -150,7 +168,8 @@ export function InvoicesField({ value, onChange }: InvoicesFieldProps) {
   const updateAt = (index: number, entry: InvoiceEntry) =>
     onChange(value.map((item, i) => (i === index ? entry : item)));
 
-  const removeAt = (index: number) => onChange(value.filter((_, i) => i !== index));
+  const removeAt = (index: number) =>
+    onChange(value.filter((_, i) => i !== index));
 
   return (
     <div className="col-span-2 space-y-2">
@@ -160,7 +179,7 @@ export function InvoicesField({ value, onChange }: InvoicesFieldProps) {
           type="button"
           variant="ghost"
           size="sm"
-          className="h-7 gap-1 px-2 text-xs text-muted-foreground"
+          className="h-7 gap-1 px-2 text-[13px] text-muted-foreground max-sm:h-10"
           onClick={() => onChange([...value, createInvoiceEntry()])}
         >
           <Plus className="size-3.5" />
@@ -169,7 +188,7 @@ export function InvoicesField({ value, onChange }: InvoicesFieldProps) {
       </div>
 
       {value.length === 0 ? (
-        <p className="rounded-lg border border-dashed border-border/60 px-3 py-3 text-center text-xs text-muted-foreground">
+        <p className="rounded-lg border border-dashed border-border/60 px-3 py-3 text-center text-[13px] text-muted-foreground">
           Sin facturas. Agregue una por cada factura recibida del proveedor.
         </p>
       ) : (

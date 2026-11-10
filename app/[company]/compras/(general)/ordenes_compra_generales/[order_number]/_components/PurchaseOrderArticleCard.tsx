@@ -1,31 +1,53 @@
-'use client';
+"use client";
 
-import { Badge } from '@/components/ui/badge';
-import type { PurchaseOrderArticle, PurchaseOrderStatus } from '@/types/purchase/purchase-order';
+import { PurchaseLineTransitUpdates } from "@/app/[company]/compras/_components/PurchaseLineTransitUpdates";
+import { Badge } from "@/components/ui/badge";
+import type {
+  PurchaseOrderArticle,
+  PurchaseOrderStatus,
+} from "@/types/purchase/purchase-order";
 
 interface PurchaseOrderArticleCardProps {
   article: PurchaseOrderArticle;
   orderStatus?: PurchaseOrderStatus;
 }
 
-const Field = ({ label, value, mono = false, pending = false, completed = false }: { label: string; value?: string | number | null; mono?: boolean; pending?: boolean; completed?: boolean }) => {
-  const isEmpty = pending || value == null || value === '';
+const Field = ({
+  label,
+  value,
+  mono = false,
+  pending = false,
+  completed = false,
+}: {
+  label: string;
+  value?: string | number | null;
+  mono?: boolean;
+  pending?: boolean;
+  completed?: boolean;
+}) => {
+  const isEmpty = pending || value == null || value === "";
 
   return (
     <div className="flex flex-col items-start min-w-0">
-      <span className="text-[9px] uppercase tracking-wide text-muted-foreground select-none mb-0.5">
+      <span className="text-xs text-muted-foreground select-none mb-0.5">
         {label}
       </span>
       {isEmpty ? (
         completed ? (
-          <span className="text-xs text-muted-foreground/50 leading-none">N/A</span>
+          <span className="text-xs text-muted-foreground leading-none">
+            N/A
+          </span>
         ) : pending ? (
-          <span className="text-xs text-muted-foreground/50 italic leading-none">Pendiente</span>
+          <span className="text-xs text-muted-foreground italic leading-none">
+            Pendiente
+          </span>
         ) : (
-          <span className="text-xs text-muted-foreground/50 leading-none">—</span>
+          <span className="text-xs text-muted-foreground leading-none">—</span>
         )
       ) : (
-        <span className={`text-xs leading-none truncate w-full ${mono ? 'font-mono' : ''}`}>
+        <span
+          className={`text-xs leading-none truncate w-full ${mono ? "font-mono" : ""}`}
+        >
           {value}
         </span>
       )}
@@ -33,8 +55,11 @@ const Field = ({ label, value, mono = false, pending = false, completed = false 
   );
 };
 
-const PurchaseOrderArticleCard = ({ article, orderStatus }: PurchaseOrderArticleCardProps) => {
-  const isCompleted = orderStatus === 'COMPLETED';
+const PurchaseOrderArticleCard = ({
+  article,
+  orderStatus,
+}: PurchaseOrderArticleCardProps) => {
+  const isCompleted = orderStatus === "COMPLETED";
 
   const quoteArticle = article.article_quote_order;
   const req = quoteArticle?.article_requisition_order;
@@ -42,47 +67,80 @@ const PurchaseOrderArticleCard = ({ article, orderStatus }: PurchaseOrderArticle
   const conditionName = quoteArticle?.condition?.name;
   const vendorName = quoteArticle?.vendor?.name;
 
-  const quotedTotal = quoteArticle?.total != null
-    ? Number(quoteArticle.total)
-    : Number(quoteArticle?.quantity || 0) * Number(quoteArticle?.unit_price || 0);
+  const quotedTotal =
+    quoteArticle?.total != null
+      ? Number(quoteArticle.total)
+      : Number(quoteArticle?.quantity || 0) *
+        Number(quoteArticle?.unit_price || 0);
   const amount = article.total != null ? Number(article.total) : quotedTotal;
-  const totalDiffers = article.total != null && Number(article.total) !== quotedTotal;
+  const totalDiffers =
+    article.total != null &&
+    Math.round(Number(article.total) * 100) !== Math.round(quotedTotal * 100);
 
   return (
-    <div className="rounded-lg border border-border/60 bg-background/70 overflow-hidden flex flex-col">
-
+    <div className="rounded-xl border border-slate-200 bg-white dark:border-slate-700/60 dark:bg-slate-900/60 overflow-hidden flex flex-col">
       {/* HEADER */}
       <div className="flex items-center justify-between gap-2 border-b border-border/50 bg-muted/25 px-2.5 py-1">
         <div className="flex items-center gap-1.5 min-w-0">
-          <span className="shrink-0 text-[9px] px-1 py-px rounded bg-primary/10 text-primary border border-primary/20 font-medium select-none">
+          <span className="shrink-0 text-xs px-1 py-px rounded bg-primary/10 text-primary border border-primary/20 font-medium select-none">
             P/N
           </span>
           <span className="truncate text-xs font-medium text-foreground">
-            {req?.article_part_number || 'N/A'}
+            {req?.article_part_number || "N/A"}
           </span>
         </div>
-        {req?.batch?.category && (
-          <Badge
-            variant="secondary"
-            className="h-4 px-1.5 text-[9px] uppercase tracking-wide text-muted-foreground select-none shrink-0"
-          >
-            {req.batch.category}
-          </Badge>
-        )}
+        <div className="flex shrink-0 items-center gap-1.5">
+          <PurchaseLineTransitUpdates
+            articleId={article.transit_article_id}
+            count={article.transit_updates_count}
+          />
+          {req?.batch?.category && (
+            <Badge
+              variant="secondary"
+              className="h-5 px-1.5 text-xs text-muted-foreground select-none shrink-0"
+            >
+              {req.batch.category}
+            </Badge>
+          )}
+        </div>
       </div>
 
       {/* BODY */}
       <div className="px-2.5 py-2 space-y-1.5">
-
         <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
-          <Field label="Descripción" value={req?.batch?.name ?? 'Sin Descripción'} completed={isCompleted} />
-          <Field label="P/N Alterno" value={req?.article_alt_part_number} mono completed={isCompleted} />
-          <Field label="Cantidad" value={quoteArticle?.quantity} completed={isCompleted} />
+          <Field
+            label="Descripción"
+            value={req?.batch?.name ?? "Sin Descripción"}
+            completed={isCompleted}
+          />
+          <Field
+            label="P/N Alterno"
+            value={req?.article_alt_part_number}
+            mono
+            completed={isCompleted}
+          />
+          <Field
+            label="Cantidad"
+            value={quoteArticle?.quantity}
+            completed={isCompleted}
+          />
           <Field label="Unidad" value={unitLabel} completed={isCompleted} />
-          <Field label="P. Unitario" value={`$${Number(quoteArticle?.unit_price || 0).toFixed(2)}`} completed={isCompleted} />
-          <Field label="Total" value={`$${amount.toFixed(2)}${totalDiffers ? ` (cotizado $${quotedTotal.toFixed(2)})` : ''}`} completed={isCompleted} />
+          <Field
+            label="P. Unitario"
+            value={`$${Number(quoteArticle?.unit_price || 0).toFixed(2)}`}
+            completed={isCompleted}
+          />
+          <Field
+            label="Total"
+            value={`$${amount.toFixed(2)}${totalDiffers ? ` (cotizado $${quotedTotal.toFixed(2)})` : ""}`}
+            completed={isCompleted}
+          />
           <Field label="Proveedor" value={vendorName} completed={isCompleted} />
-          <Field label="Condición" value={conditionName} completed={isCompleted} />
+          <Field
+            label="Condición"
+            value={conditionName}
+            completed={isCompleted}
+          />
           <Field
             label="Tracking Nacional"
             value={article.shipping_tracking}
@@ -98,13 +156,12 @@ const PurchaseOrderArticleCard = ({ article, orderStatus }: PurchaseOrderArticle
             completed={isCompleted}
           />
         </div>
-
       </div>
 
       {/* JUSTIFICACIÓN (cotización) */}
       {quoteArticle?.justification && (
         <div className="border-t border-border/50 bg-muted/20 px-2.5 py-1">
-          <span className="select-none text-[9px] leading-none text-muted-foreground uppercase">
+          <span className="select-none text-xs leading-none text-muted-foreground">
             Justificación
           </span>
           <p className="mt-0.5 text-xs text-foreground/80 line-clamp-2">
@@ -116,7 +173,7 @@ const PurchaseOrderArticleCard = ({ article, orderStatus }: PurchaseOrderArticle
       {/* JUSTIFICACIÓN DE DIFERENCIA DE TOTAL (pago) */}
       {article.total_justification && (
         <div className="border-t border-amber-500/30 bg-amber-50/40 px-2.5 py-1 dark:bg-amber-900/10">
-          <span className="select-none text-[9px] leading-none text-amber-700 dark:text-amber-400 uppercase">
+          <span className="select-none text-xs leading-none text-amber-700 dark:text-amber-400">
             Justificación de diferencia de total
           </span>
           <p className="mt-0.5 text-xs text-foreground/80 line-clamp-2">
@@ -124,7 +181,6 @@ const PurchaseOrderArticleCard = ({ article, orderStatus }: PurchaseOrderArticle
           </p>
         </div>
       )}
-
     </div>
   );
 };

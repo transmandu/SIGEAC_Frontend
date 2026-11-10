@@ -48,7 +48,14 @@ export const ArticleFormShell = ({
   return (
     <form
       ref={formRef}
-      className={cn("flex flex-col gap-5", className)}
+      className={cn(
+        "flex flex-col gap-5",
+        // El cuerpo del diálogo no debe poder desplazarse más allá del último
+        // elemento del formulario: lo que sobresale por abajo (elementos ocultos
+        // o con transformaciones) no cuenta como contenido.
+        inDialog && "overflow-y-clip",
+        className,
+      )}
       onSubmit={onSubmit}
     >
       {children}

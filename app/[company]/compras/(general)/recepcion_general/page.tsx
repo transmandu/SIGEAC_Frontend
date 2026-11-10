@@ -1,78 +1,74 @@
-'use client'
+"use client";
 
-import { useMemo, useState, useDeferredValue } from 'react'
-import { ContentLayout } from '@/components/layout/ContentLayout'
-import { useCompanyStore } from '@/stores/CompanyStore'
-import { DataTable } from '@/app/[company]/compras/data-table'
-import { getColumns } from './columns'
-import IntakeToolBar from './_components/IntakeToolBar'
-import { useGetGeneralArticleIntakes } from '@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticleIntakes'
-import { useCompanyTimezone } from '@/hooks/general/useCompanyTimezone'
-import type { GeneralArticleIntakeStatus } from '@/types/purchase'
+import { useMemo, useState, useDeferredValue } from "react";
+import { ContentLayout } from "@/components/layout/ContentLayout";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { DataTable } from "@/app/[company]/compras/data-table";
+import { getColumns } from "./columns";
+import IntakeToolBar from "./_components/IntakeToolBar";
+import { useGetGeneralArticleIntakes } from "@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticleIntakes";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import type { GeneralArticleIntakeStatus } from "@/types/purchase";
 import { PageHeader } from "@/components/layout/PageHeader";
+import {
+  PurchasesHeading,
+  PurchasesToolbar,
+} from "@/app/[company]/compras/_components/PurchasesPageParts";
 
-type StatusFilter = 'ALL' | GeneralArticleIntakeStatus
+type StatusFilter = "ALL" | GeneralArticleIntakeStatus;
 
 const RecepcionGeneralPage = () => {
-  const { selectedCompany } = useCompanyStore()
-  const timeZone = useCompanyTimezone()
+  const { selectedCompany } = useCompanyStore();
+  const timeZone = useCompanyTimezone();
 
-  const [search, setSearch] = useState('')
-  const [status, setStatus] = useState<StatusFilter>('ALL')
+  const [search, setSearch] = useState("");
+  const [status, setStatus] = useState<StatusFilter>("ALL");
 
-  const deferredSearch = useDeferredValue(search)
+  const deferredSearch = useDeferredValue(search);
 
-  const { data: intakes, isLoading, isError } = useGetGeneralArticleIntakes(
-    status === 'ALL' ? undefined : status
-  )
+  const {
+    data: intakes,
+    isLoading,
+    isError,
+  } = useGetGeneralArticleIntakes(status === "ALL" ? undefined : status);
 
   const filtered = useMemo(() => {
-    if (!intakes) return []
+    if (!intakes) return [];
 
-    const q = deferredSearch.trim().toLowerCase()
-    if (!q) return intakes
+    const q = deferredSearch.trim().toLowerCase();
+    if (!q) return intakes;
 
     return intakes.filter(
       (i) =>
         i.description?.toLowerCase().includes(q) ||
         i.brand_model?.toLowerCase().includes(q) ||
-        i.purchase_order?.quote_order?.requisition_order?.order_number?.toLowerCase().includes(q) ||
+        i.purchase_order?.quote_order?.requisition_order?.order_number
+          ?.toLowerCase()
+          .includes(q) ||
         i.registered_by?.toLowerCase().includes(q) ||
         i.warehouse?.name?.toLowerCase().includes(q) ||
         i.department?.name?.toLowerCase().includes(q) ||
         i.third_party?.name?.toLowerCase().includes(q) ||
         i.authorized_employee?.full_name?.toLowerCase().includes(q) ||
-        `${i.employee?.first_name ?? ''} ${i.employee?.last_name ?? ''}`.toLowerCase().includes(q)
-    )
-  }, [intakes, deferredSearch])
+        `${i.employee?.first_name ?? ""} ${i.employee?.last_name ?? ""}`
+          .toLowerCase()
+          .includes(q),
+    );
+  }, [intakes, deferredSearch]);
 
-  const columns = useMemo(() => getColumns(timeZone), [timeZone])
+  const columns = useMemo(() => getColumns(timeZone), [timeZone]);
 
   return (
     <ContentLayout title="Recepción General">
       <div className="flex flex-col gap-6">
-
         <PageHeader />
 
-        <div className="flex flex-col gap-2 border-b pb-4">
-          <h1 className="text-3xl font-semibold tracking-tight">
-            Recepción General
-          </h1>
+        <PurchasesHeading
+          heading="Recepción General"
+          description="Seguimiento de las entregas físicas de artículos generales registradas por el comprador."
+        />
 
-          <p className="text-sm text-muted-foreground">
-            Seguimiento de las entregas físicas de artículos generales registradas por el comprador.
-          </p>
-        </div>
-
-        <div className="
-          flex items-center justify-between gap-4
-          px-3 py-2
-          rounded-xl border
-          bg-slate-200/40 border-slate-200/40
-          dark:bg-slate-800/70 dark:border-slate-700/60
-          backdrop-blur-md
-          dark:shadow-[0_4px_20px_rgba(0,0,0,0.35)]
-        ">
+        <PurchasesToolbar>
           <IntakeToolBar
             search={search}
             setSearch={setSearch}
@@ -81,12 +77,12 @@ const RecepcionGeneralPage = () => {
           />
 
           <span className="text-xs text-muted-foreground tabular-nums">
-            {filtered.length}{' '}
-            {filtered.length === 1 ? 'entrada' : 'entradas'}
+            {filtered.length} {filtered.length === 1 ? "entrada" : "entradas"}
           </span>
-        </div>
+        </PurchasesToolbar>
 
         <DataTable
+          error={isError}
           columns={columns}
           data={filtered}
           loading={isLoading}
@@ -95,18 +91,9 @@ const RecepcionGeneralPage = () => {
           emptyText="No se encontraron entradas"
           persistKey="recepcion_general"
         />
-
-        {isError && (
-          <div className="rounded-lg border border-red-500/20 bg-red-500/5 px-4 py-3">
-            <p className="text-sm text-red-500">
-              Error cargando recepciones de artículos generales.
-            </p>
-          </div>
-        )}
-
       </div>
     </ContentLayout>
-  )
-}
+  );
+};
 
-export default RecepcionGeneralPage
+export default RecepcionGeneralPage;

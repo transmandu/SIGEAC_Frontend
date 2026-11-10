@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import {
+  CalendarDays,
   ChevronsDown,
   Inbox,
   RefreshCw,
@@ -10,6 +11,7 @@ import {
   TriangleAlert,
 } from "lucide-react";
 
+import { PanelSection } from "@/components/forms/PanelSection";
 import { SettingsListPage } from "@/components/layout/SettingsListPage";
 import { EmptyState } from "@/components/misc/EmptyState";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
@@ -29,7 +31,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNotifications } from "@/hooks/notifications/useNotifications";
 import { useResettingState } from "@/hooks/useResettingState";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import { instantToCalendarDay, relativeDayLabel } from "@/lib/date";
 import { canClearNotifications } from "@/lib/notifications";
+import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
 type ReadFilter = "ALL" | "READ" | "UNREAD";
@@ -38,7 +43,7 @@ type ReadFilter = "ALL" | "READ" | "UNREAD";
 const PAGE_SIZE = 15;
 
 const NotificationSkeleton = () => (
-  <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 pl-4 dark:border-slate-700/60 dark:bg-slate-900/60">
+  <div className="flex items-center gap-3 px-4 py-3.5">
     <Skeleton className="size-10 shrink-0 rounded-xl" />
     <div className="flex-1 space-y-2">
       <Skeleton className="h-4 w-2/3" />
@@ -51,6 +56,7 @@ const NotificationSkeleton = () => (
 export default function NotificationsPage() {
   const { selectedCompany } = useCompanyStore();
   const { user } = useAuth();
+  const timeZone = useCompanyTimezone();
   const [search, setSearch] = useState("");
   const [readFilter, setReadFilter] = useState<ReadFilter>("ALL");
 
@@ -101,8 +107,28 @@ export default function NotificationsPage() {
   ]);
 
   const visible = filteredNotifications.slice(0, visibleCount);
+  const showList = !isPending && !isError && visible.length > 0;
   const remaining = filteredNotifications.length - visible.length;
   const isFiltered = !!search.trim() || readFilter !== "ALL";
+
+  // La bandeja se lee por días, de lo más reciente a lo más antiguo: cada día
+  // lleva su encabezado ("Hoy", "Ayer", la fecha) y las notificaciones de ese
+  // día debajo, separadas por una línea.
+  const today = instantToCalendarDay(new Date(), timeZone) ?? "";
+  const groups = visible.reduce<
+    {
+      key: string;
+      items: { notification: (typeof visible)[number]; index: number }[];
+    }[]
+  >((acc, notification, index) => {
+    const key = instantToCalendarDay(notification.created_at, timeZone) ?? "";
+    const last = acc[acc.length - 1];
+
+    if (last && last.key === key) last.items.push({ notification, index });
+    else acc.push({ key, items: [{ notification, index }] });
+
+    return acc;
+  }, []);
 
   return (
     <SettingsListPage
@@ -152,12 +178,16 @@ export default function NotificationsPage() {
       }}
     >
       <div
-        className="overflow-hidden rounded-xl border border-slate-200 bg-white md:min-h-0 md:flex-1 dark:border-slate-700/60 dark:bg-slate-900/60"
+        className={cn(
+          "md:min-h-0 md:flex-1",
+          !showList &&
+            "overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-700/60 dark:bg-slate-900/60",
+        )}
         data-tour="notificaciones-list"
       >
-        <div className="scrollbar-modern md:h-full md:overflow-y-auto">
+        <div className="scrollbar-modern md:h-full md:overflow-y-auto md:pr-1">
           {isPending ? (
-            <div className="flex flex-col gap-2 p-2">
+            <div className="divide-y divide-border/60">
               {Array.from({ length: 4 }).map((_, index) => (
                 <NotificationSkeleton key={index} />
               ))}
@@ -193,26 +223,55 @@ export default function NotificationsPage() {
               }
             />
           ) : (
-            <div className="flex flex-col gap-2 p-2">
-              {visible.map((notification, index) => (
-                <NotificationItem
-                  key={notification.id}
-                  notification={notification}
-                  index={index}
-                />
-              ))}
+            <div className="space-y-4">
+              {groups.map((group) => {
+                const label = group.key
+                  ? relativeDayLabel(group.key, today)
+                  : "Sin fecha";
+
+                return (
+                  <PanelSection
+                    key={group.key || "sin-fecha"}
+                    flush
+                    icon={CalendarDays}
+                    title={label.charAt(0).toUpperCase() + label.slice(1)}
+                    action={
+                      <span className="text-xs text-muted-foreground tabular-nums">
+                        {group.items.length}{" "}
+                        {group.items.length === 1
+                          ? "notificación"
+                          : "notificaciones"}
+                      </span>
+                    }
+                  >
+                    <div className="divide-y divide-border/60 overflow-hidden rounded-b-xl">
+                      {group.items.map(({ notification, index }) => (
+                        <NotificationItem
+                          key={notification.id}
+                          notification={notification}
+                          index={index}
+                          variant="row"
+                        />
+                      ))}
+                    </div>
+                  </PanelSection>
+                );
+              })}
 
               {remaining > 0 && (
-                <ActionTriggerButton
-                  className="mx-auto my-1"
-                  onClick={() => setVisibleCount((count) => count + PAGE_SIZE)}
-                >
-                  <ChevronsDown className="mr-2 h-4 w-4" />
-                  Mostrar más
-                  <span className="ml-1.5 text-muted-foreground tabular-nums">
-                    ({remaining})
-                  </span>
-                </ActionTriggerButton>
+                <div className="flex justify-center">
+                  <ActionTriggerButton
+                    onClick={() =>
+                      setVisibleCount((count) => count + PAGE_SIZE)
+                    }
+                  >
+                    <ChevronsDown className="mr-2 h-4 w-4" />
+                    Mostrar más
+                    <span className="ml-1.5 text-muted-foreground tabular-nums">
+                      ({remaining})
+                    </span>
+                  </ActionTriggerButton>
+                </div>
               )}
             </div>
           )}

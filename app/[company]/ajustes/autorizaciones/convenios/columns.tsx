@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import {
+  ArrowDownLeft,
+  ArrowUpRight,
   Eye,
   History,
   PauseCircle,
@@ -78,19 +80,22 @@ function ScopesCell({ row, slug }: { row: LoanRow; slug?: string }) {
         <PopoverTrigger asChild>
           <button
             type="button"
-            className="flex max-w-full items-center gap-1.5 rounded-md px-2 py-1 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            className="flex min-h-9 max-w-full items-center gap-1.5 rounded-md px-2 py-1 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground max-md:min-h-10 max-md:text-base"
             aria-label="Ver alcances"
           >
             <span className="truncate">{open[0].label}</span>
             {extra > 0 && (
-              <span className="shrink-0 rounded-full border px-1.5 text-xs">
+              <TagBadge tone="slate" className="h-5 px-1.5">
                 +{extra}
-              </span>
+              </TagBadge>
             )}
           </button>
         </PopoverTrigger>
 
-        <PopoverContent className="w-72 p-1" align="center">
+        <PopoverContent
+          className="w-72 p-1 max-sm:w-[min(18rem,calc(100vw-2rem))]"
+          align="center"
+        >
           <p className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
             {received
               ? "Elija quién usa cada alcance"
@@ -102,7 +107,7 @@ function ScopesCell({ row, slug }: { row: LoanRow; slug?: string }) {
                 {received ? (
                   <button
                     type="button"
-                    className="group flex w-full items-center justify-between gap-3 rounded-md px-2 py-1.5 text-left transition-colors hover:bg-muted"
+                    className="group flex min-h-11 w-full items-center justify-between gap-3 rounded-md px-2 py-1.5 text-left transition-colors hover:bg-muted"
                     onClick={() => setAudienceScope(s)}
                     aria-label={`Elegir personal para ${s.label}`}
                   >
@@ -271,7 +276,9 @@ export const getColumns = (slug?: string): AppColumnDef<LoanRow>[] => [
     ),
     cell: ({ row }) => (
       <div className={`${center} items-center gap-2`}>
-        <span className="text-sm font-semibold">{row.original.otherName}</span>
+        <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+          {row.original.otherName}
+        </span>
         {!row.original.is_active && (
           <TagBadge tone="amber">Suspendido</TagBadge>
         )}
@@ -288,7 +295,12 @@ export const getColumns = (slug?: string): AppColumnDef<LoanRow>[] => [
       </div>
     ),
     cell: ({ row }) => (
-      <div className={center}>
+      <div className={`${center} items-center gap-2`}>
+        {row.original.direction === "granted" ? (
+          <ArrowUpRight className="size-4 shrink-0 text-blue-600 dark:text-blue-400" />
+        ) : (
+          <ArrowDownLeft className="size-4 shrink-0 text-violet-600 dark:text-violet-400" />
+        )}
         <span className="text-sm text-muted-foreground">
           {DIRECTION_LABELS[row.original.direction]}
         </span>

@@ -23,14 +23,17 @@ import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits";
 import { useDebounce } from "@/lib/useDebounce";
-import { cn } from "@/lib/utils";
 import { useGetGeneralArticles } from "@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticles";
 import type {
   RequisitionBatchForm,
   RequisitionGeneralArticleForm,
 } from "@/types/purchase";
 import type { GeneralArticle } from "@/types";
-import { Separator } from "@/components/ui/separator";
+import {
+  SegmentedTabs,
+  SegmentedTabsList,
+  SegmentedTabsTrigger,
+} from "@/components/misc/SegmentedTabs";
 import { RequisitionHeader } from "./_components/RequisitionHeader";
 import { BatchArticlesSection } from "./_components/BatchArticlesSection";
 import { GeneralArticlesSection } from "./_components/GeneralArticlesSection";
@@ -47,6 +50,7 @@ import { isHigherPriority, type Priority } from "./_components/priorityUtils";
 import { getStoragePathFromUrl } from "./_components/imageUtils";
 import { canAddRequisitionArticle } from "@/lib/purchases/requisition-article-limit";
 import { toCalendarPayload } from "@/lib/date";
+import FormActions from "@/components/forms/mantenimiento/compras/_components/FormActions";
 
 type WarehouseRequisitionType = "AERONAUTICAL" | "GENERAL";
 
@@ -384,6 +388,7 @@ export function CreateWarehouseRequisitionForm({
         {
           batch: batchId,
           batch_name: batchName,
+          batch_category,
           batch_articles: [
             {
               part_number: "",
@@ -426,6 +431,7 @@ export function CreateWarehouseRequisitionForm({
           {
             batch: batchId,
             batch_name: batch.name,
+            batch_category: batch.category,
             batch_articles: [
               {
                 part_number: article.part_number,
@@ -522,7 +528,7 @@ export function CreateWarehouseRequisitionForm({
             {
               part_number: "",
               quantity: 1,
-              unit: getDefaultUnit(batch.batch_name),
+              unit: getDefaultUnit(batch.batch_category ?? ""),
               priority: "MEDIUM",
               aircraft_id: headerAircraftId,
               document_type_ids: [],
@@ -687,10 +693,16 @@ export function CreateWarehouseRequisitionForm({
       })),
     };
 
-    await createRequisition.mutateAsync({
-      data: formattedData,
-      company: selectedCompany!.slug,
-    });
+    try {
+      await createRequisition.mutateAsync({
+        data: formattedData,
+        company: selectedCompany!.slug,
+      });
+    } catch {
+      // La mutación ya avisó el error; el formulario conserva lo capturado.
+      return;
+    }
+
     onClose();
   };
 
@@ -733,40 +745,23 @@ export function CreateWarehouseRequisitionForm({
         />
 
         {/* ───────── Selector de tipo de requisición ───────── */}
-        <div className="flex justify-center w-full py-1">
-          <div className="relative flex items-center w-full max-w-md h-8">
-            <Separator className="flex-1" />
-            <div className="flex items-center mx-3 rounded-full border border-border/60 bg-muted/40 p-0.5">
-              <button
-                type="button"
-                onClick={() => handleRequisitionTypeChange("AERONAUTICAL")}
-                className={cn(
-                  "flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium transition-colors duration-200",
-                  requisitionType === "AERONAUTICAL"
-                    ? "bg-background text-blue-600 shadow-xs"
-                    : "text-muted-foreground hover:text-blue-600",
-                )}
-              >
-                <Plane className="w-3.5 h-3.5 shrink-0" />
-                Aeronáutica
-              </button>
-              <button
-                type="button"
-                onClick={() => handleRequisitionTypeChange("GENERAL")}
-                className={cn(
-                  "flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium transition-colors duration-200",
-                  requisitionType === "GENERAL"
-                    ? "bg-background text-blue-600 shadow-xs"
-                    : "text-muted-foreground hover:text-blue-600",
-                )}
-              >
-                <Package className="w-3.5 h-3.5 shrink-0" />
-                General
-              </button>
-            </div>
-            <Separator className="flex-1" />
-          </div>
-        </div>
+        <SegmentedTabs
+          value={requisitionType}
+          onValueChange={(next) =>
+            handleRequisitionTypeChange(next as WarehouseRequisitionType)
+          }
+        >
+          <SegmentedTabsList size="sm">
+            <SegmentedTabsTrigger value="AERONAUTICAL">
+              <Plane className="size-4" />
+              Aeronáutica
+            </SegmentedTabsTrigger>
+            <SegmentedTabsTrigger value="GENERAL">
+              <Package className="size-4" />
+              General
+            </SegmentedTabsTrigger>
+          </SegmentedTabsList>
+        </SegmentedTabs>
 
         {requisitionType === "AERONAUTICAL" ? (
           <BatchArticlesSection
@@ -828,20 +823,19 @@ export function CreateWarehouseRequisitionForm({
 
         <AdditionalInfoSection form={form} />
 
-        <div className="flex justify-between items-center gap-x-4">
-          <Separator className="flex-1" />
-          <p className="text-muted-foreground text-xs select-none">SIGEAC</p>
-          <Separator className="flex-1" />
-        </div>
-
-        <Button disabled={createRequisition.isPending} className="gap-2">
-          <>
-            <Send className="size-4" /> Generar Requisición
-          </>
-          {createRequisition.isPending && (
-            <Loader2 className="size-4 animate-spin" />
-          )}
-        </Button>
+        <FormActions>
+          <Button
+            disabled={createRequisition.isPending}
+            className="min-w-35 gap-2"
+          >
+            <>
+              <Send className="size-4" /> Generar requisición
+            </>
+            {createRequisition.isPending && (
+              <Loader2 className="size-4 animate-spin" />
+            )}
+          </Button>
+        </FormActions>
       </form>
 
       <DuplicateRequisitionDialog

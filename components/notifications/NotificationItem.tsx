@@ -46,14 +46,22 @@ function formatNotificationDate(date: string) {
   );
 }
 
+/**
+ * `card` es la tarjeta de siempre (la campana la sigue usando); `row` es una
+ * fila de la bandeja: sin recuadro propio, separada de las demás por la línea
+ * del contenedor, que es quien lleva el borde.
+ */
 export default function NotificationItem({
   notification,
   index = 0,
+  variant = "card",
 }: {
   notification: Notification;
   /** Posición en la lista: escalona la entrada en móvil. */
   index?: number;
+  variant?: "card" | "row";
 }) {
+  const isRow = variant === "row";
   const router = useRouter();
 
   const [isNavigating, startNavigation] = useTransition();
@@ -116,12 +124,27 @@ export default function NotificationItem({
         aria-busy={isNavigating}
         style={{ animationDelay: `${Math.min(index, 6) * 45}ms` }}
         className={cn(
-          "group relative overflow-hidden rounded-xl border shadow-xs transition-colors",
-          "border-slate-200 dark:border-slate-700/60",
-          isUnread ? tone.unread : "bg-white dark:bg-slate-900/60",
-          isActionable && "hover:border-slate-300 dark:hover:border-slate-600",
+          "group relative overflow-hidden transition-colors",
+          isRow
+            ? cn(
+                isUnread ? tone.unread : "bg-transparent",
+                isActionable && "hover:bg-muted/40",
+              )
+            : cn(
+                "rounded-xl border shadow-xs",
+                "border-slate-200 dark:border-slate-700/60",
+                isUnread ? tone.unread : "bg-white dark:bg-slate-900/60",
+                isActionable &&
+                  "hover:border-slate-300 dark:hover:border-slate-600",
+              ),
           isActionable &&
-            "max-md:touch-manipulation max-md:[-webkit-tap-highlight-color:transparent] max-md:transition-[background-color,border-color,scale] max-md:duration-150 max-md:[&:active:not(:has(button:active))]:scale-[0.985]",
+            "max-md:touch-manipulation max-md:[-webkit-tap-highlight-color:transparent] max-md:transition-[background-color,border-color,scale] max-md:duration-150",
+          isActionable &&
+            !isRow &&
+            "max-md:[&:active:not(:has(button:active))]:scale-[0.985]",
+          isActionable &&
+            isRow &&
+            "max-md:[&:active:not(:has(button:active))]:bg-muted/60",
           "motion-safe:max-md:animate-card-in",
           // Mientras navega, ignoramos clicks extra: la ruta destino puede tardar
           // y el usuario tiende a insistir sobre una fila que se ve inerte.
@@ -190,14 +213,19 @@ export default function NotificationItem({
               {notification.data.title}
             </p>
 
-            <p className="line-clamp-2 text-xs text-muted-foreground">
+            <p
+              className={cn(
+                "line-clamp-2 text-muted-foreground",
+                isRow ? "text-[13px] leading-snug" : "text-xs",
+              )}
+            >
               {notification.data.message}
             </p>
 
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 pt-0.5 text-[11px] text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 pt-0.5 text-xs text-muted-foreground">
               <TagBadge
                 tone={isUnread ? "blue" : "slate"}
-                className="h-5 px-2 text-[11px]"
+                className="h-5 px-2 text-xs"
               >
                 {isUnread ? "Nueva" : "Leída"}
               </TagBadge>
@@ -225,7 +253,12 @@ export default function NotificationItem({
             no tiene hover. */}
         {isUnread && (
           <div className="absolute right-0 top-0 hidden h-full w-20 translate-x-2 scale-95 items-center justify-center overflow-visible opacity-0 transition-all duration-200 ease-out group-hover:translate-x-0 group-hover:scale-100 group-hover:opacity-100 focus-within:translate-x-0 focus-within:scale-100 focus-within:opacity-100 pointer-fine:md:flex">
-            <div className="pointer-events-none absolute inset-0 rounded-r-xl bg-linear-to-l from-black/30 via-black/10 to-transparent" />
+            <div
+              className={cn(
+                "pointer-events-none absolute inset-0 bg-linear-to-l from-black/30 via-black/10 to-transparent",
+                !isRow && "rounded-r-xl",
+              )}
+            />
 
             <TooltipProvider delayDuration={100}>
               <Tooltip>

@@ -58,7 +58,7 @@ const ThirdPartiesPage = () => {
     <SettingsListPage
       title="Terceros"
       heading="Control de Terceros"
-      description="Administra los terceros registrados en el sistema."
+      description="Administre los terceros registrados en el sistema."
       tourPrefix="terceros"
       search={{
         value: search,

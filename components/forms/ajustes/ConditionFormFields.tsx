@@ -3,20 +3,20 @@
 import { ShieldCheck } from "lucide-react";
 import { Control } from "react-hook-form";
 
-import { CheckboxCard } from "@/components/forms/mantenimiento/almacen/_components/CheckboxCard";
 import {
-  FieldLabelRow,
-  FormSection,
   fieldClass,
-  labelClass,
   textareaClass,
 } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
+import {
+  PanelSection,
+  PanelFieldLabel,
+  SwitchRow,
+} from "@/components/forms/PanelSection";
 import { RequiredIndicator } from "@/components/misc/RequiredIndicator";
 import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -32,19 +32,17 @@ export function ConditionFormFields({
   disabled?: boolean;
 }) {
   return (
-    <FormSection compact icon={ShieldCheck} title="Condición">
+    <PanelSection compact icon={ShieldCheck} title="Condición">
       <div className="space-y-3">
         <FormField
           control={control}
           name="name"
           render={({ field, fieldState }) => (
             <FormItem>
-              <FieldLabelRow>
-                <FormLabel className={labelClass}>
-                  Nombre
-                  <RequiredIndicator invalid={!!fieldState.error} />
-                </FormLabel>
-              </FieldLabelRow>
+              <PanelFieldLabel>
+                Nombre
+                <RequiredIndicator invalid={!!fieldState.error} />
+              </PanelFieldLabel>
               <FormControl>
                 <Input
                   placeholder="Ej: Usado, reparable, resguardo..."
@@ -64,12 +62,10 @@ export function ConditionFormFields({
           name="description"
           render={({ field, fieldState }) => (
             <FormItem>
-              <FieldLabelRow>
-                <FormLabel className={labelClass}>
-                  Descripción
-                  <RequiredIndicator invalid={!!fieldState.error} />
-                </FormLabel>
-              </FieldLabelRow>
+              <PanelFieldLabel>
+                Descripción
+                <RequiredIndicator invalid={!!fieldState.error} />
+              </PanelFieldLabel>
               <FormControl>
                 <Textarea
                   placeholder="Indica a qué se refiere el nombre..."
@@ -89,7 +85,7 @@ export function ConditionFormFields({
           name="excluded_from_cost"
           render={({ field }) => (
             <FormItem>
-              <CheckboxCard
+              <SwitchRow
                 id="condition-excluded-from-cost"
                 checked={field.value}
                 onCheckedChange={field.onChange}
@@ -101,6 +97,6 @@ export function ConditionFormFields({
           )}
         />
       </div>
-    </FormSection>
+    </PanelSection>
   );
 }

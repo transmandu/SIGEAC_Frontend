@@ -59,7 +59,7 @@ const ManufacturersPage = () => {
     <SettingsListPage
       title="Fabricantes"
       heading="Control de Fabricantes"
-      description="Administra los fabricantes registrados para aeronaves, partes y artículos."
+      description="Administre los fabricantes registrados para aeronaves, partes y artículos."
       tourPrefix="fabricantes"
       search={{
         value: search,

@@ -1,26 +1,14 @@
 "use client";
 
+import { PanelSection } from "@/components/forms/PanelSection";
 import { useMemo } from "react";
 import { toast } from "sonner";
-import { Download, FileText, Loader2 } from "lucide-react";
+import { Download, FileText, Loader2, UserCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Dialog } from "@/components/ui/dialog";
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
+import { SearchableSelect } from "@/components/misc/SearchableSelect";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyEmployee } from "@/hooks/sistema/usuario/useMyEmployee";
@@ -111,8 +99,14 @@ export default function DownloadRequisitionPdfDialog({
       const anchor = document.createElement("a");
       anchor.href = url;
       anchor.download = `${req.order_number}.pdf`;
+      // El ancla debe estar en el documento: Firefox ignora el click sobre un
+      // elemento suelto y la descarga no ocurre.
+      document.body.appendChild(anchor);
       anchor.click();
-      URL.revokeObjectURL(url);
+      anchor.remove();
+      // Revocar en el mismo tick puede cancelar la descarga en algunos
+      // navegadores.
+      setTimeout(() => URL.revokeObjectURL(url), 100);
 
       toast.success(`Requisición ${req.order_number} generada`);
       onOpenChange(false);
@@ -123,53 +117,63 @@ export default function DownloadRequisitionPdfDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg p-0 gap-0 overflow-hidden">
-        {/* ===== Encabezado ===== */}
-        <DialogHeader className="px-6 pt-6 pb-5 border-b bg-muted/30">
-          <div className="flex items-start gap-3.5">
-            <div
-              className="
-                flex size-11 shrink-0 items-center justify-center
-                rounded-xl border bg-background shadow-xs
-                text-blue-600
-              "
+      <FormDialogContent
+        className="sm:max-w-lg"
+        icon={FileText}
+        title="Descargar requisición"
+        description={
+          <>
+            <span
+              className="mb-1 inline-flex max-w-full items-center rounded-md border bg-background px-2 py-0.5 font-mono text-xs font-medium tracking-wide text-muted-foreground"
+              title={req.order_number}
             >
-              <FileText className="size-5" />
-            </div>
-
-            <div className="min-w-0 space-y-1 text-left">
-              <DialogTitle className="text-base leading-snug">
-                Descargar requisición
-              </DialogTitle>
-              <div
-                className="
-                  inline-flex max-w-full items-center
-                  rounded-md border bg-background
-                  px-2 py-0.5
-                  font-mono text-xs font-medium tracking-wide
-                  text-muted-foreground
-                "
-                title={req.order_number}
-              >
-                <span className="truncate">{req.order_number}</span>
-              </div>
-              <DialogDescription className="text-xs leading-relaxed">
-                {isSelfReceiver
-                  ? "El documento lo incluye a usted en la sección “Departamento Receptor” y su firma en “Recibe conforme”."
-                  : "El documento incluye al receptor seleccionado en la sección “Departamento Receptor” y su firma en “Recibe conforme”."}
-              </DialogDescription>
-            </div>
-          </div>
-        </DialogHeader>
-
-        {/* ===== Cuerpo ===== */}
-        <div className="px-6 py-6 space-y-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Departamento receptor</label>
-
+              <span className="truncate">{req.order_number}</span>
+            </span>
+            <span className="block">
+              {isSelfReceiver
+                ? "El documento lo incluye a usted en la sección “Departamento Receptor” y su firma en “Recibe conforme”."
+                : "El documento incluye al receptor seleccionado en la sección “Departamento Receptor” y su firma en “Recibe conforme”."}
+            </span>
+          </>
+        }
+        footer={
+          <>
+            <Button
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={isPending}
+            >
+              Cancelar
+            </Button>
+            <Button
+              className="min-w-37.5 gap-2"
+              onClick={handleDownload}
+              disabled={!canDownload || isPending}
+            >
+              {isPending ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Download className="size-4" />
+              )}
+              {isPending ? "Generando..." : "Descargar PDF"}
+            </Button>
+          </>
+        }
+      >
+        <PanelSection
+          icon={UserCheck}
+          title="Departamento receptor"
+          hint={
+            isSelfReceiver
+              ? undefined
+              : "Personal de Compras, Administración o RRHH que recibirá la solicitud."
+          }
+          compact
+        >
+          <div className="space-y-2.5">
             {isSelfReceiver ? (
               <>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-[13px] text-muted-foreground">
                   Usted recibe esta solicitud y firma en &ldquo;Recibe
                   conforme&rdquo;.
                 </p>
@@ -185,13 +189,13 @@ export default function DownloadRequisitionPdfDialog({
                     Cargando sus datos...
                   </div>
                 ) : myEmployee ? (
-                  <div className="rounded-md border bg-muted/30 px-3 py-2.5">
-                    <p className="text-sm font-medium">
+                  <div className="rounded-xl border bg-muted/30 px-3.5 py-3">
+                    <p className="text-sm font-medium wrap-anywhere">
                       {myEmployee.first_name} {myEmployee.last_name}
                     </p>
                     {(myEmployee.job_title?.name ||
                       myEmployee.department?.name) && (
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-[13px] text-muted-foreground">
                         {[
                           myEmployee.job_title?.name,
                           myEmployee.department?.name,
@@ -209,78 +213,28 @@ export default function DownloadRequisitionPdfDialog({
                 )}
               </>
             ) : (
-              <>
-                <p className="text-xs text-muted-foreground">
-                  Personal de Compras, Administración o RRHH que recibirá la
-                  solicitud.
-                </p>
-                <Select value={receiverId} onValueChange={setReceiverId}>
-                  <SelectTrigger className="w-full h-10">
-                    <SelectValue
-                      placeholder={
-                        isReceiversLoading
-                          ? "Cargando empleados..."
-                          : "Seleccionar empleado"
-                      }
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {receiversByDepartment.map(([department, employees]) => (
-                      <SelectGroup key={department}>
-                        <SelectLabel>{department}</SelectLabel>
-                        {employees.map((employee) => (
-                          <SelectItem
-                            key={employee.id}
-                            value={String(employee.id)}
-                          >
-                            {employee.first_name} {employee.last_name}
-                            {employee.job_title?.name
-                              ? ` — ${employee.job_title.name}`
-                              : ""}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    ))}
-                    {!isReceiversLoading && !receivers?.length && (
-                      <div className="px-2 py-1.5 text-sm text-muted-foreground">
-                        No hay empleados disponibles
-                      </div>
-                    )}
-                  </SelectContent>
-                </Select>
-              </>
+              <SearchableSelect
+                value={receiverId}
+                onChange={setReceiverId}
+                loading={isReceiversLoading}
+                placeholder="Seleccionar empleado"
+                searchPlaceholder="Buscar empleado..."
+                emptyText="No hay empleados disponibles"
+                triggerClassName="h-10 max-sm:text-base"
+                options={receiversByDepartment.flatMap(
+                  ([department, employees]) =>
+                    employees.map((employee) => ({
+                      value: String(employee.id),
+                      label: `${employee.first_name} ${employee.last_name}`,
+                      description: employee.job_title?.name,
+                      group: department,
+                    })),
+                )}
+              />
             )}
           </div>
-        </div>
-
-        {/* ===== Pie ===== */}
-        <div
-          className="
-            flex items-center justify-end gap-2
-            px-6 py-4 border-t bg-muted/30
-          "
-        >
-          <Button
-            variant="ghost"
-            onClick={() => onOpenChange(false)}
-            disabled={isPending}
-          >
-            Cancelar
-          </Button>
-          <Button
-            className="gap-2 min-w-37.5"
-            onClick={handleDownload}
-            disabled={!canDownload || isPending}
-          >
-            {isPending ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              <Download className="size-4" />
-            )}
-            {isPending ? "Generando..." : "Descargar PDF"}
-          </Button>
-        </div>
-      </DialogContent>
+        </PanelSection>
+      </FormDialogContent>
     </Dialog>
   );
 }

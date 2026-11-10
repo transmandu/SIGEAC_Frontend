@@ -1,13 +1,12 @@
-'use client'
+"use client";
 
-import { ShieldOff } from 'lucide-react'
+import { ShieldOff } from "lucide-react";
 
-import { ContentLayout } from '@/components/layout/ContentLayout'
+import { ContentLayout } from "@/components/layout/ContentLayout";
 
 const TransitPermissionDenied = () => {
   return (
     <ContentLayout title="Artículos en Tránsito">
-
       <div
         className="
           flex items-center justify-center
@@ -31,12 +30,11 @@ const TransitPermissionDenied = () => {
             dark:shadow-[0_10px_35px_rgba(0,0,0,0.35)]
           "
         >
-
           <div
             className="
               flex items-center justify-center
               size-14
-              rounded-full
+              rounded-2xl
               bg-red-50
               dark:bg-red-950/30
               border
@@ -54,7 +52,6 @@ const TransitPermissionDenied = () => {
           </div>
 
           <div className="flex flex-col items-center text-center gap-1.5">
-
             <h2
               className="
                 text-lg
@@ -72,34 +69,29 @@ const TransitPermissionDenied = () => {
                 leading-relaxed
               "
             >
-              No tienes permisos para visualizar los artículos en tránsito
-              dentro del módulo de almacén y logística.
+              No tiene permisos para visualizar los artículos en tránsito dentro
+              del módulo de almacén y logística.
             </p>
-
           </div>
 
           <div
             className="
               px-3 py-1.5
               rounded-md
-              text-[11px]
+              text-xs
               font-medium
-              tracking-wide
+
               bg-muted/50
               border border-border/50
               text-muted-foreground
             "
           >
-            Roles requeridos:
-            {' '}
-            ALMACEN · JEFE_ALMACEN · ANALISTA_ALMACEN
+            Roles requeridos: ALMACEN · JEFE_ALMACEN · ANALISTA_ALMACEN
           </div>
-
         </div>
       </div>
-
     </ContentLayout>
-  )
-}
+  );
+};
 
-export default TransitPermissionDenied
+export default TransitPermissionDenied;

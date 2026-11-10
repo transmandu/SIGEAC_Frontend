@@ -2,27 +2,9 @@
 import { flattenDepartments } from "@/lib/departments";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { cn } from "@/lib/utils";
-import {
-  Check,
-  ChevronsUpDown,
-  FileText,
-  Plane,
-  Tag,
-  User,
-  ArrowUp,
-  ArrowDown,
-  Minus,
-  ArrowBigDown,
-  Building2,
-  Briefcase,
-} from "lucide-react";
+import { Check, ChevronsUpDown, ClipboardList } from "lucide-react";
 import { useWatch, type UseFormReturn } from "react-hook-form";
 import type {
   Employee,
@@ -45,9 +27,18 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  SegmentedTabs,
+  SegmentedTabsList,
+  SegmentedTabsTrigger,
+} from "@/components/misc/SegmentedTabs";
 import { RequiredIndicator } from "@/components/misc/RequiredIndicator";
+import {
+  FieldLabel,
+  RequisitionSection,
+  requisitionTriggerClass,
+} from "./RequisitionSection";
+import { PriorityChoice } from "./PriorityChoice";
 
 // Los empleados propios y los autorizados de otra empresa viven en tablas
 // distintas con ids que pueden coincidir, así que el selector se parte en dos
@@ -147,13 +138,11 @@ export function RequisitionHeader({
   const allDepartments = departments ? flattenDepartments(departments) : [];
 
   return (
-    <div className="rounded-lg border bg-card p-3 space-y-1.5">
-      <div className="flex items-center gap-1.5">
-        <h4 className="text-xs font-semibold text-muted-foreground tracking-wider select-none">
-          DATOS DE LA REQUISICIÓN
-        </h4>
-        <Separator className="flex-1" />
-      </div>
+    <RequisitionSection
+      icon={ClipboardList}
+      title="Datos de la requisición"
+      description="Quién solicita, con qué prioridad y para qué aeronave."
+    >
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {/* Requester - Searchable Select (regular or authorized employee) */}
         <FormField
@@ -228,14 +217,9 @@ export function RequisitionHeader({
 
             return (
               <FormItem className="w-full">
-                <FormLabel
-                  className="flex items-center gap-1.5 select-none"
-                  onClick={(e) => e.preventDefault()}
-                >
-                  <User className="size-3.5 text-muted-foreground" />
-                  Solicitante
-                  <RequiredIndicator />
-                </FormLabel>
+                <FieldLabel preventClick>
+                  Solicitante <RequiredIndicator />
+                </FieldLabel>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -243,7 +227,7 @@ export function RequisitionHeader({
                       variant="outline"
                       role="combobox"
                       className={cn(
-                        "justify-between w-full",
+                        requisitionTriggerClass,
                         !field.value && "text-muted-foreground",
                       )}
                     >
@@ -269,22 +253,25 @@ export function RequisitionHeader({
                       employeeList
                     ) : (
                       <>
-                        <Tabs
+                        <SegmentedTabs
                           value={requesterTab}
                           onValueChange={(v) =>
                             setRequesterTab(v as RequesterTab)
                           }
                         >
-                          <TabsList className="grid w-full grid-cols-2 h-9 rounded-none">
-                            <TabsTrigger value="employee" className="text-xs">
+                          <SegmentedTabsList
+                            size="sm"
+                            className="w-full rounded-none border-x-0 border-t-0"
+                          >
+                            <SegmentedTabsTrigger value="employee">
                               Empleado
-                            </TabsTrigger>
+                            </SegmentedTabsTrigger>
                             {/* Abreviado: el label completo no cabe en la mitad del popover */}
-                            <TabsTrigger value="authorized" className="text-xs">
+                            <SegmentedTabsTrigger value="authorized">
                               Empleado Ext.
-                            </TabsTrigger>
-                          </TabsList>
-                        </Tabs>
+                            </SegmentedTabsTrigger>
+                          </SegmentedTabsList>
+                        </SegmentedTabs>
                         {requesterTab === "employee" ? (
                           employeeList
                         ) : (
@@ -349,112 +336,19 @@ export function RequisitionHeader({
         <FormField
           control={form.control}
           name="priority"
-          render={({ field }) => {
-            const priorityOptions = [
-              {
-                value: "HIGH",
-                label: "ALTA",
-                icon: ArrowUp,
-                className: "text-red-500",
-              },
-              {
-                value: "MEDIUM",
-                label: "MEDIA",
-                icon: Minus,
-                className: "text-amber-500",
-              },
-              {
-                value: "LOW",
-                label: "BAJA",
-                icon: ArrowDown,
-                className: "text-green-500",
-              },
-            ];
-            const selectedPriority = priorityOptions.find(
-              (p) => p.value === field.value,
-            );
-            return (
-              <FormItem className="w-full">
-                <FormLabel
-                  className="flex items-center gap-1.5 select-none"
-                  onClick={(e) => e.preventDefault()}
-                >
-                  <Tag className="size-3.5 text-muted-foreground" />
-                  Prioridad
-                  <RequiredIndicator />
-                </FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      className={cn(
-                        "w-full justify-between",
-                        !field.value && "text-muted-foreground",
-                      )}
-                    >
-                      <span className="truncate flex items-center gap-2">
-                        {selectedPriority ? (
-                          <>
-                            <selectedPriority.icon
-                              className={cn(
-                                "size-4",
-                                selectedPriority.className,
-                              )}
-                            />
-                            {selectedPriority.label}
-                          </>
-                        ) : (
-                          "Seleccione prioridad..."
-                        )}
-                      </span>
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="p-0" matchTriggerWidth>
-                    <Command>
-                      <CommandList>
-                        <CommandGroup>
-                          {priorityOptions.map((option) => {
-                            const Icon = option.icon;
-
-                            return (
-                              <CommandItem
-                                value={`${option.value} ${option.label}`}
-                                key={option.value}
-                                onSelect={() => {
-                                  form.setValue("priority", option.value);
-                                }}
-                              >
-                                <Check
-                                  className={cn(
-                                    "mr-2 h-4 w-4",
-                                    option.value === field.value
-                                      ? "opacity-100"
-                                      : "opacity-0",
-                                  )}
-                                />
-
-                                <Icon
-                                  className={cn(
-                                    "mr-2 size-4",
-                                    option.className,
-                                  )}
-                                />
-
-                                {option.label}
-                              </CommandItem>
-                            );
-                          })}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-                <FormMessage />
-              </FormItem>
-            );
-          }}
+          render={({ field }) => (
+            <FormItem className="w-full">
+              <FieldLabel preventClick>
+                Prioridad <RequiredIndicator />
+              </FieldLabel>
+              <PriorityChoice
+                label="Prioridad de la requisición"
+                value={field.value}
+                onChange={(value) => form.setValue("priority", value)}
+              />
+              <FormMessage />
+            </FormItem>
+          )}
         />
 
         {/* Aircraft - Searchable Select */}
@@ -468,14 +362,9 @@ export function RequisitionHeader({
               );
               return (
                 <FormItem className="w-full">
-                  <FormLabel
-                    className="flex items-center gap-1.5 select-none"
-                    onClick={(e) => e.preventDefault()}
-                  >
-                    <Plane className="size-3.5 text-muted-foreground" />
-                    Aeronave
-                    <RequiredIndicator show={aircraftRequired} />
-                  </FormLabel>
+                  <FieldLabel preventClick>
+                    Aeronave <RequiredIndicator show={aircraftRequired} />
+                  </FieldLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button
@@ -483,7 +372,7 @@ export function RequisitionHeader({
                         variant="outline"
                         role="combobox"
                         className={cn(
-                          "w-full justify-between",
+                          requisitionTriggerClass,
                           !field.value && "text-muted-foreground",
                         )}
                       >
@@ -572,14 +461,10 @@ export function RequisitionHeader({
 
               return (
                 <FormItem className="w-full">
-                  <FormLabel
-                    className="flex items-center gap-1.5 select-none"
-                    onClick={(e) => e.preventDefault()}
-                  >
-                    <FileText className="size-3.5 text-muted-foreground" />
-                    Ord. de Trabajo
+                  <FieldLabel preventClick>
+                    Ord. de Trabajo{" "}
                     <RequiredIndicator show={workOrderRequired} />
-                  </FormLabel>
+                  </FieldLabel>
                   <Popover
                     open={workOrderInputOpen}
                     onOpenChange={setWorkOrderInputOpen}
@@ -590,7 +475,7 @@ export function RequisitionHeader({
                         variant="outline"
                         role="combobox"
                         className={cn(
-                          "w-full justify-between",
+                          requisitionTriggerClass,
                           !selectedWO &&
                             !freeTextWorkOrder &&
                             "text-muted-foreground",
@@ -615,9 +500,11 @@ export function RequisitionHeader({
                           <CommandEmpty className="text-sm p-2 text-center text-muted-foreground">
                             {isWorkOrdersLoading
                               ? "Cargando..."
-                              : trimmedSearch
-                                ? "No coincide con ninguna orden registrada."
-                                : "Escriba para buscar..."}
+                              : isWorkOrdersError
+                                ? "No se pudieron cargar las órdenes de trabajo."
+                                : trimmedSearch
+                                  ? "No coincide con ninguna orden registrada."
+                                  : "Escriba para buscar..."}
                           </CommandEmpty>
                           {/* Lets the typed value be kept verbatim when no order matches it. */}
                           {trimmedSearch &&
@@ -684,13 +571,7 @@ export function RequisitionHeader({
               );
               return (
                 <FormItem className="w-full">
-                  <FormLabel
-                    className="flex items-center gap-1.5 select-none"
-                    onClick={(e) => e.preventDefault()}
-                  >
-                    <Building2 className="size-3.5 text-muted-foreground" />
-                    Departamento
-                  </FormLabel>
+                  <FieldLabel preventClick>Departamento</FieldLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button
@@ -698,7 +579,7 @@ export function RequisitionHeader({
                         variant="outline"
                         role="combobox"
                         className={cn(
-                          "w-full justify-between",
+                          requisitionTriggerClass,
                           !field.value && "text-muted-foreground",
                         )}
                       >
@@ -773,13 +654,7 @@ export function RequisitionHeader({
               );
               return (
                 <FormItem className="w-full">
-                  <FormLabel
-                    className="flex items-center gap-1.5 select-none"
-                    onClick={(e) => e.preventDefault()}
-                  >
-                    <Briefcase className="size-3.5 text-muted-foreground" />
-                    Tercero
-                  </FormLabel>
+                  <FieldLabel preventClick>Tercero</FieldLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button
@@ -787,7 +662,7 @@ export function RequisitionHeader({
                         variant="outline"
                         role="combobox"
                         className={cn(
-                          "w-full justify-between",
+                          requisitionTriggerClass,
                           !field.value && "text-muted-foreground",
                         )}
                       >
@@ -851,6 +726,6 @@ export function RequisitionHeader({
           />
         )}
       </div>
-    </div>
+    </RequisitionSection>
   );
 }

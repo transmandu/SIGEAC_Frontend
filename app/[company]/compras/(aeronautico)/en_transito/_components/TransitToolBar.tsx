@@ -1,74 +1,80 @@
-'use client'
+"use client";
 
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Search, SlidersHorizontal } from 'lucide-react'
-import type { TransitStatusFilter } from '@/types/purchase'
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Search, SlidersHorizontal } from "lucide-react";
+import type { TransitStatusFilter } from "@/types/purchase";
 
 type Props = {
-  search: string
-  setSearch: (value: string) => void
-  status: TransitStatusFilter
-  setStatus: (value: TransitStatusFilter) => void
-  placeholder?: string
-}
+  search: string;
+  setSearch: (value: string) => void;
+  status: TransitStatusFilter;
+  setStatus: (value: TransitStatusFilter) => void;
+  placeholder?: string;
+};
 
-const selectTriggerClass = `h-8 w-full pl-8 text-xs bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60 transition-colors focus:ring-1 focus:ring-primary/40 data-placeholder:text-muted-foreground [&>span]:truncate`
-const selectContentClass = `border-slate-200/60 dark:border-slate-700/60`
+const selectTriggerClass = `h-8 max-sm:h-10 w-full pl-8 text-xs bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60 transition-colors focus:ring-1 focus:ring-primary/40 data-placeholder:text-muted-foreground [&>span]:truncate`;
+const selectContentClass = `border-slate-200/60 dark:border-slate-700/60`;
 
 const StatusFilter = ({
   status,
   setStatus,
 }: {
-  status: TransitStatusFilter
-  setStatus: (value: TransitStatusFilter) => void
+  status: TransitStatusFilter;
+  setStatus: (value: TransitStatusFilter) => void;
 }) => (
   <div className="relative sm:w-44 sm:shrink-0">
-    <SlidersHorizontal className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 z-10 size-3.5 text-muted-foreground"/>
+    <SlidersHorizontal className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 z-10 size-3.5 text-muted-foreground" />
 
-    <Select value={status} onValueChange={(value) => setStatus(value as TransitStatusFilter)}>
+    <Select
+      value={status}
+      onValueChange={(value) => setStatus(value as TransitStatusFilter)}
+    >
       <SelectTrigger className={selectTriggerClass}>
         <SelectValue placeholder="Estado" />
       </SelectTrigger>
 
       <SelectContent className={selectContentClass}>
-        <SelectItem value="ALL">
-          Todos los estados
-        </SelectItem>
+        <SelectItem value="ALL">Todos los estados</SelectItem>
 
-        <SelectItem value="TRANSIT">
-          En tránsito
-        </SelectItem>
+        <SelectItem value="TRANSIT">En tránsito</SelectItem>
 
-        <SelectItem value="RECEPTION">
-          En recepción
-        </SelectItem>
+        <SelectItem value="RECEPTION">En recepción</SelectItem>
       </SelectContent>
     </Select>
   </div>
-)
+);
 
 const TransitToolBar = ({
   search,
   setSearch,
   status,
   setStatus,
-  placeholder = 'Buscar parte, serial, lote, batch o ubicación...',
+  placeholder = "Buscar parte, serial, lote, batch o ubicación...",
 }: Props) => {
   return (
     <div className="flex items-center gap-2">
-
       {/* SEARCH */}
       <div className="relative flex-1 sm:flex-none sm:w-72">
-        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground"/>
-        
+        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
+
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder={placeholder}
-          className="pl-8 h-8 text-xs bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60 focus-visible:ring-1 focus-visible:ring-primary/40"
+          className="pl-8 h-8 max-sm:h-10 text-xs bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60 focus-visible:ring-1 focus-visible:ring-primary/40"
         />
       </div>
 
@@ -79,7 +85,7 @@ const TransitToolBar = ({
             <Button
               variant="outline"
               size="icon"
-              className="h-8 w-8 shrink-0 bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60"
+              className="h-8 w-8 max-sm:size-10 shrink-0 bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60"
             >
               <SlidersHorizontal className="size-4" />
             </Button>
@@ -87,26 +93,19 @@ const TransitToolBar = ({
 
           <PopoverContent
             align="end"
-            className="w-72 p-3 space-y-3 border-slate-200/60 dark:border-slate-700/60"
+            className="w-72 max-w-[calc(100vw-2rem)] p-3 space-y-3 border-slate-200/60 dark:border-slate-700/60"
           >
-            <StatusFilter
-              status={status}
-              setStatus={setStatus}
-            />
+            <StatusFilter status={status} setStatus={setStatus} />
           </PopoverContent>
         </Popover>
       </div>
 
       {/* DESKTOP FILTER */}
       <div className="hidden sm:flex items-center gap-2">
-        <StatusFilter
-          status={status}
-          setStatus={setStatus}
-        />
+        <StatusFilter status={status} setStatus={setStatus} />
       </div>
-
     </div>
-  )
-}
+  );
+};
 
-export default TransitToolBar
+export default TransitToolBar;

@@ -24,17 +24,13 @@ export function DataTableViewOptions<TData extends RowData>({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className="ml-auto h-8 flex"
-        >
+        <Button variant="outline" size="sm" className="ml-auto h-8 flex">
           <SlidersHorizontal className="mr-2 h-4 w-4" />
           Ver
         </Button>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent align="start" className="w-[200px]">
+      <DropdownMenuContent align="start" className="w-50">
         <DropdownMenuLabel>Mostrar / Ocultar</DropdownMenuLabel>
         <DropdownMenuSeparator />
 
@@ -52,9 +48,7 @@ export function DataTableViewOptions<TData extends RowData>({
               <DropdownMenuCheckboxItem
                 key={column.id}
                 checked={column.getIsVisible()}
-                onCheckedChange={(value) =>
-                  column.toggleVisibility(!!value)
-                }
+                onCheckedChange={(value) => column.toggleVisibility(!!value)}
               >
                 {title}
               </DropdownMenuCheckboxItem>

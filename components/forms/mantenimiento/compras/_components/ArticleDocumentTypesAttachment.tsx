@@ -67,7 +67,7 @@ export const ArticleDocumentTypesAttachment = ({
                 size="icon"
                 disabled={isLoading}
                 className={cn(
-                  "h-7 w-7 shrink-0 relative",
+                  "relative h-7 w-7 shrink-0 max-sm:size-9",
                   ids.length > 0
                     ? "text-primary"
                     : invalid
@@ -77,7 +77,7 @@ export const ArticleDocumentTypesAttachment = ({
               >
                 <FileBadge className="size-3.5" />
                 {ids.length > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-primary text-[9px] font-semibold text-primary-foreground">
+                  <span className="absolute -top-0.5 -right-0.5 flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-semibold text-primary-foreground">
                     {ids.length}
                   </span>
                 )}
@@ -117,7 +117,7 @@ export const ArticleDocumentTypesAttachment = ({
                   <div className="flex flex-col">
                     <span className="text-xs">{type.name}</span>
                     {type.regulation && (
-                      <span className="text-[10px] text-muted-foreground">
+                      <span className="text-xs text-muted-foreground">
                         {type.regulation}
                       </span>
                     )}

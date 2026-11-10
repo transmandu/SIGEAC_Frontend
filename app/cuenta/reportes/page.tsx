@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { ColumnFiltersState } from "@tanstack/react-table";
+import type { ColumnFiltersState, SortingState } from "@tanstack/react-table";
 import { Plus } from "lucide-react";
 
 import CreateErrorReportDialog from "@/components/dialogs/sistema/CreateErrorReportDialog";
@@ -30,6 +30,7 @@ export default function MisReportesPage() {
   const [perPage, setPerPage] = useState(DEFAULT_PAGE_SIZE);
   const [search, setSearch] = useState("");
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [sorting, setSorting] = useState<SortingState>([]);
   const [createOpen, setCreateOpen] = useState(false);
   const [detailReport, setDetailReport] = useState<ErrorReport | null>(null);
 
@@ -39,6 +40,13 @@ export default function MisReportesPage() {
     columnFilters.find((filter) => filter.id === id)?.value as T | undefined;
 
   const dateRange = filterValue<DateRangeFilterValue>("reported_at");
+  // El filtro del encabezado "Descripción" busca en el mismo campo que el
+  // buscador de arriba: si se usan los dos, vale el de arriba.
+  const descriptionFilter = useDebounce(
+    (filterValue<string>("description") ?? "").trim(),
+    350,
+  );
+  const sort = sorting[0];
 
   const { data, isLoading, isError, refetch } = useGetErrorReports(
     {
@@ -46,7 +54,9 @@ export default function MisReportesPage() {
       per_page: perPage,
       status: filterValue<ErrorReportStatus>("status"),
       module: filterValue<string>("module"),
-      search: debouncedSearch || undefined,
+      search: debouncedSearch || descriptionFilter || undefined,
+      sort_by: sort?.id,
+      sort_dir: sort ? (sort.desc ? "desc" : "asc") : undefined,
       from: zonedDayToUtcIso(dateRange?.from, "start", timeZone),
       to: zonedDayToUtcIso(dateRange?.to, "end", timeZone),
       mine: true,
@@ -93,6 +103,13 @@ export default function MisReportesPage() {
             Reportar un problema
           </ActionTriggerButton>
         }
+        serverSorting={{
+          value: sorting,
+          onChange: (next) => {
+            setSorting(next);
+            setPage(1);
+          },
+        }}
         serverFilters={{
           value: columnFilters,
           onChange: (next) => {

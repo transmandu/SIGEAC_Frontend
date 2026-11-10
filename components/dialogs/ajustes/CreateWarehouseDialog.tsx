@@ -22,8 +22,8 @@ const CreateWarehouseDialog = () => {
       <FormDialogContent
         icon={Warehouse}
         title="Creación de Almacén"
-        description="Cree un almacén rellenando los datos necesarios."
-        className="sm:max-w-105"
+        description="Registre el almacén, el tipo de artículos que guarda y su sede."
+        className="sm:max-w-lg"
       >
         <CreateWarehouseForm onClose={() => setOpen(false)} />
       </FormDialogContent>

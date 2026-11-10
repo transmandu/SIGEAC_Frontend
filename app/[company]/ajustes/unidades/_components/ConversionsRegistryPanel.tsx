@@ -4,7 +4,6 @@ import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent
 import { useMemo, useState } from "react";
 import {
   AlertTriangle,
-  Loader2,
   Pencil,
   Search,
   SlidersHorizontal,
@@ -16,9 +15,15 @@ import {
   SettingsRowActions,
   type RowAction,
 } from "@/components/dropdowns/SettingsRowActions";
+import { selectTriggerClass } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
+import { ArticleFormShell } from "@/components/forms/mantenimiento/almacen/articulos/ArticleFormShell";
+import {
+  PanelSection,
+  PanelStaticLabel,
+} from "@/components/forms/PanelSection";
+import { EquivalenceInput } from "./EquivalenceInput";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { SettingsDataTable } from "@/components/tables/SettingsDataTable";
-import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
@@ -40,6 +45,7 @@ import {
   type UnitConversionRow,
 } from "@/hooks/mantenimiento/almacen/articulos/useArticleUnitConversions";
 import { type AppColumnDef } from "@/lib/table";
+import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import type { ConversionDirection } from "@/types/supervisor";
 
@@ -119,47 +125,67 @@ function EditConversionForm({
   };
 
   return (
-    <div className="space-y-3">
-      <Select
-        value={direction}
-        onValueChange={(next) => setDirection(next as ConversionDirection)}
+    <ArticleFormShell
+      busy={updateConversion.isPending}
+      canSave={isValid}
+      isEditing
+      submitLabel="Actualizar"
+      onCancel={onDone}
+      onSubmit={(event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        submit();
+      }}
+    >
+      <PanelSection
+        icon={ArrowLeftRight}
+        title="Equivalencia"
+        hint={`${row.unit?.label ?? "Unidad"} frente a ${row.base_unit?.label ?? "su unidad base"}.`}
       >
-        <SelectTrigger className="h-9 text-xs">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="base_per_unit" className="text-xs">
-            1 {row.unit?.label} = ? {row.base_unit?.label}
-          </SelectItem>
-          <SelectItem value="units_per_base" className="text-xs">
-            1 {row.base_unit?.label} = ? {row.unit?.label}
-          </SelectItem>
-        </SelectContent>
-      </Select>
+        <div className="space-y-4">
+          <div>
+            <PanelStaticLabel>Se lee como</PanelStaticLabel>
+            <Select
+              value={direction}
+              onValueChange={(next) =>
+                setDirection(next as ConversionDirection)
+              }
+            >
+              <SelectTrigger className={cn(selectTriggerClass, "w-full")}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="base_per_unit">
+                  1 {row.unit?.label} = ? {row.base_unit?.label}
+                </SelectItem>
+                <SelectItem value="units_per_base">
+                  1 {row.base_unit?.label} = ? {row.unit?.label}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-      <Input
-        autoFocus
-        type="number"
-        inputMode="decimal"
-        min="0"
-        step="any"
-        className="h-9"
-        value={value}
-        onChange={(event) => setValue(event.target.value)}
-      />
-
-      <Button
-        className="w-full bg-primary text-white hover:bg-blue-900 disabled:bg-primary/70"
-        onClick={submit}
-        disabled={!isValid || updateConversion.isPending}
-      >
-        {updateConversion.isPending ? (
-          <Loader2 className="size-4 animate-spin" />
-        ) : (
-          "Actualizar"
-        )}
-      </Button>
-    </div>
+          <div>
+            <PanelStaticLabel>Valor</PanelStaticLabel>
+            <EquivalenceInput
+              from={
+                (direction === "base_per_unit"
+                  ? row.unit?.label
+                  : row.base_unit?.label) ?? "?"
+              }
+              to={
+                (direction === "base_per_unit"
+                  ? row.base_unit?.label
+                  : row.unit?.label) ?? "?"
+              }
+              value={value}
+              onChange={setValue}
+              type="number"
+            />
+          </div>
+        </div>
+      </PanelSection>
+    </ArticleFormShell>
   );
 }
 
@@ -210,7 +236,7 @@ function ConversionRowActions({ row }: { row: UnitConversionRow }) {
               </span>
             </>
           }
-          className="sm:max-w-105"
+          className="sm:max-w-lg"
         >
           <EditConversionForm row={row} onDone={() => setOpenEdit(false)} />
         </FormDialogContent>

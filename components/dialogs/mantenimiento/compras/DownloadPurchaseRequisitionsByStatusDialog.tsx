@@ -6,15 +6,8 @@ import { Check, FileDown, Loader2 } from "lucide-react";
 
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useDownloadPurchaseRequisitionsByStatusPdf } from "@/hooks/mantenimiento/compras/useDownloadPurchaseRequisitionsByStatusPdf";
@@ -33,37 +26,37 @@ import { notifyError } from "@/lib/notify-error";
 const STATUS_OPTIONS = [
   {
     value: "CREATED",
-    label: "CREADA",
+    label: "Creada",
     description: "Registrada, aún no revisada por compras.",
     pill: "bg-slate-500/15 text-slate-700 dark:text-slate-300",
   },
   {
     value: "RECEIVED",
-    label: "RECIBIDA",
+    label: "Recibida",
     description: "Ya un usuario de compras visualizó la solicitud.",
     pill: "bg-sky-500/15 text-sky-700 dark:text-sky-300",
   },
   {
     value: "IN_PROGRESS",
-    label: "EN PROCESO",
+    label: "En proceso",
     description: "Se está procesando; no significa que ya esté cotizada.",
     pill: "bg-yellow-500/15 text-yellow-700 dark:text-yellow-300",
   },
   {
     value: "QUOTED",
-    label: "COTIZADA",
+    label: "Cotizada",
     description: "Con cotización cargada, a la espera de aprobación.",
     pill: "bg-amber-600/15 text-amber-800 dark:text-amber-300",
   },
   {
     value: "APPROVED",
-    label: "APROBADA",
+    label: "Aprobada",
     description: "La compra ya fue autorizada.",
     pill: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
   },
   {
     value: "REJECTED",
-    label: "NO APROBADA",
+    label: "No aprobada",
     description: "Rechazada; no continuó en el ciclo de compra.",
     pill: "bg-rose-500/15 text-rose-700 dark:text-rose-300",
   },
@@ -167,71 +160,68 @@ export function DownloadPurchaseRequisitionsByStatusDialog({ type }: Props) {
         </ActionTriggerButton>
       </DialogTrigger>
 
-      <DialogContent
-        className="
-          sm:max-w-120
-          rounded-3xl
-          border border-border/50
-          bg-background/95
-          backdrop-blur-xl
-          shadow-2xl
-          overflow-hidden
-        "
+      <FormDialogContent
+        className="sm:max-w-120"
+        icon={FileDown}
+        title="Generar reporte de requisiciones"
+        description="Elija los estados a incluir. El PDF lista los artículos de cada requisición con una columna en blanco para cotizar a mano."
+        footer={
+          <>
+            <Button variant="outline" onClick={() => setOpen(false)}>
+              Cancelar
+            </Button>
+
+            <Button
+              onClick={handleDownload}
+              disabled={isPending || selected.length === 0}
+              className="min-w-35 gap-2"
+            >
+              {isPending ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <FileDown className="size-4" />
+              )}
+              {isPending ? "Generando…" : "Descargar PDF"}
+            </Button>
+          </>
+        }
       >
-        <DialogHeader className="flex flex-col items-center text-center space-y-3">
-          <div
-            className="
-              flex items-center justify-center
-              size-12 rounded-2xl
-              bg-primary/10
-            "
-          >
-            <FileDown className="size-5 text-primary" />
+        <div className="space-y-3">
+          <div className="flex items-center justify-between px-1">
+            <span className="text-[13px] text-muted-foreground tabular-nums">
+              {selected.length === 0
+                ? "Ningún estado seleccionado"
+                : `${selected.length} de ${STATUS_OPTIONS.length} seleccionados`}
+            </span>
+
+            <button
+              type="button"
+              onClick={() =>
+                setSelected(
+                  allSelected
+                    ? []
+                    : STATUS_OPTIONS.map((option) => option.value),
+                )
+              }
+              className="-my-2 py-2 text-[13px] font-medium text-primary hover:underline max-sm:-my-3 max-sm:py-3"
+            >
+              {allSelected ? "Limpiar" : "Seleccionar todos"}
+            </button>
           </div>
 
-          <DialogTitle className="text-[16px] font-semibold tracking-tight">
-            Generar reporte de requisiciones
-          </DialogTitle>
-
-          <DialogDescription className="text-sm text-muted-foreground text-center leading-relaxed max-w-sm">
-            Elija los estados a incluir. El PDF lista los artículos de cada
-            requisición con una columna en blanco para cotizar a mano.
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="flex items-center justify-between px-1">
-          <span className="text-xs text-muted-foreground tabular-nums">
-            {selected.length === 0
-              ? "Ningún estado seleccionado"
-              : `${selected.length} de ${STATUS_OPTIONS.length} seleccionados`}
-          </span>
-
-          <button
-            type="button"
-            onClick={() =>
-              setSelected(
-                allSelected ? [] : STATUS_OPTIONS.map((option) => option.value),
-              )
-            }
-            className="text-xs font-medium text-primary hover:underline"
-          >
-            {allSelected ? "Limpiar" : "Seleccionar todos"}
-          </button>
-        </div>
-
-        {/* Dos columnas: con seis estados una sola lista obligaba a desplazar
+          {/* Dos columnas: con seis estados una sola lista obligaba a desplazar
             el diálogo, y la retícula deja ver el ciclo completo de una vez. */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[50vh] overflow-y-auto px-1">
-          {STATUS_OPTIONS.map((option) => {
-            const isSelected = selected.includes(option.value);
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 px-1 sm:max-h-[50vh] sm:overflow-y-auto">
+            {STATUS_OPTIONS.map((option) => {
+              const isSelected = selected.includes(option.value);
 
-            return (
-              <button
-                key={option.value}
-                type="button"
-                onClick={() => toggleStatus(option.value)}
-                aria-pressed={isSelected}
-                /* El contorno va por dentro (ring-inset) y no como borde: así
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => toggleStatus(option.value)}
+                  aria-pressed={isSelected}
+                  /* El contorno va por dentro (ring-inset) y no como borde: así
                    la tarjeta tiene filo sin el trazo duro que endurecía la
                    retícula, y al seleccionar solo cambia de color —la caja no
                    se engrosa ni desplaza el contenido.
@@ -239,79 +229,50 @@ export function DownloadPurchaseRequisitionsByStatusDialog({ type }: Props) {
                    El relleno por sí solo no bastaba: sobre el fondo claro del
                    diálogo la tarjeta sin contorno desaparecía y su contenido
                    quedaba flotando. */
-                className={cn(
-                  "group relative flex flex-col gap-1.5 rounded-2xl p-3 text-left",
-                  "ring-1 ring-inset transition-colors duration-200",
-                  isSelected
-                    ? "bg-primary/8 ring-primary/30"
-                    : "bg-muted/30 ring-border/70 hover:bg-muted/60 hover:ring-border",
-                )}
-              >
-                <span className="flex items-center justify-between gap-2">
-                  {/* Sin borde ni sombra: dentro de la tarjeta la píldora ya
+                  className={cn(
+                    "group relative flex flex-col gap-1.5 rounded-xl p-3 text-left",
+                    "ring-1 ring-inset transition-colors duration-200",
+                    isSelected
+                      ? "bg-primary/8 ring-primary/30"
+                      : "bg-muted/30 ring-border/70 hover:bg-muted/60 hover:ring-border",
+                  )}
+                >
+                  <span className="flex items-center justify-between gap-2">
+                    {/* Sin borde ni sombra: dentro de la tarjeta la píldora ya
                       está contenida, y el trazo solo sumaba otro filo. El
                       color de fondo basta para identificar el estado. */}
-                  <span
-                    className={cn(
-                      "select-none whitespace-nowrap rounded-md px-2 py-0.5 text-[10px] font-semibold tracking-wide",
-                      option.pill,
-                    )}
-                  >
-                    {option.label}
-                  </span>
+                    <span
+                      className={cn(
+                        "select-none whitespace-nowrap rounded-md px-2 py-0.5 text-xs font-medium",
+                        option.pill,
+                      )}
+                    >
+                      {option.label}
+                    </span>
 
-                  {/* El check ocupa su sitio siempre: si apareciera solo al
+                    {/* El check ocupa su sitio siempre: si apareciera solo al
                       marcar, la píldora se correría en cada clic. */}
-                  <span
-                    className={cn(
-                      "flex size-4 shrink-0 items-center justify-center rounded-full transition-colors",
-                      isSelected
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-background ring-1 ring-inset ring-muted-foreground/35",
-                    )}
-                  >
-                    {isSelected && <Check className="size-2.5" />}
+                    <span
+                      className={cn(
+                        "flex size-4 shrink-0 items-center justify-center rounded-full transition-colors",
+                        isSelected
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-background ring-1 ring-inset ring-muted-foreground/35",
+                      )}
+                    >
+                      {isSelected && <Check className="size-2.5" />}
+                    </span>
                   </span>
-                </span>
 
-                <span className="text-[11px] leading-snug text-muted-foreground">
-                  {option.description}
-                </span>
-              </button>
-            );
-          })}
+                  <span className="text-[13px] leading-snug text-muted-foreground">
+                    {option.description}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </div>
-
-        <DialogFooter className="pt-2">
-          {/* Secundario, pero con forma propia: sin contorno se fundía con el
-              fondo del diálogo y parecía texto suelto junto al botón azul. */}
-          <Button
-            variant="outline"
-            onClick={() => setOpen(false)}
-            className="rounded-xl border-border/70 bg-background text-muted-foreground hover:bg-muted/60 hover:text-foreground"
-          >
-            Cancelar
-          </Button>
-
-          <Button
-            onClick={handleDownload}
-            disabled={isPending || selected.length === 0}
-            className="rounded-xl"
-          >
-            {isPending ? (
-              <>
-                <Loader2 className="mr-2 size-4 animate-spin" />
-                Generando…
-              </>
-            ) : (
-              <>
-                <FileDown className="mr-2 size-4" />
-                Descargar PDF
-              </>
-            )}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
+      </FormDialogContent>
     </Dialog>
   );
 }

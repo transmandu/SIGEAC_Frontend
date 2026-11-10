@@ -12,8 +12,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import type { PurchaseOrder } from "@/types/purchase";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
+import FormattedInstant from "@/components/misc/FormattedInstant";
 import Link from "next/link";
 import PurchaseOrderDropdownActions from "@/components/dropdowns/mantenimiento/compras/PurchaseOrderDropdownActions";
 import { Loader2 } from "lucide-react";
@@ -66,7 +65,7 @@ const ArticlesCountAction = ({
         `
           relative
           flex items-center justify-center
-          px-2 py-0.5
+          min-w-26 px-2 py-0.5
           rounded-md
           text-xs tabular-nums
           border
@@ -77,7 +76,7 @@ const ArticlesCountAction = ({
         `,
         canRegisterDelivery &&
           hasPendingDelivery &&
-          "cursor-pointer hover:bg-emerald-50 hover:border-emerald-300/60 dark:hover:bg-emerald-950/30 dark:hover:border-emerald-700/50",
+          "cursor-pointer hover:border-blue-500/40 hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-400",
       )}
     >
       {hasPendingDelivery && !registerGeneralArticlesDelivery.isPending && (
@@ -95,7 +94,7 @@ const ArticlesCountAction = ({
       </span>
 
       {isEmpty && (
-        <span className="ml-1 text-[10px] text-muted-foreground/70">vacío</span>
+        <span className="ml-1 text-xs text-muted-foreground">vacío</span>
       )}
     </div>
   );
@@ -155,9 +154,9 @@ const ArticlesCountAction = ({
 };
 
 const PO_STATUS_LABELS: Record<string, string> = {
-  PENDING: "PENDIENTE",
-  PAID: "PAGADA",
-  COMPLETED: "COMPLETADA",
+  PENDING: "Pendiente",
+  PAID: "Pagada",
+  COMPLETED: "Completada",
 };
 
 export const getColumns = (
@@ -253,6 +252,8 @@ export const getColumns = (
 
     meta: {
       title: "Cotización",
+      mobileOrder: 5,
+      mobile: "wide",
     },
 
     cell: ({ row }) => (
@@ -280,6 +281,7 @@ export const getColumns = (
 
     meta: {
       title: "Comercio",
+      mobileOrder: 3,
     },
 
     cell: ({ row }) => {
@@ -315,15 +317,16 @@ export const getColumns = (
 
     meta: {
       title: "Fecha de Creación",
+      mobileOrder: 2,
     },
 
     cell: ({ row }) => {
-      const date = new Date(row.original.purchase_date);
+      const date = row.original.purchase_date;
 
       return (
         <div className="flex justify-center w-full">
-          <span className="text-s text-slate-600 dark:text-slate-300 text-center font-medium tracking-wide uppercase">
-            {format(date, "dd MMM yyyy", { locale: es })}
+          <span className="text-s text-slate-600 dark:text-slate-300 text-center font-medium">
+            <FormattedInstant value={date} format="dd MMM yyyy" />
           </span>
         </div>
       );
@@ -342,6 +345,7 @@ export const getColumns = (
 
     meta: {
       title: "Estado",
+      mobileOrder: 1,
     },
 
     cell: ({ row }) => {
@@ -357,11 +361,7 @@ export const getColumns = (
               `
                 rounded-md
                 border
-                px-2 py-0.5
-                text-[10px]
-                font-semibold
-                tracking-wide
-                shadow-xs
+                h-6 px-2.5 text-xs font-medium
                 transition-colors duration-150
                 cursor-default
               `,
@@ -396,6 +396,7 @@ export const getColumns = (
 
     meta: {
       title: "Artículos",
+      mobileOrder: 4,
     },
 
     cell: ({ row }) => (

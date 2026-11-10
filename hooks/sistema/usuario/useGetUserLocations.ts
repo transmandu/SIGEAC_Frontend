@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 export interface UserLocation {
   id: number;
   address: string;
-  type: string;
+  name?: string | null;
   cod_iata: string;
   isMainBase: boolean;
 }

@@ -1,51 +1,27 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowDown, ArrowUp, Loader2, Minus, Tag } from "lucide-react";
+import { ArrowRight, Flag, Loader2, Package } from "lucide-react";
 
 import { useUpdateRequisitionPriority } from "@/actions/mantenimiento/compras/requisiciones/actions";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import type { MyRequisition, Requisition } from "@/types/purchase";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Dialog } from "@/components/ui/dialog";
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import LoadingPage from "@/components/misc/LoadingPage";
-
-const priorityOptions = [
-  { value: "HIGH", label: "ALTA", icon: ArrowUp, className: "text-red-500" },
-  { value: "MEDIUM", label: "MEDIA", icon: Minus, className: "text-amber-500" },
-  { value: "LOW", label: "BAJA", icon: ArrowDown, className: "text-green-500" },
-];
-
-const PriorityOptionLabel = ({ value }: { value: string }) => {
-  const option = priorityOptions.find((p) => p.value === value);
-  if (!option) return null;
-  const Icon = option.icon;
-
-  return (
-    <span className="flex items-center gap-2">
-      <Icon className={`size-3.5 ${option.className}`} />
-      {option.label}
-    </span>
-  );
-};
+import { PanelSection } from "@/components/forms/PanelSection";
+import {
+  PriorityChoice,
+  priorityLabel,
+} from "@/components/forms/mantenimiento/compras/_components/PriorityChoice";
 
 type Item = {
   id: number;
-  label: string;
+  /** Lo que identifica al artículo: número de parte o descripción. */
+  title: string;
+  /** Renglón al que pertenece, cuando lo tiene. */
+  subtitle?: string;
   priority?: string;
 };
 
@@ -86,7 +62,8 @@ const PriorityForm = ({ req, setOpen, onSuccess }: Omit<Props, "open">) => {
       )
       .map((article) => ({
         id: article.id,
-        label: `${batch.name} · ${article.article_part_number}`,
+        title: article.article_part_number,
+        subtitle: batch.name,
         priority: article.priority,
       })),
   );
@@ -94,7 +71,7 @@ const PriorityForm = ({ req, setOpen, onSuccess }: Omit<Props, "open">) => {
   const generalArticleItems: Item[] = (req.general_articles ?? []).map(
     (article) => ({
       id: article.id,
-      label: article.description,
+      title: article.description,
       priority: article.priority,
     }),
   );
@@ -103,151 +80,175 @@ const PriorityForm = ({ req, setOpen, onSuccess }: Omit<Props, "open">) => {
 
   if (!selectedCompany) return <LoadingPage />;
 
+  const currentOf = (item: Item) => articlePriorities[item.id] ?? item.priority;
+  const changed = (item: Item) =>
+    !!articlePriorities[item.id] &&
+    articlePriorities[item.id] !== item.priority;
+
   const handleSubmit = async () => {
     const articles = articleItems
-      .filter(
-        (item) =>
-          articlePriorities[item.id] &&
-          articlePriorities[item.id] !== item.priority,
-      )
+      .filter(changed)
       .map((item) => ({ id: item.id, priority: articlePriorities[item.id] }));
 
     const general_articles = generalArticleItems
-      .filter(
-        (item) =>
-          articlePriorities[item.id] &&
-          articlePriorities[item.id] !== item.priority,
-      )
+      .filter(changed)
       .map((item) => ({ id: item.id, priority: articlePriorities[item.id] }));
 
-    await updatePriorityRequisition.mutateAsync({
-      id: req.id,
-      data: {
-        priority: headerPriority !== req.priority ? headerPriority : null,
-        articles,
-        general_articles,
-      },
-      company: selectedCompany.slug,
-    });
+    try {
+      await updatePriorityRequisition.mutateAsync({
+        id: req.id,
+        data: {
+          priority: headerPriority !== req.priority ? headerPriority : null,
+          articles,
+          general_articles,
+        },
+        company: selectedCompany.slug,
+      });
+    } catch {
+      // La mutación ya avisó el error; el diálogo queda abierto.
+      return;
+    }
 
     setOpen(false);
     onSuccess?.();
   };
 
   return (
-    <DialogContent
-      className="
-          sm:max-w-115
-          rounded-3xl
-          border border-border/50
-          bg-background/95
-          backdrop-blur-xl
-          shadow-2xl
-          overflow-hidden
-        "
-    >
-      <DialogHeader className="flex flex-col items-center text-center space-y-3">
-        <div
-          className="
-              flex items-center justify-center
-              size-12 rounded-2xl
-              border border-amber-500/15
-              bg-amber-500/8
-            "
-        >
-          <Tag className="size-5 text-amber-600" />
-        </div>
-
-        <DialogTitle className="text-[16px] font-semibold tracking-tight">
-          Cambiar prioridad
-        </DialogTitle>
-
-        <DialogDescription className="text-sm text-muted-foreground text-center leading-relaxed max-w-sm">
-          Actualiza la prioridad de la solicitud{" "}
+    <FormDialogContent
+      className="sm:max-w-130"
+      icon={Flag}
+      tone="amber"
+      title="Cambiar prioridad"
+      description={
+        <>
+          Actualice la prioridad de la solicitud{" "}
           <span className="font-medium text-foreground">
             {req.order_number}
           </span>
           {items.length > 0 && " y, opcionalmente, la de sus artículos"}.
-        </DialogDescription>
-      </DialogHeader>
+        </>
+      }
+      footer={
+        <>
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            Cancelar
+          </Button>
 
-      <div className="flex flex-col gap-4 max-h-[50vh] overflow-y-auto px-1">
-        <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-medium text-muted-foreground">
-            Prioridad de la solicitud (opcional)
-          </label>
-          <Select value={headerPriority} onValueChange={setHeaderPriority}>
-            <SelectTrigger>
-              <SelectValue placeholder="Seleccione prioridad..." />
-            </SelectTrigger>
-            <SelectContent>
-              {priorityOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  <PriorityOptionLabel value={option.value} />
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+          <Button
+            onClick={handleSubmit}
+            disabled={updatePriorityRequisition.isPending}
+            className="min-w-35 gap-2"
+          >
+            {updatePriorityRequisition.isPending && (
+              <Loader2 className="size-4 animate-spin" />
+            )}
+            Guardar
+          </Button>
+        </>
+      }
+    >
+      <div className="space-y-4">
+        <PanelSection
+          icon={Flag}
+          title="Prioridad de la solicitud"
+          hint={
+            req.priority
+              ? `Actual: ${priorityLabel(req.priority)}`
+              : "Sin prioridad asignada."
+          }
+          compact
+        >
+          <PriorityChoice
+            label="Prioridad de la solicitud"
+            value={headerPriority}
+            onChange={setHeaderPriority}
+          />
+        </PanelSection>
 
         {items.length > 0 && (
-          <div className="flex flex-col gap-2">
-            <label className="text-xs font-medium text-muted-foreground">
-              Prioridad de los artículos (opcional)
-            </label>
-
-            {items.map((item) => (
-              <div key={item.id} className="flex items-center gap-2">
-                <span className="flex-1 text-sm truncate" title={item.label}>
-                  {item.label}
-                </span>
-                <Select
-                  value={articlePriorities[item.id] ?? item.priority}
-                  onValueChange={(value) =>
-                    setArticlePriorities((prev) => ({
-                      ...prev,
-                      [item.id]: value,
-                    }))
+          <PanelSection
+            icon={Package}
+            title="Prioridad de los artículos"
+            hint="Opcional. Solo se guardan los que cambie."
+            compact
+            action={
+              items.length > 1 && headerPriority ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 px-2 text-[13px] max-sm:h-9"
+                  onClick={() =>
+                    setArticlePriorities(
+                      Object.fromEntries(
+                        items.map((item) => [item.id, headerPriority]),
+                      ),
+                    )
                   }
                 >
-                  <SelectTrigger className="w-32.5">
-                    <SelectValue placeholder="Sin cambio" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {priorityOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        <PriorityOptionLabel value={option.value} />
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            ))}
-          </div>
+                  Igualar a la solicitud
+                </Button>
+              ) : undefined
+            }
+          >
+            {/* Filas separadas por una línea de borde a borde: sin recuadro
+                por artículo, que en una lista corta pesaba más que el dato. */}
+            <ul className="-m-3 divide-y divide-border/60">
+              {items.map((item) => {
+                const current = currentOf(item);
+                const willChange = changed(item);
+
+                return (
+                  <li
+                    key={item.id}
+                    className="flex flex-col gap-2.5 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium wrap-anywhere">
+                        {item.title}
+                      </p>
+                      <p className="flex flex-wrap items-center gap-x-1.5 text-[13px] text-muted-foreground">
+                        {item.subtitle && (
+                          <span className="wrap-anywhere">{item.subtitle}</span>
+                        )}
+                        {item.subtitle && <span aria-hidden>·</span>}
+                        {willChange ? (
+                          <span className="inline-flex items-center gap-1 font-medium text-amber-700 dark:text-amber-400">
+                            {priorityLabel(item.priority) ?? "Sin prioridad"}
+                            <ArrowRight className="size-3" aria-hidden />
+                            {priorityLabel(current)}
+                          </span>
+                        ) : (
+                          <span>
+                            {item.priority
+                              ? `Actual: ${priorityLabel(item.priority)}`
+                              : "Sin prioridad"}
+                          </span>
+                        )}
+                      </p>
+                    </div>
+
+                    <PriorityChoice
+                      size="sm"
+                      label={`Prioridad de ${item.title}`}
+                      value={current}
+                      onChange={(value) =>
+                        setArticlePriorities((prev) => ({
+                          ...prev,
+                          [item.id]: value,
+                        }))
+                      }
+                      placeholder="Sin cambio"
+                      className="sm:w-40 sm:shrink-0"
+                    />
+                  </li>
+                );
+              })}
+            </ul>
+          </PanelSection>
         )}
       </div>
-
-      <DialogFooter className="pt-2">
-        <Button
-          variant="outline"
-          onClick={() => setOpen(false)}
-          className="rounded-xl"
-        >
-          Cancelar
-        </Button>
-
-        <Button
-          onClick={handleSubmit}
-          disabled={updatePriorityRequisition.isPending}
-          className="rounded-xl bg-amber-500/90 hover:bg-amber-500"
-        >
-          {updatePriorityRequisition.isPending && (
-            <Loader2 className="mr-2 size-4 animate-spin" />
-          )}
-          Guardar
-        </Button>
-      </DialogFooter>
-    </DialogContent>
+    </FormDialogContent>
   );
 };
 

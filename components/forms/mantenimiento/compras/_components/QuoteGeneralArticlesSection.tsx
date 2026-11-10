@@ -1,4 +1,5 @@
 "use client";
+import { locationName } from "@/lib/locations";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
@@ -28,13 +29,15 @@ import { RequiredIndicator } from "@/components/misc/RequiredIndicator";
 import { RetailerCombobox } from "@/components/forms/general/compras/_components/RetailerCombobox";
 import { UnitCombobox } from "@/components/forms/general/compras/_components/UnitCombobox";
 import { useGetGeneralArticlesPurchaseCatalog } from "@/hooks/mantenimiento/compras/useGetGeneralArticlesPurchaseCatalog";
-import { useRef, useState, useEffect } from "react";
-import { createPortal } from "react-dom";
+import { useRef } from "react";
+import { SuggestInput } from "./SuggestInput";
+import { quoteInputClass, quoteTriggerClass } from "./quote-field";
 
 interface LocationOption {
   id: number;
   address: string;
-  type: string;
+  name?: string | null;
+  cod_iata?: string | null;
 }
 
 interface QuoteGeneralArticlesSectionProps {
@@ -48,12 +51,11 @@ interface QuoteGeneralArticlesSectionProps {
 
 // ── Width scale shared across the operation rows ───────────────────────────
 // Each column keeps the same width across both rows: Variante/Marca · Cantidad/Unidad · Precio unitario/Destino
-const GRID_COLS = "grid-cols-[2.2fr_1fr_1.3fr_1.5fr]";
+const GRID_COLS = "grid-cols-2 sm:grid-cols-[2.2fr_1fr_1.3fr_1.5fr]";
 const W_COMPACT = "w-full"; // Cantidad / Unidad
 const W_WIDE = "w-full"; // Precio unitario / Ubicación
 
-const LABEL_CLS =
-  "select-none text-[10px] leading-none text-muted-foreground uppercase";
+const LABEL_CLS = "select-none text-xs leading-none text-muted-foreground";
 
 function normalizeQuantity(value: string, fallback: string): string {
   if (value === "") return fallback;
@@ -66,7 +68,7 @@ function normalize(s: string | null | undefined): string {
   return (s ?? "").trim().toLowerCase();
 }
 
-// ── Inline brand combobox ──────────────────────────────────────────────────
+// ── Marca / modelo: sugiere los del catálogo y su último costo ──────────────
 interface BrandComboboxProps {
   value: string;
   onChange: (value: string) => void;
@@ -76,7 +78,8 @@ interface BrandComboboxProps {
   disabled: boolean;
   invalid: boolean | string | undefined;
   onSelectCandidate: (article: GeneralArticle) => void;
-  onResetPrice: () => void;
+  /** Recibe el precio que había sugerido la marca anterior. */
+  onResetPrice: (suggestedPrice: string) => void;
 }
 
 function BrandCombobox({
@@ -90,131 +93,55 @@ function BrandCombobox({
   onSelectCandidate,
   onResetPrice,
 }: BrandComboboxProps) {
-  const [open, setOpen] = useState(false);
-  const anchorRef = useRef<HTMLDivElement>(null);
-  const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
+  // Precio que puso la última sugerencia aplicada: solo ese se retira si la
+  // marca deja de coincidir. Un precio que el usuario escribió a mano no se
+  // toca al corregir la marca.
+  const suggestedPrice = useRef<string | null>(null);
 
-  const filtered = candidates.filter((a) =>
-    normalize(a.brand_model).includes(normalize(value)),
-  );
-
-  const hasCandidates = candidates.length > 0;
-  const showDropdown = open && !disabled && filtered.length > 0;
-
-  // Recompute position whenever the dropdown opens or on scroll/resize
-  useEffect(() => {
-    if (!showDropdown || !anchorRef.current) return;
-
-    function reposition() {
-      if (!anchorRef.current) return;
-      const rect = anchorRef.current.getBoundingClientRect();
-      setDropdownStyle({
-        position: "fixed",
-        top: rect.bottom + 4,
-        left: rect.left,
-        width: rect.width,
-        zIndex: 9999,
-      });
-    }
-
-    reposition();
-    window.addEventListener("scroll", reposition, true);
-    window.addEventListener("resize", reposition);
-    return () => {
-      window.removeEventListener("scroll", reposition, true);
-      window.removeEventListener("resize", reposition);
-    };
-  }, [showDropdown]);
+  const apply = (candidate: GeneralArticle) => {
+    suggestedPrice.current =
+      candidate.cost != null ? Number(candidate.cost).toFixed(2) : null;
+    onSelectCandidate(candidate);
+  };
 
   return (
-    <div ref={anchorRef} className="relative">
-      <Input
-        ref={inputRef}
-        value={value}
-        onChange={(e) => {
-          const next = e.target.value;
-          onChange(next);
-          const exactMatch = candidates.find(
-            (a) => normalize(a.brand_model) === normalize(next),
-          );
-          if (exactMatch) {
-            onSelectCandidate(exactMatch);
-          } else {
-            onResetPrice();
-          }
-        }}
-        onFocus={() => setOpen(true)}
-        onBlur={() => {
-          // delay so mousedown on a dropdown item fires first
-          setTimeout(() => {
-            setOpen(false);
-            onBlur();
-          }, 150);
-        }}
-        placeholder="N/A"
-        disabled={disabled}
-        className={cn(
-          "h-7 w-full text-sm",
-          hasCandidates && "pr-6",
-          invalid && "border-destructive/60 ring-1 ring-destructive/30",
-        )}
-      />
-      {hasCandidates && (
-        <Sparkles className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 size-3 text-primary opacity-70" />
-      )}
+    <SuggestInput
+      value={value}
+      onBlur={onBlur}
+      inputRef={inputRef}
+      disabled={disabled}
+      invalid={invalid}
+      suggestions={candidates.map((candidate) => ({
+        key: candidate.id,
+        label: candidate.brand_model ?? "Sin marca",
+        hint:
+          candidate.cost != null
+            ? `Costo registrado: $${Number(candidate.cost).toFixed(2)}`
+            : undefined,
+      }))}
+      onChange={(next) => {
+        onChange(next);
 
-      {createPortal(
-        <AnimatePresence>
-          {showDropdown && (
-            <motion.div
-              key="brand-dropdown"
-              initial={{ opacity: 0, y: -4 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4, pointerEvents: "none" }}
-              transition={{ duration: 0.1 }}
-              style={dropdownStyle}
-              className="min-w-40 overflow-hidden rounded-md border border-border bg-popover shadow-md"
-            >
-              {filtered.map((a) => (
-                <button
-                  key={a.id}
-                  type="button"
-                  onPointerDown={(e) => {
-                    e.preventDefault();
-                    onSelectCandidate(a);
-                    setOpen(false);
-                  }}
-                  className="flex w-full flex-col gap-0.5 px-2.5 py-1.5 text-left text-xs hover:bg-accent hover:text-accent-foreground"
-                >
-                  <span className="font-medium leading-none">
-                    {a.brand_model ?? "Sin marca"}
-                  </span>
-                  {a.cost != null && (
-                    <span className="text-[10px] text-muted-foreground tabular-nums">
-                      Costo registrado: ${Number(a.cost).toFixed(2)}
-                    </span>
-                  )}
-                </button>
-              ))}
-            </motion.div>
-          )}
-        </AnimatePresence>,
-        document.body,
-      )}
-    </div>
+        const exactMatch = candidates.find(
+          (candidate) => normalize(candidate.brand_model) === normalize(next),
+        );
+
+        if (exactMatch) {
+          apply(exactMatch);
+        } else if (suggestedPrice.current !== null) {
+          onResetPrice(suggestedPrice.current);
+          suggestedPrice.current = null;
+        }
+      }}
+      onPick={(suggestion) => {
+        const candidate = candidates.find((item) => item.id === suggestion.key);
+        if (candidate) apply(candidate);
+      }}
+    />
   );
 }
 
-// ── Inline variant/presentation combobox (suggestions only, free text) ─────
-interface VariantComboboxProps {
-  value: string;
-  onChange: (value: string) => void;
-  onBlur: () => void;
-  inputRef: React.Ref<HTMLInputElement>;
-  candidates: string[];
-  disabled: boolean;
-}
-
+// ── Presentación / especificación: texto libre con las ya usadas ────────────
 function VariantCombobox({
   value,
   onChange,
@@ -222,98 +149,30 @@ function VariantCombobox({
   inputRef,
   candidates,
   disabled,
-}: VariantComboboxProps) {
-  const [open, setOpen] = useState(false);
-  const anchorRef = useRef<HTMLDivElement>(null);
-  const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
-
-  const filtered = candidates.filter((c) =>
-    normalize(c).includes(normalize(value)),
-  );
-
-  const hasCandidates = candidates.length > 0;
-  const showDropdown = open && !disabled && filtered.length > 0;
-
-  useEffect(() => {
-    if (!showDropdown || !anchorRef.current) return;
-
-    function reposition() {
-      if (!anchorRef.current) return;
-      const rect = anchorRef.current.getBoundingClientRect();
-      setDropdownStyle({
-        position: "fixed",
-        top: rect.bottom + 4,
-        left: rect.left,
-        width: rect.width,
-        zIndex: 9999,
-      });
-    }
-
-    reposition();
-    window.addEventListener("scroll", reposition, true);
-    window.addEventListener("resize", reposition);
-    return () => {
-      window.removeEventListener("scroll", reposition, true);
-      window.removeEventListener("resize", reposition);
-    };
-  }, [showDropdown]);
-
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  onBlur: () => void;
+  inputRef: React.Ref<HTMLInputElement>;
+  candidates: string[];
+  disabled: boolean;
+}) {
   return (
-    <div ref={anchorRef} className="relative">
-      <Input
-        ref={inputRef}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onFocus={() => setOpen(true)}
-        onBlur={() => {
-          setTimeout(() => {
-            setOpen(false);
-            onBlur();
-          }, 150);
-        }}
-        placeholder="N/A"
-        disabled={disabled}
-        className={cn("h-7 w-full text-sm", hasCandidates && "pr-6")}
-      />
-      {hasCandidates && (
-        <Sparkles className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 size-3 text-primary opacity-70" />
-      )}
-
-      {createPortal(
-        <AnimatePresence>
-          {showDropdown && (
-            <motion.div
-              key="variant-dropdown"
-              initial={{ opacity: 0, y: -4 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4, pointerEvents: "none" }}
-              transition={{ duration: 0.1 }}
-              style={dropdownStyle}
-              className="min-w-40 overflow-hidden rounded-md border border-border bg-popover shadow-md"
-            >
-              {filtered.map((candidate) => (
-                <button
-                  key={candidate}
-                  type="button"
-                  onPointerDown={(e) => {
-                    e.preventDefault();
-                    onChange(candidate);
-                    setOpen(false);
-                  }}
-                  className="flex w-full flex-col gap-0.5 px-2.5 py-1.5 text-left text-xs hover:bg-accent hover:text-accent-foreground"
-                >
-                  <span className="font-medium leading-none">{candidate}</span>
-                </button>
-              ))}
-            </motion.div>
-          )}
-        </AnimatePresence>,
-        document.body,
-      )}
-    </div>
+    <SuggestInput
+      value={value}
+      onChange={onChange}
+      onBlur={onBlur}
+      inputRef={inputRef}
+      disabled={disabled}
+      hideExactMatch
+      suggestions={candidates.map((candidate) => ({
+        key: candidate,
+        label: candidate,
+      }))}
+      onPick={(suggestion) => onChange(suggestion.label)}
+    />
   );
 }
-
 // ── Main section ───────────────────────────────────────────────────────────
 export function QuoteGeneralArticlesSection({
   form,
@@ -347,7 +206,9 @@ export function QuoteGeneralArticlesSection({
         </span>
       </div>
 
-      <ScrollArea className={cn("w-full", fields.length > 1 && "h-80")}>
+      <ScrollArea
+        className={cn("w-full", fields.length > 1 && "h-80 max-sm:h-auto")}
+      >
         <div className="space-y-2">
           {fields.map((field, index) => {
             const article = generalArticles[index] ?? {};
@@ -408,9 +269,9 @@ export function QuoteGeneralArticlesSection({
                             damping: 18,
                             mass: 0.6,
                           }}
-                          className="select-none whitespace-nowrap rounded border-2 border-red-500/50 px-4 py-1 text-xl font-extrabold uppercase tracking-widest text-red-500/50"
+                          className="select-none whitespace-nowrap rounded border-2 border-red-500/50 px-4 py-1 text-xl font-extrabold text-red-500/50"
                         >
-                          No Cotizado
+                          No cotizado
                         </motion.span>
                       </div>
                     )}
@@ -426,7 +287,7 @@ export function QuoteGeneralArticlesSection({
 
                         <Badge
                           variant="secondary"
-                          className="h-5 px-2 text-[10px] font-medium uppercase tracking-wide text-muted-foreground select-none"
+                          className="h-5 px-2 text-xs font-medium text-muted-foreground select-none"
                         >
                           General/Ferreteria
                         </Badge>
@@ -437,6 +298,12 @@ export function QuoteGeneralArticlesSection({
                           <TooltipTrigger asChild>
                             <button
                               type="button"
+                              aria-label={
+                                isNotQuoted
+                                  ? "Incluir en la cotización"
+                                  : "No cotizar este artículo"
+                              }
+                              aria-pressed={isNotQuoted}
                               onClick={() =>
                                 form.setValue(
                                   `general_articles.${index}.not_quoted`,
@@ -444,10 +311,10 @@ export function QuoteGeneralArticlesSection({
                                 )
                               }
                               className={cn(
-                                "z-20 shrink-0 rounded-md p-1 transition-colors",
+                                "z-20 shrink-0 rounded-md p-1 transition-colors max-sm:p-2.5",
                                 isNotQuoted
                                   ? "bg-red-500/15 text-red-600"
-                                  : "text-muted-foreground/60 hover:bg-muted/60 hover:text-red-500",
+                                  : "text-muted-foreground hover:bg-muted/60 hover:text-red-500",
                               )}
                             >
                               <Ban className="size-3.5" />
@@ -463,9 +330,9 @@ export function QuoteGeneralArticlesSection({
                     </div>
 
                     {/* BODY */}
-                    <div className="relative px-3 py-2.5 pr-24">
+                    <div className="relative px-3 py-2.5 sm:pr-24">
                       {/* ── TOTAL (fijo a la derecha, centrado verticalmente respecto al body) ── */}
-                      <div className="absolute right-3 top-1/2 -translate-y-1/2 flex flex-col items-end gap-0.5">
+                      <div className="absolute right-3 top-1/2 flex -translate-y-1/2 flex-col items-end gap-0.5 max-sm:static max-sm:mb-2.5 max-sm:translate-y-0 max-sm:flex-row max-sm:items-baseline max-sm:justify-between">
                         <span className={LABEL_CLS}>Total</span>
                         <span className="font-semibold tabular-nums leading-none">
                           $
@@ -478,11 +345,12 @@ export function QuoteGeneralArticlesSection({
 
                       <div className={cn("grid gap-x-3 gap-y-2.5", GRID_COLS)}>
                         {/* Fila 1: Variante · Cantidad · Precio unitario */}
-                        <div className="space-y-0.5">
+                        <div className="space-y-0.5 max-sm:col-span-2">
                           <span className={LABEL_CLS}>
                             Present. / Especif.
                             {variantCandidates.length > 0 && (
-                              <span className="ml-1 text-[9px] text-primary select-none normal-case not-italic">
+                              <span className="ml-1.5 inline-flex items-center gap-0.5 text-xs text-primary select-none">
+                                <Sparkles className="size-3" aria-hidden />
                                 sugerencias
                               </span>
                             )}
@@ -518,9 +386,10 @@ export function QuoteGeneralArticlesSection({
                                 disabled={isNotQuoted}
                                 className={cn(
                                   W_COMPACT,
-                                  "h-7 text-center text-sm",
+                                  quoteInputClass,
+                                  "text-center",
                                   quantityChanged &&
-                                    "border-amber-500/60 bg-amber-50/70 dark:bg-amber-900/20",
+                                    "border-amber-500/60 bg-none bg-amber-50/70 dark:bg-amber-900/20",
                                   invalidCls(!isNotQuoted && !article.quantity),
                                 )}
                                 onChange={(e) => {
@@ -551,7 +420,7 @@ export function QuoteGeneralArticlesSection({
                             )}
                           />
                           {quantityChanged && (
-                            <div className="flex items-center justify-center gap-1 text-[10px] text-amber-600 dark:text-amber-400">
+                            <div className="flex items-center justify-center gap-1 text-xs text-amber-600 dark:text-amber-400">
                               <span className="tabular-nums line-through opacity-70">
                                 {article.original_quantity}
                               </span>
@@ -579,7 +448,7 @@ export function QuoteGeneralArticlesSection({
                                 disabled={isNotQuoted}
                                 className={cn(
                                   W_WIDE,
-                                  "h-7 text-sm",
+                                  quoteInputClass,
                                   invalidCls(
                                     !isNotQuoted &&
                                       !(Number(article.unit_price) > 0),
@@ -593,12 +462,13 @@ export function QuoteGeneralArticlesSection({
                         <div />
 
                         {/* Fila 2: Marca/Modelo · Unidad · Destino */}
-                        <div className="space-y-0.5">
+                        <div className="space-y-0.5 max-sm:col-span-2">
                           <span className={LABEL_CLS}>
                             Marca / Modelo
                             <RequiredIndicator />
                             {brandCandidates.length > 0 && (
-                              <span className="ml-1 text-[9px] text-primary select-none normal-case not-italic">
+                              <span className="ml-1.5 inline-flex items-center gap-0.5 text-xs text-primary select-none">
+                                <Sparkles className="size-3" aria-hidden />
                                 sugerencias
                               </span>
                             )}
@@ -629,12 +499,19 @@ export function QuoteGeneralArticlesSection({
                                     );
                                   }
                                 }}
-                                onResetPrice={() =>
-                                  form.setValue(
+                                onResetPrice={(suggested) => {
+                                  const price = form.getValues(
                                     `general_articles.${index}.unit_price`,
-                                    "0.00",
-                                  )
-                                }
+                                  );
+                                  // Solo se retira el precio que puso la
+                                  // sugerencia; uno escrito a mano se conserva.
+                                  if (Number(price) === Number(suggested)) {
+                                    form.setValue(
+                                      `general_articles.${index}.unit_price`,
+                                      "0.00",
+                                    );
+                                  }
+                                }}
                               />
                             )}
                           />
@@ -656,7 +533,7 @@ export function QuoteGeneralArticlesSection({
                             units={units}
                             disabled={isNotQuoted}
                             invalid={invalidCls(!isNotQuoted && !article.unit)}
-                            triggerClassName="h-7 text-xs"
+                            triggerClassName={quoteTriggerClass}
                             placeholder="Sin unidad"
                           />
                         </div>
@@ -679,7 +556,7 @@ export function QuoteGeneralArticlesSection({
                             <SelectTrigger
                               className={cn(
                                 W_WIDE,
-                                "h-7 text-xs",
+                                quoteTriggerClass,
                                 !article.location_id && "text-muted-foreground",
                                 invalidCls(
                                   !isNotQuoted && !article.location_id,
@@ -701,7 +578,7 @@ export function QuoteGeneralArticlesSection({
                                   key={location.id}
                                   value={location.id.toString()}
                                 >
-                                  {location.address}
+                                  {locationName(location)}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -727,7 +604,7 @@ export function QuoteGeneralArticlesSection({
                               invalid={invalidCls(
                                 !isNotQuoted && !article.retailer_id,
                               )}
-                              triggerClassName="h-7 text-xs"
+                              triggerClassName={quoteTriggerClass}
                               placeholder="Sin lugar de compra"
                               wrapOptions
                             />
@@ -743,7 +620,7 @@ export function QuoteGeneralArticlesSection({
                 {/* JUSTIFICACIÓN (solo si hay cambio de cantidad/unidad o exclusión) — siempre editable */}
                 {needsJustification && (
                   <div className="border-t border-border/50 bg-amber-50/40 px-3 py-2 dark:bg-amber-900/10">
-                    <span className="select-none text-[10px] leading-none text-amber-700 dark:text-amber-400 uppercase">
+                    <span className="select-none text-xs leading-none text-amber-700 dark:text-amber-400">
                       Justificación{" "}
                       {isNotQuoted ? "de exclusión" : "del cambio"}
                     </span>
@@ -754,7 +631,7 @@ export function QuoteGeneralArticlesSection({
                         <Textarea
                           {...field}
                           placeholder="Explique el motivo del cambio o la exclusión..."
-                          className="mt-1 min-h-12.5 resize-none border-amber-500/40 bg-background/70 text-sm"
+                          className="mt-1 min-h-12.5 resize-none border-amber-500/40 bg-background/70 text-[13px] max-sm:text-base"
                         />
                       )}
                     />

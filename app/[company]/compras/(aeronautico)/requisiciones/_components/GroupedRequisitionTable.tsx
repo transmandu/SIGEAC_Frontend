@@ -1,12 +1,15 @@
 "use client";
 
 import { useMemo } from "react";
+import GroupedEmpty from "@/app/[company]/compras/_components/GroupedEmpty";
 import RequisitionGroupRow from "./RequisitionGroupRow";
 import GroupPagination from "@/components/misc/GroupPagination";
 import type { Requisition } from "@/types/purchase/requisition";
 import { useResettingState } from "@/hooks/useResettingState";
 
 type Props = {
+  isLoading?: boolean;
+  isError?: boolean;
   data: Requisition[];
   renderTable: (rows: Requisition[]) => React.ReactNode;
 };
@@ -23,7 +26,12 @@ const formatGroupLabel = (value?: string | null) => {
   return value;
 };
 
-const GroupedRequisitionTable = ({ data, renderTable }: Props) => {
+const GroupedRequisitionTable = ({
+  isLoading,
+  isError,
+  data,
+  renderTable,
+}: Props) => {
   const groups = useMemo<Group[]>(() => {
     const groupedMap = new Map<string, Requisition[]>();
 
@@ -73,19 +81,11 @@ const GroupedRequisitionTable = ({ data, renderTable }: Props) => {
 
   if (!groups.length) {
     return (
-      <div
-        className="
-        rounded-xl border
-        bg-white dark:bg-slate-900/60
-        border-slate-200 dark:border-slate-700/60
-        px-6 py-10
-        text-center
-      "
-      >
-        <p className="text-sm text-muted-foreground">
-          No hay requisiciones agrupadas disponibles.
-        </p>
-      </div>
+      <GroupedEmpty
+        subject="requisiciones"
+        isLoading={isLoading}
+        isError={isError}
+      />
     );
   }
 

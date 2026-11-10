@@ -2,6 +2,7 @@
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import LoadingPage from "@/components/misc/LoadingPage";
+import DetailLoadError from "@/components/misc/DetailLoadError";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useGetPurchaseOrder } from "@/hooks/mantenimiento/compras/useGetPurchaseOrder";
@@ -27,7 +28,7 @@ const PurchaseOrderPage = () => {
   const { selectedCompany } = useCompanyStore();
   const { order_number } = useParams<{ order_number: string }>();
 
-  const { data, isLoading } = useGetPurchaseOrder(
+  const { data, isLoading, isError, refetch } = useGetPurchaseOrder(
     selectedCompany?.slug,
     order_number,
   );
@@ -36,6 +37,16 @@ const PurchaseOrderPage = () => {
   const generalArticles = data?.general_article_purchase_order ?? [];
 
   if (isLoading) return <LoadingPage />;
+
+  if (isError)
+    return (
+      <DetailLoadError
+        title="Orden de Compra"
+        subject="La orden de compra"
+        label={order_number}
+        onRetry={() => refetch()}
+      />
+    );
 
   return (
     <ContentLayout title="Orden de Compra">
@@ -48,8 +59,8 @@ const PurchaseOrderPage = () => {
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
             {/* Title block */}
             <div className="flex flex-col min-w-0 w-full">
-              <div className="flex items-center gap-3 flex-wrap">
-                <h1 className="text-2xl md:text-3xl font-semibold tracking-tight min-w-0 wrap-break-word">
+              <div className="flex items-center gap-3 flex-wrap max-sm:justify-center">
+                <h1 className="text-2xl md:text-3xl font-semibold tracking-tight min-w-0 wrap-break-word max-sm:w-full max-sm:text-center">
                   {order_number}
                 </h1>
 
@@ -58,7 +69,7 @@ const PurchaseOrderPage = () => {
                 </Badge>
               </div>
 
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground max-sm:text-center">
                 Orden de Compra
                 {data?.requisition_order?.order_number && (
                   <>
@@ -92,29 +103,25 @@ const PurchaseOrderPage = () => {
         </div>
 
         {/* ── Meta ────────────────────────────────────────────────────── */}
-        <div className="mx-auto w-full max-w-4xl px-4 py-3 rounded-md border border-border/50 bg-muted/20">
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-x-4 sm:gap-x-6 md:gap-x-10 gap-y-3 md:gap-y-4 justify-items-center">
+        <div className="mx-auto w-full max-w-4xl px-4 py-3 rounded-xl border border-slate-200 bg-white dark:border-slate-700/60 dark:bg-slate-900/60">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-x-4 sm:gap-x-6 md:gap-x-10 gap-y-3 md:gap-y-4 md:justify-items-center max-md:justify-items-start max-md:[&>:last-child:nth-child(odd)]:col-span-2 max-md:[&>:last-child:nth-child(odd)]:justify-self-center">
             <MetaItem
-              label="PROVEEDOR"
+              label="Proveedor"
               value={data?.vendor?.name}
               icon={Truck}
             />
 
-            <MetaItem
-              label="CREADO POR"
-              value={data?.created_by?.toUpperCase()}
-              icon={User}
-            />
+            <MetaItem label="Creado por" value={data?.created_by} icon={User} />
 
             <MetaItem
-              label="FECHA DE COMPRA"
+              label="Fecha de compra"
               value={formatPurchaseDate(data?.purchase_date)}
               icon={CalendarDays}
             />
 
             {data?.shipping_agency?.name && (
               <MetaItem
-                label="AGENCIA DE ENVÍO"
+                label="Agencia de envío"
                 value={data.shipping_agency.name}
                 icon={Ship}
               />
@@ -126,10 +133,10 @@ const PurchaseOrderPage = () => {
         <div className="w-full">
           {/* JUSTIFICACIÓN */}
           <InfoSection
-            title="JUSTIFICACIÓN DE LA SOLICITUD ORIGEN"
+            title="Justificación de la solicitud de origen"
             icon={FileText}
             content={data?.justification}
-            emptyMessage="SIN JUSTIFICACIÓN"
+            emptyMessage="Sin justificación"
             compact
           />
         </div>
@@ -145,9 +152,7 @@ const PurchaseOrderPage = () => {
             </div>
 
             <div className="flex items-center gap-2 rounded-md border border-border/50 bg-muted/30 px-2.5 py-1 select-none">
-              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                TOTAL
-              </span>
+              <span className="text-xs text-muted-foreground">Total</span>
 
               <span className="text-sm font-semibold tabular-nums">
                 {articles.length + generalArticles.length}
