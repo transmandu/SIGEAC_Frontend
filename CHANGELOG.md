@@ -1,3 +1,7 @@
+## v4.98.0 — 2026-11-10
+
+- feat: change in purchases (#383)
+
 ## v4.97.0 — 2026-11-10
 
 - Merge pull request #390 from transmandu/fix/toolbox-creation-error
