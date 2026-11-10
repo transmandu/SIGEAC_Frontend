@@ -22,7 +22,7 @@ import {
 } from "@/actions/mantenimiento/planificacion/ordenes_trabajo/actions";
 import { PdfPreviewDialog } from "@/components/dialogs/aerolinea/administracion/PdfPreviewDialog";
 import { Input } from "@/components/ui/input";
-import { Loader2, Upload } from "lucide-react";
+import { FileDown, Loader2, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   AlertDialog,
@@ -41,6 +41,25 @@ import { workOrderStatusLabelEsUpper } from "@/lib/planificacion/statuses";
 import { notifyError } from "@/lib/notify-error";
 
 type HoursMode = "auto" | "manual";
+
+const ALLOWED_DOCUMENT_EXTENSIONS = [".pdf", ".odt", ".ods", ".odp"];
+const ALLOWED_DOCUMENT_TYPES = [
+  "application/pdf",
+  "application/vnd.oasis.opendocument.text",
+  "application/vnd.oasis.opendocument.spreadsheet",
+  "application/vnd.oasis.opendocument.presentation",
+  "application/x-vnd.oasis.opendocument.text",
+  "application/x-vnd.oasis.opendocument.spreadsheet",
+  "application/x-vnd.oasis.opendocument.presentation",
+];
+
+const isAllowedWorkOrderDocument = (file: File) => {
+  const name = file.name.toLowerCase();
+  const hasValidExt = ALLOWED_DOCUMENT_EXTENSIONS.some((ext) => name.endsWith(ext));
+  const hasValidType = ALLOWED_DOCUMENT_TYPES.includes(file.type);
+  return hasValidExt || hasValidType;
+};
+
 const WorkOrderAircraftDetailsCards = ({
   work_order,
 }: {
@@ -63,6 +82,7 @@ const WorkOrderAircraftDetailsCards = ({
   const { closeWorkOrder } = useCloseWorkOrder();
   const { updateWorkOrder } = useUpdateWorkOrder();
   const [isUploading, setIsUploading] = useState(false);
+  const [isDownloadingDoc, setIsDownloadingDoc] = useState(false);
   const lastParamsRef = useRef<string>("");
 
   useEffect(() => {
@@ -144,8 +164,8 @@ const WorkOrderAircraftDetailsCards = ({
       toast.error("¡Ops! El archivo excede los 10MB permitidos.");
       return;
     }
-    if (file.type !== "application/pdf") {
-      toast.error("¡Ops! Solo se permiten archivos PDF.");
+    if (!isAllowedWorkOrderDocument(file)) {
+      toast.error("¡Ops! Solo se permiten archivos PDF, ODT, ODS u ODP.");
       return;
     }
 
@@ -171,6 +191,34 @@ const WorkOrderAircraftDetailsCards = ({
       );
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  const handleDownloadAttachedDocument = async () => {
+    if (!work_order.document) return;
+    setIsDownloadingDoc(true);
+    try {
+      const response = await axiosInstance.get(
+        `/${companySlug}/work-orders/document`,
+        {
+          responseType: "blob",
+          params: { path: work_order.document },
+        },
+      );
+      const ext = work_order.document.split(".").pop() || "bin";
+      const blob = new Blob([response.data]);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `DOC_WO_${work_order.order_number}.${ext}`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      notifyError(error, { action: "descargar el documento" });
+    } finally {
+      setIsDownloadingDoc(false);
     }
   };
 
@@ -225,7 +273,7 @@ const WorkOrderAircraftDetailsCards = ({
             <div className="relative">
               <Input
                 type="file"
-                accept="application/pdf"
+                accept=".pdf,.odt,.ods,.odp,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.oasis.opendocument.spreadsheet,application/vnd.oasis.opendocument.presentation"
                 disabled={work_order.status === "CLOSED" || isUploading}
                 className={cn(
                   "h-9 text-xs cursor-pointer bg-muted/50 hover:bg-muted transition-colors",
@@ -246,14 +294,30 @@ const WorkOrderAircraftDetailsCards = ({
 
           <div className="flex flex-wrap gap-4 justify-center">
             {work_order.document && (
-              <PdfPreviewDialog
-                showConfig={false}
-                fileName={`DOC_WO_${work_order.order_number}`}
-                endpoint={`/${companySlug}/work-orders/document`}
-                fixedParams={{ path: work_order.document }}
-                triggerLabel="Ver Documento"
-                triggerVariant="outline"
-              />
+              work_order.document.toLowerCase().endsWith(".pdf") ? (
+                <PdfPreviewDialog
+                  showConfig={false}
+                  fileName={`DOC_WO_${work_order.order_number}`}
+                  endpoint={`/${companySlug}/work-orders/document`}
+                  fixedParams={{ path: work_order.document }}
+                  triggerLabel="Ver Documento"
+                  triggerVariant="outline"
+                />
+              ) : (
+                <Button
+                  variant="outline"
+                  onClick={handleDownloadAttachedDocument}
+                  disabled={isDownloadingDoc}
+                  className="gap-2"
+                >
+                  {isDownloadingDoc ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <FileDown className="size-4" />
+                  )}
+                  Descargar Documento (.{work_order.document.split(".").pop()?.toUpperCase()})
+                </Button>
+              )
             )}
             {work_order.document && work_order.status !== "CLOSED" && (
               <AlertDialog
