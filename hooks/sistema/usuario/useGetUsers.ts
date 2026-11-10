@@ -1,11 +1,11 @@
-import { useQuery } from '@tanstack/react-query';
-import axios from '@/lib/axios';
-import { User } from '@/types';
+import { useQuery } from "@tanstack/react-query";
+import axios from "@/lib/axios";
+import { User } from "@/types";
 
 const fetchUsers = async (): Promise<User[]> => {
-  const  response  = await axios.get('/users');
+  const response = await axios.get("/users");
   const users = await response.data.users;
-  return users
+  return users;
 };
 
 /**
@@ -14,7 +14,7 @@ const fetchUsers = async (): Promise<User[]> => {
  */
 export const useGetUsers = ({ enabled = true }: { enabled?: boolean } = {}) => {
   return useQuery<User[]>({
-    queryKey: ['users'],
+    queryKey: ["users"],
     queryFn: fetchUsers,
     staleTime: 1000 * 60 * 5,
     enabled,

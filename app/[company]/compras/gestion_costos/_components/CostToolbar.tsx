@@ -1,36 +1,46 @@
-'use client'
+"use client";
 
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Search, SlidersHorizontal } from 'lucide-react'
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Search, SlidersHorizontal } from "lucide-react";
 
-type CostType = 'ARTICLE' | 'GENERAL'
+type CostType = "ARTICLE" | "GENERAL";
 
 type Props = {
-  search: string
-  setSearch: (value: string) => void
-  groupBy: string
-  setGroupBy: (value: string) => void
-  type: CostType
-  placeholder?: string
-}
+  search: string;
+  setSearch: (value: string) => void;
+  groupBy: string;
+  setGroupBy: (value: string) => void;
+  type: CostType;
+  placeholder?: string;
+};
 
-const selectTriggerClass = `h-8 max-sm:h-10 w-full pl-8 text-xs bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60 transition-colors focus:ring-1 focus:ring-primary/40 data-placeholder:text-muted-foreground [&>span]:truncate`
-const selectContentClass = `border-slate-200/60 dark:border-slate-700/60`
+const selectTriggerClass = `h-8 max-sm:h-10 w-full pl-8 text-xs bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60 transition-colors focus:ring-1 focus:ring-primary/40 data-placeholder:text-muted-foreground [&>span]:truncate`;
+const selectContentClass = `border-slate-200/60 dark:border-slate-700/60`;
 
 const GroupFilter = ({
   groupBy,
   setGroupBy,
   type,
 }: {
-  groupBy: string
-  setGroupBy: (value: string) => void
-  type: CostType
+  groupBy: string;
+  setGroupBy: (value: string) => void;
+  type: CostType;
 }) => (
   <div className="relative sm:w-44 sm:shrink-0">
-    <SlidersHorizontal className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 z-10 size-3.5 text-muted-foreground"/>
+    <SlidersHorizontal className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 z-10 size-3.5 text-muted-foreground" />
 
     <Select value={groupBy} onValueChange={setGroupBy}>
       <SelectTrigger className={selectTriggerClass}>
@@ -38,43 +48,29 @@ const GroupFilter = ({
       </SelectTrigger>
 
       <SelectContent className={selectContentClass}>
-        <SelectItem value="NONE">
-          Sin agrupación
-        </SelectItem>
+        <SelectItem value="NONE">Sin agrupación</SelectItem>
 
-        {type === 'ARTICLE' ? (
+        {type === "ARTICLE" ? (
           <>
-            <SelectItem value="part_number">
-              Part Number
-            </SelectItem>
+            <SelectItem value="part_number">Part Number</SelectItem>
 
-            <SelectItem value="batch_name">
-              Descripción
-            </SelectItem>
+            <SelectItem value="batch_name">Descripción</SelectItem>
 
-            <SelectItem value="serial">
-              Serial / Serie
-            </SelectItem>
+            <SelectItem value="serial">Serial / Serie</SelectItem>
           </>
         ) : (
           <>
-            <SelectItem value="description">
-              Descripción
-            </SelectItem>
+            <SelectItem value="description">Descripción</SelectItem>
 
-            <SelectItem value="brand_model">
-              Modelo / Marca
-            </SelectItem>
+            <SelectItem value="brand_model">Modelo / Marca</SelectItem>
 
-            <SelectItem value="variant_type">
-              Present. / Especif.
-            </SelectItem>
+            <SelectItem value="variant_type">Present. / Especif.</SelectItem>
           </>
         )}
       </SelectContent>
     </Select>
   </div>
-)
+);
 
 const CostToolbar = ({
   search,
@@ -82,14 +78,13 @@ const CostToolbar = ({
   groupBy,
   setGroupBy,
   type,
-  placeholder = 'Buscar artículo o general...',
+  placeholder = "Buscar artículo o general...",
 }: Props) => {
   return (
     <div className="flex items-center gap-2">
-
       {/* SEARCH */}
       <div className="relative flex-1 sm:flex-none sm:w-72">
-        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground"/>
+        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
 
         <Input
           value={search}
@@ -127,15 +122,10 @@ const CostToolbar = ({
 
       {/* DESKTOP FILTER */}
       <div className="hidden sm:flex items-center gap-2">
-        <GroupFilter
-          groupBy={groupBy}
-          setGroupBy={setGroupBy}
-          type={type}
-        />
+        <GroupFilter groupBy={groupBy} setGroupBy={setGroupBy} type={type} />
       </div>
-
     </div>
-  )
-}
+  );
+};
 
-export default CostToolbar
+export default CostToolbar;

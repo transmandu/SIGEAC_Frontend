@@ -48,10 +48,7 @@ import {
   createInvoiceEntry,
   type InvoiceEntry,
 } from "./InvoicesField";
-import {
-  PanelFieldLabel,
-  PanelSection,
-} from "@/components/forms/PanelSection";
+import { PanelFieldLabel, PanelSection } from "@/components/forms/PanelSection";
 import {
   fieldClass,
   selectTriggerClass,

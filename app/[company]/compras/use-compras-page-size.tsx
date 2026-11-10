@@ -1,6 +1,6 @@
-import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import type { SortingState } from '@tanstack/react-table';
+import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
+import type { SortingState } from "@tanstack/react-table";
 
 interface useComprasPageSizeStore {
   pageSizes: Record<string, number>;
@@ -28,8 +28,8 @@ export const useComprasPageSize = create(
       },
     }),
     {
-      name: 'comprasTablePageSizes',
+      name: "comprasTablePageSizes",
       storage: createJSONStorage(() => localStorage),
-    }
-  )
+    },
+  ),
 );

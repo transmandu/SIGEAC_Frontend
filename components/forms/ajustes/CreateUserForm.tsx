@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { locationLabel } from "@/lib/locations";
 import { useCreateUser } from "@/actions/sistema/usuarios/actions";
@@ -10,30 +10,37 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from '@/components/ui/command';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+} from "@/components/ui/command";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover';
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import { useAddModulesToUser } from "@/actions/sistema/usuarios/actions";
 import { useGetCompanies } from "@/hooks/sistema/useGetCompanies";
 import { useGetLocationsByCompanies } from "@/hooks/sistema/useGetLocationsByCompanies";
 import { useGetRoles } from "@/hooks/sistema/usuario/useGetRoles";
 import { useGetUsers } from "@/hooks/sistema/usuario/useGetUsers";
 import { cn } from "@/lib/utils";
-import loadingGif from '@/public/loading2.gif';
+import loadingGif from "@/public/loading2.gif";
 import { zodResolver } from "@/lib/zod-resolver";
-import { Check, ChevronsUpDown, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Check, ChevronsUpDown, Eye, EyeOff, Loader2 } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
@@ -42,7 +49,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Location as AppLocation } from '@/types';
+import { Location as AppLocation } from "@/types";
 
 const FormSchema = z.object({
   first_name: z.string().min(3, {
@@ -58,27 +65,28 @@ const FormSchema = z.object({
     message: "La contraseña debe tener al menos 5 caracteres.",
   }),
   email: z.string({
-    message: "Debe ingresar un correo electrónico válido."
+    message: "Debe ingresar un correo electrónico válido.",
   }),
   roles: z.array(z.string(), {
-    message: "Debe seleccionar un rol."
+    message: "Debe seleccionar un rol.",
   }),
-  companies_locations: z.array(
-    z.object({
-      companyID: z.number(),
-      locationID: z.array(z.number().or(z.string())).min(1, {
-        message: "Debe seleccionar al menos una ubicación.",
-      })
-    })
-  ).min(1, {
-    message: "Debe seleccionar una empresa.",
-  }),
+  companies_locations: z
+    .array(
+      z.object({
+        companyID: z.number(),
+        locationID: z.array(z.number().or(z.string())).min(1, {
+          message: "Debe seleccionar al menos una ubicación.",
+        }),
+      }),
+    )
+    .min(1, {
+      message: "Debe seleccionar una empresa.",
+    }),
   module_ids: z.array(z.number()).optional(),
   isActive: z.boolean(),
-})
+});
 
-
-type FormSchemaType = z.infer<typeof FormSchema>
+type FormSchemaType = z.infer<typeof FormSchema>;
 
 const resolveCreatedUserId = (response: unknown): string | undefined => {
   const r = response as {
@@ -91,16 +99,29 @@ const resolveCreatedUserId = (response: unknown): string | undefined => {
 };
 
 export function CreateUserForm() {
-
   const { data: users } = useGetUsers();
 
-  const { data: companies, error: companiesError, isLoading: isCompaniesLoading } = useGetCompanies();
+  const {
+    data: companies,
+    error: companiesError,
+    isLoading: isCompaniesLoading,
+  } = useGetCompanies();
 
-  const { data: companies_locations, error: companies_locationsError, isLoading: companies_locationsLoading } = useGetLocationsByCompanies();
+  const {
+    data: companies_locations,
+    error: companies_locationsError,
+    isLoading: companies_locationsLoading,
+  } = useGetLocationsByCompanies();
 
-  const [selectedCompanyId, setSelectedCompanyId] = useState<number | undefined>(undefined);
+  const [selectedCompanyId, setSelectedCompanyId] = useState<
+    number | undefined
+  >(undefined);
 
-  const { data: roles, error: rolesError, isLoading: isRolesLoading } = useGetRoles(selectedCompanyId);
+  const {
+    data: roles,
+    error: rolesError,
+    isLoading: isRolesLoading,
+  } = useGetRoles(selectedCompanyId);
 
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
 
@@ -127,24 +148,25 @@ export function CreateUserForm() {
       email: "",
       isActive: true,
     },
-  })
+  });
 
   const { setValue, control, setError, clearErrors } = form;
-  const firstName = useWatch({ control, name: 'first_name' });
-  const lastName = useWatch({ control, name: 'last_name' });
+  const firstName = useWatch({ control, name: "first_name" });
+  const lastName = useWatch({ control, name: "last_name" });
   const [debouncedUsername, setDebouncedUsername] = useState("");
-
 
   useEffect(() => {
     const handler = setTimeout(() => {
       if (firstName && lastName) {
         const newUsername = `${firstName.charAt(0)}${lastName}`.toLowerCase();
-        const isUsernameTaken = users?.some(user => user.username === newUsername);
+        const isUsernameTaken = users?.some(
+          (user) => user.username === newUsername,
+        );
 
         if (isUsernameTaken) {
           setError("username", {
             type: "manual",
-            message: "El nombre de usuario ya está en uso."
+            message: "El nombre de usuario ya está en uso.",
           });
         } else {
           clearErrors("username");
@@ -160,7 +182,7 @@ export function CreateUserForm() {
 
   useEffect(() => {
     if (debouncedUsername) {
-      setValue('username', debouncedUsername);
+      setValue("username", debouncedUsername);
     }
   }, [debouncedUsername, setValue]);
 
@@ -168,7 +190,7 @@ export function CreateUserForm() {
     setSelectedRoles((prevSelected) =>
       prevSelected.includes(currentValue)
         ? prevSelected.filter((value) => value !== currentValue)
-        : [...prevSelected, currentValue]
+        : [...prevSelected, currentValue],
     );
   };
 
@@ -178,58 +200,69 @@ export function CreateUserForm() {
     setSelectedModuleIds((prevSelected) =>
       prevSelected.includes(moduleId)
         ? prevSelected.filter((id) => id !== moduleId)
-        : [...prevSelected, moduleId]
+        : [...prevSelected, moduleId],
     );
   };
 
-  const isModuleSelected = (moduleId: number) => selectedModuleIds.includes(moduleId);
+  const isModuleSelected = (moduleId: number) =>
+    selectedModuleIds.includes(moduleId);
 
   const handleCompanyChange = (companyID: string) => {
     const parsedCompanyID = Number(companyID);
     setSelectedCompanyId(parsedCompanyID);
-    form.setValue('companies_locations', [{ companyID: parsedCompanyID, locationID: [] }]);
+    form.setValue("companies_locations", [
+      { companyID: parsedCompanyID, locationID: [] },
+    ]);
     setSelectedRoles([]);
     setSelectedModuleIds([]);
   };
 
-
   useEffect(() => {
-    form.setValue('roles', selectedRoles);
+    form.setValue("roles", selectedRoles);
   }, [selectedRoles, form]);
 
   useEffect(() => {
-    form.setValue('module_ids', selectedModuleIds);
+    form.setValue("module_ids", selectedModuleIds);
   }, [selectedModuleIds, form]);
 
   const onSubmit = async (data: FormSchemaType) => {
     try {
       // Verifica si el nombre de usuario ya existe
-      const isUsernameTaken = users?.some(user => user.username === data.username);
+      const isUsernameTaken = users?.some(
+        (user) => user.username === data.username,
+      );
 
       if (isUsernameTaken) {
         setError("username", {
           type: "manual",
-          message: "El nombre de usuario ya está en uso."
+          message: "El nombre de usuario ya está en uso.",
         });
         return;
       } else {
         clearErrors("username");
 
         // Convertir roles de string a number
-        const rolesAsNumbers = data.roles.map(role => Number(role));
+        const rolesAsNumbers = data.roles.map((role) => Number(role));
 
         // Crear una copia de los datos con los roles convertidos
         const formattedData = {
           ...data,
-          roles: rolesAsNumbers
+          roles: rolesAsNumbers,
         };
 
         const userResponse = await createUser.mutateAsync(formattedData);
         const newUserId = resolveCreatedUserId(userResponse);
 
-        if (selectedCompanyId && data.module_ids && data.module_ids.length > 0) {
+        if (
+          selectedCompanyId &&
+          data.module_ids &&
+          data.module_ids.length > 0
+        ) {
           if (!newUserId) {
-            console.error("No se pudo determinar el ID del usuario recién creado para asignar los módulos.", userResponse);
+            console.error(
+              "No se pudo determinar el ID del usuario recién creado para asignar los módulos.",
+              userResponse,
+            );
           } else {
             await addModules.mutateAsync({
               userId: newUserId,
@@ -246,14 +279,20 @@ export function CreateUserForm() {
   const locationsByCompany = useMemo(() => {
     if (!companies_locations) return {};
 
-    return companies_locations.reduce((acc, item) => {
-      acc[item.company_id] = item.locations;
-      return acc;
-    }, {} as Record<number, AppLocation[]>);
+    return companies_locations.reduce(
+      (acc, item) => {
+        acc[item.company_id] = item.locations;
+        return acc;
+      },
+      {} as Record<number, AppLocation[]>,
+    );
   }, [companies_locations]);
 
   const selectedCompanyModules = useMemo(() => {
-    return companies?.find((company) => company.id === selectedCompanyId)?.modules ?? [];
+    return (
+      companies?.find((company) => company.id === selectedCompanyId)?.modules ??
+      []
+    );
   }, [companies, selectedCompanyId]);
 
   return (
