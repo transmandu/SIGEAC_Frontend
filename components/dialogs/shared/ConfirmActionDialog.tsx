@@ -83,7 +83,7 @@ export function ConfirmActionDialog({
           if (isPending) event.preventDefault();
         }}
         className={cn(
-          "sm:max-w-[390px] rounded-3xl border border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl overflow-hidden p-0",
+          "sm:max-w-97.5 rounded-3xl border border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl overflow-hidden p-0",
           fullScreenOnMobile,
           "max-sm:content-center",
         )}

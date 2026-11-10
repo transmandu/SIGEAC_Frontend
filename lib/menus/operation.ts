@@ -12,6 +12,7 @@ export function buildOperationGroup({
       {
         href: `/${currentCompany?.slug}/operaciones/counter`,
         label: "Counter",
+        requiresTables: ["pax_flights"],
         active: pathname.includes(
           `/${currentCompany?.slug}/operaciones/counter`,
         ),
@@ -29,6 +30,7 @@ export function buildOperationGroup({
       {
         href: `/${currentCompany?.slug}/operaciones/cargo`,
         label: "Carga",
+        requiresTables: ["cargo_shipments"],
         active: pathname.includes(`/${currentCompany?.slug}/operaciones/cargo`),
         icon: Package,
         roles: [
@@ -58,6 +60,7 @@ export function buildOperationGroup({
           {
             href: `/${currentCompany?.slug}/operaciones/cargo/manifiestos`,
             label: "Manifiestos",
+            requiresTables: ["cargo_manifests"],
             active: pathname.includes(
               `/${currentCompany?.slug}/operaciones/cargo/manifiestos`,
             ),

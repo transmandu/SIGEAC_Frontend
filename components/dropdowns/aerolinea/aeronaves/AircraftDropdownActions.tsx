@@ -1,39 +1,20 @@
 "use client";
 
-import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import { useState } from "react";
-import { format } from "date-fns";
-import { es } from "date-fns/locale/es";
-import { Eye, Pencil, Trash2, Plane } from "lucide-react";
+import { Eye, Pencil, Plane, Trash2 } from "lucide-react";
+
 import { useDeleteAircraft } from "@/actions/aerolinea/aeronaves/actions";
+import { AircraftDetailDialog } from "@/components/dialogs/aerolinea/aeronaves/AircraftDetailDialog";
 import { ConfirmDeleteDialog } from "@/components/dialogs/shared/ConfirmDeleteDialog";
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import {
   SettingsRowActions,
   type RowAction,
 } from "@/components/dropdowns/SettingsRowActions";
 import { EditAircraftForm } from "@/components/forms/aerolinea/aeronaves/EditAircraftForm";
-import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
-import { AIRCRAFT_STATUS_LABELS, parseApiDate } from "@/lib/airline-aircraft";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import type { AirlineAircraft } from "@/types";
-
-const Field = ({
-  label,
-  value,
-  className,
-}: {
-  label: string;
-  value: React.ReactNode;
-  className?: string;
-}) => (
-  <div className={className}>
-    <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
-      {label}
-    </p>
-    <p className="text-sm font-medium">{value}</p>
-  </div>
-);
 
 const AircraftDropdownActions = ({
   aircraft,
@@ -73,69 +54,15 @@ const AircraftDropdownActions = ({
     <>
       <SettingsRowActions actions={actions} tourId="aeronaves-actions" />
 
-      <Dialog open={openDetails} onOpenChange={setOpenDetails}>
-        <FormDialogContent
-          icon={Plane}
-          title={aircraft.acronym}
-          description={
-            <>
-              {aircraft.brand} {aircraft.model}
-            </>
-          }
-          footer={
-            <Button variant="outline" onClick={() => setOpenDetails(false)}>
-              Cerrar
-            </Button>
-          }
-          lockOutside={false}
-          className="sm:max-w-md"
-        >
-          <div className="grid grid-cols-1 gap-4 py-2 sm:grid-cols-2">
-            <Field label="Serial" value={aircraft.serial} />
-            <Field
-              label="Estado"
-              value={AIRCRAFT_STATUS_LABELS[aircraft.status] ?? aircraft.status}
-            />
-            <Field label="Propietario" value={aircraft.owner} />
-            <Field
-              label="Fabricante"
-              value={
-                aircraft.manufacturer
-                  ? aircraft.manufacturer.description ||
-                    aircraft.manufacturer.name
-                  : "—"
-              }
-            />
-            <Field
-              label="Ubicación"
-              value={
-                aircraft.location
-                  ? aircraft.location.name || aircraft.location.address
-                  : "—"
-              }
-            />
-            <Field
-              label="Fabricada"
-              value={format(parseApiDate(aircraft.fabricant_date), "PPP", {
-                locale: es,
-              })}
-            />
-            <Field
-              label="Tipo"
-              value={aircraft.is_external ? "Externa" : "Flota propia"}
-            />
-            <Field
-              label="Registro INAC"
-              value={aircraft.inac ? "Registrada" : "No registrada"}
-            />
-            <Field
-              label="Comentarios"
-              value={aircraft.comments || "—"}
-              className="sm:col-span-2"
-            />
-          </div>
-        </FormDialogContent>
-      </Dialog>
+      <AircraftDetailDialog
+        aircraft={aircraft}
+        open={openDetails}
+        onOpenChange={setOpenDetails}
+        onEdit={() => {
+          setOpenDetails(false);
+          setOpenEdit(true);
+        }}
+      />
 
       <Dialog open={openEdit} onOpenChange={setOpenEdit}>
         <FormDialogContent
@@ -145,9 +72,8 @@ const AircraftDropdownActions = ({
             <>
               Modifique lo necesario de{" "}
               <span className="font-medium text-foreground">
-                {" "}
-                {aircraft.acronym}{" "}
-              </span>{" "}
+                {aircraft.acronym}
+              </span>
               ; solo se guardará lo que cambie.
             </>
           }

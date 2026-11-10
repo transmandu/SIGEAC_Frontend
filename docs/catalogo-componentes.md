@@ -137,6 +137,7 @@ Las pantallas migradas (ajustes, cuenta, notificaciones, compras) usan estas pie
 | `ImageCropDialog` | `forms/general/` | Recorte cuadrado de una foto antes de subirla (WebP ≤ 800 px) |
 | `SettingsListPage` / `SettingsDataTable` | `layout/`, `tables/` | Armazón y tabla de los listados de ajustes (ranura `tabs`, orden móvil con `MobileSortControl`) |
 | `TagBadge` / `EmptyState` | `misc/` | Etiquetas de estado y estados vacío/error |
+| `ContactSubRow` | `tables/` | Subfila de tabla con teléfono, correo y dirección a todo el ancho (pilotos, proveedores, agencias de envío) |
 | `FormDialogContent` | `dialogs/shared/` | Molde de los diálogos de formulario (pantalla completa en móvil) |
 
 ### Filtros y utilidades

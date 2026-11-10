@@ -46,12 +46,14 @@ export function buildSettingsGroup({
           {
             href: `/${slug}/ajustes/unidades`,
             label: "Unidades",
+            requiresTables: ["units"],
             active: pathname === `/${slug}/ajustes/unidades`,
             roles: [...CATALOG_ROLES.units],
           },
           {
             href: `/${slug}/ajustes/fabricantes`,
             label: "Fabricantes",
+            requiresTables: ["manufacturers"],
             active: pathname === `/${slug}/ajustes/fabricantes`,
             roles: [
               "JEFE_ALMACEN",
@@ -65,18 +67,21 @@ export function buildSettingsGroup({
           {
             href: `/${slug}/ajustes/proveedores`,
             label: "Proveedores",
+            requiresTables: ["vendors"],
             active: pathname === `/${slug}/ajustes/proveedores`,
             roles: [...CATALOG_ROLES.vendors],
           },
           {
             href: `/${slug}/ajustes/comercios`,
             label: "Comercios",
+            requiresTables: ["retailers"],
             active: pathname === `/${slug}/ajustes/comercios`,
             roles: [...CATALOG_ROLES.retailers],
           },
           {
             href: `/${slug}/ajustes/clientes`,
             label: "Clientes",
+            requiresTables: ["clients"],
             active: pathname === `/${slug}/ajustes/clientes`,
             roles: [
               "JEFE_ADMINISTRACION",
@@ -87,6 +92,7 @@ export function buildSettingsGroup({
           {
             href: `/${slug}/ajustes/aeronaves`,
             label: "Aeronaves",
+            requiresTables: ["aircrafts"],
             active: pathname === `/${slug}/ajustes/aeronaves`,
             requiresOmac: false,
             roles: [
@@ -98,6 +104,7 @@ export function buildSettingsGroup({
           {
             href: `/${slug}/ajustes/terceros`,
             label: "Terceros",
+            requiresTables: ["third_parties"],
             active: pathname === `/${slug}/ajustes/terceros`,
             roles: [
               "JEFE_ALMACEN",
@@ -110,12 +117,14 @@ export function buildSettingsGroup({
           {
             href: `/${slug}/ajustes/condiciones`,
             label: "Condiciones",
+            requiresTables: ["conditions"],
             active: pathname === `/${slug}/ajustes/condiciones`,
             roles: [...CATALOG_ROLES.conditions],
           },
           {
             href: `/${slug}/ajustes/fuentes_informacion`,
             label: "Fuentes de Informacion",
+            requiresTables: ["information_sources"],
             active: pathname === `/${slug}/ajustes/fuentes_informacion`,
             roles: [
               "JEFE_SMS",
@@ -129,12 +138,14 @@ export function buildSettingsGroup({
           {
             href: `/${slug}/ajustes/agencias_envio`,
             label: "Agencias de Envío",
+            requiresTables: ["shipping_agencies"],
             active: pathname === `/${slug}/ajustes/agencias_envio`,
             roles: [...CATALOG_ROLES.shippingAgencies],
           },
           {
             href: `/${slug}/ajustes/pilotos`,
             label: "Pilotos",
+            requiresTables: ["pilots"],
             active: pathname === `/${slug}/ajustes/pilotos`,
             requiresOmac: false,
             roles: [
@@ -155,31 +166,37 @@ export function buildSettingsGroup({
           {
             href: `/${slug}/ajustes/empresa/ubicaciones`,
             label: "Administrar Ubicaciones",
+            requiresTables: ["locations"],
             active: pathname === `/${slug}/ajustes/empresa/ubicaciones`,
           },
           {
             href: `/${slug}/ajustes/empresa/empleados`,
             label: "Administrar Empleados",
+            requiresTables: ["employees"],
             active: pathname === `/${slug}/ajustes/empresa/empleados`,
           },
           {
             href: `/${slug}/ajustes/empresa/cargos`,
             label: "Administrar Cargos",
+            requiresTables: ["job_titles"],
             active: pathname === `/${slug}/ajustes/empresa/cargos`,
           },
           {
             href: `/${slug}/ajustes/empresa/departamentos`,
             label: "Administrar Departamentos",
+            requiresTables: ["departments"],
             active: pathname === `/${slug}/ajustes/empresa/departamentos`,
           },
           {
             href: `/${slug}/ajustes/empresa/almacenes`,
             label: "Administrar Almacenes",
+            requiresTables: ["warehouses"],
             active: pathname === `/${slug}/ajustes/empresa/almacenes`,
           },
           {
             href: `/${slug}/ajustes/empresa/parametros`,
             label: "Parámetros de la Empresa",
+            requiresTables: ["company_settings"],
             active: pathname === `/${slug}/ajustes/empresa/parametros`,
             roles: ["SUPERUSER"],
           },

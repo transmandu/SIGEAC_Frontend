@@ -21,6 +21,7 @@ export function buildPlanificationGroup({
       {
         href: `/${currentCompany?.slug}/planificacion/auditoria`,
         label: "Auditoría",
+        requiresTables: ["planification_audit_logs"],
         active: pathname.includes(
           `/${currentCompany?.slug}/planificacion/auditoria`,
         ),
@@ -37,6 +38,7 @@ export function buildPlanificationGroup({
       {
         href: `/${currentCompany?.slug}/planificacion/aeronaves`,
         label: "Aeronaves",
+        requiresTables: ["aircrafts"],
         active: pathname.includes(
           `/${currentCompany?.slug}/planificacion/reportes`,
         ),
@@ -60,6 +62,7 @@ export function buildPlanificationGroup({
       {
         href: `/${currentCompany?.slug}/planificacion/ordenes_trabajo`,
         label: "Ordenes de Trabajo",
+        requiresTables: ["work_orders"],
         active: pathname.includes(
           `/${currentCompany?.slug}/planificacion/ordenes_trabajo`,
         ),
@@ -84,6 +87,7 @@ export function buildPlanificationGroup({
       {
         href: `/${currentCompany?.slug}/planificacion/aeronaves`,
         label: "Control de Horas Vuelos",
+        requiresTables: ["flights"],
         active: pathname.includes(
           `/${currentCompany?.slug}/planificacion/control_vuelos`,
         ),
@@ -108,6 +112,7 @@ export function buildPlanificationGroup({
       {
         href: `/${currentCompany?.slug}/planificacion/control_mantenimiento`,
         label: "Control de Mantenimiento",
+        requiresTables: ["maintenance_controls"],
         active: pathname.includes(
           `/${currentCompany?.slug}/planificacion/control_mantenimiento`,
         ),
@@ -134,6 +139,7 @@ export function buildPlanificationGroup({
       {
         href: `/${currentCompany?.slug}/planificacion/control_componentes`,
         label: "Control de Componentes",
+        requiresTables: ["component_controls"],
         active: pathname.includes(
           `/${currentCompany?.slug}/planificacion/control_componentes`,
         ),
@@ -153,6 +159,7 @@ export function buildPlanificationGroup({
       {
         href: `/${currentCompany?.slug}/planificacion/control_avionica`,
         label: "Control de Aviónica",
+        requiresTables: ["avionics_controls"],
         active: pathname.includes(
           `/${currentCompany?.slug}/planificacion/control_avionica`,
         ),
@@ -172,6 +179,7 @@ export function buildPlanificationGroup({
       {
         href: `/${currentCompany?.slug}/planificacion/control_directivas`,
         label: "Control de Directivas",
+        requiresTables: ["directive_controls"],
         active: pathname.includes(
           `/${currentCompany?.slug}/planificacion/control_directivas`,
         ),
