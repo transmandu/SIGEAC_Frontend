@@ -4,6 +4,7 @@ import { useMemo, useRef, useState } from "react";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { useParams, useRouter } from "next/navigation";
 import { z } from "zod";
+import { toast } from "sonner";
 import type { LucideIcon } from "lucide-react";
 import {
   ArrowLeft,
@@ -14,7 +15,6 @@ import {
   Loader2,
   Paperclip,
   Plus,
-  Search,
   ShieldAlert,
   Trash2,
   X,
@@ -40,12 +40,10 @@ import {
   ChangeRequest,
   ChangeType,
 } from "@/types/sms/aeronautical/change-request";
-import { Department, Location } from "@/types";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormControl,
@@ -65,6 +63,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { ComboboxField } from "@/components/ui/ComboboxField";
+import { MultiSelectCombobox } from "@/components/ui/MultiSelectCombobox";
 import { DatePickerField } from "@/components/ui/DatePickerField";
 import FolderSelect from "@/components/library/FolderSelect";
 
@@ -152,6 +151,8 @@ const STEP_FIELDS: (keyof FormValues)[][] = [
     "requested_by",
     "change_type",
     "description",
+    "affects_other_departments",
+    "affects_other_processes",
     "locations",
     "reason_ids",
     "affected_departments",
@@ -160,14 +161,24 @@ const STEP_FIELDS: (keyof FormValues)[][] = [
   [],
 ];
 
-function todayIso(): string {
-  return new Date().toISOString().slice(0, 10);
+/** Primer mensaje de error de RHF/Zod, incluso si está anidado. */
+function firstErrorMessage(errors: unknown): string | undefined {
+  if (!errors || typeof errors !== "object") return undefined;
+
+  if ("message" in errors && typeof (errors as { message?: unknown }).message === "string") {
+    return (errors as { message: string }).message;
+  }
+
+  for (const value of Object.values(errors)) {
+    const message = firstErrorMessage(value);
+    if (message) return message;
+  }
+
+  return undefined;
 }
 
-function toggleValue(values: number[], value: number): number[] {
-  return values.includes(value)
-    ? values.filter((item) => item !== value)
-    : [...values, value];
+function todayIso(): string {
+  return new Date().toISOString().slice(0, 10);
 }
 
 function sameType(left: unknown, right: unknown): boolean {
@@ -323,91 +334,6 @@ function BooleanChoice({
           {option ? "Sí" : "No"}
         </button>
       ))}
-    </div>
-  );
-}
-
-function MultiSelectList<T extends { id: number }>({
-  items,
-  selected,
-  onToggle,
-  onClear,
-  label,
-  searchPlaceholder = "Buscar...",
-  emptyText = "Sin opciones disponibles.",
-}: {
-  items: T[];
-  selected: number[];
-  onToggle: (id: number) => void;
-  onClear: () => void;
-  label: (item: T) => string;
-  searchPlaceholder?: string;
-  emptyText?: string;
-}) {
-  const [query, setQuery] = useState("");
-  const term = query.trim().toLowerCase();
-  const filtered = term
-    ? items.filter((item) => label(item).toLowerCase().includes(term))
-    : items;
-
-  return (
-    <div className="overflow-hidden rounded-lg border border-border/60 bg-background">
-      <div className="flex items-center justify-between gap-2 border-b border-border/60 bg-muted/30 px-3 py-2">
-        <span className="text-xs font-medium text-muted-foreground">
-          {selected.length} seleccionado{selected.length === 1 ? "" : "s"}
-        </span>
-        {selected.length > 0 ? (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-7 px-2 text-xs"
-            onClick={onClear}
-          >
-            Limpiar
-          </Button>
-        ) : null}
-      </div>
-
-      {items.length > 6 ? (
-        <div className="relative border-b border-border/60 p-2">
-          <Search className="pointer-events-none absolute left-4 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder={searchPlaceholder}
-            className="h-8 pl-8 text-sm"
-          />
-        </div>
-      ) : null}
-
-      <div className="max-h-56 overflow-y-auto p-2">
-        {filtered.length === 0 ? (
-          <p className="px-2 py-6 text-center text-xs text-muted-foreground">
-            {emptyText}
-          </p>
-        ) : (
-          filtered.map((item) => {
-            const checked = selected.includes(item.id);
-            return (
-              <label
-                key={item.id}
-                className={cn(
-                  "flex cursor-pointer items-start gap-3 rounded-md px-2 py-2 text-sm transition-colors hover:bg-muted/60",
-                  checked && "bg-primary/5",
-                )}
-              >
-                <Checkbox
-                  checked={checked}
-                  onCheckedChange={() => onToggle(item.id)}
-                  className="mt-0.5"
-                />
-                <span className="leading-snug">{label(item)}</span>
-              </label>
-            );
-          })
-        )}
-      </div>
     </div>
   );
 }
@@ -629,7 +555,12 @@ export function CreateChangeRequestForm({
       shouldFocus: true,
     });
 
-    if (!valid) return;
+    if (!valid) {
+      toast.error("Completa los campos obligatorios del paso actual.", {
+        description: firstErrorMessage(form.formState.errors),
+      });
+      return;
+    }
 
     setCurrentStep((step) => Math.min(step + 1, STEPS.length - 1));
     scrollToTop();
@@ -845,19 +776,19 @@ export function CreateChangeRequestForm({
                         <Loader2 className="size-4 animate-spin" /> Cargando...
                       </div>
                     ) : (
-                      <MultiSelectList
+                      <MultiSelectCombobox
                         key={changeType}
-                        items={availableReasons}
-                        selected={field.value ?? []}
-                        onToggle={(id) =>
-                          field.onChange(toggleValue(field.value ?? [], id))
-                        }
-                        onClear={() => field.onChange([])}
+                        options={availableReasons.map((reason) => ({
+                          value: reason.id,
+                          label: reason.name,
+                        }))}
+                        value={field.value ?? []}
+                        onChange={field.onChange}
+                        placeholder="Seleccionar motivos..."
                         searchPlaceholder="Buscar motivo..."
                         emptyText={`No hay motivos ${
                           changeType === "INTERNO" ? "internos" : "externos"
                         } disponibles.`}
-                        label={(reason: ChangeReason) => reason.name}
                       />
                     )}
                     <FormMessage />
@@ -898,19 +829,18 @@ export function CreateChangeRequestForm({
                         <Loader2 className="size-4 animate-spin" /> Cargando...
                       </div>
                     ) : (
-                      <MultiSelectList
-                        items={locations}
-                        selected={field.value ?? []}
-                        onToggle={(id) =>
-                          field.onChange(toggleValue(field.value ?? [], id))
-                        }
-                        onClear={() => field.onChange([])}
+                      <MultiSelectCombobox
+                        options={locations.map((location) => ({
+                          value: location.id,
+                          label:
+                            location.name ??
+                            location.cod_iata ??
+                            String(location.id),
+                        }))}
+                        value={field.value ?? []}
+                        onChange={field.onChange}
+                        placeholder="Seleccionar ubicaciones..."
                         searchPlaceholder="Buscar ubicación..."
-                        label={(location: Location) =>
-                          location.name ??
-                          location.cod_iata ??
-                          String(location.id)
-                        }
                       />
                     )}
                     <FormMessage />
@@ -951,23 +881,26 @@ export function CreateChangeRequestForm({
                     control={form.control}
                     name="affects_other_departments"
                     render={({ field }) => (
-                      <FormItem className="flex items-center justify-between gap-3 rounded-lg border border-border/60 bg-background p-3">
-                        <FormLabel className="m-0 text-sm font-normal">
-                          ¿Afecta a otras unidades o departamentos?
-                        </FormLabel>
-                        <FormControl>
-                          <div>
-                            <BooleanChoice
-                              value={field.value}
-                              onChange={(value) => {
-                                field.onChange(value);
-                                if (!value) {
-                                  form.setValue("affected_departments", []);
-                                }
-                              }}
-                            />
-                          </div>
-                        </FormControl>
+                      <FormItem className="flex flex-col gap-1 rounded-lg border border-border/60 bg-background p-3">
+                        <div className="flex items-center justify-between gap-3">
+                          <FormLabel className="m-0 text-sm font-normal">
+                            ¿Afecta a otras unidades o departamentos?
+                          </FormLabel>
+                          <FormControl>
+                            <div>
+                              <BooleanChoice
+                                value={field.value}
+                                onChange={(value) => {
+                                  field.onChange(value);
+                                  if (!value) {
+                                    form.setValue("affected_departments", []);
+                                  }
+                                }}
+                              />
+                            </div>
+                          </FormControl>
+                        </div>
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -976,22 +909,32 @@ export function CreateChangeRequestForm({
                     control={form.control}
                     name="affects_other_processes"
                     render={({ field }) => (
-                      <FormItem className="flex items-center justify-between gap-3 rounded-lg border border-border/60 bg-background p-3">
-                        <FormLabel className="m-0 text-sm font-normal">
-                          ¿Afecta procesos, procedimientos o manuales aprobados?
-                        </FormLabel>
-                        <FormControl>
-                          <div>
-                            <BooleanChoice
-                              value={field.value}
-                              onChange={field.onChange}
-                            />
-                          </div>
-                        </FormControl>
+                      <FormItem className="flex flex-col gap-1 rounded-lg border border-border/60 bg-background p-3">
+                        <div className="flex items-center justify-between gap-3">
+                          <FormLabel className="m-0 text-sm font-normal">
+                            ¿Afecta procesos, procedimientos o manuales aprobados?
+                          </FormLabel>
+                          <FormControl>
+                            <div>
+                              <BooleanChoice
+                                value={field.value}
+                                onChange={field.onChange}
+                              />
+                            </div>
+                          </FormControl>
+                        </div>
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
                 </div>
+
+                {affectsOtherDepartments &&
+                form.formState.errors.affected_departments ? (
+                  <p className="mt-3 text-xs text-destructive">
+                    {form.formState.errors.affected_departments.message}
+                  </p>
+                ) : null}
 
                 {affectsOtherDepartments ? (
                   <div className="mt-4">
@@ -1004,22 +947,16 @@ export function CreateChangeRequestForm({
                             <RequiredLabel>
                               Departamentos afectados
                             </RequiredLabel>
-                            <Badge variant="outline" className="text-[11px]">
-                              {field.value?.length ?? 0} seleccionado
-                              {(field.value?.length ?? 0) === 1 ? "" : "s"}
-                            </Badge>
                           </div>
-                          <MultiSelectList
-                            items={departments}
-                            selected={field.value ?? []}
-                            onToggle={(id) =>
-                              field.onChange(toggleValue(field.value ?? [], id))
-                            }
-                            onClear={() => field.onChange([])}
+                          <MultiSelectCombobox
+                            options={departments.map((department) => ({
+                              value: department.id,
+                              label: `${department.name} (${department.acronym})`,
+                            }))}
+                            value={field.value ?? []}
+                            onChange={field.onChange}
+                            placeholder="Seleccionar departamentos..."
                             searchPlaceholder="Buscar departamento..."
-                            label={(department: Department) =>
-                              `${department.name} (${department.acronym})`
-                            }
                           />
                           <FormMessage />
                         </FormItem>
