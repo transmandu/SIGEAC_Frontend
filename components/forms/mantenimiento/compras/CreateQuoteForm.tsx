@@ -13,8 +13,8 @@ import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits";
 import { useGetConditions } from "@/hooks/general/condiciones/useGetConditions";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { zodResolver } from "@/lib/zod-resolver";
-import { Loader2, PackageSearch, Save, Send } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Info, Loader2, PackageSearch, Save, Send } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -33,6 +33,8 @@ import {
   IssueQuoteDraftDialog,
   type IssueDraftSummaryLine,
 } from "./_components/IssueQuoteDraftDialog";
+import FormActions from "@/components/forms/mantenimiento/compras/_components/FormActions";
+import DiscardDraftButton from "@/components/forms/mantenimiento/compras/_components/DiscardDraftButton";
 
 export const LEAD_TIME_UNITS = [
   { value: "día", label: "Día(s)" },
@@ -198,10 +200,15 @@ export function CreateQuoteForm({
   onClose,
   req,
   draft,
+  onDiscard,
+  isDiscarding,
   initialData: _initialData,
 }: {
   onClose: () => void;
   req: QuoteableRequisition;
+  /** Con borrador abierto en un diálogo: abre la confirmación de descartarlo. */
+  onDiscard?: () => void;
+  isDiscarding?: boolean;
   /**
    * Borrador en curso sobre esta requisición. Con borrador, el formulario
    * guarda avance sin exigir precios completos y emite aparte; sin él, crea la
@@ -383,7 +390,15 @@ export function CreateQuoteForm({
 
   // El proveedor y la ubicación de la cabecera bajan a todos los artículos
   // como valor por defecto; cada uno sigue siendo editable después.
+  // Solo reaccionan a un cambio real de la cabecera: al reabrir un borrador ya
+  // trae su proveedor y sede, y bajarlos a todos los artículos pisaría los que
+  // el comprador había elegido artículo por artículo.
+  const syncedVendor = useRef(headerVendorId);
+  const syncedLocation = useRef(headerLocationId);
+
   useEffect(() => {
+    if (headerVendorId === syncedVendor.current) return;
+    syncedVendor.current = headerVendorId;
     if (!headerVendorId) return;
     form.getValues("articles").forEach((_, index) => {
       form.setValue(`articles.${index}.vendor_id`, headerVendorId);
@@ -392,6 +407,8 @@ export function CreateQuoteForm({
   }, [headerVendorId]);
 
   useEffect(() => {
+    if (headerLocationId === syncedLocation.current) return;
+    syncedLocation.current = headerLocationId;
     if (!headerLocationId) return;
     form.getValues("articles").forEach((_, index) => {
       form.setValue(`articles.${index}.location_id`, headerLocationId);
@@ -646,8 +663,8 @@ export function CreateQuoteForm({
     toast.success("Borrador guardado", {
       description:
         pendingLinesCount > 0
-          ? `Quedan ${pendingLinesCount} artículo(s) sin precio. Puedes volver cuando los tengas.`
-          : "Ya puedes emitir la cotización cuando quieras.",
+          ? `Quedan ${pendingLinesCount} artículo(s) sin precio. Puede volver cuando los tenga.`
+          : "Ya puede emitir la cotización cuando guste.",
     });
   };
 
@@ -775,10 +792,16 @@ export function CreateQuoteForm({
         quote_justification: a.quote_justification || undefined,
       })),
     };
-    await createQuote.mutateAsync({
-      data: formattedData,
-      company: selectedCompany!.slug,
-    });
+    try {
+      await createQuote.mutateAsync({
+        data: formattedData,
+        company: selectedCompany!.slug,
+      });
+    } catch {
+      // La mutación ya avisó el error; el formulario conserva lo capturado.
+      return;
+    }
+
     onClose();
   };
 
@@ -821,9 +844,20 @@ export function CreateQuoteForm({
         )}
 
         {/* ── Total general ── */}
-        <div className="flex justify-end pt-2 border-t border-border/60">
-          <div className="flex items-center justify-between gap-6 rounded-md bg-muted/10 px-4 py-2 border border-border/40 min-w-50">
-            <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground whitespace-nowrap">
+        <div className="flex items-center justify-between gap-x-6 gap-y-3 border-t border-border/60 pt-3 max-sm:flex-col-reverse max-sm:items-stretch">
+          {pendingLinesCount > 0 && (
+            <p
+              aria-live="polite"
+              className="flex min-w-0 flex-1 items-start gap-1.5 text-[13px] leading-snug text-muted-foreground"
+            >
+              <Info className="mt-0.5 size-3.5 shrink-0" />
+              {pendingLinesCount} artículo(s) sin precio ni marca de “no
+              cotizado”. Puede guardar el borrador y volver después.
+            </p>
+          )}
+
+          <div className="ml-auto flex items-center justify-between gap-6 rounded-md bg-muted/10 px-4 py-2 border border-border/40 min-w-50 max-sm:ml-0 max-sm:w-full">
+            <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">
               Total general
             </span>
             <span className="font-mono text-xl font-semibold tabular-nums leading-none">
@@ -832,71 +866,67 @@ export function CreateQuoteForm({
           </div>
         </div>
 
-        {/* ── Enviar ── */}
         {/* Dos caminos: guardar avance (el borrador acepta precios
             incompletos) o emitir, que exige una decisión por artículo y no
             tiene vuelta atrás. El "crear cotización" de una sentada se
-            conserva para quien ya tiene todos los precios. */}
-        <div className="flex flex-col items-center gap-2">
-          {pendingLinesCount > 0 && (
-            <p className="text-xs text-muted-foreground">
-              {pendingLinesCount} artículo(s) sin precio ni marca de “no
-              cotizado”. Puede guardar el borrador y volver después.
-            </p>
+            conserva para quien ya tiene todos los precios. El aviso de
+            pendientes va en el cuerpo, no en el pie: un texto largo ahí
+            empuja los botones fuera de la pantalla en móvil. */}
+        <FormActions>
+          {onDiscard && draftId && (
+            <DiscardDraftButton onClick={onDiscard} disabled={isDiscarding} />
           )}
 
-          <div className="flex w-100 flex-col gap-2 sm:flex-row">
+          <Button
+            type="button"
+            variant="outline"
+            disabled={isSavingDraft}
+            onClick={handleSaveDraft}
+            className="min-w-35 gap-2"
+          >
+            {isSavingDraft ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <>
+                <Save className="size-4" />
+                Guardar borrador
+              </>
+            )}
+          </Button>
+
+          {draftId ? (
             <Button
               type="button"
-              variant="outline"
-              disabled={isSavingDraft}
-              onClick={handleSaveDraft}
-              className="h-10 flex-1 rounded-lg shadow-xs transition-colors flex items-center justify-center gap-2"
+              disabled={issueQuoteDraft.isPending}
+              onClick={() => setIssueDialogOpen(true)}
+              className="min-w-35 gap-2"
             >
-              {isSavingDraft ? (
+              {issueQuoteDraft.isPending ? (
                 <Loader2 className="size-4 animate-spin" />
               ) : (
                 <>
-                  <Save className="size-4" />
-                  Guardar borrador
+                  <Send className="size-4" />
+                  Emitir cotización
                 </>
               )}
             </Button>
-
-            {draftId ? (
-              <Button
-                type="button"
-                disabled={issueQuoteDraft.isPending}
-                onClick={() => setIssueDialogOpen(true)}
-                className="h-10 flex-1 rounded-lg shadow-xs transition-colors flex items-center justify-center gap-2"
-              >
-                {issueQuoteDraft.isPending ? (
-                  <Loader2 className="size-4 animate-spin" />
-                ) : (
-                  <>
-                    <Send className="size-4" />
-                    Emitir cotización
-                  </>
-                )}
-              </Button>
-            ) : (
-              <Button
-                disabled={createQuote.isPending}
-                type="submit"
-                className="h-10 flex-1 rounded-lg shadow-xs transition-colors flex items-center justify-center gap-2"
-              >
-                {createQuote.isPending ? (
-                  <Loader2 className="size-4 animate-spin" />
-                ) : (
-                  <>
-                    <PackageSearch className="size-4" />
-                    Crear cotización
-                  </>
-                )}
-              </Button>
-            )}
-          </div>
-        </div>
+          ) : (
+            <Button
+              disabled={createQuote.isPending}
+              type="submit"
+              className="min-w-35 gap-2"
+            >
+              {createQuote.isPending ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <>
+                  <PackageSearch className="size-4" />
+                  Crear cotización
+                </>
+              )}
+            </Button>
+          )}
+        </FormActions>
       </form>
 
       <IssueQuoteDraftDialog

@@ -3,16 +3,18 @@
 import { useState } from "react";
 
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
+import { useAuth } from "@/contexts/AuthContext";
+import { useIsSuperuser } from "@/hooks/helpers/useIsSuperuser";
+import { WAREHOUSE_ROLES } from "@/lib/inventory-access";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  SegmentedTabs,
+  SegmentedTabsContent,
+  SegmentedTabsList,
+  SegmentedTabsTrigger,
+} from "@/components/misc/SegmentedTabs";
 
 import { Boxes, Package, Plane, FilePlus2, Plus } from "lucide-react";
 
@@ -22,6 +24,17 @@ import { CreateGeneralRequisitionForm } from "@/components/forms/mantenimiento/c
 
 export function PurchasesRequisitionDialog() {
   const [open, setOpen] = useState(false);
+  const { user } = useAuth();
+  const isSuperuser = useIsSuperuser();
+
+  // La solicitud de almacén (reposición de stock) es de quien opera el
+  // almacén; el resto de los usuarios ya cubre sus pedidos con Aeronáutica o
+  // General.
+  const canRequestFromWarehouse =
+    isSuperuser ||
+    !!user?.roles?.some((role) =>
+      (WAREHOUSE_ROLES as readonly string[]).includes(role.name),
+    );
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -33,172 +46,52 @@ export function PurchasesRequisitionDialog() {
         </ActionTriggerButton>
       </DialogTrigger>
 
-      {/* ===================== DIALOG ===================== */}
-      <DialogContent
-        className="
-          w-[95vw]
-          max-w-[95vw]
-          sm:max-w-215
-          p-0
-          overflow-hidden
-          max-h-[85vh]
-          flex
-          flex-col
-        "
+      <FormDialogContent
+        className="sm:max-w-215"
+        icon={FilePlus2}
+        title="Centro de solicitudes"
+        description="Cree solicitudes de compra según el tipo de operación."
       >
-        {/* ===================== HEADER ===================== */}
-        <div
-          className="
-            shrink-0
-            relative
-            bg-linear-to-br
-            from-primary/5
-            via-background
-            to-background
-            px-4
-            sm:px-6
-            pt-6
-            sm:pt-8
-            pb-1
-          "
-        >
-          <div className="absolute inset-0 bg-grid-white/[0.02]" />
+        <SegmentedTabs defaultValue="AERONAUTICAL">
+          <SegmentedTabsList className="mb-4 max-sm:flex-col max-sm:items-stretch">
+            <SegmentedTabsTrigger value="AERONAUTICAL">
+              <Plane className="size-4" />
+              Aeronáutica
+            </SegmentedTabsTrigger>
 
-          <DialogHeader className="relative">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-              <div
-                className="
-                  flex h-12 w-12
-                  sm:h-14 sm:w-14
-                  shrink-0
-                  items-center
-                  justify-center
-                  rounded-3xl
-                  border
-                  bg-background
-                  shadow-xs
-                "
-              >
-                <FilePlus2 className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
-              </div>
-
-              <div className="space-y-1">
-                <DialogTitle className="text-xl sm:text-2xl font-bold tracking-tight leading-none">
-                  Centro de solicitudes
-                </DialogTitle>
-
-                <p className="text-sm font-medium text-primary">
-                  Compras y abastecimiento
-                </p>
-
-                <DialogDescription className="max-w-107.5 text-sm leading-relaxed">
-                  Cree solicitudes de compra según el tipo de operación.
-                </DialogDescription>
-              </div>
-            </div>
-          </DialogHeader>
-        </div>
-
-        {/* ===================== BODY ===================== */}
-        <div className="overflow-y-auto px-4 sm:px-6 py-5">
-          <Tabs defaultValue="AERONAUTICAL">
-            {/* ===================== TABS ===================== */}
-            <TabsList
-              className="
-                grid
-                grid-cols-1
-                sm:grid-cols-3
-                gap-1
-                sm:gap-0
-                h-auto
-                mb-4
-              "
-            >
-              <TabsTrigger
-                value="AERONAUTICAL"
-                className="
-                  flex items-center gap-2
-                  justify-start sm:justify-center
-                  text-xs sm:text-sm
-                  rounded-lg
-                  transition-all duration-200
-
-                  data-[state=active]:bg-background
-                  data-[state=active]:shadow-md
-                  data-[state=active]:shadow-primary/10
-                  data-[state=active]:ring-1
-                  data-[state=active]:ring-primary/20
-                  data-[state=active]:text-primary
-                "
-              >
-                <Plane className="size-4" />
-                Aeronáutica
-              </TabsTrigger>
-
-              <TabsTrigger
-                value="WAREHOUSE"
-                className="
-                  flex items-center gap-2
-                  justify-start sm:justify-center
-                  text-xs sm:text-sm
-                  rounded-lg
-                  transition-all duration-200
-
-                  data-[state=active]:bg-background
-                  data-[state=active]:shadow-md
-                  data-[state=active]:shadow-primary/10
-                  data-[state=active]:ring-1
-                  data-[state=active]:ring-primary/20
-                  data-[state=active]:text-primary
-                "
-              >
+            {canRequestFromWarehouse && (
+              <SegmentedTabsTrigger value="WAREHOUSE">
                 <Boxes className="size-4" />
                 Almacén
-              </TabsTrigger>
+              </SegmentedTabsTrigger>
+            )}
 
-              <TabsTrigger
-                value="GENERAL"
-                className="
-                  flex items-center gap-2
-                  justify-start sm:justify-center
-                  text-xs sm:text-sm
-                  rounded-lg
-                  transition-all duration-200
+            <SegmentedTabsTrigger value="GENERAL">
+              <Package className="size-4" />
+              General
+            </SegmentedTabsTrigger>
+          </SegmentedTabsList>
 
-                  data-[state=active]:bg-background
-                  data-[state=active]:shadow-md
-                  data-[state=active]:shadow-primary/10
-                  data-[state=active]:ring-1
-                  data-[state=active]:ring-primary/20
-                  data-[state=active]:text-primary
-                "
-              >
-                <Package className="size-4" />
-                General
-              </TabsTrigger>
-            </TabsList>
+          {/* ===================== CONTENT ===================== */}
 
-            {/* ===================== CONTENT ===================== */}
+          <SegmentedTabsContent value="AERONAUTICAL" className="mt-4">
+            <CreateAeronauticalRequisitionForm onClose={() => setOpen(false)} />
+          </SegmentedTabsContent>
 
-            <TabsContent value="AERONAUTICAL" className="mt-4">
-              <CreateAeronauticalRequisitionForm
-                onClose={() => setOpen(false)}
-              />
-            </TabsContent>
-
-            <TabsContent value="WAREHOUSE" className="mt-4">
+          {canRequestFromWarehouse && (
+            <SegmentedTabsContent value="WAREHOUSE" className="mt-4">
               <CreateWarehouseRequisitionForm onClose={() => setOpen(false)} />
-            </TabsContent>
+            </SegmentedTabsContent>
+          )}
 
-            <TabsContent value="GENERAL" className="mt-4">
-              <CreateGeneralRequisitionForm
-                isEditing={false}
-                onClose={() => setOpen(false)}
-              />
-            </TabsContent>
-          </Tabs>
-        </div>
-      </DialogContent>
+          <SegmentedTabsContent value="GENERAL" className="mt-4">
+            <CreateGeneralRequisitionForm
+              isEditing={false}
+              onClose={() => setOpen(false)}
+            />
+          </SegmentedTabsContent>
+        </SegmentedTabs>
+      </FormDialogContent>
     </Dialog>
   );
 }

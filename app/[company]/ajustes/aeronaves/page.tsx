@@ -126,7 +126,7 @@ const AircraftsPage = () => {
     <SettingsListPage
       title="Aeronaves"
       heading="Control de Aeronaves"
-      description="Administra la flota de la empresa y las aeronaves externas usadas para registrar carga."
+      description="Administre la flota de la empresa y las aeronaves externas usadas para registrar carga."
       tourPrefix="aeronaves"
       search={{
         value: search,

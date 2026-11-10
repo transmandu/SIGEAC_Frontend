@@ -1,17 +1,13 @@
 "use client";
 
+import { PanelSection } from "@/components/forms/PanelSection";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Download, FileText, Loader2 } from "lucide-react";
+import { Download, FileText, Loader2, UserCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog } from "@/components/ui/dialog";
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
@@ -67,8 +63,14 @@ export default function DownloadQuotePdfDialog({
       const anchor = document.createElement("a");
       anchor.href = url;
       anchor.download = `${quote.quote_number ?? "cotizacion"}.pdf`;
+      // El ancla debe estar en el documento: Firefox ignora el click sobre un
+      // elemento suelto y la descarga no ocurre.
+      document.body.appendChild(anchor);
       anchor.click();
-      URL.revokeObjectURL(url);
+      anchor.remove();
+      // Revocar en el mismo tick puede cancelar la descarga en algunos
+      // navegadores.
+      setTimeout(() => URL.revokeObjectURL(url), 100);
 
       toast.success(`Cotización ${quote.quote_number} generada`);
       handleOpenChange(false);
@@ -79,39 +81,63 @@ export default function DownloadQuotePdfDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-lg p-0 gap-0 overflow-hidden">
-        <DialogHeader className="px-6 pt-6 pb-5 border-b bg-muted/30">
-          <div className="flex items-start gap-3.5">
-            <div className="flex size-11 shrink-0 items-center justify-center rounded-xl border bg-background shadow-xs text-blue-600">
-              <FileText className="size-5" />
-            </div>
-
-            <div className="min-w-0 space-y-1 text-left">
-              <DialogTitle className="text-base leading-snug">
-                Descargar formato de cotización
-              </DialogTitle>
-              <div
-                className="inline-flex max-w-full items-center rounded-md border bg-background px-2 py-0.5 font-mono text-xs font-medium tracking-wide text-muted-foreground"
-                title={quote.quote_number ?? undefined}
-              >
-                <span className="truncate">{quote.quote_number}</span>
-              </div>
-              <DialogDescription className="text-xs leading-relaxed">
-                Se genera para imprimir, firmar y sellar. La segunda firma
-                corresponde a quien reciba y autorice la cotización.
-              </DialogDescription>
-            </div>
-          </div>
-        </DialogHeader>
-
-        <div className="px-6 py-6 space-y-3">
-          <label className="text-sm font-medium">Recibe y autoriza</label>
-
+      <FormDialogContent
+        className="sm:max-w-lg"
+        icon={FileText}
+        title="Descargar formato de cotización"
+        description={
+          <>
+            <span
+              className="mb-1 inline-flex max-w-full items-center rounded-md border bg-background px-2 py-0.5 font-mono text-xs font-medium tracking-wide text-muted-foreground"
+              title={quote.quote_number ?? undefined}
+            >
+              <span className="truncate">{quote.quote_number}</span>
+            </span>
+            <span className="block">
+              Se genera para imprimir, firmar y sellar. La segunda firma
+              corresponde a quien reciba y autorice la cotización.
+            </span>
+          </>
+        }
+        footer={
+          <>
+            <Button
+              variant="outline"
+              onClick={() => handleOpenChange(false)}
+              disabled={isPending}
+            >
+              Cancelar
+            </Button>
+            <Button
+              className="min-w-37.5 gap-2"
+              onClick={handleDownload}
+              disabled={!authorizer || isPending}
+            >
+              {isPending ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Download className="size-4" />
+              )}
+              {isPending ? "Generando..." : "Descargar PDF"}
+            </Button>
+          </>
+        }
+      >
+        <PanelSection
+          icon={UserCheck}
+          title="Recibe y autoriza"
+          hint="Su nombre, cédula y cargo salen impresos en la segunda firma."
+          compact
+        >
           {isLoading ? (
             <div className="flex h-10 items-center gap-2 text-sm text-muted-foreground">
               <Loader2 className="size-4 animate-spin" />
               Cargando...
             </div>
+          ) : (authorizers ?? []).length === 0 ? (
+            <p className="py-4 text-center text-sm text-muted-foreground">
+              No hay autorizadores disponibles para esta compañía.
+            </p>
           ) : (
             <RadioGroup
               value={authorizer}
@@ -123,8 +149,10 @@ export default function DownloadQuotePdfDialog({
                   key={item.key}
                   htmlFor={`quote-authorizer-${item.key}`}
                   className={cn(
-                    "flex cursor-pointer items-center gap-3 rounded-md border px-3 py-2.5 transition-colors hover:bg-muted/40",
-                    authorizer === item.key && "border-primary bg-primary/5",
+                    "flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border px-3.5 py-3 transition-colors duration-200",
+                    authorizer === item.key
+                      ? "border-primary/50 bg-primary/6"
+                      : "border-slate-400/60 bg-background/40 hover:border-blue-400/40 dark:border-slate-600/60",
                   )}
                 >
                   <RadioGroupItem
@@ -132,8 +160,10 @@ export default function DownloadQuotePdfDialog({
                     value={item.key}
                   />
                   <div className="min-w-0">
-                    <p className="text-sm font-medium">{item.name}</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-sm font-medium wrap-anywhere">
+                      {item.name}
+                    </p>
+                    <p className="text-[13px] text-muted-foreground wrap-anywhere">
                       {item.dni} · {item.position}
                     </p>
                   </div>
@@ -141,30 +171,8 @@ export default function DownloadQuotePdfDialog({
               ))}
             </RadioGroup>
           )}
-        </div>
-
-        <div className="flex items-center justify-end gap-2 px-6 py-4 border-t bg-muted/30">
-          <Button
-            variant="ghost"
-            onClick={() => handleOpenChange(false)}
-            disabled={isPending}
-          >
-            Cancelar
-          </Button>
-          <Button
-            className="gap-2 min-w-37.5"
-            onClick={handleDownload}
-            disabled={!authorizer || isPending}
-          >
-            {isPending ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              <Download className="size-4" />
-            )}
-            {isPending ? "Generando..." : "Descargar PDF"}
-          </Button>
-        </div>
-      </DialogContent>
+        </PanelSection>
+      </FormDialogContent>
     </Dialog>
   );
 }

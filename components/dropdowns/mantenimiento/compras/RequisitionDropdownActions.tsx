@@ -6,15 +6,9 @@ import type { MyRequisition, Requisition } from "@/types/purchase";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import {
   AlertOctagon,
@@ -26,42 +20,30 @@ import {
   Tag,
   Trash2,
 } from "lucide-react";
+import { RowAction, RowActionsBar, rowActionMenuClass } from "./RowAction";
 import DownloadRequisitionPdfDialog from "@/components/dialogs/mantenimiento/compras/DownloadRequisitionPdfDialog";
 import RequisitionDropdownDialogs from "@/components/dialogs/mantenimiento/compras/RequisitionDropdownDialogs";
 import UpdateRequisitionPriorityDialog from "@/components/dialogs/mantenimiento/compras/UpdateRequisitionPriorityDialog";
 import { useOpenQuoteDraftEditor } from "@/components/dialogs/mantenimiento/compras/QuoteDraftEditorProvider";
 
-const iconBase =
-  "size-4.5 transition-all duration-200 ease-out group-hover:scale-110";
-const iconReject =
-  "size-4.5 transition-all duration-200 ease-out group-hover:scale-110";
-const itemBase = `
-  group
-  relative
-  flex
-  items-center
-  justify-center
-  size-9
-  rounded-xl
-  transition-all
-  duration-200
-  ease-out
-  hover:bg-muted
-  hover:shadow-xs
-  active:scale-95
-`;
 /**
  * Sirve a las dos familias de listado: el de compras (`Requisition`) y el de
  * "mis solicitudes" (`MyRequisition`), que es más estrecho. Solo usa los campos
  * que ambos comparten —id, número, estado y creador—, así que la unión es el
  * contrato honesto en vez de exigir el tipo ancho a quien no lo recibe.
+ *
+ * `variant="menu"` es el menú flotante de la fila; `variant="bar"` pone las
+ * mismas acciones en una barra delgada de una sola línea (panel lateral).
  */
 const RequisitionDropdownActions = ({
   req,
+  variant = "menu",
 }: {
   req: Requisition | MyRequisition;
+  variant?: "menu" | "bar";
 }) => {
   const { user } = useAuth();
+  const inBar = variant === "bar";
 
   const [openDropdown, setOpenDropdown] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
@@ -133,217 +115,125 @@ const RequisitionDropdownActions = ({
     isRejected
   );
 
+  const run = (action: () => void) => () => {
+    setOpenDropdown(false);
+    action();
+  };
+
+  // Generar cotización · o editar borrador si ya hay uno abierto. Son la misma
+  // ranura a propósito: con un borrador en curso no se puede empezar otra
+  // cotización hasta emitirlo o descartarlo, así que ofrecer ambas acciones a
+  // la vez solo invitaría al error.
+  const actions = (
+    <>
+      {canQuote && (
+        <RowAction
+          inBar={inBar}
+          icon={ownDraft ? FileClock : Receipt}
+          tone={ownDraft ? "text-amber-600" : "text-emerald-600"}
+          title={ownDraft ? "Editar borrador" : "Generar cotización"}
+          hint={
+            ownDraft
+              ? "Editar borrador de cotización. Ya tiene uno abierto en esta solicitud: emítalo o descártelo para poder crear otra cotización."
+              : undefined
+          }
+          onSelect={run(() => {
+            if (ownDraft && openDraftEditor) {
+              openDraftEditor(ownDraft.id);
+              return;
+            }
+            setOpenConfirm(true);
+          })}
+        />
+      )}
+
+      {canReject && (
+        <RowAction
+          inBar={inBar}
+          icon={ClipboardX}
+          tone="text-orange-600"
+          title="Rechazar solicitud"
+          onSelect={run(() => setOpenReject(true))}
+        />
+      )}
+
+      <RowAction
+        inBar={inBar}
+        icon={FileDown}
+        tone="text-blue-600"
+        title="Descargar PDF"
+        onSelect={run(() => setOpenPdf(true))}
+      />
+
+      {canChangePriority && canChangePriorityStatus && (
+        <RowAction
+          inBar={inBar}
+          icon={Tag}
+          tone="text-amber-600"
+          title="Cambiar prioridad"
+          onSelect={run(() => setOpenPriority(true))}
+        />
+      )}
+
+      {canDelete && (
+        <RowAction
+          inBar={inBar}
+          icon={Trash2}
+          tone="text-red-600"
+          title="Eliminar solicitud"
+          onSelect={run(() => setOpenDelete(true))}
+        />
+      )}
+
+      {isSuperUser && (
+        <RowAction
+          inBar={inBar}
+          icon={AlertOctagon}
+          tone="text-red-700"
+          title="Eliminar en cascada (SuperUser)"
+          hint="Eliminar en cascada (SuperUser)"
+          onSelect={run(() => setOpenCascadeDelete(true))}
+        />
+      )}
+    </>
+  );
+
   return (
     <TooltipProvider delayDuration={120}>
       <>
-        <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="
-                size-8
-                rounded-xl
-                border border-transparent
-                transition-all duration-200
-                hover:bg-muted/70
-                hover:border-border/50
-                hover:shadow-xs
-                data-[state=open]:bg-muted
-              "
+        {inBar ? (
+          <RowActionsBar>{actions}</RowActionsBar>
+        ) : (
+          <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="
+                  size-8
+                  rounded-xl
+                  border border-transparent
+                  transition-all duration-200
+                  hover:bg-muted/70
+                  hover:border-border/50
+                  hover:shadow-xs
+                  data-[state=open]:bg-muted
+                "
+              >
+                <MoreHorizontal className="size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent
+              align="center"
+              sideOffset={3}
+              collisionPadding={8}
+              className={rowActionMenuClass}
             >
-              <MoreHorizontal className="size-4" />
-            </Button>
-          </DropdownMenuTrigger>
-
-          <DropdownMenuContent
-            align="center"
-            sideOffset={3}
-            className="
-              flex items-center justify-center gap-1.5
-              rounded-2xl
-              border border-border/50
-              bg-background/90
-              backdrop-blur-xl
-              shadow-xl
-              p-1.5
-              overflow-visible
-              animate-in fade-in zoom-in-95 duration-200
-            "
-          >
-            {/* GENERAR COTIZACIÓN · o EDITAR BORRADOR si ya hay uno abierto.
-                Son la misma ranura a propósito: con un borrador en curso no se
-                puede empezar otra cotización hasta emitirlo o descartarlo, así
-                que ofrecer ambas acciones a la vez solo invitaría al error. */}
-            {canQuote && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <DropdownMenuItem
-                    asChild
-                    className="p-0 focus:bg-transparent"
-                  >
-                    <button
-                      onClick={() => {
-                        setOpenDropdown(false);
-                        if (ownDraft && openDraftEditor) {
-                          openDraftEditor(ownDraft.id);
-                          return;
-                        }
-                        setOpenConfirm(true);
-                      }}
-                      className={`
-                        ${itemBase}
-                        ${ownDraft ? "text-amber-600" : "text-emerald-600"}
-                      `}
-                    >
-                      {ownDraft ? (
-                        <FileClock className={iconBase} />
-                      ) : (
-                        <Receipt className={iconBase} />
-                      )}
-                    </button>
-                  </DropdownMenuItem>
-                </TooltipTrigger>
-
-                <TooltipContent className="max-w-70">
-                  {ownDraft
-                    ? "Editar borrador de cotización. Ya tiene uno abierto en esta solicitud: emítalo o descártelo para poder crear otra cotización."
-                    : "Generar cotización"}
-                </TooltipContent>
-              </Tooltip>
-            )}
-
-            {/* RECHAZAR */}
-            {canReject && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <DropdownMenuItem
-                    asChild
-                    className="p-0 focus:bg-transparent"
-                  >
-                    <button
-                      onClick={() => {
-                        setOpenDropdown(false);
-                        setOpenReject(true);
-                      }}
-                      className={`
-                        ${itemBase}
-                        text-orange-600
-                      `}
-                    >
-                      <ClipboardX className={iconReject} />
-                    </button>
-                  </DropdownMenuItem>
-                </TooltipTrigger>
-
-                <TooltipContent>Rechazar solicitud</TooltipContent>
-              </Tooltip>
-            )}
-
-            {/* PDF */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <DropdownMenuItem asChild className="p-0 focus:bg-transparent">
-                  <button
-                    onClick={() => {
-                      setOpenDropdown(false);
-                      setOpenPdf(true);
-                    }}
-                    className={`
-                      ${itemBase}
-                      text-blue-600
-                    `}
-                  >
-                    <FileDown className={iconBase} />
-                  </button>
-                </DropdownMenuItem>
-              </TooltipTrigger>
-
-              <TooltipContent>Descargar PDF</TooltipContent>
-            </Tooltip>
-
-            {/* CAMBIAR PRIORIDAD */}
-            {canChangePriority && canChangePriorityStatus && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <DropdownMenuItem
-                    asChild
-                    className="p-0 focus:bg-transparent"
-                  >
-                    <button
-                      onClick={() => {
-                        setOpenDropdown(false);
-                        setOpenPriority(true);
-                      }}
-                      className={`
-                        ${itemBase}
-                        text-amber-600
-                      `}
-                    >
-                      <Tag className={iconBase} />
-                    </button>
-                  </DropdownMenuItem>
-                </TooltipTrigger>
-
-                <TooltipContent>Cambiar prioridad</TooltipContent>
-              </Tooltip>
-            )}
-
-            {/* ELIMINAR */}
-            {canDelete && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <DropdownMenuItem
-                    asChild
-                    className="p-0 focus:bg-transparent"
-                  >
-                    <button
-                      onClick={() => {
-                        setOpenDropdown(false);
-                        setOpenDelete(true);
-                      }}
-                      className={`
-                      ${itemBase}
-                      text-red-600
-                    `}
-                    >
-                      <Trash2 className={iconBase} />
-                    </button>
-                  </DropdownMenuItem>
-                </TooltipTrigger>
-
-                <TooltipContent>Eliminar solicitud</TooltipContent>
-              </Tooltip>
-            )}
-
-            {/* ELIMINAR EN CASCADA (SUPERUSER) */}
-            {isSuperUser && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <DropdownMenuItem
-                    asChild
-                    className="p-0 focus:bg-transparent"
-                  >
-                    <button
-                      onClick={() => {
-                        setOpenDropdown(false);
-                        setOpenCascadeDelete(true);
-                      }}
-                      className={`
-                      ${itemBase}
-                      text-red-700
-                    `}
-                    >
-                      <AlertOctagon className={iconBase} />
-                    </button>
-                  </DropdownMenuItem>
-                </TooltipTrigger>
-
-                <TooltipContent>Eliminar en cascada (SuperUser)</TooltipContent>
-              </Tooltip>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
+              {actions}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
 
         <RequisitionDropdownDialogs
           req={req}

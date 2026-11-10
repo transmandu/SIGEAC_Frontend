@@ -6,67 +6,20 @@ import {
   useUpdateQuoteStatus,
 } from "@/actions/mantenimiento/compras/cotizaciones/actions";
 import { useCreatePurchaseOrder } from "@/actions/mantenimiento/compras/ordenes_compras/actions";
+import { ConfirmActionDialog } from "@/components/dialogs/shared/ConfirmActionDialog";
+import { ConfirmDeleteDialog } from "@/components/dialogs/shared/ConfirmDeleteDialog";
+import LoadingPage from "@/components/misc/LoadingPage";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  labelClass,
+  textareaClass,
+} from "@/components/forms/mantenimiento/almacen/_components/form-theme";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import type { Quote } from "@/types/purchase";
-import {
-  AlertOctagon,
-  AlertTriangle,
-  ClipboardCheck,
-  ClipboardX,
-  Loader2,
-  Receipt,
-  Trash2,
-} from "lucide-react";
-import LoadingPage from "@/components/misc/LoadingPage";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { ClipboardCheck, ClipboardX } from "lucide-react";
 import { useState } from "react";
-
-/* =========================
-   STYLES
-========================= */
-
-const dialogClass =
-  "sm:max-w-[390px] rounded-3xl border border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl overflow-hidden p-0";
-const header =
-  "px-6 pt-8 pb-3 flex flex-col items-center text-center space-y-3";
-const iconBase = (color: "red" | "orange" | "green") => `
-  flex items-center justify-center
-  size-12 rounded-2xl
-  border
-  ${
-    color === "red"
-      ? "border-red-500/15 bg-red-500/8 text-red-600"
-      : color === "orange"
-        ? "border-orange-500/15 bg-orange-500/8 text-orange-600"
-        : "border-emerald-500/15 bg-emerald-500/8 text-emerald-600"
-  }
-`;
-
-const title = "text-[16px] font-semibold tracking-tight";
-const description =
-  "text-sm text-muted-foreground text-center leading-relaxed max-w-sm";
-const warningBox = (color: "red" | "orange") => `
-  mx-6 mt-4 p-3 rounded-xl border text-sm leading-relaxed flex gap-2
-  ${
-    color === "red"
-      ? "border-red-500/20 bg-red-500/5 text-red-600"
-      : "border-orange-500/20 bg-orange-500/5 text-orange-600"
-  }
-`;
-
-const footer = "px-6 pb-6 pt-5 flex justify-end gap-2";
-const cancelBtn =
-  "rounded-xl border border-border/60 bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition";
-const dangerBtn = "rounded-xl bg-red-600 hover:bg-red-700 text-white";
-const warningBtn = "rounded-xl bg-orange-500 hover:bg-orange-600 text-white";
-const successBtn = "rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white";
+import { toast } from "sonner";
 
 type Props = {
   quote: Quote;
@@ -102,39 +55,39 @@ const QuoteDropdownDialogs = ({
   const { deleteQuote } = useDeleteQuote();
   const { cascadeDeleteQuote } = useCascadeDeleteQuote();
 
-  const [Observation, setObservation] = useState("");
+  const [observation, setObservation] = useState("");
 
   if (!selectedCompany) return <LoadingPage />;
 
+  // Los diálogos de confirmación cierran solo si `onConfirm` resuelve: lo que
+  // lanza una mutación (ya avisada por toast) los deja abiertos para reintentar.
   const handleReject = async () => {
     await updateStatusQuote.mutateAsync({
       id: quote.id,
       data: {
         status: "REJECTED",
-        observation: Observation.trim() || null,
+        observation: observation.trim() || null,
       },
       company: selectedCompany.slug,
     });
 
     setObservation("");
-    setOpenReject(false);
-
     onSuccessUpdate?.();
   };
 
   const handleApprove = async () => {
-    // El guard de reentrada va antes que cualquier await: el `disabled` del botón
-    // no llega a repintar entre dos clics seguidos, y cada POST que se cuela crea
-    // una orden de compra más.
-    if (createPurchaseOrder.isPending) return;
-
     const locationId =
       quote.article_quote_order.find((a) => a.location)?.location?.id ??
       quote.general_article_quote_order.find((a) => a.location)?.location?.id;
 
-    // sub_total/total aren't sent here — a quote spanning multiple vendors
-    // (or retailers) splits into one PO per vendor, and the backend computes
-    // each split PO's sub_total/total from only the articles routed into it.
+    if (locationId == null) {
+      toast.error("Ningún artículo de la cotización tiene sede asignada.");
+      return;
+    }
+
+    // sub_total/total no se envían: una cotización con varios proveedores (o
+    // comercios) se parte en una orden por cada uno, y el backend calcula los
+    // montos de cada orden solo con los artículos que le tocan.
     const poData = {
       quote_order_id: Number(quote.id),
       location_id: Number(locationId),
@@ -157,20 +110,16 @@ const QuoteDropdownDialogs = ({
 
       onSuccessUpdate?.();
     } catch {
-      // El hook ya reportó el error (incluido el 409) por toast.
-    } finally {
-      // Se cierra pase lo que pase: dejarlo abierto tras un error solo invita a
-      // insistir con el botón.
-      setOpenApprove(false);
+      // El hook ya reportó el error (incluido el 409). Se cierra igual: dejarlo
+      // abierto tras un fallo solo invita a insistir con el botón.
     }
   };
+
   const handleDelete = async () => {
     await deleteQuote.mutateAsync({
       id: quote.id,
       company: selectedCompany.slug,
     });
-
-    setOpenDelete(false);
 
     onSuccessDelete?.();
   };
@@ -181,252 +130,90 @@ const QuoteDropdownDialogs = ({
       company: selectedCompany.slug,
     });
 
-    setOpenCascadeDelete(false);
-
     onSuccessDelete?.();
   };
 
   return (
     <>
-      {/* =========================
-        CASCADE DELETE (SUPERUSER)
-    ========================= */}
+      <ConfirmDeleteDialog
+        open={openCascadeDelete}
+        onOpenChange={setOpenCascadeDelete}
+        title="Eliminar cotización en cascada"
+        entityName={`la cotización ${quote.quote_number} y toda su cadena`}
+        confirmLabel="Eliminar en cascada"
+        warning={
+          <>
+            Esta acción es <b>irreversible</b>. Se eliminarán también sus
+            cotizaciones complementarias y cualquier orden de compra generada a
+            partir de ellas, revirtiendo el inventario (artículos y stock) que
+            ya se haya afectado, sin importar el estado en que se encuentren.
+          </>
+        }
+        isPending={cascadeDeleteQuote.isPending}
+        onConfirm={handleCascadeDelete}
+      />
 
-      <Dialog open={openCascadeDelete} onOpenChange={setOpenCascadeDelete}>
-        <DialogContent className={dialogClass}>
-          <DialogHeader className={header}>
-            <div className={iconBase("red")}>
-              <AlertOctagon className="size-5" />
-            </div>
+      <ConfirmDeleteDialog
+        open={openDelete}
+        onOpenChange={setOpenDelete}
+        title="Eliminar cotización"
+        entityName={`la cotización ${quote.quote_number}`}
+        warning={
+          <>
+            Esta acción es <b>irreversible</b> y eliminará el registro del
+            sistema.
+          </>
+        }
+        isPending={deleteQuote.isPending}
+        onConfirm={handleDelete}
+      />
 
-            <DialogTitle className={title}>
-              Eliminar cotización en cascada
-            </DialogTitle>
-
-            <DialogDescription className={description}>
-              La cotización{" "}
-              <span className="font-medium text-foreground">
-                {quote.quote_number}
-              </span>{" "}
-              y toda su cadena serán eliminadas permanentemente.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className={warningBox("red")}>
-            <AlertTriangle className="size-4 mt-0.5" />
-
-            <div>
-              Esta acción es <b>irreversible</b>. Se eliminarán también sus
-              cotizaciones complementarias y cualquier orden de compra generada
-              a partir de ellas, revirtiendo el inventario (artículos y stock)
-              que ya se haya afectado, sin importar el estado en que se
-              encuentren.
-            </div>
-          </div>
-
-          <div className={footer}>
-            <Button
-              variant="outline"
-              onClick={() => setOpenCascadeDelete(false)}
-              className={cancelBtn}
-            >
-              Cancelar
-            </Button>
-
-            <Button
-              onClick={handleCascadeDelete}
-              disabled={cascadeDeleteQuote.isPending}
-              className={dangerBtn}
-            >
-              {cascadeDeleteQuote.isPending && (
-                <Loader2 className="mr-2 size-4 animate-spin" />
-              )}
-              Eliminar en cascada
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* =========================
-        DELETE
-    ========================= */}
-
-      <Dialog open={openDelete} onOpenChange={setOpenDelete}>
-        <DialogContent className={dialogClass}>
-          <DialogHeader className={header}>
-            <div className={iconBase("red")}>
-              <Trash2 className="size-5" />
-            </div>
-
-            <DialogTitle className={title}>Eliminar cotización</DialogTitle>
-
-            <DialogDescription className={description}>
-              La cotización{" "}
-              <span className="font-medium text-foreground">
-                {quote.quote_number}
-              </span>{" "}
-              será eliminada permanentemente.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className={warningBox("red")}>
-            <AlertTriangle className="size-4 mt-0.5" />
-
-            <div>
-              Esta acción es <b>irreversible</b> y eliminará el registro del
-              sistema.
-            </div>
-          </div>
-
-          <div className={footer}>
-            <Button
-              variant="outline"
-              onClick={() => setOpenDelete(false)}
-              className={cancelBtn}
-            >
-              Cancelar
-            </Button>
-
-            <Button
-              onClick={handleDelete}
-              disabled={deleteQuote.isPending}
-              className={dangerBtn}
-            >
-              {deleteQuote.isPending && (
-                <Loader2 className="mr-2 size-4 animate-spin" />
-              )}
-              Eliminar
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-      {/* =========================
-          REJECT
-      ========================= */}
-
-      <Dialog open={openReject} onOpenChange={setOpenReject}>
-        <DialogContent className={dialogClass}>
-          <DialogHeader className={header}>
-            <div className={iconBase("orange")}>
-              <ClipboardX className="size-5" />
-            </div>
-            <DialogTitle className={title}>Rechazar cotización</DialogTitle>
-            <DialogDescription className={description}>
-              La cotización{" "}
-              <span className="font-medium text-foreground">
-                {quote.quote_number}
-              </span>{" "}
-              será rechazada permanentemente.
-            </DialogDescription>
-          </DialogHeader>
-          <div className={warningBox("orange")}>
-            <AlertTriangle className="size-4 mt-0.5" />
-            <div>
-              Esta acción es <b>irreversible</b> y afectará el estado de la
-              solicitud asociada.
-            </div>
-          </div>
-          <div className="mx-6 mt-4">
-            <label className="text-xs font-medium text-muted-foreground mb-2 block">
+      <ConfirmActionDialog
+        open={openReject}
+        onOpenChange={setOpenReject}
+        title="Rechazar cotización"
+        entityName={quote.quote_number ?? undefined}
+        icon={ClipboardX}
+        tone="amber"
+        confirmLabel="Rechazar"
+        isPending={updateStatusQuote.isPending}
+        onConfirm={handleReject}
+        extra={
+          <div className="space-y-1.5">
+            <Label htmlFor="quote-reject-observation" className={labelClass}>
               Observación de rechazo (opcional)
-            </label>
-
-            <textarea
-              value={Observation}
+            </Label>
+            <Textarea
+              id="quote-reject-observation"
+              value={observation}
               onChange={(e) => setObservation(e.target.value)}
-              placeholder="Ej: precio no competitivo, proveedor no cumple requisitos..."
-              className="placeholder:text-gray-400
-                w-full min-h-22.5 resize-none
-                rounded-xl border border-border/60
-                bg-background/70
-                px-3 py-2 text-sm
-                text-foreground
-                outline-hidden
-                focus:border-red-400/50
-                focus:ring-2 focus:ring-red-500/10
-                transition
-              "
+              placeholder="Ej.: precio no competitivo, el proveedor no cumple los requisitos."
+              rows={3}
+              className={textareaClass}
             />
           </div>
-          <div className={footer}>
-            <Button
-              variant="outline"
-              onClick={() => setOpenReject(false)}
-              className={cancelBtn}
-            >
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleReject}
-              disabled={updateStatusQuote.isPending}
-              className={warningBtn}
-            >
-              {updateStatusQuote.isPending && (
-                <Loader2 className="mr-2 size-4 animate-spin" />
-              )}
-              Rechazar
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* =========================
-          APPROVE
-      ========================= */}
-
-      <Dialog
-        open={openApprove}
-        onOpenChange={(open) => {
-          // Cerrar con Escape o clic afuera mientras se genera la orden dejaría
-          // reabrir y aprobar de nuevo sobre un POST todavía en vuelo.
-          if (createPurchaseOrder.isPending) return;
-          setOpenApprove(open);
-        }}
+        }
       >
-        <DialogContent className={dialogClass}>
-          <DialogHeader className={header}>
-            <div className={iconBase("green")}>
-              <ClipboardCheck className="size-5" />
-            </div>
-            <DialogTitle className={title}>Aprobar cotización</DialogTitle>
-            <DialogDescription className={description}>
-              Se generará automáticamente una orden de compra a partir de la
-              cotización{" "}
-              <span className="font-medium text-foreground">
-                {quote.quote_number}
-              </span>
-              .
-            </DialogDescription>
-          </DialogHeader>
-          <div className="mx-6 mt-4 p-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 text-sm text-emerald-600 flex gap-2 leading-relaxed">
-            <Receipt className="size-4 mt-0.5" />
-            <div>
-              Esta acción creará una orden de compra y actualizará el flujo de
-              la solicitud.
-            </div>
-          </div>
-          <div className={footer}>
-            <Button
-              variant="outline"
-              onClick={() => setOpenApprove(false)}
-              disabled={createPurchaseOrder.isPending}
-              className={cancelBtn}
-            >
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleApprove}
-              disabled={createPurchaseOrder.isPending}
-              className={successBtn}
-            >
-              {createPurchaseOrder.isPending && (
-                <Loader2 className="mr-2 size-4 animate-spin" />
-              )}
-              {createPurchaseOrder.isPending ? "Generando orden..." : "Aprobar"}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+        La cotización será rechazada. Esta acción es <b>irreversible</b> y
+        afectará el estado de la solicitud asociada.
+      </ConfirmActionDialog>
+
+      <ConfirmActionDialog
+        open={openApprove}
+        onOpenChange={setOpenApprove}
+        title="Aprobar cotización"
+        entityName={quote.quote_number ?? undefined}
+        icon={ClipboardCheck}
+        tone="primary"
+        confirmLabel={
+          createPurchaseOrder.isPending ? "Generando orden..." : "Aprobar"
+        }
+        isPending={createPurchaseOrder.isPending}
+        onConfirm={handleApprove}
+      >
+        Se generará automáticamente una orden de compra a partir de la
+        cotización y se actualizará el flujo de la solicitud.
+      </ConfirmActionDialog>
     </>
   );
 };

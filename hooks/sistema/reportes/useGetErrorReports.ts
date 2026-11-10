@@ -14,6 +14,9 @@ export interface ErrorReportFilters {
   search?: string;
   /** Solo los reportes del propio usuario, aunque sea SUPERUSER. */
   mine?: boolean;
+  /** Columna de orden: `reported_at`, `description`, `module` o `status`. */
+  sort_by?: string;
+  sort_dir?: "asc" | "desc";
   page?: number;
   per_page?: number;
 }
@@ -41,6 +44,10 @@ const fetchErrorReports = async (
   if (filters.resolved_to) params.set("resolved_to", filters.resolved_to);
   if (filters.search) params.set("search", filters.search);
   if (filters.mine) params.set("mine", "1");
+  if (filters.sort_by) {
+    params.set("sort_by", filters.sort_by);
+    params.set("sort_dir", filters.sort_dir ?? "asc");
+  }
   params.set("page", String(filters.page ?? 1));
   params.set("per_page", String(filters.per_page ?? 25));
 

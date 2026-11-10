@@ -23,7 +23,7 @@ export function CreateUnitDialog() {
         icon={Ruler}
         title="Creación de Unidad"
         description="Registre una unidad de medida para los artículos del almacén."
-        className="sm:max-w-lg"
+        className="sm:max-w-2xl"
       >
         <CreateUnitForm onClose={() => setOpen(false)} />
       </FormDialogContent>

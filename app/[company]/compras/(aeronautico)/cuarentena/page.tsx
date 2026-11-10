@@ -2,10 +2,10 @@
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import CopyPartNumberButton from "@/components/misc/CopyPartNumberButton";
 import { useQuarantineLegalDays } from "@/hooks/general/useCompanySettings";
 import { useGetQuarantineArticles } from "@/hooks/mantenimiento/control_calidad/useGetQuarantineArticles";
+import { cn } from "@/lib/utils";
 import { quarantineRisk } from "@/lib/warehouse/quarantine";
 import type { QuarantineStatusFilter } from "@/types/quarantine";
 import {
@@ -19,6 +19,48 @@ import { DataTable } from "@/app/[company]/compras/data-table";
 import { getColumns } from "./columns";
 import { QuarantineCycleHistory } from "./_components/QuarantineCycleHistory";
 import QuarantineToolBar from "./_components/QuarantineToolBar";
+import {
+  PurchasesHeading,
+  PurchasesToolbar,
+} from "@/app/[company]/compras/_components/PurchasesPageParts";
+
+function SummaryItem({
+  icon: Icon,
+  value,
+  label,
+  tone = "default",
+  className,
+}: {
+  icon: typeof ShieldAlert;
+  value: number;
+  label: string;
+  tone?: "default" | "danger" | "muted";
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "flex items-center gap-1.5",
+        tone === "danger"
+          ? "text-red-600 dark:text-red-400"
+          : "text-muted-foreground",
+        className,
+      )}
+    >
+      <Icon className="size-3.5 shrink-0" />
+      <span
+        className={
+          tone === "danger"
+            ? "font-semibold tabular-nums"
+            : "font-semibold tabular-nums text-foreground"
+        }
+      >
+        {value}
+      </span>
+      <span>{label}</span>
+    </div>
+  );
+}
 
 const QuarantinePurchasesPage = () => {
   const [search, setSearch] = useState("");
@@ -27,7 +69,11 @@ const QuarantinePurchasesPage = () => {
   const deferredSearch = useDeferredValue(search);
   const legalDays = useQuarantineLegalDays();
 
-  const { data: records, isLoading } = useGetQuarantineArticles(status);
+  const {
+    data: records,
+    isLoading,
+    isError,
+  } = useGetQuarantineArticles(status);
   // Las métricas deben contar todo el ciclo, no solo lo que el filtro muestra.
   const { data: allRecords } = useGetQuarantineArticles("ALL");
 
@@ -88,119 +134,78 @@ const QuarantinePurchasesPage = () => {
       <div className="flex flex-col gap-6">
         <PageHeader />
 
-        <div className="flex flex-col gap-2 border-b pb-4">
-          <h1 className="text-3xl font-semibold tracking-tight">Cuarentena</h1>
+        <PurchasesHeading
+          heading="Cuarentena"
+          description="Artículos retenidos por Control de Calidad que requieren corrección de Compras. Corrija el artículo o su documentación y envíelo a re-inspección."
+        />
 
-          <p className="text-sm text-muted-foreground">
-            Artículos retenidos por Control de Calidad que requieren corrección
-            de Compras. Corrija el artículo o su documentación y envíelo a
-            re-inspección.
-          </p>
-        </div>
+        {/* RESUMEN: una franja y no tarjetas, el dato pesa menos que la tabla */}
+        <div className="grid grid-cols-2 gap-x-4 gap-y-2.5 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm sm:flex sm:flex-wrap sm:items-center sm:gap-x-6 sm:gap-y-2 dark:border-slate-700/60 dark:bg-slate-900/60">
+          <SummaryItem
+            icon={ShieldAlert}
+            value={metrics.openCount}
+            label="por corregir"
+          />
 
-        {/* MÉTRICAS */}
-        <div className="grid gap-3 md:grid-cols-4">
-          <Card className="rounded-2xl">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
-                <ShieldAlert className="size-3.5" />
-                Por corregir
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{metrics.openCount}</div>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Esperan acción de Compras
-              </p>
-            </CardContent>
-          </Card>
+          <SummaryItem
+            icon={ShieldCheck}
+            value={metrics.pendingCount}
+            label="en re-inspección"
+          />
 
-          <Card className="rounded-2xl">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
-                <ShieldCheck className="size-3.5" />
-                En re-inspección
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{metrics.pendingCount}</div>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Ya corregidos, en manos de Calidad
-              </p>
-            </CardContent>
-          </Card>
+          <SummaryItem
+            icon={AlertTriangle}
+            value={metrics.overdueCount}
+            label={`con plazo vencido (más de ${legalDays} días)`}
+            tone={metrics.overdueCount > 0 ? "danger" : "muted"}
+            className="max-sm:col-span-2"
+          />
 
-          <Card
-            className={
-              metrics.overdueCount > 0
-                ? "rounded-2xl border-red-500/40 bg-red-500/5"
-                : "rounded-2xl"
-            }
-          >
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
-                <AlertTriangle className="size-3.5" />
-                Plazo vencido
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{metrics.overdueCount}</div>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Superaron los {legalDays} días de retención
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="rounded-2xl">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Más urgente
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {!metrics.mostUrgent ? (
-                <p className="text-sm text-muted-foreground">
-                  Nada pendiente de corrección.
-                </p>
-              ) : (
-                <div className="flex items-start gap-2">
-                  <PackageSearch className="mt-0.5 size-4 shrink-0" />
-                  <div className="min-w-0 space-y-0.5">
-                    <div className="flex items-center gap-1.5">
-                      <p className="truncate text-sm font-semibold">
-                        {metrics.mostUrgent.record.article?.part_number ??
-                          "Sin parte"}
-                      </p>
-                      <CopyPartNumberButton
-                        value={metrics.mostUrgent.record.article?.part_number}
-                      />
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {(metrics.mostUrgent.risk.remaining ?? 0) >= 0
-                        ? `Vence en ${metrics.mostUrgent.risk.remaining} días`
-                        : `Vencido por ${Math.abs(metrics.mostUrgent.risk.remaining ?? 0)} días`}
-                    </p>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          {metrics.mostUrgent && (
+            <div className="flex min-w-0 flex-col gap-0.5 border-t border-slate-200/70 pt-2.5 text-muted-foreground max-sm:col-span-2 sm:ml-auto sm:flex-row sm:items-center sm:gap-1.5 sm:border-t-0 sm:pt-0 dark:border-slate-700/50">
+              <span className="flex shrink-0 items-center gap-1.5">
+                <PackageSearch className="size-3.5 shrink-0" />
+                Más urgente:
+              </span>
+              <span className="flex min-w-0 items-center gap-1.5">
+                <span className="min-w-0 font-medium text-foreground wrap-anywhere sm:truncate">
+                  {metrics.mostUrgent.record.article?.part_number ??
+                    "Sin parte"}
+                </span>
+                <CopyPartNumberButton
+                  value={metrics.mostUrgent.record.article?.part_number}
+                />
+              </span>
+              <span
+                className={cn(
+                  "shrink-0",
+                  (metrics.mostUrgent.risk.remaining ?? 0) < 0 &&
+                    "text-red-600 dark:text-red-400",
+                )}
+              >
+                {(metrics.mostUrgent.risk.remaining ?? 0) >= 0
+                  ? `vence en ${metrics.mostUrgent.risk.remaining} ${metrics.mostUrgent.risk.remaining === 1 ? "día" : "días"}`
+                  : `vencido hace ${Math.abs(metrics.mostUrgent.risk.remaining ?? 0)} días`}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* TOOLBAR */}
-        <div className="flex items-center justify-between gap-4 rounded-xl border border-slate-200/40 bg-slate-200/40 px-3 py-2 backdrop-blur-md dark:border-slate-700/60 dark:bg-slate-800/70 dark:shadow-[0_4px_20px_rgba(0,0,0,0.35)]">
+        <PurchasesToolbar>
           <QuarantineToolBar
             search={search}
             setSearch={setSearch}
             status={status}
             setStatus={setStatus}
           />
-        </div>
+        </PurchasesToolbar>
 
         <DataTable
           columns={columns}
           data={filteredRecords}
           loading={isLoading}
+          error={isError}
           loadingText="Cargando artículos en cuarentena..."
           emptyText="No hay artículos en cuarentena para este filtro."
           persistKey="compras-cuarentena"

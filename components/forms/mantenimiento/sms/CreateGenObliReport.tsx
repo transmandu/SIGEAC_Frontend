@@ -1,5 +1,6 @@
 "use client";
 
+import { locationShortLabel } from "@/lib/locations";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -30,7 +31,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Separator } from "@/components/ui/separator";
+import { invalidFormHandler } from "@/components/forms/mantenimiento/almacen/_components/form-feedback";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -58,11 +59,24 @@ interface FormProps {
   onClose: () => void;
 }
 
-export function CreateGenObliReport({
-  onClose,
-  isEditing,
-  initialData,
-}: FormProps) {
+export function CreateGenObliReport({ onClose, initialData }: FormProps) {
+  const onInvalid = invalidFormHandler({
+    incident_location_id: "Ubicación del incidente",
+    report_location_id: "Ubicación del reporte",
+    description: "Descripción",
+    name: "Nombre",
+    last_name: "Apellido",
+    email: "Correo electrónico",
+    report_date: "Fecha del reporte",
+    incident_date: "Fecha del incidente",
+    incident_time: "Hora del incidente",
+    report_time: "Hora del reporte",
+    incidents: "Incidentes",
+    other_incidents: "Otros incidentes",
+    image: "Imagen",
+    document: "Documento",
+  });
+
   const FormSchema = z
     .object({
       incident_location_id: z
@@ -266,7 +280,7 @@ export function CreateGenObliReport({
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit(onSubmit)}
+        onSubmit={form.handleSubmit(onSubmit, onInvalid)}
         className="flex flex-col space-y-5 w-full pb-4"
       >
         {/* Header */}
@@ -464,7 +478,7 @@ export function CreateGenObliReport({
                       <SelectContent>
                         {locations?.map((loc) => (
                           <SelectItem key={loc.id} value={loc.id.toString()}>
-                            {loc.cod_iata}
+                            {locationShortLabel(loc)}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -501,7 +515,7 @@ export function CreateGenObliReport({
                       <SelectContent>
                         {locations?.map((loc) => (
                           <SelectItem key={loc.id} value={loc.id.toString()}>
-                            {loc.cod_iata}
+                            {locationShortLabel(loc)}
                           </SelectItem>
                         ))}
                       </SelectContent>

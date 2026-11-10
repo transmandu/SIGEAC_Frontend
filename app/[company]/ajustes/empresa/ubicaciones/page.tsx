@@ -3,12 +3,15 @@
 import { useDeferredValue, useMemo, useState } from "react";
 import { SettingsListPage } from "@/components/layout/SettingsListPage";
 import { SettingsDataTable } from "@/components/tables/SettingsDataTable";
+import CreateLocationDialog from "@/components/dialogs/ajustes/CreateLocationDialog";
+import { useIsSuperuser } from "@/hooks/helpers/useIsSuperuser";
 import { useGetLocationsByCompany } from "@/hooks/sistema/useGetLocationsByCompany";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { columns } from "./columns";
+import { getColumns } from "./columns";
 
 const LocationsPage = () => {
   const { selectedCompany } = useCompanyStore();
+  const canManage = useIsSuperuser();
   const {
     data: locations,
     isPending,
@@ -18,6 +21,8 @@ const LocationsPage = () => {
   const [search, setSearch] = useState("");
   const deferredSearch = useDeferredValue(search);
 
+  const columns = useMemo(() => getColumns(canManage), [canManage]);
+
   const filtered = useMemo(() => {
     if (!locations) return [];
     const q = deferredSearch.trim().toLowerCase();
@@ -25,10 +30,10 @@ const LocationsPage = () => {
 
     return locations.filter(
       (location) =>
-        location.name?.toLowerCase().includes(q) ||
         location.address?.toLowerCase().includes(q) ||
+        location.name?.toLowerCase().includes(q) ||
         location.cod_iata?.toLowerCase().includes(q) ||
-        location.type?.toLowerCase().includes(q),
+        (location.isMainBase ? "principal" : "alterna").includes(q),
     );
   }, [locations, deferredSearch]);
 
@@ -36,7 +41,11 @@ const LocationsPage = () => {
     <SettingsListPage
       title="Ubicaciones"
       heading="Control de Ubicaciones"
-      description="Consulta las ubicaciones registradas para la empresa en el sistema."
+      description={
+        canManage
+          ? "Administre las sedes de la empresa: su ciudad, nombre, código IATA y cuál es la base principal."
+          : "Consulte las sedes registradas para la empresa en el sistema."
+      }
       search={{
         value: search,
         onChange: setSearch,
@@ -57,6 +66,7 @@ const LocationsPage = () => {
         onRetry={() => refetch()}
         filtered={!!deferredSearch.trim()}
         emptyMessage="No se han encontrado ubicaciones."
+        actions={canManage ? <CreateLocationDialog /> : undefined}
       />
     </SettingsListPage>
   );

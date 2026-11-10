@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ChevronDown, Dot, LucideIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { getGroupOpen, setGroupOpen } from "@/lib/sidebar-state";
 import { Button } from "@/components/ui/button";
 import { DropdownMenuArrow } from "@radix-ui/react-dropdown-menu";
 import {
@@ -39,6 +40,8 @@ interface CollapseMenuButtonProps {
   active: boolean;
   submenus: Submenu[];
   isOpen: boolean | undefined;
+  /** Identifica el grupo para recordar si estaba abierto entre montajes. */
+  stateKey?: string;
 }
 
 export function CollapseMenuButton({
@@ -47,9 +50,18 @@ export function CollapseMenuButton({
   active,
   submenus,
   isOpen,
+  stateKey,
 }: CollapseMenuButtonProps) {
   const isSubmenuActive = submenus.some((submenu) => submenu.active);
-  const [isCollapsed, setIsCollapsed] = useState<boolean>(isSubmenuActive);
+  // El grupo de la ruta actual siempre arranca abierto; los demás, como el
+  // usuario los dejó la última vez que se montó el menú.
+  const [isCollapsed, setIsCollapsed] = useState<boolean>(
+    isSubmenuActive || (stateKey ? (getGroupOpen(stateKey) ?? false) : false),
+  );
+
+  useEffect(() => {
+    if (stateKey) setGroupOpen(stateKey, isCollapsed);
+  }, [stateKey, isCollapsed]);
   // Al navegar a una ruta de este grupo, se abre solo. Se compara contra el
   // valor previo en vez de forzarlo en cada render, para no reabrir el grupo
   // que el usuario acaba de cerrar estando dentro de una de sus rutas.

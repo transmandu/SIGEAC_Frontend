@@ -22,6 +22,10 @@ interface ConfirmDeleteDialogProps {
   /** Detalle propio de la entidad (qué pasa con lo relacionado). */
   warning?: React.ReactNode;
   isPending?: boolean;
+  /** Texto del botón; por defecto "Eliminar". */
+  confirmLabel?: string;
+  /** Contenido propio entre el aviso y los botones (p. ej. un motivo). */
+  extra?: React.ReactNode;
   /** Debe lanzar si falla: el diálogo solo se cierra si resuelve. */
   onConfirm: () => Promise<unknown> | void;
 }
@@ -33,6 +37,8 @@ export function ConfirmDeleteDialog({
   entityName,
   warning,
   isPending = false,
+  confirmLabel = "Eliminar",
+  extra,
   onConfirm,
 }: ConfirmDeleteDialogProps) {
   const handleConfirm = async () => {
@@ -47,8 +53,14 @@ export function ConfirmDeleteDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
+        onInteractOutside={(event) => {
+          if (isPending) event.preventDefault();
+        }}
+        onEscapeKeyDown={(event) => {
+          if (isPending) event.preventDefault();
+        }}
         className={cn(
-          "sm:max-w-[390px] rounded-3xl border border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl overflow-hidden p-0",
+          "sm:max-w-97.5 rounded-3xl border border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl overflow-hidden p-0",
           fullScreenOnMobile,
           "max-sm:content-center",
         )}
@@ -65,13 +77,13 @@ export function ConfirmDeleteDialog({
           <DialogDescription className="text-sm text-muted-foreground text-center leading-relaxed max-w-sm">
             {entityName ? (
               <>
-                Vas a eliminar{" "}
+                Va a eliminar{" "}
                 <span className="font-medium text-foreground">
                   {entityName}
                 </span>
               </>
             ) : (
-              "Vas a eliminar este registro"
+              "Va a eliminar este registro"
             )}
           </DialogDescription>
         </DialogHeader>
@@ -88,9 +100,12 @@ export function ConfirmDeleteDialog({
           </div>
         </div>
 
+        {extra && <div className="mx-6 mt-4">{extra}</div>}
+
         <div className="px-6 pb-6 pt-5 flex justify-end gap-2">
           <Button
             variant="outline"
+            disabled={isPending}
             onClick={() => onOpenChange(false)}
             className="rounded-xl border border-border/60 bg-background hover:bg-muted text-muted-foreground hover:text-foreground"
           >
@@ -104,7 +119,7 @@ export function ConfirmDeleteDialog({
             className="rounded-xl bg-red-600/90 hover:bg-red-600"
           >
             {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
-            Eliminar
+            {confirmLabel}
           </Button>
         </div>
       </DialogContent>

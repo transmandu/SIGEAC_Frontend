@@ -152,7 +152,7 @@ export function SheetMenu() {
 
         {/* MENU / STATE */}
         {selectedCompany && selectedStation ? (
-          <Menu isOpen />
+          <Menu isOpen scrollKey="sheet" />
         ) : (
           <p className="text-sm text-muted-foreground text-center mt-10">
             Por favor, seleccione una <strong>Empresa</strong> y una{" "}

@@ -9,6 +9,7 @@ import {
   FileWarning,
   Loader2,
   MapPin,
+  NotebookPen,
   PackageCheck,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +32,7 @@ import { useUpdateArticleStatus } from "@/actions/mantenimiento/almacen/inventar
 import type { TransitArticle } from "@/types/purchase";
 import { EditTransitArticleDialog } from "./_components/EditTransitArticleDialog";
 import { PendingDocumentsDialog } from "./_components/PendingDocumentsDialog";
+import { TransitUpdatesDialog } from "./_components/TransitUpdatesDialog";
 import {
   DEFAULT_TIMEZONE,
   formatCalendarDate,
@@ -39,7 +41,7 @@ import {
 
 const getPendingRequirements = (article: TransitArticle) =>
   (article.document_requirements ?? []).filter(
-    (req) => req.documents.length === 0,
+    (req) => (req.documents ?? []).length === 0,
   );
 
 function TransitActionButton({ article }: { article: TransitArticle }) {
@@ -95,8 +97,8 @@ function TransitActionButton({ article }: { article: TransitArticle }) {
                 className={cn(
                   `
                   h-7 px-3 gap-1.5
-                  text-[11px]
-                  rounded-full
+                  text-xs
+                  rounded-md
                   border
                   disabled:opacity-100
                 `,
@@ -136,11 +138,11 @@ function TransitActionButton({ article }: { article: TransitArticle }) {
                   ))}
                 </ul>
                 <p className="mt-2 text-muted-foreground">
-                  Edítalo para completarlo. El pase a incoming lo hace almacén.
+                  Edítelo para completarlo. El pase a incoming lo hace almacén.
                 </p>
               </>
             ) : (
-              "Ya marcaste este artículo como entregado a recepción"
+              "Este artículo ya fue entregado a recepción"
             )}
           </TooltipContent>
         </Tooltip>
@@ -170,8 +172,8 @@ function TransitActionButton({ article }: { article: TransitArticle }) {
         onClick={handleAction}
         className="
           h-7 px-3 gap-1.5
-          text-[11px]
-          rounded-full
+          text-xs
+          rounded-md
           border border-slate-200/60 dark:border-slate-700/60
           bg-white/50 dark:bg-slate-800/40
           hover:bg-slate-100 dark:hover:bg-slate-800
@@ -234,7 +236,7 @@ function EditTransitArticleAction({ article }: { article: TransitArticle }) {
                   setEditDialogOpen(true);
                 }}
                 className={cn(
-                  "relative h-7 w-7 disabled:opacity-40",
+                  "relative h-7 w-7 max-md:size-8 disabled:opacity-40",
                   isEditable && needsAttention
                     ? isBlocked
                       ? "text-red-500"
@@ -246,7 +248,7 @@ function EditTransitArticleAction({ article }: { article: TransitArticle }) {
                 {isEditable && badgeCount > 0 && (
                   <span
                     className={cn(
-                      "absolute -top-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full text-[9px] font-semibold text-white",
+                      "absolute -top-0.5 -right-0.5 flex size-4 items-center justify-center rounded-full text-[10px] font-semibold text-white",
                       isBlocked ? "bg-red-500" : "bg-amber-500",
                     )}
                   >
@@ -272,10 +274,10 @@ function EditTransitArticleAction({ article }: { article: TransitArticle }) {
                     </li>
                   ))}
                 </ul>
-                <p className="mt-2 font-medium">Presiona para editarlo.</p>
+                <p className="mt-2 font-medium">Presione para editarlo.</p>
               </>
             ) : !isEditable ? (
-              "Ya marcaste este artículo como entregado a recepción"
+              "Este artículo ya fue entregado a recepción"
             ) : pendingCount > 0 ? (
               `Editar artículo (${pendingCount} documento${pendingCount === 1 ? "" : "s"} pendiente${pendingCount === 1 ? "" : "s"})`
             ) : (
@@ -290,6 +292,75 @@ function EditTransitArticleAction({ article }: { article: TransitArticle }) {
           articleId={article.id}
           open={editDialogOpen}
           onOpenChange={setEditDialogOpen}
+        />
+      )}
+    </>
+  );
+}
+
+/**
+ * Bitácora de tránsito. Se ofrece mientras el artículo viaja y, ya en
+ * recepción, solo si dejó novedades que consultar.
+ */
+function TransitUpdatesAction({ article }: { article: TransitArticle }) {
+  const [open, setOpen] = useState(false);
+
+  const count = article.transit_updates_count ?? 0;
+  const inTransit = article.status?.toUpperCase() === "TRANSIT";
+  const idle = article.transit_idle;
+
+  if (!inTransit && count === 0) return null;
+
+  return (
+    <>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label={`Bitácora de tránsito${count > 0 ? `, ${count} ${count === 1 ? "novedad" : "novedades"}` : ""}${idle ? `, sin noticias hace ${article.transit_idle_days} días` : ""}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                setOpen(true);
+              }}
+              className={cn(
+                "relative h-7 w-7 max-md:size-8",
+                idle
+                  ? "text-amber-600 dark:text-amber-400"
+                  : count > 0
+                    ? "text-primary"
+                    : "text-muted-foreground",
+              )}
+            >
+              <NotebookPen className="size-3.5" />
+              {(count > 0 || idle) && (
+                <span
+                  className={cn(
+                    "absolute -top-0.5 -right-0.5 grid size-4 place-items-center rounded-full text-[10px] font-semibold text-white",
+                    idle ? "bg-amber-500" : "bg-primary",
+                  )}
+                >
+                  {count > 0 ? count : "!"}
+                </span>
+              )}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="text-xs">
+            {idle
+              ? `Sin noticias del envío hace ${article.transit_idle_days} días: registre una novedad`
+              : inTransit
+                ? "Bitácora de tránsito: registre novedades del envío"
+                : "Bitácora de tránsito (solo consulta)"}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+
+      {open && (
+        <TransitUpdatesDialog
+          articleId={article.id}
+          open={open}
+          onOpenChange={setOpen}
         />
       )}
     </>
@@ -323,6 +394,7 @@ export const getColumns = (
   {
     accessorKey: "part_number",
     size: 210,
+    meta: { title: "Número de Parte" },
 
     header: ({ column }) => (
       <div className="flex justify-center w-full">
@@ -340,7 +412,8 @@ export const getColumns = (
             <div className="flex items-center gap-2">
               <span
                 className="
-                text-[9px] font-semibold uppercase tracking-widest
+                shrink-0 whitespace-nowrap
+                text-xs font-semibold
                 px-1.5 py-0.5 rounded-md
                 bg-emerald-100/60 dark:bg-emerald-900/30
                 text-emerald-700 dark:text-emerald-300
@@ -366,7 +439,8 @@ export const getColumns = (
               <div className="flex items-center gap-2">
                 <span
                   className="
-                  text-[9px] font-semibold uppercase tracking-widest
+                   shrink-0 whitespace-nowrap
+                   text-xs font-semibold
                   px-1.5 py-0.5 rounded-md
                   bg-slate-200/60 dark:bg-slate-700/40
                   text-slate-600 dark:text-slate-300
@@ -376,7 +450,7 @@ export const getColumns = (
                   ALT
                 </span>
 
-                <span className="font-mono text-[11px] text-muted-foreground">
+                <span className="font-mono text-xs text-muted-foreground">
                   {toAltPartNumbers(row.original.alternative_part_number).join(
                     " / ",
                   )}
@@ -393,7 +467,8 @@ export const getColumns = (
               <div className="flex items-center gap-2">
                 <span
                   className="
-                  text-[9px] font-semibold uppercase tracking-widest
+                   shrink-0 whitespace-nowrap
+                   text-xs font-semibold
                   px-1.5 py-0.5 rounded-md
                   bg-slate-100 dark:bg-slate-800
                   text-slate-400
@@ -402,7 +477,7 @@ export const getColumns = (
                   ALT
                 </span>
 
-                <span className="text-[11px] text-muted-foreground/40 italic">
+                <span className="text-xs text-muted-foreground/60 italic">
                   Sin alternativo
                 </span>
               </div>
@@ -416,6 +491,12 @@ export const getColumns = (
   {
     accessorKey: "batch",
     size: 210,
+    meta: {
+      title: "Descripción",
+      mobile: "wide",
+      mobileAlign: "center",
+      mobileOrder: 1,
+    },
 
     header: ({ column }) => (
       <div className="flex justify-center items-center w-full text-center">
@@ -435,6 +516,7 @@ export const getColumns = (
   {
     id: "serial_lot",
     size: 150,
+    meta: { title: "Serial / Lote", mobileOrder: 4 },
 
     header: () => (
       <div className="flex justify-center w-full text-xs font-medium text-muted-foreground">
@@ -449,7 +531,7 @@ export const getColumns = (
         <div className="flex justify-center w-full">
           {serial || lot_number ? (
             <div className="flex flex-col items-center gap-0.5">
-              <span className="text-[9px] font-semibold uppercase tracking-widest text-muted-foreground/60">
+              <span className="text-xs font-semibold text-muted-foreground">
                 {serial ? "Serial" : "Lote"}
               </span>
               <span className="font-mono text-[12px] font-semibold">
@@ -457,7 +539,7 @@ export const getColumns = (
               </span>
             </div>
           ) : (
-            <span className="text-muted-foreground/40">—</span>
+            <span className="text-muted-foreground/60">—</span>
           )}
         </div>
       );
@@ -468,6 +550,7 @@ export const getColumns = (
   {
     accessorKey: "status_date",
     size: 180,
+    meta: { title: "Fecha de Movimiento", mobileOrder: 3 },
 
     header: ({ column }) => (
       <div className="flex justify-center w-full">
@@ -489,9 +572,9 @@ export const getColumns = (
           : null;
 
       const label = isTransit
-        ? "ESTÁ EN TRÁNSITO"
+        ? "Está en tránsito"
         : isReception
-          ? "ESTÁ EN RECEPCIÓN"
+          ? "Está en recepción"
           : null;
 
       // status_since es un instante (se convierte a la zona de la compañía) y
@@ -508,21 +591,19 @@ export const getColumns = (
       if (!date) {
         return (
           <div className="flex justify-center w-full">
-            <span className="text-xs text-muted-foreground/40">-</span>
+            <span className="text-xs text-muted-foreground/60">-</span>
           </div>
         );
       }
 
       return (
         <div className="flex flex-col items-center justify-center w-full leading-tight">
-          <span className="text-[10px] text-muted-foreground/60">DESDE EL</span>
+          <span className="text-xs text-muted-foreground">Desde el</span>
 
           <span className="text-sm font-medium">{formatDate(date)}</span>
 
           {label && (
-            <span className="text-[10px] text-muted-foreground/60">
-              {label}
-            </span>
+            <span className="text-xs text-muted-foreground">{label}</span>
           )}
         </div>
       );
@@ -532,6 +613,7 @@ export const getColumns = (
   {
     accessorKey: "location",
     size: 150,
+    meta: { title: "Ubicación", mobileOrder: 5 },
 
     header: ({ column }) => (
       <div className="flex justify-center w-full">
@@ -550,7 +632,7 @@ export const getColumns = (
               <span className="truncate">{location.address}</span>
             </div>
           ) : (
-            <span className="text-muted-foreground/40">—</span>
+            <span className="text-muted-foreground/60">—</span>
           )}
         </div>
       );
@@ -560,6 +642,7 @@ export const getColumns = (
   {
     accessorKey: "status",
     size: 150,
+    meta: { title: "Estado", mobileOrder: 2 },
 
     header: ({ column }) => (
       <div className="flex justify-center w-full">
@@ -581,11 +664,7 @@ export const getColumns = (
               `
                     rounded-md
                     border
-                    px-2 py-0.5
-                    text-[10px]
-                    font-semibold
-                    tracking-wide
-                    shadow-xs
+                    h-6 px-2.5 text-xs font-medium
                     transition-colors duration-150
                     cursor-default
                   `,
@@ -601,7 +680,7 @@ export const getColumns = (
                 `border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300`,
             )}
           >
-            {isTransit ? "EN TRÁNSITO" : "EN RECEPCIÓN"}
+            {isTransit ? "En tránsito" : "En recepción"}
           </Badge>
 
           {/* Lo que compras necesita ver de un golpe: cuál de estos artículos
@@ -609,16 +688,16 @@ export const getColumns = (
           {isBlocked && (
             <Badge
               className="
-                rounded-md border border-red-500/30
-                bg-red-500/10 px-2 py-0.5
-                text-[10px] font-semibold tracking-wide
-                text-red-700 shadow-xs
+                h-6 rounded-md border border-red-500/30
+                bg-red-500/10 px-2.5
+                text-xs font-medium
+                text-red-700
                 cursor-default
                 dark:text-red-300
               "
             >
               <FileWarning className="mr-1 size-2.5" />
-              FALTAN DATOS
+              Faltan datos
             </Badge>
           )}
         </div>
@@ -628,20 +707,21 @@ export const getColumns = (
 
   {
     id: "edit_info",
-    size: 70,
+    size: 100,
 
     header: () => (
       <div className="flex justify-center w-full text-xs font-medium text-muted-foreground">
-        Editar
+        Editar y bitácora
       </div>
     ),
 
     cell: ({ row }) => (
       <div
-        className="flex justify-center w-full"
+        className="flex justify-center w-full gap-0.5"
         onClick={(e) => e.stopPropagation()}
       >
         <EditTransitArticleAction article={row.original} />
+        <TransitUpdatesAction article={row.original} />
       </div>
     ),
     enableSorting: false,
@@ -651,6 +731,7 @@ export const getColumns = (
   {
     id: "actions",
     size: 160,
+    meta: { mobile: "action" },
 
     header: ({ column }) => (
       <div className="flex justify-center w-full">

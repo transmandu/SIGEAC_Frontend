@@ -99,6 +99,11 @@ const AccountPage = () => {
             title="Mis empresas"
             icon={Building2}
             hint="Las empresas a las que tiene acceso y su rol en cada una."
+            action={
+              <span className="text-xs text-muted-foreground tabular-nums">
+                {user.companies?.length ?? 0}
+              </span>
+            }
           >
             <ProfileCompanies
               companies={user.companies}
@@ -173,7 +178,7 @@ const AccountPage = () => {
                 <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
                   Contraseña
                 </p>
-                <p className="max-w-md text-xs leading-relaxed text-muted-foreground">
+                <p className="max-w-md text-[13px] leading-relaxed text-muted-foreground">
                   Por políticas de seguridad, la nueva contraseña la asigna un
                   administrador. Al solicitarla se le notifica para que se la
                   comunique.

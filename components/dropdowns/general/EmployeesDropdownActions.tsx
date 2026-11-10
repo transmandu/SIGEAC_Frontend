@@ -24,7 +24,7 @@ import {
 } from "@/components/dropdowns/SettingsRowActions";
 import { UpdateEmployeeForm } from "@/components/forms/general/UpdateEmployeeForm";
 import { Dialog } from "@/components/ui/dialog";
-import { useAuth } from "@/contexts/AuthContext";
+import { useIsSuperuser } from "@/hooks/helpers/useIsSuperuser";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Employee } from "@/types";
 
@@ -35,13 +35,12 @@ const EmployeesDropdownActions = ({ employee }: { employee: Employee }) => {
   const [openReactivate, setOpenReactivate] = useState(false);
 
   const { selectedCompany } = useCompanyStore();
-  const { user } = useAuth();
+  const isSuperUser = useIsSuperuser();
 
   const deleteEmployee = useDeleteEmployee();
   const deactivateEmployee = useDeactivateEmployee();
   const reactivateEmployee = useReactivateEmployee();
 
-  const isSuperUser = user?.roles?.some((role) => role.name === "SUPERUSER");
   const isActive = !!employee.isActive;
   const fullName = `${employee.first_name} ${employee.last_name}`;
   const company = selectedCompany?.slug ?? "";
@@ -98,7 +97,7 @@ const EmployeesDropdownActions = ({ employee }: { employee: Employee }) => {
               <span className="font-medium text-foreground">{fullName}</span>
             </>
           }
-          className="max-w-lg lg:max-w-2xl"
+          className="sm:max-w-3xl"
         >
           <UpdateEmployeeForm
             employee={employee}
@@ -148,8 +147,9 @@ const EmployeesDropdownActions = ({ employee }: { employee: Employee }) => {
         entityName={fullName}
         warning={
           <>
-            Esta acción es <b>irreversible</b> y elimina todos los datos
-            asociados al empleado.
+            Esta acción es <b>irreversible</b>. Si el empleado tiene registros
+            asociados (solicitudes, minutas, recepciones, cursos…) no se podrá
+            eliminar: en ese caso, desactívelo para conservar su historial.
           </>
         }
         isPending={deleteEmployee.isPending}

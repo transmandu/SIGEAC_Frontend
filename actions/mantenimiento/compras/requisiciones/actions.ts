@@ -32,12 +32,11 @@ export const useCreateRequisition = () => {
       });
 
       toast.success("¡Creado!", {
-        description: `La requisicion ha sido creada correctamente.`,
+        description: `La requisición ha sido creada correctamente.`,
       });
     },
     onError: (error) => {
-      notifyError(error, { action: "crear la requisicion" });
-      console.log(error);
+      notifyError(error, { action: "crear la requisición" });
     },
   });
   return {
@@ -78,12 +77,11 @@ export const useUpdateRequisition = () => {
         exact: false,
       });
       toast.success("¡Actualizada!", {
-        description: `La requisicion ha sido actualizada correctamente.`,
+        description: `La requisición ha sido actualizada correctamente.`,
       });
     },
     onError: (error) => {
-      notifyError(error, { action: "actualizar la requisicion" });
-      console.log(error);
+      notifyError(error, { action: "actualizar la requisición" });
     },
   });
   return {

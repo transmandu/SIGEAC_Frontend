@@ -1,5 +1,6 @@
 "use client";
 
+import { locationName } from "@/lib/locations";
 import {
   useAddCompanyToUser,
   useRemoveCompanyFromUser,
@@ -30,6 +31,7 @@ type UserCompany = {
   locations?: {
     id: number;
     address: string;
+    name?: string | null;
     cod_iata?: string;
     isMainBase?: boolean;
   }[];
@@ -152,7 +154,7 @@ const UserCompaniesTab = ({ user }: { user: User }) => {
                         className="flex items-center gap-1.5 text-xs text-muted-foreground"
                       >
                         <MapPin className="size-3 shrink-0" />
-                        <span>{loc.address}</span>
+                        <span>{locationName(loc)}</span>
 
                         {loc.cod_iata && (
                           <span className="font-mono bg-muted/60 px-1 rounded border border-border/30">
@@ -231,7 +233,7 @@ const UserCompaniesTab = ({ user }: { user: User }) => {
                       className="flex items-center gap-1.5 text-xs cursor-pointer"
                     >
                       <MapPin className="size-3 text-muted-foreground" />
-                      {loc.address}
+                      {locationName(loc)}
 
                       {loc.cod_iata && (
                         <span className="font-mono bg-muted/60 px-1 rounded border border-border/30">

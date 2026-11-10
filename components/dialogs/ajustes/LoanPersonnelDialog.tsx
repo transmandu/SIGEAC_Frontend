@@ -3,16 +3,10 @@
 import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import { Loader2, UsersRound } from "lucide-react";
 
+import { PanelSection } from "@/components/forms/PanelSection";
+import { EmptyState } from "@/components/misc/EmptyState";
+import { TagBadge } from "@/components/misc/TagBadge";
 import { Dialog } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import type { CompanyLoanAgreement } from "@/hooks/ajustes/convenios/types";
 import { useGetLoanPersonnel } from "@/hooks/ajustes/convenios/useGetLoanPersonnel";
 
@@ -57,42 +51,56 @@ export function LoanPersonnelDialog({
         {isLoading ? (
           <Loader2 className="mx-auto my-10 size-5 animate-spin text-muted-foreground" />
         ) : isError ? (
-          <p className="py-8 text-center text-sm text-destructive">
-            No se pudo cargar el personal.
-          </p>
+          <EmptyState
+            tone="error"
+            icon={UsersRound}
+            title="No se pudo cargar el personal"
+            description="Cierre el diálogo e inténtelo de nuevo."
+          />
         ) : !data || data.length === 0 ? (
-          <p className="py-8 text-center text-sm text-muted-foreground">
-            {agreement.borrower_company_name} aún no ha autorizado a nadie.
-          </p>
+          <EmptyState
+            icon={UsersRound}
+            title="Aún no hay personal autorizado"
+            description={`${agreement.borrower_company_name} todavía no ha autorizado a nadie.`}
+          />
         ) : (
-          <ScrollArea className="max-h-96 rounded-xl border border-slate-400/50 dark:border-slate-600/50">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nombre y apellido</TableHead>
-                  <TableHead>DNI</TableHead>
-                  <TableHead>Departamento</TableHead>
-                  <TableHead>Cargo</TableHead>
-                  <TableHead>Alcances</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {data.map((p) => (
-                  <TableRow key={p.dni}>
-                    <TableCell className="font-medium">
-                      {p.first_name} {p.last_name}
-                    </TableCell>
-                    <TableCell className="tabular-nums">{p.dni}</TableCell>
-                    <TableCell>{p.department ?? "—"}</TableCell>
-                    <TableCell>{p.job_title ?? "—"}</TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {p.scopes.join(", ")}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </ScrollArea>
+          <PanelSection
+            icon={UsersRound}
+            title="Personal"
+            hint={`${data.length} ${data.length === 1 ? "persona" : "personas"}`}
+            flush
+          >
+            <ul className="divide-y divide-border/60 overflow-hidden rounded-b-xl">
+              {data.map((person) => (
+                <li key={person.dni} className="space-y-1.5 px-4 py-3.5">
+                  <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
+                    <p className="text-sm font-medium wrap-anywhere">
+                      {person.first_name} {person.last_name}
+                    </p>
+                    <p className="font-mono text-[13px] tabular-nums text-muted-foreground">
+                      {person.dni}
+                    </p>
+                  </div>
+
+                  <p className="text-[13px] text-muted-foreground wrap-anywhere">
+                    {[person.department, person.job_title]
+                      .filter(Boolean)
+                      .join(" · ") || "Sin departamento ni cargo"}
+                  </p>
+
+                  {person.scopes.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 pt-0.5">
+                      {person.scopes.map((scope) => (
+                        <TagBadge key={scope} tone="slate">
+                          {scope}
+                        </TagBadge>
+                      ))}
+                    </div>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </PanelSection>
         )}
       </FormDialogContent>
     </Dialog>

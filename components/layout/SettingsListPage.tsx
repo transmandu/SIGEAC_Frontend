@@ -23,6 +23,11 @@ interface SettingsListPageProps {
   toolbar?: React.ReactNode;
   /** `value` indefinido mientras carga o si falló: no se muestra un "0" falso. */
   count?: { value?: number; singular: string; plural: string };
+  /**
+   * Pestañas de la pantalla (p. ej. activos / inactivos). Van entre el título y
+   * la barra de búsqueda: son quienes deciden qué lista mira la barra.
+   */
+  tabs?: React.ReactNode;
   /** Prefijo del `data-tour` del encabezado (`-title`). */
   tourPrefix?: string;
   /** `data-tour` de la barra de búsqueda y filtros, si algún tour la señala. */
@@ -50,6 +55,7 @@ export function SettingsListPage({
   filters,
   toolbar,
   count,
+  tabs,
   tourPrefix,
   toolbarTourId,
   toolbarActions,
@@ -79,12 +85,14 @@ export function SettingsListPage({
           <p className="text-sm text-muted-foreground">{description}</p>
         </div>
 
+        {tabs && <div className="shrink-0">{tabs}</div>}
+
         {hasToolbar && (
           <div
             data-tour={toolbarTourId}
             className="flex shrink-0 items-center justify-between gap-4 px-3 py-2 rounded-xl border max-sm:flex-col max-sm:items-stretch max-sm:gap-2 max-sm:p-2 bg-slate-200/40 border-slate-200/40 dark:bg-slate-800/70 dark:border-slate-700/60 backdrop-blur-md dark:shadow-[0_4px_20px_rgba(0,0,0,0.35)]"
           >
-            <div className="flex flex-wrap items-center gap-2 max-sm:flex-col max-sm:items-stretch max-sm:[&>*]:w-full!">
+            <div className="flex flex-wrap items-center gap-2 max-sm:flex-col max-sm:items-stretch max-sm:*:w-full!">
               {toolbar}
               {search && (
                 <div className="relative w-64 sm:w-72 max-sm:w-full">

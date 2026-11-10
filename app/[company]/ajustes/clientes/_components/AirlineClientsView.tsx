@@ -48,7 +48,7 @@ export function AirlineClientsView() {
     <SettingsListPage
       title="Clientes"
       heading="Control de Clientes"
-      description="Administra los clientes registrados en el sistema."
+      description="Administre los clientes registrados en el sistema."
       tourPrefix="clientes"
       search={{
         value: search,

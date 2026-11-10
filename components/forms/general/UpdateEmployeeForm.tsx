@@ -1,790 +1,216 @@
 "use client";
 
-import { flattenDepartments } from "@/lib/departments";
+import { useMemo } from "react";
+import { useForm } from "react-hook-form";
+import { KeyRound } from "lucide-react";
+
 import { useUpdateEmployee } from "@/actions/ajustes/empleados/actions";
-import { Button } from "@/components/ui/button";
+import {
+  applyServerFieldErrors,
+  invalidFormHandler,
+  serverFieldErrors,
+} from "@/components/forms/mantenimiento/almacen/_components/form-feedback";
+import { hintClass } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
+import { ArticleFormShell } from "@/components/forms/mantenimiento/almacen/articulos/ArticleFormShell";
+import { PanelFieldLabel, PanelSection } from "@/components/forms/PanelSection";
 import {
   Form,
-  FormControl,
+  FormDescription,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useGetJobTitles } from "@/hooks/ajustes/cargo/useGetJobTitles";
 import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment";
+import { useGetEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetEmployees";
+import { useGetInactiveEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetInactiveEmployees";
+import { useIsSuperuser } from "@/hooks/helpers/useIsSuperuser";
 import { useGetLocationsByCompany } from "@/hooks/sistema/useGetLocationsByCompany";
-import { useCompanyStore } from "@/stores/CompanyStore";
 import { useGetUsers } from "@/hooks/sistema/usuario/useGetUsers";
+import { flattenDepartments } from "@/lib/departments";
+import { locationLabel } from "@/lib/locations";
 import { zodResolver } from "@/lib/zod-resolver";
-import { Loader2, Upload, Trash2 } from "lucide-react";
-import Image from "next/image";
-import { useEffect, useMemo, useState, useRef } from "react";
-import { type Control, useForm } from "react-hook-form";
-import { z } from "zod";
-import { Department } from "@/types";
-import { PhoneInput } from "@/components/ui/PhoneInput";
-import { phoneSchema, toPhoneValue } from "@/lib/phone";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import type { Employee } from "@/types";
+import { EmployeeFormFields } from "./EmployeeFormFields";
+import { EmployeeUserPicker, type UserOption } from "./EmployeeUserPicker";
+import {
+  buildEmployeeSchema,
+  diffEmployee,
+  EMPLOYEE_FIELD_LABELS,
+  employeeToValues,
+  type EmployeeFormValues,
+} from "./employeeSchema";
 
-/* =========================
-   SCHEMA
-========================= */
+export function UpdateEmployeeForm({
+  employee,
+  onSuccess,
+}: {
+  employee: Employee;
+  onSuccess?: () => void;
+}) {
+  const { selectedCompany } = useCompanyStore();
+  const isSuperuser = useIsSuperuser();
+  const updateEmployee = useUpdateEmployee();
 
-const buildFormSchema = (keepPhone?: string | null) =>
-  z.object({
-    first_name: z.string().min(1),
-    middle_name: z.string().optional(),
-    last_name: z.string().min(1),
-    second_last_name: z.string().optional(),
-    dni: z.string(),
-    dni_type: z.string(),
-    blood_type: z.string(),
-    gender: z.enum(["MALE", "FEMALE"]),
-    job_title_id: z.string(),
-    department_id: z.string(),
-    location_id: z.string(),
-    user_id: z.string().optional(),
-    email: z.string().optional(),
-    phone: phoneSchema({ keep: keepPhone }),
-    address: z.string().optional(),
-    birth_date: z.string().optional(),
-    profile_photo: z.any().optional(),
+  const slug = selectedCompany?.slug;
+  const { data: locations, isLoading: loadingLocations } =
+    useGetLocationsByCompany(slug);
+  const { data: departments, isLoading: loadingDepartments } =
+    useGetDepartments(slug);
+  const { data: jobTitles, isLoading: loadingJobTitles } =
+    useGetJobTitles(slug);
+  const { data: activeEmployees } = useGetEmployeesByCompany(slug);
+  const { data: inactiveEmployees } = useGetInactiveEmployeesByCompany(slug);
+  // `/users` es solo de SUPERUSER: para los demás no se pide ni se ofrece.
+  const { data: users, isLoading: loadingUsers } = useGetUsers({
+    enabled: isSuperuser,
   });
 
-type FormValues = z.infer<ReturnType<typeof buildFormSchema>>;
-
-const isEmpty = (v?: string) => !v || v === "";
-
-type SelectFieldProps = {
-  control: Control<FormValues>;
-  name: keyof FormValues;
-  label: string;
-  options: { id: string; label: string }[];
-  placeholder: string;
-};
-
-/**
- * Fuera del formulario a propósito: definido dentro, cada render creaba un
- * componente nuevo y los selects se desmontaban y volvían a montar (perdían el
- * foco y el desplegable abierto cada vez que algo cambiaba en el formulario).
- */
-const SelectField = ({
-  control,
-  name,
-  label,
-  options,
-  placeholder,
-}: SelectFieldProps) => (
-  <FormField
-    control={control}
-    name={name}
-    render={({ field }) => (
-      <FormItem>
-        <FormLabel>{label}</FormLabel>
-        <Select value={field.value || ""} onValueChange={field.onChange}>
-          <FormControl>
-            <SelectTrigger
-              className={
-                isEmpty(field.value) ? "text-muted-foreground opacity-60" : ""
-              }
-            >
-              <SelectValue placeholder={placeholder} />
-            </SelectTrigger>
-          </FormControl>
-
-          <SelectContent>
-            {options.map((o) => (
-              <SelectItem key={o.id} value={o.id}>
-                {o.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </FormItem>
-    )}
-  />
-);
-
-/* =========================
-   TYPES
-========================= */
-
-interface Option {
-  id: string | number;
-  name?: string;
-  address?: string;
-}
-
-interface Props {
-  employee: any;
-  onSuccess?: () => void;
-}
-
-/* =========================
-   COMPONENT
-========================= */
-
-export function UpdateEmployeeForm({ employee, onSuccess }: Props) {
-  const { selectedCompany } = useCompanyStore();
-  const updateEmployee = useUpdateEmployee();
-  const [step, setStep] = useState<1 | 2>(1);
-
-  const { data: locations } = useGetLocationsByCompany(selectedCompany?.slug);
-  const { data: departments } = useGetDepartments(selectedCompany?.slug);
-  const { data: jobTitles } = useGetJobTitles(selectedCompany?.slug);
-  const { data: users } = useGetUsers();
-
-  const fileRef = useRef<HTMLInputElement | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
-  const imageSrc = preview || employee?.photo_url;
-
-  // El teléfono guardado se admite sin cambios aunque sea un dato antiguo inválido.
   const schema = useMemo(
-    () => buildFormSchema(employee?.phone),
-    [employee?.phone],
+    () =>
+      buildEmployeeSchema({
+        employees: [...(activeEmployees ?? []), ...(inactiveEmployees ?? [])],
+        current: employee,
+      }),
+    [activeEmployees, inactiveEmployees, employee],
   );
 
-  const form = useForm<FormValues>({
+  // Los valores iniciales se fijan al montar: el diálogo desmonta su contenido
+  // al cerrarse, así que cada apertura parte de lo guardado y un refetch de la
+  // lista no pisa lo que se está escribiendo.
+  const form = useForm<EmployeeFormValues>({
     resolver: zodResolver(schema),
-    defaultValues: {
-      first_name: "",
-      middle_name: "",
-      last_name: "",
-      second_last_name: "",
-      dni: "",
-      dni_type: "",
-      blood_type: "",
-      gender: "MALE",
-      job_title_id: "",
-      department_id: "",
-      location_id: "",
-      user_id: "",
-      email: "",
-      phone: "",
-      address: "",
-      profile_photo: null,
-      birth_date: "",
-    },
+    defaultValues: employeeToValues(employee),
   });
 
-  /* =========================
-     RESET ESTABLE
-  ========================= */
+  const userOptions = useMemo<UserOption[]>(() => {
+    const currentId = employee.user_id ? String(employee.user_id) : null;
 
-  useEffect(() => {
-    if (!employee) return;
+    const options: UserOption[] = (users ?? [])
+      .filter(
+        (user) =>
+          String(user.id) === currentId ||
+          !user.employee ||
+          user.employee.length === 0,
+      )
+      .map((user) => ({
+        id: String(user.id),
+        label: user.username,
+        detail: `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim(),
+      }));
 
-    form.reset({
-      first_name: employee.first_name ?? "",
-      middle_name: employee.middle_name ?? "",
-      last_name: employee.last_name ?? "",
-      second_last_name: employee.second_last_name ?? "",
-      dni: employee.dni ?? "",
-      dni_type: employee.dni_type ?? "",
-      blood_type: employee.blood_type ?? "",
-      job_title_id: employee.job_title_id ? String(employee.job_title_id) : "",
-      department_id: employee.department_id
-        ? String(employee.department_id)
-        : "",
-      location_id: employee.location_id ? String(employee.location_id) : "",
-      user_id: employee.user_id ? String(employee.user_id) : "",
-      email: employee.email ?? "",
-      phone: toPhoneValue(employee.phone),
-      address: employee.address ?? "",
-      profile_photo: undefined,
-      birth_date: employee.birth_date ?? "",
-      gender: employee.gender ?? "MALE",
-    });
-  }, [employee, form]);
+    // La lista de usuarios puede no incluir al vinculado: no se pierde.
+    if (
+      currentId &&
+      employee.user &&
+      !options.some((o) => o.id === currentId)
+    ) {
+      options.unshift({ id: currentId, label: employee.user.username });
+    }
 
-  /* =========================
-     STEP NAV
-  ========================= */
+    return options;
+  }, [users, employee.user_id, employee.user]);
 
-  const nextStep = async () => {
-    const valid = await form.trigger([
-      "first_name",
-      "last_name",
-      "dni",
-      "dni_type",
-      "blood_type",
-      "gender",
-    ]);
+  const onSubmit = async (values: EmployeeFormValues) => {
+    if (!slug) return;
 
-    if (valid) setStep(2);
-  };
+    const data = diffEmployee(employee, values);
 
-  const prevStep = () => setStep(1);
-
-  const handleSelectFile = () => {
-    fileRef.current?.click();
-  };
-
-  const handleRemovePhoto = () => {
-    form.setValue("profile_photo", undefined);
-  };
-
-  /* =========================
-     SUBMIT (FORMDATA SAFE)
-  ========================= */
-  const buildFormData = (values: FormValues, original: any) => {
-    const formData = new FormData();
-
-    const REQUIRED = new Set([
-      "first_name",
-      "last_name",
-      "dni",
-      "dni_type",
-      "blood_type",
-      "gender",
-      "job_title_id",
-      "department_id",
-      "location_id",
-    ]);
-
-    Object.entries(values).forEach(([key, value]) => {
-      // El teléfono se compara ya normalizado: volver a mostrarlo en el formato
-      // estándar no es un cambio del usuario.
-      const originalValue =
-        key === "phone" ? toPhoneValue(original?.phone) : original?.[key];
-
-      if (value === undefined || value === null) return;
-      if (typeof value === "string" && value.trim() === "") {
-        if (REQUIRED.has(key)) return; // evita mandar vacío en obligatorios
-        return;
-      }
-
-      if (
-        typeof value !== "object" &&
-        String(value) === String(originalValue ?? "")
-      ) {
-        return;
-      }
-
-      if (value instanceof File) {
-        formData.append(key, value);
-        return;
-      }
-
-      formData.append(key, String(value));
-    });
-
-    return formData;
-  };
-
-  const onSubmit = async (values: FormValues) => {
-    if (step !== 2) return;
-    if (!selectedCompany) return;
-
-    const formData = buildFormData(values, employee);
+    if (!data) {
+      onSuccess?.();
+      return;
+    }
 
     try {
       await updateEmployee.mutateAsync({
-        company: selectedCompany.slug,
+        company: slug,
         id: Number(employee.id),
-        data: formData,
+        data,
       });
-
       onSuccess?.();
-    } catch {
-      // El aviso lo muestra la mutación; el formulario queda abierto.
+    } catch (error) {
+      const errors = serverFieldErrors(error);
+      if (errors) {
+        applyServerFieldErrors(form.setError, errors, EMPLOYEE_FIELD_LABELS);
+      }
     }
   };
 
-  const normalizeOptions = (data?: Option[]) =>
-    data?.map((o) => ({
-      id: String(o.id),
-      label: o.name ?? o.address ?? "Sin nombre",
-    })) ?? [];
-
-  /* =========================
-     RENDER
-  ========================= */
-
-  const allDepartments = departments ? flattenDepartments(departments) : [];
-
   return (
     <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            e.preventDefault();
-          }
+      <ArticleFormShell
+        isEditing
+        busy={updateEmployee.isPending}
+        canSave={form.formState.isDirty}
+        onCancel={onSuccess}
+        onSubmit={(event) => {
+          event.stopPropagation();
+          form.handleSubmit(
+            onSubmit,
+            invalidFormHandler(EMPLOYEE_FIELD_LABELS),
+          )(event);
         }}
-        className="space-y-8"
       >
-        <div className="flex items-center w-full">
-          <div className="flex-1" />
-          <span className="text-xs text-muted-foreground">
-            Paso {step} de 2
-          </span>
-        </div>
-
-        {/* ================= STEP 1 ================= */}
-        {step === 1 && (
-          <div className="border rounded-xl p-4 sm:p-6 bg-muted/20">
-            {/* HEADER */}
-            <div className="mb-6">
-              <p className="text-sm font-medium">Datos personales</p>
-              <p className="text-xs text-muted-foreground">
-                Información básica del empleado
-              </p>
-            </div>
-
-            {/* CONTENIDO */}
-            <div className="grid grid-cols-12 gap-6 items-stretch">
-              <div className="col-span-12 lg:col-span-7 space-y-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="first_name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Nombre</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="middle_name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Segundo nombre</FormLabel>
-                        <FormControl>
-                          <Input {...field} value={field.value ?? ""} />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="last_name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Apellido</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="second_last_name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Segundo apellido</FormLabel>
-                        <FormControl>
-                          <Input {...field} value={field.value ?? ""} />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="grid grid-cols-4 sm:grid-cols-12 gap-3 items-end">
-                  <FormField
-                    control={form.control}
-                    name="dni_type"
-                    render={({ field }) => (
-                      <FormItem className="col-span-1 sm:col-span-2">
-                        <FormLabel>Tipo</FormLabel>
-                        <Select
-                          key={field.value}
-                          value={field.value || ""}
-                          onValueChange={field.onChange}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Sin asignar" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="V">V</SelectItem>
-                            <SelectItem value="E">E</SelectItem>
-                            <SelectItem value="J">J</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="dni"
-                    render={({ field }) => (
-                      <FormItem className="col-span-3 sm:col-span-5">
-                        <FormLabel>DNI</FormLabel>
-                        <FormControl>
-                          <Input {...field} disabled />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="blood_type"
-                    render={({ field }) => (
-                      <FormItem className="col-span-2">
-                        <FormLabel>Sangre</FormLabel>
-                        <Select
-                          key={field.value}
-                          value={field.value || ""}
-                          onValueChange={field.onChange}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Sin asignar" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {[
-                              "A+",
-                              "A-",
-                              "B+",
-                              "B-",
-                              "AB+",
-                              "AB-",
-                              "O+",
-                              "O-",
-                            ].map((b) => (
-                              <SelectItem key={b} value={b}>
-                                {b}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="gender"
-                    render={({ field }) => (
-                      <FormItem className="col-span-2 sm:col-span-3">
-                        <FormLabel>Género</FormLabel>
-                        <Select
-                          value={field.value || ""}
-                          onValueChange={field.onChange}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Género" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="MALE">Hombre</SelectItem>
-                            <SelectItem value="FEMALE">Mujer</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
-
-              {/* AVATAR */}
-              <div className="col-span-12 lg:col-span-5 flex">
-                <div className="border rounded-xl bg-muted/20 p-4 sm:p-6 w-full h-full flex flex-col">
-                  {/* HEADER */}
-                  <div className="flex justify-center items-center mb-4">
-                    <p className="text-sm font-medium">Foto del empleado</p>
-                  </div>
-
-                  {/* CONTENIDO (imagen centrada) */}
-                  <div className="flex justify-center items-center flex-1">
-                    <div className="relative w-40 h-40 rounded-full overflow-hidden border-2 border-muted shadow-xs bg-background">
-                      {imageSrc ? (
-                        <Image
-                          src={imageSrc}
-                          alt="Empleado"
-                          fill
-                          unoptimized
-                          quality={100}
-                          sizes="160px"
-                          className="object-cover"
-                        />
-                      ) : (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <span className="text-xs text-muted-foreground text-center leading-tight px-4">
-                            Sin foto
-                            <br />
-                            del empleado
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* ACCIONES */}
-                  <div className="flex justify-center gap-4 pt-4">
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button
-                            type="button"
-                            onClick={handleSelectFile}
-                            className="p-2 rounded-full border hover:bg-muted transition hover:scale-105"
-                          >
-                            <Upload className="w-4 h-4" />
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent>Cambiar imagen</TooltipContent>
-                      </Tooltip>
-
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button
-                            type="button"
-                            onClick={handleRemovePhoto}
-                            className="p-2 rounded-full border hover:bg-destructive/10 transition hover:scale-105"
-                          >
-                            <Trash2 className="w-4 h-4 text-destructive" />
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent>Eliminar imagen</TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-
-                    <input
-                      ref={fileRef}
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (!file) return;
-
-                        form.setValue("profile_photo", file);
-
-                        const url = URL.createObjectURL(file);
-                        setPreview(url);
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ================= STEP 2 ================= */}
-        {step === 2 && (
-          <div className="space-y-6">
-            {/* ================= BLOQUE 1 ================= */}
-            <div className="border rounded-xl p-4 sm:p-6 space-y-4 bg-muted/20">
-              {/* HEADER */}
-              <div>
-                <p className="text-sm font-medium">Datos adicionales</p>
-                <p className="text-xs text-muted-foreground">
-                  Información de contacto del empleado
-                </p>
-              </div>
-
-              {/* GRID */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  name="email"
-                  control={form.control}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email personal</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          value={field.value ?? ""}
-                          placeholder="Ej. correo@ejemplo.com"
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  name="phone"
-                  control={form.control}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Teléfono</FormLabel>
-                      <FormControl>
-                        <PhoneInput
-                          name={field.name}
-                          ref={field.ref}
-                          value={field.value}
-                          onChange={field.onChange}
-                          onBlur={field.onBlur}
-                        />
-                      </FormControl>
-                      <FormMessage className="text-xs" />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  name="birth_date"
-                  control={form.control}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Fecha de nacimiento</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="date"
-                          {...field}
-                          value={field.value ?? ""}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  name="address"
-                  control={form.control}
-                  render={({ field }) => (
-                    <FormItem className="md:col-span-2">
-                      <FormLabel>Dirección</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          value={field.value ?? ""}
-                          placeholder="Ej. Av. Principal, Edificio X, Piso Y"
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-
-            {/* ================= BLOQUE 2 ================= */}
-            <div className="border rounded-xl p-4 sm:p-6 space-y-4">
-              {/* HEADER */}
-              <div>
-                <p className="text-sm font-medium">Datos organizacionales</p>
-                <p className="text-xs text-muted-foreground">
-                  Asignaciones internas del empleado
-                </p>
-              </div>
-
-              {/* GRID */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <SelectField
-                  control={form.control}
-                  name="user_id"
-                  label="Usuario"
-                  placeholder="Sin usuario"
-                  options={(() => {
-                    const base = users ?? [];
-
-                    const mapped = base.map((u) => ({
-                      id: String(u.id),
-                      label: u.username,
-                    }));
-
-                    const currentUserId = employee?.user_id
-                      ? String(employee.user_id)
-                      : null;
-
-                    const exists = currentUserId
-                      ? mapped.some((u) => u.id === currentUserId)
-                      : true;
-
-                    // fallback defensivo
-                    if (!exists && employee?.user) {
-                      mapped.unshift({
-                        id: String(employee.user.id),
-                        label: employee.user.username,
-                      });
-                    }
-
-                    return mapped;
-                  })()}
-                />
-
-                <SelectField
-                  control={form.control}
-                  name="job_title_id"
-                  label="Cargo"
-                  placeholder="Sin cargo"
-                  options={normalizeOptions(jobTitles)}
-                />
-
-                <SelectField
-                  control={form.control}
-                  name="department_id"
-                  label="Departamento"
-                  placeholder="Sin departamento"
-                  options={normalizeOptions(allDepartments)}
-                />
-
-                <SelectField
-                  control={form.control}
-                  name="location_id"
-                  label="Ubicación"
-                  placeholder="Sin ubicación"
-                  options={normalizeOptions(locations)}
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ================= ACTIONS ================= */}
-        <div className="flex justify-between border-t pt-4">
-          {step === 2 ? (
-            <Button type="button" variant="outline" onClick={prevStep}>
-              Atrás
-            </Button>
-          ) : (
-            <div />
+        <EmployeeFormFields
+          control={form.control}
+          disabled={updateEmployee.isPending}
+          isEditing
+          existingPhotoUrl={employee.photo_url_lg || employee.photo_url}
+          jobTitles={(jobTitles ?? []).map((title) => ({
+            id: String(title.id),
+            label: title.name,
+          }))}
+          departments={flattenDepartments(departments ?? []).map(
+            (department) => ({
+              id: String(department.id),
+              label: department.name,
+            }),
           )}
+          locations={(locations ?? []).map((location) => ({
+            id: String(location.id),
+            label: locationLabel(location),
+          }))}
+          loading={{
+            jobTitles: loadingJobTitles,
+            departments: loadingDepartments,
+            locations: loadingLocations,
+          }}
+        />
 
-          {step === 1 ? (
-            <Button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                nextStep();
-              }}
-            >
-              Siguiente
-            </Button>
-          ) : (
-            <Button type="submit" disabled={updateEmployee.isPending}>
-              {updateEmployee.isPending && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        {isSuperuser && (
+          <PanelSection
+            icon={KeyRound}
+            title="Acceso al sistema"
+            hint="El usuario con el que la persona inicia sesión."
+          >
+            <FormField
+              control={form.control}
+              name="user_id"
+              render={({ field, fieldState }) => (
+                <FormItem>
+                  <PanelFieldLabel preventClick>
+                    Usuario vinculado
+                  </PanelFieldLabel>
+                  <EmployeeUserPicker
+                    value={field.value}
+                    onChange={field.onChange}
+                    options={userOptions}
+                    loading={loadingUsers}
+                    disabled={updateEmployee.isPending}
+                    invalid={!!fieldState.error}
+                  />
+                  <FormDescription className={hintClass}>
+                    Sin usuario, la persona no puede iniciar sesión. Solo
+                    aparecen los usuarios que aún no son de ningún empleado.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
               )}
-              Guardar
-            </Button>
-          )}
-        </div>
-      </form>
+            />
+          </PanelSection>
+        )}
+      </ArticleFormShell>
     </Form>
   );
 }

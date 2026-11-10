@@ -1,5 +1,6 @@
 "use client";
 
+import { locationShortLabel } from "@/lib/locations";
 import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@/lib/zod-resolver";
@@ -309,13 +310,9 @@ export default function CreateHazardNotification({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {locations?.map((location) => (
-                      <SelectItem
-                        key={location.id}
-                        value={location.id.toString()}
-                      >
-                        {location.cod_iata}
-                        {location.name ? ` — ${location.name}` : ""}
+                    {locations?.map((loc) => (
+                      <SelectItem key={loc.id} value={loc.id.toString()}>
+                        {locationShortLabel(loc)}
                       </SelectItem>
                     ))}
                   </SelectContent>

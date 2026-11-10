@@ -1,33 +1,40 @@
 "use client";
 
+import { locationName } from "@/lib/locations";
+import { PanelSection } from "@/components/forms/PanelSection";
 import { useMemo, useState } from "react";
-import { Loader2, MapPin, Package, Truck } from "lucide-react";
-
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Check,
+  Info,
+  Loader2,
+  MapPin,
+  MessageSquareText,
+  Package,
+  PackageCheck,
+  Truck,
+} from "lucide-react";
+
+import { Dialog } from "@/components/ui/dialog";
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
+import {
+  labelClass,
+  numericFieldClass,
+  selectTriggerClass,
+  textareaClass,
+} from "@/components/forms/mantenimiento/almacen/_components/form-theme";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { SearchableSelect } from "@/components/misc/SearchableSelect";
 import CopyPartNumberButton from "@/components/misc/CopyPartNumberButton";
+import { TagBadge } from "@/components/misc/TagBadge";
 import { cn } from "@/lib/utils";
 
 import { useDetermineArticleDestination } from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
 import { useGetLocationsByCompany } from "@/hooks/sistema/useGetLocationsByCompany";
 import { useGetEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetEmployees";
 import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import type { DestinationArticle } from "@/types/purchase";
 
@@ -36,6 +43,14 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
+
+/** Cantidad sin ceros de más ("2", "1.5"): el reparto admite hasta 4 decimales. */
+const formatQuantity = (value: number) => String(Number(value.toFixed(4)));
+
+const pickerClass = cn(
+  selectTriggerClass,
+  "h-10 px-3 text-sm max-sm:text-base",
+);
 
 /**
  * Compras decide a qué sede pertenece un artículo que llegó sin destino.
@@ -98,7 +113,14 @@ export function DetermineDestinationDialog({
 
   const assigned = allocations.reduce((sum, entry) => sum + entry.quantity, 0);
   const pending = Number((available - assigned).toFixed(4));
-  const exceeds = assigned > available;
+  // Se compara el sobrante ya redondeado: 0.1 + 0.2 > 0.3 en punto flotante
+  // marcaría "excede" un reparto exacto.
+  const exceeds = pending < 0;
+  const complete = assigned > 0 && pending === 0;
+
+  const hasTransfers = allocations.some(
+    (entry) => entry.location_id !== currentLocationId,
+  );
 
   // Lo que se queda aquí no abre salida: solo los traslados necesitan a quién
   // atribuírsele en la sede que los recibe.
@@ -108,6 +130,19 @@ export function DetermineDestinationDialog({
 
   const canSubmit =
     allocations.length > 0 && !exceeds && pending === 0 && transfersReady;
+
+  // Lo que falta para confirmar, dicho una vez: el botón se deshabilita y esto
+  // explica por qué, en lugar de desaparecer y reaparecer.
+  const blocker =
+    allocations.length === 0
+      ? "Elija la sede a la que pertenece el artículo."
+      : exceeds
+        ? `Se asignó ${formatQuantity(assigned - available)} ${unit} de más.`
+        : pending > 0
+          ? `Faltan ${formatQuantity(pending)} ${unit} por asignar.`
+          : !transfersReady
+            ? "Indique el departamento y quién solicita en cada traslado."
+            : null;
 
   /**
    * Solo dígitos y un separador decimal: el campo es de texto para no arrastrar
@@ -119,6 +154,15 @@ export function DetermineDestinationDialog({
     if (value !== "" && !/^\d*[.,]?\d*$/.test(value)) return;
 
     setAmounts((prev) => ({ ...prev, [locationId]: value }));
+  };
+
+  // Lo que falta por repartir, a la sede indicada (sumado a lo que ya tenía).
+  const assignRemaining = (locationId: number) => {
+    const current = Number((amounts[locationId] ?? "").replace(",", ".")) || 0;
+    setAmounts((prev) => ({
+      ...prev,
+      [locationId]: formatQuantity(current + Math.max(pending, 0)),
+    }));
   };
 
   // Al soltar una sede se va también a quién se le atribuía: dejarlo colgando
@@ -134,330 +178,377 @@ export function DetermineDestinationDialog({
   const submit = async () => {
     if (!canSubmit) return;
 
-    await determineDestination.mutateAsync({
-      id: article.id,
-      allocations,
-      justification: justification.trim() || undefined,
-    });
+    try {
+      await determineDestination.mutateAsync({
+        id: article.id,
+        allocations,
+        justification: justification.trim() || undefined,
+      });
+    } catch {
+      // El aviso del error lo muestra la mutación; el diálogo sigue abierto.
+      return;
+    }
+
     onOpenChange(false);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[92vh] max-w-2xl flex-col gap-0 overflow-hidden p-0">
-        <DialogHeader className="shrink-0 border-b px-6 py-4">
-          <DialogTitle className="text-lg">Determinar destino</DialogTitle>
-          <DialogDescription>
-            Indique a qué sede pertenece el artículo. Puede repartirlo entre
-            varias.
-          </DialogDescription>
-        </DialogHeader>
+      <FormDialogContent
+        className="sm:max-w-2xl"
+        icon={MapPin}
+        title="Determinar destino"
+        description="Indique a qué sede pertenece el artículo. Puede repartirlo entre varias."
+        footer={
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={busy}
+              onClick={() => onOpenChange(false)}
+            >
+              Cancelar
+            </Button>
 
-        {/* El overflow va en el cuerpo: el footer queda fijo y visible. */}
-        <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-6 py-5">
+            <Button
+              type="button"
+              disabled={busy || !canSubmit}
+              onClick={submit}
+              className="min-w-35 gap-2"
+            >
+              {busy ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Check className="size-4" />
+              )}
+              Confirmar destino
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-4">
           {/* Identidad del artículo */}
-          <section className="flex items-start gap-3 rounded-xl border border-slate-200/70 p-4 dark:border-slate-700/60">
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted">
-              <Package className="size-4 text-muted-foreground" />
-            </div>
-            <div className="min-w-0 flex-1 space-y-0.5">
-              <div className="flex items-center gap-1.5">
-                <p className="font-mono text-sm font-semibold">
-                  {article.part_number || "Sin P/N"}
+          <PanelSection icon={Package} title="Artículo" compact>
+            <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-3">
+              <div className="min-w-0 space-y-1">
+                <div className="flex items-center gap-1.5">
+                  <p className="font-mono text-base font-semibold wrap-anywhere">
+                    {article.part_number || "Sin P/N"}
+                  </p>
+                  <CopyPartNumberButton value={article.part_number} />
+                </div>
+                <p className="text-sm text-muted-foreground wrap-anywhere">
+                  {article.batch?.name || "Sin descripción"}
                 </p>
-                <CopyPartNumberButton value={article.part_number} />
+                <p className="flex items-center gap-1.5 text-[13px] text-muted-foreground">
+                  Ahora en
+                  <TagBadge tone="slate" className="h-5 px-2">
+                    {article.batch?.warehouse?.location?.cod_iata ??
+                      "sede desconocida"}
+                  </TagBadge>
+                </p>
               </div>
-              <p className="truncate text-xs text-muted-foreground">
-                {article.batch?.name || "Sin descripción"}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Actualmente en{" "}
-                <span className="font-medium text-foreground">
-                  {article.batch?.warehouse?.location?.cod_iata ??
-                    "sede desconocida"}
-                </span>
-              </p>
-            </div>
-            <div className="shrink-0 text-right">
-              <p className="font-mono text-sm font-semibold tabular-nums">
-                {available} {unit}
-              </p>
-              <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                por repartir
-              </p>
-            </div>
-          </section>
 
+              <div className="text-right max-sm:text-left">
+                <p className="text-[13px] text-muted-foreground">
+                  Por repartir
+                </p>
+                <p className="font-mono text-lg font-semibold tabular-nums">
+                  {formatQuantity(available)}{" "}
+                  <span className="text-sm font-normal text-muted-foreground">
+                    {unit}
+                  </span>
+                </p>
+              </div>
+            </div>
+          </PanelSection>
           {/* Reparto por sede */}
-          <section className="space-y-3">
-            <div className="flex items-center justify-between">
-              <Label className="text-sm font-semibold">
-                ¿A qué sede pertenece? <span className="text-red-500">*</span>
-              </Label>
-              <span
-                className={cn(
-                  "font-mono text-xs tabular-nums",
-                  exceeds
-                    ? "font-semibold text-red-500"
-                    : pending === 0 && assigned > 0
-                      ? "font-semibold text-emerald-600 dark:text-emerald-400"
-                      : "text-muted-foreground",
-                )}
-              >
-                {exceeds
-                  ? `Excede en ${(assigned - available).toFixed(2)} ${unit}`
-                  : `Sin asignar: ${pending} ${unit}`}
-              </span>
-            </div>
+          <PanelSection
+            icon={MapPin}
+            title="¿A qué sede pertenece?"
+            hint={
+              isSplittable
+                ? "Reparta la cantidad entre las sedes que correspondan."
+                : "Es una sola pieza: va entera a una sede."
+            }
+            compact
+            action={
+              exceeds ? (
+                <TagBadge tone="rose">
+                  Excede en {formatQuantity(assigned - available)} {unit}
+                </TagBadge>
+              ) : complete ? (
+                <TagBadge tone="emerald" icon={Check}>
+                  Completo
+                </TagBadge>
+              ) : (
+                <TagBadge tone="slate">
+                  Sin asignar: {formatQuantity(pending)} {unit}
+                </TagBadge>
+              )
+            }
+          >
+            {/* La lista llega a los bordes del panel: sin recuadro por sede, con
+                una línea entre filas. La barra de avance queda pegada bajo la
+                franja del encabezado. */}
+            <div className="-m-3 overflow-hidden rounded-b-xl">
+              {isSplittable && (
+                <div aria-hidden className="h-1 bg-muted">
+                  <div
+                    className={cn(
+                      "h-full transition-[width,background-color] duration-300 ease-out",
+                      exceeds
+                        ? "bg-rose-500"
+                        : complete
+                          ? "bg-emerald-500"
+                          : "bg-primary",
+                    )}
+                    style={{
+                      width: `${Math.min(100, (assigned / available) * 100)}%`,
+                    }}
+                  />
+                </div>
+              )}
 
-            {isLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="size-4 animate-spin text-muted-foreground" />
-              </div>
-            ) : (
-              <div className="grid gap-2">
-                {locations.map((location) => {
-                  const isCurrent = location.id === currentLocationId;
-                  const value = amounts[location.id] ?? "";
-                  const isSelected = Number(value) > 0;
+              {isLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="size-4 animate-spin text-muted-foreground" />
+                </div>
+              ) : (
+                <ul className="divide-y divide-border/60">
+                  {locations.map((location) => {
+                    const isCurrent = location.id === currentLocationId;
+                    const value = amounts[location.id] ?? "";
+                    const isSelected = Number(value.replace(",", ".")) > 0;
 
-                  // Solo un traslado abre salida, y toda salida se le atribuye
-                  // a alguien: lo que se queda aquí sigue el camino de siempre.
-                  const needsRequester = isSelected && !isCurrent;
+                    // Solo un traslado abre salida, y toda salida se le atribuye
+                    // a alguien: lo que se queda aquí sigue el camino de siempre.
+                    const needsRequester = isSelected && !isCurrent;
 
-                  // El personal se acota por el departamento elegido, no por la
-                  // sede: los cargos son genéricos ("Jefe", "Ayudante") y es el
-                  // departamento el que separa el almacén de una sede y otra.
-                  const chosenDepartment = departments[location.id];
-                  const locationEmployees = chosenDepartment
-                    ? employees.filter(
-                        (employee) =>
-                          String(employee.department?.id) === chosenDepartment,
-                      )
-                    : [];
+                    // El personal se acota por el departamento elegido, no por la
+                    // sede: los cargos son genéricos ("Jefe", "Ayudante") y es el
+                    // departamento el que separa el almacén de una sede y otra.
+                    const chosenDepartment = departments[location.id];
+                    const locationEmployees = chosenDepartment
+                      ? employees.filter(
+                          (employee) =>
+                            String(employee.department?.id) ===
+                            chosenDepartment,
+                        )
+                      : [];
 
-                  return (
-                    <div
-                      key={location.id}
-                      className={cn(
-                        "rounded-xl border p-3 transition-colors",
-                        isSelected
-                          ? "border-primary bg-primary/5"
-                          : "border-slate-200/70 dark:border-slate-700/60",
-                      )}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted">
-                          {isCurrent ? (
-                            <MapPin className="size-4 text-muted-foreground" />
-                          ) : (
-                            <Truck className="size-4 text-muted-foreground" />
+                    const identity = (
+                      <span className="min-w-0 flex-1 basis-36">
+                        <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-semibold">
+                          {location.cod_iata}
+                          {isCurrent && (
+                            <TagBadge tone="sky" className="h-5 px-2">
+                              Donde está ahora
+                            </TagBadge>
                           )}
-                        </div>
-
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium">
-                            {location.cod_iata}
-                            {isCurrent && (
-                              <span className="ml-2 text-xs font-normal text-muted-foreground">
-                                donde está ahora
-                              </span>
-                            )}
-                          </p>
-                          <p className="truncate text-xs text-muted-foreground">
-                            {location.address}
-                          </p>
-                        </div>
-
-                        {/* Con una sola unidad no hay nada que repartir: la sede
-                          se marca entera y se evita pedir una cantidad que
-                          solo puede ser 1. */}
+                        </span>
+                        <span className="block text-[13px] text-muted-foreground wrap-anywhere">
+                          {locationName(location)}
+                        </span>
+                      </span>
+                    );
+                    return (
+                      <li
+                        key={location.id}
+                        className={cn(
+                          "px-3 py-3 transition-colors duration-200",
+                          isSelected && "bg-primary/5",
+                        )}
+                      >
                         {isSplittable ? (
-                          // La unidad va FUERA del campo y no superpuesta: su
-                          // ancho depende del texto ("UNIDADES" es largo) y con
-                          // un padding fijo terminaba encima de lo escrito.
-                          <div className="flex shrink-0 items-center gap-2">
-                            <Input
-                              inputMode="decimal"
-                              disabled={busy}
-                              value={value}
-                              onChange={(event) =>
-                                setAmount(location.id, event.target.value)
-                              }
-                              placeholder="0"
-                              className="h-9 w-24 text-right font-mono tabular-nums"
-                            />
-                            <span className="w-20 shrink-0 text-xs text-muted-foreground">
-                              {unit}
-                            </span>
+                          <div className="flex flex-wrap items-center gap-x-3 gap-y-3">
+                            {identity}
+
+                            {/* La unidad va FUERA del campo y no superpuesta: su
+                              ancho depende del texto ("UNIDADES" es largo) y con
+                              un padding fijo terminaba encima de lo escrito. */}
+                            <div className="flex w-full items-center gap-2 sm:w-auto">
+                              <Input
+                                inputMode="decimal"
+                                disabled={busy}
+                                value={value}
+                                aria-label={`Cantidad para ${location.cod_iata}`}
+                                onChange={(event) =>
+                                  setAmount(location.id, event.target.value)
+                                }
+                                placeholder="0"
+                                className={cn(
+                                  numericFieldClass,
+                                  "h-10 min-w-0 flex-1 text-right sm:w-28 sm:flex-none max-sm:text-base",
+                                )}
+                              />
+                              <span className="w-14 shrink-0 text-xs text-muted-foreground">
+                                {unit}
+                              </span>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                disabled={busy || pending <= 0}
+                                onClick={() => assignRemaining(location.id)}
+                                className="h-10 shrink-0 px-3 text-sm"
+                              >
+                                Resto
+                              </Button>
+                            </div>
                           </div>
                         ) : (
-                          <Button
+                          // Con una sola unidad no hay nada que repartir: toda la
+                          // fila elige la sede, sin pedir una cantidad que solo
+                          // puede ser 1.
+                          <button
                             type="button"
-                            size="sm"
-                            variant={isSelected ? "default" : "outline"}
+                            aria-pressed={isSelected}
                             disabled={busy}
                             onClick={() => toggleWhole(location.id)}
-                            className="h-8 shrink-0"
+                            className="-mx-1 flex w-[calc(100%+0.5rem)] items-center gap-3 rounded-lg px-1 text-left outline-none focus-visible:ring-2 focus-visible:ring-primary/40 disabled:cursor-not-allowed disabled:opacity-60"
                           >
-                            {isSelected ? "Seleccionada" : "Elegir"}
-                          </Button>
-                        )}
-                      </div>
-
-                      {needsRequester && (
-                        <div className="mt-3 grid gap-3 border-t border-dashed pt-3 sm:grid-cols-2">
-                          <div className="space-y-1.5">
-                            <Label className="text-xs font-medium">
-                              Departamento{" "}
-                              <span className="text-red-500">*</span>
-                            </Label>
-                            <Select
-                              value={chosenDepartment ?? ""}
-                              onValueChange={(value) => {
-                                setDepartments((prev) => ({
-                                  ...prev,
-                                  [location.id]: value,
-                                }));
-                                // El solicitante se elige dentro del departamento:
-                                // al cambiarlo, el anterior ya no pertenece.
-                                setRequesters((prev) => {
-                                  const next = { ...prev };
-                                  delete next[location.id];
-                                  return next;
-                                });
-                              }}
-                            >
-                              <SelectTrigger className="h-9 text-xs">
-                                <SelectValue placeholder="Seleccione..." />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {allDepartments.map((department) => (
-                                  <SelectItem
-                                    key={department.id}
-                                    value={String(department.id)}
-                                  >
-                                    {department.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-
-                          <div className="space-y-1.5">
-                            <Label className="text-xs font-medium">
-                              Solicitado por{" "}
-                              <span className="text-red-500">*</span>
-                            </Label>
-                            <Select
-                              value={requesters[location.id] ?? ""}
-                              onValueChange={(value) =>
-                                setRequesters((prev) => ({
-                                  ...prev,
-                                  [location.id]: value,
-                                }))
-                              }
-                            >
-                              <SelectTrigger className="h-9 text-xs">
-                                <SelectValue
-                                  placeholder={
-                                    chosenDepartment
-                                      ? "Seleccione..."
-                                      : "Elija el departamento"
-                                  }
-                                />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {locationEmployees.map((employee) => (
-                                  <SelectItem
-                                    key={employee.id}
-                                    value={employee.dni}
-                                  >
-                                    {employee.first_name} {employee.last_name}
-                                    {employee.job_title?.name
-                                      ? ` — ${employee.job_title.name}`
-                                      : ""}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            {chosenDepartment &&
-                              locationEmployees.length === 0 && (
-                                <p className="text-[11px] text-amber-600 dark:text-amber-400">
-                                  Ese departamento no tiene empleados
-                                  registrados.
-                                </p>
+                            {identity}
+                            <span
+                              className={cn(
+                                "flex size-5 shrink-0 items-center justify-center rounded-full border transition-colors duration-200",
+                                isSelected
+                                  ? "border-primary bg-primary text-primary-foreground"
+                                  : "border-slate-400/60 dark:border-slate-600/60",
                               )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </section>
+                            >
+                              {isSelected && <Check className="size-3" />}
+                            </span>
+                          </button>
+                        )}
 
-          {/* Consecuencia del reparto */}
+                        {needsRequester && (
+                          <div className="mt-3 grid gap-3 motion-safe:animate-reveal sm:grid-cols-2">
+                            <div className="space-y-1.5">
+                              <Label className={labelClass}>
+                                Departamento{" "}
+                                <span className="text-red-500">*</span>
+                              </Label>
+                              <SearchableSelect
+                                value={chosenDepartment ?? ""}
+                                onChange={(value) => {
+                                  setDepartments((prev) => ({
+                                    ...prev,
+                                    [location.id]: value,
+                                  }));
+                                  // El solicitante se elige dentro del departamento:
+                                  // al cambiarlo, el anterior ya no pertenece.
+                                  setRequesters((prev) => {
+                                    const next = { ...prev };
+                                    delete next[location.id];
+                                    return next;
+                                  });
+                                }}
+                                placeholder="Seleccione..."
+                                searchPlaceholder="Buscar departamento..."
+                                triggerClassName={pickerClass}
+                                options={allDepartments.map((department) => ({
+                                  value: String(department.id),
+                                  label: department.name,
+                                }))}
+                              />
+                            </div>
+
+                            <div className="space-y-1.5">
+                              <Label className={labelClass}>
+                                Solicitado por{" "}
+                                <span className="text-red-500">*</span>
+                              </Label>
+                              <SearchableSelect
+                                value={requesters[location.id] ?? ""}
+                                onChange={(value) =>
+                                  setRequesters((prev) => ({
+                                    ...prev,
+                                    [location.id]: value,
+                                  }))
+                                }
+                                disabled={!chosenDepartment}
+                                placeholder={
+                                  chosenDepartment
+                                    ? "Seleccione..."
+                                    : "Elija el departamento"
+                                }
+                                searchPlaceholder="Buscar empleado..."
+                                triggerClassName={pickerClass}
+                                options={locationEmployees.map((employee) => ({
+                                  value: employee.dni,
+                                  label: `${employee.first_name} ${employee.last_name}`,
+                                  description: employee.job_title?.name,
+                                }))}
+                              />
+                              {chosenDepartment &&
+                                locationEmployees.length === 0 && (
+                                  <p className="text-[13px] text-amber-600 dark:text-amber-400">
+                                    Ese departamento no tiene empleados
+                                    registrados.
+                                  </p>
+                                )}
+                            </div>
+                          </div>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+          </PanelSection>
+
+          {/* Consecuencia del reparto y lo que falta para confirmar */}
           {allocations.length > 0 && (
             <div
               className={cn(
-                "rounded-xl border p-3 text-xs leading-relaxed",
-                allocations.some((a) => a.location_id !== currentLocationId)
-                  ? "border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800/60 dark:bg-amber-950/40 dark:text-amber-300"
-                  : "border-slate-200/70 bg-muted/40 text-muted-foreground dark:border-slate-700/60",
+                "flex items-start gap-2.5 rounded-xl border p-3.5 text-[13px] leading-relaxed motion-safe:animate-reveal",
+                hasTransfers
+                  ? "border-amber-300/70 bg-amber-50 text-amber-900 dark:border-amber-800/60 dark:bg-amber-950/40 dark:text-amber-200"
+                  : "border-slate-200 bg-muted/40 text-muted-foreground dark:border-slate-700/60",
               )}
             >
-              {allocations.some((a) => a.location_id !== currentLocationId)
-                ? "Se abrirá una salida por cada sede destino, para que lo de cada una no se mezcle. Quedarán en tránsito hasta que allá confirmen la recepción; lo que se queda entra a recepción de esta sede."
-                : "El artículo entrará a recepción de esta sede y seguirá el camino normal."}
+              {hasTransfers ? (
+                <Truck className="mt-0.5 size-4 shrink-0" />
+              ) : (
+                <PackageCheck className="mt-0.5 size-4 shrink-0" />
+              )}
+              <div className="space-y-1">
+                <p>
+                  {hasTransfers
+                    ? "Se abrirá una salida por cada sede destino, para que lo de cada una no se mezcle. Quedarán en tránsito hasta que allá confirmen la recepción; lo que se queda entra a recepción de esta sede."
+                    : "El artículo entrará a recepción de esta sede y seguirá el camino normal."}
+                </p>
+                {blocker && (
+                  <p className="flex items-center gap-1.5 font-medium">
+                    <Info className="size-3.5 shrink-0" />
+                    {blocker}
+                  </p>
+                )}
+              </div>
             </div>
           )}
 
           {/* Justificación */}
-          <section className="space-y-2">
-            <Label
-              htmlFor="determine-justification"
-              className="text-sm font-semibold"
-            >
-              Justificación{" "}
-              <span className="font-normal text-muted-foreground">
-                (opcional)
-              </span>
-            </Label>
+          <PanelSection
+            icon={MessageSquareText}
+            title="Justificación"
+            hint="Opcional. Queda en el documento del traslado y la otra sede lo verá."
+            compact
+          >
             <Textarea
               id="determine-justification"
+              aria-label="Justificación"
               value={justification}
               disabled={busy}
               onChange={(event) => setJustification(event.target.value)}
               rows={3}
-              className="resize-none"
+              className={textareaClass}
               placeholder="Ej: pedido por CBL para el trabajo del YV2272."
             />
-            <p className="text-xs text-muted-foreground">
-              Queda en el documento del traslado y la otra sede lo verá.
-            </p>
-          </section>
+          </PanelSection>
         </div>
-
-        <div className="flex shrink-0 items-center justify-end gap-2 border-t px-6 py-4">
-          <Button
-            type="button"
-            variant="ghost"
-            disabled={busy}
-            onClick={() => onOpenChange(false)}
-          >
-            Cancelar
-          </Button>
-
-          {canSubmit && (
-            <Button type="button" disabled={busy} onClick={submit}>
-              {busy && <Loader2 className="mr-2 size-4 animate-spin" />}
-              Confirmar destino
-            </Button>
-          )}
-        </div>
-      </DialogContent>
+      </FormDialogContent>
     </Dialog>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { ArticleDetailDialog } from "@/app/[company]/almacen/recepcion_articulos/_components/ArticleDetailDialog";
+import { TransitUpdatesButton } from "@/app/[company]/almacen/recepcion_articulos/_components/TransitUpdatesButton";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { Badge } from "@/components/ui/badge";
 import { INCOMING_REASON_LABELS } from "@/lib/incoming-readiness";
@@ -153,10 +154,21 @@ export const columns: AppColumnDef<TransitArticle>[] = [
       <DataTableColumnHeader column={column} title="Detalle" />
     ),
     meta: { title: "Detalle" },
-    cell: ({ row }) => (
-      <div className="flex justify-center">
-        <ArticleDetailDialog article={row.original} readOnly />
-      </div>
-    ),
+    cell: ({ row }) => {
+      const article = row.original;
+
+      // La bitácora de tránsito se ofrece mientras el artículo viaja y, ya en
+      // recepción, solo si dejó novedades que consultar.
+      const showTransitUpdates =
+        article.status?.toUpperCase() === "TRANSIT" ||
+        (article.transit_updates_count ?? 0) > 0;
+
+      return (
+        <div className="flex items-center justify-center gap-1">
+          {showTransitUpdates && <TransitUpdatesButton article={article} />}
+          <ArticleDetailDialog article={article} readOnly />
+        </div>
+      );
+    },
   },
 ];

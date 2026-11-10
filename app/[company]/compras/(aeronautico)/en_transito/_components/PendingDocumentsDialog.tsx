@@ -1,27 +1,23 @@
 "use client";
 
 import { useState } from "react";
-import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
+import { Check, FileWarning, Loader2, PackageCheck } from "lucide-react";
+
+import { Dialog } from "@/components/ui/dialog";
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { CheckboxCard } from "@/components/forms/mantenimiento/almacen/_components/CheckboxCard";
 import CopyPartNumberButton from "@/components/misc/CopyPartNumberButton";
+import { FilePickerField } from "@/components/misc/FilePickerField";
+import { TagBadge } from "@/components/misc/TagBadge";
+import { PanelSection } from "@/components/forms/PanelSection";
 import {
   useConsignRequirementDocuments,
   type RequirementConsignment,
 } from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { FileUpIcon, FileWarning, Loader2, PackageCheck } from "lucide-react";
-import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import type { TransitArticle } from "@/types/purchase";
 
 interface Props {
@@ -33,6 +29,14 @@ interface Props {
 }
 
 type ConsignmentState = Record<number, { file?: File; isPhysical: boolean }>;
+
+const MAX_FILE_BYTES = 10 * 1024 * 1024;
+const ACCEPTED_TYPES = [
+  "application/pdf",
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+];
 
 /**
  * Bloqueo documental del pase a recepción: muestra los requerimientos
@@ -52,10 +56,10 @@ export function PendingDocumentsDialog({
   const [consignments, setConsignments] = useState<ConsignmentState>({});
 
   const pendingRequirements = (article.document_requirements ?? []).filter(
-    (req) => req.documents.length === 0,
+    (req) => (req.documents ?? []).length === 0,
   );
 
-  const setFile = (requirementId: number, file?: File) => {
+  const setFile = (requirementId: number, file?: File) =>
     setConsignments((prev) => ({
       ...prev,
       [requirementId]: {
@@ -64,21 +68,30 @@ export function PendingDocumentsDialog({
         file,
       },
     }));
-  };
 
-  const setPhysical = (requirementId: number, isPhysical: boolean) => {
+  const setPhysical = (requirementId: number, isPhysical: boolean) =>
     setConsignments((prev) => ({
       ...prev,
       [requirementId]: { ...prev[requirementId], isPhysical },
     }));
+
+  const isResolved = (requirementId: number) => {
+    const entry = consignments[requirementId];
+    return !!entry?.file || !!entry?.isPhysical;
   };
 
-  const allResolved = pendingRequirements.every((req) => {
-    const entry = consignments[req.id];
-    return !!entry?.file || !!entry?.isPhysical;
-  });
+  const resolvedCount = pendingRequirements.filter((req) =>
+    isResolved(req.id),
+  ).length;
+  const allResolved = resolvedCount === pendingRequirements.length;
 
   const busy = consignRequirementDocuments.isPending;
+
+  // Lo elegido a medias no debe sobrevivir a un cierre: al reabrir se parte limpio.
+  const handleOpenChange = (next: boolean) => {
+    if (!next) setConsignments({});
+    onOpenChange(next);
+  };
 
   const handleConfirm = async () => {
     if (!selectedCompany?.slug || !allResolved) return;
@@ -91,30 +104,34 @@ export function PendingDocumentsDialog({
       }),
     );
 
-    await consignRequirementDocuments.mutateAsync({
-      company: selectedCompany.slug,
-      consignments: payload,
-    });
+    try {
+      await consignRequirementDocuments.mutateAsync({
+        company: selectedCompany.slug,
+        consignments: payload,
+      });
+    } catch {
+      // El aviso lo muestra la mutación; el diálogo sigue abierto para reintentar.
+      return;
+    }
 
     toast.success("Documentación consignada", {
       description:
         "Los documentos requeridos fueron registrados correctamente.",
     });
 
-    setConsignments({});
-    onOpenChange(false);
+    handleOpenChange(false);
     await onCompleted();
   };
 
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="max-w-lg">
-        <AlertDialogHeader>
-          <AlertDialogTitle className="flex items-center gap-2">
-            <FileWarning className="size-5 text-amber-500" />
-            Documentación requerida pendiente
-          </AlertDialogTitle>
-          <AlertDialogDescription>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <FormDialogContent
+        className="sm:max-w-lg"
+        icon={FileWarning}
+        tone="amber"
+        title="Documentación requerida pendiente"
+        description={
+          <>
             El artículo{" "}
             <span className="inline-flex items-center gap-1 align-middle">
               <span className="font-mono font-medium">
@@ -125,91 +142,90 @@ export function PendingDocumentsDialog({
             no puede pasar a recepción hasta consignar la documentación exigida
             en la requisición. Suba cada documento o marque su recepción en
             físico.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
+          </>
+        }
+        footer={
+          <>
+            <Button
+              variant="outline"
+              disabled={busy}
+              onClick={() => handleOpenChange(false)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              disabled={busy || !allResolved}
+              onClick={handleConfirm}
+              className="min-w-35 gap-2"
+            >
+              {busy ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <PackageCheck className="size-4" />
+              )}
+              Consignar y recibir
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <p
+            aria-live="polite"
+            className="text-[13px] text-muted-foreground tabular-nums"
+          >
+            {resolvedCount} de {pendingRequirements.length} documento
+            {pendingRequirements.length === 1 ? "" : "s"} resuelto
+            {pendingRequirements.length === 1 ? "" : "s"}
+          </p>
 
-        <div className="max-h-[50vh] space-y-4 overflow-y-auto py-1 pr-1">
           {pendingRequirements.map((req) => {
             const entry = consignments[req.id];
-            const resolved = !!entry?.file || !!entry?.isPhysical;
+            const resolved = isResolved(req.id);
 
             return (
-              <div
+              <PanelSection
                 key={req.id}
-                className={
-                  resolved
-                    ? "space-y-2 rounded-lg border border-emerald-300/60 bg-emerald-50/40 p-3 dark:border-emerald-700/40 dark:bg-emerald-950/20"
-                    : "space-y-2 rounded-lg border border-border bg-muted/30 p-3"
+                icon={FileWarning}
+                title={req.document_type?.name ?? "Documento"}
+                hint={req.document_type?.regulation ?? undefined}
+                compact
+                className={cn(
+                  "transition-colors duration-200",
+                  resolved &&
+                    "border-emerald-300/70 dark:border-emerald-700/40",
+                )}
+                action={
+                  resolved ? (
+                    <TagBadge tone="emerald" icon={Check}>
+                      Listo
+                    </TagBadge>
+                  ) : undefined
                 }
               >
-                <div>
-                  <p className="text-sm font-medium">
-                    Certificado{" "}
-                    <span className="font-semibold text-primary">
-                      {req.document_type?.name ?? "Documento"}
-                    </span>
-                  </p>
-                  {req.document_type?.regulation && (
-                    <p className="text-[10px] text-muted-foreground">
-                      {req.document_type.regulation}
-                    </p>
-                  )}
-                </div>
-
-                <div className="relative h-9 w-full">
-                  <FileUpIcon className="absolute left-3 top-1/2 z-10 size-4 -translate-y-1/2 text-gray-500" />
-                  <Input
-                    type="file"
-                    accept=".pdf,.jpg,.jpeg,.png,.webp"
+                <div className="space-y-3">
+                  <FilePickerField
+                    file={entry?.file}
+                    onChange={(file) => setFile(req.id, file)}
+                    acceptedTypes={ACCEPTED_TYPES}
+                    typesLabel="PDF o imagen"
+                    maxBytes={MAX_FILE_BYTES}
                     disabled={busy}
-                    onChange={(e) => setFile(req.id, e.target.files?.[0])}
-                    className="h-9 cursor-pointer pl-9 text-xs"
                   />
-                </div>
 
-                <div className="flex items-center gap-2">
-                  <Checkbox
+                  <CheckboxCard
                     id={`physical-${req.id}`}
                     checked={entry?.isPhysical ?? false}
+                    onCheckedChange={(checked) => setPhysical(req.id, checked)}
                     disabled={busy}
-                    onCheckedChange={(checked) =>
-                      setPhysical(req.id, checked === true)
-                    }
+                    label="Documento recibido en físico"
+                    description="Sirve como constancia cuando no hay archivo que subir."
                   />
-                  <Label
-                    htmlFor={`physical-${req.id}`}
-                    className="cursor-pointer text-xs font-normal"
-                  >
-                    Documento recibido en físico
-                  </Label>
                 </div>
-
-                <p className="text-[10px] text-muted-foreground">
-                  {entry?.file
-                    ? entry.file.name
-                    : "PDF o imagen. Máx. 10 MB. Requerido: archivo o constancia física."}
-                </p>
-              </div>
+              </PanelSection>
             );
           })}
         </div>
-
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={busy}>Cancelar</AlertDialogCancel>
-          <Button
-            disabled={busy || !allResolved}
-            onClick={handleConfirm}
-            className="gap-1.5"
-          >
-            {busy ? (
-              <Loader2 className="size-3.5 animate-spin" />
-            ) : (
-              <PackageCheck className="size-3.5" />
-            )}
-            Consignar y recibir
-          </Button>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+      </FormDialogContent>
+    </Dialog>
   );
 }

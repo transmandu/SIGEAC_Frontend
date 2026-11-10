@@ -1,3 +1,26 @@
+## v4.100.0 — 2026-11-10
+
+- feat: add condition tracking for dispatch returns and updates to rela… (#392)
+
+## v4.99.0 — 2026-11-10
+
+- feat: change purchases (#391)
+
+## v4.98.0 — 2026-11-10
+
+- feat: change in purchases (#383)
+
+## v4.97.0 — 2026-11-10
+
+- Merge pull request #390 from transmandu/fix/toolbox-creation-error
+- style: formato automatico (prettier)
+- feat(planning): enable uploading and downloading of LibreOffice files (.odt, .ods, .odp) in work orders (OT)
+
+## v4.96.1 — 2026-11-09
+
+- Merge pull request #389 from transmandu/fix/toolbox-creation-error
+- fix(warehouse): correct preview of documents and images during receiving
+
 ## v4.96.0 — 2026-11-09
 
 - feat(courses): add bulk exam upload and redesign exam management (#388)

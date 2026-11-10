@@ -1306,7 +1306,9 @@ export type FlightPayment = {
 export type JobTitle = {
   id: number;
   name: string;
-  description: string;
+  description: string | null;
+  /** Empleados con este cargo (lo trae el listado). */
+  employees_count?: number;
 };
 
 export type SmsTrainingGroup = {
@@ -1365,9 +1367,9 @@ export type SmsTrainingGroupEmployee = {
 
 export type Location = {
   id: number;
-  name: string;
+  /** Opcional: distingue dos sedes de una misma ciudad. Sin él, se usa `address`. */
+  name?: string | null;
   address: string;
-  type: string;
   isMainBase: boolean;
   cod_iata: string;
   companies: Company[];
@@ -1597,8 +1599,11 @@ export type Employee = {
   phone?: string | null;
   address?: string | null;
   location: Location;
+  location_id?: number;
   job_title: JobTitle;
+  job_title_id?: number;
   department: Department;
+  department_id?: number;
   user?: User;
   user_id?: number | null;
   start_date?: string | null;
@@ -1626,10 +1631,14 @@ export type Warehouse = {
   location: {
     id?: number;
     address: string;
-    type: string;
+    name?: string | null;
+    cod_iata?: string | null;
   };
   company: string;
-  type: string;
+  /** `AERONAUTICAL` o `GENERAL`; vacío en las compañías cuya tabla no lo guarda. */
+  type: string | null;
+  /** Registros que cuelgan del almacén (lo trae el listado de ajustes). */
+  records_count?: number;
 };
 
 export interface WorkOrder extends Request {
@@ -2155,6 +2164,10 @@ export type GeneralArticleCostHistoryEntry = {
   unit_label?: string | null;
   date: string | null;
   by: string | null;
+  /** Solo en compras: quien registró la entrega desde compras. Nombre completo. */
+  registered_by?: string | null;
+  /** Solo en compras: quien confirmó el ingreso al almacén. Nombre completo. */
+  confirmed_by?: string | null;
   purchase_order_number?: string | null;
   requisition_order_number?: string | null;
 };

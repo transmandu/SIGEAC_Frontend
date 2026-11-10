@@ -2,7 +2,7 @@
 
 import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import { useMemo, useState } from "react";
-import { Loader2, Plus, Ruler, Trash2, ArrowLeftRight } from "lucide-react";
+import { Plus, Ruler, Tag, Trash2, ArrowLeftRight } from "lucide-react";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 import { ConfirmDeleteDialog } from "@/components/dialogs/shared/ConfirmDeleteDialog";
 import {
@@ -11,9 +11,17 @@ import {
 } from "@/components/dropdowns/SettingsRowActions";
 import { SettingsDataTable } from "@/components/tables/SettingsDataTable";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
+import {
+  fieldClass,
+  selectTriggerClass,
+} from "@/components/forms/mantenimiento/almacen/_components/form-theme";
+import { ArticleFormShell } from "@/components/forms/mantenimiento/almacen/articulos/ArticleFormShell";
+import {
+  PanelSection,
+  PanelStaticLabel,
+  SwitchRow,
+} from "@/components/forms/PanelSection";
 import { TagBadge } from "@/components/misc/TagBadge";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
@@ -36,6 +44,7 @@ import {
   type UnitConversionPreset,
 } from "@/hooks/mantenimiento/almacen/articulos/useUnitConversionCatalog";
 import { type AppColumnDef } from "@/lib/table";
+import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import type { Unit } from "@/types";
 import type { ConversionDirection } from "@/types/supervisor";
@@ -217,7 +226,7 @@ function NewPresetDialog() {
         icon={ArrowLeftRight}
         title="Creación de Equivalencia"
         description="Plantilla reutilizable: el artículo copia el número y la conversión resultante es suya."
-        className="sm:max-w-lg"
+        className="sm:max-w-xl"
       >
         <NewPresetForm onDone={() => setOpen(false)} />
       </FormDialogContent>
@@ -249,6 +258,8 @@ function NewPresetForm({ onDone }: { onDone: () => void }) {
 
   const baseLabel = labelOf(baseUnitId) || "unidad base";
   const unitLabel = labelOf(unitId) || "unidad";
+  const sourceLabel = direction === "base_per_unit" ? unitLabel : baseLabel;
+  const resultLabel = direction === "base_per_unit" ? baseLabel : unitLabel;
 
   // Una unidad no se convierte a sí misma.
   const alternateUnits = useMemo(
@@ -280,140 +291,167 @@ function NewPresetForm({ onDone }: { onDone: () => void }) {
   };
 
   return (
-    <div className="space-y-3">
-      <div className="grid gap-2 sm:grid-cols-2">
-        <div className="space-y-1">
-          <label className="text-xs text-muted-foreground">
-            Unidad base del artículo
-          </label>
-          <Select
-            value={baseUnitId === "" ? "" : String(baseUnitId)}
-            onValueChange={(next) => {
-              setBaseUnitId(Number(next));
-              if (Number(next) === unitId) setUnitId("");
-            }}
-            disabled={isLoading}
-          >
-            <SelectTrigger className="h-9 text-xs">
-              <SelectValue placeholder="Seleccione..." />
-            </SelectTrigger>
-            <SelectContent>
-              {(units ?? []).map((unit: Unit) => (
-                <SelectItem
-                  key={unit.id}
-                  value={String(unit.id)}
-                  className="text-xs"
-                >
-                  {unit.label} ({unit.value})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-1">
-          <label className="text-xs text-muted-foreground">
-            Unidad a convertir
-          </label>
-          <Select
-            value={unitId === "" ? "" : String(unitId)}
-            onValueChange={(next) => setUnitId(Number(next))}
-            disabled={isLoading || !baseUnitId}
-          >
-            <SelectTrigger className="h-9 text-xs">
-              <SelectValue
-                placeholder={
-                  baseUnitId ? "Seleccione..." : "Elija primero la base"
-                }
-              />
-            </SelectTrigger>
-            <SelectContent>
-              {alternateUnits.map((unit: Unit) => (
-                <SelectItem
-                  key={unit.id}
-                  value={String(unit.id)}
-                  className="text-xs"
-                >
-                  {unit.label} ({unit.value})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      {!!unitId && (
-        <>
-          <Select
-            value={direction}
-            onValueChange={(next) => setDirection(next as ConversionDirection)}
-          >
-            <SelectTrigger className="h-9 text-xs sm:w-65">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="base_per_unit" className="text-xs">
-                1 {unitLabel} = ? {baseLabel}
-              </SelectItem>
-              <SelectItem value="units_per_base" className="text-xs">
-                1 {baseLabel} = ? {unitLabel}
-              </SelectItem>
-            </SelectContent>
-          </Select>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="whitespace-nowrap text-xs text-muted-foreground">
-              1 {direction === "base_per_unit" ? unitLabel : baseLabel} =
-            </span>
-            <Input
-              autoFocus
-              type="text"
-              inputMode="decimal"
-              placeholder="Ej: 3.78541"
-              value={value}
-              onChange={(event) =>
-                setValue(sanitizeDecimal(event.target.value))
-              }
-              className="h-9 w-32"
-            />
-            <span className="whitespace-nowrap text-xs text-muted-foreground">
-              {direction === "base_per_unit" ? baseLabel : unitLabel}
-            </span>
-          </div>
-        </>
-      )}
-
-      <Input
-        placeholder="Nombre (opcional). Ej: Galón a litros"
-        value={name}
-        onChange={(event) => setName(event.target.value)}
-        className="h-9 text-xs"
-      />
-
-      <label className="flex items-start gap-2 text-xs text-muted-foreground">
-        <Checkbox
-          checked={isPhysical}
-          onCheckedChange={(next) => setIsPhysical(next === true)}
-          className="mt-0.5"
-        />
-        <span>
-          Es una equivalencia física verificable (galón a litro, libra a kilo).
-          Las de empaque —caja, rollo, set— dependen de cada artículo y se
-          marcan como tales para que nadie las copie a ciegas.
-        </span>
-      </label>
-
-      <Button
-        className="w-full bg-primary text-white hover:bg-blue-900 disabled:bg-primary/70"
-        onClick={submit}
-        disabled={!isValid || createPreset.isPending}
+    <ArticleFormShell
+      busy={createPreset.isPending}
+      canSave={isValid}
+      submitLabel="Agregar al catálogo"
+      onCancel={onDone}
+      onSubmit={(event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        submit();
+      }}
+    >
+      <PanelSection
+        icon={Ruler}
+        title="Unidades"
+        hint="La equivalencia solo se copia a artículos cuya unidad base sea la elegida."
       >
-        {createPreset.isPending ? (
-          <Loader2 className="size-4 animate-spin" />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <PanelStaticLabel>Unidad base del artículo</PanelStaticLabel>
+            <Select
+              value={baseUnitId === "" ? "" : String(baseUnitId)}
+              onValueChange={(next) => {
+                setBaseUnitId(Number(next));
+                if (Number(next) === unitId) setUnitId("");
+              }}
+              disabled={isLoading}
+            >
+              <SelectTrigger className={cn(selectTriggerClass, "w-full")}>
+                <SelectValue placeholder="Seleccione..." />
+              </SelectTrigger>
+              <SelectContent>
+                {(units ?? []).map((unit: Unit) => (
+                  <SelectItem key={unit.id} value={String(unit.id)}>
+                    {unit.label} ({unit.value})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <PanelStaticLabel>Unidad a convertir</PanelStaticLabel>
+            <Select
+              value={unitId === "" ? "" : String(unitId)}
+              onValueChange={(next) => setUnitId(Number(next))}
+              disabled={isLoading || !baseUnitId}
+            >
+              <SelectTrigger className={cn(selectTriggerClass, "w-full")}>
+                <SelectValue
+                  placeholder={
+                    baseUnitId ? "Seleccione..." : "Elija primero la base"
+                  }
+                />
+              </SelectTrigger>
+              <SelectContent>
+                {alternateUnits.map((unit: Unit) => (
+                  <SelectItem key={unit.id} value={String(unit.id)}>
+                    {unit.label} ({unit.value})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </PanelSection>
+
+      <PanelSection
+        icon={ArrowLeftRight}
+        title="Equivalencia"
+        hint="Cuánto vale una unidad en la otra."
+      >
+        {unitId ? (
+          <div className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <PanelStaticLabel>Se lee como</PanelStaticLabel>
+                <Select
+                  value={direction}
+                  onValueChange={(next) =>
+                    setDirection(next as ConversionDirection)
+                  }
+                >
+                  <SelectTrigger className={cn(selectTriggerClass, "w-full")}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="base_per_unit">
+                      1 {unitLabel} = ? {baseLabel}
+                    </SelectItem>
+                    <SelectItem value="units_per_base">
+                      1 {baseLabel} = ? {unitLabel}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <PanelStaticLabel>Valor</PanelStaticLabel>
+                <div className="flex">
+                  <Input
+                    autoFocus
+                    type="text"
+                    inputMode="decimal"
+                    placeholder="Ej: 3.78541"
+                    value={value}
+                    onChange={(event) =>
+                      setValue(sanitizeDecimal(event.target.value))
+                    }
+                    className={cn(
+                      fieldClass,
+                      "min-w-0 flex-1 rounded-r-none tabular-nums",
+                    )}
+                  />
+                  <span className="flex max-w-[45%] items-center rounded-r-lg border border-l-0 border-slate-400/60 bg-muted/50 px-3 text-sm font-medium text-muted-foreground max-sm:text-base dark:border-slate-600/60">
+                    <span className="truncate">{resultLabel}</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-baseline gap-x-2 rounded-lg border border-dashed bg-muted/30 px-3 py-2.5 text-sm max-sm:text-base">
+              <span className="text-xs text-muted-foreground">Quedará así</span>
+              <span className="font-semibold tabular-nums wrap-anywhere text-foreground">
+                1 {sourceLabel} = {value || "…"} {resultLabel}
+              </span>
+            </div>
+          </div>
         ) : (
-          "Agregar al catálogo"
+          <p className="text-[13px] text-muted-foreground max-sm:text-sm">
+            Elija las dos unidades para indicar su equivalencia.
+          </p>
         )}
-      </Button>
-    </div>
+      </PanelSection>
+
+      <PanelSection
+        icon={Tag}
+        title="Identificación"
+        hint="Para reconocerla en el catálogo."
+      >
+        <div className="space-y-4">
+          <div>
+            <PanelStaticLabel>Nombre (opcional)</PanelStaticLabel>
+            <Input
+              placeholder="Ej: Galón a litros"
+              autoComplete="off"
+              maxLength={255}
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              className={fieldClass}
+            />
+          </div>
+
+          <SwitchRow
+            id="preset-is-physical"
+            checked={isPhysical}
+            onCheckedChange={setIsPhysical}
+            label="Es una equivalencia física verificable"
+            description="Galón a litro, libra a kilo. Las de empaque (caja, rollo, set) dependen de cada artículo y se marcan como tales para que nadie las copie a ciegas."
+          />
+        </div>
+      </PanelSection>
+    </ArticleFormShell>
   );
 }

@@ -22,6 +22,7 @@ export function buildSmsGroup({
       {
         href: `/${currentCompany?.slug}/sms/reportes`,
         label: "Reportes",
+        requiresTables: ["voluntary_reports"],
         active: pathname.includes(`/${currentCompany?.slug}/sms/reportes`),
         icon: ClipboardPen,
         roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
@@ -31,6 +32,7 @@ export function buildSmsGroup({
       {
         href: `/${currentCompany?.slug}/sms`,
         label: "Gestion de Reportes",
+        requiresTables: ["danger_identifications"],
         active: pathname.includes(
           `/${currentCompany?.slug}/sms/gestion_reportes`,
         ),
@@ -41,6 +43,7 @@ export function buildSmsGroup({
           {
             href: `/${currentCompany?.slug}/sms/gestion_reportes/peligros_identificados`,
             label: "Peligros Identificados",
+            requiresTables: ["danger_identifications"],
             roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
             active:
               pathname ===
@@ -49,6 +52,7 @@ export function buildSmsGroup({
           {
             href: `/${currentCompany?.slug}/sms/gestion_reportes/planes_de_mitigacion`,
             label: "Planes de Mitigacion",
+            requiresTables: ["mitigation_plans"],
             roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
             active:
               pathname ===
@@ -59,6 +63,7 @@ export function buildSmsGroup({
       {
         href: `/${currentCompany?.slug}/sms`,
         label: "Estadisticas",
+        requiresTables: ["voluntary_reports"],
         icon: AreaChartIcon,
         active: pathname.includes(`/${currentCompany?.slug}/sms/estadisticas`),
         roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
@@ -98,6 +103,7 @@ export function buildSmsGroup({
           {
             href: `/${currentCompany?.slug}/sms/estadisticas/actividades`,
             label: "Actividades",
+            requiresTables: ["sms_activities"],
             roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
             active:
               pathname ===
@@ -108,6 +114,7 @@ export function buildSmsGroup({
       {
         href: "",
         label: "Aseguramiento de la Calidad",
+        requiresTables: ["change_requests"],
         active: pathname.includes(
           `/${currentCompany?.slug}/sms/aseguramiento_calidad`,
         ),
@@ -158,14 +165,8 @@ export function buildSmsGroup({
           {
             href: `/${currentCompany?.slug}/sms/promocion/actividades/calendario`,
             label: "Calendario Actividades",
-            roles: [
-              "SUPERUSER",
-              "JEFE_SMS",
-              "ANALISTA_SMS",
-              "COORDINADOR_SMS",
-              "GERENTE_SMS",
-              "PRESIDENCIA",
-            ],
+            requiresTables: ["sms_activities"],
+            roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
             active:
               pathname ===
               `/${currentCompany?.slug}/sms/promocion/actividades/calendario`,
@@ -174,20 +175,15 @@ export function buildSmsGroup({
           {
             href: `/${currentCompany?.slug}/sms/promocion/actividades`,
             label: "Actividades",
-            roles: [
-              "SUPERUSER",
-              "JEFE_SMS",
-              "ANALISTA_SMS",
-              "COORDINADOR_SMS",
-              "GERENTE_SMS",
-              "PRESIDENCIA",
-            ],
+            requiresTables: ["sms_activities"],
+            roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
             active:
               pathname === `/${currentCompany?.slug}/sms/promocion/actividades`,
           },
           {
             href: `/${currentCompany?.slug}/sms/promocion/capacitacion_personal`,
             label: "Capacitación",
+            requiresTables: ["sms_training_groups"],
             roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
             requiresOmac: false,
             active:
@@ -197,14 +193,8 @@ export function buildSmsGroup({
           {
             href: `/${currentCompany?.slug}/sms/promocion/minutas_reunion`,
             label: "Minutas de Reunión",
-            roles: [
-              "SUPERUSER",
-              "JEFE_SMS",
-              "ANALISTA_SMS",
-              "COORDINADOR_SMS",
-              "GERENTE_SMS",
-              "PRESIDENCIA",
-            ],
+            requiresTables: ["meeting_minutes"],
+            roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
             active:
               pathname ===
               `/${currentCompany?.slug}/sms/promocion/minutas_reunion`,
@@ -214,6 +204,7 @@ export function buildSmsGroup({
       {
         href: "",
         label: "Gestión de Encuestas",
+        requiresTables: ["surveys"],
         active: pathname.includes(
           `/${currentCompany?.slug}/sms/gestion_encuestas`,
         ),
@@ -250,6 +241,7 @@ export function buildSmsGroup({
           {
             href: `/${currentCompany?.slug}/sms/ajustes/encuesta`,
             label: "Encuesta",
+            requiresTables: ["surveys"],
             roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
             active:
               pathname === `/${currentCompany?.slug}/sms/ajustes/encuesta`,
@@ -257,6 +249,7 @@ export function buildSmsGroup({
           {
             href: `/${currentCompany?.slug}/sms/ajustes/boletin`,
             label: "Boletines",
+            requiresTables: ["safety_bulletins"],
             roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
             active: pathname === `/${currentCompany?.slug}/sms/ajustes/boletin`,
           },
@@ -265,6 +258,7 @@ export function buildSmsGroup({
       {
         href: `/${currentCompany?.slug}/sms/aeronautical`,
         label: "Gestion de Riesgos",
+        requiresTables: ["risk_assessments"],
         active: pathname.includes(
           `/${currentCompany?.slug}/sms/aeronautical/gestion_de_riesgos`,
         ),
@@ -282,6 +276,7 @@ export function buildSmsGroup({
           {
             href: `/${currentCompany?.slug}/sms/aeronautical/gestion_de_riesgos/reportes`,
             label: "Reportes",
+            requiresTables: ["voluntary_reports"],
             roles: [
               "COORDINADOR_SMS",
               "GERENTE_SMS",
@@ -329,6 +324,7 @@ export function buildSmsGroup({
       {
         href: `/${currentCompany?.slug}/sms/uniformes`,
         label: "Uniformes",
+        requiresTables: ["uniform_items"],
         active: pathname.includes(`/${currentCompany?.slug}/sms/uniformes`),
         icon: Shirt,
         roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],

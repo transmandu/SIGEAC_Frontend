@@ -4,11 +4,19 @@ import { useDeferredValue, useMemo, useState } from "react";
 import { SettingsListPage } from "@/components/layout/SettingsListPage";
 import { SettingsDataTable } from "@/components/tables/SettingsDataTable";
 import CreateWarehouseDialog from "@/components/dialogs/ajustes/CreateWarehouseDialog";
-import { useGetWarehouses } from "@/hooks/administracion/useGetWarehouses";
-import { columns } from "./columns";
+import { useGetWarehousesWithCounts } from "@/hooks/administracion/useGetWarehouses";
+import { useIsSuperuser } from "@/hooks/helpers/useIsSuperuser";
+import { locationLabel } from "@/lib/locations";
+import { columns, warehouseTypeLabel } from "./columns";
 
 const WarehousesPage = () => {
-  const { data: warehouses, isPending, isError, refetch } = useGetWarehouses();
+  const {
+    data: warehouses,
+    isPending,
+    isError,
+    refetch,
+  } = useGetWarehousesWithCounts();
+  const isSuperuser = useIsSuperuser();
   const [search, setSearch] = useState("");
   const deferredSearch = useDeferredValue(search);
 
@@ -20,8 +28,8 @@ const WarehousesPage = () => {
     return warehouses.filter(
       (w) =>
         w.name?.toLowerCase().includes(q) ||
-        w.type?.toLowerCase().includes(q) ||
-        w.location?.address?.toLowerCase().includes(q),
+        warehouseTypeLabel(w.type).toLowerCase().includes(q) ||
+        locationLabel(w.location).toLowerCase().includes(q),
     );
   }, [warehouses, deferredSearch]);
 
@@ -29,7 +37,7 @@ const WarehousesPage = () => {
     <SettingsListPage
       title="Almacenes"
       heading="Control de Almacenes"
-      description="Administra los almacenes registrados y la sede a la que pertenece cada uno."
+      description="Administre los almacenes registrados, qué tipo de artículos guarda cada uno y la sede a la que pertenece."
       search={{
         value: search,
         onChange: setSearch,
@@ -50,7 +58,7 @@ const WarehousesPage = () => {
         filtered={!!deferredSearch.trim()}
         loading={isPending}
         emptyMessage="No se han encontrado almacenes."
-        actions={<CreateWarehouseDialog />}
+        actions={isSuperuser ? <CreateWarehouseDialog /> : undefined}
       />
     </SettingsListPage>
   );

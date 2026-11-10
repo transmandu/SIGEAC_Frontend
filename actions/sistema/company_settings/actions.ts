@@ -45,13 +45,13 @@ export const useUpdateCompanySettings = () => {
         queryClient.invalidateQueries();
       }
 
-      toast.success("¡Ajustes actualizados!", {
+      toast.success("¡Parámetros actualizados!", {
         description: "Los cambios ya aplican en todo el sistema.",
       });
     },
 
     onError: (error) => {
-      notifyError(error, { action: "actualizar los ajustes" });
+      notifyError(error, { action: "actualizar los parámetros" });
     },
   });
 

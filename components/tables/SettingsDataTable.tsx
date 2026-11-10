@@ -9,16 +9,10 @@ import {
   SortingState,
   useTable,
 } from "@tanstack/react-table";
-import {
-  Inbox,
-  RefreshCw,
-  SearchX,
-  SlidersHorizontal,
-  TriangleAlert,
-} from "lucide-react";
+import { Inbox, RefreshCw, SearchX, TriangleAlert } from "lucide-react";
 import { appTableFeatures, type AppColumnDef } from "@/lib/table";
 import { DataTablePagination } from "@/components/tables/DataTablePagination";
-import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
+import { MobileSortControl } from "@/components/tables/MobileSortControl";
 import { EmptyState } from "@/components/misc/EmptyState";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -68,6 +62,15 @@ interface SettingsDataTableProps<TData extends RowData> {
     value: ColumnFiltersState;
     onChange: (next: ColumnFiltersState) => void;
   };
+  /**
+   * Orden en el servidor: con paginación del lado del servidor, ordenar solo
+   * la página visible sería engañoso. La tabla muestra el estado; quien la usa
+   * manda el orden y vuelve a la primera página.
+   */
+  serverSorting?: {
+    value: SortingState;
+    onChange: (next: SortingState) => void;
+  };
   /** Con subfila, la fila entera se expande al hacer clic. */
   renderSubRow?: (row: TData) => React.ReactNode;
   /** `data-tour` extra del cuerpo, para tours que señalan las filas. */
@@ -100,12 +103,6 @@ const MOBILE_PRESS_SCALE =
 /** Las celdas vienen centradas para la tabla; en la tarjeta se leen a la izquierda. */
 const MOBILE_LEFT =
   "max-md:wrap-anywhere max-md:[&_.justify-center]:justify-start max-md:[&_.text-center]:text-left max-md:[&_.flex-col.items-center]:items-start";
-
-/** Tiene algo que ofrecer en el panel móvil: orden o filtro. */
-const isControllable = (column: {
-  getCanSort: () => boolean;
-  columnDef: { meta?: { filterable?: boolean } };
-}) => column.getCanSort() || !!column.columnDef.meta?.filterable;
 
 function mobileCellClass(columnId: string, label?: string, isTitle?: boolean) {
   if (columnId === "expander") {
@@ -162,14 +159,16 @@ export function SettingsDataTable<TData extends RowData>({
   pageSize = 15,
   serverPagination,
   serverFilters,
+  serverSorting,
   renderSubRow,
   bodyTourId,
 }: SettingsDataTableProps<TData>) {
-  const [sorting, setSorting] = useState<SortingState>([]);
+  const [localSorting, setLocalSorting] = useState<SortingState>([]);
+  const sorting = serverSorting ? serverSorting.value : localSorting;
+  const setSorting = serverSorting ? serverSorting.onChange : setLocalSorting;
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [expanded, setExpanded] = useState<ExpandedState>({});
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize });
-  const [controlsOpen, setControlsOpen] = useState(false);
 
   const stableData = useMemo(() => data, [data]);
 
@@ -186,6 +185,7 @@ export function SettingsDataTable<TData extends RowData>({
     columns,
     manualPagination: !!serverPagination,
     manualFiltering: !!serverFilters,
+    manualSorting: !!serverSorting,
     pageCount: serverPagination?.pageCount,
     state: {
       sorting,
@@ -193,7 +193,8 @@ export function SettingsDataTable<TData extends RowData>({
       pagination: activePagination,
       expanded,
     },
-    onSortingChange: setSorting,
+    onSortingChange: (updater) =>
+      setSorting(typeof updater === "function" ? updater(sorting) : updater),
     onColumnFiltersChange: (updater) => {
       const current = serverFilters ? serverFilters.value : columnFilters;
       const next = typeof updater === "function" ? updater(current) : updater;
@@ -220,14 +221,18 @@ export function SettingsDataTable<TData extends RowData>({
 
   const rows = table.getRowModel().rows;
   const activeFilters = serverFilters ? serverFilters.value : columnFilters;
-  const hasControls = table.getAllColumns().some(isControllable);
-  const activeControls = sorting.length + activeFilters.length;
-  const showControlsToggle =
-    hasControls &&
+  const hasColumnFilters = activeFilters.length > 0;
+
+  // El encabezado no existe en móvil: el orden se elige aquí, igual que en las
+  // tablas de compras.
+  const sortableColumns = table
+    .getAllLeafColumns()
+    .filter((column) => column.getCanSort() && column.columnDef.meta?.title);
+  const showSortControl =
+    sortableColumns.length > 0 &&
     !loading &&
     !error &&
-    (data.length > 0 || activeControls > 0);
-  const hasColumnFilters = activeFilters.length > 0;
+    (data.length > 0 || sorting.length > 0);
   const titledColumns = table
     .getVisibleLeafColumns()
     .filter(
@@ -246,32 +251,24 @@ export function SettingsDataTable<TData extends RowData>({
 
   return (
     <div className="flex flex-col gap-4">
-      {(actions || showControlsToggle) && (
-        <div
-          className={cn(
-            "flex items-center justify-between gap-2 max-md:flex-wrap",
-            !actions && "md:hidden",
-          )}
-        >
+      {actions && (
+        <div className="flex items-center justify-between gap-2 max-md:flex-wrap">
           <div className="flex items-center gap-2" data-tour={tour("new")}>
             {actions}
           </div>
+        </div>
+      )}
 
-          {showControlsToggle && (
-            <ActionTriggerButton
-              type="button"
-              aria-label="Ordenar y filtrar"
-              title="Ordenar y filtrar"
-              className="min-w-10 shrink-0 px-2.5 md:hidden"
-              aria-expanded={controlsOpen}
-              onClick={() => setControlsOpen((open) => !open)}
-            >
-              <SlidersHorizontal className="h-4 w-4" />
-              {activeControls > 0 && (
-                <span className="ml-1 tabular-nums">({activeControls})</span>
-              )}
-            </ActionTriggerButton>
-          )}
+      {showSortControl && (
+        <div className="md:hidden">
+          <MobileSortControl
+            options={sortableColumns.map((column) => ({
+              id: column.id,
+              title: column.columnDef.meta?.title ?? column.id,
+            }))}
+            value={sorting[0]}
+            onChange={(next) => setSorting(next ? [next] : [])}
+          />
         </div>
       )}
 
@@ -280,15 +277,7 @@ export function SettingsDataTable<TData extends RowData>({
         data-tour={tour("table")}
       >
         <Table role="table" className="table-fixed max-md:block">
-          <TableHeader
-            role="rowgroup"
-            className={cn(
-              "sticky top-0",
-              controlsOpen && showControlsToggle
-                ? "motion-safe:max-md:animate-reveal max-md:static max-md:mb-3 max-md:block max-md:rounded-xl max-md:border max-md:border-slate-200/40 max-md:bg-slate-200/40 dark:max-md:border-slate-700/60 dark:max-md:bg-slate-800/70"
-                : "max-md:hidden",
-            )}
-          >
+          <TableHeader role="rowgroup" className="sticky top-0 max-md:hidden">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow
                 role="row"
@@ -306,9 +295,6 @@ export function SettingsDataTable<TData extends RowData>({
                     }
                     className={cn(
                       "py-3 font-semibold text-muted-foreground md:w-(--col-w) max-md:block max-md:h-auto max-md:p-0",
-                      (header.isPlaceholder ||
-                        !isControllable(header.column)) &&
-                        "max-md:hidden",
                     )}
                   >
                     {header.isPlaceholder

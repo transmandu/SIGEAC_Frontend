@@ -24,6 +24,7 @@ import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import LoadingPage from "@/components/misc/LoadingPage";
 import ArticleLifecycleIcon from "@/components/misc/ArticleLifecycleIcon";
+import TransitUpdatesLink from "@/components/misc/TransitUpdatesLink";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -306,6 +307,11 @@ const BatchArticleCard = ({ article }: { article: any }) => {
                   {translateStatus(article.status)}
                 </Badge>
                 <ArticleLifecycleIcon stage={article.lifecycle_stage} />
+                <TransitUpdatesLink
+                  articleId={article.transit_article_id}
+                  stage={article.lifecycle_stage}
+                  count={article.transit_updates_count}
+                />
               </div>
             )}
           </div>
@@ -358,10 +364,10 @@ const BatchArticleCard = ({ article }: { article: any }) => {
             alt="batch article"
             width={100}
             height={100}
-            className="w-25 h-[100px] object-contain border rounded-md"
+            className="size-25 object-contain border rounded-md"
           />
         ) : (
-          <div className="flex flex-col items-center justify-center text-muted-foreground text-xs gap-1 h-[100px] w-25 border rounded-md">
+          <div className="flex flex-col items-center justify-center text-muted-foreground text-xs gap-1 size-25 border rounded-md">
             <ImageIcon className="w-5 h-5 opacity-70" />
             <span>Sin imagen</span>
           </div>
@@ -514,10 +520,10 @@ const GeneralArticleCard = ({ article }: { article: any }) => {
             alt="general article"
             width={100}
             height={100}
-            className="w-25 h-[100px] object-contain border rounded-md"
+            className="size-25 object-contain border rounded-md"
           />
         ) : (
-          <div className="flex flex-col items-center justify-center text-muted-foreground text-xs gap-1 h-[100px] w-25 border rounded-md">
+          <div className="flex flex-col items-center justify-center text-muted-foreground text-xs gap-1 size-25 border rounded-md">
             <ImageIcon className="w-5 h-5 opacity-70" />
             <span>Sin imagen</span>
           </div>
@@ -637,7 +643,7 @@ const RequisitionPage = () => {
                 alt="Requisición"
                 width={160}
                 height={160}
-                className="w-[160px] h-[160px] object-contain border rounded-md"
+                className="size-40 object-contain border rounded-md"
               />
               <p className="text-xs text-muted-foreground">
                 Imagen de la requisición

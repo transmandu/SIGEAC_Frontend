@@ -10,8 +10,12 @@ import { ConversionCatalogPanel } from "./_components/ConversionCatalogPanel";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { unidadesSteps } from "@/components/tour/steps/ajustes/unidades";
-import { motion } from "motion/react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  SegmentedTabs,
+  SegmentedTabsContent,
+  SegmentedTabsList,
+  SegmentedTabsTrigger,
+} from "@/components/misc/SegmentedTabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { columns } from "./columns";
 
@@ -78,38 +82,27 @@ const UnitsPage = () => {
       tourPrefix="unidades"
     >
       {canReviewConversions ? (
-        <Tabs value={tab} onValueChange={setTab}>
-          <TabsList className="flex h-auto w-full items-center justify-center gap-3 max-sm:flex-col max-sm:items-stretch max-sm:gap-1.5 rounded-xl border border-slate-200 bg-slate-100/60 p-1.5 dark:border-slate-700/60 dark:bg-slate-800/50">
+        <SegmentedTabs value={tab} onValueChange={setTab}>
+          <SegmentedTabsList className="max-sm:flex-col max-sm:items-stretch">
             {TABS.map(({ value, label }) => (
-              <TabsTrigger
-                key={value}
-                value={value}
-                className="relative h-8 w-56 flex-none max-md:w-auto max-md:grow max-sm:h-10 max-sm:w-full rounded-lg border border-slate-200/70 bg-transparent px-3 py-0 dark:border-slate-700/40 data-[state=active]:border-transparent text-sm font-medium text-muted-foreground shadow-none transition-colors hover:text-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none"
-              >
-                {tab === value && (
-                  <motion.span
-                    layoutId="units-tab-pill"
-                    className="absolute inset-0 rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-600/60 dark:bg-slate-900"
-                    transition={{ type: "spring", stiffness: 500, damping: 36 }}
-                  />
-                )}
-                <span className="relative truncate">{label}</span>
-              </TabsTrigger>
+              <SegmentedTabsTrigger key={value} value={value}>
+                {label}
+              </SegmentedTabsTrigger>
             ))}
-          </TabsList>
+          </SegmentedTabsList>
 
-          <TabsContent value="unidades" className="mt-4">
+          <SegmentedTabsContent value="unidades" className="mt-4">
             {unitsTable}
-          </TabsContent>
+          </SegmentedTabsContent>
 
-          <TabsContent value="catalogo" className="mt-4">
+          <SegmentedTabsContent value="catalogo" className="mt-4">
             <ConversionCatalogPanel />
-          </TabsContent>
+          </SegmentedTabsContent>
 
-          <TabsContent value="conversiones" className="mt-4">
+          <SegmentedTabsContent value="conversiones" className="mt-4">
             <ConversionsRegistryPanel />
-          </TabsContent>
-        </Tabs>
+          </SegmentedTabsContent>
+        </SegmentedTabs>
       ) : (
         unitsTable
       )}

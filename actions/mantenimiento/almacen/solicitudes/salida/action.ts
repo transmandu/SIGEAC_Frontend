@@ -256,6 +256,8 @@ export interface IDispatchReturnAction {
     // SEALED vuelve al almacén; ALTERED pasa por inspección de incoming. Es de
     // cada artículo: de una misma salida puede volver uno dañado y otro sano.
     condition: "SEALED" | "ALTERED";
+    /** Condición con que reingresa la unidad serializada; omitida, no cambia. */
+    condition_id?: number;
   }[];
   /** Fotos de cómo volvió cada artículo, por línea. Opcional. */
   evidences?: Record<number, File[]>;
@@ -280,6 +282,10 @@ function buildReturnFormData(data: IDispatchReturnAction): FormData {
     );
     form.append(`items[${index}][quantity]`, String(item.quantity));
     form.append(`items[${index}][condition]`, item.condition);
+
+    if (item.condition_id) {
+      form.append(`items[${index}][condition_id]`, String(item.condition_id));
+    }
   });
 
   Object.entries(data.evidences ?? {}).forEach(([lineId, files]) => {

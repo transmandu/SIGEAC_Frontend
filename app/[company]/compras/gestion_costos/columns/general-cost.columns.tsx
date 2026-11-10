@@ -12,7 +12,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import React from "react";
 import type { GeneralCostRow, GeneralCostColumnsArgs } from "@/types/purchase";
 import { costInBaseUnit } from "@/app/[company]/compras/gestion_costos/_utils/costInBaseUnit";
 
@@ -42,6 +41,7 @@ export function getGeneralCostColumns({
     {
       accessorKey: "description",
       size: 340,
+      meta: { title: "Descripción", mobileTitle: true },
       header: ({ column }) => (
         <div className="flex justify-center w-full">
           <DataTableColumnHeader filter column={column} title="Descripción" />
@@ -59,6 +59,7 @@ export function getGeneralCostColumns({
     {
       accessorKey: "brand_model",
       size: 260,
+      meta: { title: "Modelo / Marca" },
       header: ({ column }) => (
         <div className="flex justify-center w-full">
           <DataTableColumnHeader column={column} title="Modelo / Marca" />
@@ -76,6 +77,7 @@ export function getGeneralCostColumns({
     {
       accessorKey: "variant_type",
       size: 220,
+      meta: { title: "Present. / Especif." },
       header: ({ column }) => (
         <div className="flex justify-center w-full">
           <DataTableColumnHeader column={column} title="Present. / Especif." />
@@ -93,6 +95,7 @@ export function getGeneralCostColumns({
     {
       id: "unit_label",
       size: 120,
+      meta: { title: "Unidad" },
       header: ({ column }) => (
         <div className="flex justify-center w-full">
           <DataTableColumnHeader column={column} title="Unidad" />
@@ -110,6 +113,7 @@ export function getGeneralCostColumns({
     {
       accessorKey: "cost",
       size: 140,
+      meta: { title: "Costo Unitario" },
       header: ({ column }) => (
         <div className="flex justify-center w-full">
           <DataTableColumnHeader
@@ -176,7 +180,7 @@ export function getGeneralCostColumns({
                         {baseCostValue}
                       </span>
                       {convertedFromUnit ? (
-                        <span className="text-[10px] text-muted-foreground">
+                        <span className="text-xs text-muted-foreground">
                           /{row.original.general_primary_unit?.value}
                         </span>
                       ) : null}

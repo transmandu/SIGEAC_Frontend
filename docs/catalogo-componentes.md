@@ -124,6 +124,22 @@ Complementos en `ui/`: `DataTableColumHeader`, y en la raíz `DataTableMixedSort
 | `CompanyLink` | `misc/` | Enlace dentro de la compañía de la URL (`to="modulo/pantalla"`), para celdas de tabla |
 | `PaymentMethodMultiSelect` | `misc/` | Métodos de pago |
 
+### Piezas del lenguaje visual actual (nov 2026)
+
+Las pantallas migradas (ajustes, cuenta, notificaciones, compras) usan estas piezas; las reglas completas están en la guía de diseño del proyecto.
+
+| Componente | Ubicación | Para qué |
+|---|---|---|
+| `PanelSection` / `PanelFieldLabel` / `PanelStaticLabel` / `SwitchRow` | `forms/PanelSection` | Sección de formulario con franja de título, rótulos con línea e interruptor sí/no. `PanelFieldLabel` va dentro de un `FormField`; fuera de uno, `PanelStaticLabel` |
+| `OptionCombobox` | `forms/general/` | Selector con búsqueda de un registro de otra tabla (cargo, departamento, ubicación…); `onCreate` ofrece "Crear X" |
+| `DateField` | `misc/` | Fecha de calendario (`yyyy-MM-dd`): se teclea `dd/mm/aaaa` o se elige en el calendario. Sustituye a `<input type="date">` |
+| `Calendar` | `ui/calendar` | Calendario compartido; con `captionLayout="dropdown"` tiene cabecera de mes/año con vistas de meses y años |
+| `ImageCropDialog` | `forms/general/` | Recorte cuadrado de una foto antes de subirla (WebP ≤ 800 px) |
+| `SettingsListPage` / `SettingsDataTable` | `layout/`, `tables/` | Armazón y tabla de los listados de ajustes (ranura `tabs`, orden móvil con `MobileSortControl`) |
+| `TagBadge` / `EmptyState` | `misc/` | Etiquetas de estado y estados vacío/error |
+| `ContactSubRow` | `tables/` | Subfila de tabla con teléfono, correo y dirección a todo el ancho (pilotos, proveedores, agencias de envío) |
+| `FormDialogContent` | `dialogs/shared/` | Molde de los diálogos de formulario (pantalla completa en móvil) |
+
 ### Filtros y utilidades
 
 | Componente | Ubicación | Para qué |
@@ -376,7 +392,6 @@ varios módulos significa que es transversal; **huérfano** significa cero consu
 | `CreateModuleForm` | `forms/ajustes/CreateModuleForm.tsx` | _app_root | 100 |
 | `CreateUnitForm` | `forms/ajustes/CreateUnitForm.tsx` | ajustes, almacen, compras, general, ingenieria | 106 |
 | `CreateUserForm` | `forms/ajustes/CreateUserForm.tsx` | _app_root | 669 |
-| `CreateUserFromEmployeeForm` | `forms/ajustes/CreateUserFromEmployeeForm.tsx` | **huérfano** | 445 |
 | `_(sin export nombrado)_` | `forms/ajustes/CreateWarehouseForm.tsx` | ajustes | 164 |
 | `EditUserForm` | `forms/ajustes/EditUserForm.tsx` | _app_root | 185 |
 | `LoginForm` | `forms/ajustes/LoginForm.tsx` | _app_root | 257 |
