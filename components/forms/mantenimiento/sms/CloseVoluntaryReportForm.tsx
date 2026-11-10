@@ -1,9 +1,10 @@
 "use client";
 
+import { useId } from "react";
 import { zodResolver } from "@/lib/zod-resolver";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { CalendarIcon, Loader2, LockKeyhole, Paperclip } from "lucide-react";
+import { CalendarIcon, FileText } from "lucide-react";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
@@ -18,7 +19,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import {
   Popover,
   PopoverContent,
@@ -26,6 +26,8 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
+
+import { FileInput, FormActions } from "./_components/form-parts";
 
 const FORM_SCHEMA = z.object({
   close_date: z.date({
@@ -71,6 +73,7 @@ export default function CloseVoluntaryReportForm({
     control: form.control,
     name: "management_doc",
   });
+  const documentInputId = useId();
 
   const handleCancel = () => {
     form.reset(DEFAULT_VALUES);
@@ -99,9 +102,7 @@ export default function CloseVoluntaryReportForm({
           name="close_date"
           render={({ field }) => (
             <FormItem className="flex flex-col">
-              <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                Fecha de cierre
-              </FormLabel>
+              <FormLabel>Fecha de cierre</FormLabel>
               <Popover>
                 <PopoverTrigger asChild>
                   <FormControl>
@@ -109,16 +110,14 @@ export default function CloseVoluntaryReportForm({
                       type="button"
                       variant="outline"
                       className={cn(
-                        "pl-3 text-left font-normal",
+                        "w-full justify-start pl-3 text-left font-normal",
                         !field.value && "text-muted-foreground",
                       )}
                     >
-                      {field.value ? (
-                        format(field.value, "PPP", { locale: es })
-                      ) : (
-                        <span>Seleccione una fecha</span>
-                      )}
-                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      <CalendarIcon className="mr-2 h-4 w-4 opacity-60" />
+                      {field.value
+                        ? format(field.value, "PPP", { locale: es })
+                        : "Seleccione una fecha"}
                     </Button>
                   </FormControl>
                 </PopoverTrigger>
@@ -144,52 +143,29 @@ export default function CloseVoluntaryReportForm({
           name="management_doc"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              <FormLabel htmlFor={documentInputId}>
                 Documento de gestión (PDF)
               </FormLabel>
-              <FormControl>
-                <Input
-                  type="file"
-                  accept="application/pdf"
-                  onChange={(event) =>
-                    field.onChange(event.target.files?.[0] || undefined)
-                  }
-                />
-              </FormControl>
-              {selectedDocument && (
-                <p className="text-xs text-muted-foreground">
-                  {selectedDocument.name}
-                </p>
-              )}
+              <FileInput
+                id={documentInputId}
+                accept="application/pdf"
+                icon={FileText}
+                fileName={selectedDocument?.name}
+                placeholder="Adjuntar el PDF de cierre"
+                onChange={(event) =>
+                  field.onChange(event.target.files?.[0] || undefined)
+                }
+              />
               <FormMessage />
             </FormItem>
           )}
         />
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleCancel}
-            disabled={closeVoluntaryReport.isPending}
-          >
-            Cancelar
-          </Button>
-          <Button
-            type="submit"
-            className="w-full h-10"
-            disabled={closeVoluntaryReport.isPending}
-          >
-            {closeVoluntaryReport.isPending ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <>
-                <LockKeyhole className="mr-2 h-4 w-4" />
-              </>
-            )}
-            Cerrar
-          </Button>
-        </div>
+        <FormActions
+          onCancel={handleCancel}
+          submitLabel="Cerrar reporte"
+          isPending={closeVoluntaryReport.isPending}
+        />
       </form>
     </Form>
   );

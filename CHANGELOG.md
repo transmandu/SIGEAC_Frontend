@@ -1,3 +1,41 @@
+## v4.97.0 — 2026-11-10
+
+- Merge pull request #390 from transmandu/fix/toolbox-creation-error
+- style: formato automatico (prettier)
+- feat(planning): enable uploading and downloading of LibreOffice files (.odt, .ods, .odp) in work orders (OT)
+
+## v4.96.1 — 2026-11-09
+
+- Merge pull request #389 from transmandu/fix/toolbox-creation-error
+- fix(warehouse): correct preview of documents and images during receiving
+
+## v4.96.0 — 2026-11-09
+
+- feat(courses): add bulk exam upload and redesign exam management (#388)
+
+## v4.95.0 — 2026-11-09
+
+- Merge pull request #387 from transmandu/fix/toolbox-creation-error
+- refactor(responsive): adapt counter and cargo modules across mobile and desktop
+- feat(counter): add WhatsApp flight import modal and cargo manifest linking
+- fix(ui): prevent Radix Select layout shift and dropdown height collapse
+
+## v4.94.0 — 2026-11-09
+
+- Merge pull request #386 from transmandu/fix/toolbox-creation-error
+- style: formato automatico (prettier)
+- fix(warehouse): send tool_id and location_id when creating a toolbox
+- feat(operation): add counter pages for passenger flights
+
+## v4.93.0 — 2026-11-06
+
+- feat(sms): improve aeronautical risk management UI/UX (#385)
+
+## v4.92.0 — 2026-11-06
+
+- feat(courses): add all available modules to a training pattern (#384)
+- feat(courses): add training modules and patterns management (#381)
+
 ## v4.91.0 — 2026-11-05
 
 - feat: add serial and lot number display in various components and update search functionality

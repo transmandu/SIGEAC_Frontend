@@ -44,6 +44,27 @@ export const columns: AppColumnDef<SmsTrainingGroup>[] = [
     ),
   },
   {
+    accessorKey: "pattern",
+    size: 260,
+    header: ({ column }) => (
+      <div className="flex justify-center w-full">
+        <DataTableColumnHeader column={column} title="Patrón" />
+      </div>
+    ),
+    meta: { title: "Patrón" },
+    cell: ({ row }) => (
+      <div className="flex flex-col items-center gap-1 text-center">
+        <span className="text-sm font-medium">
+          {row.original.pattern?.name ?? "Sin patrón"}
+        </span>
+        <span className="text-xs text-muted-foreground">
+          {row.original.initial_total_hours ?? 0}h inicial /{" "}
+          {row.original.recurrent_total_hours ?? 0}h recurrente
+        </span>
+      </div>
+    ),
+  },
+  {
     accessorKey: "job_titles",
     size: 380,
     header: ({ column }) => (

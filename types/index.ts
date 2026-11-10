@@ -1315,8 +1315,41 @@ export type SmsTrainingGroup = {
   id: number;
   name: string;
   description?: string | null;
+  sms_training_module_pattern_id: number;
+  pattern?: SmsTrainingModulePattern | null;
   job_titles: JobTitle[];
   active_employees_count: number;
+  initial_total_hours?: number;
+  recurrent_total_hours?: number;
+  registered_by?: string;
+  updated_by?: string | null;
+};
+
+export type SmsTrainingModule = {
+  id: number;
+  number: number;
+  name: string;
+  description?: string | null;
+  is_active: boolean;
+  registered_by?: string;
+  updated_by?: string | null;
+};
+
+export type SmsTrainingPatternModule = SmsTrainingModule & {
+  pivot: {
+    initial_hours: string | number;
+    sort_order: number;
+  };
+};
+
+export type SmsTrainingModulePattern = {
+  id: number;
+  name: string;
+  description?: string | null;
+  is_active: boolean;
+  modules: SmsTrainingPatternModule[];
+  initial_total_hours: number;
+  recurrent_total_hours: number;
   registered_by?: string;
   updated_by?: string | null;
 };
@@ -1895,6 +1928,19 @@ export type CourseAttendance = {
   employee: Employee;
 };
 
+export type CourseUploadedCertificate = {
+  id: number;
+  employee_dni: string;
+  course_id: number;
+  completion_date: string;
+  document: string;
+  employee?: {
+    dni: string;
+    first_name: string;
+    last_name: string;
+  } | null;
+};
+
 export type SMSTrainingHistoryEntry = {
   id: number;
   employee_dni: string;
@@ -2258,6 +2304,40 @@ export interface SMSCertificateImport {
   started_at: string | null;
   finished_at: string | null;
 }
+
+export type CourseExamImportStatus =
+  "queued" | "running" | "completed" | "failed";
+
+export interface CourseExamImportResult {
+  /** Nombre original del archivo. */
+  file: string;
+  /** DNI leído del nombre del archivo. */
+  dni: string | null;
+  /** Empleado al que se asignó, si se encontró. */
+  employee: string | null;
+  status: "imported" | "failed";
+  /** Motivo del fallo, solo cuando `status` es `failed`. */
+  message: string | null;
+}
+
+export interface CourseExamImport {
+  id: string;
+  status: CourseExamImportStatus;
+  course_exam_id: number;
+  exam_name: string;
+  course_name: string;
+  total: number;
+  processed: number;
+  imported: number;
+  failed: number;
+  percentage: number;
+  results: CourseExamImportResult[];
+  error: string | null;
+  created_at: string;
+  updated_at: string;
+  started_at: string | null;
+  finished_at: string | null;
+}
 export interface ShippingAgency {
   id: number;
   name: string;
@@ -2351,6 +2431,15 @@ export type CargoManifest = {
   updated_at?: string;
   updated_by?: string | null;
   items: CargoManifestItem[];
+};
+
+export type AvailableCargoManifestSummary = {
+  id: number;
+  manifest_number: string;
+  total_weight: number;
+  aircraft_label?: string | null;
+  items_count?: number;
+  client_breakdown?: Record<string, number>;
 };
 
 export type CargoManifestItem = {
@@ -2870,3 +2959,90 @@ export type UpdateChangeRequestPayload = {
   document?: string | null;
   library_folder_paths?: string[];
 };
+
+export type FlightType = "PAX" | "CARGO_ONLY" | "HYBRID";
+export type FlightStatus = "BORRADOR" | "EN_VUELO" | "FINALIZADO";
+export type LodgeType =
+  "TURISTAS" | "TURISTA" | "PARTICULAR" | "RESIDENTE" | "EMPLEADO" | "N/A";
+
+export type PaxPassenger = {
+  id?: number;
+  pax_flight_id?: number;
+  seat_number: number;
+  full_name: string;
+  nationality: string;
+  id_number: string;
+  lodge_type: LodgeType;
+  agency?: string | null;
+  luggage_weight?: string | null;
+  body_weight?: number | null;
+  payment_method?: string | null;
+  amount_paid?: number | null;
+  return_flight?: boolean | null;
+  registered_by?: string;
+};
+
+export type PaxFlight = {
+  id: number;
+  flight_code: string;
+  flight_date: string | null;
+  flight_date_raw: string | null;
+  route: string;
+  aircraft_id: number | null;
+  external_aircraft: string | null;
+  aircraft_label: string;
+  aircraft_model: string;
+  captain_id: number | null;
+  first_officer_id: number | null;
+  external_captain_id: number | null;
+  external_first_officer_id: number | null;
+  captain_label: string;
+  first_officer_label: string;
+  flight_type: FlightType;
+  status: FlightStatus;
+  cargo_manifest_id: number | null;
+  cargo_manifest_number?: string | null;
+  month: number;
+  year: number;
+  passengers: PaxPassenger[];
+  cargo_breakdown: Record<string, number>;
+  created_by: string;
+  updated_by?: string | null;
+};
+
+export type CreatePaxFlightInput = {
+  flight_date: string;
+  route: string;
+  aircraft_id?: number | null;
+  external_aircraft?: string | null;
+  captain_id?: number | null;
+  first_officer_id?: number | null;
+  external_captain_id?: number | null;
+  external_first_officer_id?: number | null;
+  flight_type: FlightType;
+  cargo_manifest_id?: number | null;
+  passengers?: Omit<PaxPassenger, "id">[];
+};
+
+// ─── WhatsApp Import ────────────────────────────────────────────────────────
+
+export type WhatsAppItemType = "pax" | "frio" | "carga" | "agua";
+
+export interface WhatsAppParsedItem {
+  client: string;
+  type: WhatsAppItemType;
+  weight: number;
+  pax_count: number;
+}
+
+export interface WhatsAppParsedFlight {
+  items: WhatsAppParsedItem[];
+  total_weight: number;
+  pax_count: number;
+  cargo_weight: number;
+}
+
+export interface WhatsAppParseResult {
+  flights: WhatsAppParsedFlight[];
+  warnings: string[];
+}

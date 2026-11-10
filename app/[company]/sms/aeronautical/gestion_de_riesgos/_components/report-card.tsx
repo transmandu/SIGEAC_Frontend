@@ -1,65 +1,105 @@
-import { MapPin } from 'lucide-react';
+import { Check, FileText, MapPin } from "lucide-react";
 
-import { Badge } from '@/components/ui/badge';
-import { cn, formatDate } from '@/lib/utils';
+import { Badge } from "@/components/ui/badge";
+import { cn, formatDate } from "@/lib/utils";
 
 import {
-    getActionLabel,
-    getActionTone,
-    getReportCode,
-    isSelectable,
-    ReportType,
-    ReportWithHazard,
-} from './report-helpers';
+  getActionLabel,
+  getActionTone,
+  getReportCode,
+  isSelectable,
+  ReportType,
+  ReportWithHazard,
+} from "./report-helpers";
 
-type ReportCardProps<T extends { id: number; report_date: string | Date; description: string; status: string }> = {
-    report: ReportWithHazard<T>;
-    type: ReportType;
-    selected: boolean;
-    meta: string;
-    onSelect: () => void;
+type ReportCardProps<
+  T extends {
+    id: number;
+    report_date: string | Date;
+    description: string;
+    status: string;
+  },
+> = {
+  report: ReportWithHazard<T>;
+  type: ReportType;
+  selected: boolean;
+  meta: string;
+  onSelect: () => void;
 };
 
-export function ReportCard<T extends { id: number; report_date: string | Date; description: string; status: string }>({
-    report,
-    type,
-    selected,
-    meta,
-    onSelect,
-}: ReportCardProps<T>) {
-    const selectable = isSelectable(report);
+export function ReportCard<
+  T extends {
+    id: number;
+    report_date: string | Date;
+    description: string;
+    status: string;
+  },
+>({ report, type, selected, meta, onSelect }: ReportCardProps<T>) {
+  const selectable = isSelectable(report);
 
-    return (
-        <button
-            type="button"
-            onClick={onSelect}
-            disabled={!selectable}
-            className={cn(
-                'w-full rounded-lg border p-4 text-left transition-colors',
-                selected && 'border-primary bg-primary/5',
-                selectable && 'hover:border-primary/50 hover:bg-accent/40',
-                !selectable && 'cursor-not-allowed opacity-65'
-            )}
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      disabled={!selectable}
+      aria-pressed={selected}
+      title={
+        selectable
+          ? undefined
+          : "Solo puede abrir reportes abiertos o con notificación registrada."
+      }
+      className={cn(
+        "group w-full rounded-lg border bg-card p-3 text-left transition-colors",
+        "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-hidden",
+        selected
+          ? "border-primary bg-primary/5 ring-1 ring-primary/25"
+          : "hover:border-primary/40 hover:bg-accent/40",
+        !selectable &&
+          "cursor-not-allowed opacity-60 hover:border-border hover:bg-card",
+      )}
+    >
+      <div className="flex items-start gap-3">
+        <span
+          className={cn(
+            "mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border",
+            selected
+              ? "border-primary bg-primary text-primary-foreground"
+              : "bg-muted text-muted-foreground",
+          )}
         >
-            <div className="flex items-start justify-between gap-3">
-                <div className="space-y-1">
-                    <p className="text-sm font-semibold">{getReportCode(report, type)}</p>
-                    <p className="text-sm text-muted-foreground">{formatDate(report.report_date)}</p>
-                </div>
-                <Badge className={cn('border', getActionTone(report))}>{getActionLabel(report)}</Badge>
-            </div>
+          {selected ? (
+            <Check className="h-4 w-4" />
+          ) : (
+            <FileText className="h-4 w-4" />
+          )}
+        </span>
 
-            <p className="mt-3 line-clamp-3 text-sm">{report.description}</p>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-2">
+            <p className="text-sm font-semibold tracking-tight tabular-nums">
+              {getReportCode(report, type)}
+            </p>
+            <Badge className={cn("shrink-0 border", getActionTone(report))}>
+              {getActionLabel(report)}
+            </Badge>
+          </div>
 
-            <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
-                <MapPin className="h-3.5 w-3.5" />
-                <span>{meta || 'Sin ubicación asociada'}</span>
-            </div>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {formatDate(report.report_date)}
+            <span className="mx-1.5">·</span>
+            {report.status}
+          </p>
 
-            <div className="mt-3 flex items-center justify-between gap-2">
-                <Badge variant="outline">{report.status}</Badge>
-                {selected && <span className="text-xs font-medium">Seleccionado</span>}
-            </div>
-        </button>
-    );
+          <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
+            {report.description}
+          </p>
+
+          <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+            <MapPin className="h-3.5 w-3.5 shrink-0" />
+            <span className="truncate">{meta || "Sin ubicación asociada"}</span>
+          </div>
+        </div>
+      </div>
+    </button>
+  );
 }

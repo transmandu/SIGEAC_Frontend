@@ -4,7 +4,10 @@ import { ContentLayout } from "@/components/layout/ContentLayout";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { useGetCargoShipmentsByAircraft } from "@/hooks/operaciones/cargo/useGetCargoShipmentsByAircraft";
 import { useGetAircrafts } from "@/hooks/aerolinea/aeronaves/useGetAircrafts";
-import { getColumns } from "@/app/[company]/operaciones/cargo/columns";
+import {
+  getColumns,
+  CargoShipmentCard,
+} from "@/app/[company]/operaciones/cargo/columns";
 import { DataTable } from "@/app/[company]/operaciones/cargo/data-table";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -71,13 +74,16 @@ const CargoByAircraftPage = () => {
 
         {/* Cabecera con nombre de la aeronave */}
         <div className="flex flex-col gap-2 text-center md:text-left">
-          <div className="flex items-center justify-center gap-3">
-            <Plane className="h-7 w-7 text-primary" />
-            <h1 className="text-4xl font-bold" data-tour="cargo-guia-title">
+          <div className="flex items-center justify-center gap-2 px-1 sm:gap-3">
+            <Plane className="h-6 w-6 shrink-0 text-primary sm:h-7 sm:w-7" />
+            <h1
+              className="break-words text-2xl font-bold sm:text-4xl"
+              data-tour="cargo-guia-title"
+            >
               {aircraft ? (
                 <>
                   <span className="text-primary">{aircraft.acronym}</span>
-                  <span className="text-muted-foreground text-2xl ml-2 font-normal">
+                  <span className="ml-2 text-lg font-normal text-muted-foreground sm:text-2xl">
                     — {aircraft.model}
                   </span>
                 </>
@@ -93,7 +99,7 @@ const CargoByAircraftPage = () => {
 
         {/* Filtros y Acciones */}
         <div className="flex flex-col sm:flex-row justify-between items-center bg-muted/30 p-3 rounded-lg border mt-4 mb-2 gap-4">
-          <div className="flex items-center gap-3">
+          <div className="flex w-full flex-wrap items-center justify-center gap-3 sm:w-auto sm:justify-start">
             <Button
               asChild
               variant="outline"
@@ -119,9 +125,13 @@ const CargoByAircraftPage = () => {
             />
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex w-full flex-wrap items-center justify-center gap-2 sm:w-auto">
             {canWrite && isCurrentMonth && (
-              <Button asChild data-tour="cargo-guia-btn-nuevo">
+              <Button
+                asChild
+                data-tour="cargo-guia-btn-nuevo"
+                className="w-full sm:w-auto"
+              >
                 <Link
                   href={`/${company}/operaciones/cargo/${aircraft_id}/nuevo`}
                 >
@@ -132,6 +142,7 @@ const CargoByAircraftPage = () => {
             )}
             <Button
               variant="outline"
+              className="w-full sm:w-auto"
               onClick={() =>
                 exportToExcel(aircraft_id, month, year, aircraft?.acronym)
               }
@@ -152,7 +163,20 @@ const CargoByAircraftPage = () => {
             Ha ocurrido un error al cargar los registros...
           </p>
         ) : (
-          data && <DataTable columns={columns} data={data} />
+          data && (
+            <DataTable
+              columns={columns}
+              data={data}
+              renderMobileCard={({ row }) => (
+                <CargoShipmentCard
+                  shipment={row.original}
+                  isCurrentMonth={isCurrentMonth}
+                  company={company}
+                  canWrite={canWrite}
+                />
+              )}
+            />
+          )
         )}
       </div>
     </ContentLayout>

@@ -8,6 +8,9 @@ interface ToolBoxProps {
   name: string;
   created_by: string;
   delivered_by: string;
+  employee_dni?: string;
+  employee_id?: string;
+  location_id?: number | string;
   tool_id: string[];
 }
 
@@ -23,11 +26,7 @@ export const useCreateToolBox = () => {
       data: ToolBoxProps;
       company: string;
     }) => {
-      await axiosInstance.post(`/${company}/tool-box`, data, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      await axiosInstance.post(`/${company}/tool-box`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tool-boxes"] });

@@ -62,24 +62,24 @@ export default function NewCargoShipmentPage() {
       <PageHeader className="mb-6" />
 
       <div className="space-y-6">
-        <div className="flex items-center gap-4">
+        <div className="flex items-start gap-3 sm:items-center sm:gap-4">
           <Button
             asChild
             variant="outline"
             size="icon"
-            className="h-9 w-9"
+            className="h-9 w-9 shrink-0"
             data-tour="cargo-crear-btn-volver"
           >
             <Link href={`/${company}/operaciones/cargo/${aircraft_id}`}>
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>
-          <div>
+          <div className="min-w-0">
             <h1
-              className="text-3xl font-bold tracking-tight text-primary flex items-center gap-2"
+              className="flex items-center gap-2 break-words text-2xl font-bold tracking-tight text-primary sm:text-3xl"
               data-tour="cargo-crear-title"
             >
-              <PackagePlus className="text-muted-foreground mr-1 size-7" />
+              <PackagePlus className="mr-1 size-6 shrink-0 text-muted-foreground sm:size-7" />
               Nuevo Registro De Carga
             </h1>
             <p className="text-muted-foreground mt-1">

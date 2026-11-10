@@ -41,6 +41,7 @@ import { EditTransitArticleDialog } from "@/app/[company]/compras/(aeronautico)/
 import SecureFileViewer from "@/components/library/SecureFileViewer";
 import { DocumentSupportBadge } from "@/components/misc/DocumentSupportBadge";
 import { InfoSection } from "@/components/misc/InfoSection";
+import { isImageDocument } from "@/lib/warehouse/documents";
 import axiosInstance from "@/lib/axios";
 import { cn, toAltPartNumbers } from "@/lib/utils";
 import type { TransitArticle } from "@/types/purchase/in-transit";
@@ -535,7 +536,8 @@ export function ArticleDetailDialog({
         <SecureFileViewer
           isOpen={!!previewDoc}
           onClose={() => setPreviewDoc(null)}
-          title={article.part_number}
+          title={previewDoc.file_path?.split("/").pop() ?? article.part_number}
+          isImage={isImageDocument(previewDoc.file_path)}
           fetchBlobUrl={async () => {
             const { data } = await axiosInstance.get(
               `/${selectedCompany?.slug}/article-documents/${previewDoc.id}/view`,

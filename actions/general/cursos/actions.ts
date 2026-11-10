@@ -3,6 +3,8 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { notifyError } from "@/lib/notify-error";
+import type { CourseExamImport } from "@/types";
+import type { AxiosProgressEvent } from "axios";
 
 interface CourseData {
   company: string;
@@ -370,4 +372,48 @@ export const useUpdateCourseExamResult = () => {
   return {
     updateCourseExamResult: updateMutation,
   };
+};
+
+// --- CARGAR LOTE DE EXÁMENES ---
+// Sube varios documentos nombrados `dni_nombre_apellido` y los asigna a los
+// empleados inscritos. Igual que en certificados, el backend procesa el lote
+// en la misma petición y devuelve el balance final.
+export const useBulkCreateCourseExams = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      company,
+      exam_id,
+      data,
+      onUploadProgress,
+    }: {
+      company: string;
+      exam_id: string;
+      data: FormData;
+      onUploadProgress?: (event: AxiosProgressEvent) => void;
+    }) => {
+      const response = await axiosInstance.post<{ data: CourseExamImport }>(
+        `/general/${company}/course-exam/${exam_id}/bulk-attendance`,
+        data,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+          onUploadProgress,
+        },
+      );
+
+      return response.data.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["course-exam-attendance"] });
+      queryClient.invalidateQueries({ queryKey: ["course-exams"] });
+      queryClient.invalidateQueries({ queryKey: ["course-exam-documents"] });
+      queryClient.invalidateQueries({
+        queryKey: ["employee-training-profile"],
+      });
+    },
+    onError: (error) => {
+      notifyError(error, { action: "subir el lote de exámenes" });
+    },
+  });
 };
