@@ -52,7 +52,7 @@ const UnitDropdownActions = ({ unit }: { unit: Unit }) => {
               solo se guardará lo que cambie.
             </>
           }
-          className="sm:max-w-lg"
+          className="sm:max-w-2xl"
         >
           <UpdateUnitForm unit={unit} onClose={() => setEditOpen(false)} />
         </FormDialogContent>

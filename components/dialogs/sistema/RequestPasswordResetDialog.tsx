@@ -16,12 +16,15 @@ import { zodResolver } from "@/lib/zod-resolver";
 import { z } from "zod";
 
 import {
-  FieldLabelRow,
   fieldClass,
   hintClass,
-  labelClass,
   textareaClass,
 } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
+import {
+  PanelFieldLabel,
+  PanelSection,
+  PanelStaticLabel,
+} from "@/components/forms/PanelSection";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import {
@@ -35,7 +38,6 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -210,91 +212,93 @@ function ResetRequest({
                 className="flex min-h-0 flex-1 flex-col"
               >
                 <FormDialogBody className="space-y-4">
-                  {isAuthenticated ? (
-                    <div className="space-y-2">
-                      <p className={labelClass}>Correo electrónico</p>
-                      <div
-                        className={cn(
-                          "flex h-11 items-center gap-2.5 rounded-lg border border-slate-400/60 bg-muted/40 px-3 dark:border-slate-600/60",
-                        )}
-                      >
-                        <Mail className="size-4 shrink-0 text-muted-foreground" />
-                        <span className="truncate text-[15px]">{email}</span>
-                      </div>
-                    </div>
-                  ) : (
-                    <FormField
-                      control={form.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className={labelClass}>
+                  <PanelSection
+                    icon={Mail}
+                    title="Su solicitud"
+                    hint="Un administrador la recibirá y le responderá."
+                  >
+                    <div className="space-y-4">
+                      {isAuthenticated ? (
+                        <div>
+                          <PanelStaticLabel>
                             Correo electrónico
-                          </FormLabel>
-                          <FormControl>
-                            <div className="relative">
-                              <Mail className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                              <Input
-                                {...field}
-                                type="email"
-                                autoComplete="email"
-                                placeholder="usuario@sigeac.com"
-                                className={cn(fieldClass, "pl-9")}
-                              />
-                            </div>
-                          </FormControl>
-                          <FormMessage className="text-xs" />
-                        </FormItem>
+                          </PanelStaticLabel>
+                          <div className="flex h-10 items-center gap-2.5 rounded-lg border border-slate-400/60 bg-muted/40 px-3 dark:border-slate-600/60">
+                            <Mail className="size-4 shrink-0 text-muted-foreground" />
+                            <span className="truncate text-[15px] max-sm:text-base">
+                              {email}
+                            </span>
+                          </div>
+                        </div>
+                      ) : (
+                        <FormField
+                          control={form.control}
+                          name="email"
+                          render={({ field }) => (
+                            <FormItem>
+                              <PanelFieldLabel>
+                                Correo electrónico
+                              </PanelFieldLabel>
+                              <FormControl>
+                                <div className="relative">
+                                  <Mail className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                                  <Input
+                                    {...field}
+                                    type="email"
+                                    autoComplete="email"
+                                    placeholder="usuario@sigeac.com"
+                                    className={cn(fieldClass, "pl-9")}
+                                  />
+                                </div>
+                              </FormControl>
+                              <FormMessage className="text-[13px]" />
+                            </FormItem>
+                          )}
+                        />
                       )}
-                    />
-                  )}
 
-                  <FormField
-                    control={form.control}
-                    name="note"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FieldLabelRow
-                          action={
-                            <span
-                              className={cn(
-                                hintClass,
-                                "tabular-nums",
-                                (note?.length ?? 0) > MAX_NOTE &&
-                                  "text-destructive",
-                              )}
+                      <FormField
+                        control={form.control}
+                        name="note"
+                        render={({ field }) => (
+                          <FormItem>
+                            <PanelFieldLabel
+                              action={
+                                <span
+                                  className={cn(
+                                    hintClass,
+                                    "tabular-nums",
+                                    (note?.length ?? 0) > MAX_NOTE &&
+                                      "text-destructive",
+                                  )}
+                                >
+                                  {note?.length ?? 0}/{MAX_NOTE}
+                                </span>
+                              }
                             >
-                              {note?.length ?? 0}/{MAX_NOTE}
-                            </span>
-                          }
-                        >
-                          <FormLabel className={labelClass}>
-                            Mensaje{" "}
-                            <span className="font-normal text-muted-foreground">
-                              (opcional)
-                            </span>
-                          </FormLabel>
-                        </FieldLabelRow>
-                        <FormControl>
-                          <Textarea
-                            {...field}
-                            rows={3}
-                            placeholder="Algún detalle que ayude al administrador a identificarlo."
-                            className={textareaClass}
-                          />
-                        </FormControl>
-                        <FormMessage className="text-xs" />
-                      </FormItem>
-                    )}
-                  />
+                              Mensaje{" "}
+                              <span className="font-normal">(opcional)</span>
+                            </PanelFieldLabel>
+                            <FormControl>
+                              <Textarea
+                                {...field}
+                                rows={3}
+                                placeholder="Algún detalle que ayude al administrador a identificarlo."
+                                className={textareaClass}
+                              />
+                            </FormControl>
+                            <FormMessage className="text-[13px]" />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </PanelSection>
 
-                  <div className="flex items-start gap-3 rounded-lg border bg-muted/40 px-3 py-2.5">
-                    <Info className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
-                    <p className="text-xs leading-relaxed text-muted-foreground">
-                      Por políticas de seguridad, la nueva contraseña la asigna
-                      un administrador; no se define desde este formulario.
-                    </p>
-                  </div>
+                  <p className="flex items-start gap-2 text-[13px] leading-snug text-muted-foreground">
+                    <Info className="mt-0.5 size-4 shrink-0" />
+                    Por políticas de seguridad, la nueva contraseña la asigna un
+                    administrador; no se define desde este formulario.
+                  </p>
                 </FormDialogBody>
 
                 <FormDialogFooter>

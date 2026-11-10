@@ -82,12 +82,12 @@ export default function RequisitionSubRow({ requisition }: Props) {
               key={quote.quote_number}
               className="group flex items-center justify-between gap-3 rounded-lg border px-3 py-2 bg-background/70 backdrop-blur-xs border-slate-200/70 dark:border-slate-700/60 hover:border-primary/40 hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-all"
             >
-              <div className="flex items-center gap-2.5">
-                <div className="flex h-8 w-8 items-center justify-center rounded-md bg-slate-100 dark:bg-slate-800">
+              <div className="flex min-w-0 items-center gap-2.5">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-slate-100 dark:bg-slate-800">
                   <FileText className="h-4 w-4 text-slate-600 dark:text-slate-300" />
                 </div>
-                <div className="flex flex-col leading-tight">
-                  <div className="flex items-center gap-1.5">
+                <div className="flex min-w-0 flex-col leading-tight">
+                  <div className="flex flex-wrap items-center gap-1.5">
                     <Link
                       href={`/${selectedCompany?.slug}/compras/cotizaciones/${quote.quote_number}`}
                       className="text-sm font-medium text-slate-800 dark:text-slate-100 hover:text-primary transition-colors"
@@ -111,7 +111,7 @@ export default function RequisitionSubRow({ requisition }: Props) {
                 </div>
               </div>
 
-              <div className="flex items-center gap-4">
+              <div className="flex shrink-0 items-center gap-4">
                 <div className="hidden md:flex items-center gap-1 text-xs text-muted-foreground">
                   <CalendarDays className="h-3 w-3" />
                   <span>{decisionDate ?? "Sin decisión"}</span>

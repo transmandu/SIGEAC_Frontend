@@ -1,27 +1,31 @@
 "use client";
 
+import { PanelSection } from "@/components/forms/PanelSection";
 import { useMemo } from "react";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
 import {
   AlertTriangle,
-  Calendar as CalendarIcon,
+  CalendarClock,
+  Info,
   Loader2,
+  Package,
   Save,
+  StickyNote,
+  Wallet,
 } from "lucide-react";
 
 import { useUpdateGeneralArticleIntake } from "@/actions/mantenimiento/almacen/inventario/articulos_generales/actions";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import { Dialog } from "@/components/ui/dialog";
 import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
+import {
+  fieldClass,
+  labelClass,
+  selectTriggerClass,
+  textareaClass,
+} from "@/components/forms/mantenimiento/almacen/_components/form-theme";
+import { NumericTextInput } from "@/components/forms/mantenimiento/almacen/_components/NumericInput";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -30,10 +34,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { DateTimeField } from "@/components/misc/DateTimeField";
 import { SearchableSelect } from "@/components/misc/SearchableSelect";
 import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits";
 import { useGetWarehousesByLocation } from "@/hooks/administracion/useGetWarehousesByUser";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { toZonedWallClock, zonedWallClockToUtcIso } from "@/lib/date";
 import { cn } from "@/lib/utils";
 import type {
   GeneralArticleIntake,
@@ -41,8 +48,9 @@ import type {
 } from "@/types/purchase";
 import { useResettingState } from "@/hooks/useResettingState";
 
-// Estado editable del formulario. Las fechas viven como Date|null y el resto
-// como string para que los inputs sean controlados sin saltos de cursor.
+// Estado editable del formulario. Las fechas viven como la hora de pared de la
+// zona de la compañía (un Date cuyos campos locales son los de esa zona) y el
+// resto como string, para que los inputs sean controlados sin saltos de cursor.
 type FormState = {
   description: string;
   variant_type: string;
@@ -58,7 +66,10 @@ type FormState = {
   observation: string;
 };
 
-const toFormState = (intake: GeneralArticleIntake): FormState => ({
+const toFormState = (
+  intake: GeneralArticleIntake,
+  timeZone: string,
+): FormState => ({
   description: intake.historical_description ?? intake.description ?? "",
   variant_type: intake.historical_variant_type ?? "",
   brand_model: intake.historical_brand_model ?? "",
@@ -66,9 +77,9 @@ const toFormState = (intake: GeneralArticleIntake): FormState => ({
   quantity: intake.quantity != null ? String(intake.quantity) : "",
   unit_id: intake.unit?.id != null ? String(intake.unit.id) : "",
   warehouse_id: intake.warehouse?.id != null ? String(intake.warehouse.id) : "",
-  arrived_at: intake.arrived_at ? new Date(intake.arrived_at) : null,
-  confirmed_at: intake.confirmed_at ? new Date(intake.confirmed_at) : null,
-  rejected_at: intake.rejected_at ? new Date(intake.rejected_at) : null,
+  arrived_at: toZonedWallClock(intake.arrived_at, timeZone),
+  confirmed_at: toZonedWallClock(intake.confirmed_at, timeZone),
+  rejected_at: toZonedWallClock(intake.rejected_at, timeZone),
   rejection_reason: intake.rejection_reason ?? "",
   observation: intake.observation ?? "",
 });
@@ -79,6 +90,11 @@ const emptyToNull = (value: string) => {
   const trimmed = value.trim();
   return trimmed === "" ? null : trimmed;
 };
+
+const pickerClass = cn(
+  selectTriggerClass,
+  "h-10 px-3 text-sm max-sm:text-base",
+);
 
 export default function EditIntakeDialog({
   intake,
@@ -91,11 +107,17 @@ export default function EditIntakeDialog({
 }) {
   const { updateGeneralArticleIntake } = useUpdateGeneralArticleIntake();
   const { selectedCompany, selectedStation } = useCompanyStore();
+  const timeZone = useCompanyTimezone();
 
-  // Cada vez que se abre (o llega otro registro) el formulario parte de los datos del registro.
+  // Cada vez que se abre (o llega otro registro) el formulario parte de los
+  // datos del registro. Se compara por id y no por objeto: una recarga en
+  // segundo plano trae el mismo registro como objeto nuevo, y reiniciar por eso
+  // borraría lo que el usuario lleva escrito. La zona va en las dependencias
+  // porque las fechas se guardan como hora de pared de esa zona: si la zona
+  // llega después, el formulario debe rehacerse con ella.
   const [form, setForm] = useResettingState<FormState>(
-    () => toFormState(intake),
-    [open, intake],
+    () => toFormState(intake, timeZone),
+    [open, intake.id, timeZone],
   );
 
   const { data: units, isLoading: isUnitsLoading } = useGetUnits(
@@ -153,7 +175,7 @@ export default function EditIntakeDialog({
   // Solo viaja lo que realmente cambió: la edición es parcial y casi siempre
   // toca únicamente las fechas.
   const payload = useMemo<UpdateGeneralArticleIntakePayload>(() => {
-    const original = toFormState(intake);
+    const original = toFormState(intake, timeZone);
     const changes: UpdateGeneralArticleIntakePayload = {};
 
     if (form.description.trim() !== original.description)
@@ -184,16 +206,16 @@ export default function EditIntakeDialog({
       form.arrived_at?.getTime() !== original.arrived_at?.getTime() &&
       form.arrived_at
     ) {
-      changes.arrived_at = form.arrived_at.toISOString();
+      changes.arrived_at = zonedWallClockToUtcIso(form.arrived_at, timeZone);
     }
     if (form.confirmed_at?.getTime() !== original.confirmed_at?.getTime()) {
       changes.confirmed_at = form.confirmed_at
-        ? form.confirmed_at.toISOString()
+        ? zonedWallClockToUtcIso(form.confirmed_at, timeZone)
         : null;
     }
     if (form.rejected_at?.getTime() !== original.rejected_at?.getTime()) {
       changes.rejected_at = form.rejected_at
-        ? form.rejected_at.toISOString()
+        ? zonedWallClockToUtcIso(form.rejected_at, timeZone)
         : null;
     }
 
@@ -204,7 +226,7 @@ export default function EditIntakeDialog({
       changes.observation = emptyToNull(form.observation);
 
     return changes;
-  }, [form, intake, quantityInvalid, quantityValue]);
+  }, [form, intake, timeZone, quantityInvalid, quantityValue]);
 
   const changedFieldCount = Object.keys(payload).length;
 
@@ -258,12 +280,6 @@ export default function EditIntakeDialog({
         }
         footer={
           <>
-            <span className="mr-auto text-xs text-muted-foreground tabular-nums">
-              {changedFieldCount === 0
-                ? "Sin cambios"
-                : `${changedFieldCount} campo${changedFieldCount === 1 ? "" : "s"} modificado${changedFieldCount === 1 ? "" : "s"}`}
-            </span>
-
             <Button
               variant="outline"
               onClick={() => onOpenChange(false)}
@@ -280,306 +296,243 @@ export default function EditIntakeDialog({
               {updateGeneralArticleIntake.isPending ? (
                 <Loader2 className="size-4 animate-spin" />
               ) : (
-                <>
-                  <Save className="size-4" />
-                  Guardar cambios
-                </>
+                <Save className="size-4" />
               )}
+              Guardar cambios
             </Button>
           </>
         }
       >
-        <div className="space-y-5">
-          <Section title="Artículo">
-            <div className="space-y-1.5">
-              <Label className="text-xs">Descripción</Label>
-              <Input
-                value={form.description}
-                onChange={(e) => set("description", e.target.value)}
-                className={cn(
-                  "h-9 text-sm",
-                  descriptionInvalid && "border-red-500/50",
-                )}
-              />
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-2">
+        <div className="space-y-4">
+          <PanelSection icon={Package} title="Artículo" compact>
+            <div className="space-y-4">
               <div className="space-y-1.5">
-                <Label className="text-xs">Marca / Modelo</Label>
+                <Label className={labelClass} htmlFor="intake-description">
+                  Descripción <span className="text-red-500">*</span>
+                </Label>
                 <Input
-                  value={form.brand_model}
-                  onChange={(e) => set("brand_model", e.target.value)}
-                  className="h-9 text-sm"
+                  id="intake-description"
+                  value={form.description}
+                  aria-invalid={descriptionInvalid || undefined}
+                  onChange={(e) => set("description", e.target.value)}
+                  className={cn(fieldClass, "h-10 max-sm:text-base")}
                 />
               </div>
 
-              <div className="space-y-1.5">
-                <Label className="text-xs">Variante</Label>
-                <Input
-                  value={form.variant_type}
-                  onChange={(e) => set("variant_type", e.target.value)}
-                  className="h-9 text-sm"
-                />
-              </div>
-            </div>
-          </Section>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label className={labelClass} htmlFor="intake-brand">
+                    Marca / Modelo
+                  </Label>
+                  <Input
+                    id="intake-brand"
+                    value={form.brand_model}
+                    onChange={(e) => set("brand_model", e.target.value)}
+                    className={cn(fieldClass, "h-10 max-sm:text-base")}
+                  />
+                </div>
 
-          <Section title="Cantidad y costo">
-            <div className="grid gap-3 sm:grid-cols-3">
-              <div className="space-y-1.5">
-                <Label className="text-xs">Cantidad</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={form.quantity}
-                  onChange={(e) => set("quantity", e.target.value)}
-                  className={cn(
-                    "h-9 text-sm",
-                    quantityInvalid && "border-red-500/50",
-                  )}
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label className="text-xs">Unidad</Label>
-                <SearchableSelect
-                  value={form.unit_id}
-                  onChange={(value) => set("unit_id", value)}
-                  loading={isUnitsLoading}
-                  placeholder="Unidad"
-                  searchPlaceholder="Buscar unidad..."
-                  triggerClassName="h-9 text-sm"
-                  options={(units ?? []).map((unit) => ({
-                    value: String(unit.id),
-                    label: unit.label,
-                  }))}
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label className="text-xs">Costo unitario</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={form.cost}
-                  onChange={(e) => set("cost", e.target.value)}
-                  className="h-9 text-sm"
-                />
+                <div className="space-y-1.5">
+                  <Label className={labelClass} htmlFor="intake-variant">
+                    Variante
+                  </Label>
+                  <Input
+                    id="intake-variant"
+                    value={form.variant_type}
+                    onChange={(e) => set("variant_type", e.target.value)}
+                    className={cn(fieldClass, "h-10 max-sm:text-base")}
+                  />
+                </div>
               </div>
             </div>
+          </PanelSection>
 
-            {!isDirectDelivery && (
-              <div className="space-y-1.5">
-                <Label className="text-xs">Almacén</Label>
-                <Select
-                  value={form.warehouse_id}
-                  onValueChange={(value) => set("warehouse_id", value)}
-                >
-                  <SelectTrigger className="h-9 text-sm">
-                    <SelectValue
-                      placeholder={
-                        isWarehousesLoading
-                          ? "Cargando almacenes..."
-                          : "Almacén"
-                      }
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {generalWarehouses.map((warehouse) => (
-                      <SelectItem
-                        key={warehouse.id}
-                        value={String(warehouse.id)}
-                      >
-                        {warehouse.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+          <PanelSection icon={Wallet} title="Cantidad y costo" compact>
+            <div className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-3">
+                <div className="space-y-1.5">
+                  <Label className={labelClass} htmlFor="intake-quantity">
+                    Cantidad <span className="text-red-500">*</span>
+                  </Label>
+                  <NumericTextInput
+                    id="intake-quantity"
+                    value={form.quantity}
+                    onValueChange={(value) => set("quantity", value)}
+                    aria-invalid={quantityInvalid || undefined}
+                    className="h-10 max-sm:text-base"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className={labelClass}>Unidad</Label>
+                  <SearchableSelect
+                    value={form.unit_id}
+                    onChange={(value) => set("unit_id", value)}
+                    loading={isUnitsLoading}
+                    placeholder="Unidad"
+                    searchPlaceholder="Buscar unidad..."
+                    triggerClassName={pickerClass}
+                    options={(units ?? []).map((unit) => ({
+                      value: String(unit.id),
+                      label: unit.label,
+                    }))}
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className={labelClass} htmlFor="intake-cost">
+                    Costo unitario
+                  </Label>
+                  <NumericTextInput
+                    id="intake-cost"
+                    value={form.cost}
+                    onValueChange={(value) => set("cost", value)}
+                    className="h-10 max-sm:text-base"
+                  />
+                </div>
               </div>
-            )}
-          </Section>
 
-          <Section title="Fechas">
-            <DateTimeField
-              label="Llegada"
-              value={form.arrived_at}
-              onChange={(date) => set("arrived_at", date)}
-              invalid={confirmedBeforeArrival || rejectedBeforeArrival}
-            />
-
-            {!isDirectDelivery && !isRejected && (
-              <DateTimeField
-                label="Confirmación"
-                value={form.confirmed_at}
-                onChange={(date) => set("confirmed_at", date)}
-                invalid={confirmedBeforeArrival}
-                clearable
-              />
-            )}
-
-            {isRejected && (
-              <DateTimeField
-                label="Rechazo"
-                value={form.rejected_at}
-                onChange={(date) => set("rejected_at", date)}
-                invalid={rejectedBeforeArrival}
-                clearable
-              />
-            )}
-
-            {timelineErrors.length > 0 && (
-              <div className="rounded-lg border border-red-500/20 bg-red-500/5 px-3 py-2 space-y-1">
-                {timelineErrors.map((error) => (
-                  <p
-                    key={error}
-                    className="text-xs leading-relaxed text-red-600 dark:text-red-400"
+              {!isDirectDelivery && (
+                <div className="space-y-1.5">
+                  <Label className={labelClass}>Almacén</Label>
+                  <Select
+                    value={form.warehouse_id}
+                    onValueChange={(value) => set("warehouse_id", value)}
                   >
-                    {error}
-                  </p>
-                ))}
-              </div>
-            )}
-          </Section>
+                    <SelectTrigger className={pickerClass}>
+                      <SelectValue
+                        placeholder={
+                          isWarehousesLoading
+                            ? "Cargando almacenes..."
+                            : "Almacén"
+                        }
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {generalWarehouses.map((warehouse) => (
+                        <SelectItem
+                          key={warehouse.id}
+                          value={String(warehouse.id)}
+                        >
+                          {warehouse.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+          </PanelSection>
 
-          <Section title="Notas">
-            {isRejected && (
+          <PanelSection
+            icon={CalendarClock}
+            title="Fechas"
+            hint="Hora de la compañía."
+            compact
+          >
+            <div className="space-y-4">
+              <DateTimeField
+                label="Llegada"
+                value={form.arrived_at}
+                onChange={(date) => set("arrived_at", date)}
+                invalid={confirmedBeforeArrival || rejectedBeforeArrival}
+              />
+
+              {!isDirectDelivery && !isRejected && (
+                <DateTimeField
+                  label="Confirmación"
+                  value={form.confirmed_at}
+                  onChange={(date) => set("confirmed_at", date)}
+                  invalid={confirmedBeforeArrival}
+                  clearable
+                />
+              )}
+
+              {isRejected && (
+                <DateTimeField
+                  label="Rechazo"
+                  value={form.rejected_at}
+                  onChange={(date) => set("rejected_at", date)}
+                  invalid={rejectedBeforeArrival}
+                  clearable
+                />
+              )}
+
+              {timelineErrors.length > 0 && (
+                <div
+                  role="alert"
+                  className="space-y-1 rounded-lg border border-red-500/25 bg-red-500/5 px-3.5 py-3 motion-safe:animate-reveal"
+                >
+                  {timelineErrors.map((error) => (
+                    <p
+                      key={error}
+                      className="text-[13px] leading-relaxed text-red-600 dark:text-red-400"
+                    >
+                      {error}
+                    </p>
+                  ))}
+                </div>
+              )}
+            </div>
+          </PanelSection>
+
+          <PanelSection icon={StickyNote} title="Notas" compact>
+            <div className="space-y-4">
+              {isRejected && (
+                <div className="space-y-1.5">
+                  <Label className={labelClass} htmlFor="intake-rejection">
+                    Motivo del rechazo
+                  </Label>
+                  <Textarea
+                    id="intake-rejection"
+                    rows={3}
+                    value={form.rejection_reason}
+                    onChange={(e) => set("rejection_reason", e.target.value)}
+                    className={textareaClass}
+                  />
+                </div>
+              )}
+
               <div className="space-y-1.5">
-                <Label className="text-xs">Motivo del rechazo</Label>
+                <Label className={labelClass} htmlFor="intake-observation">
+                  Observación
+                </Label>
                 <Textarea
-                  value={form.rejection_reason}
-                  onChange={(e) => set("rejection_reason", e.target.value)}
-                  className="min-h-16 text-sm resize-none"
+                  id="intake-observation"
+                  rows={3}
+                  value={form.observation}
+                  onChange={(e) => set("observation", e.target.value)}
+                  className={textareaClass}
                 />
               </div>
-            )}
-
-            <div className="space-y-1.5">
-              <Label className="text-xs">Observación</Label>
-              <Textarea
-                value={form.observation}
-                onChange={(e) => set("observation", e.target.value)}
-                className="min-h-16 text-sm resize-none"
-              />
             </div>
-          </Section>
+          </PanelSection>
 
           {affectsStock && (
-            <div className="rounded-lg border border-amber-500/25 bg-amber-500/5 px-3 py-2.5">
-              <p className="text-xs leading-relaxed text-amber-700 dark:text-amber-300">
+            <div
+              role="alert"
+              className="flex items-start gap-2.5 rounded-xl border border-amber-300/70 bg-amber-50 p-3.5 text-[13px] leading-relaxed text-amber-900 motion-safe:animate-reveal dark:border-amber-800/60 dark:bg-amber-950/40 dark:text-amber-200"
+            >
+              <AlertTriangle className="mt-0.5 size-4 shrink-0" />
+              <p>
                 Esta entrada ya fue confirmada. Al cambiar la cantidad, la
                 unidad o el almacén, el stock del artículo se reajustará
                 automáticamente y quedará registrado en su historial.
               </p>
             </div>
           )}
+
+          <p
+            aria-live="polite"
+            className="flex items-center gap-1.5 text-[13px] text-muted-foreground"
+          >
+            <Info className="size-3.5 shrink-0" />
+            {changedFieldCount === 0
+              ? "Sin cambios todavía."
+              : `${changedFieldCount} campo${changedFieldCount === 1 ? "" : "s"} modificado${changedFieldCount === 1 ? "" : "s"}.`}
+          </p>
         </div>
       </FormDialogContent>
     </Dialog>
   );
 }
-
-const Section = ({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) => (
-  <div className="space-y-3">
-    <div className="flex items-center gap-2">
-      <span className="text-xs font-semibold text-muted-foreground">
-        {title}
-      </span>
-      <div className="h-px flex-1 bg-border/60" />
-    </div>
-    {children}
-  </div>
-);
-
-const DateTimeField = ({
-  label,
-  value,
-  onChange,
-  invalid,
-  clearable,
-}: {
-  label: string;
-  value: Date | null;
-  onChange: (date: Date | null) => void;
-  invalid?: boolean;
-  clearable?: boolean;
-}) => {
-  const handleDateSelect = (day: Date | undefined) => {
-    if (!day) return;
-    const next = new Date(day);
-    // Al elegir día se conserva la hora ya cargada; si no había fecha, arranca
-    // en 00:00 para no inventar una hora que el usuario no eligió.
-    next.setHours(value?.getHours() ?? 0, value?.getMinutes() ?? 0, 0, 0);
-    onChange(next);
-  };
-
-  const handleTimeChange = (raw: string) => {
-    const [hours, minutes] = raw.split(":").map(Number);
-    if (Number.isNaN(hours) || Number.isNaN(minutes)) return;
-    const next = new Date(value ?? new Date());
-    next.setHours(hours, minutes, 0, 0);
-    onChange(next);
-  };
-
-  return (
-    <div className="space-y-1.5">
-      <Label className="text-xs">{label}</Label>
-
-      <div className="flex items-center gap-2">
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className={cn(
-                "h-9 flex-1 justify-start text-sm bg-background/70",
-                !value && "text-muted-foreground",
-                invalid && "border-red-500/50",
-              )}
-            >
-              <CalendarIcon className="mr-2 h-3 w-3 opacity-60" />
-              {value
-                ? format(value, "dd MMM yyyy", { locale: es })
-                : "Sin fecha"}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0">
-            <Calendar
-              mode="single"
-              selected={value ?? undefined}
-              onSelect={handleDateSelect}
-              locale={es}
-              autoFocus
-            />
-          </PopoverContent>
-        </Popover>
-
-        <Input
-          type="time"
-          value={value ? format(value, "HH:mm") : ""}
-          onChange={(e) => handleTimeChange(e.target.value)}
-          className={cn(
-            "h-9 w-28 bg-background/70 text-sm",
-            invalid && "border-red-500/50",
-          )}
-        />
-
-        {clearable && value && (
-          <Button
-            variant="ghost"
-            onClick={() => onChange(null)}
-            className="h-9 px-2 text-xs text-muted-foreground hover:text-foreground"
-          >
-            Quitar
-          </Button>
-        )}
-      </div>
-    </div>
-  );
-};

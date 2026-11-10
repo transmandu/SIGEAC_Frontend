@@ -56,7 +56,7 @@ export function QuoteDraftBadge({
                 del tooltip es el span relativo y no el badge. */}
             <span
               aria-hidden
-              className="pointer-events-none absolute -right-1.5 -top-1.5 flex size-4 items-center justify-center rounded-full border border-background bg-amber-500 text-[10px] font-bold leading-none text-white tabular-nums dark:border-slate-900"
+              className="pointer-events-none absolute -right-1.5 -top-1.5 grid size-4 place-items-center rounded-full border border-background bg-amber-500 text-[10px] font-bold leading-none text-white tabular-nums dark:border-slate-900"
             >
               {count}
             </span>

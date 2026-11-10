@@ -20,7 +20,7 @@ import {
 import PurchaseOrderDropdownDialogs from "@/components/dialogs/mantenimiento/compras/PurchaseOrderDropdownDialogs";
 import InvoicePreviewDialog from "@/components/dialogs/mantenimiento/compras/InvoicePreviewDialog";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { RowAction, RowActionsBar } from "./RowAction";
+import { RowAction, RowActionsBar, rowActionMenuClass } from "./RowAction";
 
 /**
  * `variant="menu"` es el menú flotante de la fila; `variant="bar"` pone las
@@ -114,7 +114,8 @@ const PurchaseOrderDropdownActions = ({
             <DropdownMenuContent
               align="center"
               sideOffset={3}
-              className="flex items-center justify-center gap-1.5 rounded-2xl border border-border/50 bg-background/90 backdrop-blur-xl shadow-xl p-1.5 overflow-visible animate-in fade-in zoom-in-95 duration-200"
+              collisionPadding={8}
+              className={rowActionMenuClass}
             >
               {actions}
             </DropdownMenuContent>

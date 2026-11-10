@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Check, ChevronsUpDown, Plus, Truck } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { triggerButtonClass } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -65,7 +66,8 @@ export function ShippingAgencyCombobox({
             aria-expanded={open}
             disabled={disabled || loading}
             className={cn(
-              "w-full min-w-0 justify-between bg-background/70 font-normal",
+              triggerButtonClass,
+              "h-10 min-w-0 max-sm:text-base",
               !selected && "text-muted-foreground",
               triggerClassName,
             )}
@@ -90,7 +92,10 @@ export function ShippingAgencyCombobox({
               itemValue.toLowerCase().includes(search.toLowerCase()) ? 1 : 0
             }
           >
-            <CommandInput placeholder="Buscar agencia..." className="h-9" />
+            <CommandInput
+              placeholder="Buscar agencia..."
+              className="h-10 max-sm:text-base"
+            />
 
             {canCreate && (
               <button
@@ -99,7 +104,7 @@ export function ShippingAgencyCombobox({
                   setOpen(false);
                   setCreateOpen(true);
                 }}
-                className="flex w-full items-center gap-2 border-b px-3 py-2 text-sm font-medium text-emerald-600 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-950/30"
+                className="flex w-full items-center gap-2 border-b px-3 py-2 text-sm font-medium max-sm:py-3 text-emerald-600 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-950/30"
               >
                 <Plus className="size-4" />
                 Crear agencia
@@ -111,6 +116,7 @@ export function ShippingAgencyCombobox({
               <CommandGroup>
                 {agencies?.map((agency) => (
                   <CommandItem
+                    className="max-sm:py-3"
                     key={agency.id}
                     value={`${agency.name} ${agency.code}`}
                     onSelect={() => {

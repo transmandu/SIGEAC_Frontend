@@ -135,11 +135,11 @@ export function AdvanceRequisitionStatusDialog({
             <StatusPill status={shown.to} />
           </div>
 
-          <p className="rounded-xl border border-amber-300/50 bg-amber-50/50 px-3 py-2 text-xs leading-relaxed text-amber-900 dark:border-amber-700/40 dark:bg-amber-950/20 dark:text-amber-200">
+          <p className="rounded-xl border border-amber-300/50 bg-amber-50/50 px-3 py-2 text-[13px] leading-relaxed text-amber-900 dark:border-amber-700/40 dark:bg-amber-950/20 dark:text-amber-200">
             {shown.copy.caveat}
           </p>
 
-          <p className="flex items-start gap-2 text-xs leading-relaxed text-muted-foreground">
+          <p className="flex items-start gap-2 text-[13px] leading-relaxed text-muted-foreground">
             <BellRing className="mt-px size-3.5 shrink-0" />
             {shown.copy.notice}
           </p>

@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import CopyPartNumberButton from "@/components/misc/CopyPartNumberButton";
 import { useQuarantineLegalDays } from "@/hooks/general/useCompanySettings";
 import { useGetQuarantineArticles } from "@/hooks/mantenimiento/control_calidad/useGetQuarantineArticles";
+import { cn } from "@/lib/utils";
 import { quarantineRisk } from "@/lib/warehouse/quarantine";
 import type { QuarantineStatusFilter } from "@/types/quarantine";
 import {
@@ -28,19 +29,23 @@ function SummaryItem({
   value,
   label,
   tone = "default",
+  className,
 }: {
   icon: typeof ShieldAlert;
   value: number;
   label: string;
   tone?: "default" | "danger" | "muted";
+  className?: string;
 }) {
   return (
     <div
-      className={
+      className={cn(
+        "flex items-center gap-1.5",
         tone === "danger"
-          ? "flex items-center gap-1.5 text-red-600 dark:text-red-400"
-          : "flex items-center gap-1.5 text-muted-foreground"
-      }
+          ? "text-red-600 dark:text-red-400"
+          : "text-muted-foreground",
+        className,
+      )}
     >
       <Icon className="size-3.5 shrink-0" />
       <span
@@ -135,7 +140,7 @@ const QuarantinePurchasesPage = () => {
         />
 
         {/* RESUMEN: una franja y no tarjetas, el dato pesa menos que la tabla */}
-        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm dark:border-slate-700/60 dark:bg-slate-900/60">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-2.5 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm sm:flex sm:flex-wrap sm:items-center sm:gap-x-6 sm:gap-y-2 dark:border-slate-700/60 dark:bg-slate-900/60">
           <SummaryItem
             icon={ShieldAlert}
             value={metrics.openCount}
@@ -153,19 +158,31 @@ const QuarantinePurchasesPage = () => {
             value={metrics.overdueCount}
             label={`con plazo vencido (más de ${legalDays} días)`}
             tone={metrics.overdueCount > 0 ? "danger" : "muted"}
+            className="max-sm:col-span-2"
           />
 
           {metrics.mostUrgent && (
-            <div className="flex min-w-0 items-center gap-1.5 text-muted-foreground sm:ml-auto">
-              <PackageSearch className="size-3.5 shrink-0" />
-              <span>Más urgente:</span>
-              <span className="truncate font-medium text-foreground">
-                {metrics.mostUrgent.record.article?.part_number ?? "Sin parte"}
+            <div className="flex min-w-0 flex-col gap-0.5 border-t border-slate-200/70 pt-2.5 text-muted-foreground max-sm:col-span-2 sm:ml-auto sm:flex-row sm:items-center sm:gap-1.5 sm:border-t-0 sm:pt-0 dark:border-slate-700/50">
+              <span className="flex shrink-0 items-center gap-1.5">
+                <PackageSearch className="size-3.5 shrink-0" />
+                Más urgente:
               </span>
-              <CopyPartNumberButton
-                value={metrics.mostUrgent.record.article?.part_number}
-              />
-              <span className="shrink-0">
+              <span className="flex min-w-0 items-center gap-1.5">
+                <span className="min-w-0 font-medium text-foreground wrap-anywhere sm:truncate">
+                  {metrics.mostUrgent.record.article?.part_number ??
+                    "Sin parte"}
+                </span>
+                <CopyPartNumberButton
+                  value={metrics.mostUrgent.record.article?.part_number}
+                />
+              </span>
+              <span
+                className={cn(
+                  "shrink-0",
+                  (metrics.mostUrgent.risk.remaining ?? 0) < 0 &&
+                    "text-red-600 dark:text-red-400",
+                )}
+              >
                 {(metrics.mostUrgent.risk.remaining ?? 0) >= 0
                   ? `vence en ${metrics.mostUrgent.risk.remaining} ${metrics.mostUrgent.risk.remaining === 1 ? "día" : "días"}`
                   : `vencido hace ${Math.abs(metrics.mostUrgent.risk.remaining ?? 0)} días`}

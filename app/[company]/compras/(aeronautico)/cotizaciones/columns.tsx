@@ -83,6 +83,7 @@ export const getColumns = (
 
     meta: {
       title: "Nro. Requisición",
+      mobileOrder: 4,
     },
 
     cell: ({ row }) => (
@@ -118,6 +119,7 @@ export const getColumns = (
 
     meta: {
       title: "Fecha de Cotización",
+      mobileOrder: 2,
     },
 
     cell: ({ row }) => {
@@ -143,6 +145,7 @@ export const getColumns = (
 
     meta: {
       title: "Proveedor",
+      mobileOrder: 3,
     },
 
     cell: ({ row }) => {
@@ -247,6 +250,7 @@ export const getColumns = (
 
     meta: {
       title: "Estado",
+      mobileOrder: 1,
     },
 
     cell: ({ row }) => {
@@ -299,6 +303,7 @@ export const getColumns = (
 
     meta: {
       title: "Artículos",
+      mobile: "preview",
     },
 
     cell: ({ row }) => {
@@ -318,8 +323,10 @@ export const getColumns = (
                 <button
                   type="button"
                   onClick={() => onPreview?.(row.original)}
+                  aria-label={`Vista previa: ${total} ${total === 1 ? "artículo" : "artículos"}`}
                   className={cn(
                     "flex min-w-28 items-center justify-center gap-1.5 rounded-md border px-2 py-1 text-xs font-medium tabular-nums transition-colors",
+                    "max-md:min-w-0 max-md:border-transparent max-md:bg-transparent max-md:p-1 max-md:hover:bg-transparent",
                     "border-slate-500/30 bg-slate-500/10 text-slate-600 dark:text-slate-300",
                     "hover:border-blue-500/40 hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-400",
                     isActive &&
@@ -327,7 +334,9 @@ export const getColumns = (
                   )}
                 >
                   <PreviewPanelIcon active={isActive} className="size-3.5" />
-                  {total} {total === 1 ? "artículo" : "artículos"}
+                  <span className="max-md:hidden">
+                    {total} {total === 1 ? "artículo" : "artículos"}
+                  </span>
                 </button>
               </TooltipTrigger>
               <TooltipContent>

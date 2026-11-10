@@ -3,18 +3,18 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { FileText, ImageIcon, Upload, X } from "lucide-react";
+import { MessageSquareText, Upload, X } from "lucide-react";
 import Image from "next/image";
 import { useRef, useCallback } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
-import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { RequiredIndicator } from "@/components/misc/RequiredIndicator";
+import { FieldLabel, RequisitionSection } from "./RequisitionSection";
+import { textareaClass } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
 
 const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png"];
@@ -51,7 +51,7 @@ function ImageUploadField({
 
       if (file.size > MAX_IMAGE_SIZE_BYTES) {
         toast.error(
-          "¡Ops! La imagen excede el límite de 5MB. Por favor, selecciona una más ligera.",
+          "¡Ops! La imagen excede el límite de 5MB. Seleccione una más ligera.",
         );
         e.target.value = "";
         return;
@@ -117,7 +117,7 @@ function ImageUploadField({
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 p-2">
             <Upload className="size-5 text-muted-foreground/60" />
             <span className="text-xs text-muted-foreground leading-tight text-center">
-              Click para subir imagen
+              Pulse para subir una imagen
             </span>
           </div>
         )}
@@ -128,14 +128,11 @@ function ImageUploadField({
 
 export function AdditionalInfoSection({ form }: AdditionalInfoSectionProps) {
   return (
-    <div className="rounded-lg border bg-card p-3 space-y-1.5">
-      <div className="flex items-center gap-1.5">
-        <h4 className="text-xs font-semibold text-muted-foreground select-none">
-          INFORMACIÓN ADICIONAL
-        </h4>
-        <Separator className="flex-1" />
-      </div>
-
+    <RequisitionSection
+      icon={MessageSquareText}
+      title="Información adicional"
+      description="Por qué se solicita y, si ayuda, una imagen de referencia."
+    >
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {/* Justification — takes 3/4 of the row on large screens */}
         <div className="lg:col-span-3 lg:flex lg:flex-col">
@@ -144,15 +141,17 @@ export function AdditionalInfoSection({ form }: AdditionalInfoSectionProps) {
             name="justification"
             render={({ field }) => (
               <FormItem className="space-y-1.5 lg:flex lg:flex-col lg:flex-1 lg:gap-1.5">
-                <FormLabel className="flex items-center gap-1.5 select-none">
-                  <FileText className="size-3.5 text-muted-foreground" />
+                <FieldLabel>
                   Justificación
                   <RequiredIndicator />
-                </FormLabel>
+                </FieldLabel>
                 <FormControl>
                   <Textarea
                     placeholder="Ej: Necesidad de la pieza X para instalación..."
-                    className="min-h-15 lg:min-h-0 lg:flex-1 resize-none rounded-md border-muted-foreground/30 bg-muted/20 shadow-xs hover:border-muted-foreground/50 focus-visible:border-muted-foreground/50 focus-visible:ring-1 focus-visible:ring-muted-foreground/10 focus-visible:ring-offset-0 transition-colors"
+                    className={cn(
+                      textareaClass,
+                      "min-h-24 lg:min-h-0 lg:flex-1 max-sm:text-base",
+                    )}
                     {...field}
                   />
                 </FormControl>
@@ -168,10 +167,7 @@ export function AdditionalInfoSection({ form }: AdditionalInfoSectionProps) {
           name="image"
           render={({ field }) => (
             <FormItem className="space-y-1.5 lg:flex lg:flex-col lg:flex-1 lg:gap-1.5">
-              <FormLabel className="flex items-center gap-1.5 select-none">
-                <ImageIcon className="size-3.5 text-muted-foreground" />
-                Imagen general
-              </FormLabel>
+              <FieldLabel>Imagen general</FieldLabel>
               <FormControl>
                 <ImageUploadField
                   value={field.value}
@@ -183,6 +179,6 @@ export function AdditionalInfoSection({ form }: AdditionalInfoSectionProps) {
           )}
         />
       </div>
-    </div>
+    </RequisitionSection>
   );
 }

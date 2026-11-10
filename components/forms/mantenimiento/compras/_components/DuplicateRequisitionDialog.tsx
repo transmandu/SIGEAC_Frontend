@@ -46,11 +46,17 @@ export function DuplicateRequisitionDialog({
           </>
         }
       >
-        <ScrollArea className={conflicts.length > 3 ? "h-70 pr-3" : ""}>
+        <ScrollArea
+          className={
+            conflicts.length > 3 ? "h-70 pr-3 max-sm:h-auto max-sm:pr-0" : ""
+          }
+        >
           <div className="flex flex-col gap-3">
             {conflicts.map((conflict) => (
               <div key={conflict.label} className="flex flex-col gap-1.5">
-                <p className="text-sm font-medium">{conflict.label}</p>
+                <p className="text-sm font-medium wrap-anywhere">
+                  {conflict.label}
+                </p>
                 <ActiveRequisitionWarning entries={conflict.entries} />
               </div>
             ))}

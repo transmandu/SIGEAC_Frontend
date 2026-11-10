@@ -1,28 +1,18 @@
 "use client";
 import { flattenDepartments } from "@/lib/departments";
 import { Button } from "@/components/ui/button";
-import {
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import {
-  Building2,
   Calendar as CalendarIcon,
   Check,
   ChevronsUpDown,
-  Layers,
   MinusCircle,
+  Package,
   PackagePlus,
-  Ruler,
-  Tag,
-  User,
-  UserCog,
 } from "lucide-react";
 import { useMemo } from "react";
 import type { UseFormReturn } from "react-hook-form";
@@ -41,13 +31,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Tooltip,
   TooltipContent,
@@ -69,6 +52,16 @@ import { getRequisitionArticleKey } from "@/hooks/mantenimiento/compras/useGetAc
 import type { ActiveGeneralArticleRequisition } from "@/types/purchase";
 import { toCalendarPayload } from "@/lib/date";
 import { SearchableSelect } from "@/components/misc/SearchableSelect";
+import {
+  FieldLabel,
+  RequisitionSection,
+  requisitionIconButtonClass,
+  requisitionTriggerClass,
+  rowFieldClass,
+  rowTriggerClass,
+} from "./RequisitionSection";
+import { PriorityChoice } from "./PriorityChoice";
+import { labelClass } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
 
 interface GeneralArticlesSectionProps {
   form: UseFormReturn<any>;
@@ -218,15 +211,16 @@ function DestinationFieldsRow({
     : undefined;
 
   return (
-    <div className="flex items-center justify-center gap-2 mt-1.5">
-      <div className={cn("flex flex-col gap-1 shrink-0", dateColClass)}>
+    <div className="mt-1.5 grid grid-cols-2 gap-2 sm:flex sm:items-center sm:justify-center">
+      <div
+        className={cn("flex min-w-0 flex-col gap-1 sm:shrink-0", dateColClass)}
+      >
         <label
           className={cn(
             "flex items-center gap-1 font-medium select-none",
             labelTextClass,
           )}
         >
-          <CalendarIcon className="size-3" />
           Fecha de solicitud
         </label>
         <Popover>
@@ -235,7 +229,8 @@ function DestinationFieldsRow({
               type="button"
               variant="outline"
               className={cn(
-                "w-full justify-start text-xs h-8 px-2 font-normal text-muted-foreground",
+                rowTriggerClass,
+                "justify-start text-muted-foreground",
                 requestedDate && "text-foreground",
               )}
             >
@@ -265,14 +260,13 @@ function DestinationFieldsRow({
         </Popover>
       </div>
 
-      <div className="flex flex-col gap-1 w-48 shrink-0">
+      <div className="flex min-w-0 flex-col gap-1 sm:w-48 sm:shrink-0">
         <label
           className={cn(
             "flex items-center gap-1 font-medium select-none",
             labelTextClass,
           )}
         >
-          <Building2 className="size-3" />
           Depto.
         </label>
         <Popover>
@@ -283,7 +277,8 @@ function DestinationFieldsRow({
               variant="outline"
               role="combobox"
               className={cn(
-                "w-full justify-between text-xs h-8 px-2 font-normal text-muted-foreground",
+                rowTriggerClass,
+                "text-muted-foreground",
                 selectedDepartment && "text-foreground",
               )}
             >
@@ -344,14 +339,13 @@ function DestinationFieldsRow({
         </Popover>
       </div>
 
-      <div className="flex flex-col gap-1 w-48 shrink-0">
+      <div className="flex min-w-0 flex-col gap-1 sm:w-48 sm:shrink-0">
         <label
           className={cn(
             "flex items-center gap-1 font-medium select-none",
             labelTextClass,
           )}
         >
-          <User className="size-3" />
           Solicitante
         </label>
         <Popover>
@@ -362,7 +356,8 @@ function DestinationFieldsRow({
               variant="outline"
               role="combobox"
               className={cn(
-                "w-full justify-between text-xs h-8 px-2 font-normal text-muted-foreground",
+                rowTriggerClass,
+                "text-muted-foreground",
                 selectedEmployee && "text-foreground",
               )}
             >
@@ -425,14 +420,13 @@ function DestinationFieldsRow({
         </Popover>
       </div>
 
-      <div className="flex flex-col gap-1 w-48 shrink-0">
+      <div className="flex min-w-0 flex-col gap-1 sm:w-48 sm:shrink-0">
         <label
           className={cn(
             "flex items-center gap-1 font-medium select-none",
             labelTextClass,
           )}
         >
-          <UserCog className="size-3" />
           Autoriz.
         </label>
         <Popover>
@@ -443,7 +437,8 @@ function DestinationFieldsRow({
               variant="outline"
               role="combobox"
               className={cn(
-                "w-full justify-between text-xs h-8 px-2 font-normal text-muted-foreground",
+                rowTriggerClass,
+                "text-muted-foreground",
                 authorizedOrThirdPartyLabel && "text-foreground",
               )}
             >
@@ -555,12 +550,9 @@ export function GeneralArticlesSection({
   activeRequisitionsByArticle,
 }: GeneralArticlesSectionProps) {
   const isLg = size === "lg";
-  const labelTextClass = cn(
-    isLg ? "text-sm text-foreground/80" : "text-xs text-muted-foreground",
-    "whitespace-nowrap",
-  );
-  const dateColClass = isLg ? "w-40" : "w-32";
-  const priorityColClass = isLg ? "w-28" : "w-[80px]";
+  const labelTextClass = cn(labelClass, "whitespace-nowrap");
+  const dateColClass = isLg ? "sm:w-40" : "sm:w-32";
+  const priorityColClass = isLg ? "sm:w-32" : "sm:w-28";
 
   // La identidad de un artículo general es descripción + variante + marca:
   // dos entradas pueden compartir las dos primeras y diferir solo en la marca,
@@ -619,578 +611,562 @@ export function GeneralArticlesSection({
       control={form.control}
       name="general_articles"
       render={() => (
-        <FormItem className="flex flex-col">
-          <div className="flex gap-4 items-end">
-            <div className="flex gap-4 items-end w-full">
-              <FormItem className="flex flex-col w-[320px]">
-                <FormLabel
-                  className="flex items-center gap-1.5 select-none"
-                  onClick={(e) => e.preventDefault()}
-                >
-                  <Layers className="size-3.5 text-muted-foreground" />
-                  Artículo general
-                </FormLabel>
-                <div className="flex items-center gap-1.5">
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        disabled={isGeneralArticlesLoading}
-                        role="combobox"
-                        className={cn(
-                          "justify-between w-full",
-                          selectedGeneralArticles.length === 0 &&
-                            "text-muted-foreground",
-                        )}
-                      >
-                        {selectedGeneralArticles.length > 0
-                          ? `${selectedGeneralArticles.length} arts. seleccionados`
-                          : "Selec. un artículo..."}
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="p-0" matchTriggerWidth>
-                      <Command shouldFilter={false}>
-                        <CommandInput
-                          placeholder="Buscar..."
-                          value={generalArticleSearch}
-                          onValueChange={setGeneralArticleSearch}
-                        />
-                        <CommandList>
-                          <CommandEmpty>
-                            {generalArticleSearch
-                              ? "No existen artículos generales..."
-                              : "Escriba para buscar..."}
-                          </CommandEmpty>
-                          <CommandGroup>
-                            {dedupedGeneralArticles.map((article) => (
-                              <CommandItem
-                                key={getArticleKey(
-                                  article.description,
-                                  article.variant_type,
-                                  article.brand_model,
-                                )}
-                                value={`${article.description} ${article.variant_type ?? ""} ${article.brand_model ?? ""}`}
-                                onSelect={() =>
-                                  handleGeneralArticleSelect(article)
-                                }
-                              >
-                                <Check
-                                  className={cn(
-                                    "mr-2 h-4 w-4",
-                                    selectedGeneralArticles.some(
-                                      (a) =>
-                                        getArticleKey(
-                                          a.description,
-                                          a.variant_type,
-                                          a.brand_model,
-                                        ) ===
-                                        getArticleKey(
-                                          article.description,
-                                          article.variant_type,
-                                          article.brand_model,
-                                        ),
-                                    )
-                                      ? "opacity-100"
-                                      : "opacity-0",
-                                  )}
-                                />
-                                {getArticleLabel(article)}
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-
-                  {enableCreateGeneralArticle && (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
+        <RequisitionSection
+          icon={Package}
+          title="Artículos"
+          description="Elija los artículos del catálogo o solicite uno no registrado, y detalle cada uno."
+        >
+          <FormItem className="flex flex-col">
+            <div className="flex">
+              <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-end sm:gap-4">
+                <FormItem className="flex w-full flex-col sm:w-80">
+                  <FieldLabel preventClick>Artículo general</FieldLabel>
+                  <div className="flex items-center gap-1.5">
+                    <Popover>
+                      <PopoverTrigger asChild>
                         <Button
                           variant="outline"
-                          type="button"
-                          size="icon"
-                          onClick={() => addManualGeneralArticle?.()}
-                          className="text-muted-foreground hover:text-foreground shrink-0"
+                          disabled={isGeneralArticlesLoading}
+                          role="combobox"
+                          className={cn(
+                            requisitionTriggerClass,
+                            selectedGeneralArticles.length === 0 &&
+                              "text-muted-foreground",
+                          )}
                         >
-                          <PackagePlus className="size-4" />
+                          {selectedGeneralArticles.length > 0
+                            ? `${selectedGeneralArticles.length} arts. seleccionados`
+                            : "Selec. un artículo..."}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="top" className="text-xs px-2 py-1">
-                        <p>Solicitar artículo no registrado</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  )}
-                </div>
-              </FormItem>
-            </div>
-          </div>
+                      </PopoverTrigger>
+                      <PopoverContent className="p-0" matchTriggerWidth>
+                        <Command shouldFilter={false}>
+                          <CommandInput
+                            placeholder="Buscar..."
+                            value={generalArticleSearch}
+                            onValueChange={setGeneralArticleSearch}
+                          />
+                          <CommandList>
+                            <CommandEmpty>
+                              {generalArticleSearch
+                                ? "No existen artículos generales..."
+                                : "Escriba para buscar..."}
+                            </CommandEmpty>
+                            <CommandGroup>
+                              {dedupedGeneralArticles.map((article) => (
+                                <CommandItem
+                                  key={getArticleKey(
+                                    article.description,
+                                    article.variant_type,
+                                    article.brand_model,
+                                  )}
+                                  value={`${article.description} ${article.variant_type ?? ""} ${article.brand_model ?? ""}`}
+                                  onSelect={() =>
+                                    handleGeneralArticleSelect(article)
+                                  }
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      selectedGeneralArticles.some(
+                                        (a) =>
+                                          getArticleKey(
+                                            a.description,
+                                            a.variant_type,
+                                            a.brand_model,
+                                          ) ===
+                                          getArticleKey(
+                                            article.description,
+                                            article.variant_type,
+                                            article.brand_model,
+                                          ),
+                                      )
+                                        ? "opacity-100"
+                                        : "opacity-0",
+                                    )}
+                                  />
+                                  {getArticleLabel(article)}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
 
-          <div className="mt-4 space-y-4">
-            <ScrollArea
-              className={cn(selectedGeneralArticles.length > 1 ? "h-70" : "")}
-            >
-              {selectedGeneralArticles.map((article, index) => {
-                const isUnregistered = !generalArticles?.some(
-                  (a) =>
-                    getArticleKey(
-                      a.description,
-                      a.variant_type,
-                      a.brand_model,
-                    ) ===
-                    getArticleKey(
-                      article.description,
-                      article.variant_type,
-                      article.brand_model,
-                    ),
-                );
-                // Se resuelve con lo escrito en la fila, así que también atrapa
-                // los artículos tecleados a mano.
-                const activeRequisitions =
-                  activeRequisitionsByArticle?.get(
-                    getRequisitionArticleKey(
-                      article.description,
-                      article.variant_type,
-                    ),
-                  ) ?? [];
-                return (
-                  <div
-                    key={index}
-                    className="rounded-md border bg-muted/30 p-3 mb-3"
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      {isUnregistered ? (
-                        <h4 className="font-medium text-sm select-none">
-                          Solicitar artículo no registrado
-                        </h4>
-                      ) : (
-                        <h4 className="font-medium text-sm select-none">
-                          {getArticleLabel(article) || "Sin descripción"}
-                        </h4>
-                      )}
+                    {enableCreateGeneralArticle && (
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Button
-                            variant="ghost"
+                            variant="outline"
                             type="button"
                             size="icon"
-                            onClick={() => removeGeneralArticle(index)}
-                            className="h-6 w-6 hover:text-destructive"
+                            onClick={() => addManualGeneralArticle?.()}
+                            className={requisitionIconButtonClass}
                           >
-                            <MinusCircle className="size-3.5" />
+                            <PackagePlus className="size-4" />
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent
                           side="top"
                           className="text-xs px-2 py-1"
                         >
-                          <p>Quitar artículo</p>
+                          <p>Solicitar artículo no registrado</p>
                         </TooltipContent>
                       </Tooltip>
-                    </div>
-
-                    {activeRequisitions.length > 0 && (
-                      <ActiveRequisitionWarning
-                        entries={activeRequisitions}
-                        compact
-                        className="mb-2"
-                      />
-                    )}
-
-                    {isUnregistered ? (
-                      <div className="flex items-center gap-2">
-                        <div className="flex flex-col gap-1.5 flex-1">
-                          <div className="flex flex-col gap-1">
-                            <label
-                              className={cn(
-                                "flex items-center gap-1 font-medium select-none",
-                                labelTextClass,
-                                isDescriptionInvalid(article) &&
-                                  "text-destructive",
-                              )}
-                            >
-                              <Tag className="size-3" />
-                              Descripción
-                              <RequiredIndicator
-                                invalid={isDescriptionInvalid(article)}
-                              />
-                            </label>
-                            <Input
-                              placeholder="Ej: ALCOHOL ANTISEPTICO"
-                              className={cn(
-                                "text-xs h-8",
-                                isDescriptionInvalid(article) &&
-                                  "border-destructive focus-visible:ring-destructive",
-                              )}
-                              value={article.description || ""}
-                              onChange={(e) =>
-                                handleGeneralArticleChange(
-                                  index,
-                                  "description",
-                                  e.target.value,
-                                )
-                              }
-                            />
-                          </div>
-
-                          <div className="flex items-center gap-2">
-                            <div className="flex flex-col gap-1 flex-1">
-                              <label
-                                className={cn(
-                                  "flex items-center gap-1 font-medium select-none",
-                                  labelTextClass,
-                                )}
-                              >
-                                Present. / Especif.
-                              </label>
-                              <Input
-                                placeholder="Ej: Auto Taladrante / Negro"
-                                className="text-xs h-8"
-                                value={article.variant_type || ""}
-                                onChange={(e) =>
-                                  handleGeneralArticleChange(
-                                    index,
-                                    "variant_type",
-                                    e.target.value,
-                                  )
-                                }
-                              />
-                            </div>
-
-                            <div className="flex flex-col gap-1 w-28 shrink-0">
-                              <label
-                                className={cn(
-                                  "flex items-center gap-1 font-medium select-none",
-                                  labelTextClass,
-                                  isQuantityInvalid(article) &&
-                                    "text-destructive",
-                                )}
-                              >
-                                <Tag className="size-3" />
-                                Cant.
-                                <RequiredIndicator
-                                  invalid={isQuantityInvalid(article)}
-                                />
-                              </label>
-                              <Input
-                                placeholder="Ej: 4"
-                                min="0"
-                                step="0.1"
-                                inputMode="decimal"
-                                className={cn(
-                                  "text-xs h-8",
-                                  isQuantityInvalid(article) &&
-                                    "border-destructive focus-visible:ring-destructive",
-                                )}
-                                value={article.quantity || ""}
-                                onChange={(e) =>
-                                  handleGeneralArticleChange(
-                                    index,
-                                    "quantity",
-                                    Number(e.target.value),
-                                  )
-                                }
-                              />
-                            </div>
-
-                            <div className="flex flex-col gap-1 w-36 shrink-0">
-                              <label
-                                className={cn(
-                                  "flex items-center gap-1 font-medium select-none",
-                                  labelTextClass,
-                                  isUnitInvalid(article) && "text-destructive",
-                                )}
-                              >
-                                <Ruler className="size-3" />
-                                Unidad.
-                                <RequiredIndicator
-                                  invalid={isUnitInvalid(article)}
-                                />
-                              </label>
-                              <SearchableSelect
-                                value={article.unit_id || ""}
-                                onChange={(value) =>
-                                  handleGeneralArticleChange(
-                                    index,
-                                    "unit_id",
-                                    value,
-                                  )
-                                }
-                                loading={isUnitsLoading}
-                                placeholder="Ej: Unidad"
-                                searchPlaceholder="Buscar unidad..."
-                                triggerClassName={cn(
-                                  "text-xs h-8",
-                                  !article.unit_id && "text-muted-foreground",
-                                  isUnitInvalid(article) &&
-                                    "border-destructive focus-visible:ring-destructive",
-                                )}
-                                options={(units ?? []).map((unit) => ({
-                                  value: unit.id.toString(),
-                                  label: unit.label,
-                                }))}
-                              />
-                            </div>
-
-                            <div
-                              className={cn(
-                                "flex flex-col gap-1 shrink-0",
-                                priorityColClass,
-                              )}
-                            >
-                              <label
-                                className={cn(
-                                  "flex items-center gap-1 font-medium select-none",
-                                  labelTextClass,
-                                )}
-                              >
-                                <Tag className="size-3" />
-                                Prioridad.
-                                <RequiredIndicator />
-                              </label>
-                              <Select
-                                value={article.priority || "MEDIUM"}
-                                onValueChange={(
-                                  value: "HIGH" | "MEDIUM" | "LOW",
-                                ) =>
-                                  handleGeneralArticleChange(
-                                    index,
-                                    "priority",
-                                    value,
-                                  )
-                                }
-                              >
-                                <SelectTrigger className="text-xs h-8">
-                                  <SelectValue placeholder="Prior." />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="HIGH">Alta</SelectItem>
-                                  <SelectItem value="MEDIUM">Media</SelectItem>
-                                  <SelectItem value="LOW">Baja</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          </div>
-
-                          {showDestinationFields && (
-                            <DestinationFieldsRow
-                              article={article}
-                              index={index}
-                              departments={departments}
-                              isDepartmentsLoading={isDepartmentsLoading}
-                              destinationEmployees={destinationEmployees}
-                              isDestinationEmployeesLoading={
-                                isDestinationEmployeesLoading
-                              }
-                              thirdParties={thirdParties}
-                              isThirdPartiesLoading={isThirdPartiesLoading}
-                              authorizedEmployees={authorizedEmployees}
-                              isAuthorizedEmployeesLoading={
-                                isAuthorizedEmployeesLoading
-                              }
-                              handleGeneralArticleChange={
-                                handleGeneralArticleChange
-                              }
-                              labelTextClass={labelTextClass}
-                              dateColClass={dateColClass}
-                            />
-                          )}
-                        </div>
-
-                        <div className="flex items-center self-stretch shrink-0">
-                          <ArticleImageAttachment
-                            article={article}
-                            onChangeImage={(file) =>
-                              handleGeneralArticleChange(index, "image", file)
-                            }
-                          />
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2 mt-1.5">
-                        <div className="flex flex-col gap-1.5 flex-1">
-                          <div className="flex items-center gap-2">
-                            <div className="flex flex-col gap-1 flex-1">
-                              <label
-                                className={cn(
-                                  "flex items-center gap-1 font-medium select-none",
-                                  labelTextClass,
-                                )}
-                              >
-                                Present. / Especif.
-                              </label>
-                              <Input
-                                placeholder="Ej: Auto Taladrante / Negro"
-                                className="text-xs h-8"
-                                value={article.variant_type || ""}
-                                onChange={(e) =>
-                                  handleGeneralArticleChange(
-                                    index,
-                                    "variant_type",
-                                    e.target.value,
-                                  )
-                                }
-                              />
-                            </div>
-
-                            <div className="flex flex-col gap-1 w-28 shrink-0">
-                              <label
-                                className={cn(
-                                  "flex items-center gap-1 font-medium select-none",
-                                  labelTextClass,
-                                  isQuantityInvalid(article) &&
-                                    "text-destructive",
-                                )}
-                              >
-                                <Tag className="size-3" />
-                                Cant.
-                                <RequiredIndicator
-                                  invalid={isQuantityInvalid(article)}
-                                />
-                              </label>
-                              <Input
-                                placeholder="Ej: 4"
-                                min="0"
-                                step="0.1"
-                                inputMode="decimal"
-                                className={cn(
-                                  "text-xs h-8",
-                                  isQuantityInvalid(article) &&
-                                    "border-destructive focus-visible:ring-destructive",
-                                )}
-                                value={article.quantity || ""}
-                                onChange={(e) =>
-                                  handleGeneralArticleChange(
-                                    index,
-                                    "quantity",
-                                    Number(e.target.value),
-                                  )
-                                }
-                              />
-                            </div>
-
-                            <div className="flex flex-col gap-1 w-36 shrink-0">
-                              <label
-                                className={cn(
-                                  "flex items-center gap-1 font-medium select-none",
-                                  labelTextClass,
-                                  isUnitInvalid(article) && "text-destructive",
-                                )}
-                              >
-                                <Ruler className="size-3" />
-                                Unidad.
-                                <RequiredIndicator
-                                  invalid={isUnitInvalid(article)}
-                                />
-                              </label>
-                              <SearchableSelect
-                                value={article.unit_id || ""}
-                                onChange={(value) =>
-                                  handleGeneralArticleChange(
-                                    index,
-                                    "unit_id",
-                                    value,
-                                  )
-                                }
-                                loading={isUnitsLoading}
-                                placeholder="Ej: Unidad"
-                                searchPlaceholder="Buscar unidad..."
-                                triggerClassName={cn(
-                                  "text-xs h-8",
-                                  !article.unit_id && "text-muted-foreground",
-                                  isUnitInvalid(article) &&
-                                    "border-destructive focus-visible:ring-destructive",
-                                )}
-                                options={(units ?? []).map((unit) => ({
-                                  value: unit.id.toString(),
-                                  label: unit.label,
-                                }))}
-                              />
-                            </div>
-
-                            <div
-                              className={cn(
-                                "flex flex-col gap-1 shrink-0",
-                                priorityColClass,
-                              )}
-                            >
-                              <label
-                                className={cn(
-                                  "flex items-center gap-1 font-medium select-none",
-                                  labelTextClass,
-                                )}
-                              >
-                                <Tag className="size-3" />
-                                Prioridad.
-                                <RequiredIndicator />
-                              </label>
-                              <Select
-                                value={article.priority || "MEDIUM"}
-                                onValueChange={(
-                                  value: "HIGH" | "MEDIUM" | "LOW",
-                                ) =>
-                                  handleGeneralArticleChange(
-                                    index,
-                                    "priority",
-                                    value,
-                                  )
-                                }
-                              >
-                                <SelectTrigger className="text-xs h-8">
-                                  <SelectValue placeholder="Prior." />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="HIGH">Alta</SelectItem>
-                                  <SelectItem value="MEDIUM">Media</SelectItem>
-                                  <SelectItem value="LOW">Baja</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          </div>
-
-                          {showDestinationFields && (
-                            <DestinationFieldsRow
-                              article={article}
-                              index={index}
-                              departments={departments}
-                              isDepartmentsLoading={isDepartmentsLoading}
-                              destinationEmployees={destinationEmployees}
-                              isDestinationEmployeesLoading={
-                                isDestinationEmployeesLoading
-                              }
-                              thirdParties={thirdParties}
-                              isThirdPartiesLoading={isThirdPartiesLoading}
-                              authorizedEmployees={authorizedEmployees}
-                              isAuthorizedEmployeesLoading={
-                                isAuthorizedEmployeesLoading
-                              }
-                              handleGeneralArticleChange={
-                                handleGeneralArticleChange
-                              }
-                              labelTextClass={labelTextClass}
-                              dateColClass={dateColClass}
-                            />
-                          )}
-                        </div>
-
-                        <div className="self-stretch flex items-center">
-                          <ArticleImageAttachment
-                            article={article}
-                            onChangeImage={(file) =>
-                              handleGeneralArticleChange(index, "image", file)
-                            }
-                          />
-                        </div>
-                      </div>
                     )}
                   </div>
-                );
-              })}
-            </ScrollArea>
-          </div>
-          <FormMessage />
-        </FormItem>
+                </FormItem>
+              </div>
+            </div>
+
+            <div className="mt-4 space-y-4">
+              <ScrollArea
+                className={cn(
+                  selectedGeneralArticles.length > 1
+                    ? "h-70 max-sm:h-auto"
+                    : "",
+                )}
+              >
+                {selectedGeneralArticles.map((article, index) => {
+                  const isUnregistered = !generalArticles?.some(
+                    (a) =>
+                      getArticleKey(
+                        a.description,
+                        a.variant_type,
+                        a.brand_model,
+                      ) ===
+                      getArticleKey(
+                        article.description,
+                        article.variant_type,
+                        article.brand_model,
+                      ),
+                  );
+                  // Se resuelve con lo escrito en la fila, así que también atrapa
+                  // los artículos tecleados a mano.
+                  const activeRequisitions =
+                    activeRequisitionsByArticle?.get(
+                      getRequisitionArticleKey(
+                        article.description,
+                        article.variant_type,
+                      ),
+                    ) ?? [];
+                  return (
+                    <div
+                      key={index}
+                      className="rounded-md border bg-muted/30 p-3 mb-3"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        {isUnregistered ? (
+                          <h4 className="font-medium text-sm select-none">
+                            Solicitar artículo no registrado
+                          </h4>
+                        ) : (
+                          <h4 className="font-medium text-sm select-none">
+                            {getArticleLabel(article) || "Sin descripción"}
+                          </h4>
+                        )}
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              type="button"
+                              size="icon"
+                              onClick={() => removeGeneralArticle(index)}
+                              className="h-6 w-6 hover:text-destructive max-sm:size-9"
+                            >
+                              <MinusCircle className="size-3.5" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent
+                            side="top"
+                            className="text-xs px-2 py-1"
+                          >
+                            <p>Quitar artículo</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+
+                      {activeRequisitions.length > 0 && (
+                        <ActiveRequisitionWarning
+                          entries={activeRequisitions}
+                          compact
+                          className="mb-2"
+                        />
+                      )}
+
+                      {isUnregistered ? (
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                          <div className="flex min-w-0 flex-col gap-1.5 sm:flex-1">
+                            <div className="flex flex-col gap-1">
+                              <label
+                                className={cn(
+                                  "flex items-center gap-1 font-medium select-none",
+                                  labelTextClass,
+                                  isDescriptionInvalid(article) &&
+                                    "text-destructive",
+                                )}
+                              >
+                                Descripción
+                                <RequiredIndicator
+                                  invalid={isDescriptionInvalid(article)}
+                                />
+                              </label>
+                              <Input
+                                placeholder="Ej: ALCOHOL ANTISEPTICO"
+                                className={cn(
+                                  rowFieldClass,
+                                  isDescriptionInvalid(article) &&
+                                    "border-destructive focus-visible:ring-destructive",
+                                )}
+                                value={article.description || ""}
+                                onChange={(e) =>
+                                  handleGeneralArticleChange(
+                                    index,
+                                    "description",
+                                    e.target.value,
+                                  )
+                                }
+                              />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
+                              <div className="flex min-w-0 flex-col gap-1 max-sm:col-span-2 sm:flex-1">
+                                <label
+                                  className={cn(
+                                    "flex items-center gap-1 font-medium select-none",
+                                    labelTextClass,
+                                  )}
+                                >
+                                  Present. / Especif.
+                                </label>
+                                <Input
+                                  placeholder="Ej: Auto Taladrante / Negro"
+                                  className={rowFieldClass}
+                                  value={article.variant_type || ""}
+                                  onChange={(e) =>
+                                    handleGeneralArticleChange(
+                                      index,
+                                      "variant_type",
+                                      e.target.value,
+                                    )
+                                  }
+                                />
+                              </div>
+
+                              <div className="flex min-w-0 flex-col gap-1 sm:w-28 sm:shrink-0">
+                                <label
+                                  className={cn(
+                                    "flex items-center gap-1 font-medium select-none",
+                                    labelTextClass,
+                                    isQuantityInvalid(article) &&
+                                      "text-destructive",
+                                  )}
+                                >
+                                  Cant.
+                                  <RequiredIndicator
+                                    invalid={isQuantityInvalid(article)}
+                                  />
+                                </label>
+                                <Input
+                                  placeholder="Ej: 4"
+                                  min="0"
+                                  step="0.1"
+                                  inputMode="decimal"
+                                  className={cn(
+                                    rowFieldClass,
+                                    isQuantityInvalid(article) &&
+                                      "border-destructive focus-visible:ring-destructive",
+                                  )}
+                                  value={article.quantity || ""}
+                                  onChange={(e) =>
+                                    handleGeneralArticleChange(
+                                      index,
+                                      "quantity",
+                                      Number(e.target.value),
+                                    )
+                                  }
+                                />
+                              </div>
+
+                              <div className="flex min-w-0 flex-col gap-1 sm:w-36 sm:shrink-0">
+                                <label
+                                  className={cn(
+                                    "flex items-center gap-1 font-medium select-none",
+                                    labelTextClass,
+                                    isUnitInvalid(article) &&
+                                      "text-destructive",
+                                  )}
+                                >
+                                  Unidad
+                                  <RequiredIndicator
+                                    invalid={isUnitInvalid(article)}
+                                  />
+                                </label>
+                                <SearchableSelect
+                                  value={article.unit_id || ""}
+                                  onChange={(value) =>
+                                    handleGeneralArticleChange(
+                                      index,
+                                      "unit_id",
+                                      value,
+                                    )
+                                  }
+                                  loading={isUnitsLoading}
+                                  placeholder="Ej: Unidad"
+                                  searchPlaceholder="Buscar unidad..."
+                                  triggerClassName={cn(
+                                    rowFieldClass,
+                                    !article.unit_id && "text-muted-foreground",
+                                    isUnitInvalid(article) &&
+                                      "border-destructive focus-visible:ring-destructive",
+                                  )}
+                                  options={(units ?? []).map((unit) => ({
+                                    value: unit.id.toString(),
+                                    label: unit.label,
+                                  }))}
+                                />
+                              </div>
+
+                              <div
+                                className={cn(
+                                  "flex min-w-0 flex-col gap-1 sm:shrink-0",
+                                  priorityColClass,
+                                )}
+                              >
+                                <label
+                                  className={cn(
+                                    "flex items-center gap-1 font-medium select-none",
+                                    labelTextClass,
+                                  )}
+                                >
+                                  Prioridad
+                                  <RequiredIndicator />
+                                </label>
+                                <PriorityChoice
+                                  size="sm"
+                                  label="Prioridad del artículo"
+                                  value={article.priority || "MEDIUM"}
+                                  onChange={(value) =>
+                                    handleGeneralArticleChange(
+                                      index,
+                                      "priority",
+                                      value,
+                                    )
+                                  }
+                                />
+                              </div>
+                            </div>
+
+                            {showDestinationFields && (
+                              <DestinationFieldsRow
+                                article={article}
+                                index={index}
+                                departments={departments}
+                                isDepartmentsLoading={isDepartmentsLoading}
+                                destinationEmployees={destinationEmployees}
+                                isDestinationEmployeesLoading={
+                                  isDestinationEmployeesLoading
+                                }
+                                thirdParties={thirdParties}
+                                isThirdPartiesLoading={isThirdPartiesLoading}
+                                authorizedEmployees={authorizedEmployees}
+                                isAuthorizedEmployeesLoading={
+                                  isAuthorizedEmployeesLoading
+                                }
+                                handleGeneralArticleChange={
+                                  handleGeneralArticleChange
+                                }
+                                labelTextClass={labelTextClass}
+                                dateColClass={dateColClass}
+                              />
+                            )}
+                          </div>
+
+                          <div className="flex items-center max-sm:justify-end sm:shrink-0 sm:self-stretch">
+                            <ArticleImageAttachment
+                              article={article}
+                              onChangeImage={(file) =>
+                                handleGeneralArticleChange(index, "image", file)
+                              }
+                            />
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="mt-1.5 flex flex-col gap-2 sm:flex-row sm:items-center">
+                          <div className="flex min-w-0 flex-col gap-1.5 sm:flex-1">
+                            <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
+                              <div className="flex min-w-0 flex-col gap-1 max-sm:col-span-2 sm:flex-1">
+                                <label
+                                  className={cn(
+                                    "flex items-center gap-1 font-medium select-none",
+                                    labelTextClass,
+                                  )}
+                                >
+                                  Present. / Especif.
+                                </label>
+                                <Input
+                                  placeholder="Ej: Auto Taladrante / Negro"
+                                  className={rowFieldClass}
+                                  value={article.variant_type || ""}
+                                  onChange={(e) =>
+                                    handleGeneralArticleChange(
+                                      index,
+                                      "variant_type",
+                                      e.target.value,
+                                    )
+                                  }
+                                />
+                              </div>
+
+                              <div className="flex min-w-0 flex-col gap-1 sm:w-28 sm:shrink-0">
+                                <label
+                                  className={cn(
+                                    "flex items-center gap-1 font-medium select-none",
+                                    labelTextClass,
+                                    isQuantityInvalid(article) &&
+                                      "text-destructive",
+                                  )}
+                                >
+                                  Cant.
+                                  <RequiredIndicator
+                                    invalid={isQuantityInvalid(article)}
+                                  />
+                                </label>
+                                <Input
+                                  placeholder="Ej: 4"
+                                  min="0"
+                                  step="0.1"
+                                  inputMode="decimal"
+                                  className={cn(
+                                    rowFieldClass,
+                                    isQuantityInvalid(article) &&
+                                      "border-destructive focus-visible:ring-destructive",
+                                  )}
+                                  value={article.quantity || ""}
+                                  onChange={(e) =>
+                                    handleGeneralArticleChange(
+                                      index,
+                                      "quantity",
+                                      Number(e.target.value),
+                                    )
+                                  }
+                                />
+                              </div>
+
+                              <div className="flex min-w-0 flex-col gap-1 sm:w-36 sm:shrink-0">
+                                <label
+                                  className={cn(
+                                    "flex items-center gap-1 font-medium select-none",
+                                    labelTextClass,
+                                    isUnitInvalid(article) &&
+                                      "text-destructive",
+                                  )}
+                                >
+                                  Unidad
+                                  <RequiredIndicator
+                                    invalid={isUnitInvalid(article)}
+                                  />
+                                </label>
+                                <SearchableSelect
+                                  value={article.unit_id || ""}
+                                  onChange={(value) =>
+                                    handleGeneralArticleChange(
+                                      index,
+                                      "unit_id",
+                                      value,
+                                    )
+                                  }
+                                  loading={isUnitsLoading}
+                                  placeholder="Ej: Unidad"
+                                  searchPlaceholder="Buscar unidad..."
+                                  triggerClassName={cn(
+                                    rowFieldClass,
+                                    !article.unit_id && "text-muted-foreground",
+                                    isUnitInvalid(article) &&
+                                      "border-destructive focus-visible:ring-destructive",
+                                  )}
+                                  options={(units ?? []).map((unit) => ({
+                                    value: unit.id.toString(),
+                                    label: unit.label,
+                                  }))}
+                                />
+                              </div>
+
+                              <div
+                                className={cn(
+                                  "flex min-w-0 flex-col gap-1 sm:shrink-0",
+                                  priorityColClass,
+                                )}
+                              >
+                                <label
+                                  className={cn(
+                                    "flex items-center gap-1 font-medium select-none",
+                                    labelTextClass,
+                                  )}
+                                >
+                                  Prioridad
+                                  <RequiredIndicator />
+                                </label>
+                                <PriorityChoice
+                                  size="sm"
+                                  label="Prioridad del artículo"
+                                  value={article.priority || "MEDIUM"}
+                                  onChange={(value) =>
+                                    handleGeneralArticleChange(
+                                      index,
+                                      "priority",
+                                      value,
+                                    )
+                                  }
+                                />
+                              </div>
+                            </div>
+
+                            {showDestinationFields && (
+                              <DestinationFieldsRow
+                                article={article}
+                                index={index}
+                                departments={departments}
+                                isDepartmentsLoading={isDepartmentsLoading}
+                                destinationEmployees={destinationEmployees}
+                                isDestinationEmployeesLoading={
+                                  isDestinationEmployeesLoading
+                                }
+                                thirdParties={thirdParties}
+                                isThirdPartiesLoading={isThirdPartiesLoading}
+                                authorizedEmployees={authorizedEmployees}
+                                isAuthorizedEmployeesLoading={
+                                  isAuthorizedEmployeesLoading
+                                }
+                                handleGeneralArticleChange={
+                                  handleGeneralArticleChange
+                                }
+                                labelTextClass={labelTextClass}
+                                dateColClass={dateColClass}
+                              />
+                            )}
+                          </div>
+
+                          <div className="flex items-center max-sm:justify-end sm:self-stretch">
+                            <ArticleImageAttachment
+                              article={article}
+                              onChangeImage={(file) =>
+                                handleGeneralArticleChange(index, "image", file)
+                              }
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </ScrollArea>
+            </div>
+            <FormMessage />
+          </FormItem>
+        </RequisitionSection>
       )}
     />
   );

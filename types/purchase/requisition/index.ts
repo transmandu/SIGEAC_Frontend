@@ -66,6 +66,9 @@ export interface BatchArticle {
   aircraft?: string | { acronym: string } | null;
   document_types?: BatchArticleDocumentType[];
   lifecycle_stage?: ArticleLifecycleStage | null;
+  /** Artículo físico de la línea y novedades vigentes de su bitácora de tránsito. */
+  transit_article_id?: number | null;
+  transit_updates_count?: number;
 }
 
 export interface RequisitionBatch {
@@ -162,6 +165,8 @@ export interface Requisition {
       aircraft?: string;
       priority?: PurchasePriority | string;
       lifecycle_stage?: ArticleLifecycleStage | null;
+      transit_article_id?: number | null;
+      transit_updates_count?: number;
     }[];
   }[];
   general_articles?: {

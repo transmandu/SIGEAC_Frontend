@@ -11,6 +11,10 @@ import { ConfirmDeleteDialog } from "@/components/dialogs/shared/ConfirmDeleteDi
 import LoadingPage from "@/components/misc/LoadingPage";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  labelClass,
+  textareaClass,
+} from "@/components/forms/mantenimiento/almacen/_components/form-theme";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import type { Quote } from "@/types/purchase";
 import { ClipboardCheck, ClipboardX } from "lucide-react";
@@ -176,7 +180,7 @@ const QuoteDropdownDialogs = ({
         onConfirm={handleReject}
         extra={
           <div className="space-y-1.5">
-            <Label htmlFor="quote-reject-observation" className="text-xs">
+            <Label htmlFor="quote-reject-observation" className={labelClass}>
               Observación de rechazo (opcional)
             </Label>
             <Textarea
@@ -184,7 +188,8 @@ const QuoteDropdownDialogs = ({
               value={observation}
               onChange={(e) => setObservation(e.target.value)}
               placeholder="Ej.: precio no competitivo, el proveedor no cumple los requisitos."
-              className="min-h-22 resize-none text-sm"
+              rows={3}
+              className={textareaClass}
             />
           </div>
         }

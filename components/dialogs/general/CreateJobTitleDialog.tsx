@@ -23,10 +23,13 @@ export function CreateJobTitleDialog() {
       <FormDialogContent
         icon={BriefcaseBusiness}
         title="Crear Cargo"
-        description="Completa la información para registrar un nuevo cargo."
+        description="Registre el nombre del cargo y, si quiere, qué hace."
         className="sm:max-w-105"
       >
-        <CreateJobTitleForm onSuccess={() => setOpen(false)} />
+        <CreateJobTitleForm
+          onSuccess={() => setOpen(false)}
+          onCancel={() => setOpen(false)}
+        />
       </FormDialogContent>
     </Dialog>
   );

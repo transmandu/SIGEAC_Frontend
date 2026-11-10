@@ -166,6 +166,7 @@ export const getColumns = (
   {
     id: "expander",
     size: 50,
+    meta: { title: "cotizaciones asociadas" },
     header: () => null,
     cell: ({ row }) => {
       const canExpand = row.getCanExpand();
@@ -266,6 +267,8 @@ export const getColumns = (
     ),
     meta: {
       title: "Justificación",
+      mobileOrder: 5,
+      mobile: "wide",
     },
     cell: ({ row }) => (
       <div className="flex justify-center w-full">
@@ -289,6 +292,7 @@ export const getColumns = (
     ),
     meta: {
       title: "Solicitado por",
+      mobileOrder: 3,
     },
     cell: ({ row }) => (
       <div className="flex justify-center w-full">
@@ -308,10 +312,11 @@ export const getColumns = (
     ),
     meta: {
       title: "Estado",
+      mobileOrder: 1,
     },
     cell: ({ row }) => (
       <div
-        className="flex flex-col items-center gap-1.5 w-full"
+        className="flex flex-col items-center gap-1.5 max-md:gap-3 w-full"
         onClick={(e) => e.stopPropagation()}
       >
         <StatusCell requisition={row.original} />
@@ -334,6 +339,7 @@ export const getColumns = (
     ),
     meta: {
       title: "Prioridad",
+      mobileOrder: 2,
     },
     cell: ({ row }) => {
       const priority = row.original.priority;
@@ -396,6 +402,7 @@ export const getColumns = (
     ),
     meta: {
       title: "Fecha de Creación",
+      mobileOrder: 4,
     },
     cell: ({ row }) => {
       return (

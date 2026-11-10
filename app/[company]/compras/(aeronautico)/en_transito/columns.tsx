@@ -9,6 +9,7 @@ import {
   FileWarning,
   Loader2,
   MapPin,
+  NotebookPen,
   PackageCheck,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +32,7 @@ import { useUpdateArticleStatus } from "@/actions/mantenimiento/almacen/inventar
 import type { TransitArticle } from "@/types/purchase";
 import { EditTransitArticleDialog } from "./_components/EditTransitArticleDialog";
 import { PendingDocumentsDialog } from "./_components/PendingDocumentsDialog";
+import { TransitUpdatesDialog } from "./_components/TransitUpdatesDialog";
 import {
   DEFAULT_TIMEZONE,
   formatCalendarDate,
@@ -234,7 +236,7 @@ function EditTransitArticleAction({ article }: { article: TransitArticle }) {
                   setEditDialogOpen(true);
                 }}
                 className={cn(
-                  "relative h-7 w-7 disabled:opacity-40",
+                  "relative h-7 w-7 max-md:size-8 disabled:opacity-40",
                   isEditable && needsAttention
                     ? isBlocked
                       ? "text-red-500"
@@ -296,6 +298,75 @@ function EditTransitArticleAction({ article }: { article: TransitArticle }) {
   );
 }
 
+/**
+ * Bitácora de tránsito. Se ofrece mientras el artículo viaja y, ya en
+ * recepción, solo si dejó novedades que consultar.
+ */
+function TransitUpdatesAction({ article }: { article: TransitArticle }) {
+  const [open, setOpen] = useState(false);
+
+  const count = article.transit_updates_count ?? 0;
+  const inTransit = article.status?.toUpperCase() === "TRANSIT";
+  const idle = article.transit_idle;
+
+  if (!inTransit && count === 0) return null;
+
+  return (
+    <>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label={`Bitácora de tránsito${count > 0 ? `, ${count} ${count === 1 ? "novedad" : "novedades"}` : ""}${idle ? `, sin noticias hace ${article.transit_idle_days} días` : ""}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                setOpen(true);
+              }}
+              className={cn(
+                "relative h-7 w-7 max-md:size-8",
+                idle
+                  ? "text-amber-600 dark:text-amber-400"
+                  : count > 0
+                    ? "text-primary"
+                    : "text-muted-foreground",
+              )}
+            >
+              <NotebookPen className="size-3.5" />
+              {(count > 0 || idle) && (
+                <span
+                  className={cn(
+                    "absolute -top-0.5 -right-0.5 grid size-4 place-items-center rounded-full text-[10px] font-semibold text-white",
+                    idle ? "bg-amber-500" : "bg-primary",
+                  )}
+                >
+                  {count > 0 ? count : "!"}
+                </span>
+              )}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="text-xs">
+            {idle
+              ? `Sin noticias del envío hace ${article.transit_idle_days} días: registre una novedad`
+              : inTransit
+                ? "Bitácora de tránsito: registre novedades del envío"
+                : "Bitácora de tránsito (solo consulta)"}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+
+      {open && (
+        <TransitUpdatesDialog
+          articleId={article.id}
+          open={open}
+          onOpenChange={setOpen}
+        />
+      )}
+    </>
+  );
+}
+
 export const getColumns = (
   selectedCompany?: { slug: string },
   timeZone: string = DEFAULT_TIMEZONE,
@@ -323,6 +394,7 @@ export const getColumns = (
   {
     accessorKey: "part_number",
     size: 210,
+    meta: { title: "Número de Parte" },
 
     header: ({ column }) => (
       <div className="flex justify-center w-full">
@@ -340,6 +412,7 @@ export const getColumns = (
             <div className="flex items-center gap-2">
               <span
                 className="
+                shrink-0 whitespace-nowrap
                 text-xs font-semibold
                 px-1.5 py-0.5 rounded-md
                 bg-emerald-100/60 dark:bg-emerald-900/30
@@ -366,7 +439,8 @@ export const getColumns = (
               <div className="flex items-center gap-2">
                 <span
                   className="
-                  text-xs font-semibold
+                   shrink-0 whitespace-nowrap
+                   text-xs font-semibold
                   px-1.5 py-0.5 rounded-md
                   bg-slate-200/60 dark:bg-slate-700/40
                   text-slate-600 dark:text-slate-300
@@ -393,7 +467,8 @@ export const getColumns = (
               <div className="flex items-center gap-2">
                 <span
                   className="
-                  text-xs font-semibold
+                   shrink-0 whitespace-nowrap
+                   text-xs font-semibold
                   px-1.5 py-0.5 rounded-md
                   bg-slate-100 dark:bg-slate-800
                   text-slate-400
@@ -416,6 +491,12 @@ export const getColumns = (
   {
     accessorKey: "batch",
     size: 210,
+    meta: {
+      title: "Descripción",
+      mobile: "wide",
+      mobileAlign: "center",
+      mobileOrder: 1,
+    },
 
     header: ({ column }) => (
       <div className="flex justify-center items-center w-full text-center">
@@ -435,6 +516,7 @@ export const getColumns = (
   {
     id: "serial_lot",
     size: 150,
+    meta: { title: "Serial / Lote", mobileOrder: 4 },
 
     header: () => (
       <div className="flex justify-center w-full text-xs font-medium text-muted-foreground">
@@ -468,6 +550,7 @@ export const getColumns = (
   {
     accessorKey: "status_date",
     size: 180,
+    meta: { title: "Fecha de Movimiento", mobileOrder: 3 },
 
     header: ({ column }) => (
       <div className="flex justify-center w-full">
@@ -530,6 +613,7 @@ export const getColumns = (
   {
     accessorKey: "location",
     size: 150,
+    meta: { title: "Ubicación", mobileOrder: 5 },
 
     header: ({ column }) => (
       <div className="flex justify-center w-full">
@@ -558,6 +642,7 @@ export const getColumns = (
   {
     accessorKey: "status",
     size: 150,
+    meta: { title: "Estado", mobileOrder: 2 },
 
     header: ({ column }) => (
       <div className="flex justify-center w-full">
@@ -622,20 +707,21 @@ export const getColumns = (
 
   {
     id: "edit_info",
-    size: 70,
+    size: 100,
 
     header: () => (
       <div className="flex justify-center w-full text-xs font-medium text-muted-foreground">
-        Editar
+        Editar y bitácora
       </div>
     ),
 
     cell: ({ row }) => (
       <div
-        className="flex justify-center w-full"
+        className="flex justify-center w-full gap-0.5"
         onClick={(e) => e.stopPropagation()}
       >
         <EditTransitArticleAction article={row.original} />
+        <TransitUpdatesAction article={row.original} />
       </div>
     ),
     enableSorting: false,
@@ -645,6 +731,7 @@ export const getColumns = (
   {
     id: "actions",
     size: 160,
+    meta: { mobile: "action" },
 
     header: ({ column }) => (
       <div className="flex justify-center w-full">

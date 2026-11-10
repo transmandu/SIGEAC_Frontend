@@ -187,6 +187,7 @@ export const getColumns = (
   {
     accessorKey: "description",
     size: 300,
+    meta: { title: "Artículo", mobile: "wide" },
 
     header: ({ column }) => (
       <div className="flex justify-center w-full">
@@ -220,6 +221,7 @@ export const getColumns = (
   {
     accessorKey: "quantity",
     size: 140,
+    meta: { title: "Cantidad" },
 
     header: ({ column }) => (
       <div className="flex justify-center w-full">
@@ -246,6 +248,7 @@ export const getColumns = (
   {
     accessorKey: "purchase_order",
     size: 180,
+    meta: { title: "Solicitud de Compra" },
 
     header: ({ column }) => (
       <div className="flex justify-center w-full">
@@ -273,6 +276,7 @@ export const getColumns = (
   {
     accessorKey: "arrived_at",
     size: 180,
+    meta: { title: "Llegada" },
 
     header: ({ column }) => (
       <div className="flex justify-center w-full">
@@ -296,6 +300,7 @@ export const getColumns = (
   {
     accessorKey: "registered_by",
     size: 180,
+    meta: { title: "Entregado por" },
 
     header: ({ column }) => (
       <div className="flex justify-center w-full">
@@ -315,6 +320,7 @@ export const getColumns = (
   {
     accessorKey: "status",
     size: 160,
+    meta: { title: "Estado" },
 
     header: ({ column }) => (
       <div className="flex justify-center w-full">
@@ -359,6 +365,7 @@ export const getColumns = (
   {
     accessorKey: "confirmed_by",
     size: 200,
+    meta: { title: "Confirmación" },
 
     header: ({ column }) => (
       <div className="flex justify-center w-full">

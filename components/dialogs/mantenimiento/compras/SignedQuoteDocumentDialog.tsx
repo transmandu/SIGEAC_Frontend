@@ -1,11 +1,10 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import {
   ExternalLink,
   FileCheck2,
-  FileUp,
   Loader2,
   Trash2,
   Upload,
@@ -13,7 +12,11 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
+import { ConfirmDeleteDialog } from "@/components/dialogs/shared/ConfirmDeleteDialog";
 import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
+import { labelClass } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
+import { FilePickerField } from "@/components/misc/FilePickerField";
+import { Label } from "@/components/ui/label";
 import { DEFAULT_TIMEZONE, formatInstant } from "@/lib/date";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import {
@@ -50,9 +53,9 @@ export default function SignedQuoteDocumentDialog({
   timeZone = DEFAULT_TIMEZONE,
 }: Props) {
   const { selectedCompany } = useCompanyStore();
-  const inputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [isOpening, setIsOpening] = useState(false);
+  const [confirmingRemoval, setConfirmingRemoval] = useState(false);
 
   const handleOpenChange = (next: boolean) => {
     if (!next) setFile(null);
@@ -67,22 +70,6 @@ export default function SignedQuoteDocumentDialog({
   const company = selectedCompany?.slug;
   const busy = isUploading || isRemoving;
 
-  const handleSelect = (selected: File | undefined) => {
-    if (!selected) return;
-
-    if (!ACCEPTED_TYPES.includes(selected.type)) {
-      toast.error("¡Ops! Solo se admiten archivos PDF, JPG o PNG.");
-      return;
-    }
-
-    if (selected.size > MAX_SIZE_BYTES) {
-      toast.error("¡Ops! El archivo supera el máximo de 10 MB.");
-      return;
-    }
-
-    setFile(selected);
-  };
-
   const handleUpload = async () => {
     if (!company || !file || busy) return;
 
@@ -95,14 +82,16 @@ export default function SignedQuoteDocumentDialog({
     }
   };
 
+  // Debe lanzar si falla: el diálogo de confirmación solo se cierra al resolver.
   const handleRemove = async () => {
-    if (!company || busy) return;
+    if (!company) return;
 
     try {
       await remove({ company, quoteId: quote.id });
       toast.success("Documento firmado eliminado");
     } catch (error) {
       notifyError(error, { action: "eliminar el documento firmado" });
+      throw error;
     }
   };
 
@@ -172,7 +161,7 @@ export default function SignedQuoteDocumentDialog({
               Cerrar
             </Button>
             <Button
-              className="min-w-37.5 gap-2"
+              className="min-w-35 gap-2"
               onClick={handleUpload}
               disabled={!file || busy}
             >
@@ -192,17 +181,16 @@ export default function SignedQuoteDocumentDialog({
       >
         <div className="space-y-5">
           {current && (
-            <div className="flex items-center gap-3 rounded-md border bg-muted/30 px-3 py-2.5">
-              <FileCheck2 className="size-5 shrink-0 text-emerald-600" />
+            <div className="flex items-center gap-3 rounded-xl border border-emerald-300/70 bg-emerald-50/50 p-3 dark:border-emerald-700/40 dark:bg-emerald-950/20">
+              <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                <FileCheck2 className="size-4" />
+              </span>
 
               <div className="min-w-0 flex-1">
-                <p
-                  className="truncate text-sm font-medium"
-                  title={current.name ?? undefined}
-                >
+                <p className="text-sm font-medium wrap-anywhere">
                   {current.name ?? "Documento firmado"}
                 </p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-[13px] text-muted-foreground">
                   Cargado
                   {current.uploaded_by ? ` por ${current.uploaded_by}` : ""}
                   {current.uploaded_at
@@ -212,11 +200,14 @@ export default function SignedQuoteDocumentDialog({
               </div>
 
               <Button
+                type="button"
                 variant="ghost"
                 size="icon"
                 onClick={handleOpen}
                 disabled={isOpening || busy}
+                aria-label="Ver documento"
                 title="Ver documento"
+                className="max-sm:size-10"
               >
                 {isOpening ? (
                   <Loader2 className="size-4 animate-spin" />
@@ -225,60 +216,45 @@ export default function SignedQuoteDocumentDialog({
                 )}
               </Button>
               <Button
+                type="button"
                 variant="ghost"
                 size="icon"
-                onClick={handleRemove}
+                onClick={() => setConfirmingRemoval(true)}
                 disabled={busy}
-                className="text-red-600 hover:text-red-600"
+                aria-label="Eliminar documento"
                 title="Eliminar documento"
+                className="text-red-600 hover:text-red-600 max-sm:size-10"
               >
-                {isRemoving ? (
-                  <Loader2 className="size-4 animate-spin" />
-                ) : (
-                  <Trash2 className="size-4" />
-                )}
+                <Trash2 className="size-4" />
               </Button>
             </div>
           )}
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">
+            <Label className={labelClass}>
               {current ? "Reemplazar por otro archivo" : "Archivo escaneado"}
-            </label>
+            </Label>
 
-            <input
-              ref={inputRef}
-              type="file"
-              accept={ACCEPTED_TYPES.join(",")}
-              className="hidden"
-              onChange={(event) => {
-                handleSelect(event.target.files?.[0]);
-                event.target.value = "";
-              }}
-            />
-
-            <button
-              type="button"
-              onClick={() => inputRef.current?.click()}
+            <FilePickerField
+              file={file}
+              onChange={(next) => setFile(next ?? null)}
+              acceptedTypes={ACCEPTED_TYPES}
+              typesLabel="PDF, JPG o PNG"
+              maxBytes={MAX_SIZE_BYTES}
               disabled={busy}
-              className="flex w-full flex-col items-center justify-center gap-1.5 rounded-md border border-dashed px-4 py-6 text-center transition-colors hover:bg-muted/40 disabled:opacity-50"
-            >
-              <FileUp className="size-6 text-muted-foreground" />
-              {file ? (
-                <span className="max-w-full truncate text-sm font-medium">
-                  {file.name}
-                </span>
-              ) : (
-                <span className="text-sm text-muted-foreground">
-                  Seleccionar archivo
-                </span>
-              )}
-              <span className="text-xs text-muted-foreground">
-                PDF, JPG o PNG · máximo 10 MB
-              </span>
-            </button>
+            />
           </div>
         </div>
+
+        <ConfirmDeleteDialog
+          open={confirmingRemoval}
+          onOpenChange={setConfirmingRemoval}
+          title="Eliminar documento firmado"
+          entityName={current?.name ?? "el documento firmado"}
+          warning="La cotización quedará sin su respaldo firmado hasta que cargue otro escaneo."
+          isPending={isRemoving}
+          onConfirm={handleRemove}
+        />
       </FormDialogContent>
     </Dialog>
   );

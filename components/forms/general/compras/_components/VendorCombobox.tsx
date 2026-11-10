@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Check, ChevronsUpDown, Plus, Truck } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { triggerButtonClass } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -61,7 +62,8 @@ export function VendorCombobox({
             aria-expanded={open}
             disabled={disabled}
             className={cn(
-              "w-full min-w-0 justify-between bg-background/70 font-normal",
+              triggerButtonClass,
+              "h-10 min-w-0 max-sm:text-base",
               !selected && "text-muted-foreground",
               invalid && "border-destructive/60 ring-1 ring-destructive/30",
               triggerClassName,
@@ -83,7 +85,10 @@ export function VendorCombobox({
               itemValue.toLowerCase().includes(search.toLowerCase()) ? 1 : 0
             }
           >
-            <CommandInput placeholder="Buscar proveedor..." className="h-9" />
+            <CommandInput
+              placeholder="Buscar proveedor..."
+              className="h-10 max-sm:text-base"
+            />
 
             {canCreate && (
               <>
@@ -94,7 +99,7 @@ export function VendorCombobox({
                     setOpen(false);
                     setCreateOpen(true);
                   }}
-                  className="flex w-full items-center gap-2 border-b px-3 py-2 text-sm font-medium text-emerald-600 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-950/30"
+                  className="flex w-full items-center gap-2 border-b px-3 py-2 text-sm font-medium max-sm:py-3 text-emerald-600 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-950/30"
                 >
                   <Plus className="size-4" />
                   Crear proveedor
@@ -107,6 +112,7 @@ export function VendorCombobox({
               <CommandGroup>
                 {vendors?.map((vendor) => (
                   <CommandItem
+                    className="max-sm:py-3"
                     key={vendor.id}
                     value={vendor.name}
                     onSelect={() => {

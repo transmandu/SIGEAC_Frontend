@@ -39,7 +39,7 @@ export default function TransitSubRow({ row }: Props) {
 
   return (
     <div className="px-4 py-3 space-y-3">
-      <div className="grid grid-cols-3 gap-6 text-xs">
+      <div className="grid grid-cols-2 gap-4 text-xs md:grid-cols-3 md:gap-6">
         {/* MANUFACTURER */}
         <div className="space-y-0.5">
           <div className="text-muted-foreground">Fabricante</div>

@@ -48,6 +48,8 @@ export const CATALOG_ROLES = {
     "ASISTENTE_COMPRAS",
     "SUPERUSER",
   ],
+  /** Igual que su pantalla de ajustes (Organización). */
+  jobTitles: ["ADMIN", "SUPERUSER"],
 } as const;
 
 export type CatalogKey = keyof typeof CATALOG_ROLES;

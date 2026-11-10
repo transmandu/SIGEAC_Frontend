@@ -5,6 +5,9 @@ import { useState } from "react";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
+import { useAuth } from "@/contexts/AuthContext";
+import { useIsSuperuser } from "@/hooks/helpers/useIsSuperuser";
+import { WAREHOUSE_ROLES } from "@/lib/inventory-access";
 
 import {
   SegmentedTabs,
@@ -21,6 +24,17 @@ import { CreateGeneralRequisitionForm } from "@/components/forms/mantenimiento/c
 
 export function PurchasesRequisitionDialog() {
   const [open, setOpen] = useState(false);
+  const { user } = useAuth();
+  const isSuperuser = useIsSuperuser();
+
+  // La solicitud de almacén (reposición de stock) es de quien opera el
+  // almacén; el resto de los usuarios ya cubre sus pedidos con Aeronáutica o
+  // General.
+  const canRequestFromWarehouse =
+    isSuperuser ||
+    !!user?.roles?.some((role) =>
+      (WAREHOUSE_ROLES as readonly string[]).includes(role.name),
+    );
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -45,10 +59,12 @@ export function PurchasesRequisitionDialog() {
               Aeronáutica
             </SegmentedTabsTrigger>
 
-            <SegmentedTabsTrigger value="WAREHOUSE">
-              <Boxes className="size-4" />
-              Almacén
-            </SegmentedTabsTrigger>
+            {canRequestFromWarehouse && (
+              <SegmentedTabsTrigger value="WAREHOUSE">
+                <Boxes className="size-4" />
+                Almacén
+              </SegmentedTabsTrigger>
+            )}
 
             <SegmentedTabsTrigger value="GENERAL">
               <Package className="size-4" />
@@ -62,9 +78,11 @@ export function PurchasesRequisitionDialog() {
             <CreateAeronauticalRequisitionForm onClose={() => setOpen(false)} />
           </SegmentedTabsContent>
 
-          <SegmentedTabsContent value="WAREHOUSE" className="mt-4">
-            <CreateWarehouseRequisitionForm onClose={() => setOpen(false)} />
-          </SegmentedTabsContent>
+          {canRequestFromWarehouse && (
+            <SegmentedTabsContent value="WAREHOUSE" className="mt-4">
+              <CreateWarehouseRequisitionForm onClose={() => setOpen(false)} />
+            </SegmentedTabsContent>
+          )}
 
           <SegmentedTabsContent value="GENERAL" className="mt-4">
             <CreateGeneralRequisitionForm

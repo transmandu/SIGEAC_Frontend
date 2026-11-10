@@ -174,26 +174,21 @@ export function DownloadPurchaseRequisitionsByStatusDialog({ type }: Props) {
             <Button
               onClick={handleDownload}
               disabled={isPending || selected.length === 0}
-              className="min-w-35"
+              className="min-w-35 gap-2"
             >
               {isPending ? (
-                <>
-                  <Loader2 className="mr-2 size-4 animate-spin" />
-                  Generando…
-                </>
+                <Loader2 className="size-4 animate-spin" />
               ) : (
-                <>
-                  <FileDown className="mr-2 size-4" />
-                  Descargar PDF
-                </>
+                <FileDown className="size-4" />
               )}
+              {isPending ? "Generando…" : "Descargar PDF"}
             </Button>
           </>
         }
       >
         <div className="space-y-3">
           <div className="flex items-center justify-between px-1">
-            <span className="text-xs text-muted-foreground tabular-nums">
+            <span className="text-[13px] text-muted-foreground tabular-nums">
               {selected.length === 0
                 ? "Ningún estado seleccionado"
                 : `${selected.length} de ${STATUS_OPTIONS.length} seleccionados`}
@@ -208,7 +203,7 @@ export function DownloadPurchaseRequisitionsByStatusDialog({ type }: Props) {
                     : STATUS_OPTIONS.map((option) => option.value),
                 )
               }
-              className="text-xs font-medium text-primary hover:underline"
+              className="-my-2 py-2 text-[13px] font-medium text-primary hover:underline max-sm:-my-3 max-sm:py-3"
             >
               {allSelected ? "Limpiar" : "Seleccionar todos"}
             </button>
@@ -216,7 +211,7 @@ export function DownloadPurchaseRequisitionsByStatusDialog({ type }: Props) {
 
           {/* Dos columnas: con seis estados una sola lista obligaba a desplazar
             el diálogo, y la retícula deja ver el ciclo completo de una vez. */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[50vh] overflow-y-auto px-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 px-1 sm:max-h-[50vh] sm:overflow-y-auto">
             {STATUS_OPTIONS.map((option) => {
               const isSelected = selected.includes(option.value);
 
@@ -235,7 +230,7 @@ export function DownloadPurchaseRequisitionsByStatusDialog({ type }: Props) {
                    diálogo la tarjeta sin contorno desaparecía y su contenido
                    quedaba flotando. */
                   className={cn(
-                    "group relative flex flex-col gap-1.5 rounded-2xl p-3 text-left",
+                    "group relative flex flex-col gap-1.5 rounded-xl p-3 text-left",
                     "ring-1 ring-inset transition-colors duration-200",
                     isSelected
                       ? "bg-primary/8 ring-primary/30"
@@ -269,7 +264,7 @@ export function DownloadPurchaseRequisitionsByStatusDialog({ type }: Props) {
                     </span>
                   </span>
 
-                  <span className="text-xs leading-snug text-muted-foreground">
+                  <span className="text-[13px] leading-snug text-muted-foreground">
                     {option.description}
                   </span>
                 </button>

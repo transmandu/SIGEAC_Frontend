@@ -23,14 +23,17 @@ import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits";
 import { useDebounce } from "@/lib/useDebounce";
-import { cn } from "@/lib/utils";
 import { useGetGeneralArticles } from "@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticles";
 import type {
   RequisitionBatchForm,
   RequisitionGeneralArticleForm,
 } from "@/types/purchase";
 import type { GeneralArticle } from "@/types";
-import { Separator } from "@/components/ui/separator";
+import {
+  SegmentedTabs,
+  SegmentedTabsList,
+  SegmentedTabsTrigger,
+} from "@/components/misc/SegmentedTabs";
 import { RequisitionHeader } from "./_components/RequisitionHeader";
 import { BatchArticlesSection } from "./_components/BatchArticlesSection";
 import { GeneralArticlesSection } from "./_components/GeneralArticlesSection";
@@ -742,40 +745,23 @@ export function CreateWarehouseRequisitionForm({
         />
 
         {/* ───────── Selector de tipo de requisición ───────── */}
-        <div className="flex justify-center w-full py-1">
-          <div className="relative flex items-center w-full max-w-md h-8">
-            <Separator className="flex-1" />
-            <div className="flex items-center mx-3 rounded-full border border-border/60 bg-muted/40 p-0.5">
-              <button
-                type="button"
-                onClick={() => handleRequisitionTypeChange("AERONAUTICAL")}
-                className={cn(
-                  "flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-colors duration-200",
-                  requisitionType === "AERONAUTICAL"
-                    ? "bg-background text-blue-600 shadow-xs"
-                    : "text-muted-foreground hover:text-blue-600",
-                )}
-              >
-                <Plane className="w-3.5 h-3.5 shrink-0" />
-                Aeronáutica
-              </button>
-              <button
-                type="button"
-                onClick={() => handleRequisitionTypeChange("GENERAL")}
-                className={cn(
-                  "flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-colors duration-200",
-                  requisitionType === "GENERAL"
-                    ? "bg-background text-blue-600 shadow-xs"
-                    : "text-muted-foreground hover:text-blue-600",
-                )}
-              >
-                <Package className="w-3.5 h-3.5 shrink-0" />
-                General
-              </button>
-            </div>
-            <Separator className="flex-1" />
-          </div>
-        </div>
+        <SegmentedTabs
+          value={requisitionType}
+          onValueChange={(next) =>
+            handleRequisitionTypeChange(next as WarehouseRequisitionType)
+          }
+        >
+          <SegmentedTabsList size="sm">
+            <SegmentedTabsTrigger value="AERONAUTICAL">
+              <Plane className="size-4" />
+              Aeronáutica
+            </SegmentedTabsTrigger>
+            <SegmentedTabsTrigger value="GENERAL">
+              <Package className="size-4" />
+              General
+            </SegmentedTabsTrigger>
+          </SegmentedTabsList>
+        </SegmentedTabs>
 
         {requisitionType === "AERONAUTICAL" ? (
           <BatchArticlesSection

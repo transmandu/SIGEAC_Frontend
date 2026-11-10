@@ -115,6 +115,8 @@ export const getColumns = (
 
     meta: {
       title: "Cotización",
+      mobileOrder: 5,
+      mobile: "wide",
     },
 
     cell: ({ row }) => (
@@ -142,6 +144,7 @@ export const getColumns = (
 
     meta: {
       title: "Proveedor",
+      mobileOrder: 3,
     },
 
     cell: ({ row }) => {
@@ -176,6 +179,7 @@ export const getColumns = (
 
     meta: {
       title: "Fecha de Creación",
+      mobileOrder: 2,
     },
 
     cell: ({ row }) => (
@@ -202,6 +206,7 @@ export const getColumns = (
 
     meta: {
       title: "Estado",
+      mobileOrder: 1,
     },
 
     cell: ({ row }) => {
@@ -252,6 +257,7 @@ export const getColumns = (
 
     meta: {
       title: "Artículos",
+      mobileOrder: 4,
     },
 
     cell: ({ row }) => {

@@ -20,7 +20,7 @@ import {
   Tag,
   Trash2,
 } from "lucide-react";
-import { RowAction, RowActionsBar } from "./RowAction";
+import { RowAction, RowActionsBar, rowActionMenuClass } from "./RowAction";
 import DownloadRequisitionPdfDialog from "@/components/dialogs/mantenimiento/compras/DownloadRequisitionPdfDialog";
 import RequisitionDropdownDialogs from "@/components/dialogs/mantenimiento/compras/RequisitionDropdownDialogs";
 import UpdateRequisitionPriorityDialog from "@/components/dialogs/mantenimiento/compras/UpdateRequisitionPriorityDialog";
@@ -131,7 +131,7 @@ const RequisitionDropdownActions = ({
           inBar={inBar}
           icon={ownDraft ? FileClock : Receipt}
           tone={ownDraft ? "text-amber-600" : "text-emerald-600"}
-          title="Generar cotización"
+          title={ownDraft ? "Editar borrador" : "Generar cotización"}
           hint={
             ownDraft
               ? "Editar borrador de cotización. Ya tiene uno abierto en esta solicitud: emítalo o descártelo para poder crear otra cotización."
@@ -227,17 +227,8 @@ const RequisitionDropdownActions = ({
             <DropdownMenuContent
               align="center"
               sideOffset={3}
-              className="
-                flex items-center justify-center gap-1.5
-                rounded-2xl
-                border border-border/50
-                bg-background/90
-                backdrop-blur-xl
-                shadow-xl
-                p-1.5
-                overflow-visible
-                animate-in fade-in zoom-in-95 duration-200
-              "
+              collisionPadding={8}
+              className={rowActionMenuClass}
             >
               {actions}
             </DropdownMenuContent>

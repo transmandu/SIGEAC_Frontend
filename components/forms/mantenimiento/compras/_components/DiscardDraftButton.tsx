@@ -21,9 +21,9 @@ export default function DiscardDraftButton({
       variant="outline"
       disabled={disabled}
       onClick={onClick}
-      className="gap-1.5 text-muted-foreground hover:border-destructive/40 hover:text-destructive"
+      className="gap-2 text-muted-foreground hover:border-destructive/40 hover:text-destructive"
     >
-      <Trash2 className="size-3.5" />
+      <Trash2 className="size-4" />
       Descartar borrador
     </Button>
   );

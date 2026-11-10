@@ -1,124 +1,222 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { useMemo } from "react";
+import { BriefcaseBusiness } from "lucide-react";
+import { useForm, useWatch } from "react-hook-form";
 import * as z from "zod";
+
 import {
   useCreateJobTitle,
   useUpdateJobTitle,
 } from "@/actions/general/cargo/actions";
-import { Button } from "@/components/ui/button";
+import {
+  applyServerFieldErrors,
+  invalidFormHandler,
+  serverFieldErrors,
+} from "@/components/forms/mantenimiento/almacen/_components/form-feedback";
+import {
+  fieldClass,
+  hintClass,
+  textareaClass,
+} from "@/components/forms/mantenimiento/almacen/_components/form-theme";
+import { ArticleFormShell } from "@/components/forms/mantenimiento/almacen/articulos/ArticleFormShell";
+import { PanelFieldLabel, PanelSection } from "@/components/forms/PanelSection";
+import { RequiredIndicator } from "@/components/misc/RequiredIndicator";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { useGetJobTitles } from "@/hooks/ajustes/cargo/useGetJobTitles";
 import { zodResolver } from "@/lib/zod-resolver";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { JobTitle } from "@/types";
 
-const jobTitleSchema = z.object({
-  name: z.string().min(1, "El nombre es obligatorio"),
-  description: z.string().min(1, "La descripción es obligatoria"),
-});
+const NAME_MAX = 255;
+const DESCRIPTION_MAX = 500;
 
-type JobTitleForm = z.infer<typeof jobTitleSchema>;
+const FIELD_LABELS: Record<string, string> = {
+  name: "Nombre",
+  description: "Descripción",
+};
+
+const sameName = (a: string, b: string) =>
+  a.trim().toLowerCase() === b.trim().toLowerCase();
+
+/** El nombre no puede repetirse entre los cargos ya cargados; el servidor lo vuelve a comprobar. */
+const buildSchema = (existing: JobTitle[], current?: JobTitle) =>
+  z.object({
+    name: z
+      .string()
+      .trim()
+      .min(1, { message: "Ingrese el nombre del cargo." })
+      .max(NAME_MAX, {
+        message: `No puede superar los ${NAME_MAX} caracteres.`,
+      })
+      .refine(
+        (value) =>
+          !existing.some(
+            (job) => job.id !== current?.id && sameName(job.name, value),
+          ),
+        { message: "Ya existe un cargo con ese nombre." },
+      ),
+    description: z
+      .string()
+      .trim()
+      .max(DESCRIPTION_MAX, {
+        message: `No puede superar los ${DESCRIPTION_MAX} caracteres.`,
+      }),
+  });
+
+type JobTitleFormValues = z.infer<ReturnType<typeof buildSchema>>;
 
 interface Props {
   onSuccess?: () => void;
+  onCancel?: () => void;
+  /** Recibe el cargo recién creado, para que un selector lo deje elegido. */
+  onCreated?: (jobTitle: JobTitle) => void;
   /** Con cargo, el formulario edita en lugar de crear. */
   jobTitle?: JobTitle;
 }
 
-export function CreateJobTitleForm({ onSuccess, jobTitle }: Props) {
-  const form = useForm<JobTitleForm>({
-    resolver: zodResolver(jobTitleSchema),
+export function CreateJobTitleForm({
+  onSuccess,
+  onCancel,
+  onCreated,
+  jobTitle,
+}: Props) {
+  const { selectedCompany } = useCompanyStore();
+  const { data: jobTitles } = useGetJobTitles(selectedCompany?.slug);
+  const { createJobTitle } = useCreateJobTitle();
+  const { updateJobTitle } = useUpdateJobTitle();
+  const mutation = jobTitle ? updateJobTitle : createJobTitle;
+
+  const schema = useMemo(
+    () => buildSchema(jobTitles ?? [], jobTitle),
+    [jobTitles, jobTitle],
+  );
+
+  const form = useForm<JobTitleFormValues>({
+    resolver: zodResolver(schema),
     defaultValues: {
       name: jobTitle?.name ?? "",
       description: jobTitle?.description ?? "",
     },
   });
 
-  const { selectedCompany } = useCompanyStore();
-  const { createJobTitle } = useCreateJobTitle();
-  const { updateJobTitle } = useUpdateJobTitle();
-  const mutation = jobTitle ? updateJobTitle : createJobTitle;
+  const description =
+    useWatch({ control: form.control, name: "description" }) ?? "";
 
-  const onSubmit = async (data: JobTitleForm) => {
-    const company = selectedCompany!.slug;
+  const onSubmit = async (values: JobTitleFormValues) => {
+    const company = selectedCompany?.slug;
+    if (!company) return;
 
     try {
       if (jobTitle) {
-        await updateJobTitle.mutateAsync({
-          company,
-          id: String(jobTitle.id),
-          data,
-        });
+        // Solo lo que cambió; una descripción vaciada viaja vacía y el
+        // servidor la guarda como "sin descripción".
+        const data: { name?: string; description?: string } = {};
+        if (values.name !== jobTitle.name) data.name = values.name;
+        if (values.description !== (jobTitle.description ?? "")) {
+          data.description = values.description;
+        }
+
+        if (Object.keys(data).length > 0) {
+          await updateJobTitle.mutateAsync({
+            company,
+            id: String(jobTitle.id),
+            data,
+          });
+        }
       } else {
-        await createJobTitle.mutateAsync({ company, data });
+        const response = await createJobTitle.mutateAsync({
+          company,
+          data: values,
+        });
         form.reset();
+        onCreated?.(response.data as JobTitle);
       }
       onSuccess?.();
-    } catch {
-      // El aviso lo muestra la mutación; el formulario queda abierto.
+    } catch (error) {
+      const errors = serverFieldErrors(error);
+      if (errors) applyServerFieldErrors(form.setError, errors, FIELD_LABELS);
     }
   };
 
   return (
     <Form {...form}>
-      <form
-        onSubmit={(e) => {
-          e.stopPropagation();
-          form.handleSubmit(onSubmit)(e);
+      <ArticleFormShell
+        busy={mutation.isPending}
+        canSave={jobTitle ? form.formState.isDirty : true}
+        isEditing={!!jobTitle}
+        submitLabel={jobTitle ? "Guardar cambios" : "Crear cargo"}
+        onCancel={onCancel}
+        // stopPropagation: el formulario puede montarse dentro de otro y el
+        // submit subiría por el árbol de React hasta el formulario padre.
+        onSubmit={(event) => {
+          event.stopPropagation();
+          form.handleSubmit(onSubmit, invalidFormHandler(FIELD_LABELS))(event);
         }}
-        className="space-y-4"
       >
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Nombre</FormLabel>
-              <FormControl>
-                <Input placeholder="Ej: Analista de Sistemas" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Descripción</FormLabel>
-              <FormControl>
-                <Input placeholder="Descripción del cargo" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <Button
-          className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70"
-          type="submit"
-          disabled={mutation.isPending}
+        <PanelSection
+          icon={BriefcaseBusiness}
+          title="Cargo"
+          hint="Cómo se llama el puesto y qué hace."
         >
-          {mutation.isPending ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : jobTitle ? (
-            "Actualizar"
-          ) : (
-            "Crear cargo"
-          )}
-        </Button>
-      </form>
+          <div className="space-y-4">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field, fieldState }) => (
+                <FormItem>
+                  <PanelFieldLabel>
+                    Nombre
+                    <RequiredIndicator invalid={!!fieldState.error} />
+                  </PanelFieldLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Ej: Analista de Sistemas"
+                      autoComplete="off"
+                      maxLength={NAME_MAX}
+                      className={fieldClass}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <PanelFieldLabel>Descripción</PanelFieldLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Qué hace quien ocupa este cargo (opcional)"
+                      rows={3}
+                      maxLength={DESCRIPTION_MAX}
+                      className={textareaClass}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription className={`${hintClass} text-right`}>
+                    {description.length}/{DESCRIPTION_MAX}
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </PanelSection>
+      </ArticleFormShell>
     </Form>
   );
 }

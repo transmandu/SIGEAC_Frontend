@@ -39,8 +39,8 @@ const CostSaveBar = ({
       <div
         className={cn(
           hasChanges && "pointer-events-auto",
-          "flex items-center gap-4",
-          "px-4 py-2 rounded-2xl border",
+          "flex items-center gap-4 max-sm:w-full max-sm:justify-between max-sm:gap-3",
+          "px-4 py-2 rounded-2xl border max-sm:px-3",
           "bg-white/80 dark:bg-slate-900/70",
           "border-slate-200/60 dark:border-slate-700/60",
           "backdrop-blur-md",
@@ -51,7 +51,8 @@ const CostSaveBar = ({
           <CheckCircle2 className="h-4 w-4 text-primary" />
 
           <span className="text-xs font-medium text-foreground">
-            Cambios sin guardar
+            <span className="max-sm:hidden">Cambios sin guardar</span>
+            <span className="sm:hidden">Sin guardar</span>
           </span>
 
           <Badge

@@ -56,7 +56,7 @@ export function ActiveRequisitionWarning({
       <div className="flex items-start gap-2">
         <AlertTriangle className="size-3.5 shrink-0 text-amber-600 dark:text-amber-500 mt-px" />
         <div className="flex flex-col gap-1 min-w-0 flex-1">
-          <p className="text-xs font-medium text-amber-700 dark:text-amber-400">
+          <p className="text-[13px] font-medium text-amber-700 dark:text-amber-400">
             {sharedUnit !== null
               ? `Ya se solicitaron ${total} ${sharedUnit} recientemente`
               : "Este artículo ya fue solicitado recientemente"}
@@ -74,7 +74,7 @@ export function ActiveRequisitionWarning({
               return (
                 <li
                   key={`${entry.order_number}-${entry.description}-${entry.variant_type ?? ""}`}
-                  className="text-xs text-muted-foreground"
+                  className="text-[13px] text-muted-foreground wrap-anywhere"
                 >
                   <span className="tabular-nums font-medium text-foreground/80">
                     {entry.quantity} {entry.unit_label ?? ""}
@@ -91,7 +91,7 @@ export function ActiveRequisitionWarning({
           </ul>
 
           {!compact && (
-            <p className="text-xs text-muted-foreground">
+            <p className="text-[13px] text-muted-foreground">
               Puede continuar si la situación lo amerita.
             </p>
           )}

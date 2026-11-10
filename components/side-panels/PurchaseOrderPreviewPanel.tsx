@@ -136,13 +136,15 @@ interface MetaItemProps {
 }
 
 const MetaItem = ({ label, value, icon: Icon }: MetaItemProps) => (
-  <div className="flex flex-col gap-0.5">
+  <div className="flex min-w-0 flex-col gap-0.5">
     <span className="text-xs font-medium text-muted-foreground select-none">
       {label}
     </span>
-    <span className="text-sm font-medium flex items-center gap-1.5">
-      {Icon && <Icon className="size-3.5 text-muted-foreground/50 shrink-0" />}
-      {value ?? "—"}
+    <span className="flex items-start gap-1.5 text-sm font-medium">
+      {Icon && (
+        <Icon className="mt-0.5 size-3.5 shrink-0 text-muted-foreground/50" />
+      )}
+      <span className="min-w-0 wrap-anywhere">{value ?? "—"}</span>
     </span>
   </div>
 );

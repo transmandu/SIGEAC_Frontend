@@ -18,6 +18,10 @@ import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent
 import { Dialog } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  labelClass,
+  textareaClass,
+} from "@/components/forms/mantenimiento/almacen/_components/form-theme";
 import { useState } from "react";
 
 function transformApiData(apiData: any) {
@@ -177,7 +181,10 @@ const RequisitionDropdownDialogs = ({
         onConfirm={handleReject}
         extra={
           <div className="space-y-1.5">
-            <Label htmlFor="requisition-reject-observation" className="text-xs">
+            <Label
+              htmlFor="requisition-reject-observation"
+              className={labelClass}
+            >
               Observación de rechazo (opcional)
             </Label>
             <Textarea
@@ -185,7 +192,8 @@ const RequisitionDropdownDialogs = ({
               value={observation}
               onChange={(e) => setObservation(e.target.value)}
               placeholder="Ej.: documentación incompleta, el proveedor no cumple los requisitos."
-              className="min-h-22 resize-none text-sm"
+              rows={3}
+              className={textareaClass}
             />
           </div>
         }

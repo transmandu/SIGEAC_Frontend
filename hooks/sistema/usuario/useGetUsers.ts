@@ -8,10 +8,15 @@ const fetchUsers = async (): Promise<User[]> => {
   return users
 };
 
-export const useGetUsers = () => {
+/**
+ * `enabled` permite no pedirlos: `/users` es solo de SUPERUSER y a cualquier
+ * otro la API le responde 403.
+ */
+export const useGetUsers = ({ enabled = true }: { enabled?: boolean } = {}) => {
   return useQuery<User[]>({
     queryKey: ['users'],
     queryFn: fetchUsers,
     staleTime: 1000 * 60 * 5,
+    enabled,
   });
 };

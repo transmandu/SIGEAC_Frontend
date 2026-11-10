@@ -10,6 +10,7 @@ import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
 import { DataTable } from "@/app/[company]/compras/data-table";
 import RequisitionToolBar from "./_components/RequisitionToolBar";
 import { PurchasesRequisitionDialog } from "@/components/dialogs/mantenimiento/compras/PurchasesRequisitionDialog";
+import { DownloadPurchaseRequisitionsByStatusDialog } from "@/components/dialogs/mantenimiento/compras/DownloadPurchaseRequisitionsByStatusDialog";
 import RequisitionSubRow from "./_components/RequisitionSubRow";
 import GroupedRequisitionTable from "./_components/GroupedRequisitionTable";
 import RequisitionSplitView, {
@@ -144,6 +145,9 @@ const RequisitionsPageContent = () => {
 
         <div className="flex items-center gap-2">
           <PurchasesRequisitionDialog />
+          {/* Esta pantalla lista solo requisiciones aeronáuticas: el reporte se
+              acota al mismo tipo. */}
+          <DownloadPurchaseRequisitionsByStatusDialog type="AERONAUTICAL" />
         </div>
 
         {groupBy === "requested_by" ? (

@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/tooltip";
 import { cn, formatRequestedDate } from "@/lib/utils";
 import ArticleLifecycleIcon from "@/components/misc/ArticleLifecycleIcon";
+import TransitUpdatesLink from "@/components/misc/TransitUpdatesLink";
 import type { ArticleLifecycleStage, MyRequisition } from "@/types/purchase";
 
 interface Props {
@@ -44,6 +45,8 @@ interface ArticleRowProps {
   quantity: string | number;
   unit: string;
   lifecycleStage?: ArticleLifecycleStage | null;
+  transitArticleId?: number | null;
+  transitUpdatesCount?: number;
 }
 
 const ArticleRow = ({
@@ -55,6 +58,8 @@ const ArticleRow = ({
   quantity,
   unit,
   lifecycleStage,
+  transitArticleId,
+  transitUpdatesCount,
 }: ArticleRowProps) => (
   <div className="flex w-fit items-center gap-3 rounded-md border bg-background/60 px-2.5 py-1.5 shadow-xs transition-colors hover:bg-muted/40">
     <div
@@ -94,8 +99,15 @@ const ArticleRow = ({
 
     {/* Hueco reservado: sin el, las filas con ciclo quedan mas anchas que las
         que todavia no llegaron a compra. */}
-    <div className="flex h-4 w-4 shrink-0 items-center justify-center">
-      <ArticleLifecycleIcon stage={lifecycleStage} />
+    <div className="flex h-4 shrink-0 items-center justify-center gap-1.5">
+      <TransitUpdatesLink
+        articleId={transitArticleId}
+        stage={lifecycleStage}
+        count={transitUpdatesCount}
+      />
+      <div className="flex h-4 w-4 items-center justify-center">
+        <ArticleLifecycleIcon stage={lifecycleStage} />
+      </div>
     </div>
   </div>
 );
@@ -174,6 +186,8 @@ export default function RequisitionArticlesPopover({ requisition }: Props) {
                     quantity={article.quantity ?? "-"}
                     unit={article.unit?.label ?? "N/A"}
                     lifecycleStage={article.lifecycle_stage}
+                    transitArticleId={article.transit_article_id}
+                    transitUpdatesCount={article.transit_updates_count}
                   />
                 );
               },

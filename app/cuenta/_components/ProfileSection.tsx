@@ -3,7 +3,7 @@
 import { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 
-import { SectionTitle } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
+import { PanelSection } from "@/components/forms/PanelSection";
 import { cn } from "@/lib/utils";
 
 /** Misma superficie que las tablas y listados de ajustes. */
@@ -16,27 +16,31 @@ interface ProfileSectionProps {
   hint?: string;
   action?: ReactNode;
   className?: string;
+  /** Cuerpo sin margen: para listas con filas a borde. */
+  flush?: boolean;
   children: ReactNode;
 }
 
+/** Un bloque del perfil: el panel con franja de encabezado del resto del sistema. */
 export const ProfileSection = ({
   title,
   icon,
   hint,
   action,
   className,
+  flush,
   children,
 }: ProfileSectionProps) => (
-  <section className={cn(profileSurface, "p-4 sm:p-5", className)}>
-    <SectionTitle
-      icon={icon}
-      title={title}
-      hint={hint}
-      action={action}
-      compact
-    />
+  <PanelSection
+    icon={icon}
+    title={title}
+    hint={hint}
+    action={action}
+    flush={flush}
+    className={className}
+  >
     {children}
-  </section>
+  </PanelSection>
 );
 
 interface ProfileFieldProps {

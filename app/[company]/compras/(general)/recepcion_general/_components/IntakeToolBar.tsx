@@ -16,7 +16,7 @@ type Props = {
   setStatus: (value: StatusFilter) => void
 }
 
-const selectTriggerClass = `h-8 w-full pl-8 text-xs bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60 transition-colors focus:ring-1 focus:ring-primary/40 data-placeholder:text-muted-foreground [&>span]:truncate`
+const selectTriggerClass = `h-8 max-sm:h-10 w-full pl-8 text-xs bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60 transition-colors focus:ring-1 focus:ring-primary/40 data-placeholder:text-muted-foreground [&>span]:truncate`
 const selectContentClass = `border-slate-200/60 dark:border-slate-700/60`
 
 const StatusSelect = ({
@@ -57,7 +57,7 @@ const IntakeToolBar = ({ search, setSearch, status, setStatus }: Props) => {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Buscar descripción, solicitud, responsable..."
-          className="pl-8 h-8 text-xs bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60 focus-visible:ring-1 focus-visible:ring-primary/40"
+          className="pl-8 h-8 max-sm:h-10 text-xs bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60 focus-visible:ring-1 focus-visible:ring-primary/40"
         />
       </div>
 
@@ -68,7 +68,7 @@ const IntakeToolBar = ({ search, setSearch, status, setStatus }: Props) => {
             <Button
               variant="outline"
               size="icon"
-              className="h-8 w-8 shrink-0 bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60"
+              className="h-8 w-8 max-sm:size-10 shrink-0 bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60"
             >
               <SlidersHorizontal className="size-4" />
             </Button>
@@ -76,7 +76,7 @@ const IntakeToolBar = ({ search, setSearch, status, setStatus }: Props) => {
 
           <PopoverContent
             align="end"
-            className="w-72 p-3 space-y-3 border-slate-200/60 dark:border-slate-700/60"
+            className="w-72 max-w-[calc(100vw-2rem)] p-3 space-y-3 border-slate-200/60 dark:border-slate-700/60"
           >
             <StatusSelect status={status} setStatus={setStatus} />
           </PopoverContent>

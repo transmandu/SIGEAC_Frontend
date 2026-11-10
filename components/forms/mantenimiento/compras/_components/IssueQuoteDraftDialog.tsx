@@ -18,6 +18,10 @@ export interface IssueDraftSummaryLine {
  * Confirmación de emisión. Lo que el comprador tiene que ver antes de aceptar
  * es qué se va a emitir y qué queda declarado como no cotizado — una vez
  * emitida, la cotización no se puede editar.
+ *
+ * Las listas largas se desplazan por dentro solo desde `sm`: en móvil el
+ * diálogo ocupa toda la pantalla y ya desplaza, y un segundo scroll anidado
+ * es incómodo.
  */
 export function IssueQuoteDraftDialog({
   lines,
@@ -76,12 +80,12 @@ export function IssueQuoteDraftDialog({
               <Button
                 onClick={onConfirm}
                 disabled={isPending}
-                className="gap-1.5"
+                className="min-w-35 gap-2"
               >
                 {isPending ? (
-                  <Loader2 className="size-3.5 animate-spin" />
+                  <Loader2 className="size-4 animate-spin" />
                 ) : (
-                  <Send className="size-3.5" />
+                  <Send className="size-4" />
                 )}
                 Emitir cotización
               </Button>
@@ -91,16 +95,21 @@ export function IssueQuoteDraftDialog({
       >
         <div className="space-y-3">
           {blocked && (
-            <div className="rounded-xl border border-amber-300/50 bg-amber-50/50 px-3 py-2 dark:border-amber-700/40 dark:bg-amber-950/20">
-              <p className="text-xs font-semibold text-amber-900 dark:text-amber-200">
+            <div className="rounded-xl border border-amber-300/50 bg-amber-50/50 px-3.5 py-3 dark:border-amber-700/40 dark:bg-amber-950/20">
+              <p className="text-[13px] font-semibold text-amber-900 dark:text-amber-200">
                 Sin respuesta todavía ({pending.length})
               </p>
-              <ScrollArea className={pending.length > 5 ? "mt-1 h-24" : "mt-1"}>
-                <div className="flex flex-col gap-0.5">
-                  {pending.map((line) => (
+              <ScrollArea
+                className={cn(
+                  "mt-1.5",
+                  pending.length > 5 && "h-28 max-sm:h-auto",
+                )}
+              >
+                <div className="flex flex-col gap-1">
+                  {pending.map((line, index) => (
                     <p
-                      key={line.label}
-                      className="truncate text-xs leading-relaxed text-amber-900/80 dark:text-amber-200/80"
+                      key={`${line.label}-${index}`}
+                      className="text-[13px] leading-snug text-amber-900/80 wrap-anywhere dark:text-amber-200/80"
                     >
                       {line.label}
                     </p>
@@ -111,25 +120,27 @@ export function IssueQuoteDraftDialog({
           )}
 
           {(quoted.length > 0 || notQuoted.length > 0) && (
-            <div className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 dark:border-slate-700/60 dark:bg-slate-900/60">
+            <div className="rounded-xl border border-slate-200 bg-white px-3.5 py-3 dark:border-slate-700/60 dark:bg-slate-900/60">
               <ScrollArea
-                className={quoted.length + notQuoted.length > 6 ? "h-40" : ""}
+                className={cn(
+                  quoted.length + notQuoted.length > 6 && "h-44 max-sm:h-auto",
+                )}
               >
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-3">
                   {quoted.length > 0 && (
-                    <div className="flex flex-col gap-1">
-                      <p className="text-xs font-semibold text-muted-foreground">
+                    <div className="flex flex-col gap-1.5">
+                      <p className="text-[13px] font-semibold text-muted-foreground">
                         Cotizados ({quoted.length})
                       </p>
-                      {quoted.map((line) => (
+                      {quoted.map((line, index) => (
                         <div
-                          key={line.label}
+                          key={`${line.label}-${index}`}
                           className="flex items-baseline justify-between gap-3"
                         >
-                          <span className="truncate text-xs text-foreground">
+                          <span className="min-w-0 text-[13px] text-foreground wrap-anywhere">
                             {line.label}
                           </span>
-                          <span className="shrink-0 font-mono text-xs tabular-nums">
+                          <span className="shrink-0 font-mono text-[13px] tabular-nums">
                             ${line.total!.toFixed(2)}
                           </span>
                         </div>
@@ -140,18 +151,18 @@ export function IssueQuoteDraftDialog({
                   {notQuoted.length > 0 && (
                     <div
                       className={cn(
-                        "flex flex-col gap-1",
-                        quoted.length > 0 && "border-t border-border/60 pt-2",
+                        "flex flex-col gap-1.5",
+                        quoted.length > 0 && "border-t border-border/60 pt-3",
                       )}
                     >
-                      <p className="flex items-center gap-1 text-xs font-semibold text-muted-foreground">
-                        <Ban className="size-3" />
+                      <p className="flex items-center gap-1.5 text-[13px] font-semibold text-muted-foreground">
+                        <Ban className="size-3.5" />
                         No cotizados ({notQuoted.length})
                       </p>
-                      {notQuoted.map((line) => (
+                      {notQuoted.map((line, index) => (
                         <p
-                          key={line.label}
-                          className="truncate text-xs text-muted-foreground"
+                          key={`${line.label}-${index}`}
+                          className="text-[13px] text-muted-foreground wrap-anywhere"
                         >
                           {line.label}
                         </p>
@@ -165,16 +176,16 @@ export function IssueQuoteDraftDialog({
 
           {!blocked && (
             <>
-              <div className="flex items-baseline justify-between gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2 dark:border-slate-700/60 dark:bg-slate-900/60">
-                <span className="text-xs font-semibold text-muted-foreground">
+              <div className="flex items-baseline justify-between gap-3 rounded-xl border border-slate-200 bg-white px-3.5 py-3 dark:border-slate-700/60 dark:bg-slate-900/60">
+                <span className="text-[13px] font-semibold text-muted-foreground">
                   Total
                 </span>
-                <span className="font-mono text-base font-semibold tabular-nums">
+                <span className="font-mono text-lg font-semibold tabular-nums">
                   ${total.toFixed(2)}
                 </span>
               </div>
 
-              <p className="rounded-xl border border-amber-300/50 bg-amber-50/50 px-3 py-2 text-xs leading-relaxed text-amber-900 dark:border-amber-700/40 dark:bg-amber-950/20 dark:text-amber-200">
+              <p className="rounded-xl border border-amber-300/50 bg-amber-50/50 px-3.5 py-3 text-[13px] leading-relaxed text-amber-900 dark:border-amber-700/40 dark:bg-amber-950/20 dark:text-amber-200">
                 Una vez emitida no podrá editarse: las diferencias posteriores
                 van por cotización complementaria.
               </p>

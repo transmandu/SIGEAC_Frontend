@@ -1,7 +1,7 @@
 "use client";
 
+import { locationShortLabel } from "@/lib/locations";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@/lib/zod-resolver";
 import { z } from "zod";
@@ -33,7 +33,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 
 // Hooks & Stores
 
@@ -84,7 +83,6 @@ interface FormProps {
 
 export default function CreateHazardNotification({
   onClose,
-  id,
   reportId,
   isEditing,
   initialData,
@@ -296,7 +294,7 @@ export default function CreateHazardNotification({
                   <SelectContent>
                     {locations?.map((loc) => (
                       <SelectItem key={loc.id} value={loc.id.toString()}>
-                        {loc.cod_iata}
+                        {locationShortLabel(loc)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -377,7 +375,11 @@ export default function CreateHazardNotification({
               <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Seleccione fuente" />
+                    <SelectValue
+                      placeholder={
+                        isLoadingSources ? "Cargando..." : "Seleccione fuente"
+                      }
+                    />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>

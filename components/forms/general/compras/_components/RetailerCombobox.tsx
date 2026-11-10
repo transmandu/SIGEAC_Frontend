@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Check, ChevronsUpDown, Plus, Store } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { triggerButtonClass } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -68,7 +69,8 @@ export function RetailerCombobox({
             aria-expanded={open}
             disabled={disabled}
             className={cn(
-              "w-full min-w-0 justify-between bg-background/70 font-normal",
+              triggerButtonClass,
+              "h-10 min-w-0 max-sm:text-base",
               !selected && "text-muted-foreground",
               invalid && "border-destructive/60 ring-1 ring-destructive/30",
               triggerClassName,
@@ -90,7 +92,10 @@ export function RetailerCombobox({
               itemValue.toLowerCase().includes(search.toLowerCase()) ? 1 : 0
             }
           >
-            <CommandInput placeholder="Buscar comercio..." className="h-9" />
+            <CommandInput
+              placeholder="Buscar comercio..."
+              className="h-10 max-sm:text-base"
+            />
 
             {canCreate && (
               <>
@@ -101,7 +106,7 @@ export function RetailerCombobox({
                     setOpen(false);
                     setCreateOpen(true);
                   }}
-                  className="flex w-full items-center gap-2 border-b px-3 py-2 text-sm font-medium text-emerald-600 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-950/30"
+                  className="flex w-full items-center gap-2 border-b px-3 py-2 text-sm font-medium max-sm:py-3 text-emerald-600 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-950/30"
                 >
                   <Plus className="size-4" />
                   Crear comercio
@@ -120,7 +125,7 @@ export function RetailerCombobox({
                       onChange(retailer.id.toString());
                       setOpen(false);
                     }}
-                    className={cn(wrapOptions && "items-start")}
+                    className={cn("max-sm:py-3", wrapOptions && "items-start")}
                   >
                     <Check
                       className={cn(

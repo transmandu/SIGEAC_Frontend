@@ -58,7 +58,7 @@ export const invalidFieldClass = cn(
 );
 
 export const fieldClass = cn(
-  "h-11 rounded-lg text-[15px]",
+  "h-10 rounded-lg text-sm max-sm:text-base",
   "bg-linear-to-br from-background/70 to-background/40",
   "backdrop-blur-md",
   "border border-slate-400/60 dark:border-slate-600/60",
@@ -72,7 +72,12 @@ export const fieldClass = cn(
 
 export const numericFieldClass = cn(fieldClass, "tabular-nums");
 
-export const selectTriggerClass = cn(fieldClass, "hover:shadow-none");
+// `text-left`: el trigger es un botón y centra su texto; con un valor largo, que
+// el `line-clamp` corta en la primera línea, quedaba con sangría a los lados.
+export const selectTriggerClass = cn(
+  fieldClass,
+  "text-left hover:shadow-none",
+);
 
 /** Los combobox y date pickers son botones: el texto se alinea a la izquierda. */
 export const triggerButtonClass = cn(

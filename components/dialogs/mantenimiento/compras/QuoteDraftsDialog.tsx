@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 import { FileClock, Loader2, Trash2 } from "lucide-react";
 import { useDeleteQuoteDraft } from "@/actions/mantenimiento/compras/cotizaciones/actions";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/misc/EmptyState";
+import { TagBadge } from "@/components/misc/TagBadge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
@@ -68,7 +70,7 @@ export function QuoteDraftsDialog({
         <DialogTrigger asChild>
           <Button
             variant="outline"
-            className="h-8 gap-1.5 px-2.5 text-xs bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60 transition-colors hover:border-primary/40 hover:text-primary"
+            className="h-8 gap-1.5 px-2.5 text-xs max-sm:h-10 bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60 transition-colors hover:border-primary/40 hover:text-primary"
           >
             <FileClock className="size-3.5" />
             Borradores
@@ -94,16 +96,15 @@ export function QuoteDraftsDialog({
               <Loader2 className="size-5 animate-spin text-muted-foreground" />
             </div>
           ) : count === 0 ? (
-            <div className="flex flex-col items-center gap-2 py-10 text-center">
-              <div className="flex h-10 w-10 items-center justify-center rounded-md bg-slate-100 dark:bg-slate-800">
-                <FileClock className="h-5 w-5 text-slate-500 dark:text-slate-400" />
-              </div>
-              <p className="text-sm text-muted-foreground">
-                No tiene borradores sin emitir.
-              </p>
-            </div>
+            <EmptyState
+              icon={FileClock}
+              title="No tiene borradores sin emitir"
+              description="Las cotizaciones que deje a medias aparecerán aquí."
+            />
           ) : (
-            <ScrollArea className={count > 5 ? "h-70 pr-3" : ""}>
+            <ScrollArea
+              className={count > 5 ? "h-70 pr-3 max-sm:h-auto max-sm:pr-0" : ""}
+            >
               <div className="flex flex-col gap-1.5">
                 {scoped.map((draft) => {
                   const idle = quoteDraftDaysIdle(draft);
@@ -113,32 +114,29 @@ export function QuoteDraftsDialog({
                   return (
                     <div
                       key={draft.id}
-                      className="group flex items-center justify-between gap-3 rounded-lg border px-3 py-2 bg-background/70 backdrop-blur-xs border-slate-200/70 dark:border-slate-700/60 hover:border-primary/40 hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-all"
+                      className="group flex items-center justify-between gap-3 rounded-xl border px-3 py-2.5 max-sm:flex-col max-sm:items-stretch bg-background/70 backdrop-blur-xs border-slate-200/70 dark:border-slate-700/60 hover:border-primary/40 hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-all"
                     >
                       <div className="flex min-w-0 items-center gap-2.5">
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-slate-100 dark:bg-slate-800">
+                        <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800">
                           <FileClock className="h-4 w-4 text-slate-600 dark:text-slate-300" />
                         </div>
 
                         <div className="flex min-w-0 flex-col leading-tight">
-                          <div className="flex items-center gap-1.5">
-                            <span className="truncate text-sm font-medium text-slate-800 dark:text-slate-100">
+                          <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
+                            <span className="text-sm font-medium wrap-anywhere text-slate-800 dark:text-slate-100">
                               {draft.requisition_order?.order_number ??
                                 "Solicitud"}
                             </span>
 
                             {idle >= DRAFT_STALE_AFTER_DAYS && (
-                              <Badge
-                                variant="outline"
-                                className="select-none rounded-md border-amber-500/30 bg-amber-500/10 px-1.5 py-0 text-xs font-semibold tracking-wide text-amber-700 dark:text-amber-300"
-                              >
+                              <TagBadge tone="amber">
                                 se descarta en{" "}
                                 {Math.max(0, DRAFT_DISCARD_AFTER_DAYS - idle)} d
-                              </Badge>
+                              </TagBadge>
                             )}
                           </div>
 
-                          <span className="truncate text-xs text-muted-foreground">
+                          <span className="text-[13px] text-muted-foreground wrap-anywhere">
                             {priced} con precio
                             {pending > 0 && ` · ${pending} sin responder`}
                             {excluded > 0 && ` · ${excluded} no cotizado`}
@@ -150,11 +148,11 @@ export function QuoteDraftsDialog({
                         </div>
                       </div>
 
-                      <div className="flex shrink-0 items-center gap-1">
+                      <div className="flex shrink-0 items-center gap-1 max-sm:gap-2">
                         <Button
                           size="sm"
                           variant="outline"
-                          className="h-7 px-2.5 text-xs border-slate-200/60 dark:border-slate-700/60 hover:border-primary/40 hover:text-primary"
+                          className="h-7 px-2.5 text-xs max-sm:h-10 max-sm:flex-1 border-slate-200/60 dark:border-slate-700/60 hover:border-primary/40 hover:text-primary"
                           onClick={() => {
                             setOpen(false);
                             openDraftEditor?.(draft.id);
@@ -167,11 +165,11 @@ export function QuoteDraftsDialog({
                           size="icon"
                           variant="ghost"
                           aria-label="Descartar borrador"
-                          className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                          className="h-7 w-7 text-muted-foreground hover:text-destructive max-sm:size-10"
                           disabled={deleteQuoteDraft.isPending}
                           onClick={() => setDiscarding(draft)}
                         >
-                          <Trash2 className="size-3.5" />
+                          <Trash2 className="size-4" />
                         </Button>
                       </div>
                     </div>

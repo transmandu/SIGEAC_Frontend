@@ -66,7 +66,7 @@ const InvoicePreviewDialog = ({
                   size="sm"
                   variant={index === safeIndex ? "default" : "outline"}
                   className={cn(
-                    "h-7 px-3 text-xs",
+                    "h-8 px-3 text-[13px] max-sm:h-10",
                     index === safeIndex && "pointer-events-none",
                   )}
                   onClick={() => setActiveIndex(index)}
@@ -117,14 +117,14 @@ const InvoicePreviewDialog = ({
                   <Button
                     asChild
                     variant="outline"
-                    size="sm"
+                    className="max-sm:h-10 max-sm:w-full"
                     disabled={!url || isLoading || hasError}
                   >
                     <a
                       href={url ?? "#"}
                       download={`Factura-${orderNumber}-${invoiceLabel(active, safeIndex)}${fileExtension(active.file_path)}`}
                     >
-                      <Download className="mr-2 size-4" />
+                      <Download className="mr-2 size-4" aria-hidden />
                       Descargar
                     </a>
                   </Button>

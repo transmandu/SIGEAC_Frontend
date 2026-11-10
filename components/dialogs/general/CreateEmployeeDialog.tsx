@@ -23,8 +23,8 @@ export function CreateEmployeeDialog() {
       <FormDialogContent
         icon={UserRound}
         title="Crear Empleado"
-        description="Completa la información para registrar un nuevo empleado."
-        className="sm:max-w-5xl"
+        description="Registre a la persona, su contacto y dónde trabaja; si va a iniciar sesión, dele acceso al sistema."
+        className="sm:max-w-3xl"
       >
         <CreateEmployeeForm onSuccess={() => setOpen(false)} />
       </FormDialogContent>

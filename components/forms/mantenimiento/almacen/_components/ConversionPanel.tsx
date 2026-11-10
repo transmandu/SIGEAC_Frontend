@@ -230,7 +230,11 @@ const NewConversionForm = memo(function NewConversionForm({
 
   return (
     <div className="rounded-md border bg-background/70 p-3 space-y-2.5">
-      <ConversionSuggestionPicker type={type} articleId={articleId} onPick={applySuggestion} />
+      <ConversionSuggestionPicker
+        type={type}
+        articleId={articleId}
+        onPick={applySuggestion}
+      />
 
       <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
         <span className="h-px flex-1 bg-border" />o escríbala
@@ -256,7 +260,11 @@ const NewConversionForm = memo(function NewConversionForm({
           </SelectTrigger>
           <SelectContent>
             {availableUnits.map((unit: Unit) => (
-              <SelectItem key={unit.id} value={String(unit.id)} className="text-xs">
+              <SelectItem
+                key={unit.id}
+                value={String(unit.id)}
+                className="text-xs"
+              >
                 {unit.label} ({unit.value})
               </SelectItem>
             ))}
@@ -266,12 +274,12 @@ const NewConversionForm = memo(function NewConversionForm({
         <Select
           value={direction}
           onValueChange={(next) => {
-            setDirection(next as ConversionDirection)
-            setCopiedFrom(null)
+            setDirection(next as ConversionDirection);
+            setCopiedFrom(null);
           }}
           disabled={!unitId}
         >
-          <SelectTrigger className="h-9 md:w-[200px] text-xs">
+          <SelectTrigger className="h-9 md:w-50 text-xs">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -287,7 +295,9 @@ const NewConversionForm = memo(function NewConversionForm({
 
       {!!unitId && (
         <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground whitespace-nowrap">1 {leftLabel} =</span>
+          <span className="text-xs text-muted-foreground whitespace-nowrap">
+            1 {leftLabel} =
+          </span>
           <Input
             autoFocus
             type="text"
@@ -295,19 +305,22 @@ const NewConversionForm = memo(function NewConversionForm({
             placeholder="Ej: 100"
             value={value}
             onChange={(e) => {
-              setValue(sanitizeDecimal(e.target.value))
-              setCopiedFrom(null)
+              setValue(sanitizeDecimal(e.target.value));
+              setCopiedFrom(null);
             }}
             className="h-9 w-28"
           />
-          <span className="text-xs text-muted-foreground whitespace-nowrap">{rightLabel}</span>
+          <span className="text-xs text-muted-foreground whitespace-nowrap">
+            {rightLabel}
+          </span>
         </div>
       )}
 
       {copiedFrom && (
         <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <Copy className="h-3 w-3 shrink-0" />
-          Copiada de <span className="font-medium text-foreground">{copiedFrom}</span>
+          Copiada de{" "}
+          <span className="font-medium text-foreground">{copiedFrom}</span>
         </p>
       )}
 
@@ -330,13 +343,21 @@ const NewConversionForm = memo(function NewConversionForm({
           onClick={submit}
           disabled={!isValid || createConversion.isPending}
         >
-          {createConversion.isPending && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />}
+          {createConversion.isPending && (
+            <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+          )}
           Guardar conversión
         </Button>
-        <Button type="button" variant="ghost" size="sm" className="h-8 text-xs" onClick={onCancel}>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="h-8 text-xs"
+          onClick={onCancel}
+        >
           Cancelar
         </Button>
       </div>
     </div>
-  )
+  );
 })

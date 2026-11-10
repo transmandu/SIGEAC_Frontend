@@ -211,8 +211,8 @@ const RequisitionPage = () => {
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 sm:gap-4">
             {/* Title block */}
             <div className="flex flex-col min-w-0 w-full">
-              <div className="flex items-end gap-3 sm:gap-4 flex-wrap">
-                <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight min-w-0 wrap-break-word">
+              <div className="flex items-end gap-3 sm:gap-4 flex-wrap max-sm:justify-center max-sm:gap-y-2">
+                <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight min-w-0 wrap-break-word max-sm:w-full max-sm:text-center">
                   {order_number}
                 </h1>
 
@@ -239,7 +239,7 @@ const RequisitionPage = () => {
                 </div>
               </div>
 
-              <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1 max-sm:text-center">
                 Solicitud de Compra de {requisitionTypeLabel(data?.type)}
               </p>
 
@@ -262,7 +262,7 @@ const RequisitionPage = () => {
 
         {/* ── Meta ────────────────────────────────────────────────────── */}
         <div className="mx-auto w-full max-w-4xl px-3 sm:px-4 py-2 sm:py-3 rounded-xl border border-slate-200 bg-white dark:border-slate-700/60 dark:bg-slate-900/60">
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-x-4 sm:gap-x-6 md:gap-x-10 gap-y-2 sm:gap-y-3 md:gap-y-4 justify-items-center">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-x-4 sm:gap-x-6 md:gap-x-10 gap-y-2 sm:gap-y-3 md:gap-y-4 md:justify-items-center max-md:justify-items-start max-md:[&>:last-child:nth-child(odd)]:col-span-2 max-md:[&>:last-child:nth-child(odd)]:justify-self-center">
             <MetaItem
               label="Creado por"
               value={

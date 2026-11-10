@@ -19,7 +19,7 @@ import {
 import { useGetPurchaseOrderByQuoteId } from "@/hooks/mantenimiento/compras/useGetPurchaseOrderByQuoteId";
 import { isAeronauticalPurchaseOrder } from "@/lib/purchases/purchase-order-scope";
 import { cn } from "@/lib/utils";
-import { RowAction, rowActionBarItemClass } from "./RowAction";
+import { RowAction, RowActionLabel, rowActionBarItemClass } from "./RowAction";
 
 type Props = {
   company: string;
@@ -145,13 +145,16 @@ const PurchaseOrderMenuLink = ({
             <DropdownMenuSubTrigger
               className={cn(
                 itemClassName,
-                "text-primary [&>svg:last-child]:hidden",
+                "text-primary md:[&>svg:last-child]:hidden max-md:[&>svg:last-child]:ml-auto",
               )}
             >
               <ExternalLink className={iconClassName} />
+              <RowActionLabel>{tooltipLabel}</RowActionLabel>
             </DropdownMenuSubTrigger>
           </TooltipTrigger>
-          <TooltipContent>{tooltipLabel}</TooltipContent>
+          <TooltipContent className="max-md:hidden">
+            {tooltipLabel}
+          </TooltipContent>
         </Tooltip>
 
         <DropdownMenuSubContent className={listClassName}>
@@ -177,12 +180,13 @@ const PurchaseOrderMenuLink = ({
               className={cn(itemClassName, "text-primary")}
             >
               <ExternalLink className={iconClassName} />
+              <RowActionLabel>{tooltipLabel}</RowActionLabel>
             </button>
           </DropdownMenuItem>
         </span>
       </TooltipTrigger>
 
-      <TooltipContent>{tooltipLabel}</TooltipContent>
+      <TooltipContent className="max-md:hidden">{tooltipLabel}</TooltipContent>
     </Tooltip>
   );
 };

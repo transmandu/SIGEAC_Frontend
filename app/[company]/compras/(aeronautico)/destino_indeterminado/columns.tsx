@@ -81,6 +81,7 @@ export const columns: AppColumnDef<DestinationArticle>[] = [
   {
     accessorKey: "part_number",
     size: 210,
+    meta: { title: "Número de Parte" },
 
     header: ({ column }) => (
       <div className="flex w-full justify-center">
@@ -97,7 +98,7 @@ export const columns: AppColumnDef<DestinationArticle>[] = [
         <div className="flex w-full justify-start">
           <div className="min-w-0 space-y-1">
             <div className="flex items-center gap-2">
-              <span className="select-none rounded-md border border-emerald-200/50 bg-emerald-100/60 px-1.5 py-0.5 text-xs font-semibold text-emerald-700 dark:border-emerald-800/40 dark:bg-emerald-900/30 dark:text-emerald-300">
+              <span className="shrink-0 whitespace-nowrap select-none rounded-md border border-emerald-200/50 bg-emerald-100/60 px-1.5 py-0.5 text-xs font-semibold text-emerald-700 dark:border-emerald-800/40 dark:bg-emerald-900/30 dark:text-emerald-300">
                 P/N
               </span>
 
@@ -110,7 +111,7 @@ export const columns: AppColumnDef<DestinationArticle>[] = [
 
             {alternatives.length > 0 ? (
               <div className="flex items-center gap-2">
-                <span className="select-none rounded-md border border-slate-300/40 bg-slate-200/60 px-1.5 py-0.5 text-xs font-semibold text-slate-600 dark:border-slate-600/40 dark:bg-slate-700/40 dark:text-slate-300">
+                <span className="shrink-0 whitespace-nowrap select-none rounded-md border border-slate-300/40 bg-slate-200/60 px-1.5 py-0.5 text-xs font-semibold text-slate-600 dark:border-slate-600/40 dark:bg-slate-700/40 dark:text-slate-300">
                   ALT
                 </span>
 
@@ -125,7 +126,7 @@ export const columns: AppColumnDef<DestinationArticle>[] = [
               </div>
             ) : (
               <div className="flex items-center gap-2">
-                <span className="select-none rounded-md bg-slate-100 px-1.5 py-0.5 text-xs font-semibold text-slate-400 dark:bg-slate-800">
+                <span className="shrink-0 whitespace-nowrap select-none rounded-md bg-slate-100 px-1.5 py-0.5 text-xs font-semibold text-slate-400 dark:bg-slate-800">
                   ALT
                 </span>
 
@@ -143,6 +144,7 @@ export const columns: AppColumnDef<DestinationArticle>[] = [
   {
     id: "category",
     size: 140,
+    meta: { title: "Tipo", mobile: "corner" },
 
     header: ({ column }) => (
       <div className="flex w-full justify-center">
@@ -174,6 +176,7 @@ export const columns: AppColumnDef<DestinationArticle>[] = [
   {
     accessorKey: "batch",
     size: 210,
+    meta: { title: "Descripción", mobile: "wide" },
 
     header: ({ column }) => (
       <div className="flex w-full items-center justify-center text-center">
@@ -193,6 +196,7 @@ export const columns: AppColumnDef<DestinationArticle>[] = [
   {
     accessorKey: "serial",
     size: 150,
+    meta: { title: "Serial" },
 
     header: ({ column }) => (
       <div className="flex w-full justify-center">
@@ -216,6 +220,7 @@ export const columns: AppColumnDef<DestinationArticle>[] = [
   {
     id: "quantity",
     size: 120,
+    meta: { title: "Cantidad" },
 
     header: ({ column }) => (
       <div className="flex w-full justify-center">
@@ -243,6 +248,7 @@ export const columns: AppColumnDef<DestinationArticle>[] = [
     // es un pase a recepción o un traslado.
     id: "location",
     size: 140,
+    meta: { title: "Ubicación actual" },
 
     header: ({ column }) => (
       <div className="flex w-full justify-center">
@@ -266,6 +272,7 @@ export const columns: AppColumnDef<DestinationArticle>[] = [
   {
     id: "actions",
     size: 170,
+    meta: { mobile: "action" },
 
     header: ({ column }) => (
       <div className="flex w-full justify-center">

@@ -78,8 +78,8 @@ const QuotePage = () => {
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
             {/* Title block */}
             <div className="flex flex-col min-w-0 w-full">
-              <div className="flex items-center gap-3 flex-wrap">
-                <h1 className="text-2xl md:text-3xl font-semibold tracking-tight min-w-0 wrap-break-word">
+              <div className="flex items-center gap-3 flex-wrap max-sm:justify-center">
+                <h1 className="text-2xl md:text-3xl font-semibold tracking-tight min-w-0 wrap-break-word max-sm:w-full max-sm:text-center">
                   {quote_number}
                 </h1>
 
@@ -103,7 +103,7 @@ const QuotePage = () => {
                 )}
               </div>
 
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground max-sm:text-center">
                 Cotización de Compra General
                 {data?.requisition_order?.order_number && (
                   <>
@@ -138,7 +138,7 @@ const QuotePage = () => {
 
         {/* ── Meta ────────────────────────────────────────────────────── */}
         <div className="mx-auto w-full max-w-4xl px-4 py-3 rounded-xl border border-slate-200 bg-white dark:border-slate-700/60 dark:bg-slate-900/60">
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-x-4 sm:gap-x-6 md:gap-x-10 gap-y-3 md:gap-y-4 justify-items-center">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-x-4 sm:gap-x-6 md:gap-x-10 gap-y-3 md:gap-y-4 md:justify-items-center max-md:justify-items-start max-md:[&>:last-child:nth-child(odd)]:col-span-2 max-md:[&>:last-child:nth-child(odd)]:justify-self-center">
             {retailerNames.length > 0 && (
               <MetaItem
                 label={

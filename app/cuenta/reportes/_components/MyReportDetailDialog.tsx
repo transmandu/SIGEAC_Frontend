@@ -1,9 +1,17 @@
 "use client";
 
-import Image from "next/image";
-import { CheckCircle2, HeartHandshake, ImageOff } from "lucide-react";
+import {
+  CheckCircle2,
+  HeartHandshake,
+  Image as ImageIcon,
+  ImageOff,
+  Info,
+  MessageSquareText,
+} from "lucide-react";
 
 import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
+import { PanelSection } from "@/components/forms/PanelSection";
+import { EvidenceGallery } from "@/components/misc/EvidenceGallery";
 import { TagBadge } from "@/components/misc/TagBadge";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
@@ -19,23 +27,6 @@ const TONE_BY_STATUS = {
   IN_PROGRESS: "amber",
   RESOLVED: "emerald",
 } as const;
-
-const Field = ({ label, value }: { label: string; value: string }) => (
-  <div className="flex flex-col gap-1 rounded-md border bg-muted/20 px-3 py-2">
-    <span className="text-[11px] uppercase tracking-wide text-muted-foreground">
-      {label}
-    </span>
-    <span className="text-sm font-medium text-foreground wrap-break-word">
-      {value}
-    </span>
-  </div>
-);
-
-const SectionLabel = ({ children }: { children: React.ReactNode }) => (
-  <span className="text-[11px] uppercase tracking-wide text-muted-foreground">
-    {children}
-  </span>
-);
 
 /**
  * Detalle de un reporte para quien lo hizo. A propósito no muestra causa
@@ -65,6 +56,29 @@ export default function MyReportDetailDialog({
   const formatDate = (value: string | null) =>
     formatInstant(value, timeZone, "d 'de' MMMM yyyy, h:mm a", "—");
 
+  const details = [
+    { label: "Módulo", value: report.module ?? "No especificado" },
+    { label: "Fecha del reporte", value: formatDate(report.reported_at) },
+    ...(report.error_reference
+      ? [
+          {
+            label: "Código de error",
+            value: report.error_reference,
+            mono: true,
+          },
+        ]
+      : []),
+    ...(isResolved
+      ? [
+          { label: "Resuelto por", value: report.resolved_by ?? "—" },
+          {
+            label: "Fecha de resolución",
+            value: formatDate(report.resolved_at),
+          },
+        ]
+      : []),
+  ];
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <FormDialogContent
@@ -87,87 +101,73 @@ export default function MyReportDetailDialog({
           </Button>
         }
       >
-        <div className="space-y-5">
-          <>
-            {/* La solución primero: es lo que el usuario viene a buscar. */}
-            {isResolved && (
-              <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-4">
-                <p className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-400">
-                  <CheckCircle2 className="h-3.5 w-3.5" />
-                  Solución
-                </p>
-                <p className="whitespace-pre-wrap text-sm">
-                  {report.resolution?.trim() ||
-                    "El equipo no registró un detalle de la solución."}
-                </p>
-              </div>
-            )}
-
-            <div className="flex flex-col gap-1">
-              <SectionLabel>Lo que reportó</SectionLabel>
-              <p className="whitespace-pre-wrap rounded-lg border bg-muted/30 p-3 text-sm">
-                {report.description}
+        <div className="space-y-4">
+          {/* La solución primero: es lo que el usuario viene a buscar. */}
+          {isResolved && (
+            <PanelSection
+              icon={CheckCircle2}
+              title="Solución"
+              hint="Lo que hizo el equipo."
+              className="border-emerald-300/70 dark:border-emerald-700/40"
+            >
+              <p className="whitespace-pre-wrap text-sm wrap-anywhere">
+                {report.resolution?.trim() ||
+                  "El equipo no registró un detalle de la solución."}
               </p>
-            </div>
+            </PanelSection>
+          )}
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field
-                label="Módulo"
-                value={report.module ?? "No especificado"}
-              />
-              <Field
-                label="Fecha del reporte"
-                value={formatDate(report.reported_at)}
-              />
-              {report.error_reference && (
-                <Field label="Código de error" value={report.error_reference} />
-              )}
-              {isResolved && (
-                <>
-                  <Field
-                    label="Resuelto por"
-                    value={report.resolved_by ?? "—"}
-                  />
-                  <Field
-                    label="Fecha de resolución"
-                    value={formatDate(report.resolved_at)}
-                  />
-                </>
-              )}
-            </div>
+          <PanelSection
+            icon={MessageSquareText}
+            title="Lo que reportó"
+            hint="Tal como lo escribió."
+          >
+            <p className="whitespace-pre-wrap text-sm wrap-anywhere">
+              {report.description}
+            </p>
+          </PanelSection>
 
-            {images.length > 0 && (
-              <div className="flex flex-col gap-2">
-                <SectionLabel>Imágenes adjuntas</SectionLabel>
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                  {images.map((image) => (
-                    <a
-                      key={image.id}
-                      href={image.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="relative aspect-video overflow-hidden rounded-md border bg-muted/30 transition-opacity hover:opacity-80"
-                    >
-                      <Image
-                        src={image.url}
-                        alt="Imagen del reporte"
-                        fill
-                        sizes="200px"
-                        className="object-cover"
-                      />
-                    </a>
-                  ))}
+          <PanelSection icon={Info} title="Detalles">
+            <dl className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
+              {details.map((detail) => (
+                <div key={detail.label} className="min-w-0">
+                  <dt className="text-[13px] text-muted-foreground">
+                    {detail.label}
+                  </dt>
+                  <dd
+                    className={
+                      detail.mono
+                        ? "font-mono text-sm font-medium wrap-anywhere"
+                        : "text-sm font-medium wrap-anywhere"
+                    }
+                  >
+                    {detail.value}
+                  </dd>
                 </div>
-              </div>
-            )}
+              ))}
+            </dl>
+          </PanelSection>
 
-            {report.images.length > 0 && images.length === 0 && (
-              <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <ImageOff className="h-3.5 w-3.5" />
-                No se pudieron cargar las imágenes adjuntas.
-              </p>
-            )}
-          </>
+          {images.length > 0 && (
+            <PanelSection
+              icon={ImageIcon}
+              title="Imágenes adjuntas"
+              hint={`${images.length} ${images.length === 1 ? "imagen" : "imágenes"}`}
+            >
+              <EvidenceGallery
+                images={images}
+                title="Imagen del reporte"
+                size={96}
+              />
+            </PanelSection>
+          )}
+
+          {report.images.length > 0 && images.length === 0 && (
+            <p className="flex items-center gap-1.5 text-[13px] text-muted-foreground">
+              <ImageOff className="size-3.5" />
+              No se pudieron cargar las imágenes adjuntas.
+            </p>
+          )}
         </div>
       </FormDialogContent>
     </Dialog>

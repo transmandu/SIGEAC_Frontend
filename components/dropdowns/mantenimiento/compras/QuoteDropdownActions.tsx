@@ -33,6 +33,7 @@ import {
   RowActionsBar,
   rowActionIconClass,
   rowActionItemClass,
+  rowActionMenuClass,
 } from "./RowAction";
 
 /**
@@ -196,17 +197,8 @@ const QuoteDropdownActions = ({
             <DropdownMenuContent
               align="center"
               sideOffset={3}
-              className="
-                flex items-center justify-center gap-1.5
-                rounded-2xl
-                border border-border/50
-                bg-background/90
-                backdrop-blur-xl
-                shadow-xl
-                p-1.5
-                overflow-visible
-                animate-in fade-in zoom-in-95 duration-200
-              "
+              collisionPadding={8}
+              className={rowActionMenuClass}
             >
               {actions}
             </DropdownMenuContent>

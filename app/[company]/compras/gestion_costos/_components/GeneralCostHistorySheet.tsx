@@ -159,12 +159,12 @@ const peopleOf = (entry: GeneralArticleCostHistoryEntry): PersonProps[] => {
 };
 
 const Person = ({ label, name, icon: Icon }: PersonProps) => (
-  <div className="flex items-center justify-between gap-3 text-xs">
-    <span className="inline-flex shrink-0 items-center gap-1.5 text-muted-foreground">
+  <div className="flex items-start justify-between gap-3 text-[13px]">
+    <span className="inline-flex shrink-0 items-center gap-1.5 text-muted-foreground max-sm:max-w-[45%]">
       <Icon className="size-3.5" />
       {label}
     </span>
-    <span className="truncate text-right font-medium text-slate-700 dark:text-slate-200">
+    <span className="min-w-0 text-right font-medium wrap-anywhere text-slate-700 dark:text-slate-200">
       {name ?? "—"}
     </span>
   </div>
@@ -179,7 +179,7 @@ const Stat = ({
 }) => (
   <div className="flex min-w-0 flex-col gap-1 rounded-lg border border-border/60 bg-background px-3 py-2.5">
     <span className="text-xs font-medium text-muted-foreground">{label}</span>
-    <span className="truncate text-sm font-semibold tabular-nums">
+    <span className="text-sm font-semibold tabular-nums wrap-anywhere">
       {children}
     </span>
   </div>
@@ -242,7 +242,7 @@ const GeneralCostHistorySheet = ({
           </div>
 
           {!isLoading && current && (
-            <div className="mt-4 grid grid-cols-3 gap-2">
+            <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
               <Stat label="Costo actual">
                 {money(current.cost)}
                 {current.unit_label && (
@@ -318,7 +318,7 @@ const GeneralCostHistorySheet = ({
 
                     <div
                       className={cn(
-                        "flex flex-col gap-2.5 rounded-lg border bg-background p-3.5",
+                        "flex flex-col gap-2.5 rounded-xl border bg-background p-3.5",
                         index === 0
                           ? "border-primary/30 shadow-xs"
                           : "border-border/70",
@@ -344,7 +344,7 @@ const GeneralCostHistorySheet = ({
                         </span>
                       </div>
 
-                      <span className="inline-flex items-center gap-1.5 text-xs tabular-nums text-slate-600 dark:text-slate-300">
+                      <span className="inline-flex items-center gap-1.5 text-[13px] tabular-nums text-slate-600 dark:text-slate-300">
                         <CalendarClock className="size-3.5 text-muted-foreground" />
                         {formatInstant(entry.date, timeZone, "dateTime")}
                       </span>

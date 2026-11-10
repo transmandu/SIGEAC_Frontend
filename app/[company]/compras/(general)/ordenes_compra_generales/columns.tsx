@@ -76,7 +76,7 @@ const ArticlesCountAction = ({
         `,
         canRegisterDelivery &&
           hasPendingDelivery &&
-          "cursor-pointer hover:bg-emerald-50 hover:border-emerald-300/60 dark:hover:bg-emerald-950/30 dark:hover:border-emerald-700/50",
+          "cursor-pointer hover:border-blue-500/40 hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-400",
       )}
     >
       {hasPendingDelivery && !registerGeneralArticlesDelivery.isPending && (
@@ -252,6 +252,8 @@ export const getColumns = (
 
     meta: {
       title: "Cotización",
+      mobileOrder: 5,
+      mobile: "wide",
     },
 
     cell: ({ row }) => (
@@ -279,6 +281,7 @@ export const getColumns = (
 
     meta: {
       title: "Comercio",
+      mobileOrder: 3,
     },
 
     cell: ({ row }) => {
@@ -314,6 +317,7 @@ export const getColumns = (
 
     meta: {
       title: "Fecha de Creación",
+      mobileOrder: 2,
     },
 
     cell: ({ row }) => {
@@ -341,6 +345,7 @@ export const getColumns = (
 
     meta: {
       title: "Estado",
+      mobileOrder: 1,
     },
 
     cell: ({ row }) => {
@@ -391,6 +396,7 @@ export const getColumns = (
 
     meta: {
       title: "Artículos",
+      mobileOrder: 4,
     },
 
     cell: ({ row }) => (

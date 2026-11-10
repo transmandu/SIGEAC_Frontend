@@ -178,9 +178,9 @@ export function buildSettingsGroup({
             active: pathname === `/${slug}/ajustes/empresa/almacenes`,
           },
           {
-            href: `/${slug}/ajustes/empresa/operaciones`,
-            label: "Ajustes Operativos",
-            active: pathname === `/${slug}/ajustes/empresa/operaciones`,
+            href: `/${slug}/ajustes/empresa/parametros`,
+            label: "Parámetros de la Empresa",
+            active: pathname === `/${slug}/ajustes/empresa/parametros`,
             roles: ["SUPERUSER"],
           },
         ],

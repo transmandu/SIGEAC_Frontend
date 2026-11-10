@@ -26,8 +26,7 @@ export const getColumns = (
   {
     accessorKey: "reported_at",
     size: 170,
-    enableSorting: false,
-    meta: { title: "Fecha", filterable: true },
+    meta: { title: "Fecha" },
     header: ({ column }) => (
       <div className={center}>
         <DataTableColumnHeader dateRangeFilter column={column} title="Fecha" />
@@ -44,11 +43,15 @@ export const getColumns = (
   {
     accessorKey: "description",
     size: 420,
-    enableSorting: false,
     meta: { title: "Descripción", mobileTitle: true },
     header: ({ column }) => (
       <div className={center}>
-        <DataTableColumnHeader column={column} title="Descripción" />
+        <DataTableColumnHeader
+          filter
+          column={column}
+          title="Descripción"
+          filterHint="Busque el texto en la descripción de sus reportes."
+        />
       </div>
     ),
     cell: ({ row }) => (
@@ -65,8 +68,7 @@ export const getColumns = (
   {
     accessorKey: "module",
     size: 180,
-    enableSorting: false,
-    meta: { title: "Módulo", filterable: true },
+    meta: { title: "Módulo" },
     header: ({ column }) => (
       <div className={center}>
         <DataTableColumnHeader
@@ -87,8 +89,7 @@ export const getColumns = (
   {
     accessorKey: "status",
     size: 160,
-    enableSorting: false,
-    meta: { title: "Estatus", filterable: true },
+    meta: { title: "Estatus" },
     header: ({ column }) => (
       <div className={center}>
         <DataTableColumnHeader

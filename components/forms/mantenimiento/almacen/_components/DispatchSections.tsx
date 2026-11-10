@@ -1,5 +1,6 @@
 "use client";
 
+import { locationLabel } from "@/lib/locations";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -356,7 +357,7 @@ export function DispatchRequestSection({
                   <OptionCombobox
                     options={transferLocations?.map((location) => ({
                       value: location.id.toString(),
-                      label: `${location.cod_iata} — ${location.address}`,
+                      label: locationLabel(location, " — "),
                     }))}
                     placeholder="Seleccione la sede destino..."
                     searchPlaceholder="Buscar sede..."

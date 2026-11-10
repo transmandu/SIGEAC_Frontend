@@ -1,8 +1,9 @@
 "use client";
 
+import { PanelSection } from "@/components/forms/PanelSection";
 import { useMemo } from "react";
 import { toast } from "sonner";
-import { Download, FileText, Loader2 } from "lucide-react";
+import { Download, FileText, Loader2, UserCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
@@ -159,13 +160,20 @@ export default function DownloadRequisitionPdfDialog({
           </>
         }
       >
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Departamento receptor</label>
-
+        <PanelSection
+          icon={UserCheck}
+          title="Departamento receptor"
+          hint={
+            isSelfReceiver
+              ? undefined
+              : "Personal de Compras, Administración o RRHH que recibirá la solicitud."
+          }
+          compact
+        >
+          <div className="space-y-2.5">
             {isSelfReceiver ? (
               <>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-[13px] text-muted-foreground">
                   Usted recibe esta solicitud y firma en &ldquo;Recibe
                   conforme&rdquo;.
                 </p>
@@ -181,13 +189,13 @@ export default function DownloadRequisitionPdfDialog({
                     Cargando sus datos...
                   </div>
                 ) : myEmployee ? (
-                  <div className="rounded-md border bg-muted/30 px-3 py-2.5">
-                    <p className="text-sm font-medium">
+                  <div className="rounded-xl border bg-muted/30 px-3.5 py-3">
+                    <p className="text-sm font-medium wrap-anywhere">
                       {myEmployee.first_name} {myEmployee.last_name}
                     </p>
                     {(myEmployee.job_title?.name ||
                       myEmployee.department?.name) && (
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-[13px] text-muted-foreground">
                         {[
                           myEmployee.job_title?.name,
                           myEmployee.department?.name,
@@ -205,33 +213,27 @@ export default function DownloadRequisitionPdfDialog({
                 )}
               </>
             ) : (
-              <>
-                <p className="text-xs text-muted-foreground">
-                  Personal de Compras, Administración o RRHH que recibirá la
-                  solicitud.
-                </p>
-                <SearchableSelect
-                  value={receiverId}
-                  onChange={setReceiverId}
-                  loading={isReceiversLoading}
-                  placeholder="Seleccionar empleado"
-                  searchPlaceholder="Buscar empleado..."
-                  emptyText="No hay empleados disponibles"
-                  triggerClassName="h-10"
-                  options={receiversByDepartment.flatMap(
-                    ([department, employees]) =>
-                      employees.map((employee) => ({
-                        value: String(employee.id),
-                        label: `${employee.first_name} ${employee.last_name}`,
-                        description: employee.job_title?.name,
-                        group: department,
-                      })),
-                  )}
-                />
-              </>
+              <SearchableSelect
+                value={receiverId}
+                onChange={setReceiverId}
+                loading={isReceiversLoading}
+                placeholder="Seleccionar empleado"
+                searchPlaceholder="Buscar empleado..."
+                emptyText="No hay empleados disponibles"
+                triggerClassName="h-10 max-sm:text-base"
+                options={receiversByDepartment.flatMap(
+                  ([department, employees]) =>
+                    employees.map((employee) => ({
+                      value: String(employee.id),
+                      label: `${employee.first_name} ${employee.last_name}`,
+                      description: employee.job_title?.name,
+                      group: department,
+                    })),
+                )}
+              />
             )}
           </div>
-        </div>
+        </PanelSection>
       </FormDialogContent>
     </Dialog>
   );

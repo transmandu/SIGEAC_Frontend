@@ -67,7 +67,7 @@ export const ArticleDocumentTypesAttachment = ({
                 size="icon"
                 disabled={isLoading}
                 className={cn(
-                  "h-7 w-7 shrink-0 relative",
+                  "relative h-7 w-7 shrink-0 max-sm:size-9",
                   ids.length > 0
                     ? "text-primary"
                     : invalid

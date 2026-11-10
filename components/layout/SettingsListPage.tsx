@@ -23,6 +23,11 @@ interface SettingsListPageProps {
   toolbar?: React.ReactNode;
   /** `value` indefinido mientras carga o si falló: no se muestra un "0" falso. */
   count?: { value?: number; singular: string; plural: string };
+  /**
+   * Pestañas de la pantalla (p. ej. activos / inactivos). Van entre el título y
+   * la barra de búsqueda: son quienes deciden qué lista mira la barra.
+   */
+  tabs?: React.ReactNode;
   /** Prefijo del `data-tour` del encabezado (`-title`). */
   tourPrefix?: string;
   /** `data-tour` de la barra de búsqueda y filtros, si algún tour la señala. */
@@ -50,6 +55,7 @@ export function SettingsListPage({
   filters,
   toolbar,
   count,
+  tabs,
   tourPrefix,
   toolbarTourId,
   toolbarActions,
@@ -78,6 +84,8 @@ export function SettingsListPage({
           </h1>
           <p className="text-sm text-muted-foreground">{description}</p>
         </div>
+
+        {tabs && <div className="shrink-0">{tabs}</div>}
 
         {hasToolbar && (
           <div

@@ -2,21 +2,21 @@
 
 import { Control } from "react-hook-form";
 
-import { CheckboxCard } from "@/components/forms/mantenimiento/almacen/_components/CheckboxCard";
 import {
-  FieldLabelRow,
-  FormSection,
   fieldClass,
   hintClass,
-  labelClass,
 } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
+import {
+  PanelSection,
+  PanelFieldLabel,
+  SwitchRow,
+} from "@/components/forms/PanelSection";
 import { RequiredIndicator } from "@/components/misc/RequiredIndicator";
 import {
   FormControl,
   FormDescription,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -33,7 +33,7 @@ export function UnitFormFields({
 }) {
   return (
     <>
-      <FormSection
+      <PanelSection
         icon={Tag}
         title="Identificación"
         hint="Cómo se nombra y se escribe la unidad en los artículos."
@@ -44,12 +44,10 @@ export function UnitFormFields({
             name="label"
             render={({ field, fieldState }) => (
               <FormItem>
-                <FieldLabelRow>
-                  <FormLabel className={labelClass}>
-                    Nombre
-                    <RequiredIndicator invalid={!!fieldState.error} />
-                  </FormLabel>
-                </FieldLabelRow>
+                <PanelFieldLabel>
+                  Nombre
+                  <RequiredIndicator invalid={!!fieldState.error} />
+                </PanelFieldLabel>
                 <FormControl>
                   <Input
                     placeholder="Ej: Kilogramo, Litro, Mililitro"
@@ -69,12 +67,10 @@ export function UnitFormFields({
             name="value"
             render={({ field, fieldState }) => (
               <FormItem>
-                <FieldLabelRow>
-                  <FormLabel className={labelClass}>
-                    Símbolo
-                    <RequiredIndicator invalid={!!fieldState.error} />
-                  </FormLabel>
-                </FieldLabelRow>
+                <PanelFieldLabel>
+                  Símbolo
+                  <RequiredIndicator invalid={!!fieldState.error} />
+                </PanelFieldLabel>
                 <FormControl>
                   <Input
                     placeholder="Ej: Kg, L, mL"
@@ -93,53 +89,57 @@ export function UnitFormFields({
             )}
           />
         </div>
-      </FormSection>
+      </PanelSection>
 
-      <FormSection
-        icon={Ruler}
-        title="Medidas"
-        hint="Solo para unidades de longitud o área."
-      >
-        <FormField
-          control={control}
-          name="is_dimensional"
-          render={({ field }) => (
-            <FormItem>
-              <CheckboxCard
-                id="unit-is-dimensional"
-                checked={field.value}
-                onCheckedChange={field.onChange}
-                label="Sirve para declarar medidas"
-                description="Habilita esta unidad para dimensionar artículos que se despachan en trazos (láminas, telas, rollos)."
-                disabled={disabled}
-              />
-            </FormItem>
-          )}
-        />
-      </FormSection>
+      <div className="grid gap-5 md:grid-cols-2">
+        <PanelSection
+          className="h-full"
+          icon={Ruler}
+          title="Medidas"
+          hint="Solo para unidades de longitud o área."
+        >
+          <FormField
+            control={control}
+            name="is_dimensional"
+            render={({ field }) => (
+              <FormItem>
+                <SwitchRow
+                  id="unit-is-dimensional"
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                  label="Sirve para declarar medidas"
+                  description="Habilita esta unidad para dimensionar artículos que se despachan en trazos (láminas, telas, rollos)."
+                  disabled={disabled}
+                />
+              </FormItem>
+            )}
+          />
+        </PanelSection>
 
-      <FormSection
-        icon={Split}
-        title="Fracciones"
-        hint="Para unidades que almacén despacha por partes, como el galón."
-      >
-        <FormField
-          control={control}
-          name="allows_fractions"
-          render={({ field }) => (
-            <FormItem>
-              <CheckboxCard
-                id="unit-allows-fractions"
-                checked={field.value}
-                onCheckedChange={field.onChange}
-                label="Se despacha por fracciones"
-                description="En las salidas aparecen los atajos 1/2, 1/4, 1/8, 1/16 y 1/32, y se puede escribir «1/2». Los reportes siguen mostrando la cantidad en decimal."
-                disabled={disabled}
-              />
-            </FormItem>
-          )}
-        />
-      </FormSection>
+        <PanelSection
+          className="h-full"
+          icon={Split}
+          title="Fracciones"
+          hint="Para unidades que almacén despacha por partes, como el galón."
+        >
+          <FormField
+            control={control}
+            name="allows_fractions"
+            render={({ field }) => (
+              <FormItem>
+                <SwitchRow
+                  id="unit-allows-fractions"
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                  label="Se despacha por fracciones"
+                  description="En las salidas aparecen los atajos 1/2, 1/4, 1/8, 1/16 y 1/32, y se puede escribir «1/2». Los reportes siguen mostrando la cantidad en decimal."
+                  disabled={disabled}
+                />
+              </FormItem>
+            )}
+          />
+        </PanelSection>
+      </div>
     </>
   );
 }

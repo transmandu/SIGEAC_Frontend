@@ -27,7 +27,40 @@ export const rowActionItemClass = `
   hover:bg-muted
   hover:shadow-xs
   active:scale-95
+  max-md:h-11
+  max-md:w-full
+  max-md:justify-start
+  max-md:gap-3
+  max-md:px-3
+  max-md:active:bg-muted
+  motion-safe:max-md:animate-item-in
 `;
+
+/** Entrada escalonada de la lista móvil: cada acción llega 35 ms después de la anterior. */
+const MOBILE_STAGGER = [
+  "max-md:[&>*:nth-child(1)]:[animation-delay:60ms]",
+  "max-md:[&>*:nth-child(2)]:[animation-delay:95ms]",
+  "max-md:[&>*:nth-child(3)]:[animation-delay:130ms]",
+  "max-md:[&>*:nth-child(4)]:[animation-delay:165ms]",
+  "max-md:[&>*:nth-child(5)]:[animation-delay:200ms]",
+  "max-md:[&>*:nth-child(6)]:[animation-delay:235ms]",
+  "max-md:[&>*:nth-child(7)]:[animation-delay:270ms]",
+];
+
+/**
+ * Contenedor del menú flotante de la fila: iconos en hilera con tooltip en
+ * escritorio; lista vertical con el nombre de cada acción en móvil, donde no
+ * hay hover que explique el icono.
+ */
+export const rowActionMenuClass = cn(
+  "flex items-center justify-center gap-1.5 overflow-visible rounded-2xl border border-border/50 bg-background p-1.5 shadow-xl animate-in fade-in zoom-in-95 duration-200 md:bg-background/90 md:backdrop-blur-xl max-md:min-w-48 max-md:origin-(--radix-dropdown-menu-content-transform-origin) max-md:flex-col max-md:items-stretch max-md:gap-0.5 max-md:zoom-in-100",
+  ...MOBILE_STAGGER,
+);
+
+/** Nombre de la acción: solo se ve en la lista móvil. */
+export const RowActionLabel = ({ children }: { children: ReactNode }) => (
+  <span className="text-sm font-medium md:hidden">{children}</span>
+);
 
 export const rowActionBarItemClass =
   "group flex h-7 flex-1 items-center justify-center rounded-lg transition-colors duration-200 hover:bg-background active:scale-95 disabled:opacity-40";
@@ -76,7 +109,8 @@ export const RowAction = ({
       aria-label={hint ?? title}
       className={cn(rowActionItemClass, tone)}
     >
-      <Icon className={rowActionIconClass} />
+      <Icon className={cn(rowActionIconClass, "shrink-0")} />
+      <RowActionLabel>{title}</RowActionLabel>
     </button>
   );
 
@@ -91,7 +125,9 @@ export const RowAction = ({
           </DropdownMenuItem>
         )}
       </TooltipTrigger>
-      <TooltipContent className="max-w-70">{hint ?? title}</TooltipContent>
+      <TooltipContent className="max-w-70 max-md:hidden">
+        {hint ?? title}
+      </TooltipContent>
     </Tooltip>
   );
 };

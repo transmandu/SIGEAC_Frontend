@@ -13,7 +13,7 @@ import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits";
 import { useGetConditions } from "@/hooks/general/condiciones/useGetConditions";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { zodResolver } from "@/lib/zod-resolver";
-import { Loader2, PackageSearch, Save, Send } from "lucide-react";
+import { Info, Loader2, PackageSearch, Save, Send } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
@@ -844,8 +844,19 @@ export function CreateQuoteForm({
         )}
 
         {/* ── Total general ── */}
-        <div className="flex justify-end pt-2 border-t border-border/60">
-          <div className="flex items-center justify-between gap-6 rounded-md bg-muted/10 px-4 py-2 border border-border/40 min-w-50">
+        <div className="flex items-center justify-between gap-x-6 gap-y-3 border-t border-border/60 pt-3 max-sm:flex-col-reverse max-sm:items-stretch">
+          {pendingLinesCount > 0 && (
+            <p
+              aria-live="polite"
+              className="flex min-w-0 flex-1 items-start gap-1.5 text-[13px] leading-snug text-muted-foreground"
+            >
+              <Info className="mt-0.5 size-3.5 shrink-0" />
+              {pendingLinesCount} artículo(s) sin precio ni marca de “no
+              cotizado”. Puede guardar el borrador y volver después.
+            </p>
+          )}
+
+          <div className="ml-auto flex items-center justify-between gap-6 rounded-md bg-muted/10 px-4 py-2 border border-border/40 min-w-50 max-sm:ml-0 max-sm:w-full">
             <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">
               Total general
             </span>
@@ -858,17 +869,12 @@ export function CreateQuoteForm({
         {/* Dos caminos: guardar avance (el borrador acepta precios
             incompletos) o emitir, que exige una decisión por artículo y no
             tiene vuelta atrás. El "crear cotización" de una sentada se
-            conserva para quien ya tiene todos los precios. */}
+            conserva para quien ya tiene todos los precios. El aviso de
+            pendientes va en el cuerpo, no en el pie: un texto largo ahí
+            empuja los botones fuera de la pantalla en móvil. */}
         <FormActions>
           {onDiscard && draftId && (
             <DiscardDraftButton onClick={onDiscard} disabled={isDiscarding} />
-          )}
-
-          {pendingLinesCount > 0 && (
-            <p className="mr-auto text-xs text-muted-foreground">
-              {pendingLinesCount} artículo(s) sin precio ni marca de “no
-              cotizado”. Puede guardar el borrador y volver después.
-            </p>
           )}
 
           <Button

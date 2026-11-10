@@ -10,7 +10,7 @@ interface QuoteGeneralArticleCardProps {
 }
 
 // ── Shared column widths so row 1 and row 2 fields line up vertically ──────
-const FIELDS_GRID_COLS = "grid-cols-[80px_120px]";
+const FIELDS_GRID_COLS = "grid-cols-2 gap-y-3 sm:grid-cols-[80px_120px]";
 
 const QuoteGeneralArticleCard = ({ article }: QuoteGeneralArticleCardProps) => {
   const req = article.general_article_requisition_order;
@@ -55,7 +55,7 @@ const QuoteGeneralArticleCard = ({ article }: QuoteGeneralArticleCardProps) => {
 
       {/* BODY */}
       <div className="px-3 py-3">
-        <div className="grid grid-cols-[1fr_auto] gap-5 items-center">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_auto] lg:items-center lg:gap-5">
           {/* IZQUIERDA */}
           <div className="min-w-0 space-y-2.5">
             {/* PRESENT. / ESPECIF. */}
@@ -64,7 +64,7 @@ const QuoteGeneralArticleCard = ({ article }: QuoteGeneralArticleCardProps) => {
                 Present. / Especif.
               </span>
               <div className="flex items-center gap-2 min-w-0">
-                <div className="w-75 text-sm bg-muted/40 border border-border/40 rounded px-2 py-1 truncate">
+                <div className="w-full max-w-75 text-sm bg-muted/40 border border-border/40 rounded px-2 py-1 truncate">
                   {req?.variant_type || "N/A"}
                 </div>
               </div>
@@ -76,7 +76,7 @@ const QuoteGeneralArticleCard = ({ article }: QuoteGeneralArticleCardProps) => {
                 Marca / Modelo
               </span>
               <div className="flex items-center gap-2 min-w-0">
-                <div className="w-75 text-sm bg-muted/40 border border-border/40 rounded px-2 py-1 truncate">
+                <div className="w-full max-w-75 text-sm bg-muted/40 border border-border/40 rounded px-2 py-1 truncate">
                   {article.brand_model || "N/A"}
                 </div>
               </div>
@@ -84,7 +84,7 @@ const QuoteGeneralArticleCard = ({ article }: QuoteGeneralArticleCardProps) => {
           </div>
 
           {/* DERECHA */}
-          <div className="flex items-center gap-6 shrink-0">
+          <div className="flex flex-col gap-4 lg:shrink-0 lg:flex-row lg:items-center lg:gap-6">
             {/* FILAS */}
             <div className="flex flex-col gap-2">
               {/* FILA 1: Cantidad · Precio unitario */}
@@ -135,8 +135,8 @@ const QuoteGeneralArticleCard = ({ article }: QuoteGeneralArticleCardProps) => {
             </div>
 
             {/* TOTAL (separado horizontalmente, centrado verticalmente respecto a ambas filas) */}
-            <div className="flex flex-col items-start min-w-25 pl-6 border-border/40 self-stretch justify-center">
-              <span className="h-4 text-xs text-muted-foreground select-none mb-2 block">
+            <div className="flex flex-row items-baseline justify-between gap-3 border-t border-border/40 pt-3 lg:min-w-25 lg:flex-col lg:items-start lg:justify-center lg:self-stretch lg:border-t-0 lg:pt-0 lg:pl-6">
+              <span className="block text-xs text-muted-foreground select-none lg:mb-2 lg:h-4">
                 Total
               </span>
               <span className="text-sm font-semibold tabular-nums block">

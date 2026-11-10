@@ -117,7 +117,7 @@ export function QuoteDraftEditorProvider({
               </p>
               <Button
                 variant="outline"
-                className="h-8 px-3 text-xs"
+                className="max-sm:h-10"
                 onClick={() => setEditingId(null)}
               >
                 Cerrar

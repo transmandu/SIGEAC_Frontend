@@ -1,17 +1,17 @@
 "use client";
+import { locationLabel } from "@/lib/locations";
 import { Button } from "@/components/ui/button";
 import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, ClipboardList, MessageSquareText } from "lucide-react";
 import type { UseFormReturn } from "react-hook-form";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -26,16 +26,38 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  selectTriggerClass,
+  textareaClass,
+  triggerButtonClass,
+} from "@/components/forms/mantenimiento/almacen/_components/form-theme";
 import { MarqueeBlockText } from "@/components/misc/MarqueeBlockText";
 import type { Vendor } from "@/types";
 import type { QuoteableRequisition } from "@/types/purchase/quote";
 import { RequiredIndicator } from "@/components/misc/RequiredIndicator";
+import {
+  PanelFieldLabel,
+  PanelSection,
+  PanelStaticLabel,
+} from "@/components/forms/PanelSection";
 import { VendorCombobox } from "@/components/forms/general/compras/_components/VendorCombobox";
+
+/**
+ * Altura única de todos los controles del encabezado (fecha, destino,
+ * proveedor y justificación): en escritorio conservan la métrica compacta de
+ * la cotización —el formulario lleva muchos campos por artículo debajo— y en
+ * móvil suben a 40 px para tocarlos bien. La justificación usa la misma para
+ * que la franja se lea alineada con la de fecha y destino.
+ */
+const CONTROL_H = "h-9 max-sm:h-10";
+
+const controlClass = cn(CONTROL_H, "text-sm max-sm:text-base");
 
 interface LocationOption {
   id: number;
   address: string;
-  type: string;
+  name?: string | null;
+  cod_iata?: string | null;
 }
 
 interface QuoteMetaSectionProps {
@@ -54,36 +76,25 @@ export function QuoteMetaSection({
   locations,
 }: QuoteMetaSectionProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
-      {/* ───────────── IZQUIERDA ───────────── */}
-      <div className="h-full rounded-xl border border-slate-200 bg-white dark:border-slate-700/60 dark:bg-slate-900/60 overflow-hidden">
-        <div className="flex items-center justify-between border-b bg-muted/30 px-4 py-1.5">
-          <div className="flex flex-col">
-            <span className="text-xs font-semibold text-muted-foreground">
-              Datos de cotización
-            </span>
-            <span className="text-xs text-muted-foreground">
-              Información principal de la cotización
-            </span>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-3 p-3">
-          {/* Fecha + Destino */}
-          <div className="grid grid-cols-2 gap-3">
-            {/* Fecha */}
+    <div className="grid grid-cols-1 items-stretch gap-4 md:grid-cols-2">
+      <PanelSection
+        icon={ClipboardList}
+        title="Datos de cotización"
+        hint="Información principal de la cotización"
+        compact
+        className="h-full"
+      >
+        <div className="flex flex-col gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <FormField
               control={form.control}
               name="quote_date"
               render={({ field }) => (
-                <FormItem className="space-y-2">
-                  <div className="flex items-center gap-2 min-h-4 pb-1.5">
-                    <FormLabel className="m-0 text-xs font-medium text-muted-foreground">
-                      Fecha de cotización
-                      <RequiredIndicator />
-                    </FormLabel>
-                    <div className="h-px flex-1 bg-border/60" />
-                  </div>
+                <FormItem className="space-y-0">
+                  <PanelFieldLabel>
+                    Fecha de cotización
+                    <RequiredIndicator />
+                  </PanelFieldLabel>
 
                   <Popover>
                     <PopoverTrigger asChild>
@@ -91,11 +102,13 @@ export function QuoteMetaSection({
                         <Button
                           variant="outline"
                           className={cn(
-                            "h-9 w-full justify-start text-sm bg-background/70",
+                            triggerButtonClass,
+                            controlClass,
+                            "justify-start gap-2",
                             !field.value && "text-muted-foreground",
                           )}
                         >
-                          <CalendarIcon className="mr-2 h-3 w-3 opacity-60" />
+                          <CalendarIcon className="size-4 opacity-60" />
                           {field.value
                             ? format(field.value, "dd MMM yyyy", { locale: es })
                             : "Seleccionar"}
@@ -114,31 +127,33 @@ export function QuoteMetaSection({
                     </PopoverContent>
                   </Popover>
 
-                  <FormMessage />
+                  <FormMessage className="mt-1.5" />
                 </FormItem>
               )}
             />
 
-            {/* Destino */}
             <FormField
               control={form.control}
               name="location_id"
               render={({ field }) => (
-                <FormItem className="space-y-2">
-                  <div className="flex items-center gap-2 min-h-4 pb-1.5">
-                    <FormLabel className="m-0 text-xs font-medium text-muted-foreground">
-                      Destino
-                      <RequiredIndicator />
-                    </FormLabel>
-                    <div className="h-px flex-1 bg-border/60" />
-                  </div>
+                <FormItem className="space-y-0">
+                  <PanelFieldLabel>
+                    Destino
+                    <RequiredIndicator />
+                  </PanelFieldLabel>
 
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
                   >
                     <FormControl>
-                      <SelectTrigger className="h-9 bg-background/70 text-sm">
+                      <SelectTrigger
+                        className={cn(
+                          selectTriggerClass,
+                          controlClass,
+                          "w-full",
+                        )}
+                      >
                         <SelectValue placeholder="Ubicación" />
                       </SelectTrigger>
                     </FormControl>
@@ -149,31 +164,27 @@ export function QuoteMetaSection({
                           key={location.id}
                           value={location.id.toString()}
                         >
-                          {location.address} — {location.type}
+                          {locationLabel(location, " — ")}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
 
-                  <FormMessage />
+                  <FormMessage className="mt-1.5" />
                 </FormItem>
               )}
             />
           </div>
 
-          {/* Proveedor */}
           <FormField
             control={form.control}
             name="vendor_id"
             render={({ field }) => (
-              <FormItem className="space-y-2">
-                <div className="flex items-center gap-2 min-h-4 pb-1.5">
-                  <FormLabel className="m-0 text-xs font-medium text-muted-foreground">
-                    Proveedor
-                    <RequiredIndicator />
-                  </FormLabel>
-                  <div className="h-px flex-1 bg-border/60" />
-                </div>
+              <FormItem className="space-y-0">
+                <PanelFieldLabel>
+                  Proveedor
+                  <RequiredIndicator />
+                </PanelFieldLabel>
 
                 <FormControl>
                   <VendorCombobox
@@ -181,74 +192,65 @@ export function QuoteMetaSection({
                     onChange={field.onChange}
                     vendors={vendors}
                     disabled={isVendorsLoading}
-                    triggerClassName="h-9 text-sm"
+                    triggerClassName={controlClass}
                   />
                 </FormControl>
 
-                <FormMessage />
+                <FormMessage className="mt-1.5" />
               </FormItem>
             )}
           />
         </div>
-      </div>
+      </PanelSection>
 
-      {/* ───────────── DERECHA ───────────── */}
-      <div className="h-full rounded-xl border border-slate-200 bg-white dark:border-slate-700/60 dark:bg-slate-900/60 overflow-hidden">
-        <div className="flex items-center justify-between border-b bg-muted/30 px-4 py-1.5">
-          <div className="flex flex-col">
-            <span className="text-xs font-semibold text-muted-foreground">
-              Contexto de la cotización
-            </span>
-            <span className="text-xs text-muted-foreground">
-              Información extra asociada
-            </span>
-          </div>
-        </div>
+      <PanelSection
+        icon={MessageSquareText}
+        title="Contexto de la cotización"
+        hint="Información extra asociada"
+        compact
+        className="h-full"
+      >
+        <div className="flex flex-col gap-3">
+          <div>
+            <PanelStaticLabel>Justificación de la requisición</PanelStaticLabel>
 
-        <div className="flex flex-col gap-3 p-3">
-          {/* Justificación */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-medium text-muted-foreground">
-                Justificación de la requisición
-              </span>
-              <div className="h-px flex-1 bg-border/60" />
-            </div>
-
-            <div className="rounded-md border bg-background/70 px-3 py-2.5 overflow-hidden">
+            <div
+              className={cn(
+                CONTROL_H,
+                "flex items-center overflow-hidden rounded-lg border border-slate-400/60 bg-background/70 px-3 dark:border-slate-600/60",
+              )}
+            >
               <MarqueeBlockText
                 text={(req.justification || "Sin justificación").trim()}
               />
             </div>
           </div>
 
-          {/* Observación */}
           <FormField
             control={form.control}
             name="observation"
             render={({ field }) => (
-              <FormItem className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <FormLabel className="m-0 text-xs font-medium text-muted-foreground">
-                    Observación (opcional)
-                  </FormLabel>
-                  <div className="h-px flex-1 bg-border/60" />
-                </div>
+              <FormItem className="space-y-0">
+                <PanelFieldLabel>Observación (opcional)</PanelFieldLabel>
 
                 <FormControl>
                   <Textarea
                     placeholder="Comentario adicional para la cotización..."
-                    className="min-h-18 resize-none border bg-background/70 text-sm"
+                    rows={3}
+                    className={cn(
+                      textareaClass,
+                      "min-h-18 text-sm max-sm:text-base",
+                    )}
                     {...field}
                   />
                 </FormControl>
 
-                <FormMessage />
+                <FormMessage className="mt-1.5" />
               </FormItem>
             )}
           />
         </div>
-      </div>
+      </PanelSection>
     </div>
   );
 }

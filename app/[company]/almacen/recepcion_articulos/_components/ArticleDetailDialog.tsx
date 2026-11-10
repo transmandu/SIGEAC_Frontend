@@ -1,5 +1,6 @@
 "use client";
 
+import { locationName } from "@/lib/locations";
 import {
   Dialog,
   DialogContent,
@@ -39,6 +40,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { EditTransitArticleDialog } from "@/app/[company]/compras/(aeronautico)/en_transito/_components/EditTransitArticleDialog";
 import SecureFileViewer from "@/components/library/SecureFileViewer";
 import { DocumentSupportBadge } from "@/components/misc/DocumentSupportBadge";
+import { InfoSection } from "@/components/misc/InfoSection";
 import axiosInstance from "@/lib/axios";
 import { cn, toAltPartNumbers } from "@/lib/utils";
 import type { TransitArticle } from "@/types/purchase/in-transit";
@@ -114,74 +116,6 @@ function FieldGrid({ fields }: { fields: FieldSpec[] }) {
         <Field key={f.label} {...f} />
       ))}
     </div>
-  );
-}
-
-/**
- * Bloque de la ficha, con el mismo cristal y encabezado que las secciones de
- * los formularios de artículo: es la misma información y se estaba viendo con
- * un lenguaje visual propio que no se parecía a nada más del módulo.
- */
-function Section({
-  icon: Icon,
-  title,
-  hint,
-  tone = "default",
-  children,
-}: {
-  icon: LucideIcon;
-  title: string;
-  hint?: string;
-  tone?: "default" | "alert";
-  children: React.ReactNode;
-}) {
-  const alert = tone === "alert";
-
-  return (
-    <section
-      className={cn(
-        "rounded-xl border bg-linear-to-br p-4 shadow-xs backdrop-blur-md",
-        alert
-          ? "border-orange-300 from-orange-50/80 to-orange-50/40 dark:border-orange-700/60 dark:from-orange-950/40 dark:to-orange-950/20"
-          : "border-slate-400/50 from-background/70 to-background/40 dark:border-slate-600/50",
-      )}
-    >
-      <div className={cn("flex gap-3", hint ? "items-start" : "items-center")}>
-        <span
-          className={cn(
-            "flex size-8 shrink-0 items-center justify-center rounded-lg",
-            hint && "mt-0.5",
-            alert ? "bg-orange-600 text-white" : "bg-primary/10 text-primary",
-          )}
-        >
-          <Icon className="size-4" />
-        </span>
-        <div className="min-w-0 flex-1 space-y-1">
-          <h3
-            className={cn(
-              "text-sm font-semibold leading-none",
-              alert && "text-orange-900 dark:text-orange-200",
-            )}
-          >
-            {title}
-          </h3>
-          {hint && (
-            <p
-              className={cn(
-                "text-xs",
-                alert
-                  ? "text-orange-900/80 dark:text-orange-200/80"
-                  : "text-muted-foreground",
-              )}
-            >
-              {hint}
-            </p>
-          )}
-        </div>
-      </div>
-
-      <div className="mt-4">{children}</div>
-    </section>
   );
 }
 
@@ -395,7 +329,7 @@ export function ArticleDetailDialog({
           </div>
 
           <div className="flex-1 space-y-4 overflow-y-auto px-6 py-5">
-            <Section icon={Fingerprint} title="Identificación">
+            <InfoSection icon={Fingerprint} title="Identificación">
               <FieldGrid
                 fields={[
                   {
@@ -419,9 +353,9 @@ export function ArticleDetailDialog({
                   },
                 ]}
               />
-            </Section>
+            </InfoSection>
 
-            <Section icon={ClipboardList} title="Origen y trazabilidad">
+            <InfoSection icon={ClipboardList} title="Origen y trazabilidad">
               <FieldGrid
                 fields={[
                   {
@@ -440,12 +374,12 @@ export function ArticleDetailDialog({
                   },
                 ]}
               />
-            </Section>
+            </InfoSection>
 
-            <Section icon={MapPin} title="Ubicación">
+            <InfoSection icon={MapPin} title="Ubicación">
               {location ? (
                 <div className="flex items-center gap-2 text-sm">
-                  <span className="font-medium">{location.address}</span>
+                  <span className="font-medium">{locationName(location)}</span>
                   {location.cod_iata && (
                     <span className="rounded border border-border/50 bg-muted/60 px-1.5 py-0.5 font-mono text-[10px]">
                       {location.cod_iata}
@@ -457,20 +391,20 @@ export function ArticleDetailDialog({
                   Sin ubicación registrada.
                 </p>
               )}
-            </Section>
+            </InfoSection>
 
             {/* Solo si la categoría aporta campos propios: una sección vacía
                 para decir "sin datos" ocupaba el mismo espacio que una útil. */}
             {categoryFields && categoryFields.length > 0 && (
-              <Section
+              <InfoSection
                 icon={categoryMeta?.icon ?? Gauge}
                 title={`Datos de ${(categoryDetails?.label ?? categoryMeta?.label ?? "categoría").toLowerCase()}`}
               >
                 <FieldGrid fields={categoryFields} />
-              </Section>
+              </InfoSection>
             )}
 
-            <Section
+            <InfoSection
               icon={needsDocumentsDeclared ? CircleAlert : CalendarClock}
               title="Manifiesto documental"
               tone={needsDocumentsDeclared ? "alert" : "default"}
@@ -568,7 +502,7 @@ export function ArticleDetailDialog({
                   assignedTypeIds={assignedTypeIds}
                 />
               )}
-            </Section>
+            </InfoSection>
           </div>
 
           {canEdit && (

@@ -67,6 +67,7 @@ const PurchaseOrderGroupRow = ({ title, count, expanded, onToggle }: Props) => {
             size-8 rounded-lg
 
             bg-primary/10
+            max-sm:hidden
             border border-primary/20
 
             shrink-0
@@ -95,7 +96,7 @@ const PurchaseOrderGroupRow = ({ title, count, expanded, onToggle }: Props) => {
               text-sm font-semibold
               text-foreground
 
-              truncate max-w-[500px]
+              truncate max-w-125
             "
           >
             {title}

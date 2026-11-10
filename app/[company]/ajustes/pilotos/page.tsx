@@ -37,7 +37,7 @@ const PilotsPage = () => {
     <SettingsListPage
       title="Pilotos"
       heading="Control de Pilotos"
-      description="Administra los pilotos de la empresa y sus números de licencia."
+      description="Administre los pilotos de la empresa y sus números de licencia."
       search={{
         value: search,
         onChange: setSearch,

@@ -111,6 +111,7 @@ export const getColumns = (
   {
     id: "expander",
     size: 50,
+    meta: { title: "historial de cuarentena" },
     header: () => null,
     cell: ({ row }) => (
       <div className="flex w-full justify-center">
@@ -131,6 +132,7 @@ export const getColumns = (
   {
     accessorKey: "article.part_number",
     size: 210,
+    meta: { title: "Número de Parte" },
 
     header: ({ column }) => (
       <div className="flex w-full justify-center">
@@ -146,7 +148,7 @@ export const getColumns = (
         <div className="flex w-full justify-start">
           <div className="min-w-0 space-y-1">
             <div className="flex items-center gap-2">
-              <span className="select-none rounded-md border border-emerald-200/50 bg-emerald-100/60 px-1.5 py-0.5 text-xs font-semibold text-emerald-700 dark:border-emerald-800/40 dark:bg-emerald-900/30 dark:text-emerald-300">
+              <span className="shrink-0 whitespace-nowrap select-none rounded-md border border-emerald-200/50 bg-emerald-100/60 px-1.5 py-0.5 text-xs font-semibold text-emerald-700 dark:border-emerald-800/40 dark:bg-emerald-900/30 dark:text-emerald-300">
                 P/N
               </span>
               <span className="rounded px-1 py-0.5 text-[13px] font-semibold tracking-tight text-slate-900 dark:text-slate-100">
@@ -158,7 +160,7 @@ export const getColumns = (
             <div className="flex items-center gap-2">
               <span
                 className={cn(
-                  "rounded-md px-1.5 py-0.5 text-xs font-semibold",
+                  "shrink-0 whitespace-nowrap rounded-md px-1.5 py-0.5 text-xs font-semibold",
                   serial
                     ? "border border-slate-300/40 bg-slate-200/60 text-slate-600 dark:border-slate-600/40 dark:bg-slate-700/40 dark:text-slate-300"
                     : "bg-slate-100 text-slate-400 dark:bg-slate-800",
@@ -185,6 +187,12 @@ export const getColumns = (
   {
     accessorKey: "article.batch.name",
     size: 190,
+    meta: {
+      title: "Descripción",
+      mobile: "wide",
+      mobileAlign: "center",
+      mobileOrder: 1,
+    },
 
     header: ({ column }) => (
       <div className="flex w-full items-center justify-center text-center">
@@ -204,6 +212,7 @@ export const getColumns = (
   {
     id: "reason",
     size: 340,
+    meta: { title: "Motivo de la retención", mobile: "wide", mobileOrder: 4 },
 
     header: ({ column }) => (
       <div className="flex w-full justify-center">
@@ -219,6 +228,7 @@ export const getColumns = (
   {
     id: "legal_window",
     size: 130,
+    meta: { title: "Plazo legal", mobileOrder: 2 },
 
     header: ({ column }) => (
       <div className="flex w-full justify-center">
@@ -290,6 +300,7 @@ export const getColumns = (
   {
     accessorKey: "status",
     size: 150,
+    meta: { title: "Estado", mobileOrder: 3 },
 
     header: ({ column }) => (
       <div className="flex w-full justify-center">
@@ -342,6 +353,7 @@ export const getColumns = (
   {
     id: "actions",
     size: 130,
+    meta: { mobile: "action" },
 
     header: () => (
       <div className="flex w-full justify-center text-xs font-medium text-muted-foreground">

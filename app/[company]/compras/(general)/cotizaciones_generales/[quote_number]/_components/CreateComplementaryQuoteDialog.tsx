@@ -1,15 +1,29 @@
 "use client";
 
+import { PanelSection } from "@/components/forms/PanelSection";
 import { useMemo, useState } from "react";
-import { Check, Link2, Loader2, PackagePlus } from "lucide-react";
+import {
+  Check,
+  Info,
+  Loader2,
+  MessageSquareText,
+  Package,
+  PackagePlus,
+} from "lucide-react";
 
 import { useCreateComplementaryQuote } from "@/actions/mantenimiento/compras/cotizaciones/actions";
 import { AmountInput } from "@/components/misc/AmountInput";
+import { TagBadge } from "@/components/misc/TagBadge";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
-import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  fieldClass,
+  labelClass,
+  textareaClass,
+} from "@/components/forms/mantenimiento/almacen/_components/form-theme";
+import { NumericTextInput } from "@/components/forms/mantenimiento/almacen/_components/NumericInput";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import type { Quote } from "@/types/purchase";
@@ -20,7 +34,7 @@ type ItemState = {
   unitPrice: string;
 };
 
-const LABEL_CLS = "select-none text-xs leading-none text-muted-foreground";
+const formatMoney = (value: number) => `$${value.toFixed(2)}`;
 
 /**
  * Crea una cotización complementaria sobre una cotización general APROBADA:
@@ -92,10 +106,21 @@ export default function CreateComplementaryQuoteDialog({
     return acc + qty * price;
   }, 0);
 
+  const hasJustification = justification.trim().length > 0;
+
   const canSubmit =
-    selectedValid &&
-    justification.trim().length > 0 &&
-    !createComplementaryQuote.isPending;
+    selectedValid && hasJustification && !createComplementaryQuote.isPending;
+
+  // Lo que falta para crearla, dicho una vez: el botón se deshabilita y esto
+  // explica por qué.
+  const blocker =
+    selected.length === 0
+      ? "Marque al menos un artículo."
+      : !selectedValid
+        ? "Indique la cantidad extra y el precio de cada artículo marcado."
+        : !hasJustification
+          ? "Escriba la justificación de la diferencia."
+          : null;
 
   const handleSubmit = () => {
     createComplementaryQuote.mutate(
@@ -141,14 +166,6 @@ export default function CreateComplementaryQuoteDialog({
         }
         footer={
           <>
-            <div className="mr-auto flex items-center gap-2 rounded-md border border-slate-200/60 bg-white/80 px-3 py-1.5 dark:border-slate-700/60 dark:bg-slate-900/60">
-              <Link2 className="size-3.5 text-primary" />
-              <span className="text-xs text-muted-foreground">Total</span>
-              <span className="font-mono text-sm font-semibold tabular-nums">
-                ${total.toFixed(2)}
-              </span>
-            </div>
-
             <Button
               variant="outline"
               onClick={() => onOpenChange(false)}
@@ -164,29 +181,27 @@ export default function CreateComplementaryQuoteDialog({
               {createComplementaryQuote.isPending ? (
                 <Loader2 className="size-4 animate-spin" />
               ) : (
-                <>
-                  <PackagePlus className="size-4" />
-                  Crear complementaria
-                </>
+                <PackagePlus className="size-4" />
               )}
+              Crear complementaria
             </Button>
           </>
         }
       >
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-foreground select-none">
-              Artículos de la cotización original
-            </span>
-            <span className="text-xs text-muted-foreground tabular-nums select-none">
-              {selected.length} seleccionado{selected.length === 1 ? "" : "s"}
-            </span>
-          </div>
-
-          <ScrollArea
-            className={cn("w-full", quotedItems.length > 3 && "h-70")}
+          <PanelSection
+            icon={Package}
+            title="Artículos de la cotización original"
+            hint="Marque los que tuvieron diferencia."
+            compact
+            action={
+              <TagBadge tone={selected.length > 0 ? "blue" : "slate"}>
+                {selected.length} seleccionado
+                {selected.length === 1 ? "" : "s"}
+              </TagBadge>
+            }
           >
-            <div className="space-y-2 pr-1">
+            <div className="space-y-2.5">
               {quotedItems.map((item) => {
                 const state = items[item.id];
                 const description =
@@ -200,78 +215,85 @@ export default function CreateComplementaryQuoteDialog({
                   <div
                     key={item.id}
                     className={cn(
-                      "rounded-lg border overflow-hidden transition-colors",
+                      "rounded-xl border transition-colors duration-200",
                       included
-                        ? "border-primary/40 bg-primary/4"
-                        : "border-border/60 bg-background/60",
+                        ? "border-primary/50 bg-primary/6"
+                        : "border-slate-400/60 bg-background/40 hover:border-blue-400/40 dark:border-slate-600/60",
                     )}
                   >
                     <button
                       type="button"
+                      aria-pressed={included}
                       onClick={() => toggleItem(item.id)}
-                      className="flex w-full items-center justify-between gap-3 border-b border-border/50 bg-muted/25 px-3 py-1.5 text-left"
+                      className="flex w-full items-center gap-3 rounded-xl p-3 text-left outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                     >
-                      <div className="flex items-center gap-2 min-w-0">
-                        <div
-                          className={cn(
-                            "flex size-4 shrink-0 items-center justify-center rounded-sm border transition-colors",
-                            included
-                              ? "border-primary bg-primary text-white"
-                              : "border-muted-foreground/30",
-                          )}
-                        >
-                          {included && <Check className="size-3" />}
-                        </div>
-                        <span className="truncate text-sm font-medium text-foreground">
+                      <span
+                        className={cn(
+                          "flex size-6 shrink-0 items-center justify-center rounded-md border transition-colors duration-200",
+                          included
+                            ? "border-primary bg-primary text-primary-foreground"
+                            : "border-slate-400/60 dark:border-slate-600/60",
+                        )}
+                      >
+                        {included && <Check className="size-3.5" />}
+                      </span>
+
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-sm font-medium wrap-anywhere">
                           {description}
                         </span>
-                      </div>
-
-                      <span className="shrink-0 text-xs text-muted-foreground">
-                        Cotizado: {item.quantity} {item.unit?.label ?? ""} · $
-                        {Number(item.unit_price).toFixed(2)} c/u
+                        <span className="block text-[13px] text-muted-foreground">
+                          Cotizado: {item.quantity} {item.unit?.label ?? ""} ·{" "}
+                          {formatMoney(Number(item.unit_price))} c/u
+                        </span>
                       </span>
                     </button>
 
                     {included && (
-                      <div className="relative px-3 py-2.5 pr-24">
-                        <div className="absolute right-3 bottom-2.5 flex flex-col items-end gap-0.5">
-                          <span className={LABEL_CLS}>Total</span>
-                          <span className="flex h-7 items-center font-semibold tabular-nums leading-none">
-                            ${rowTotal.toFixed(2)}
-                          </span>
+                      <div className="grid grid-cols-2 gap-3 border-t border-dashed border-slate-300/80 p-3 motion-safe:animate-reveal sm:grid-cols-3 dark:border-slate-600/60">
+                        <div className="space-y-1.5">
+                          <Label
+                            className={labelClass}
+                            htmlFor={`comp-qty-${item.id}`}
+                          >
+                            Cantidad extra
+                          </Label>
+                          <NumericTextInput
+                            id={`comp-qty-${item.id}`}
+                            value={state.quantity}
+                            onValueChange={(value) =>
+                              setItem(item.id, { quantity: value })
+                            }
+                            placeholder="0"
+                            className="h-10 text-center max-sm:text-base"
+                          />
                         </div>
 
-                        <div className="grid grid-cols-[90px_110px] gap-x-3">
-                          <div className="space-y-0.5">
-                            <span className={LABEL_CLS}>Cant. extra</span>
-                            <Input
-                              type="text"
-                              value={state.quantity}
-                              onChange={(e) => {
-                                const value = e.target.value.replace(
-                                  /[^0-9.]/g,
-                                  "",
-                                );
-                                setItem(item.id, { quantity: value });
-                              }}
-                              placeholder="0"
-                              className="h-7 text-sm text-center"
-                            />
-                          </div>
+                        <div className="space-y-1.5">
+                          <Label
+                            className={labelClass}
+                            htmlFor={`comp-price-${item.id}`}
+                          >
+                            Precio unitario
+                          </Label>
+                          <AmountInput
+                            key={item.id}
+                            defaultValue={state.unitPrice}
+                            value={state.unitPrice}
+                            onChange={(value) =>
+                              setItem(item.id, { unitPrice: value ?? "" })
+                            }
+                            className={cn(fieldClass, "h-10")}
+                          />
+                        </div>
 
-                          <div className="space-y-0.5">
-                            <span className={LABEL_CLS}>Precio unit.</span>
-                            <AmountInput
-                              key={item.id}
-                              defaultValue={state.unitPrice}
-                              value={state.unitPrice}
-                              onChange={(value) =>
-                                setItem(item.id, { unitPrice: value ?? "" })
-                              }
-                              className="h-7 text-sm"
-                            />
-                          </div>
+                        <div className="col-span-2 flex items-center justify-between gap-3 rounded-lg bg-muted/50 px-3.5 py-2.5 sm:col-span-1 sm:flex-col sm:items-start sm:justify-center sm:gap-0.5">
+                          <span className="text-[13px] text-muted-foreground">
+                            Total
+                          </span>
+                          <span className="font-mono text-base font-semibold tabular-nums">
+                            {formatMoney(rowTotal)}
+                          </span>
                         </div>
                       </div>
                     )}
@@ -285,25 +307,46 @@ export default function CreateComplementaryQuoteDialog({
                 </p>
               )}
             </div>
-          </ScrollArea>
 
-          {/* ── Justificación ── */}
-          <div className="mx-auto w-full max-w-xl space-y-2">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-medium text-muted-foreground">
-                Justificación<span className="ml-0.5 text-destructive">*</span>
-              </span>
-              <div className="h-px flex-1 bg-border/60" />
-            </div>
+            {selected.length > 0 && (
+              <div className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-muted/40 px-4 py-3 dark:border-slate-700/60">
+                <span className="text-sm font-medium">
+                  Total de la complementaria
+                </span>
+                <span className="font-mono text-lg font-semibold tabular-nums">
+                  {formatMoney(total)}
+                </span>
+              </div>
+            )}
+          </PanelSection>
 
+          <PanelSection
+            icon={MessageSquareText}
+            title={
+              <>
+                Justificación <span className="text-red-500">*</span>
+              </>
+            }
+            hint="Por qué la compra superó lo cotizado."
+            compact
+          >
             <Textarea
+              aria-label="Justificación"
               value={justification}
               onChange={(e) => setJustification(e.target.value)}
               placeholder="Motivo de la diferencia..."
-              className="min-h-18 resize-none border bg-background/70 text-sm"
+              rows={3}
+              className={textareaClass}
               maxLength={2000}
             />
-          </div>
+          </PanelSection>
+
+          {blocker && (
+            <p className="flex items-center gap-1.5 text-[13px] text-muted-foreground">
+              <Info className="size-3.5 shrink-0" />
+              {blocker}
+            </p>
+          )}
         </div>
       </FormDialogContent>
     </Dialog>

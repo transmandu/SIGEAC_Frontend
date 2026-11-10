@@ -1,5 +1,6 @@
 "use client";
 
+import { PurchaseLineTransitUpdates } from "@/app/[company]/compras/_components/PurchaseLineTransitUpdates";
 import { Badge } from "@/components/ui/badge";
 import type {
   PurchaseOrderArticle,
@@ -88,14 +89,20 @@ const PurchaseOrderArticleCard = ({
             {req?.article_part_number || "N/A"}
           </span>
         </div>
-        {req?.batch?.category && (
-          <Badge
-            variant="secondary"
-            className="h-5 px-1.5 text-xs text-muted-foreground select-none shrink-0"
-          >
-            {req.batch.category}
-          </Badge>
-        )}
+        <div className="flex shrink-0 items-center gap-1.5">
+          <PurchaseLineTransitUpdates
+            articleId={article.transit_article_id}
+            count={article.transit_updates_count}
+          />
+          {req?.batch?.category && (
+            <Badge
+              variant="secondary"
+              className="h-5 px-1.5 text-xs text-muted-foreground select-none shrink-0"
+            >
+              {req.batch.category}
+            </Badge>
+          )}
+        </div>
       </div>
 
       {/* BODY */}

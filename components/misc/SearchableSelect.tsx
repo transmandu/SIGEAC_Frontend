@@ -19,6 +19,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { triggerButtonClass } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
 
 export interface SearchableOption {
   value: string;
@@ -88,7 +89,8 @@ export function SearchableSelect({
           aria-invalid={invalid || undefined}
           disabled={disabled || loading}
           className={cn(
-            "w-full min-w-0 justify-between bg-background/70 font-normal",
+            triggerButtonClass,
+            "h-10 min-w-0 max-sm:text-base",
             !selected && "text-muted-foreground",
             invalid && "border-destructive/60 ring-1 ring-destructive/30",
             triggerClassName,
@@ -110,7 +112,10 @@ export function SearchableSelect({
             itemValue.toLowerCase().includes(search.toLowerCase()) ? 1 : 0
           }
         >
-          <CommandInput placeholder={searchPlaceholder} className="h-9" />
+          <CommandInput
+            placeholder={searchPlaceholder}
+            className="h-10 max-sm:text-base"
+          />
 
           <CommandList>
             <CommandEmpty>{emptyText}</CommandEmpty>
@@ -121,6 +126,7 @@ export function SearchableSelect({
                 <CommandGroup heading={groupName || undefined}>
                   {groupOptions.map((option) => (
                     <CommandItem
+                      className="max-sm:py-3"
                       key={option.value}
                       value={`${option.label} ${option.description ?? ""} ${option.value}`}
                       onSelect={() => {

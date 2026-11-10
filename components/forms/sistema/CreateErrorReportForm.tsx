@@ -6,7 +6,6 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,7 +17,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Button } from "@/components/ui/button";
 import {
   FormDialogBody,
@@ -29,6 +27,8 @@ import { zodResolver } from "@/lib/zod-resolver";
 import {
   Bug,
   CircleHelp,
+  Flag,
+  Globe,
   HeartHandshake,
   ImagePlus,
   Lightbulb,
@@ -52,13 +52,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { cn } from "@/lib/utils";
 import {
-  FieldLabelRow,
   hintClass,
-  labelClass,
   numericFieldClass,
   selectTriggerClass,
   textareaClass,
 } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
+import { PanelFieldLabel, PanelSection } from "@/components/forms/PanelSection";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import type { ErrorReportDraft } from "@/stores/ErrorReportDraftStore";
 import { useResettingState } from "@/hooks/useResettingState";
 
@@ -156,7 +156,7 @@ const HTTP_QUICK_PICKS = [
 
 const optionButtonClass = (active: boolean, activeClass: string) =>
   cn(
-    "h-8 select-none rounded-lg border px-3 text-xs font-medium transition-colors",
+    "h-8 select-none rounded-lg border px-3 text-[13px] font-medium transition-colors max-sm:h-10",
     "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary/40",
     active
       ? activeClass
@@ -347,9 +347,9 @@ export default function CreateErrorReportForm({
         />
 
         {/* ───────── Cuerpo (desplazable) ───────── */}
-        <FormDialogBody className="space-y-5">
+        <FormDialogBody className="space-y-4">
           {draft && (
-            <div className="flex items-start gap-3 rounded-lg border border-amber-500/30 bg-amber-500/5 px-3 py-2.5">
+            <div className="flex items-start gap-3 rounded-xl border border-amber-500/30 bg-amber-500/5 px-3.5 py-3">
               <TriangleAlert className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400" />
               <div className="min-w-0 space-y-0.5 text-sm">
                 <p className="font-medium">{draft.errorTitle}</p>
@@ -366,22 +366,25 @@ export default function CreateErrorReportForm({
             </div>
           )}
 
-          <div className="space-y-2">
-            <p className={labelClass} id={`${fieldId}-kind-label`}>
-              Tipo de solicitud
+          <div role="group" aria-labelledby={`${fieldId}-kind-label`}>
+            <p
+              id={`${fieldId}-kind-label`}
+              className="mb-2 text-[13px] font-semibold text-foreground/80"
+            >
+              ¿Qué desea enviar?
             </p>
             <RadioGroup
               value={reportKind}
               onValueChange={(value) => setReportKind(value as ReportKind)}
               aria-labelledby={`${fieldId}-kind-label`}
-              className="grid-cols-3 gap-2"
+              className="grid-cols-3 gap-2.5"
             >
               {REPORT_KINDS.map(({ value, label, hint, icon: Icon }) => (
                 <label
                   key={value}
                   htmlFor={`${fieldId}-${value}`}
                   className={cn(
-                    "flex cursor-pointer flex-col items-center gap-1.5 rounded-lg border border-slate-300/70 bg-background px-2 py-2.5 text-center transition-colors sm:flex-row sm:gap-3 sm:px-3 sm:text-left dark:border-slate-600/60",
+                    "flex cursor-pointer flex-col items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2 py-2.5 text-center transition-colors sm:flex-row sm:gap-3 sm:px-3.5 sm:py-3 sm:text-left dark:border-slate-700/60 dark:bg-slate-900/60",
                     "hover:border-primary/40 hover:bg-primary/3",
                     "has-focus-visible:ring-2 has-focus-visible:ring-primary/40",
                     "has-data-[state=checked]:border-primary has-data-[state=checked]:bg-primary/6",
@@ -401,7 +404,7 @@ export default function CreateErrorReportForm({
                     <Icon className="size-4" />
                   </span>
                   <span className="min-w-0">
-                    <span className="block text-sm font-medium leading-tight">
+                    <span className="block text-sm leading-tight font-medium">
                       {label}
                     </span>
                     <span className="block text-xs text-muted-foreground max-sm:hidden">
@@ -413,82 +416,84 @@ export default function CreateErrorReportForm({
             </RadioGroup>
           </div>
 
-          <FormField
-            control={form.control}
-            name="module"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className={labelClass}>Módulo</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger className={selectTriggerClass}>
-                      <SelectValue placeholder="Seleccione el módulo relacionado..." />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {availableModules.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <PanelSection
+            icon={Bug}
+            title="Su reporte"
+            hint="Qué ocurre y en qué parte del sistema."
+          >
+            <div className="space-y-4">
+              <FormField
+                control={form.control}
+                name="module"
+                render={({ field }) => (
+                  <FormItem>
+                    <PanelFieldLabel>Módulo</PanelFieldLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger className={selectTriggerClass}>
+                          <SelectValue placeholder="Seleccione el módulo relacionado..." />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {availableModules.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          <FormField
-            control={form.control}
-            name="description"
-            render={({ field }) => (
-              <FormItem>
-                <FieldLabelRow
-                  action={
-                    <span
-                      className={cn(
-                        hintClass,
-                        "tabular-nums",
-                        (description?.length ?? 0) > MAX_DESCRIPTION &&
-                          "text-destructive",
-                      )}
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <PanelFieldLabel
+                      action={
+                        <span
+                          className={cn(
+                            hintClass,
+                            "tabular-nums",
+                            (description?.length ?? 0) > MAX_DESCRIPTION &&
+                              "text-destructive",
+                          )}
+                        >
+                          {description?.length ?? 0}/{MAX_DESCRIPTION}
+                        </span>
+                      }
                     >
-                      {description?.length ?? 0}/{MAX_DESCRIPTION}
-                    </span>
-                  }
-                >
-                  <FormLabel className={labelClass}>Descripción</FormLabel>
-                </FieldLabelRow>
-                <FormControl>
-                  <Textarea
-                    placeholder="Describa el error que encontró o la solicitud que desea hacer..."
-                    rows={5}
-                    className={cn(textareaClass, "min-h-32")}
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                      Descripción
+                    </PanelFieldLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Describa el error que encontró o la solicitud que desea hacer..."
+                        rows={5}
+                        className={cn(textareaClass, "min-h-32")}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </PanelSection>
 
           {/* ───────── Evidencias ───────── */}
-          <div className="space-y-2">
-            <FieldLabelRow
-              action={
-                <span className={cn(hintClass, "tabular-nums")}>
-                  {images.length}/{MAX_IMAGES}
-                </span>
-              }
-            >
-              <p className={labelClass}>
-                Evidencias{" "}
-                <span className="font-normal text-muted-foreground">
-                  (opcional)
-                </span>
-              </p>
-            </FieldLabelRow>
-
+          <PanelSection
+            icon={ImagePlus}
+            title="Evidencias"
+            hint="Opcional. Capturas que ayuden a entender el problema."
+            action={
+              <span className={cn(hintClass, "tabular-nums")}>
+                {images.length}/{MAX_IMAGES}
+              </span>
+            }
+          >
             <div
               onDragEnter={(event) => {
                 if (!event.dataTransfer.types.includes("Files")) return;
@@ -507,7 +512,7 @@ export default function CreateErrorReportForm({
                 addImages(Array.from(event.dataTransfer.files));
               }}
               className={cn(
-                "rounded-lg border border-dashed p-3 transition-colors",
+                "rounded-xl border border-dashed p-3 transition-colors",
                 isDragging
                   ? "border-primary bg-primary/5"
                   : "border-slate-300/70 bg-slate-50/40 dark:border-slate-600/60 dark:bg-slate-900/20",
@@ -531,7 +536,7 @@ export default function CreateErrorReportForm({
                         type="button"
                         onClick={() => handleRemoveImage(index)}
                         aria-label={`Quitar imagen ${index + 1}`}
-                        className="absolute -right-2 -top-2 flex size-6 items-center justify-center rounded-full border bg-background text-muted-foreground shadow-xs transition-colors hover:border-destructive/40 hover:bg-destructive hover:text-destructive-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary/40"
+                        className="absolute -right-2 -top-2 flex size-6 items-center justify-center rounded-full border bg-background text-muted-foreground shadow-xs transition-colors hover:border-destructive/40 hover:bg-destructive hover:text-destructive-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary/40 max-sm:size-8"
                       >
                         <X className="size-3.5" />
                       </button>
@@ -543,7 +548,7 @@ export default function CreateErrorReportForm({
               <label
                 htmlFor={`${fieldId}-images`}
                 className={cn(
-                  "flex cursor-pointer flex-col items-center justify-center gap-1 rounded-md px-3 py-4 text-center text-muted-foreground transition-colors",
+                  "flex cursor-pointer flex-col items-center justify-center gap-1 rounded-lg px-3 py-4 text-center text-muted-foreground transition-colors",
                   "hover:text-primary has-focus-visible:ring-2 has-focus-visible:ring-primary/40",
                   imagesFull && "pointer-events-none opacity-50",
                 )}
@@ -552,9 +557,9 @@ export default function CreateErrorReportForm({
                 <span className="text-sm font-medium">
                   {imagesFull
                     ? "Alcanzó el máximo de imágenes"
-                    : "Arrastre capturas, pegue con Ctrl+V o haga clic para agregar"}
+                    : "Arrastre capturas, pegue con Ctrl+V o toque para agregar"}
                 </span>
-                <span className="text-xs">
+                <span className="text-[13px]">
                   JPG, PNG o WebP · hasta 5 MB cada una
                 </span>
               </label>
@@ -571,12 +576,15 @@ export default function CreateErrorReportForm({
                 }}
               />
             </div>
-          </div>
+          </PanelSection>
 
           {/* ───────── Severidad (panel de gestión) ───────── */}
           {showSeverity && (
-            <div className="space-y-2 border-t pt-4">
-              <p className={labelClass}>Severidad</p>
+            <PanelSection
+              icon={Flag}
+              title="Severidad"
+              hint="Solo para el equipo de gestión."
+            >
               <div className="flex flex-wrap gap-1.5">
                 {ERROR_REPORT_SEVERITIES.map((option) => {
                   const active = severity === option.value;
@@ -601,99 +609,104 @@ export default function CreateErrorReportForm({
                   );
                 })}
               </div>
-            </div>
+            </PanelSection>
           )}
 
           {/* ───────── Código HTTP (panel de gestión, solo tipo Error) ───────── */}
           {showHttpStatus && (
-            <div className="space-y-2">
-              <p className={labelClass}>Código HTTP</p>
-              <div className="flex flex-wrap gap-1.5">
-                {HTTP_QUICK_PICKS.map((option) => {
-                  const active = httpStatus === option.value;
+            <PanelSection
+              icon={Globe}
+              title="Código HTTP"
+              hint="Solo para el equipo de gestión."
+            >
+              <div className="space-y-3">
+                <div className="flex flex-wrap gap-1.5">
+                  {HTTP_QUICK_PICKS.map((option) => {
+                    const active = httpStatus === option.value;
 
-                  return (
-                    <button
-                      key={option.value}
-                      type="button"
-                      aria-pressed={active}
-                      onClick={() => {
-                        form.setValue(
-                          "http_status",
-                          active ? "" : option.value,
-                          { shouldValidate: true },
-                        );
-                        setCustomHttpOpen(false);
-                      }}
-                      className={cn(
-                        optionButtonClass(
-                          active,
-                          "border-primary bg-primary text-primary-foreground",
-                        ),
-                        "font-mono",
-                      )}
-                    >
-                      {option.label}
-                    </button>
-                  );
-                })}
-                <button
-                  type="button"
-                  aria-pressed={customHttpOpen}
-                  onClick={() => {
-                    if (customHttpOpen) {
-                      form.setValue("http_status", "");
-                    }
-                    setCustomHttpOpen((open) => !open);
-                  }}
-                  className={optionButtonClass(
-                    customHttpOpen,
-                    "border-primary bg-primary text-primary-foreground",
-                  )}
-                >
-                  Otro código…
-                </button>
-                {!customHttpOpen && (
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        aria-pressed={active}
+                        onClick={() => {
+                          form.setValue(
+                            "http_status",
+                            active ? "" : option.value,
+                            { shouldValidate: true },
+                          );
+                          setCustomHttpOpen(false);
+                        }}
+                        className={cn(
+                          optionButtonClass(
+                            active,
+                            "border-primary bg-primary text-primary-foreground",
+                          ),
+                          "font-mono",
+                        )}
+                      >
+                        {option.label}
+                      </button>
+                    );
+                  })}
                   <button
                     type="button"
-                    aria-pressed={!httpStatus}
-                    onClick={() => form.setValue("http_status", "")}
+                    aria-pressed={customHttpOpen}
+                    onClick={() => {
+                      if (customHttpOpen) {
+                        form.setValue("http_status", "");
+                      }
+                      setCustomHttpOpen((open) => !open);
+                    }}
                     className={optionButtonClass(
-                      !httpStatus,
-                      "border-slate-600 bg-slate-600 text-white",
+                      customHttpOpen,
+                      "border-primary bg-primary text-primary-foreground",
                     )}
                   >
-                    No aplica
+                    Otro código…
                   </button>
+                  {!customHttpOpen && (
+                    <button
+                      type="button"
+                      aria-pressed={!httpStatus}
+                      onClick={() => form.setValue("http_status", "")}
+                      className={optionButtonClass(
+                        !httpStatus,
+                        "border-slate-600 bg-slate-600 text-white",
+                      )}
+                    >
+                      No aplica
+                    </button>
+                  )}
+                </div>
+                {customHttpOpen && (
+                  <FormField
+                    control={form.control}
+                    name="http_status"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            inputMode="numeric"
+                            autoComplete="off"
+                            maxLength={3}
+                            placeholder="Ej: 422"
+                            className={cn(numericFieldClass, "max-w-36")}
+                            onChange={(event) =>
+                              field.onChange(
+                                event.target.value.replace(/\D/g, ""),
+                              )
+                            }
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 )}
               </div>
-              {customHttpOpen && (
-                <FormField
-                  control={form.control}
-                  name="http_status"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          inputMode="numeric"
-                          autoComplete="off"
-                          maxLength={3}
-                          placeholder="Ej: 422"
-                          className={cn(numericFieldClass, "max-w-36")}
-                          onChange={(event) =>
-                            field.onChange(
-                              event.target.value.replace(/\D/g, ""),
-                            )
-                          }
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
-            </div>
+            </PanelSection>
           )}
         </FormDialogBody>
 

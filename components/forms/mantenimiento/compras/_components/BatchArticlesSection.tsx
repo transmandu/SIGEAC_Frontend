@@ -2,27 +2,17 @@
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
-import {
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import {
   Boxes,
   Check,
   ChevronsUpDown,
-  Hash,
-  Layers,
   MinusCircle,
   PackagePlus,
-  Plane,
+  Package,
   Plus,
-  Ruler,
-  Search,
-  Tag,
 } from "lucide-react";
 import { useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
@@ -41,13 +31,6 @@ import {
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
@@ -61,6 +44,16 @@ import { ArticleImageAttachment } from "./ArticleImageAttachment";
 import { RequiredIndicator } from "@/components/misc/RequiredIndicator";
 import { SearchableSelect } from "@/components/misc/SearchableSelect";
 import { useCanManageCatalog } from "@/hooks/helpers/useCanManageCatalog";
+import {
+  FieldLabel,
+  RequisitionSection,
+  requisitionIconButtonClass,
+  requisitionTriggerClass,
+  rowFieldClass,
+  rowTriggerClass,
+} from "./RequisitionSection";
+import { PriorityChoice } from "./PriorityChoice";
+import { labelClass } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
 
 interface BatchArticlesSectionProps {
   form: UseFormReturn<any>;
@@ -139,11 +132,8 @@ export function BatchArticlesSection({
   // Crear renglones es de almacén: sin ese rol no se ofrece, aunque el formulario lo habilite.
   const canCreateBatch = useCanManageCatalog("batches") && enableCreateBatch;
   const isLg = size === "lg";
-  const labelTextClass = cn(
-    isLg ? "text-sm text-foreground/80" : "text-xs text-muted-foreground",
-    "whitespace-nowrap",
-  );
-  const priorityColClass = isLg ? "w-40" : "w-28";
+  const labelTextClass = cn(labelClass, "whitespace-nowrap");
+  const priorityColClass = isLg ? "sm:w-40" : "sm:w-28";
 
   // Refleja la regla de zod: cada artículo necesita al menos un tipo de
   // documento. El rojo aparece solo tras intentar enviar, para que una fila
@@ -158,594 +148,585 @@ export function BatchArticlesSection({
       control={form.control}
       name="articles"
       render={() => (
-        <FormItem className="flex flex-col">
-          <div className="flex gap-4 items-end">
-            <div className="flex gap-4 items-end w-full">
-              <FormItem
-                className={cn(
-                  "flex flex-col",
-                  canCreateBatch ? "w-59" : "w-50",
-                )}
-              >
-                <FormLabel
-                  className="flex items-center gap-1.5 select-none"
-                  onClick={(e) => e.preventDefault()}
-                >
-                  <Layers className="size-3.5 text-muted-foreground" />
-                  Lote/Renglón
-                </FormLabel>
-                <div className="flex items-center gap-1.5">
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        disabled={isBatchesLoading}
-                        role="combobox"
-                        className={cn(
-                          "justify-between w-full min-w-0",
-                          selectedBatches.length === 0 &&
-                            "text-muted-foreground",
-                        )}
-                      >
-                        <span className="truncate">
-                          {selectedBatches.length > 0
-                            ? `${selectedBatches.length} reng. seleccionados`
-                            : "Selec. un renglón..."}
-                        </span>
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="p-0" matchTriggerWidth>
-                      <Command shouldFilter={false}>
-                        <CommandInput
-                          placeholder="Buscar..."
-                          value={batchSearch}
-                          onValueChange={setBatchSearch}
-                        />
-                        <CommandList>
-                          <CommandEmpty>
-                            {batchSearch
-                              ? "No existen renglones..."
-                              : "Escriba para buscar..."}
-                          </CommandEmpty>
-                          <CommandGroup>
-                            {filteredBatches.map((batch) => (
-                              <CommandItem
-                                key={batch.name}
-                                value={`${batch.name} ${batch.category ?? ""}`}
-                                onSelect={() =>
-                                  handleBatchSelect(
-                                    batch.name,
-                                    batch.id.toString(),
-                                    batch.category ?? "",
-                                  )
-                                }
-                              >
-                                <Check
-                                  className={cn(
-                                    "mr-2 h-4 w-4",
-                                    selectedBatches.some(
-                                      (b) => b.batch === batch.id.toString(),
-                                    )
-                                      ? "opacity-100"
-                                      : "opacity-0",
-                                  )}
-                                />
-                                {batch.name}
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-
-                  {canCreateBatch && (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
+        <RequisitionSection
+          icon={Package}
+          title="Artículos"
+          description="Elija los renglones o busque por número de parte, y detalle cada artículo."
+        >
+          <FormItem className="flex flex-col">
+            <div className="flex">
+              <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-end sm:gap-4">
+                <FormItem className="flex w-full flex-col sm:w-80">
+                  <FieldLabel preventClick>Lote/Renglón</FieldLabel>
+                  <div className="flex items-center gap-1.5">
+                    <Popover>
+                      <PopoverTrigger asChild>
                         <Button
                           variant="outline"
-                          type="button"
-                          size="icon"
-                          onClick={() => setIsCreateBatchOpen(true)}
-                          className="text-muted-foreground hover:text-foreground shrink-0"
+                          disabled={isBatchesLoading}
+                          role="combobox"
+                          className={cn(
+                            requisitionTriggerClass,
+                            selectedBatches.length === 0 &&
+                              "text-muted-foreground",
+                          )}
                         >
-                          <PackagePlus className="size-4" />
+                          <span className="truncate">
+                            {selectedBatches.length > 0
+                              ? `${selectedBatches.length} reng. seleccionados`
+                              : "Selec. un renglón..."}
+                          </span>
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="top" className="text-xs px-2 py-1">
-                        <p>Crear nuevo renglón</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  )}
-                </div>
-              </FormItem>
-
-              {handleArticleSelect && (
-                <FormItem className="flex flex-col w-55">
-                  <FormLabel
-                    className="flex items-center gap-1.5 select-none"
-                    onClick={(e) => e.preventDefault()}
-                  >
-                    <Search className="size-3.5 text-muted-foreground" />
-                    Buscar por P/N
-                  </FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        role="combobox"
-                        className="justify-between w-full text-muted-foreground"
-                      >
-                        Buscar artículo...
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="p-0" matchTriggerWidth>
-                      <Command shouldFilter={false}>
-                        <CommandInput
-                          placeholder="P/N o P/N alterno..."
-                          value={articleSearch}
-                          onValueChange={setArticleSearch}
-                        />
-                        <CommandList>
-                          <CommandEmpty>
-                            {isArticleResultsLoading
-                              ? "Buscando..."
-                              : articleSearch
-                                ? "No se encontraron artículos..."
+                      </PopoverTrigger>
+                      <PopoverContent className="p-0" matchTriggerWidth>
+                        <Command shouldFilter={false}>
+                          <CommandInput
+                            placeholder="Buscar..."
+                            value={batchSearch}
+                            onValueChange={setBatchSearch}
+                          />
+                          <CommandList>
+                            <CommandEmpty>
+                              {batchSearch
+                                ? "No existen renglones..."
                                 : "Escriba para buscar..."}
-                          </CommandEmpty>
-                          <CommandGroup>
-                            {filteredArticleResults?.flatMap((result) =>
-                              result.articles.map((article) => (
+                            </CommandEmpty>
+                            <CommandGroup>
+                              {filteredBatches.map((batch) => (
                                 <CommandItem
-                                  key={article.id}
-                                  value={`${article.id}`}
+                                  key={batch.id}
+                                  value={`${batch.name} ${batch.category ?? ""} ${batch.id}`}
                                   onSelect={() =>
-                                    handleArticleSelect(result.batch, article)
+                                    handleBatchSelect(
+                                      batch.name,
+                                      batch.id.toString(),
+                                      batch.category ?? "",
+                                    )
                                   }
                                 >
-                                  <div className="flex flex-col">
-                                    <span>{article.part_number}</span>
-                                    <span className="text-xs text-muted-foreground">
-                                      {result.batch.name}
-                                      {/* alternative_part_number puede llegar como string suelto en
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      selectedBatches.some(
+                                        (b) => b.batch === batch.id.toString(),
+                                      )
+                                        ? "opacity-100"
+                                        : "opacity-0",
+                                    )}
+                                  />
+                                  {batch.name}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+
+                    {canCreateBatch && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="outline"
+                            type="button"
+                            size="icon"
+                            onClick={() => setIsCreateBatchOpen(true)}
+                            className={requisitionIconButtonClass}
+                          >
+                            <PackagePlus className="size-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent
+                          side="top"
+                          className="text-xs px-2 py-1"
+                        >
+                          <p>Crear nuevo renglón</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
+                  </div>
+                </FormItem>
+
+                {handleArticleSelect && (
+                  <FormItem className="flex w-full flex-col sm:w-55">
+                    <FieldLabel preventClick>Buscar por P/N</FieldLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          className={cn(
+                            requisitionTriggerClass,
+                            "text-muted-foreground",
+                          )}
+                        >
+                          Buscar artículo...
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="p-0" matchTriggerWidth>
+                        <Command shouldFilter={false}>
+                          <CommandInput
+                            placeholder="P/N o P/N alterno..."
+                            value={articleSearch}
+                            onValueChange={setArticleSearch}
+                          />
+                          <CommandList>
+                            <CommandEmpty>
+                              {isArticleResultsLoading
+                                ? "Buscando..."
+                                : articleSearch
+                                  ? "No se encontraron artículos..."
+                                  : "Escriba para buscar..."}
+                            </CommandEmpty>
+                            <CommandGroup>
+                              {filteredArticleResults?.flatMap((result) =>
+                                result.articles.map((article) => (
+                                  <CommandItem
+                                    key={article.id}
+                                    value={`${article.id}`}
+                                    onSelect={() =>
+                                      handleArticleSelect(result.batch, article)
+                                    }
+                                  >
+                                    <div className="flex flex-col">
+                                      <span>{article.part_number}</span>
+                                      <span className="text-xs text-muted-foreground">
+                                        {result.batch.name}
+                                        {/* alternative_part_number puede llegar como string suelto en
                                           registros antiguos de la BD (ver backfill de datos); el tipo
                                           declara string[] pero no está garantizado en runtime. */}
-                                      {Array.isArray(
-                                        article.alternative_part_number,
-                                      ) &&
-                                      article.alternative_part_number.length > 0
-                                        ? ` · Alt: ${article.alternative_part_number.join(", ")}`
-                                        : ""}
-                                    </span>
-                                  </div>
-                                </CommandItem>
-                              )),
-                            )}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-                </FormItem>
-              )}
-            </div>
-          </div>
-
-          <div className="mt-4 space-y-4">
-            <ScrollArea
-              className={cn(selectedBatches.length > 1 ? "h-70" : "")}
-            >
-              {selectedBatches.map((batch) => (
-                <div
-                  key={batch.batch}
-                  className="rounded-md border bg-muted/30 p-3 mb-3"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-medium text-sm select-none">
-                        {batch.batch_name}
-                      </h4>
-                      {(() => {
-                        const category = batches?.find(
-                          (b) => b.id.toString() === batch.batch,
-                        )?.category;
-                        return category ? (
-                          <span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700 ring-1 ring-inset ring-slate-300 select-none dark:bg-slate-800 dark:text-slate-300 dark:ring-slate-600">
-                            {category}
-                          </span>
-                        ) : null;
-                      })()}
-                    </div>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          type="button"
-                          size="icon"
-                          onClick={() => removeBatch(batch.batch)}
-                          className="h-6 w-6 hover:text-destructive"
-                        >
-                          <MinusCircle className="size-3.5" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="top" className="text-xs px-2 py-1">
-                        <p>Quitar renglón</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </div>
-
-                  <ScrollArea
-                    className={cn(
-                      batch.batch_articles.length > 1 ? "h-65" : "",
-                    )}
-                  >
-                    {batch.batch_articles.map((article, index) => {
-                      const selectedAircraft = aircrafts?.find(
-                        (a) => a.id.toString() === article.aircraft_id,
-                      );
-                      return (
-                        <div
-                          key={index}
-                          className="flex items-center gap-2 mt-1.5 rounded-md border bg-background/60 p-2"
-                        >
-                          <div className="flex-1 space-y-2">
-                            {/* Row 1: Part Number, Quantity, Unit */}
-                            <div className="flex items-center gap-2">
-                              <div className="flex flex-col gap-1 flex-1">
-                                <label
-                                  className={cn(
-                                    "flex items-center gap-1 font-medium select-none",
-                                    labelTextClass,
-                                  )}
-                                >
-                                  <Hash className="size-3" />
-                                  P/N
-                                  <RequiredIndicator />
-                                </label>
-                                <Input
-                                  placeholder="Ej: 123-456-789"
-                                  className="text-xs h-8"
-                                  value={article.part_number}
-                                  onChange={(e) =>
-                                    handleBatchArticleChange(
-                                      batch.batch,
-                                      index,
-                                      "part_number",
-                                      e.target.value,
-                                    )
-                                  }
-                                />
-                              </div>
-
-                              <div className="flex flex-col gap-1 w-28 shrink-0">
-                                <label
-                                  className={cn(
-                                    "flex items-center gap-1 font-medium select-none",
-                                    labelTextClass,
-                                  )}
-                                >
-                                  <Tag className="size-3" />
-                                  Cant.
-                                  <RequiredIndicator />
-                                </label>
-                                <Input
-                                  placeholder="Ej: 4"
-                                  min="0"
-                                  step="0.1"
-                                  inputMode="decimal"
-                                  className="text-xs h-8"
-                                  onChange={(e) =>
-                                    handleBatchArticleChange(
-                                      batch.batch,
-                                      index,
-                                      "quantity",
-                                      Number(e.target.value),
-                                    )
-                                  }
-                                />
-                              </div>
-
-                              <div className="flex flex-col gap-1 w-36 shrink-0">
-                                <label
-                                  className={cn(
-                                    "flex items-center gap-1 font-medium select-none",
-                                    labelTextClass,
-                                  )}
-                                >
-                                  <Ruler className="size-3" />
-                                  Unidad.
-                                  <RequiredIndicator />
-                                </label>
-                                <SearchableSelect
-                                  value={article.unit}
-                                  onChange={(value) =>
-                                    handleBatchArticleChange(
-                                      batch.batch,
-                                      index,
-                                      "unit",
-                                      value,
-                                    )
-                                  }
-                                  loading={isUnitsLoading}
-                                  placeholder="Ej: Unidad"
-                                  searchPlaceholder="Buscar unidad..."
-                                  triggerClassName={cn(
-                                    "text-xs h-8",
-                                    !article.unit && "text-muted-foreground",
-                                  )}
-                                  options={(units ?? []).map((unit) => ({
-                                    value: unit.id.toString(),
-                                    label: unit.label,
-                                  }))}
-                                />
-                              </div>
-                            </div>
-
-                            {/* Row 2: Alternative Part Number, AeronauticalAircraft, Priority */}
-                            <div className="flex items-center gap-2">
-                              <div className="flex flex-col gap-1 flex-1">
-                                <label
-                                  className={cn(
-                                    "flex items-center gap-1 font-medium select-none",
-                                    labelTextClass,
-                                  )}
-                                >
-                                  <Hash className="size-3" />
-                                  P/N Alterno.
-                                </label>
-                                <Input
-                                  placeholder="Ej: ABC-123-X Opcional..."
-                                  className="text-xs h-8"
-                                  value={article.alt_part_number || ""}
-                                  onChange={(e) =>
-                                    handleBatchArticleChange(
-                                      batch.batch,
-                                      index,
-                                      "alt_part_number",
-                                      e.target.value,
-                                    )
-                                  }
-                                />
-                              </div>
-
-                              <div
-                                className={cn(
-                                  "flex flex-col gap-1 shrink-0",
-                                  priorityColClass,
-                                )}
-                              >
-                                <label
-                                  className={cn(
-                                    "flex items-center gap-1 font-medium select-none",
-                                    labelTextClass,
-                                  )}
-                                >
-                                  <Tag className="size-3" />
-                                  Prioridad.
-                                  <RequiredIndicator />
-                                </label>
-                                <Select
-                                  value={article.priority || "MEDIUM"}
-                                  onValueChange={(
-                                    value: "HIGH" | "MEDIUM" | "LOW",
-                                  ) =>
-                                    handleBatchArticleChange(
-                                      batch.batch,
-                                      index,
-                                      "priority",
-                                      value,
-                                    )
-                                  }
-                                >
-                                  <SelectTrigger className="text-xs h-8">
-                                    <SelectValue placeholder="Ej: Media" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="HIGH">Alta</SelectItem>
-                                    <SelectItem value="MEDIUM">
-                                      Media
-                                    </SelectItem>
-                                    <SelectItem value="LOW">Baja</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-
-                              <div className="flex flex-col gap-1 w-36 shrink-0">
-                                <label
-                                  className={cn(
-                                    "flex items-center gap-1 font-medium select-none",
-                                    labelTextClass,
-                                  )}
-                                >
-                                  <Plane className="size-3" />
-                                  Aeronave.
-                                </label>
-                                <Popover>
-                                  <PopoverTrigger asChild>
-                                    <Button
-                                      type="button"
-                                      disabled={isAircraftsLoading}
-                                      variant="outline"
-                                      role="combobox"
-                                      className={cn(
-                                        "w-full justify-between text-xs h-8 px-2 font-normal text-muted-foreground",
-                                        selectedAircraft && "text-foreground",
-                                      )}
-                                    >
-                                      <span className="truncate">
-                                        {selectedAircraft
-                                          ? selectedAircraft.acronym
-                                          : "Opcional"}
+                                        {Array.isArray(
+                                          article.alternative_part_number,
+                                        ) &&
+                                        article.alternative_part_number.length >
+                                          0
+                                          ? ` · Alt: ${article.alternative_part_number.join(", ")}`
+                                          : ""}
                                       </span>
-                                      <ChevronsUpDown className="ml-1 h-3 w-3 shrink-0 opacity-50" />
-                                    </Button>
-                                  </PopoverTrigger>
-                                  <PopoverContent
-                                    className="p-0"
-                                    matchTriggerWidth
+                                    </div>
+                                  </CommandItem>
+                                )),
+                              )}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                  </FormItem>
+                )}
+              </div>
+            </div>
+
+            <div className="mt-4 space-y-4">
+              <ScrollArea
+                className={cn(
+                  selectedBatches.length > 1 ? "h-70 max-sm:h-auto" : "",
+                )}
+              >
+                {selectedBatches.map((batch) => (
+                  <div
+                    key={batch.batch}
+                    className="rounded-md border bg-muted/30 p-3 mb-3"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-medium text-sm select-none">
+                          {batch.batch_name}
+                        </h4>
+                        {(() => {
+                          const category = batches?.find(
+                            (b) => b.id.toString() === batch.batch,
+                          )?.category;
+                          return category ? (
+                            <span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700 ring-1 ring-inset ring-slate-300 select-none dark:bg-slate-800 dark:text-slate-300 dark:ring-slate-600">
+                              {category}
+                            </span>
+                          ) : null;
+                        })()}
+                      </div>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            type="button"
+                            size="icon"
+                            onClick={() => removeBatch(batch.batch)}
+                            className="h-6 w-6 hover:text-destructive max-sm:size-9"
+                          >
+                            <MinusCircle className="size-3.5" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent
+                          side="top"
+                          className="text-xs px-2 py-1"
+                        >
+                          <p>Quitar renglón</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+
+                    <ScrollArea
+                      className={cn(
+                        batch.batch_articles.length > 1
+                          ? "h-65 max-sm:h-auto"
+                          : "",
+                      )}
+                    >
+                      {batch.batch_articles.map((article, index) => {
+                        const selectedAircraft = aircrafts?.find(
+                          (a) => a.id.toString() === article.aircraft_id,
+                        );
+                        return (
+                          <div
+                            key={index}
+                            className="mt-1.5 flex flex-col gap-2 rounded-md border bg-background/60 p-2 sm:flex-row sm:items-center"
+                          >
+                            <div className="min-w-0 flex-1 space-y-2">
+                              {/* Row 1: Part Number, Quantity, Unit */}
+                              <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
+                                <div className="flex min-w-0 flex-col gap-1 max-sm:col-span-2 sm:flex-1">
+                                  <label
+                                    className={cn(
+                                      "flex items-center gap-1 font-medium select-none",
+                                      labelTextClass,
+                                    )}
                                   >
-                                    <Command shouldFilter={false}>
-                                      <CommandInput
-                                        placeholder="Busque una aeronave..."
-                                        value={aircraftSearch}
-                                        onValueChange={setAircraftSearch}
-                                      />
-                                      <CommandList>
-                                        <CommandEmpty className="text-sm p-2 text-center text-muted-foreground">
-                                          {aircraftSearch
-                                            ? "No se ha encontrado ninguna aeronave."
-                                            : "Escriba para buscar..."}
-                                        </CommandEmpty>
-                                        {article.aircraft_id && (
-                                          <CommandGroup>
-                                            <CommandItem
-                                              value="clear"
-                                              onSelect={() =>
-                                                handleBatchArticleChange(
-                                                  batch.batch,
-                                                  index,
-                                                  "aircraft_id",
-                                                  undefined,
-                                                )
-                                              }
-                                            >
-                                              Sin aeronave
-                                            </CommandItem>
-                                          </CommandGroup>
+                                    P/N
+                                    <RequiredIndicator />
+                                  </label>
+                                  <Input
+                                    placeholder="Ej: 123-456-789"
+                                    className={rowFieldClass}
+                                    value={article.part_number}
+                                    onChange={(e) =>
+                                      handleBatchArticleChange(
+                                        batch.batch,
+                                        index,
+                                        "part_number",
+                                        e.target.value,
+                                      )
+                                    }
+                                  />
+                                </div>
+
+                                <div className="flex min-w-0 flex-col gap-1 sm:w-28 sm:shrink-0">
+                                  <label
+                                    className={cn(
+                                      "flex items-center gap-1 font-medium select-none",
+                                      labelTextClass,
+                                    )}
+                                  >
+                                    Cant.
+                                    <RequiredIndicator />
+                                  </label>
+                                  <Input
+                                    placeholder="Ej: 4"
+                                    min="0"
+                                    step="0.1"
+                                    inputMode="decimal"
+                                    className={rowFieldClass}
+                                    onChange={(e) =>
+                                      handleBatchArticleChange(
+                                        batch.batch,
+                                        index,
+                                        "quantity",
+                                        Number(e.target.value),
+                                      )
+                                    }
+                                  />
+                                </div>
+
+                                <div className="flex min-w-0 flex-col gap-1 sm:w-36 sm:shrink-0">
+                                  <label
+                                    className={cn(
+                                      "flex items-center gap-1 font-medium select-none",
+                                      labelTextClass,
+                                    )}
+                                  >
+                                    Unidad
+                                    <RequiredIndicator />
+                                  </label>
+                                  <SearchableSelect
+                                    value={article.unit}
+                                    onChange={(value) =>
+                                      handleBatchArticleChange(
+                                        batch.batch,
+                                        index,
+                                        "unit",
+                                        value,
+                                      )
+                                    }
+                                    loading={isUnitsLoading}
+                                    placeholder="Ej: Unidad"
+                                    searchPlaceholder="Buscar unidad..."
+                                    triggerClassName={cn(
+                                      rowFieldClass,
+                                      !article.unit && "text-muted-foreground",
+                                    )}
+                                    options={(units ?? []).map((unit) => ({
+                                      value: unit.id.toString(),
+                                      label: unit.label,
+                                    }))}
+                                  />
+                                </div>
+                              </div>
+
+                              {/* Row 2: Alternative Part Number, AeronauticalAircraft, Priority */}
+                              <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
+                                <div className="flex min-w-0 flex-col gap-1 max-sm:col-span-2 sm:flex-1">
+                                  <label
+                                    className={cn(
+                                      "flex items-center gap-1 font-medium select-none",
+                                      labelTextClass,
+                                    )}
+                                  >
+                                    P/N alterno
+                                  </label>
+                                  <Input
+                                    placeholder="Ej: ABC-123-X Opcional..."
+                                    className={rowFieldClass}
+                                    value={article.alt_part_number || ""}
+                                    onChange={(e) =>
+                                      handleBatchArticleChange(
+                                        batch.batch,
+                                        index,
+                                        "alt_part_number",
+                                        e.target.value,
+                                      )
+                                    }
+                                  />
+                                </div>
+
+                                <div
+                                  className={cn(
+                                    "flex min-w-0 flex-col gap-1 sm:shrink-0",
+                                    priorityColClass,
+                                  )}
+                                >
+                                  <label
+                                    className={cn(
+                                      "flex items-center gap-1 font-medium select-none",
+                                      labelTextClass,
+                                    )}
+                                  >
+                                    Prioridad
+                                    <RequiredIndicator />
+                                  </label>
+                                  <PriorityChoice
+                                    size="sm"
+                                    label="Prioridad del artículo"
+                                    value={article.priority || "MEDIUM"}
+                                    onChange={(value) =>
+                                      handleBatchArticleChange(
+                                        batch.batch,
+                                        index,
+                                        "priority",
+                                        value,
+                                      )
+                                    }
+                                  />
+                                </div>
+
+                                <div className="flex min-w-0 flex-col gap-1 sm:w-36 sm:shrink-0">
+                                  <label
+                                    className={cn(
+                                      "flex items-center gap-1 font-medium select-none",
+                                      labelTextClass,
+                                    )}
+                                  >
+                                    Aeronave
+                                  </label>
+                                  <Popover>
+                                    <PopoverTrigger asChild>
+                                      <Button
+                                        type="button"
+                                        disabled={isAircraftsLoading}
+                                        variant="outline"
+                                        role="combobox"
+                                        className={cn(
+                                          rowTriggerClass,
+                                          "text-muted-foreground",
+                                          selectedAircraft && "text-foreground",
                                         )}
-                                        <CommandGroup>
-                                          {filteredAircrafts.map((aircraft) => (
-                                            <CommandItem
-                                              value={`${aircraft.id} ${aircraft.acronym}`}
-                                              key={aircraft.id}
-                                              onSelect={(
-                                                currentValue: string,
-                                              ) => {
-                                                const id =
-                                                  currentValue.split(" ")[0];
-                                                handleBatchArticleChange(
-                                                  batch.batch,
-                                                  index,
-                                                  "aircraft_id",
-                                                  id,
-                                                );
-                                              }}
-                                            >
-                                              <Check
-                                                className={cn(
-                                                  "mr-2 h-4 w-4",
-                                                  aircraft.id.toString() ===
-                                                    article.aircraft_id
-                                                    ? "opacity-100"
-                                                    : "opacity-0",
-                                                )}
-                                              />
-                                              {aircraft.acronym}
-                                            </CommandItem>
-                                          ))}
-                                        </CommandGroup>
-                                      </CommandList>
-                                    </Command>
-                                  </PopoverContent>
-                                </Popover>
+                                      >
+                                        <span className="truncate">
+                                          {selectedAircraft
+                                            ? selectedAircraft.acronym
+                                            : "Opcional"}
+                                        </span>
+                                        <ChevronsUpDown className="ml-1 h-3 w-3 shrink-0 opacity-50" />
+                                      </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent
+                                      className="p-0"
+                                      matchTriggerWidth
+                                    >
+                                      <Command shouldFilter={false}>
+                                        <CommandInput
+                                          placeholder="Busque una aeronave..."
+                                          value={aircraftSearch}
+                                          onValueChange={setAircraftSearch}
+                                        />
+                                        <CommandList>
+                                          <CommandEmpty className="text-sm p-2 text-center text-muted-foreground">
+                                            {aircraftSearch
+                                              ? "No se ha encontrado ninguna aeronave."
+                                              : "Escriba para buscar..."}
+                                          </CommandEmpty>
+                                          {article.aircraft_id && (
+                                            <CommandGroup>
+                                              <CommandItem
+                                                value="clear"
+                                                onSelect={() =>
+                                                  handleBatchArticleChange(
+                                                    batch.batch,
+                                                    index,
+                                                    "aircraft_id",
+                                                    undefined,
+                                                  )
+                                                }
+                                              >
+                                                Sin aeronave
+                                              </CommandItem>
+                                            </CommandGroup>
+                                          )}
+                                          <CommandGroup>
+                                            {filteredAircrafts.map(
+                                              (aircraft) => (
+                                                <CommandItem
+                                                  value={`${aircraft.id} ${aircraft.acronym}`}
+                                                  key={aircraft.id}
+                                                  onSelect={(
+                                                    currentValue: string,
+                                                  ) => {
+                                                    const id =
+                                                      currentValue.split(
+                                                        " ",
+                                                      )[0];
+                                                    handleBatchArticleChange(
+                                                      batch.batch,
+                                                      index,
+                                                      "aircraft_id",
+                                                      id,
+                                                    );
+                                                  }}
+                                                >
+                                                  <Check
+                                                    className={cn(
+                                                      "mr-2 h-4 w-4",
+                                                      aircraft.id.toString() ===
+                                                        article.aircraft_id
+                                                        ? "opacity-100"
+                                                        : "opacity-0",
+                                                    )}
+                                                  />
+                                                  {aircraft.acronym}
+                                                </CommandItem>
+                                              ),
+                                            )}
+                                          </CommandGroup>
+                                        </CommandList>
+                                      </Command>
+                                    </PopoverContent>
+                                  </Popover>
+                                </div>
                               </div>
                             </div>
-                          </div>
 
-                          <div className="flex flex-col items-center justify-center gap-1 shrink-0 self-stretch ml-2 pl-2">
-                            <ArticleDocumentTypesAttachment
-                              selectedIds={article.document_type_ids}
-                              onChange={(ids) =>
-                                handleBatchArticleChange(
-                                  batch.batch,
-                                  index,
-                                  "document_type_ids",
-                                  ids,
-                                )
-                              }
-                              invalid={isDocumentTypesInvalid(article)}
-                            />
+                            <div className="flex items-center justify-center gap-1 max-sm:justify-end max-sm:border-t max-sm:pt-2 sm:ml-2 sm:flex-col sm:shrink-0 sm:self-stretch sm:pl-2">
+                              <ArticleDocumentTypesAttachment
+                                selectedIds={article.document_type_ids}
+                                onChange={(ids) =>
+                                  handleBatchArticleChange(
+                                    batch.batch,
+                                    index,
+                                    "document_type_ids",
+                                    ids,
+                                  )
+                                }
+                                invalid={isDocumentTypesInvalid(article)}
+                              />
 
-                            <ArticleImageAttachment
-                              article={article}
-                              onChangeImage={(file) =>
-                                handleBatchArticleChange(
-                                  batch.batch,
-                                  index,
-                                  "image",
-                                  file,
-                                )
-                              }
-                            />
+                              <ArticleImageAttachment
+                                article={article}
+                                onChangeImage={(file) =>
+                                  handleBatchArticleChange(
+                                    batch.batch,
+                                    index,
+                                    "image",
+                                    file,
+                                  )
+                                }
+                              />
 
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  type="button"
-                                  size="icon"
-                                  onClick={() =>
-                                    removeBatchArticle(batch.batch, index)
-                                  }
-                                  className="h-7 w-7 hover:text-destructive shrink-0"
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    type="button"
+                                    size="icon"
+                                    onClick={() =>
+                                      removeBatchArticle(batch.batch, index)
+                                    }
+                                    className="h-7 w-7 shrink-0 hover:text-destructive max-sm:size-9"
+                                  >
+                                    <MinusCircle className="size-3.5" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent
+                                  side="top"
+                                  className="text-xs px-2 py-1"
                                 >
-                                  <MinusCircle className="size-3.5" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent
-                                side="top"
-                                className="text-xs px-2 py-1"
-                              >
-                                <p>Quitar artículo</p>
-                              </TooltipContent>
-                            </Tooltip>
+                                  <p>Quitar artículo</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })}
-                  </ScrollArea>
+                        );
+                      })}
+                    </ScrollArea>
 
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => addBatchArticle(batch.batch)}
-                    className="mt-2 h-7 text-xs text-muted-foreground hover:text-foreground gap-1"
-                  >
-                    <Plus className="size-3" />
-                    Agregar artículo
-                  </Button>
-                </div>
-              ))}
-            </ScrollArea>
-          </div>
-          <FormMessage />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => addBatchArticle(batch.batch)}
+                      className="mt-2 h-7 gap-1 text-xs text-muted-foreground hover:text-foreground max-sm:h-10"
+                    >
+                      <Plus className="size-3" />
+                      Agregar artículo
+                    </Button>
+                  </div>
+                ))}
+              </ScrollArea>
+            </div>
+            <FormMessage />
 
-          {canCreateBatch && (
-            <Dialog
-              open={isCreateBatchOpen}
-              onOpenChange={setIsCreateBatchOpen}
-            >
-              <FormDialogContent
-                className="sm:max-w-2xl"
-                icon={Boxes}
-                title="Crear renglón"
-                description="Cree un nuevo renglón para utilizarlo en esta requisición."
+            {canCreateBatch && (
+              <Dialog
+                open={isCreateBatchOpen}
+                onOpenChange={setIsCreateBatchOpen}
               >
-                <CreateBatchForm
-                  onClose={() => setIsCreateBatchOpen(false)}
-                  onSuccess={(batchName) => {
-                    setIsCreateBatchOpen(false);
-                    onBatchCreated?.(batchName);
-                  }}
-                />
-              </FormDialogContent>
-            </Dialog>
-          )}
-        </FormItem>
+                <FormDialogContent
+                  className="sm:max-w-2xl"
+                  icon={Boxes}
+                  title="Crear renglón"
+                  description="Cree un nuevo renglón para utilizarlo en esta requisición."
+                >
+                  <CreateBatchForm
+                    onClose={() => setIsCreateBatchOpen(false)}
+                    onSuccess={(batchName) => {
+                      setIsCreateBatchOpen(false);
+                      onBatchCreated?.(batchName);
+                    }}
+                  />
+                </FormDialogContent>
+              </Dialog>
+            )}
+          </FormItem>
+        </RequisitionSection>
       )}
     />
   );

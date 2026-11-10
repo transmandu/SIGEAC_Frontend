@@ -1,8 +1,9 @@
 "use client";
 
+import { PanelSection } from "@/components/forms/PanelSection";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Download, FileText, Loader2 } from "lucide-react";
+import { Download, FileText, Loader2, UserCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
@@ -122,14 +123,21 @@ export default function DownloadQuotePdfDialog({
           </>
         }
       >
-        <div className="space-y-3">
-          <label className="text-sm font-medium">Recibe y autoriza</label>
-
+        <PanelSection
+          icon={UserCheck}
+          title="Recibe y autoriza"
+          hint="Su nombre, cédula y cargo salen impresos en la segunda firma."
+          compact
+        >
           {isLoading ? (
             <div className="flex h-10 items-center gap-2 text-sm text-muted-foreground">
               <Loader2 className="size-4 animate-spin" />
               Cargando...
             </div>
+          ) : (authorizers ?? []).length === 0 ? (
+            <p className="py-4 text-center text-sm text-muted-foreground">
+              No hay autorizadores disponibles para esta compañía.
+            </p>
           ) : (
             <RadioGroup
               value={authorizer}
@@ -141,8 +149,10 @@ export default function DownloadQuotePdfDialog({
                   key={item.key}
                   htmlFor={`quote-authorizer-${item.key}`}
                   className={cn(
-                    "flex cursor-pointer items-center gap-3 rounded-md border px-3 py-2.5 transition-colors hover:bg-muted/40",
-                    authorizer === item.key && "border-primary bg-primary/5",
+                    "flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border px-3.5 py-3 transition-colors duration-200",
+                    authorizer === item.key
+                      ? "border-primary/50 bg-primary/6"
+                      : "border-slate-400/60 bg-background/40 hover:border-blue-400/40 dark:border-slate-600/60",
                   )}
                 >
                   <RadioGroupItem
@@ -150,8 +160,10 @@ export default function DownloadQuotePdfDialog({
                     value={item.key}
                   />
                   <div className="min-w-0">
-                    <p className="text-sm font-medium">{item.name}</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-sm font-medium wrap-anywhere">
+                      {item.name}
+                    </p>
+                    <p className="text-[13px] text-muted-foreground wrap-anywhere">
                       {item.dni} · {item.position}
                     </p>
                   </div>
@@ -159,7 +171,7 @@ export default function DownloadQuotePdfDialog({
               ))}
             </RadioGroup>
           )}
-        </div>
+        </PanelSection>
       </FormDialogContent>
     </Dialog>
   );
