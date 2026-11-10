@@ -165,7 +165,10 @@ const STEP_FIELDS: (keyof FormValues)[][] = [
 function firstErrorMessage(errors: unknown): string | undefined {
   if (!errors || typeof errors !== "object") return undefined;
 
-  if ("message" in errors && typeof (errors as { message?: unknown }).message === "string") {
+  if (
+    "message" in errors &&
+    typeof (errors as { message?: unknown }).message === "string"
+  ) {
     return (errors as { message: string }).message;
   }
 
@@ -912,7 +915,8 @@ export function CreateChangeRequestForm({
                       <FormItem className="flex flex-col gap-1 rounded-lg border border-border/60 bg-background p-3">
                         <div className="flex items-center justify-between gap-3">
                           <FormLabel className="m-0 text-sm font-normal">
-                            ¿Afecta procesos, procedimientos o manuales aprobados?
+                            ¿Afecta procesos, procedimientos o manuales
+                            aprobados?
                           </FormLabel>
                           <FormControl>
                             <div>

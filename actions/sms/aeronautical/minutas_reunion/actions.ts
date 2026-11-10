@@ -45,9 +45,13 @@ export const useUpdateAeronauticalMeetingMinute = () => {
 
   const mutation = useMutation({
     mutationFn: async ({ company, id, data }: MinuteMutationData) => {
-      await axiosInstance.post(`/${company}/aeronautical/meetings/${id}`, data, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      await axiosInstance.post(
+        `/${company}/aeronautical/meetings/${id}`,
+        data,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        },
+      );
     },
     onSuccess: () => {
       invalidate(queryClient);

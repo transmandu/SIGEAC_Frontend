@@ -52,7 +52,8 @@ const MeetingMinuteDropDownActions = ({
   const [openDownloadChoice, setOpenDownloadChoice] = useState<boolean>(false);
 
   const { deleteMeetingMinute } = useDeleteAeronauticalMeetingMinute();
-  const { downloadMeetingMinutePdf } = useDownloadAeronauticalMeetingMinutePdf();
+  const { downloadMeetingMinutePdf } =
+    useDownloadAeronauticalMeetingMinutePdf();
 
   const handleDelete = async () => {
     await deleteMeetingMinute.mutateAsync({

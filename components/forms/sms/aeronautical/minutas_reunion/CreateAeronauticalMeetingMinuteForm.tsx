@@ -169,11 +169,7 @@ function firstFormError(
     const value = errors[key as keyof FormSchemaType];
     if (!value) continue;
 
-    if (
-      typeof value === "object" &&
-      "message" in value &&
-      value.message
-    ) {
+    if (typeof value === "object" && "message" in value && value.message) {
       return { path: key, message: String(value.message) };
     }
 

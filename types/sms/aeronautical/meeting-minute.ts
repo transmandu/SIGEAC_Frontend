@@ -62,6 +62,7 @@ export type AeronauticalMeetingMinuteDetail = AeronauticalMeetingMinute & {
     employee?: (Employee & { job_title?: { id: number; name: string } }) | null;
   })[];
   agreements: (AeronauticalMeetingAgreement & {
-    responsible?: (Employee & { job_title?: { id: number; name: string } }) | null;
+    responsible?:
+      (Employee & { job_title?: { id: number; name: string } }) | null;
   })[];
 };
