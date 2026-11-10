@@ -1,3 +1,7 @@
+## v4.99.0 — 2026-11-10
+
+- feat: change purchases (#391)
+
 ## v4.98.0 — 2026-11-10
 
 - feat: change in purchases (#383)
