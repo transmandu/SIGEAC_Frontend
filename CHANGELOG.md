@@ -1,3 +1,7 @@
+## v4.100.0 — 2026-11-10
+
+- feat: add condition tracking for dispatch returns and updates to rela… (#392)
+
 ## v4.99.0 — 2026-11-10
 
 - feat: change purchases (#391)
