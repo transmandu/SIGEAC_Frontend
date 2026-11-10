@@ -23,6 +23,9 @@ import {
 } from "@/actions/sms/survey/actions";
 import { Survey } from "@/types";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { Loader2 } from "lucide-react";
+import { useIsOmac } from "@/hooks/sistema/useIsOmac";
+import { CreateAeronauticalActivityForm } from "@/components/forms/sms/aeronautical/activities/CreateAeronauticalActivityForm";
 
 type Step = 1 | 2;
 type SurveyMode = "create" | "link";
@@ -32,7 +35,7 @@ const CONTENT_LABELS: Record<ActivityContentKind, string> = {
   encuesta: "Encuesta",
 };
 
-const CreateSMSActivity = () => {
+const AirlineNewActivity = () => {
   const router = useRouter();
   const { selectedCompany, selectedStation } = useCompanyStore();
 
@@ -341,6 +344,45 @@ const CreateSMSActivity = () => {
           </div>
         </div>
       )}
+    </ContentLayout>
+  );
+};
+
+const CreateSMSActivity = () => {
+  const router = useRouter();
+  const { selectedCompany } = useCompanyStore();
+  const { data: isOMAC, isLoading } = useIsOmac(selectedCompany?.slug);
+
+  if (isLoading) {
+    return (
+      <ContentLayout title="Nueva Actividad SMS">
+        <PageHeader className="mb-6" />
+        <div className="flex w-full items-center justify-center py-20">
+          <Loader2 className="size-10 animate-spin text-muted-foreground" />
+        </div>
+      </ContentLayout>
+    );
+  }
+
+  if (!isOMAC) {
+    return <AirlineNewActivity />;
+  }
+
+  return (
+    <ContentLayout title="Nueva Actividad SMS">
+      <PageHeader className="mb-6" />
+      <div className="rounded-lg border border-border/60 p-4 sm:p-6">
+        <CreateAeronauticalActivityForm
+          company={selectedCompany!.slug}
+          onSuccess={(activity) =>
+            router.push(
+              `/${selectedCompany?.slug}/sms/promocion/actividades/${
+                activity?.activity_number ?? ""
+              }`,
+            )
+          }
+        />
+      </div>
     </ContentLayout>
   );
 };

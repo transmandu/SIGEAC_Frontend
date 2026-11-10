@@ -4,11 +4,14 @@ import CreateSMSActivityForm from "@/components/forms/aerolinea/sms/CreateSMSAct
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import LoadingPage from "@/components/misc/LoadingPage";
 import { useGetSMSActivityByNumber } from "@/hooks/sms/useGetSMSActivityByNumber";
+import { useIsOmac } from "@/hooks/sistema/useIsOmac";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useParams, useRouter } from "next/navigation";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { Loader2 } from "lucide-react";
+import { AeronauticalEditActivity } from "@/app/[company]/sms/(employees)/promocion/actividades/_components/aeronautical-edit-activity";
 
-const EditSMSActivityPage = () => {
+const AirlineEditSMSActivityPage = () => {
   const { selectedCompany } = useCompanyStore();
   const router = useRouter();
   const { activity_number } = useParams<{ activity_number: string }>();
@@ -49,6 +52,24 @@ const EditSMSActivityPage = () => {
       )}
     </ContentLayout>
   );
+};
+
+const EditSMSActivityPage = () => {
+  const { selectedCompany } = useCompanyStore();
+  const { data: isOMAC, isLoading } = useIsOmac(selectedCompany?.slug);
+
+  if (isLoading) {
+    return (
+      <ContentLayout title="Editar Actividad SMS">
+        <PageHeader className="mb-6" />
+        <div className="flex w-full items-center justify-center py-20">
+          <Loader2 className="size-10 animate-spin text-muted-foreground" />
+        </div>
+      </ContentLayout>
+    );
+  }
+
+  return isOMAC ? <AeronauticalEditActivity /> : <AirlineEditSMSActivityPage />;
 };
 
 export default EditSMSActivityPage;

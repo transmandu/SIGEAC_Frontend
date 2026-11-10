@@ -169,6 +169,7 @@ export function buildSmsGroup({
             active:
               pathname ===
               `/${currentCompany?.slug}/sms/promocion/actividades/calendario`,
+            requiresOmac: false,
           },
           {
             href: `/${currentCompany?.slug}/sms/promocion/actividades`,

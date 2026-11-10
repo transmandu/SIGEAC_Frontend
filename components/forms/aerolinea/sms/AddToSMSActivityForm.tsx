@@ -15,7 +15,6 @@ import {
   useGetEnrolledStatus,
 } from "@/hooks/sms/useGetEnrolledStatus";
 import { cn } from "@/lib/utils";
-import { SMSActivity } from "@/types";
 import { zodResolver } from "@/lib/zod-resolver";
 import {
   Check,
@@ -47,7 +46,7 @@ import { useResettingState } from "@/hooks/useResettingState";
 
 interface FormProps {
   onClose: () => void;
-  initialData: SMSActivity;
+  initialData: { activity_number: string };
 }
 
 interface EmployeeSelection {
