@@ -77,9 +77,7 @@ export function filterMenuGroups(
   };
 
   return groups
-    .filter(
-      (group) => isModuleActive(group.moduleValue) && hasTables(group),
-    )
+    .filter((group) => isModuleActive(group.moduleValue) && hasTables(group))
     .map((group) => {
       const filteredMenus = group.menus.filter(
         (menu) =>

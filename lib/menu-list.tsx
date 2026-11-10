@@ -27,52 +27,55 @@ import type { Company } from "@/types";
  * etiquetas, como las migajas de `PageHeader`.
  */
 export function buildMenuGroups(
-    pathname: string,
-    currentCompany: Company | null,
-    userRoles: string[] = [],
+  pathname: string,
+  currentCompany: Company | null,
+  userRoles: string[] = [],
 ): Group[] {
-    const context = {
-        pathname,
-        currentCompany,
-        date: format(new Date(), "yyyy-MM-dd"),
-        userRoles,
-    };
+  const context = {
+    pathname,
+    currentCompany,
+    date: format(new Date(), "yyyy-MM-dd"),
+    userRoles,
+  };
 
-    // Sin compañía solo sobreviven Perfil y Sistema, que son de master; el resto
-    // de los grupos depende del tenant y armaría hrefs sin slug al que apuntar.
-    if (!currentCompany) {
-        return [buildProfileGroup(context), buildSystemGroup(context)];
-    }
+  // Sin compañía solo sobreviven Perfil y Sistema, que son de master; el resto
+  // de los grupos depende del tenant y armaría hrefs sin slug al que apuntar.
+  if (!currentCompany) {
+    return [buildProfileGroup(context), buildSystemGroup(context)];
+  }
 
-    return [
-        buildDashboardGroup(context),
-        buildGeneralGroup(context),
-        buildDevelopmentGroup(context),
-        buildSmsGroup(context),
-        ...buildPurchasesGroups(context),
-        buildWarehouseGroup(context),
-        buildPlanificationGroup(context),
-        buildQualityControlGroup(context),
-        buildOperationGroup(context),
-        buildMaintenanceGroup(context),
-        buildEngineeringGroup(context),
-        buildAdministrationGroup(context),
-        buildSettingsGroup(context),
-        buildProfileGroup(context),
-        buildSystemGroup(context),
-        buildSupervisorGroup(context),
-    ];
+  return [
+    buildDashboardGroup(context),
+    buildGeneralGroup(context),
+    buildDevelopmentGroup(context),
+    buildSmsGroup(context),
+    ...buildPurchasesGroups(context),
+    buildWarehouseGroup(context),
+    buildPlanificationGroup(context),
+    buildQualityControlGroup(context),
+    buildOperationGroup(context),
+    buildMaintenanceGroup(context),
+    buildEngineeringGroup(context),
+    buildAdministrationGroup(context),
+    buildSettingsGroup(context),
+    buildProfileGroup(context),
+    buildSystemGroup(context),
+    buildSupervisorGroup(context),
+  ];
 }
 
 export function getMenuList(
-    pathname: string,
-    currentCompany: Company | null,
-    userRoles: string[],
-    availableTables?: string[] | null,
+  pathname: string,
+  currentCompany: Company | null,
+  userRoles: string[],
+  availableTables?: string[] | null,
 ): Group[] {
-    return filterMenuGroups(buildMenuGroups(pathname, currentCompany, userRoles), {
-        currentCompany,
-        userRoles,
-        availableTables,
-    });
+  return filterMenuGroups(
+    buildMenuGroups(pathname, currentCompany, userRoles),
+    {
+      currentCompany,
+      userRoles,
+      availableTables,
+    },
+  );
 }

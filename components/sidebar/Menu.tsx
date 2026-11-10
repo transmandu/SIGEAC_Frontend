@@ -222,74 +222,72 @@ export function Menu({ isOpen, scrollKey = "sidebar" }: MenuProps) {
                 )}
 
                 {(!isSuperUser || !isCollapsed) &&
-                  menus.map(
-                    ({ href, label, icon: Icon, active, submenus }) =>
-                      submenus.length === 0 ? (
-                        <div className="w-full" key={`${label}|${href}`}>
-                          <TooltipProvider disableHoverableContent>
-                            <Tooltip delayDuration={100}>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  className={getItemClassName(active)}
-                                  asChild
-                                >
-                                  <Link href={href}>
-                                    <span
-                                      className={cn(
-                                        "absolute left-0 top-1/2 h-6 w-0.75 -translate-y-1/2 rounded-r-full bg-primary opacity-0 transition-opacity duration-200",
-                                        active && "opacity-100",
-                                      )}
-                                    />
-                                    <span
-                                      className={cn(
-                                        "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-transparent bg-muted/30 text-muted-foreground transition-all duration-200 group-hover:border-border/60 group-hover:bg-background/70 group-hover:text-foreground",
-                                        active &&
-                                          "glass-control text-foreground",
-                                        isOpen === false ? "mx-auto" : "mr-3",
-                                      )}
-                                    >
-                                      <Icon size={18} />
-                                    </span>
-                                    <p
-                                      className={cn(
-                                        "min-w-0 flex-1 truncate text-left text-[13px] font-medium transition-all duration-200",
-                                        // hidden al colapsar: con flex-1 el label seguiría
-                                        // ocupando ancho y el mx-auto del icono no centraría.
-                                        isOpen === false
-                                          ? "hidden"
-                                          : "translate-x-0 opacity-100",
-                                      )}
-                                    >
-                                      {label}
-                                    </p>
-                                  </Link>
-                                </Button>
-                              </TooltipTrigger>
+                  menus.map(({ href, label, icon: Icon, active, submenus }) =>
+                    submenus.length === 0 ? (
+                      <div className="w-full" key={`${label}|${href}`}>
+                        <TooltipProvider disableHoverableContent>
+                          <Tooltip delayDuration={100}>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                className={getItemClassName(active)}
+                                asChild
+                              >
+                                <Link href={href}>
+                                  <span
+                                    className={cn(
+                                      "absolute left-0 top-1/2 h-6 w-0.75 -translate-y-1/2 rounded-r-full bg-primary opacity-0 transition-opacity duration-200",
+                                      active && "opacity-100",
+                                    )}
+                                  />
+                                  <span
+                                    className={cn(
+                                      "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-transparent bg-muted/30 text-muted-foreground transition-all duration-200 group-hover:border-border/60 group-hover:bg-background/70 group-hover:text-foreground",
+                                      active && "glass-control text-foreground",
+                                      isOpen === false ? "mx-auto" : "mr-3",
+                                    )}
+                                  >
+                                    <Icon size={18} />
+                                  </span>
+                                  <p
+                                    className={cn(
+                                      "min-w-0 flex-1 truncate text-left text-[13px] font-medium transition-all duration-200",
+                                      // hidden al colapsar: con flex-1 el label seguiría
+                                      // ocupando ancho y el mx-auto del icono no centraría.
+                                      isOpen === false
+                                        ? "hidden"
+                                        : "translate-x-0 opacity-100",
+                                    )}
+                                  >
+                                    {label}
+                                  </p>
+                                </Link>
+                              </Button>
+                            </TooltipTrigger>
 
-                              {isOpen === false && (
-                                <TooltipContent
-                                  side="right"
-                                  className="rounded-lg"
-                                >
-                                  {label}
-                                </TooltipContent>
-                              )}
-                            </Tooltip>
-                          </TooltipProvider>
-                        </div>
-                      ) : (
-                        <div className="w-full" key={`${label}|${href}`}>
-                          <CollapseMenuButton
-                            stateKey={`${storageKey}:${groupLabel}:${label}`}
-                            icon={Icon}
-                            label={label}
-                            active={active}
-                            submenus={submenus}
-                            isOpen={isOpen}
-                          />
-                        </div>
-                      ),
+                            {isOpen === false && (
+                              <TooltipContent
+                                side="right"
+                                className="rounded-lg"
+                              >
+                                {label}
+                              </TooltipContent>
+                            )}
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
+                    ) : (
+                      <div className="w-full" key={`${label}|${href}`}>
+                        <CollapseMenuButton
+                          stateKey={`${storageKey}:${groupLabel}:${label}`}
+                          icon={Icon}
+                          label={label}
+                          active={active}
+                          submenus={submenus}
+                          isOpen={isOpen}
+                        />
+                      </div>
+                    ),
                   )}
               </li>
             );

@@ -11,34 +11,37 @@ import { ShieldCheck } from "lucide-react";
  * El rol aquí solo oculta el menú; el gating real vive en el backend
  * (routes/api/supervisor/routes.php) más el ProtectedRoute del layout.
  */
-export function buildSupervisorGroup({ pathname, currentCompany }: MenuContext): Group {
-    const base = `/${currentCompany?.slug}/supervisor`;
+export function buildSupervisorGroup({
+  pathname,
+  currentCompany,
+}: MenuContext): Group {
+  const base = `/${currentCompany?.slug}/supervisor`;
 
-    return {
-        groupLabel: "Supervisor",
-        menus: [
-            {
-                href: `${base}/articulos_generales`,
-                label: "Artículos Generales",
-                requiresTables: ["general_articles"],
-                active: pathname.includes(`${base}/articulos_generales`),
-                icon: ShieldCheck,
-                roles: ["SUPERUSER"],
-                requiresOmac: true,
-                submenus: [
-                    {
-                        href: `${base}/articulos_generales`,
-                        label: "Supervisar Artículos",
-                        active: pathname === `${base}/articulos_generales`,
-                    },
-                    {
-                        href: `${base}/articulos_generales/fusiones`,
-                        label: "Historial de Fusiones",
-                        requiresTables: ["general_article_merges"],
-                        active: pathname === `${base}/articulos_generales/fusiones`,
-                    },
-                ],
-            },
+  return {
+    groupLabel: "Supervisor",
+    menus: [
+      {
+        href: `${base}/articulos_generales`,
+        label: "Artículos Generales",
+        requiresTables: ["general_articles"],
+        active: pathname.includes(`${base}/articulos_generales`),
+        icon: ShieldCheck,
+        roles: ["SUPERUSER"],
+        requiresOmac: true,
+        submenus: [
+          {
+            href: `${base}/articulos_generales`,
+            label: "Supervisar Artículos",
+            active: pathname === `${base}/articulos_generales`,
+          },
+          {
+            href: `${base}/articulos_generales/fusiones`,
+            label: "Historial de Fusiones",
+            requiresTables: ["general_article_merges"],
+            active: pathname === `${base}/articulos_generales/fusiones`,
+          },
         ],
-    };
+      },
+    ],
+  };
 }
