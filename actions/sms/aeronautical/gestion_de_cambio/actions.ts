@@ -61,6 +61,9 @@ function appendNestedFormData(
       });
     } else if (typeof value === "object") {
       appendNestedFormData(formData, value as Record<string, unknown>, fullKey);
+    } else if (typeof value === "boolean") {
+      // Laravel's boolean rule accepts 1/0, not the strings "true"/"false".
+      formData.append(fullKey, value ? "1" : "0");
     } else {
       formData.append(fullKey, String(value));
     }
