@@ -20,6 +20,7 @@ export function buildSupervisorGroup({ pathname, currentCompany }: MenuContext):
             {
                 href: `${base}/articulos_generales`,
                 label: "Artículos Generales",
+                requiresTables: ["general_articles"],
                 active: pathname.includes(`${base}/articulos_generales`),
                 icon: ShieldCheck,
                 roles: ["SUPERUSER"],
@@ -33,6 +34,7 @@ export function buildSupervisorGroup({ pathname, currentCompany }: MenuContext):
                     {
                         href: `${base}/articulos_generales/fusiones`,
                         label: "Historial de Fusiones",
+                        requiresTables: ["general_article_merges"],
                         active: pathname === `${base}/articulos_generales/fusiones`,
                     },
                 ],

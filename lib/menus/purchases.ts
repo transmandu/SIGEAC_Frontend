@@ -27,6 +27,7 @@ export function buildPurchasesGroups({ pathname, currentCompany, userRoles }: Me
         {
             href: `/${currentCompany?.slug}/compras/requisiciones`,
             label: "Solicitudes de Compra",
+            requiresTables: ["requisition_orders", "articles_requisition_orders"],
             active: isActivePath(pathname, `/${currentCompany?.slug}/compras/requisiciones`),
             icon: ClipboardList,
             roles: [
@@ -41,6 +42,7 @@ export function buildPurchasesGroups({ pathname, currentCompany, userRoles }: Me
         {
             href: `/${currentCompany?.slug}/compras/cotizaciones`,
             label: "Cotizaciones",
+            requiresTables: ["quote_orders", "articles_quote_orders"],
             active: isActivePath(pathname, `/${currentCompany?.slug}/compras/cotizaciones`),
             icon: HandCoins,
             roles: [
@@ -55,6 +57,7 @@ export function buildPurchasesGroups({ pathname, currentCompany, userRoles }: Me
         {
             href: `/${currentCompany?.slug}/compras/ordenes_compra`,
             label: "Ordenes de Compra",
+            requiresTables: ["purchase_orders", "articles_purchase_orders"],
             active: isActivePath(pathname, `/${currentCompany?.slug}/compras/ordenes_compra`),
             icon: Receipt,
             roles: [
@@ -69,6 +72,7 @@ export function buildPurchasesGroups({ pathname, currentCompany, userRoles }: Me
         {
             href: `/${currentCompany?.slug}/compras/en_transito`,
             label: "Art. en Tránsito",
+            requiresTables: ["articles", "article_transit_updates"],
             active: isActivePath(pathname, `/${currentCompany?.slug}/compras/en_transito`),
             icon: Truck,
             roles: [
@@ -83,6 +87,7 @@ export function buildPurchasesGroups({ pathname, currentCompany, userRoles }: Me
         {
             href: `/${currentCompany?.slug}/compras/cuarentena`,
             label: "Cuarentena",
+            requiresTables: ["quarantine_articles"],
             active: isActivePath(pathname, `/${currentCompany?.slug}/compras/cuarentena`),
             icon: ShieldAlert,
             roles: [
@@ -97,6 +102,7 @@ export function buildPurchasesGroups({ pathname, currentCompany, userRoles }: Me
         {
             href: `/${currentCompany?.slug}/compras/destino_indeterminado`,
             label: "Destino indeterminado",
+            requiresTables: ["articles"],
             active: isActivePath(pathname, `/${currentCompany?.slug}/compras/destino_indeterminado`),
             icon: HelpCircle,
             roles: [
@@ -114,6 +120,7 @@ export function buildPurchasesGroups({ pathname, currentCompany, userRoles }: Me
         {
             href: `/${currentCompany?.slug}/compras/requisiciones_generales`,
             label: "Requisiciones Generales",
+            requiresTables: ["requisition_orders", "general_article_requisition_orders"],
             active: isActivePath(pathname, `/${currentCompany?.slug}/compras/requisiciones_generales`),
             icon: ClipboardList,
             roles: [
@@ -126,6 +133,7 @@ export function buildPurchasesGroups({ pathname, currentCompany, userRoles }: Me
         {
             href: `/${currentCompany?.slug}/compras/cotizaciones_generales`,
             label: "Cotizaciones",
+            requiresTables: ["quote_orders", "general_article_quote_orders"],
             active: isActivePath(pathname, `/${currentCompany?.slug}/compras/cotizaciones_generales`),
             icon: HandCoins,
             roles: [
@@ -138,6 +146,7 @@ export function buildPurchasesGroups({ pathname, currentCompany, userRoles }: Me
         {
             href: `/${currentCompany?.slug}/compras/ordenes_compra_generales`,
             label: "Ordenes de Compra",
+            requiresTables: ["purchase_orders", "general_article_purchase_orders"],
             active: isActivePath(pathname, `/${currentCompany?.slug}/compras/ordenes_compra_generales`),
             icon: Receipt,
             roles: [
@@ -150,6 +159,7 @@ export function buildPurchasesGroups({ pathname, currentCompany, userRoles }: Me
         {
             href: `/${currentCompany?.slug}/compras/recepcion_general`,
             label: "Recepción General",
+            requiresTables: ["general_article_intakes"],
             active: isActivePath(pathname, `/${currentCompany?.slug}/compras/recepcion_general`),
             icon: Truck,
             roles: [
@@ -163,6 +173,7 @@ export function buildPurchasesGroups({ pathname, currentCompany, userRoles }: Me
     const globalPurchaseMenu: Menu = {
         href: `/${currentCompany?.slug}/compras/gestion_costos`,
         label: "Gestión de Costos",
+        requiresTables: ["articles", "general_articles"],
         active: isActivePath(pathname, `/${currentCompany?.slug}/compras/gestion_costos`),
         icon: CircleDollarSign,
         roles: [
@@ -197,6 +208,7 @@ export function buildPurchasesGroups({ pathname, currentCompany, userRoles }: Me
         roles: menu.roles,
         moduleValue: menu.moduleValue,
         requiresOmac: menu.requiresOmac,
+        requiresTables: menu.requiresTables,
     });
 
     const aeronauticoSubmenus = aeronauticoMenus.map(toSubmenu);

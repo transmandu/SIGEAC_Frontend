@@ -13,6 +13,7 @@ export function buildDevelopmentGroup({
             {
                 href: `/${currentCompany?.slug}/desarrollo`,
                 label: "Actividades",
+                requiresTables: ["activities"],
                 active: pathname.includes(`/${currentCompany?.slug}/desarrollo`),
                 icon: SquarePen,
                 roles: ["ANALISTA_DESARROLLO", "JEFE_DESARROLLO", "SUPERUSER"],

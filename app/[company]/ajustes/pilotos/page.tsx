@@ -5,7 +5,9 @@ import { SettingsListPage } from "@/components/layout/SettingsListPage";
 import { SettingsDataTable } from "@/components/tables/SettingsDataTable";
 import CreatePilotDialog from "@/components/dialogs/ajustes/CreatePilotDialog";
 import { useGetPilots } from "@/hooks/sms/useGetPilots";
+import { phoneMatches } from "@/lib/phone";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { PilotExpandedRow } from "./_components/PilotExpandedRow";
 import { columns } from "./columns";
 
 const PilotsPage = () => {
@@ -29,7 +31,9 @@ const PilotsPage = () => {
         pilot.employee_dni?.toLowerCase().includes(q) ||
         pilot.license_number?.toLowerCase().includes(q) ||
         pilot.employee?.first_name?.toLowerCase().includes(q) ||
-        pilot.employee?.last_name?.toLowerCase().includes(q),
+        pilot.employee?.last_name?.toLowerCase().includes(q) ||
+        pilot.employee?.email?.toLowerCase().includes(q) ||
+        phoneMatches(pilot.employee?.phone, q),
     );
   }, [pilots, deferredSearch]);
 
@@ -59,6 +63,7 @@ const PilotsPage = () => {
         loading={isPending}
         emptyMessage="No se han encontrado pilotos."
         actions={<CreatePilotDialog />}
+        renderSubRow={(pilot) => <PilotExpandedRow pilot={pilot} />}
       />
     </SettingsListPage>
   );

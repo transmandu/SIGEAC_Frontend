@@ -68,9 +68,11 @@ export function getMenuList(
     pathname: string,
     currentCompany: Company | null,
     userRoles: string[],
+    availableTables?: string[] | null,
 ): Group[] {
     return filterMenuGroups(buildMenuGroups(pathname, currentCompany, userRoles), {
         currentCompany,
         userRoles,
+        availableTables,
     });
 }

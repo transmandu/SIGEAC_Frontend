@@ -2,7 +2,7 @@ import type { Group, Menu, MenuFilterContext } from "@/lib/menus/types";
 
 export function filterMenuGroups(
   groups: Group[],
-  { currentCompany, userRoles }: MenuFilterContext,
+  { currentCompany, userRoles, availableTables }: MenuFilterContext,
 ): Group[] {
   const isValidHref = (href: string): boolean => {
     return (
@@ -50,6 +50,17 @@ export function filterMenuGroups(
     return item.requiresOmac === currentCompany?.isOMAC;
   };
 
+  // Va por encima de `requiresOmac`: las bases no tienen todas las tablas
+  // migradas (un módulo puede no haberse corrido en esa compañía) y abrir la
+  // pantalla sin su tabla termina en error. Mientras el listado no llega no se
+  // oculta nada, para que el menú no parpadee ni quede vacío si el servicio
+  // falla.
+  const tableSet = availableTables ? new Set(availableTables) : null;
+  const hasTables = (item: { requiresTables?: string[] }): boolean => {
+    if (!tableSet || !item.requiresTables?.length) return true;
+    return item.requiresTables.every((table) => tableSet.has(table));
+  };
+
   // Restringe un ítem a una o más empresas puntuales por slug (ej. una
   // sección que solo aplica a Transmandu). Sin la lista, el ítem es visible
   // para cualquier empresa, igual que con `moduleValue`/`requiresOmac`.
@@ -66,13 +77,16 @@ export function filterMenuGroups(
   };
 
   return groups
-    .filter((group) => isModuleActive(group.moduleValue))
+    .filter(
+      (group) => isModuleActive(group.moduleValue) && hasTables(group),
+    )
     .map((group) => {
       const filteredMenus = group.menus.filter(
         (menu) =>
           isModuleActive(menu.moduleValue) &&
           hasRoleAccess(menu) &&
           hasOmacAccess(menu) &&
+          hasTables(menu) &&
           hasCompanyAccess(menu),
       );
 
@@ -83,9 +97,20 @@ export function filterMenuGroups(
               isModuleActive(sub.moduleValue) &&
               hasRoleAccess(sub) &&
               hasOmacAccess(sub) &&
+              hasTables(sub) &&
               hasCompanyAccess(sub) &&
               isValidHref(sub.href),
           );
+
+          // Un contenedor cuyos submenús se fueron por faltarles tablas no
+          // debe quedar como enlace suelto a su propia ruta.
+          if (
+            submenus.length === 0 &&
+            menu.submenus.length > 0 &&
+            menu.submenus.every((sub) => !hasTables(sub))
+          ) {
+            return null;
+          }
 
           const href = isValidHref(menu.href) ? menu.href : submenus[0]?.href;
 

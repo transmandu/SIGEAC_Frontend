@@ -4,6 +4,7 @@ import Image from "next/image";
 import { memo, useState } from "react";
 import { Building2, Check, ChevronDown } from "lucide-react";
 
+import { TagBadge } from "@/components/misc/TagBadge";
 import { cn } from "@/lib/utils";
 import { User } from "@/types";
 
@@ -104,13 +105,9 @@ const ProfileCompanies = ({
               </div>
 
               {isActive && (
-                <span
-                  className="flex shrink-0 items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-400"
-                  title="Empresa activa"
-                >
-                  <Check className="size-3" />
+                <TagBadge tone="emerald" icon={Check} title="Empresa activa">
                   Activa
-                </span>
+                </TagBadge>
               )}
             </li>
           );

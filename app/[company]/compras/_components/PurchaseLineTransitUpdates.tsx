@@ -42,7 +42,7 @@ export function PurchaseLineTransitUpdates({
             className="relative size-5 shrink-0 text-primary"
           >
             <NotebookPen className="size-3.5" />
-            <span className="absolute -right-1 -top-1 grid size-3.5 place-items-center rounded-full bg-primary text-[9px] font-semibold text-primary-foreground">
+            <span className="absolute -right-1 -top-1 grid size-4 place-items-center rounded-full bg-primary text-[10px] font-semibold text-primary-foreground">
               {count > 9 ? "9+" : count}
             </span>
           </Button>

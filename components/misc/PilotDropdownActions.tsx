@@ -2,8 +2,7 @@
 
 import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Eye, Pencil, Trash2, PlaneTakeoff } from "lucide-react";
+import { Pencil, Trash2, PlaneTakeoff } from "lucide-react";
 import { useDeletePilot } from "@/actions/ajustes/piloto/actions";
 import { ConfirmDeleteDialog } from "@/components/dialogs/shared/ConfirmDeleteDialog";
 import {
@@ -20,21 +19,11 @@ const PilotDropdownActions = ({ pilot }: { pilot: Pilot }) => {
   const [openDelete, setOpenDelete] = useState(false);
   const { deletePilot } = useDeletePilot();
   const { selectedCompany } = useCompanyStore();
-  const router = useRouter();
 
   const fullName =
     `${pilot.employee?.first_name ?? ""} ${pilot.employee?.last_name ?? ""}`.trim();
 
   const actions: RowAction[] = [
-    {
-      key: "view",
-      label: "Ver piloto",
-      icon: Eye,
-      onSelect: () =>
-        router.push(
-          `/${selectedCompany?.slug}/ajustes/pilotos/${pilot.employee_dni}`,
-        ),
-    },
     {
       key: "edit",
       label: "Editar piloto",
