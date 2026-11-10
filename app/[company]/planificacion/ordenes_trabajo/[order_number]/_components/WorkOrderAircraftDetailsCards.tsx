@@ -55,7 +55,9 @@ const ALLOWED_DOCUMENT_TYPES = [
 
 const isAllowedWorkOrderDocument = (file: File) => {
   const name = file.name.toLowerCase();
-  const hasValidExt = ALLOWED_DOCUMENT_EXTENSIONS.some((ext) => name.endsWith(ext));
+  const hasValidExt = ALLOWED_DOCUMENT_EXTENSIONS.some((ext) =>
+    name.endsWith(ext),
+  );
   const hasValidType = ALLOWED_DOCUMENT_TYPES.includes(file.type);
   return hasValidExt || hasValidType;
 };
@@ -293,8 +295,8 @@ const WorkOrderAircraftDetailsCards = ({
           </div>
 
           <div className="flex flex-wrap gap-4 justify-center">
-            {work_order.document && (
-              work_order.document.toLowerCase().endsWith(".pdf") ? (
+            {work_order.document &&
+              (work_order.document.toLowerCase().endsWith(".pdf") ? (
                 <PdfPreviewDialog
                   showConfig={false}
                   fileName={`DOC_WO_${work_order.order_number}`}
@@ -315,10 +317,10 @@ const WorkOrderAircraftDetailsCards = ({
                   ) : (
                     <FileDown className="size-4" />
                   )}
-                  Descargar Documento (.{work_order.document.split(".").pop()?.toUpperCase()})
+                  Descargar Documento (.
+                  {work_order.document.split(".").pop()?.toUpperCase()})
                 </Button>
-              )
-            )}
+              ))}
             {work_order.document && work_order.status !== "CLOSED" && (
               <AlertDialog
                 open={closeDialogOpen}

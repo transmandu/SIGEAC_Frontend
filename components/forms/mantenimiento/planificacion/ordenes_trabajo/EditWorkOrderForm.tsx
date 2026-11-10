@@ -70,7 +70,9 @@ const ALLOWED_DOCUMENT_TYPES = [
 
 const isAllowedWorkOrderDocument = (file: File) => {
   const name = file.name.toLowerCase();
-  const hasValidExt = ALLOWED_DOCUMENT_EXTENSIONS.some((ext) => name.endsWith(ext));
+  const hasValidExt = ALLOWED_DOCUMENT_EXTENSIONS.some((ext) =>
+    name.endsWith(ext),
+  );
   const hasValidType = ALLOWED_DOCUMENT_TYPES.includes(file.type);
   return hasValidExt || hasValidType;
 };
@@ -523,7 +525,9 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
               name="document"
               render={({ field }) => (
                 <FormItem className="md:col-span-2">
-                  <FormLabel>Documento adjunto (PDF, ODT, ODS, ODP - opcional)</FormLabel>
+                  <FormLabel>
+                    Documento adjunto (PDF, ODT, ODS, ODP - opcional)
+                  </FormLabel>
                   <div className="flex items-center gap-4">
                     {/* Muestra el nombre del archivo si ya hay uno seleccionado */}
                     {field.value && (
