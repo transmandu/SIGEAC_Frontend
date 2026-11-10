@@ -159,6 +159,18 @@ const DispatchReturnHistoryDialog = ({
                                   : "Reingresó a almacén"}
                               </p>
                             )}
+                            {/* Lo que va a inspección no declara condición: la
+                                fija el inspector, así que no hay "volvió". */}
+                            {item.dispatched_condition &&
+                              item.condition !== "ALTERED" && (
+                                <p className="mt-0.5 text-xs text-muted-foreground">
+                                  {item.returned_condition &&
+                                  item.returned_condition !==
+                                    item.dispatched_condition
+                                    ? `Condición: salió ${item.dispatched_condition} · volvió ${item.returned_condition}`
+                                    : `Condición: ${item.dispatched_condition} (sin cambio)`}
+                                </p>
+                              )}
                             {item.part_number && item.part_number !== "N/A" && (
                               <p className="truncate text-xs text-muted-foreground">
                                 P/N {item.part_number}
