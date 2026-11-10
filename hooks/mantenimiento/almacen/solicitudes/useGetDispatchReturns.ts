@@ -50,10 +50,7 @@ const fetchDispatchReturns = async ({
   return data.data;
 };
 
-export const useGetDispatchReturns = (
-  id: number | string,
-  enabled = true
-) => {
+export const useGetDispatchReturns = (id: number | string, enabled = true) => {
   const { selectedCompany } = useCompanyStore();
 
   return useQuery<DispatchReturn[], Error>({

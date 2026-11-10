@@ -48,10 +48,11 @@ const DispatchReturnHistoryDialog = ({
   dispatchId,
   requestNumber,
 }: DispatchReturnHistoryDialogProps) => {
-  const { data: returns, isLoading, isError } = useGetDispatchReturns(
-    dispatchId,
-    open
-  );
+  const {
+    data: returns,
+    isLoading,
+    isError,
+  } = useGetDispatchReturns(dispatchId, open);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -95,7 +96,7 @@ const DispatchReturnHistoryDialog = ({
             <div className="space-y-4">
               {returns.map((entry) => {
                 const alteredItems = entry.items.filter(
-                  (item) => item.condition === "ALTERED"
+                  (item) => item.condition === "ALTERED",
                 ).length;
                 const altered = alteredItems > 0;
                 // Devolución mixta: parte fue a inspección y parte al almacén,
@@ -189,7 +190,8 @@ const DispatchReturnHistoryDialog = ({
                                 en otra unidad. */}
                             {item.uses_alternate_unit && (
                               <span className="text-[11px] text-muted-foreground tabular-nums">
-                                ≈ {formatQty(item.base_quantity)} {item.base_unit}
+                                ≈ {formatQty(item.base_quantity)}{" "}
+                                {item.base_unit}
                               </span>
                             )}
                           </div>
