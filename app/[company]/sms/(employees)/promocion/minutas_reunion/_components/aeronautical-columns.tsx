@@ -2,7 +2,7 @@
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import MeetingMinuteDropDownActions from "@/components/dropdowns/sms/aeronautical/MeetingMinuteDropDownActions";
-import { Badge } from "@/components/ui/badge";
+import { TagBadge } from "@/components/misc/TagBadge";
 import { dateFormat } from "@/lib/utils";
 import type { AeronauticalMeetingMinute } from "@/types/sms/aeronautical/meeting-minute";
 import { type AppColumnDef } from "@/lib/table";
@@ -82,9 +82,9 @@ export const aeronauticalColumns: AppColumnDef<AeronauticalMeetingMinute>[] = [
       const status = row.original.status ?? "ABIERTA";
       return (
         <div className="flex justify-center">
-          <Badge variant={status === "CERRADA" ? "default" : "outline"}>
+          <TagBadge tone={status === "CERRADA" ? "emerald" : "amber"}>
             {status}
-          </Badge>
+          </TagBadge>
         </div>
       );
     },

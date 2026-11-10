@@ -16,19 +16,19 @@ import { DatePickerField } from "@/components/ui/DatePickerField";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ComboboxField } from "@/components/ui/ComboboxField";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { AgreementItem } from "@/components/forms/general/AgreementItem";
 import FolderSelect from "@/components/library/FolderSelect";
 
 import { zodResolver } from "@/lib/zod-resolver";
-import { useForm, useFieldArray, useWatch } from "react-hook-form";
+import {
+  useForm,
+  useFieldArray,
+  useWatch,
+  type FieldErrors,
+} from "react-hook-form";
 import { z } from "zod";
+import { toast } from "sonner";
+import { RequiredIndicator } from "@/components/misc/RequiredIndicator";
 import {
   ChevronLeft,
   ChevronRight,
@@ -70,7 +70,6 @@ const FormSchema = z
     document: z.any().optional(),
     start_time: z.string().optional(),
     end_time: z.string().optional(),
-    status: z.enum(["ABIERTA", "CERRADA"]).default("ABIERTA"),
     filled_out_by: z.string().min(1, "Seleccione quien diligencia"),
     attendees: z
       .array(
@@ -89,6 +88,9 @@ const FormSchema = z
       .array(
         z.object({
           description: z.string().min(1, "La descripción es obligatoria"),
+          estimated_date: z
+            .union([z.literal(""), z.string().date("Fecha inválida")])
+            .optional(),
           responsible_employee_id: z.string().optional(),
           responsible_authorized_employee_id: z.string().optional(),
           responsible_name: z.string().optional(),
@@ -101,14 +103,6 @@ const FormSchema = z
     library_folder_paths: z.array(z.string()).optional().default([]),
   })
   .superRefine((data, ctx) => {
-    if (data.status === "CERRADA" && !data.end_time) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["end_time"],
-        message: "La hora de finalización es obligatoria para cerrar la minuta.",
-      });
-    }
-
     if (data.start_time && data.end_time && data.end_time < data.start_time) {
       ctx.addIssue({
         code: "custom",
@@ -117,6 +111,48 @@ const FormSchema = z
           "La hora de finalización no puede ser anterior a la hora de inicio.",
       });
     }
+
+    data.attendees?.forEach((attendee, index) => {
+      // Solo se valida la opción activa. Los campos de las otras opciones
+      // pueden conservar valores viejos aunque estén ocultos en la UI.
+      const hasActiveValue = attendee.is_authorized
+        ? !!attendee.authorized_employee_id
+        : attendee.is_external
+          ? !!attendee.attendee_name
+          : !!attendee.employee_id;
+
+      if (!hasActiveValue) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["attendees", index],
+          message: attendee.is_authorized
+            ? "Seleccione el empleado autorizado."
+            : attendee.is_external
+              ? "Indique el nombre del participante externo."
+              : "Seleccione el empleado.",
+        });
+      }
+    });
+
+    data.agreements?.forEach((agreement, index) => {
+      const hasActiveResponsible = agreement.is_authorized
+        ? !!agreement.responsible_authorized_employee_id
+        : agreement.is_external
+          ? !!agreement.responsible_name
+          : !!agreement.responsible_employee_id;
+
+      if (!hasActiveResponsible) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["agreements", index, "responsible_employee_id"],
+          message: agreement.is_authorized
+            ? "Seleccione el responsable autorizado."
+            : agreement.is_external
+              ? "Indique el nombre del responsable externo."
+              : "Seleccione el responsable.",
+        });
+      }
+    });
   });
 
 type FormSchemaType = z.infer<typeof FormSchema>;
@@ -124,6 +160,45 @@ type FormSchemaType = z.infer<typeof FormSchema>;
 /** "HH:MM:SS" (SQL Server) → "HH:MM" para <input type="time">. */
 const toTimeInput = (value?: string | null) =>
   value ? String(value).slice(0, 5) : "";
+
+/** Primer error de Zod/RHF, con su ruta, para saltar al paso correcto. */
+function firstFormError(
+  errors: FieldErrors<FormSchemaType>,
+): { path: string; message: string } | null {
+  for (const key of Object.keys(errors)) {
+    const value = errors[key as keyof FormSchemaType];
+    if (!value) continue;
+
+    if (
+      typeof value === "object" &&
+      "message" in value &&
+      value.message
+    ) {
+      return { path: key, message: String(value.message) };
+    }
+
+    if (typeof value === "object") {
+      const nested = firstFormError(value as FieldErrors<FormSchemaType>);
+      if (nested) {
+        return { path: `${key}.${nested.path}`, message: nested.message };
+      }
+    }
+  }
+
+  return null;
+}
+
+function stepForErrorPath(path: string): number {
+  if (path.startsWith("attendees")) return 2;
+  if (
+    path.startsWith("agreements") ||
+    path.startsWith("topics") ||
+    path === "filled_out_by"
+  ) {
+    return 3;
+  }
+  return 1;
+}
 
 function buildFormData(
   companySlug: string,
@@ -149,7 +224,6 @@ function buildFormData(
 
   if (data.start_time) fd.append("start_time", data.start_time);
   if (data.end_time) fd.append("end_time", data.end_time);
-  fd.append("status", data.status ?? "ABIERTA");
 
   (data.library_folder_paths ?? []).forEach((p) =>
     fd.append("library_folder_paths[]", p),
@@ -181,6 +255,8 @@ function buildFormData(
     ?.filter((a) => a.description)
     .forEach((a, i) => {
       fd.append(`agreements[${i}][description]`, a.description);
+      if (a.estimated_date)
+        fd.append(`agreements[${i}][estimated_date]`, a.estimated_date);
       if (a.is_authorized) {
         if (a.responsible_authorized_employee_id)
           fd.append(
@@ -262,7 +338,6 @@ export function CreateAeronauticalMeetingMinuteForm({
       topics: parseStringArray(initialData?.topics),
       start_time: toTimeInput(initialData?.start_time),
       end_time: toTimeInput(initialData?.end_time),
-      status: initialData?.status ?? "ABIERTA",
       filled_out_by:
         typeof initialData?.filled_out_by === "object"
           ? String((initialData.filled_out_by as any)?.id ?? "")
@@ -283,6 +358,7 @@ export function CreateAeronauticalMeetingMinuteForm({
       agreements:
         initialData?.agreements?.map((a) => ({
           description: a.description,
+          estimated_date: a.estimated_date ?? "",
           responsible_employee_id: a.responsible_employee_id
             ? String(a.responsible_employee_id)
             : "",
@@ -346,32 +422,65 @@ export function CreateAeronauticalMeetingMinuteForm({
     onClose(false);
   };
 
+  const onInvalid = (errors: FieldErrors<FormSchemaType>) => {
+    const validationError = firstFormError(errors);
+    if (!validationError) return;
+
+    setStep(stepForErrorPath(validationError.path));
+    toast.error("Faltan datos obligatorios", {
+      description: validationError.message,
+    });
+  };
+
+  const handleNext = async () => {
+    const fields =
+      step === 1
+        ? (["date", "place", "start_time", "end_time"] as const)
+        : step === 2
+          ? (["attendees"] as const)
+          : null;
+
+    if (fields) {
+      const valid = await form.trigger([...fields], { shouldFocus: true });
+
+      if (!valid) {
+        const validationError = firstFormError(form.formState.errors);
+        toast.error("Completa los campos obligatorios del paso actual.", {
+          description: validationError?.message,
+        });
+        return;
+      }
+    }
+
+    setStep(step + 1);
+  };
+
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit(onSubmit)}
+        onSubmit={form.handleSubmit(onSubmit, onInvalid)}
         className="flex flex-col space-y-5"
       >
         {/* Step indicator */}
-        <div className="flex items-center justify-center gap-0 mb-2">
+        <div className="mb-4 flex flex-wrap items-center justify-center gap-2 sm:mb-2">
           {[
             { num: 1, label: "Información" },
             { num: 2, label: "Participantes" },
-            { num: 3, label: "Acuerdos" },
+            { num: 3, label: "Agenda y Acuerdos" },
           ].map((s, i) => (
             <React.Fragment key={s.num}>
               {i > 0 && (
                 <div
                   className={cn(
-                    "w-12 h-px mx-2",
+                    "hidden h-px w-6 sm:block sm:w-12",
                     step > i ? "bg-primary" : "bg-border",
                   )}
                 />
               )}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2">
                 <div
                   className={cn(
-                    "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold border",
+                    "flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[11px] font-semibold sm:h-7 sm:w-7 sm:text-xs",
                     step >= s.num
                       ? "bg-primary text-primary-foreground border-primary"
                       : "bg-muted text-muted-foreground border-border",
@@ -397,7 +506,7 @@ export function CreateAeronauticalMeetingMinuteForm({
                 </div>
                 <span
                   className={cn(
-                    "text-xs font-medium whitespace-nowrap",
+                    "whitespace-nowrap text-[11px] font-medium sm:text-xs",
                     step >= s.num ? "text-foreground" : "text-muted-foreground",
                   )}
                 >
@@ -410,13 +519,29 @@ export function CreateAeronauticalMeetingMinuteForm({
 
         {step === 1 && (
           <>
-            {/* Fecha y Lugar */}
+            {/* Lugar y Fecha */}
             <div className="space-y-3">
               <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 Información de la Reunión
               </span>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <FormField
+                  control={form.control}
+                  name="place"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
+                        Lugar <RequiredIndicator />
+                      </FormLabel>
+                      <FormControl>
+                        <Input placeholder="Sala de reuniones" {...field} />
+                      </FormControl>
+                      <FormMessage className="text-xs" />
+                    </FormItem>
+                  )}
+                />
+
                 <FormField
                   control={form.control}
                   name="date"
@@ -432,59 +557,18 @@ export function CreateAeronauticalMeetingMinuteForm({
                     </FormItem>
                   )}
                 />
-
-                <FormField
-                  control={form.control}
-                  name="place"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
-                        Lugar
-                      </FormLabel>
-                      <FormControl>
-                        <Input placeholder="Sala de reuniones" {...field} />
-                      </FormControl>
-                      <FormMessage className="text-xs" />
-                    </FormItem>
-                  )}
-                />
               </div>
             </div>
 
             <Separator className="border-border/60" />
 
-            {/* Objetivo */}
-            <div className="space-y-3">
-              <FormField
-                control={form.control}
-                name="objective"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                      Objetivo
-                    </FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Objetivo de la reunión"
-                        className="min-h-20"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage className="text-xs" />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <Separator className="border-border/60" />
-
-            {/* Horario y estado */}
+            {/* Hora de inicio y finalización */}
             <div className="space-y-3">
               <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                Horario y estado
+                Horario de la Reunión
               </span>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <FormField
                   control={form.control}
                   name="start_time"
@@ -524,34 +608,32 @@ export function CreateAeronauticalMeetingMinuteForm({
                     </FormItem>
                   )}
                 />
-
-                <FormField
-                  control={form.control}
-                  name="status"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
-                        Estado
-                      </FormLabel>
-                      <Select
-                        value={field.value}
-                        onValueChange={field.onChange}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Seleccione..." />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="ABIERTA">Abierta</SelectItem>
-                          <SelectItem value="CERRADA">Cerrada</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage className="text-xs" />
-                    </FormItem>
-                  )}
-                />
               </div>
+            </div>
+
+            <Separator className="border-border/60" />
+
+            {/* Motivo de la reunión */}
+            <div className="space-y-3">
+              <FormField
+                control={form.control}
+                name="objective"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      Motivo de la reunión
+                    </FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Motivo de la reunión"
+                        className="min-h-20"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage className="text-xs" />
+                  </FormItem>
+                )}
+              />
             </div>
           </>
         )}
@@ -617,11 +699,20 @@ export function CreateAeronauticalMeetingMinuteForm({
                                         false,
                                       );
                                       form.setValue(
+                                        `attendees.${index}.employee_id`,
+                                        "",
+                                      );
+                                      form.setValue(
                                         `attendees.${index}.attendee_name`,
                                         "",
                                       );
                                       form.setValue(
                                         `attendees.${index}.job_title`,
+                                        "",
+                                      );
+                                    } else {
+                                      form.setValue(
+                                        `attendees.${index}.authorized_employee_id`,
                                         "",
                                       );
                                     }
@@ -650,7 +741,20 @@ export function CreateAeronauticalMeetingMinuteForm({
                                         false,
                                       );
                                       form.setValue(
+                                        `attendees.${index}.employee_id`,
+                                        "",
+                                      );
+                                      form.setValue(
                                         `attendees.${index}.authorized_employee_id`,
+                                        "",
+                                      );
+                                    } else {
+                                      form.setValue(
+                                        `attendees.${index}.attendee_name`,
+                                        "",
+                                      );
+                                      form.setValue(
+                                        `attendees.${index}.job_title`,
                                         "",
                                       );
                                     }
@@ -685,6 +789,7 @@ export function CreateAeronauticalMeetingMinuteForm({
                         }
                         options={allEmployeeOptions}
                         disabled={allEmployeesLoading}
+                        required
                       />
                     )}
 
@@ -702,6 +807,7 @@ export function CreateAeronauticalMeetingMinuteForm({
                         emptyText="No hay empleados autorizados."
                         options={authorizedEmployeeOptions}
                         disabled={authorizedEmployeesLoading}
+                        required
                       />
                     )}
 
@@ -713,7 +819,7 @@ export function CreateAeronauticalMeetingMinuteForm({
                           render={({ field: f }) => (
                             <FormItem className="flex flex-col">
                               <FormLabel className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70 mb-1">
-                                Nombre
+                                Nombre <RequiredIndicator />
                               </FormLabel>
                               <FormControl>
                                 <Input placeholder="Nombre completo" {...f} />
@@ -769,16 +875,16 @@ export function CreateAeronauticalMeetingMinuteForm({
           <>
             <Separator className="border-border/60" />
 
-            {/* Puntos a Tratar */}
+            {/* Agenda */}
             <div className="space-y-3">
               <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                Puntos a Tratar
+                Agenda
               </span>
 
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                    Temas
+                    Puntos de la agenda
                   </FormLabel>
                   <Button
                     type="button"
@@ -867,6 +973,7 @@ export function CreateAeronauticalMeetingMinuteForm({
                   authorizedEmployees={authorizedEmployees ?? []}
                   isAuthorizedEmployeesLoading={authorizedEmployeesLoading}
                   onRemove={() => removeAgreement(index)}
+                  showEstimatedDate
                 />
               ))}
             </div>
@@ -889,6 +996,7 @@ export function CreateAeronauticalMeetingMinuteForm({
                   }
                   options={allEmployeeOptions}
                   disabled={allEmployeesLoading}
+                  required
                 />
               </div>
             </div>
@@ -998,21 +1106,27 @@ export function CreateAeronauticalMeetingMinuteForm({
             <Button
               type="button"
               variant="outline"
+              className="flex-1 sm:flex-none"
               onClick={() => setStep(step - 1)}
             >
               <ChevronLeft className="size-4 mr-1" />
               Anterior
             </Button>
           ) : (
-            <div />
+            <div className="hidden sm:block" />
           )}
           {step < 3 ? (
-            <Button type="button" onClick={() => setStep(step + 1)}>
+            <Button
+              type="button"
+              className="flex-1 sm:flex-none"
+              onClick={handleNext}
+              disabled={form.formState.isValidating}
+            >
               Siguiente
               <ChevronRight className="size-4 ml-1" />
             </Button>
           ) : (
-            <div />
+            <div className="hidden sm:block" />
           )}
         </div>
       </form>

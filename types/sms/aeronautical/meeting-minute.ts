@@ -26,6 +26,8 @@ export type AeronauticalMeetingAgreement = {
   id?: number;
   meeting_minute_id?: number;
   description: string;
+  /** Fecha aproximada de cumplimiento del acuerdo. */
+  estimated_date?: string | null;
   responsible_employee_id?: number | null;
   responsible_authorized_employee_id?: number | null;
   responsible_name?: string | null;

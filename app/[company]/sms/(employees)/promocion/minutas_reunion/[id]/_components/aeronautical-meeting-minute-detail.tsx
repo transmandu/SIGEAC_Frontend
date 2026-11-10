@@ -2,6 +2,7 @@
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Badge } from "@/components/ui/badge";
+import { TagBadge } from "@/components/misc/TagBadge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useGetAeronauticalMeetingMinuteByDepartment } from "@/hooks/sms/aeronautical/minutas_reunion/useGetAeronauticalMeetingMinuteByDepartment";
@@ -149,9 +150,9 @@ const ShowAeronauticalMeetingMinute = () => {
                 </p>
               </div>
             </div>
-            <Badge variant={status === "CERRADA" ? "default" : "outline"}>
+            <TagBadge tone={status === "CERRADA" ? "emerald" : "amber"}>
               {status}
-            </Badge>
+            </TagBadge>
           </div>
         </div>
 
@@ -372,6 +373,12 @@ const ShowAeronauticalMeetingMinute = () => {
                         <p className="mt-0.5 text-sm">
                           {agreement.description}
                         </p>
+                        {agreement.estimated_date && (
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            Cumplimiento estimado:{" "}
+                            {dateLabel(agreement.estimated_date)}
+                          </p>
+                        )}
                       </div>
                       <div>
                         <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
