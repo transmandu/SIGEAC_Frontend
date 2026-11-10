@@ -1,3 +1,9 @@
+## v4.97.0 — 2026-11-10
+
+- Merge pull request #390 from transmandu/fix/toolbox-creation-error
+- style: formato automatico (prettier)
+- feat(planning): enable uploading and downloading of LibreOffice files (.odt, .ods, .odp) in work orders (OT)
+
 ## v4.96.1 — 2026-11-09
 
 - Merge pull request #389 from transmandu/fix/toolbox-creation-error
