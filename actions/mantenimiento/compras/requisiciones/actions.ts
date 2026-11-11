@@ -239,6 +239,7 @@ export const useUpdateRequisitionPriority = () => {
       id: number;
       data: {
         priority?: string | null;
+        reason?: string | null;
         articles?: { id: number; priority?: string | null }[];
         general_articles?: { id: number; priority?: string | null }[];
       };

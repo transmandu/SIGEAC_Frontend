@@ -109,11 +109,7 @@ const RequisitionDropdownActions = ({
     : null;
   const canReject =
     canSeeAllOptions && !(isRejected || req.status === "APPROVED");
-  const canChangePriorityStatus = !(
-    req.status === "APPROVED" ||
-    req.status === "QUOTED" ||
-    isRejected
-  );
+  const canChangePriorityStatus = !(req.status === "APPROVED" || isRejected);
 
   const run = (action: () => void) => () => {
     setOpenDropdown(false);

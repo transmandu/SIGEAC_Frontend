@@ -220,7 +220,14 @@ export function notifyError<T extends FieldValues = FieldValues>(
   }
 
   if (process.env.NODE_ENV !== "production") {
-    console.error(
+    // Un fallo de conectividad (típico del servidor local lento o de un
+    // refresco a mitad de petición) no es un bug del código: como warn no abre
+    // el overlay de errores de Next.
+    const log = ONE_AT_A_TIME.has(described.kind)
+      ? console.warn
+      : console.error;
+
+    log(
       `[${described.code ?? described.kind}]`,
       described.reference ?? "",
       error,

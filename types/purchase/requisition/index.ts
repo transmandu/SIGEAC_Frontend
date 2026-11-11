@@ -260,11 +260,26 @@ export type GeneralSalesReport = {
 }[];
 
 // ── Requisition Detail ─────────────────────────────────────────────────────
+/** Último cambio de prioridad de la solicitud (no el de sus artículos). */
+export interface RequisitionPriorityChange {
+  id: number;
+  from_priority: PurchasePriority | string;
+  to_priority: PurchasePriority | string;
+  /** El cambio subió la urgencia (p. ej. Media → Alta). */
+  is_escalation: boolean;
+  reason: string | null;
+  /** Nombre de quien lo hizo. */
+  changed_by: string;
+  /** Instante UTC; se imprime con `formatInstant`. */
+  changed_at: string;
+}
+
 export interface RequisitionByOrderNumber {
   id: number;
   order_number: string;
   status: string;
   priority?: PurchasePriority | string;
+  priority_change?: RequisitionPriorityChange | null;
   type: RequisitionType;
   created_by: User | null;
   requested_by: string;
