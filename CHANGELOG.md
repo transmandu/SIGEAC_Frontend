@@ -1,3 +1,7 @@
+## v4.103.0 — 2026-11-11
+
+- feat(sms): add aeronautical SMS activities, change management and meeting minutes (#393)
+
 ## v4.102.0 — 2026-11-11
 
 - feat: enhance UI components and add theme transition effects (#395)
