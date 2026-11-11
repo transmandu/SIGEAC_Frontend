@@ -1,3 +1,9 @@
+## v4.103.1 — 2026-11-11
+
+- Merge pull request #396 from transmandu/feat/normalize-flight-statuses-and-lodges
+- style: formato automatico (prettier)
+- fix(counter): align passenger table columns and support English statuses
+
 ## v4.103.0 — 2026-11-11
 
 - feat(sms): add aeronautical SMS activities, change management and meeting minutes (#393)
