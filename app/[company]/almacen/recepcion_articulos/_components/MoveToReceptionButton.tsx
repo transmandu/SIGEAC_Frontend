@@ -8,6 +8,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { blockingPendingRequirements } from "@/lib/incoming-readiness";
 import type { TransitArticle } from "@/types/purchase/in-transit";
 import { FileWarning, Loader2, PackageCheck } from "lucide-react";
 
@@ -15,7 +16,7 @@ import { FileWarning, Loader2, PackageCheck } from "lucide-react";
  * Pase de un artículo en tránsito a recepción, hecho por quien lo recibe en el
  * almacén. Es el mismo cambio de estado que compras puede hacer desde su
  * pantalla; el servidor lo rechaza mientras haya documentación requerida sin
- * consignar, así que aquí no se ofrece hasta que compras la consigne.
+ * consignar (salvo en consumibles), así que aquí no se ofrece hasta que compras la consigne.
  */
 export function MoveToReceptionButton({
   article,
@@ -24,9 +25,7 @@ export function MoveToReceptionButton({
 }) {
   const { updateArticleStatus } = useUpdateArticleStatus();
 
-  const pendingDocuments = (article.document_requirements ?? []).filter(
-    (requirement) => (requirement.documents ?? []).length === 0,
-  );
+  const pendingDocuments = blockingPendingRequirements(article);
   const blocked = pendingDocuments.length > 0;
 
   const handleMove = async () => {

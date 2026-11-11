@@ -1,3 +1,4 @@
+import type { ArticleDocumentRequirementSummary } from "@/types";
 import type {
   IncomingBlockingReason,
   IncomingReadiness,
@@ -53,3 +54,26 @@ export const readinessLabels = (readiness?: IncomingReadiness): string[] =>
  */
 export const isReadyForIncoming = (readiness?: IncomingReadiness): boolean =>
   readiness?.ready ?? true;
+
+/**
+ * Los consumibles no se retienen por falta de documentación: suelen comprarse
+ * en comercios sin orden de compra y su factura es el único documento. Espeja
+ * `IncomingReadinessService::isExempt` del backend.
+ */
+export const isDocumentationExempt = (article: {
+  batch?: { category?: string | null } | null;
+}): boolean => article.batch?.category?.toUpperCase() === "CONSUMABLE";
+
+/**
+ * Documentos requeridos aún sin archivo que sí impiden avanzar al artículo.
+ * Para un consumible siempre es vacío: puede adjuntarlos, pero no se le exigen.
+ */
+export const blockingPendingRequirements = (article: {
+  batch?: { category?: string | null } | null;
+  document_requirements?: ArticleDocumentRequirementSummary[] | null;
+}): ArticleDocumentRequirementSummary[] =>
+  isDocumentationExempt(article)
+    ? []
+    : (article.document_requirements ?? []).filter(
+        (requirement) => (requirement.documents ?? []).length === 0,
+      );
