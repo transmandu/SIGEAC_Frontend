@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@/lib/zod-resolver";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { useState } from "react";
 import { useCreateObligatoryReport } from "@/actions/mantenimiento/sms/reporte_obligatorio/actions";
@@ -50,6 +50,8 @@ import {
 import { useGetLocationsByCompany } from "@/hooks/sistema/useGetLocationsByCompany";
 import { PhoneInput } from "@/components/ui/PhoneInput";
 import { phoneSchema } from "@/lib/phone";
+import { useAuth } from "@/contexts/AuthContext";
+import FolderSelect from "@/components/library/FolderSelect";
 
 interface FormProps {
   isEditing?: boolean;
@@ -123,6 +125,7 @@ export function CreateGenObliReport({ onClose, initialData }: FormProps) {
           "Solo se permiten archivos PDF",
         )
         .optional(),
+      library_folder_paths: z.array(z.string()).optional().default([]),
     })
     .refine(
       (data) => {
@@ -140,6 +143,7 @@ export function CreateGenObliReport({ onClose, initialData }: FormProps) {
 
   const { createObligatoryReport } = useCreateObligatoryReport();
   const { company } = useParams<{ company: string }>();
+  const { isAuthenticated } = useAuth();
 
   const [showOtherInput, setShowOtherInput] = useState(
     initialData?.other_incidents ? true : false,
@@ -201,7 +205,13 @@ export function CreateGenObliReport({ onClose, initialData }: FormProps) {
         : [],
       other_incidents: initialData?.other_incidents ?? "",
       description: initialData?.description ?? "",
+      library_folder_paths: initialData?.library_folder_paths ?? [],
     },
+  });
+
+  const selectedDocument = useWatch({
+    control: form.control,
+    name: "document",
   });
 
   const onSubmit = async (data: FormSchemaType) => {
@@ -222,6 +232,7 @@ export function CreateGenObliReport({ onClose, initialData }: FormProps) {
       status: "IN_PROCESS",
       image: data.image,
       document: data.document,
+      library_folder_paths: data.library_folder_paths,
     };
 
     try {
@@ -786,6 +797,57 @@ export function CreateGenObliReport({ onClose, initialData }: FormProps) {
                 </FormItem>
               )}
             />
+            <FormField
+              control={form.control}
+              name="document"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Documento adjunto (PDF)
+                  </FormLabel>
+                  <div className="flex flex-col gap-3 mt-2">
+                    {field.value ? (
+                      <p className="text-sm text-muted-foreground border border-border/60 rounded-md bg-muted/20 px-3 py-2">
+                        {field.value.name}
+                      </p>
+                    ) : null}
+                    <FormControl>
+                      <Input
+                        type="file"
+                        accept="application/pdf"
+                        onChange={(e) => field.onChange(e.target.files?.[0])}
+                        className="cursor-pointer file:cursor-pointer"
+                      />
+                    </FormControl>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {selectedDocument && isAuthenticated && (
+              <FormField
+                control={form.control}
+                name="library_folder_paths"
+                render={({ field }) => (
+                  <FormItem className="sm:col-span-2">
+                    <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      Carpetas en Librería
+                    </FormLabel>
+                    <FolderSelect
+                      company={company}
+                      value={field.value ?? []}
+                      onChange={(paths) => field.onChange(paths)}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      El documento también estará disponible en la biblioteca
+                      dentro de estas carpetas.
+                    </p>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
           </div>
         </div>
 

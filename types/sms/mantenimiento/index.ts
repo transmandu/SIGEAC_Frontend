@@ -18,6 +18,8 @@ export type VoluntaryReport = {
   hazard_notification?: HazardNotification;
   image?: string;
   document?: string;
+  library_document_id?: number | null;
+  library_folder_paths?: string[];
   management_doc?: string;
   imageUrl?: string;
   documentUrl?: string;
@@ -46,6 +48,8 @@ export type ObligatoryReport = {
   hazard_notification?: HazardNotification;
   image?: string;
   document?: string;
+  library_document_id?: number | null;
+  library_folder_paths?: string[];
   imageUrl?: string;
   documentUrl?: string;
 };

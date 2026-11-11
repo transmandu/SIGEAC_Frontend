@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ComboboxField } from "@/components/ui/ComboboxField";
+import { RequiredIndicator } from "@/components/misc/RequiredIndicator";
 import { Trash2 } from "lucide-react";
 import { UseFormReturn, useWatch } from "react-hook-form";
 import { Employee } from "@/types";
@@ -24,6 +25,8 @@ interface AgreementItemProps {
   authorizedEmployees: ExternalEmployee[];
   isAuthorizedEmployeesLoading?: boolean;
   onRemove: () => void;
+  /** La minuta aeronáutica registra la fecha estimada de cumplimiento. */
+  showEstimatedDate?: boolean;
 }
 
 export function AgreementItem({
@@ -33,6 +36,7 @@ export function AgreementItem({
   authorizedEmployees,
   isAuthorizedEmployeesLoading,
   onRemove,
+  showEstimatedDate = false,
 }: AgreementItemProps) {
   const isExternal = useWatch({
     control: form.control,
@@ -71,11 +75,20 @@ export function AgreementItem({
                       if (checked) {
                         form.setValue(`agreements.${index}.is_external`, false);
                         form.setValue(
+                          `agreements.${index}.responsible_employee_id`,
+                          "",
+                        );
+                        form.setValue(
                           `agreements.${index}.responsible_name`,
                           "",
                         );
                         form.setValue(
                           `agreements.${index}.responsible_job_title`,
+                          "",
+                        );
+                      } else {
+                        form.setValue(
+                          `agreements.${index}.responsible_authorized_employee_id`,
                           "",
                         );
                       }
@@ -104,7 +117,20 @@ export function AgreementItem({
                           false,
                         );
                         form.setValue(
+                          `agreements.${index}.responsible_employee_id`,
+                          "",
+                        );
+                        form.setValue(
                           `agreements.${index}.responsible_authorized_employee_id`,
+                          "",
+                        );
+                      } else {
+                        form.setValue(
+                          `agreements.${index}.responsible_name`,
+                          "",
+                        );
+                        form.setValue(
+                          `agreements.${index}.responsible_job_title`,
                           "",
                         );
                       }
@@ -135,7 +161,7 @@ export function AgreementItem({
         render={({ field }) => (
           <FormItem>
             <FormLabel className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70 mb-1">
-              Descripción
+              Descripción <RequiredIndicator />
             </FormLabel>
             <FormControl>
               <Textarea
@@ -149,6 +175,28 @@ export function AgreementItem({
         )}
       />
 
+      {showEstimatedDate && (
+        <FormField
+          control={form.control}
+          name={`agreements.${index}.estimated_date`}
+          render={({ field }) => (
+            <FormItem className="flex flex-col">
+              <FormLabel className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70 mb-1">
+                Fecha estimada de cumplimiento
+              </FormLabel>
+              <FormControl>
+                <Input
+                  type="date"
+                  value={field.value ?? ""}
+                  onChange={field.onChange}
+                />
+              </FormControl>
+              <FormMessage className="text-xs" />
+            </FormItem>
+          )}
+        />
+      )}
+
       {!isExternal && !isAuthorized && (
         <ComboboxField
           form={form}
@@ -156,6 +204,7 @@ export function AgreementItem({
           label="Responsable"
           placeholder="Seleccionar empleado..."
           options={employeeOptions}
+          required
         />
       )}
 
@@ -171,6 +220,7 @@ export function AgreementItem({
           emptyText="No hay empleados autorizados."
           options={authorizedEmployeeOptions}
           disabled={isAuthorizedEmployeesLoading}
+          required
         />
       )}
 
@@ -182,7 +232,7 @@ export function AgreementItem({
             render={({ field }) => (
               <FormItem className="flex flex-col">
                 <FormLabel className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70 mb-1">
-                  Nombre
+                  Nombre <RequiredIndicator />
                 </FormLabel>
                 <FormControl>
                   <Input placeholder="Nombre completo" {...field} />

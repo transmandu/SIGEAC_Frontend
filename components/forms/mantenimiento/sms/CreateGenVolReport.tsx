@@ -48,6 +48,8 @@ import { VoluntaryReport } from "@/types/sms/mantenimiento";
 import { PhoneInput } from "@/components/ui/PhoneInput";
 import { phoneSchema } from "@/lib/phone";
 import { useResettingState } from "@/hooks/useResettingState";
+import { useAuth } from "@/contexts/AuthContext";
+import FolderSelect from "@/components/library/FolderSelect";
 
 interface FormProps {
   onClose: () => void;
@@ -61,6 +63,7 @@ export function CreateGenVolReport({
   initialData,
 }: FormProps) {
   const { company } = useParams<{ company: string }>();
+  const { isAuthenticated } = useAuth();
   const { createVoluntaryReport } = useCreateVoluntaryReport();
   const { updateVoluntaryReport } = useUpdateVoluntaryReport();
   const { data: locations, isLoading: isLocationsLoading } =
@@ -147,6 +150,8 @@ export function CreateGenVolReport({
         "Solo se permiten archivos PDF",
       )
       .optional(),
+
+    library_folder_paths: z.array(z.string()).optional().default([]),
   });
 
   type FormSchemaType = z.infer<typeof FormSchema>;
@@ -177,6 +182,7 @@ export function CreateGenVolReport({
       ...(initialData?.reporter_phone && {
         reporter_phone: initialData.reporter_phone,
       }),
+      library_folder_paths: initialData?.library_folder_paths ?? [],
     },
   });
 
@@ -184,6 +190,11 @@ export function CreateGenVolReport({
   const currentConsequencesStr = useWatch({
     control: form.control,
     name: "possible_consequences",
+  });
+
+  const selectedDocument = useWatch({
+    control: form.control,
+    name: "document",
   });
   const consequencesList = currentConsequencesStr
     ? currentConsequencesStr.split("~").filter(Boolean)
@@ -728,6 +739,30 @@ export function CreateGenVolReport({
                 </FormItem>
               )}
             />
+
+            {selectedDocument && isAuthenticated && (
+              <FormField
+                control={form.control}
+                name="library_folder_paths"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      Carpetas en Librería
+                    </FormLabel>
+                    <FolderSelect
+                      company={company}
+                      value={field.value ?? []}
+                      onChange={(paths) => field.onChange(paths)}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      El documento también estará disponible en la biblioteca
+                      dentro de estas carpetas.
+                    </p>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
           </div>
         </div>
 

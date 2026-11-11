@@ -3,17 +3,20 @@
 import { useParams } from "next/navigation";
 
 import LoadingPage from "@/components/misc/LoadingPage";
-import { useGetObligatoryReportById } from "@/hooks/sms/useGetObligatoryReportById";
+import { useGetAeronauticalObligatoryReportById } from "@/hooks/sms/mantenimiento/useGetObligatoryReportById";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
 import { ReportDetailView } from "@/app/[company]/sms/aeronautical/gestion_de_riesgos/reportes/_components/report-detail-view";
 
 export default function ObligatoryReportDetailPage() {
-  const { company, report_id } = useParams<{ company: string; report_id: string }>();
+  const { company, report_id } = useParams<{
+    company: string;
+    report_id: string;
+  }>();
   const { selectedCompany } = useCompanyStore();
   const companySlug = selectedCompany?.slug || company;
 
-  const { data, isLoading } = useGetObligatoryReportById({
+  const { data, isLoading } = useGetAeronauticalObligatoryReportById({
     company: companySlug,
     id: report_id,
   });

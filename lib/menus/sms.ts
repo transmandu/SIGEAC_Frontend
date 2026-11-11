@@ -119,16 +119,32 @@ export function buildSmsGroup({
           `/${currentCompany?.slug}/sms/aseguramiento_calidad`,
         ),
         icon: ShieldCheck,
-        roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
-        requiresOmac: false,
+        roles: [
+          "SUPERUSER",
+          "JEFE_SMS",
+          "ANALISTA_SMS",
+          "COORDINADOR_SMS",
+          "GERENTE_SMS",
+          "PRESIDENCIA",
+        ],
+        // La ruta es única para ambos tipos de empresa: adentro, `useIsOmac`
+        // decide si se muestran los datos aeronáuticos (OMAC) o los de
+        // aerolínea. El menú no necesita distinguirlos.
         submenus: [
           {
             href: `/${currentCompany?.slug}/sms/aseguramiento_calidad/gestion_de_cambio`,
-            label: "Gestion de Cambio",
-            roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
-            active:
-              pathname ===
+            label: "Gestión de Cambio",
+            roles: [
+              "SUPERUSER",
+              "JEFE_SMS",
+              "ANALISTA_SMS",
+              "COORDINADOR_SMS",
+              "GERENTE_SMS",
+              "PRESIDENCIA",
+            ],
+            active: pathname.includes(
               `/${currentCompany?.slug}/sms/aseguramiento_calidad/gestion_de_cambio`,
+            ),
           },
         ],
       },
@@ -137,8 +153,14 @@ export function buildSmsGroup({
         label: "Promoción de la seguridad operacional",
         active: pathname.includes(`/${currentCompany?.slug}/sms/promocion`),
         icon: CalendarClock,
-        roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
-        requiresOmac: false,
+        roles: [
+          "SUPERUSER",
+          "JEFE_SMS",
+          "ANALISTA_SMS",
+          "COORDINADOR_SMS",
+          "GERENTE_SMS",
+          "PRESIDENCIA",
+        ],
         submenus: [
           {
             href: `/${currentCompany?.slug}/sms/promocion/actividades/calendario`,
@@ -148,6 +170,7 @@ export function buildSmsGroup({
             active:
               pathname ===
               `/${currentCompany?.slug}/sms/promocion/actividades/calendario`,
+            requiresOmac: false,
           },
           {
             href: `/${currentCompany?.slug}/sms/promocion/actividades`,
@@ -162,6 +185,7 @@ export function buildSmsGroup({
             label: "Capacitación",
             requiresTables: ["sms_training_groups"],
             roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
+            requiresOmac: false,
             active:
               pathname ===
               `/${currentCompany?.slug}/sms/promocion/capacitacion_personal`,
