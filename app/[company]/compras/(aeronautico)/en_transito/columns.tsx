@@ -23,6 +23,7 @@ import {
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import CopyPartNumberButton from "@/components/misc/CopyPartNumberButton";
 import {
+  blockingPendingRequirements,
   INCOMING_REASON_ACTIONS,
   INCOMING_REASON_LABELS,
   isReadyForIncoming,
@@ -39,10 +40,7 @@ import {
   formatInstant,
 } from "@/lib/date";
 
-const getPendingRequirements = (article: TransitArticle) =>
-  (article.document_requirements ?? []).filter(
-    (req) => (req.documents ?? []).length === 0,
-  );
+const getPendingRequirements = blockingPendingRequirements;
 
 function TransitActionButton({ article }: { article: TransitArticle }) {
   const { updateArticleStatus } = useUpdateArticleStatus();
