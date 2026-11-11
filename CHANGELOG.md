@@ -1,3 +1,7 @@
+## v4.102.0 — 2026-11-11
+
+- feat: enhance UI components and add theme transition effects (#395)
+
 ## v4.101.0 — 2026-11-11
 
 - feat: implement priority change notice and related functionality (#394)
