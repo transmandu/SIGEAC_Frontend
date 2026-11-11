@@ -159,13 +159,36 @@
   }
 }
 
+/* Cambio de tema: la animación del círculo la dispara ThemeToggler con la Web
+   Animations API; aquí se anula el fundido por defecto del navegador para que
+   la capa nueva solo se vea revelada por el clip-path. */
+::view-transition-group(root),
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(root) {
+  z-index: 1;
+}
+
+::view-transition-new(root) {
+  z-index: 2;
+}
+
 /* Evita saltos de página y desplazamiento horizontal involuntario cuando Radix UI
    (selects, dropdowns, diálogos) bloquea el scroll del body */
 html {
   scrollbar-gutter: stable;
 }
 
-body[data-scroll-locked] {
+/* `html body[...]` y no `body[...]`: react-remove-scroll-bar inyecta su <style>
+   en runtime, después de este archivo, con `margin-right: <ancho de barra>
+   !important` y la misma especificidad, así que ganaba y sumaba su margen al
+   gutter ya reservado: la página se empujaba a la izquierda al abrir un menú
+   o un diálogo. Con un selector más específico gana este. */
+html body[data-scroll-locked] {
   --removed-body-scroll-bar-size: 0px !important;
   margin-right: 0px !important;
 }

@@ -43,34 +43,39 @@ export default function NotificationBell() {
     scopeKey: selectedCompany?.slug,
   });
 
+  const shakeTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   useEffect(() => {
     if (unreadCount > previousCount.current) {
       setShake(true);
-
-      const timeout = setTimeout(() => {
-        setShake(false);
-      }, 700);
-
-      previousCount.current = unreadCount;
-
-      return () => clearTimeout(timeout);
+      if (shakeTimeout.current) clearTimeout(shakeTimeout.current);
+      shakeTimeout.current = setTimeout(() => setShake(false), 700);
     }
 
     previousCount.current = unreadCount;
   }, [unreadCount]);
+
+  useEffect(
+    () => () => {
+      if (shakeTimeout.current) clearTimeout(shakeTimeout.current);
+    },
+    [],
+  );
 
   return (
     <>
       <TooltipProvider disableHoverableContent>
         <Tooltip delayDuration={100}>
           <TooltipTrigger asChild>
-            <button
+            <motion.button
+              initial="rest"
+              whileHover="hover"
               onClick={() => setOpen(true)}
               aria-label="Notificaciones"
               className={cn(
                 "glass-control",
                 "relative flex items-center justify-center",
-                "h-9 w-9 rounded-full",
+                "size-9 rounded-full",
                 "border",
                 "text-foreground/90",
                 "hover:text-foreground",
@@ -78,27 +83,31 @@ export default function NotificationBell() {
                 open && "bg-muted/60",
               )}
             >
-              <motion.div
-                whileHover={{ scale: 1.12, rotate: -8 }}
-                whileTap={{ scale: 0.9 }}
-                animate={
-                  shake
-                    ? {
-                        rotate: [0, -12, 12, -10, 10, -6, 6, 0],
-                      }
-                    : {}
-                }
-                transition={{
-                  duration: 0.6,
-                  ease: "easeInOut",
+              <motion.span
+                variants={{
+                  rest: { scale: 1, rotate: 0 },
+                  hover: { scale: 1.12, rotate: -8 },
                 }}
+                transition={{ duration: 0.18, ease: "easeOut" }}
+                className="flex"
               >
-                {unreadCount > 0 ? (
-                  <BellRing className="h-4 w-4" />
-                ) : (
-                  <Bell className="h-4 w-4" />
-                )}
-              </motion.div>
+                <motion.span
+                  animate={{
+                    rotate: shake ? [0, -12, 12, -10, 10, -6, 6, 0] : 0,
+                  }}
+                  transition={{
+                    duration: shake ? 0.6 : 0.2,
+                    ease: "easeInOut",
+                  }}
+                  className="flex"
+                >
+                  {unreadCount > 0 ? (
+                    <BellRing className="size-4" />
+                  ) : (
+                    <Bell className="size-4" />
+                  )}
+                </motion.span>
+              </motion.span>
 
               <AnimatePresence>
                 {unreadCount > 0 && (
@@ -136,7 +145,7 @@ export default function NotificationBell() {
                   </motion.span>
                 )}
               </AnimatePresence>
-            </button>
+            </motion.button>
           </TooltipTrigger>
 
           <TooltipContent side="bottom" className="z-1001">
