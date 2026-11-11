@@ -38,6 +38,18 @@ import {
   CheckCircle2,
 } from "lucide-react";
 
+const LODGE_DISPLAY: Record<string, string> = {
+  TOURIST: "TURISTAS",
+  TURISTA: "TURISTAS",
+  TURISTAS: "TURISTAS",
+  RESIDENT: "RESIDENTE",
+  RESIDENTE: "RESIDENTE",
+  PARTICULAR: "PARTICULAR",
+  EMPLOYEE: "EMPLEADO",
+  EMPLEADO: "EMPLEADO",
+  "N/A": "N/A",
+};
+
 const PaxFlightDetailPage = () => {
   const params = useParams();
   const router = useRouter();
@@ -125,17 +137,20 @@ const PaxFlightDetailPage = () => {
                     <Layers className="h-3 w-3 mr-1" /> Híbrido
                   </Badge>
                 )}
-                {flight.status === "BORRADOR" && (
+                {(flight.status === "BORRADOR" ||
+                  flight.status === "DRAFT") && (
                   <Badge className="bg-yellow-500/10 text-yellow-700 border-yellow-300 dark:border-yellow-800">
                     <Clock className="h-3 w-3 mr-1" /> Borrador
                   </Badge>
                 )}
-                {flight.status === "EN_VUELO" && (
+                {(flight.status === "EN_VUELO" ||
+                  flight.status === "IN_FLIGHT") && (
                   <Badge className="bg-blue-500/10 text-blue-600 border-blue-300 dark:border-blue-800">
                     <Send className="h-3 w-3 mr-1" /> En Vuelo
                   </Badge>
                 )}
-                {flight.status === "FINALIZADO" && (
+                {(flight.status === "FINALIZADO" ||
+                  flight.status === "FINALIZED") && (
                   <Badge className="bg-green-500/10 text-green-700 border-green-300 dark:border-green-800">
                     <CheckCircle2 className="h-3 w-3 mr-1" /> Finalizado
                   </Badge>
@@ -148,26 +163,29 @@ const PaxFlightDetailPage = () => {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            {canWrite && flight.status === "BORRADOR" && (
-              <Button
-                variant="outline"
-                className="text-blue-600 border-blue-200 hover:bg-blue-50"
-                onClick={() => markInFlightMutation.mutate(flight.id)}
-                disabled={markInFlightMutation.isPending}
-              >
-                <Send className="h-4 w-4 mr-2" /> Marcar En Vuelo
-              </Button>
-            )}
+            {canWrite &&
+              (flight.status === "BORRADOR" || flight.status === "DRAFT") && (
+                <Button
+                  variant="outline"
+                  className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                  onClick={() => markInFlightMutation.mutate(flight.id)}
+                  disabled={markInFlightMutation.isPending}
+                >
+                  <Send className="h-4 w-4 mr-2" /> Marcar En Vuelo
+                </Button>
+              )}
 
-            {canWrite && flight.status === "EN_VUELO" && (
-              <Button
-                className="bg-green-600 hover:bg-green-700 text-white"
-                onClick={() => finalizeMutation.mutate(flight.id)}
-                disabled={finalizeMutation.isPending}
-              >
-                <CheckCircle2 className="h-4 w-4 mr-2" /> Finalizar Manifiesto
-              </Button>
-            )}
+            {canWrite &&
+              (flight.status === "EN_VUELO" ||
+                flight.status === "IN_FLIGHT") && (
+                <Button
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                  onClick={() => finalizeMutation.mutate(flight.id)}
+                  disabled={finalizeMutation.isPending}
+                >
+                  <CheckCircle2 className="h-4 w-4 mr-2" /> Finalizar Manifiesto
+                </Button>
+              )}
 
             {/* Previsualizar PDF en modal sin descargar */}
             <Button
@@ -178,23 +196,25 @@ const PaxFlightDetailPage = () => {
               <Eye className="h-4 w-4 mr-2" /> Previsualizar PDF
             </Button>
 
-            {flight.status === "FINALIZADO" && (
+            {(flight.status === "FINALIZADO" ||
+              flight.status === "FINALIZED") && (
               <Button variant="outline" onClick={handleDownload}>
                 <FileDown className="h-4 w-4 mr-2" /> Descargar PDF
               </Button>
             )}
 
-            {canWrite && flight.status === "BORRADOR" && (
-              <Button
-                onClick={() =>
-                  router.push(
-                    `/${company}/operaciones/counter/${flight.id}/update`,
-                  )
-                }
-              >
-                <Edit className="h-4 w-4 mr-2" /> Editar Vuelo
-              </Button>
-            )}
+            {canWrite &&
+              (flight.status === "BORRADOR" || flight.status === "DRAFT") && (
+                <Button
+                  onClick={() =>
+                    router.push(
+                      `/${company}/operaciones/counter/${flight.id}/update`,
+                    )
+                  }
+                >
+                  <Edit className="h-4 w-4 mr-2" /> Editar Vuelo
+                </Button>
+              )}
           </div>
         </div>
 
@@ -391,7 +411,7 @@ const PaxFlightDetailPage = () => {
                         )}
                         <td className="py-2.5 px-3 text-center">
                           <Badge variant="outline" className="text-xs">
-                            {pax.lodge_type}
+                            {LODGE_DISPLAY[pax.lodge_type] || pax.lodge_type}
                           </Badge>
                         </td>
                         <td className="py-2.5 px-3 text-muted-foreground">

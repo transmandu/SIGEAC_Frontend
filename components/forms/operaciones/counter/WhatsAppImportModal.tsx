@@ -143,7 +143,7 @@ export default function WhatsAppImportModal({ open, onClose, company }: Props) {
             full_name: `RESERVA ${item.client.toUpperCase()} (${i + 1})`,
             nationality: "VENEZOLANO",
             id_number: `${item.client.toUpperCase().slice(0, 10)}-P${i + 1}-${seatCounter - 1}`,
-            lodge_type: "TURISTAS",
+            lodge_type: "TOURIST",
             agency: item.client.toUpperCase(),
             luggage_weight: null,
             body_weight: 0,
