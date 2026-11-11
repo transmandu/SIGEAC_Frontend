@@ -53,7 +53,7 @@ export default function ErrorReportTrigger() {
                 "text-foreground/90",
                 "hover:text-foreground",
                 "active:scale-95",
-                open && "bg-muted/60"
+                open && "bg-muted/60",
               )}
             >
               <motion.span
@@ -70,7 +70,9 @@ export default function ErrorReportTrigger() {
           </TooltipTrigger>
 
           <TooltipContent side="bottom" className="z-1001">
-            {isSuperUser ? "Gestión de reportes de SIGEAC" : "Reportar un problema a IT"}
+            {isSuperUser
+              ? "Gestión de reportes de SIGEAC"
+              : "Reportar un problema a IT"}
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
