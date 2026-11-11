@@ -32,12 +32,21 @@ import { Check, ChevronsUpDown, Plus, Trash2 } from "lucide-react";
 import { LodgeType, PaxPassenger } from "@/types";
 
 const LODGE_OPTIONS: { label: string; value: LodgeType }[] = [
-  { label: "TURISTAS", value: "TURISTAS" },
-  { label: "RESIDENTE", value: "RESIDENTE" },
+  { label: "TURISTAS", value: "TOURIST" },
+  { label: "RESIDENTE", value: "RESIDENT" },
   { label: "PARTICULAR", value: "PARTICULAR" },
-  { label: "EMPLEADO", value: "EMPLEADO" },
+  { label: "EMPLEADO", value: "EMPLOYEE" },
   { label: "N/A", value: "N/A" },
 ];
+
+const normalizeLodgeValue = (val: string | null | undefined): LodgeType => {
+  if (!val) return "N/A";
+  const upper = val.toUpperCase();
+  if (upper === "TURISTA" || upper === "TURISTAS") return "TOURIST";
+  if (upper === "RESIDENTE" || upper === "RESIDENTES") return "RESIDENT";
+  if (upper === "EMPLEADO" || upper === "EMPLEADOS") return "EMPLOYEE";
+  return upper as LodgeType;
+};
 
 type PassengerField = keyof Omit<PaxPassenger, "id">;
 
@@ -93,13 +102,16 @@ export const PassengerFields = ({
   onOpenNewAgency,
   onRemove,
 }: PassengerFieldsProps) => {
+  const isTable = variant === "table";
+  const controlHeight = isTable ? "h-8 text-xs" : "h-9 text-sm";
+
   const nameControl = (
     <Input
       value={pax.full_name}
       disabled={readOnly}
       placeholder="Ej. PÉREZ JUAN"
       onChange={(e) => onChangeField(index, "full_name", e.target.value)}
-      className="h-9 text-sm font-medium uppercase text-center"
+      className={`${controlHeight} font-medium uppercase ${isTable ? "" : "text-center"}`}
     />
   );
 
@@ -109,7 +121,7 @@ export const PassengerFields = ({
       disabled={readOnly}
       onValueChange={(val) => onNationalitySelect(index, val)}
     >
-      <SelectTrigger className="h-9 text-sm text-center font-medium">
+      <SelectTrigger className={`${controlHeight} text-center font-medium`}>
         <SelectValue placeholder="Nacionalidad" />
       </SelectTrigger>
       <SelectContent>
@@ -158,7 +170,7 @@ export const PassengerFields = ({
       disabled={readOnly}
       placeholder="V-12345678"
       onChange={(e) => onChangeField(index, "id_number", e.target.value)}
-      className={`h-9 text-sm text-center uppercase ${
+      className={`${controlHeight} text-center uppercase ${
         isDuplicate ? "border-destructive focus-visible:ring-destructive" : ""
       }`}
     />
@@ -171,7 +183,7 @@ export const PassengerFields = ({
       placeholder="Equipaje"
       value={pax.luggage_weight ?? ""}
       onChange={(e) => onChangeField(index, "luggage_weight", e.target.value)}
-      className="h-9 text-sm text-center uppercase font-medium"
+      className={`${controlHeight} text-center uppercase font-medium`}
     />
   );
 
@@ -190,19 +202,19 @@ export const PassengerFields = ({
           e.target.value === "" ? null : Number(e.target.value),
         )
       }
-      className="h-9 text-sm text-center font-mono"
+      className={`${controlHeight} text-center font-mono`}
     />
   );
 
   const lodgeControl = (
     <Select
-      value={pax.lodge_type}
+      value={normalizeLodgeValue(pax.lodge_type)}
       disabled={readOnly}
       onValueChange={(val) =>
         onChangeField(index, "lodge_type", val as LodgeType)
       }
     >
-      <SelectTrigger className="h-9 text-sm">
+      <SelectTrigger className={controlHeight}>
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
@@ -223,6 +235,7 @@ export const PassengerFields = ({
       loading={loadingClients}
       onChange={(val) => onChangeField(index, "agency", val)}
       onOpenNewModal={() => onOpenNewAgency(index)}
+      isTable={isTable}
     />
   );
 
@@ -232,7 +245,7 @@ export const PassengerFields = ({
       placeholder="FP"
       value={pax.payment_method ?? ""}
       onChange={(e) => onChangeField(index, "payment_method", e.target.value)}
-      className="h-9 text-sm text-center uppercase font-mono"
+      className={`${controlHeight} text-center uppercase font-mono`}
     />
   );
 
@@ -251,7 +264,7 @@ export const PassengerFields = ({
           e.target.value === "" ? null : Number(e.target.value),
         )
       }
-      className="h-9 text-sm text-center font-mono"
+      className={`${controlHeight} text-center font-mono`}
     />
   );
 
@@ -271,7 +284,7 @@ export const PassengerFields = ({
       variant="ghost"
       size="icon"
       onClick={() => onRemove(index)}
-      className="h-8 w-8 text-destructive hover:text-destructive/80"
+      className={`${isTable ? "h-7 w-7" : "h-8 w-8"} text-destructive hover:text-destructive/80`}
     >
       <Trash2 className="h-4 w-4" />
     </Button>
@@ -280,33 +293,33 @@ export const PassengerFields = ({
   if (variant === "table") {
     return (
       <>
-        <td className="py-2.5 px-3 text-center font-bold text-muted-foreground">
+        <td className="py-1.5 px-2 text-center font-bold text-muted-foreground">
           {pax.seat_number}
         </td>
-        <td className="py-2.5 px-3 text-center">{nameControl}</td>
-        <td className="py-2.5 px-3">{nationalityControl}</td>
-        <td className="py-2.5 px-3">{idNumberControl}</td>
+        <td className="py-1.5 px-2">{nameControl}</td>
+        <td className="py-1.5 px-2">{nationalityControl}</td>
+        <td className="py-1.5 px-2">{idNumberControl}</td>
         {isCounter && (
           <>
-            <td className="py-2.5 px-3">{luggageControl}</td>
-            <td className="py-2.5 px-3">{bodyWeightControl}</td>
+            <td className="py-1.5 px-2">{luggageControl}</td>
+            <td className="py-1.5 px-2">{bodyWeightControl}</td>
           </>
         )}
-        <td className="py-2.5 px-3">{lodgeControl}</td>
-        <td className="py-2.5 px-3">{agencyControl}</td>
+        <td className="py-1.5 px-2">{lodgeControl}</td>
+        <td className="py-1.5 px-2">{agencyControl}</td>
         {isCounter && (
           <>
-            <td className="py-2.5 px-3">{paymentMethodControl}</td>
-            <td className="py-2.5 px-3">{amountPaidControl}</td>
-            <td className="py-2.5 px-3 text-center">
-              <div className="flex justify-center items-center h-9">
+            <td className="py-1.5 px-2">{paymentMethodControl}</td>
+            <td className="py-1.5 px-2">{amountPaidControl}</td>
+            <td className="py-1.5 px-2 text-center">
+              <div className="flex justify-center items-center h-8">
                 {returnControl}
               </div>
             </td>
           </>
         )}
         {!readOnly && (
-          <td className="py-2.5 px-3 text-center">{removeButton}</td>
+          <td className="py-1.5 px-2 text-center">{removeButton}</td>
         )}
       </>
     );
@@ -368,6 +381,7 @@ interface AgencyComboboxProps {
   agencies: string[];
   loading?: boolean;
   onOpenNewModal: () => void;
+  isTable?: boolean;
 }
 
 const AgencyCombobox = ({
@@ -377,6 +391,7 @@ const AgencyCombobox = ({
   agencies,
   loading = false,
   onOpenNewModal,
+  isTable = false,
 }: AgencyComboboxProps) => {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -398,7 +413,9 @@ const AgencyCombobox = ({
           variant="outline"
           role="combobox"
           disabled={disabled}
-          className="h-9 text-sm w-full justify-between font-normal px-3 bg-background"
+          className={`${
+            isTable ? "h-8 text-xs px-2.5" : "h-9 text-sm px-3"
+          } w-full justify-between font-normal bg-background`}
         >
           <span className="truncate">
             {value || (

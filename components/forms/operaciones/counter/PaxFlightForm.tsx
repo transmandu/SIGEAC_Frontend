@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -64,6 +65,16 @@ export const PaxFlightForm = ({
   isEditing = false,
 }: PaxFlightFormProps) => {
   const router = useRouter();
+  const { user } = useAuth();
+
+  // Determina si el usuario es personal del counter (ve columnas extra)
+  const isCounterStaff = useMemo(() => {
+    const roles =
+      user?.roles?.map((r: { name: string }) => r.name) || [];
+    return roles.some((r: string) =>
+      ["OPERADOR_COUNTER", "SUPERUSER"].includes(r),
+    );
+  }, [user]);
 
   // Form State
   const [flightDate, setFlightDate] = useState<string>(() => {
@@ -830,6 +841,7 @@ export const PaxFlightForm = ({
               passengers={passengers}
               onChange={setPassengers}
               company={company}
+              isCounterStaff={isCounterStaff}
             />
           </CardContent>
         </Card>

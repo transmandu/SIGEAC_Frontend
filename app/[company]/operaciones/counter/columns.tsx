@@ -65,6 +65,9 @@ const ActionsCell = ({
   const finalizeMutation = useFinalizeFlight(company);
   const flight = row.original;
   const status = flight.status as FlightStatus;
+  const isDraft = status === "DRAFT" || status === "BORRADOR";
+  const isInFlight = status === "IN_FLIGHT" || status === "EN_VUELO";
+  const isFinalized = status === "FINALIZED" || status === "FINALIZADO";
 
   const handleDelete = async () => {
     try {
@@ -84,8 +87,8 @@ const ActionsCell = ({
   return (
     <>
       <div className="flex items-center gap-1 justify-end">
-        {/* Botón Marcar En Vuelo — solo en BORRADOR */}
-        {canWrite && status === "BORRADOR" && (
+        {/* Botón Marcar En Vuelo — solo en DRAFT */}
+        {canWrite && isDraft && (
           <Button
             variant="ghost"
             size="icon"
@@ -97,8 +100,8 @@ const ActionsCell = ({
           </Button>
         )}
 
-        {/* Botón Finalizar — solo en EN_VUELO */}
-        {canWrite && status === "EN_VUELO" && (
+        {/* Botón Finalizar — solo en IN_FLIGHT */}
+        {canWrite && isInFlight && (
           <Button
             variant="ghost"
             size="icon"
@@ -120,8 +123,8 @@ const ActionsCell = ({
           <Eye className="h-4 w-4 text-sky-600" />
         </Button>
 
-        {/* Botón PDF — solo en FINALIZADO */}
-        {status === "FINALIZADO" && (
+        {/* Botón PDF — solo en FINALIZED */}
+        {isFinalized && (
           <Button
             variant="ghost"
             size="icon"
@@ -154,7 +157,7 @@ const ActionsCell = ({
               PDF
             </DropdownMenuItem>
 
-            {status === "FINALIZADO" && (
+            {isFinalized && (
               <DropdownMenuItem
                 onClick={handleDownload}
                 disabled={isDownloading}
@@ -163,7 +166,7 @@ const ActionsCell = ({
               </DropdownMenuItem>
             )}
 
-            {canWrite && status === "BORRADOR" && (
+            {canWrite && isDraft && (
               <>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
@@ -307,14 +310,14 @@ export const getCounterColumns = (
     ),
     cell: ({ row }) => {
       const status = row.original.status as FlightStatus;
-      if (status === "BORRADOR") {
+      if (status === "BORRADOR" || status === "DRAFT") {
         return (
           <Badge className="bg-yellow-500/10 text-yellow-700 border-yellow-300 dark:border-yellow-800 flex items-center gap-1 w-fit">
             <Clock className="h-3 w-3" /> Borrador
           </Badge>
         );
       }
-      if (status === "EN_VUELO") {
+      if (status === "EN_VUELO" || status === "IN_FLIGHT") {
         return (
           <Badge className="bg-blue-500/10 text-blue-600 border-blue-300 dark:border-blue-800 flex items-center gap-1 w-fit">
             <Send className="h-3 w-3" /> En Vuelo

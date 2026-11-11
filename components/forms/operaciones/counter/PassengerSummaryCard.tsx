@@ -21,7 +21,7 @@ const DataRow = ({
     <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
       {label}
     </span>
-    <span className="text-sm break-words">{children}</span>
+    <span className="text-sm wrap-break-words">{children}</span>
   </div>
 );
 
@@ -39,6 +39,18 @@ const InlineDatum = ({
   </span>
 );
 
+const LODGE_DISPLAY: Record<string, string> = {
+  TOURIST: "TURISTAS",
+  TURISTA: "TURISTAS",
+  TURISTAS: "TURISTAS",
+  RESIDENT: "RESIDENTE",
+  RESIDENTE: "RESIDENTE",
+  PARTICULAR: "PARTICULAR",
+  EMPLOYEE: "EMPLEADO",
+  EMPLEADO: "EMPLEADO",
+  "N/A": "N/A",
+};
+
 /**
  * Ficha de solo lectura de un pasajero, para la vista de detalle en pantallas
  * angostas. La tabla de escritorio tiene 11 columnas (~1250px) y obliga a
@@ -53,13 +65,13 @@ export const PassengerSummaryCard = ({
     <div className="rounded-lg border p-3.5">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-sm font-semibold break-words">{pax.full_name}</p>
+          <p className="text-sm font-semibold wrap-break-words">{pax.full_name}</p>
           <p className="text-xs text-muted-foreground">
             Asiento {pax.seat_number}
           </p>
         </div>
         <Badge variant="outline" className="shrink-0 text-xs">
-          {pax.lodge_type}
+          {LODGE_DISPLAY[pax.lodge_type] || pax.lodge_type}
         </Badge>
       </div>
 

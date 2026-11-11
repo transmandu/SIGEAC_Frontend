@@ -5,16 +5,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-  SelectGroup,
-  SelectLabel,
-  SelectSeparator,
-} from "@/components/ui/select";
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -22,30 +12,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-} from "@/components/ui/command";
-import {
-  Plus,
-  Trash2,
-  AlertCircle,
-  Check,
-  ChevronsUpDown,
-  Globe,
-  Building2,
-} from "lucide-react";
-import { LodgeType, PaxPassenger } from "@/types";
+import { Plus, AlertCircle, Globe, Building2 } from "lucide-react";
+import { PaxPassenger } from "@/types";
 import { useGetClients } from "@/hooks/aerolinea/clientes/useGetClients";
 import { PassengerFields } from "./PassengerFields";
 
@@ -56,15 +24,6 @@ interface PassengersTableProps {
   company: string;
   isCounterStaff?: boolean;
 }
-
-const LODGE_OPTIONS: { label: string; value: LodgeType }[] = [
-  { label: "TURISTAS", value: "TURISTAS" },
-  { label: "TURISTA", value: "TURISTA" },
-  { label: "RESIDENTE", value: "RESIDENTE" },
-  { label: "PARTICULAR", value: "PARTICULAR" },
-  { label: "EMPLEADO", value: "EMPLEADO" },
-  { label: "N/A", value: "N/A" },
-];
 
 export const PassengersTable = ({
   passengers,
@@ -160,7 +119,7 @@ export const PassengersTable = ({
         full_name: "",
         nationality: "VENEZOLANO",
         id_number: "",
-        lodge_type: "TURISTAS",
+        lodge_type: "TOURIST",
         agency: "",
         luggage_weight: null,
         body_weight: null,
@@ -418,169 +377,25 @@ export const PassengersTable = ({
                 </td>
               </tr>
             ) : (
-              passengers.map((pax, index) => {
-                const isDuplicate =
-                  pax.id_number &&
-                  duplicateIds.includes(pax.id_number.trim().toUpperCase());
-
-                return (
-                  <tr key={index} className="hover:bg-muted/30">
-                    {/* Número de asiento */}
-                    <td className="py-1.5 px-2 text-center font-bold text-muted-foreground">
-                      {pax.seat_number}
-                    </td>
-
-                    {/* Nombre completo */}
-                    <td className="py-1.5 px-2">
-                      <Input
-                        value={pax.full_name}
-                        disabled={readOnly}
-                        placeholder="Ej. PÉREZ JUAN"
-                        onChange={(e) =>
-                          handleChangeField(index, "full_name", e.target.value)
-                        }
-                        className="h-8 text-xs font-medium uppercase"
-                      />
-                    </td>
-
-                    {/* Nacionalidad: Select desplegable */}
-                    <td className="py-1.5 px-2">
-                      <Select
-                        value={pax.nationality}
-                        disabled={readOnly}
-                        onValueChange={(val) =>
-                          handleNationalitySelect(index, val)
-                        }
-                      >
-                        <SelectTrigger className="h-8 text-xs text-center font-medium">
-                          <SelectValue placeholder="Nacionalidad" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectGroup>
-                            <SelectLabel>Opciones Principales</SelectLabel>
-                            <SelectItem value="VENEZOLANO">
-                              VENEZOLANO
-                            </SelectItem>
-                            <SelectItem value="EXTRANJERO">
-                              EXTRANJERO
-                            </SelectItem>
-                            <SelectItem value="JURIDICO">JURIDICO</SelectItem>
-                          </SelectGroup>
-
-                          {allNationalities.filter(
-                            (n) => n !== "VENEZOLANO" && n !== "EXTRANJERO",
-                          ).length > 0 && (
-                            <SelectGroup>
-                              <SelectSeparator />
-                              <SelectLabel>Otras Nacionalidades</SelectLabel>
-                              {allNationalities
-                                .filter(
-                                  (n) =>
-                                    n !== "VENEZOLANO" && n !== "EXTRANJERO",
-                                )
-                                .map((nat) => (
-                                  <SelectItem key={nat} value={nat}>
-                                    {nat}
-                                  </SelectItem>
-                                ))}
-                            </SelectGroup>
-                          )}
-
-                          {!readOnly && (
-                            <SelectGroup>
-                              <SelectItem
-                                value="__add_new_nationality__"
-                                className="pl-2 text-primary font-semibold cursor-pointer"
-                              >
-                                <span className="flex items-center gap-1.5 text-xs text-primary">
-                                  <Plus className="h-3.5 w-3.5" /> Otra
-                                  nacionalidad...
-                                </span>
-                              </SelectItem>
-                            </SelectGroup>
-                          )}
-                        </SelectContent>
-                      </Select>
-                    </td>
-
-                    {/* Cédula / Pasaporte */}
-                    <td className="py-1.5 px-2">
-                      <Input
-                        value={pax.id_number}
-                        disabled={readOnly}
-                        placeholder="V-12345678"
-                        onChange={(e) =>
-                          handleChangeField(index, "id_number", e.target.value)
-                        }
-                        className={`h-8 text-xs text-center uppercase ${
-                          isDuplicate
-                            ? "border-destructive focus-visible:ring-destructive"
-                            : ""
-                        }`}
-                      />
-                    </td>
-
-                    {/* Tipo / Lodge */}
-                    <td className="py-1.5 px-2">
-                      <Select
-                        value={pax.lodge_type}
-                        disabled={readOnly}
-                        onValueChange={(val) =>
-                          handleChangeField(
-                            index,
-                            "lodge_type",
-                            val as LodgeType,
-                          )
-                        }
-                      >
-                        <SelectTrigger className="h-8 text-xs">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {LODGE_OPTIONS.map((opt) => (
-                            <SelectItem key={opt.value} value={opt.value}>
-                              {opt.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </td>
-
-                    {/* Agencia: Desplegable con lista de Clients de BD + opción nueva */}
-                    <td className="py-1.5 px-2">
-                      <AgencyCombobox
-                        value={pax.agency || ""}
-                        disabled={readOnly}
-                        agencies={allAgencies}
-                        loading={loadingClients}
-                        onChange={(val) =>
-                          handleChangeField(index, "agency", val)
-                        }
-                        onOpenNewModal={() => {
-                          setTargetPaxIndexForAgency(index);
-                          setNewAgencyInput("");
-                          setAgencyModalOpen(true);
-                        }}
-                      />
-                    </td>
-
-                    {/* Eliminar fila */}
-                    {!readOnly && (
-                      <td className="py-1.5 px-2 text-center">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleRemoveRow(index)}
-                          className="h-7 w-7 text-destructive hover:text-destructive/80"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </td>
-                    )}
-                  </tr>
-                );
-              })
+              passengers.map((pax, index) => (
+                <tr key={index} className="hover:bg-muted/30">
+                  <PassengerFields
+                    variant="table"
+                    index={index}
+                    pax={pax}
+                    readOnly={readOnly}
+                    isCounter={isCounter}
+                    isDuplicate={isDuplicatePassenger(pax)}
+                    allNationalities={allNationalities}
+                    allAgencies={allAgencies}
+                    loadingClients={loadingClients}
+                    onChangeField={handleChangeField}
+                    onNationalitySelect={handleNationalitySelect}
+                    onOpenNewAgency={handleOpenNewAgencyModal}
+                    onRemove={handleRemoveRow}
+                  />
+                </tr>
+              ))
             )}
           </tbody>
         </table>
@@ -680,152 +495,5 @@ export const PassengersTable = ({
         </DialogContent>
       </Dialog>
     </div>
-  );
-};
-
-/**
- * Componente desplegable para la columna Agencia con búsqueda integrada
- * y opción directa para registrar / agregar una nueva opción.
- */
-interface AgencyComboboxProps {
-  value: string;
-  onChange: (val: string) => void;
-  disabled?: boolean;
-  agencies: string[];
-  loading?: boolean;
-  onOpenNewModal: () => void;
-}
-
-const AgencyCombobox = ({
-  value,
-  onChange,
-  disabled = false,
-  agencies,
-  loading = false,
-  onOpenNewModal,
-}: AgencyComboboxProps) => {
-  const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState("");
-
-  const searchUpper = search.trim().toUpperCase();
-
-  const filtered = useMemo(() => {
-    if (!searchUpper) return agencies;
-    return agencies.filter((a) => a.includes(searchUpper));
-  }, [agencies, searchUpper]);
-
-  const hasExactMatch = agencies.some((a) => a === searchUpper);
-
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          disabled={disabled}
-          className="h-8 text-xs w-full justify-between font-normal px-2.5 bg-background"
-        >
-          <span className="truncate">
-            {value || (
-              <span className="text-muted-foreground italic">
-                Sin Agencia (—)
-              </span>
-            )}
-          </span>
-          <ChevronsUpDown className="ml-1 h-3 w-3 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-56 p-0" align="start">
-        <Command>
-          <CommandInput
-            placeholder="Buscar agencia..."
-            value={search}
-            onValueChange={setSearch}
-            className="text-xs h-8"
-          />
-          <CommandList className="max-h-52 text-xs">
-            <CommandEmpty>
-              <div className="p-2 text-center text-xs text-muted-foreground">
-                <p>No se encontró ninguna agencia.</p>
-                {searchUpper && !hasExactMatch && (
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="sm"
-                    className="mt-2 w-full text-xs text-primary font-semibold justify-center"
-                    onClick={() => {
-                      onChange(searchUpper);
-                      setOpen(false);
-                      setSearch("");
-                    }}
-                  >
-                    <Plus className="h-3 w-3 mr-1" /> Usar &quot;{searchUpper}
-                    &quot;
-                  </Button>
-                )}
-              </div>
-            </CommandEmpty>
-
-            <CommandGroup heading="Opciones">
-              <CommandItem
-                value="__none__"
-                onSelect={() => {
-                  onChange("");
-                  setOpen(false);
-                }}
-                className="text-xs flex items-center justify-between cursor-pointer"
-              >
-                <span className="italic text-muted-foreground">
-                  Sin Agencia (—)
-                </span>
-                {!value && <Check className="h-3 w-3 text-primary" />}
-              </CommandItem>
-            </CommandGroup>
-
-            <CommandSeparator />
-
-            <CommandGroup
-              heading={
-                loading
-                  ? "Cargando clientes..."
-                  : "Clientes / Agencias Registradas"
-              }
-            >
-              {filtered.map((agency) => (
-                <CommandItem
-                  key={agency}
-                  value={agency}
-                  onSelect={() => {
-                    onChange(agency);
-                    setOpen(false);
-                  }}
-                  className="text-xs flex items-center justify-between cursor-pointer"
-                >
-                  <span className="truncate font-medium">{agency}</span>
-                  {value === agency && (
-                    <Check className="h-3 w-3 text-primary" />
-                  )}
-                </CommandItem>
-              ))}
-            </CommandGroup>
-
-            <CommandSeparator />
-
-            <CommandGroup>
-              <CommandItem
-                onSelect={() => {
-                  setOpen(false);
-                  onOpenNewModal();
-                }}
-                className="text-xs text-primary font-semibold cursor-pointer"
-              >
-                <Plus className="h-3.5 w-3.5 mr-1" />
-                Registrar nueva agencia...
-              </CommandItem>
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
   );
 };

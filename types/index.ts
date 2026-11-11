@@ -2961,9 +2961,18 @@ export type UpdateChangeRequestPayload = {
 };
 
 export type FlightType = "PAX" | "CARGO_ONLY" | "HYBRID";
-export type FlightStatus = "BORRADOR" | "EN_VUELO" | "FINALIZADO";
+export type FlightStatus =
+  "DRAFT" | "IN_FLIGHT" | "FINALIZED" | "BORRADOR" | "EN_VUELO" | "FINALIZADO";
 export type LodgeType =
-  "TURISTAS" | "TURISTA" | "PARTICULAR" | "RESIDENTE" | "EMPLEADO" | "N/A";
+  | "TOURIST"
+  | "PARTICULAR"
+  | "RESIDENT"
+  | "EMPLOYEE"
+  | "N/A"
+  | "TURISTAS"
+  | "TURISTA"
+  | "RESIDENTE"
+  | "EMPLEADO";
 
 export type PaxPassenger = {
   id?: number;
