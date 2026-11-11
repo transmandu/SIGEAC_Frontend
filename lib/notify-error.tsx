@@ -127,11 +127,7 @@ const reportContext = (
       }),
 });
 
-const reportDraft = (
-  error: DescribedError,
-  raw: unknown,
-  action?: string,
-) => ({
+const reportDraft = (error: DescribedError, raw: unknown, action?: string) => ({
   context: reportContext(error, raw),
   description: reportDescription(error, action),
   errorTitle: plainTitle(error.title),
