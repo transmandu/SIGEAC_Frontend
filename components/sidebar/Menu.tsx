@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, Minus } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
@@ -121,7 +121,9 @@ export function Menu({ isOpen, scrollKey = "sidebar" }: MenuProps) {
     cn(
       // my-0.5 en vez de m-1: el margen lateral recortaba cada item por
       // ambos lados y lo desalineaba del encabezado de grupo, que no lo lleva.
-      "group relative my-0.5 h-11 w-full justify-start overflow-hidden rounded-xl border pl-2 pr-2 text-[13px] transition-all duration-200",
+      // pl-4 fijo en ambos estados: con el ancho de la barra colapsada el icono
+      // queda centrado sin moverse, así que plegar solo recorta la etiqueta.
+      "group relative my-0.5 h-11 w-full justify-start overflow-hidden rounded-xl border pl-4 pr-2 text-[13px] transition-colors duration-200",
       "border-transparent bg-transparent text-muted-foreground hover:border-border/70 hover:bg-muted/40 hover:text-foreground",
       active &&
         "border-border/80 bg-muted/60 text-foreground shadow-xs shadow-black/5",
@@ -150,16 +152,41 @@ export function Menu({ isOpen, scrollKey = "sidebar" }: MenuProps) {
                 className={cn("w-full", groupLabel ? "pt-3" : "")}
                 key={groupLabel || `group-${index}`}
               >
-                {(isOpen && groupLabel) || isOpen === undefined ? (
-                  <div className="px-2 pb-2">
+                {groupLabel ? (
+                  <div className="relative mx-2 mb-2 h-7">
+                    <TooltipProvider>
+                      <Tooltip delayDuration={100}>
+                        <TooltipTrigger asChild>
+                          <div
+                            aria-hidden={isOpen !== false}
+                            className={cn(
+                              "absolute inset-0 flex items-center justify-center transition-opacity duration-200",
+                              isOpen === false
+                                ? "opacity-100"
+                                : "pointer-events-none opacity-0",
+                            )}
+                          >
+                            <span className="h-px w-8 rounded-full bg-border" />
+                          </div>
+                        </TooltipTrigger>
+                        {isOpen === false && (
+                          <TooltipContent side="right" className="rounded-lg">
+                            <p>{groupLabel}</p>
+                          </TooltipContent>
+                        )}
+                      </Tooltip>
+                    </TooltipProvider>
+
                     <button
                       type="button"
+                      tabIndex={isOpen === false ? -1 : 0}
                       onClick={() =>
                         isSuperUser && groupLabel && toggleGroup(groupLabel)
                       }
                       className={cn(
-                        "group flex w-full items-center gap-3 rounded-xl px-2 py-1.5 transition-all duration-200",
-                        "relative overflow-hidden",
+                        "group absolute inset-0 flex w-full items-center gap-3 rounded-xl px-2 transition-opacity duration-200",
+                        "overflow-hidden",
+                        isOpen === false && "pointer-events-none opacity-0",
 
                         // SOLO interactivo si es superuser
                         isSuperUser ? "cursor-pointer" : "cursor-default",
@@ -195,28 +222,13 @@ export function Menu({ isOpen, scrollKey = "sidebar" }: MenuProps) {
                       {isSuperUser && (
                         <ChevronDown
                           className={cn(
-                            "relative z-10 h-3 w-3 shrink-0 text-muted-foreground transition-all duration-200 group-hover:text-foreground/90",
+                            "relative z-10 size-3 shrink-0 text-muted-foreground transition-all duration-200 group-hover:text-foreground/90",
                             isCollapsed && "-rotate-90",
                           )}
                         />
                       )}
                     </button>
                   </div>
-                ) : !isOpen && isOpen !== undefined && groupLabel ? (
-                  <TooltipProvider>
-                    <Tooltip delayDuration={100}>
-                      <TooltipTrigger className="w-full">
-                        <div className="flex w-full items-center justify-center pb-2">
-                          <span className="flex h-7 w-7 items-center justify-center rounded-full border border-border/60 bg-background/80 text-muted-foreground">
-                            <Minus className="h-4 w-4" />
-                          </span>
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent side="right" className="rounded-lg">
-                        <p>{groupLabel}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
                 ) : (
                   <p className="pb-2"></p>
                 )}
@@ -242,21 +254,17 @@ export function Menu({ isOpen, scrollKey = "sidebar" }: MenuProps) {
                                   />
                                   <span
                                     className={cn(
-                                      "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-transparent bg-muted/30 text-muted-foreground transition-all duration-200 group-hover:border-border/60 group-hover:bg-background/70 group-hover:text-foreground",
+                                      "flex size-8 shrink-0 items-center justify-center rounded-lg border border-transparent bg-muted/30 text-muted-foreground transition-all duration-200 group-hover:border-border/60 group-hover:bg-background/70 group-hover:text-foreground",
                                       active && "glass-control text-foreground",
-                                      isOpen === false ? "mx-auto" : "mr-3",
+                                      "mr-3",
                                     )}
                                   >
                                     <Icon size={18} />
                                   </span>
                                   <p
                                     className={cn(
-                                      "min-w-0 flex-1 truncate text-left text-[13px] font-medium transition-all duration-200",
-                                      // hidden al colapsar: con flex-1 el label seguiría
-                                      // ocupando ancho y el mx-auto del icono no centraría.
-                                      isOpen === false
-                                        ? "hidden"
-                                        : "translate-x-0 opacity-100",
+                                      "min-w-0 flex-1 truncate text-left text-[13px] font-medium transition-opacity duration-200",
+                                      isOpen === false && "opacity-0",
                                     )}
                                   >
                                     {label}
