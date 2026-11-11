@@ -10,11 +10,18 @@ import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import LoadingPage from "@/components/misc/LoadingPage";
-import { PanelSection } from "@/components/forms/PanelSection";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  PanelSection,
+  PanelStaticLabel,
+} from "@/components/forms/PanelSection";
+import { textareaClass } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
 import {
   PriorityChoice,
+  PriorityTag,
   priorityLabel,
 } from "@/components/forms/mantenimiento/compras/_components/PriorityChoice";
+import { PriorityCards } from "@/components/forms/mantenimiento/compras/_components/PriorityCards";
 
 type Item = {
   id: number;
@@ -53,6 +60,8 @@ const PriorityForm = ({ req, setOpen, onSuccess }: Omit<Props, "open">) => {
   const [articlePriorities, setArticlePriorities] = useState<
     Record<number, string>
   >({});
+  const [reason, setReason] = useState("");
+  const headerChanged = !!headerPriority && headerPriority !== req.priority;
 
   const articleItems: Item[] = (req.batch ?? []).flatMap((batch) =>
     (batch.batch_articles ?? [])
@@ -98,7 +107,8 @@ const PriorityForm = ({ req, setOpen, onSuccess }: Omit<Props, "open">) => {
       await updatePriorityRequisition.mutateAsync({
         id: req.id,
         data: {
-          priority: headerPriority !== req.priority ? headerPriority : null,
+          priority: headerChanged ? headerPriority : null,
+          reason: headerChanged ? reason.trim() || null : null,
           articles,
           general_articles,
         },
@@ -158,11 +168,40 @@ const PriorityForm = ({ req, setOpen, onSuccess }: Omit<Props, "open">) => {
           }
           compact
         >
-          <PriorityChoice
-            label="Prioridad de la solicitud"
-            value={headerPriority}
-            onChange={setHeaderPriority}
-          />
+          <div className="space-y-3">
+            <PriorityCards
+              label="Prioridad de la solicitud"
+              value={headerPriority}
+              current={req.priority}
+              onChange={setHeaderPriority}
+            />
+
+            {headerChanged && (
+              <div className="space-y-3 motion-safe:animate-reveal">
+                <p className="flex flex-wrap items-center gap-2.5 text-base font-semibold">
+                  <PriorityTag value={req.priority} />
+                  <ArrowRight
+                    aria-hidden
+                    className="size-4 shrink-0 text-muted-foreground"
+                  />
+                  <PriorityTag value={headerPriority} />
+                </p>
+
+                <div>
+                  <PanelStaticLabel>Motivo del cambio</PanelStaticLabel>
+                  <Textarea
+                    aria-label="Motivo del cambio de prioridad"
+                    value={reason}
+                    onChange={(event) => setReason(event.target.value)}
+                    maxLength={500}
+                    rows={3}
+                    placeholder="Explique a compras por qué cambia la prioridad"
+                    className={textareaClass}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
         </PanelSection>
 
         {items.length > 0 && (

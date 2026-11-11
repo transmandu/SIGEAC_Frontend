@@ -32,10 +32,10 @@ const PriorityIndicator = ({ priority }: PriorityIndicatorProps) => {
       )}
     >
       {/* indicador compacto */}
-      <div className="flex items-end gap-[2px] h-2.5">
+      <div className="flex items-end gap-0.5 h-2.5">
         <div
           className={cn(
-            "w-[2px] rounded-sm",
+            "w-0.5 rounded-sm",
             level >= 1
               ? "h-1.5 bg-current opacity-60"
               : "h-1 bg-current opacity-15",
@@ -43,7 +43,7 @@ const PriorityIndicator = ({ priority }: PriorityIndicatorProps) => {
         />
         <div
           className={cn(
-            "w-[2px] rounded-sm",
+            "w-0.5 rounded-sm",
             level >= 2
               ? "h-2 bg-current opacity-75"
               : "h-1 bg-current opacity-15",
@@ -51,7 +51,7 @@ const PriorityIndicator = ({ priority }: PriorityIndicatorProps) => {
         />
         <div
           className={cn(
-            "w-[2px] rounded-sm",
+            "w-0.5 rounded-sm",
             level >= 3
               ? "h-2.5 bg-current opacity-90"
               : "h-1 bg-current opacity-15",

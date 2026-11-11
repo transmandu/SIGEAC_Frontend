@@ -23,6 +23,7 @@ import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import LoadingPage from "@/components/misc/LoadingPage";
+import PriorityChangeNotice from "@/components/misc/PriorityChangeNotice";
 import ArticleLifecycleIcon from "@/components/misc/ArticleLifecycleIcon";
 import TransitUpdatesLink from "@/components/misc/TransitUpdatesLink";
 
@@ -608,7 +609,7 @@ const RequisitionPage = () => {
                   className={cn(
                     "text-xs",
                     data.priority === "HIGH"
-                      ? "bg-red-100 text-red-700"
+                      ? "bg-red-600 font-semibold text-white hover:bg-red-600"
                       : data.priority === "MEDIUM"
                         ? "bg-yellow-100 text-yellow-700"
                         : "bg-green-100 text-green-700",
@@ -631,6 +632,13 @@ const RequisitionPage = () => {
         </CardHeader>
 
         <CardContent className="flex flex-col gap-6">
+          {data && (
+            <PriorityChangeNotice
+              requisition={data}
+              className="mx-auto w-full max-w-4xl"
+            />
+          )}
+
           {/* IMAGEN */}
           {data?.image && (
             <div className="flex flex-col items-center gap-2">

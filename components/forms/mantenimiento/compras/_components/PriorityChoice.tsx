@@ -47,6 +47,24 @@ function Dot({ className }: { className: string }) {
   );
 }
 
+/** Nombre de la prioridad precedido de su punto de color. */
+export function PriorityTag({
+  value,
+  className,
+}: {
+  value?: string;
+  className?: string;
+}) {
+  const option = PRIORITY_OPTIONS.find((item) => item.value === value);
+
+  return (
+    <span className={cn("inline-flex items-center gap-2", className)}>
+      {option && <Dot className={option.dot} />}
+      {option?.label ?? "Sin prioridad"}
+    </span>
+  );
+}
+
 /**
  * Lista de prioridades con el mismo campo que el resto de selectores. La
  * personalidad está en el punto de color —en el campo y en cada opción— y, en

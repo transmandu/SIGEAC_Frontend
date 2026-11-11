@@ -44,6 +44,7 @@ import {
   priorityLabel,
 } from "./_components/utils/uiHelpers";
 import { PageHeader } from "@/components/layout/PageHeader";
+import PriorityChangeNotice from "@/components/misc/PriorityChangeNotice";
 import {
   AdvanceRequisitionStatusDialog,
   ADVANCE_REQUISITION_TOOLTIP,
@@ -261,6 +262,13 @@ const RequisitionPage = () => {
             )}
           </div>
         </div>
+
+        {data && (
+          <PriorityChangeNotice
+            requisition={data}
+            className="mx-auto w-full max-w-4xl"
+          />
+        )}
 
         {/* ── Meta ────────────────────────────────────────────────────── */}
         <div className="mx-auto w-full max-w-4xl px-3 sm:px-4 py-2 sm:py-3 rounded-xl border border-slate-200 bg-white dark:border-slate-700/60 dark:bg-slate-900/60">
