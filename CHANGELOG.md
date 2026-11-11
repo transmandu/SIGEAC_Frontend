@@ -1,3 +1,7 @@
+## v4.104.0 — 2026-11-11
+
+- feat: refactor document requirement handling in MoveToReceptionButton… (#397)
+
 ## v4.103.1 — 2026-11-11
 
 - Merge pull request #396 from transmandu/feat/normalize-flight-statuses-and-lodges
