@@ -1,3 +1,7 @@
+## v4.101.0 — 2026-11-11
+
+- feat: implement priority change notice and related functionality (#394)
+
 ## v4.100.0 — 2026-11-10
 
 - feat: add condition tracking for dispatch returns and updates to rela… (#392)
