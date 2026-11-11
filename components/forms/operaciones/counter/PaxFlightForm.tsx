@@ -69,8 +69,7 @@ export const PaxFlightForm = ({
 
   // Determina si el usuario es personal del counter (ve columnas extra)
   const isCounterStaff = useMemo(() => {
-    const roles =
-      user?.roles?.map((r: { name: string }) => r.name) || [];
+    const roles = user?.roles?.map((r: { name: string }) => r.name) || [];
     return roles.some((r: string) =>
       ["OPERADOR_COUNTER", "SUPERUSER"].includes(r),
     );

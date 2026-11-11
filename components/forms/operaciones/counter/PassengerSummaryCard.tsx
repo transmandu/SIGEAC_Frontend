@@ -65,7 +65,9 @@ export const PassengerSummaryCard = ({
     <div className="rounded-lg border p-3.5">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-sm font-semibold wrap-break-words">{pax.full_name}</p>
+          <p className="text-sm font-semibold wrap-break-words">
+            {pax.full_name}
+          </p>
           <p className="text-xs text-muted-foreground">
             Asiento {pax.seat_number}
           </p>
