@@ -42,7 +42,7 @@ import { useGetMaintenanceAircraftByAcronym } from "@/hooks/mantenimiento/planif
 import type { AeronauticalAircraft, MaintenanceAircraftPart } from "@/types";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { formatNumber } from "@/lib/formatNumber";
-import { partLabel } from "../_components/partLabel";
+import { partLabel } from "@/app/[company]/planificacion/aeronaves/_components/partLabel";
 
 // ---------- helpers ----------
 const labelFor = (obj: any): string => {

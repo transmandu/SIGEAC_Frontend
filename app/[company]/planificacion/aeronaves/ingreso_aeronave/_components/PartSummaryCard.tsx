@@ -4,7 +4,7 @@ import { ChevronDown, FileText, Folder } from "lucide-react";
 import { useState } from "react";
 import { InfoItem } from "./InfoItem";
 import { formatNumber } from "@/lib/formatNumber";
-import { partLabel } from "../../_components/partLabel";
+import { partLabel } from "@/app/[company]/planificacion/aeronaves/_components/partLabel";
 
 // 0 es un valor válido; solo null/undefined/"" significan "no aplica".
 const hasValue = (v: unknown) => v !== null && v !== undefined && v !== "";

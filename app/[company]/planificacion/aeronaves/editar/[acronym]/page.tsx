@@ -41,7 +41,7 @@ import { useOnChange } from "@/hooks/useOnChange";
 import { locationLabel } from "@/lib/locations";
 import { useGetLocationsByCompany } from "@/hooks/sistema/useGetLocationsByCompany";
 import { useCreateClient } from "@/actions/mantenimiento/clientes/actions";
-import { partLabel } from "../../_components/partLabel";
+import { partLabel } from "@/app/[company]/planificacion/aeronaves/_components/partLabel";
 
 interface AircraftPart {
   id?: number; // ID para actualizaciones
