@@ -429,8 +429,9 @@ export function PlanificationAircraftTab({
                     <CalendarIcon className="h-4 w-4" /> Fabricación
                   </div>
                   <div className="font-medium">
-                    {parseCalendarDate(aircraft.fabricant_date)?.getFullYear() ??
-                      "—"}
+                    {parseCalendarDate(
+                      aircraft.fabricant_date,
+                    )?.getFullYear() ?? "—"}
                   </div>
                 </div>
                 <Separator className="my-4" />

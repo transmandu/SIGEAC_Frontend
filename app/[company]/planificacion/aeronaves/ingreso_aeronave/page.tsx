@@ -19,13 +19,7 @@ import { formatNumber } from "@/lib/formatNumber";
 import { toCalendarPayload } from "@/lib/date";
 import { locationLabel } from "@/lib/locations";
 import { useGetLocationsByCompany } from "@/hooks/sistema/useGetLocationsByCompany";
-import {
-  ArrowLeft,
-  CheckCircle,
-  Loader2,
-  Plane,
-  Settings,
-} from "lucide-react";
+import { ArrowLeft, CheckCircle, Loader2, Plane, Settings } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { InfoItem } from "./_components/InfoItem";

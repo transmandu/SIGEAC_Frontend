@@ -15,9 +15,7 @@ export const columns: AppColumnDef<FlightControl>[] = [
     ),
     cell: ({ row }) => {
       return (
-        <div className="flex justify-center">
-          {row.original.flight_number}
-        </div>
+        <div className="flex justify-center">{row.original.flight_number}</div>
       );
     },
   },
@@ -37,11 +35,7 @@ export const columns: AppColumnDef<FlightControl>[] = [
   {
     accessorKey: "flight_hours",
     header: ({ column }) => (
-      <DataTableColumnHeader
-        filter
-        column={column}
-        title="Horas"
-      />
+      <DataTableColumnHeader filter column={column} title="Horas" />
     ),
     cell: ({ row }) => {
       return (

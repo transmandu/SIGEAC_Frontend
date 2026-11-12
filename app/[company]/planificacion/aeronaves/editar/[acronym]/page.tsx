@@ -323,7 +323,8 @@ export default function EditAircraftPage({
         flight_cycles: aircraft.flight_cycles
           ? String(Number(aircraft.flight_cycles))
           : "0",
-        fabricant_date: parseCalendarDate(aircraft.fabricant_date) ?? new Date(),
+        fabricant_date:
+          parseCalendarDate(aircraft.fabricant_date) ?? new Date(),
         location_id: aircraft.location?.id?.toString() || "",
         comments: aircraft.comments || "",
       });
@@ -362,9 +363,12 @@ export default function EditAircraftPage({
       // crea), igual que al registrar. Antes se enviaba siempre el original.
       const clientName = aircraftData.client_name.trim();
       let clientId = aircraft.client?.id?.toString() || "";
-      if (clientName.toUpperCase() !== (aircraft.client?.name ?? "").toUpperCase()) {
+      if (
+        clientName.toUpperCase() !== (aircraft.client?.name ?? "").toUpperCase()
+      ) {
         const existingClient = clients?.find(
-          (client) => client.name.trim().toUpperCase() === clientName.toUpperCase(),
+          (client) =>
+            client.name.trim().toUpperCase() === clientName.toUpperCase(),
         );
         if (existingClient) {
           clientId = existingClient.id.toString();

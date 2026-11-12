@@ -170,7 +170,8 @@ export function AircraftInfoForm({
     // desde el combobox ("Crear"), donde se elige. Sin esto, escribir un nombre
     // y cerrar el combobox dejaba el formulario bloqueado sin mensaje visible.
     const existingClient = clients?.find(
-      (c: any) => c.name.trim().toUpperCase() === data.client_name.toUpperCase(),
+      (c: any) =>
+        c.name.trim().toUpperCase() === data.client_name.toUpperCase(),
     ) as any;
     const authorizing = existingClient?.authorizing ?? data.authorizing;
     if (!authorizing) {

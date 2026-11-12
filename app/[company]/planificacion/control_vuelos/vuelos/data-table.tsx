@@ -53,23 +53,23 @@ export function DataTable<TData extends RowData>({
   return (
     <div>
       <div className="flex items-center justify-between py-4">
-          <div>
-            <Link
-              href={`/${selectedCompany?.slug}/planificacion/control_vuelos/historial_vuelo`}
+        <div>
+          <Link
+            href={`/${selectedCompany?.slug}/planificacion/control_vuelos/historial_vuelo`}
+          >
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-2"
             >
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex items-center gap-2"
-              >
-                <History className="h-4 w-4" />
-                Historial de Vuelos
-              </Button>
-            </Link>
-          </div>
-          <div>
-            <DataTableViewOptions table={table} />
-          </div>
+              <History className="h-4 w-4" />
+              Historial de Vuelos
+            </Button>
+          </Link>
+        </div>
+        <div>
+          <DataTableViewOptions table={table} />
+        </div>
       </div>
       <div className="rounded-md border mb-4">
         <Table>

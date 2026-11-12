@@ -70,7 +70,9 @@ const readFailure = (error: unknown): ServerFailure | null => {
   if (!isAxiosError(error) || error.response?.status !== 422) return null;
 
   const data = error.response.data ?? {};
-  const rows: FlightLogRowError[] = Array.isArray(data.errors) ? data.errors : [];
+  const rows: FlightLogRowError[] = Array.isArray(data.errors)
+    ? data.errors
+    : [];
   const fileMessage: string | undefined =
     data.errors?.file?.[0] ?? (rows.length ? undefined : data.message);
 

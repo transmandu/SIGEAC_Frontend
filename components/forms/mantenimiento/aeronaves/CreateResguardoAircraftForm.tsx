@@ -79,7 +79,8 @@ export function CreateResguardoAircraftForm({
     // Sin estación activa no hay sede a la que asignarla; antes caía en la sede "1".
     if (!selectedStation) {
       toast.error("Seleccione una estación", {
-        description: "La aeronave de resguardo se registra en la estación activa.",
+        description:
+          "La aeronave de resguardo se registra en la estación activa.",
       });
       return;
     }

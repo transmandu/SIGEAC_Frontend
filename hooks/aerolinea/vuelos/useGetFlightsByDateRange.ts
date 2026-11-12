@@ -1,9 +1,8 @@
-"use client"
+"use client";
 
 import axiosInstance from "@/lib/axios";
 import { FlightControl } from "@/types";
 import { useQuery } from "@tanstack/react-query";
-
 
 interface DateRange {
   first_date: string;
@@ -37,8 +36,8 @@ export const useGetFlightsByDateRange = (
 ) => {
   return useQuery<FlightControl[], Error>({
     queryKey: ["flights-by-date-range", company, acronym, dateRange],
-    queryFn: () => fetchFlightsByDateRange(company, acronym, dateRange?? null),
+    queryFn: () => fetchFlightsByDateRange(company, acronym, dateRange ?? null),
     refetchOnWindowFocus: false,
-    enabled: enabled && !!company && !!acronym
+    enabled: enabled && !!company && !!acronym,
   });
 };
