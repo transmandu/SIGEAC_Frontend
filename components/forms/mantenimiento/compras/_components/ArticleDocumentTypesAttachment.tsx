@@ -110,11 +110,11 @@ export const ArticleDocumentTypesAttachment = ({
                 >
                   <Check
                     className={cn(
-                      "mr-2 h-4 w-4",
+                      "mr-2 h-4 w-4 shrink-0",
                       ids.includes(type.id) ? "opacity-100" : "opacity-0",
                     )}
                   />
-                  <div className="flex flex-col">
+                  <div className="flex min-w-0 flex-col">
                     <span className="text-xs">{type.name}</span>
                     {type.regulation && (
                       <span className="text-xs text-muted-foreground">

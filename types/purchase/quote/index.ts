@@ -107,9 +107,6 @@ export interface Quote {
   created_by: string;
   created_at?: string | null;
   updated_at?: string | null;
-  /** Cuándo y quién emitió la cotización; null mientras es borrador. */
-  issued_at?: string | null;
-  issued_by?: string | null;
   vendor: Vendor | null;
   /** Quote-level comercio / lugar de compra — set for quotes from a general requisition, mirrors `vendor` for aeronautical ones. */
   retailer: Retailer | null;
