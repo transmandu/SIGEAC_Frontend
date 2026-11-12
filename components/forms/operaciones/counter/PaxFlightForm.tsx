@@ -154,6 +154,7 @@ export const PaxFlightForm = ({
 
   const [importedNotice, setImportedNotice] = useState<string | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [isCargoPreviewOpen, setIsCargoPreviewOpen] = useState(false);
 
   useEffect(() => {
     if (!isEditing && !initialData && typeof window !== "undefined") {
@@ -667,40 +668,58 @@ export const PaxFlightForm = ({
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
-            <div className="w-full max-w-md flex flex-col gap-2">
+            <div className="w-full max-w-xl flex flex-col gap-2">
               <Label htmlFor="cargo_manifest">Manifiesto de Carga *</Label>
-              <Select
-                value={cargoManifestId ? String(cargoManifestId) : ""}
-                onValueChange={(val) => setCargoManifestId(Number(val))}
-              >
-                <SelectTrigger id="cargo_manifest">
-                  <SelectValue placeholder="Seleccione un manifiesto de carga" />
-                </SelectTrigger>
-                <SelectContent>
-                  {initialData?.cargo_manifest_id && (
-                    <SelectItem value={String(initialData.cargo_manifest_id)}>
-                      {initialData.cargo_manifest_number ||
-                        `Manifiesto #${initialData.cargo_manifest_id}`}{" "}
-                      (Actual)
-                    </SelectItem>
-                  )}
-                  {availableManifests && availableManifests.length > 0 ? (
-                    <SelectGroup>
-                      <SelectLabel>Disponibles para este mes</SelectLabel>
-                      {availableManifests.map((m: any) => (
-                        <SelectItem key={m.id} value={String(m.id)}>
-                          {m.manifest_number} — Total: {m.total_weight} kg (
-                          {m.items?.length || 0} ítems)
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  ) : (
-                    <SelectItem value="none" disabled>
-                      No hay otros manifiestos de carga disponibles
-                    </SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                <Select
+                  value={cargoManifestId ? String(cargoManifestId) : ""}
+                  onValueChange={(val) => setCargoManifestId(Number(val))}
+                >
+                  <SelectTrigger id="cargo_manifest" className="flex-1">
+                    <SelectValue placeholder="Seleccione un manifiesto de carga" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {initialData?.cargo_manifest_id && (
+                      <SelectItem value={String(initialData.cargo_manifest_id)}>
+                        {initialData.cargo_manifest_number ||
+                          `Manifiesto #${initialData.cargo_manifest_id}`}{" "}
+                        (Actual)
+                      </SelectItem>
+                    )}
+                    {availableManifests && availableManifests.length > 0 ? (
+                      <SelectGroup>
+                        <SelectLabel>Disponibles para este mes</SelectLabel>
+                        {availableManifests.map((m: any) => (
+                          <SelectItem key={m.id} value={String(m.id)}>
+                            {m.manifest_number} — Total: {m.total_weight} kg (
+                            {m.items?.length || 0} ítems)
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    ) : (
+                      <SelectItem value="none" disabled>
+                        No hay otros manifiestos de carga disponibles
+                      </SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={!cargoManifestId}
+                  onClick={() => setIsCargoPreviewOpen(true)}
+                  title={
+                    cargoManifestId
+                      ? "Ver documento PDF del manifiesto de carga"
+                      : "Seleccione un manifiesto para previsualizarlo"
+                  }
+                  className="shrink-0 flex items-center justify-center gap-1.5 border-amber-300 hover:bg-amber-100/60 dark:border-amber-800 dark:hover:bg-amber-950/40 text-amber-900 dark:text-amber-200"
+                >
+                  <Eye className="h-4 w-4 text-amber-700 dark:text-amber-400" />
+                  <span>Ver Manifiesto</span>
+                </Button>
+              </div>
             </div>
 
             {/* Vista previa y cotejo del Manifiesto de Carga seleccionado contra hoja física */}
@@ -919,6 +938,17 @@ export const PaxFlightForm = ({
           fileName={`MANIFIESTO_PAX_${initialData.flight_code}`}
           title={`Vista Previa — Manifiesto ${initialData.flight_code}`}
           description="Previsualización en tiempo real del documento PDF."
+        />
+      )}
+
+      {cargoManifestId && (
+        <PdfEndpointPreviewDialog
+          open={isCargoPreviewOpen}
+          onOpenChange={setIsCargoPreviewOpen}
+          endpoint={`/${company}/cargo-manifests/${cargoManifestId}/pdf`}
+          fileName={`MANIFIESTO_CARGA_${manifestDetails?.number || cargoManifestId}`}
+          title={`Vista Previa — Manifiesto de Carga N° ${manifestDetails?.number || cargoManifestId}`}
+          description="Documento oficial del manifiesto de carga seleccionado para este vuelo."
         />
       )}
     </form>
