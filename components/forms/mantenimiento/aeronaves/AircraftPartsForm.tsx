@@ -216,6 +216,31 @@ const buildPartsFromAssignments = (assignments: AircraftAssignmentLike[] = []): 
     .map(normalizePart);
 };
 
+/** Reubica los marcadores "abierta" tras quitar el elemento `index` de la lista `parentPath`. */
+const shiftExpandedPaths = (
+  expanded: Record<string, boolean>,
+  parentPath: string,
+  index: number,
+): Record<string, boolean> => {
+  const next: Record<string, boolean> = {};
+  const prefix = `${parentPath}.`;
+
+  for (const [key, value] of Object.entries(expanded)) {
+    if (!key.startsWith(prefix)) {
+      next[key] = value;
+      continue;
+    }
+
+    const [head, ...tail] = key.slice(prefix.length).split('.');
+    const position = Number(head);
+    if (position === index) continue;
+
+    next[[parentPath, position > index ? position - 1 : position, ...tail].join('.')] = value;
+  }
+
+  return next;
+};
+
 export function AircraftPartsInfoForm({ onNext, onBack, initialData }: {
   onNext: (data: PartsFormType) => void,
   onBack: (data: PartsFormType) => void,
@@ -223,6 +248,7 @@ export function AircraftPartsInfoForm({ onNext, onBack, initialData }: {
 }) {
   const { toast } = useToast();
   const [removingPath, setRemovingPath] = useState<string | null>(null);
+  const [removeEpoch, setRemoveEpoch] = useState(0);
   const [tempDate, setTempDate] = useState<string>(toCalendarPayload(new Date()) ?? '');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -254,7 +280,7 @@ export function AircraftPartsInfoForm({ onNext, onBack, initialData }: {
     form.reset(normalizedInitialData);
   }, [form, normalizedInitialData]);
 
-  const { fields, append } = useFieldArray({
+  const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: "parts"
   })
@@ -289,11 +315,19 @@ export function AircraftPartsInfoForm({ onNext, onBack, initialData }: {
       const pathParts = fullPath.split('.');
       const index = Number(pathParts.pop());
       const parentPath = pathParts.join('.') || 'parts';
-      const current = form.getValues(parentPath as any) || [];
-      form.setValue(parentPath as any, [
-        ...current.slice(0, index),
-        ...current.slice(index + 1)
-      ]);
+
+      if (parentPath === 'parts') {
+        remove(index);
+      } else {
+        const current = form.getValues(parentPath as any) || [];
+        form.setValue(parentPath as any, current.filter((_: unknown, i: number) => i !== index));
+      }
+
+      // Las subpartes se identifican por su posición: al quitar una, las que
+      // siguen corren un lugar, y con ellas lo que se recuerda de cada una
+      // (abierta/cerrada y su "No aplica" local).
+      setExpandedParts(prev => shiftExpandedPaths(prev, parentPath, index));
+      setRemoveEpoch(epoch => epoch + 1);
       return;
     }
     // Existing part → show removal confirmation with date picker
@@ -314,17 +348,32 @@ export function AircraftPartsInfoForm({ onNext, onBack, initialData }: {
       ...currentSubparts,
       { condition_type: "NEW", category: parentCategory }
     ]);
-    if (!expandedParts[partPath]) {
-      toggleExpand(partPath);
-    }
+    // Se abren el padre y la subparte nueva: queda lista para llenarse.
+    setExpandedParts(prev => ({
+      ...prev,
+      [partPath]: true,
+      [`${partPath}.sub_parts.${currentSubparts.length}`]: true,
+    }));
   };
 
+  const appendPart = (value: any) => {
+    setExpandedParts(prev => ({ ...prev, [`parts.${fields.length}`]: true }));
+    append(value);
+  };
+
+  // Una parte sin la marca "contiene subpartes" no manda las subpartes nuevas
+  // que quedaron ocultas al desmarcarla; las ya registradas (con id) se respetan.
   const addCategoryToParts = (parts: any[]): any[] => {
-    return parts.map(part => ({
-      ...part,
-      category: part.category || TYPE_TO_CATEGORY[part.type] || "ENGINE",
-      sub_parts: part.sub_parts ? addCategoryToParts(part.sub_parts) : undefined
-    }));
+    return parts.map(part => {
+      const subParts = part.is_father
+        ? part.sub_parts
+        : (part.sub_parts ?? []).filter((s: any) => s?.id);
+      return {
+        ...part,
+        category: part.category || TYPE_TO_CATEGORY[part.type] || "ENGINE",
+        sub_parts: subParts ? addCategoryToParts(subParts) : undefined
+      };
+    });
   };
 
   const submitFiltered = () => {
@@ -332,7 +381,7 @@ export function AircraftPartsInfoForm({ onNext, onBack, initialData }: {
     setIsSubmitting(true);
 
     const values = form.getValues();
-    const parts = values.parts || [];
+    const parts = addCategoryToParts(values.parts || []);
 
     // Keep mapping of original indexes for error mapping
     const origIndices: number[] = [];
@@ -347,24 +396,33 @@ export function AircraftPartsInfoForm({ onNext, onBack, initialData }: {
     const parsed = PartsFormSchema.safeParse({ parts: activeParts });
     form.clearErrors();
     if (!parsed.success) {
+      const toExpand: Record<string, boolean> = {};
       parsed.error.issues.forEach(err => {
         // err.path = ["parts", activeIdx, "fieldName"] or ["parts", activeIdx, "sub_parts", n, "fieldName"]
         const [, activeIdx, ...fieldPath] = err.path as (string | number)[];
         const orig = origIndices[activeIdx as number];
         if (orig !== undefined && fieldPath.length > 0) {
           form.setError(`parts.${orig}.${fieldPath.join('.')}` as any, { type: 'manual', message: err.message });
+
+          // Las partes arrancan colapsadas: se abren las que traen el error
+          // (y sus ancestros) para que el campo marcado se vea.
+          let path = `parts.${orig}`;
+          toExpand[path] = true;
+          for (let i = 0; i + 1 < fieldPath.length; i += 2) {
+            if (fieldPath[i] !== 'sub_parts') break;
+            path = `${path}.sub_parts.${fieldPath[i + 1]}`;
+            toExpand[path] = true;
+          }
         }
       });
+      setExpandedParts(prev => ({ ...prev, ...toExpand }));
       toast({ title: 'Errores en el formulario', description: 'Corrige los campos marcados.' });
       setIsSubmitting(false);
       return;
     }
 
-    // Add category to all parts based on type
-    const partsWithCategory = addCategoryToParts(parts);
-
     // If valid, send all parts (registered and removals) to the next step
-    onNext({ parts: partsWithCategory });
+    onNext({ parts });
     setIsSubmitting(false);
   };
 
@@ -401,13 +459,14 @@ export function AircraftPartsInfoForm({ onNext, onBack, initialData }: {
         )}
 
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Partes de Aeronave 2222</h2>
+          <h2 className="text-xl font-semibold">Partes de Aeronave</h2>
         </div>
 
         <PartsList
+          key={removeEpoch}
           fields={fields}
           form={form}
-          append={append}
+          append={appendPart}
           onRemove={removeItem}
           onReactivate={reactivatePartTree}
           onToggleExpand={toggleExpand}

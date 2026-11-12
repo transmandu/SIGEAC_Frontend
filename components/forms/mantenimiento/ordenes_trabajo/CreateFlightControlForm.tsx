@@ -53,6 +53,7 @@ import {
   editReasonErrorFrom,
 } from "@/components/forms/mantenimiento/planificacion/EditReasonFields";
 import { useState } from "react";
+import { parseCalendarDate, toCalendarPayload } from "@/lib/date";
 
 const airportCodeSchema = z
   .string()
@@ -68,7 +69,11 @@ const flightEntrySchema = z.object({
   destination: airportCodeSchema,
   flight_date: z.date({ error: "Seleccione una fecha" }),
   flight_hours: z.coerce.number().min(0, "Debe ser ≥ 0").optional(),
-  flight_cycles: z.coerce.number().min(0, "Debe ser ≥ 0").optional(),
+  flight_cycles: z.coerce
+    .number()
+    .int("Debe ser un número entero")
+    .min(0, "Debe ser ≥ 0")
+    .optional(),
 });
 
 const createFormSchema = z.object({
@@ -83,7 +88,11 @@ const editFormSchema = z.object({
   destination: airportCodeSchema,
   flight_date: z.date({ error: "Seleccione una fecha" }),
   flight_hours: z.coerce.number().min(0, "Debe ser ≥ 0").optional(),
-  flight_cycles: z.coerce.number().min(0, "Debe ser ≥ 0").optional(),
+  flight_cycles: z.coerce
+    .number()
+    .int("Debe ser un número entero")
+    .min(0, "Debe ser ≥ 0")
+    .optional(),
   aircraft_id: z.string().min(1, "Seleccione una aeronave"),
 });
 
@@ -263,10 +272,9 @@ function EditForm({
       destination: flightData.destination ?? "",
       aircraft_operator: flightData.aircraft_operator ?? "",
       aircraft_id: flightData.aircraft_id.toString(),
-      flight_date:
-        typeof flightData.flight_date === "string"
-          ? new Date(flightData.flight_date)
-          : flightData.flight_date,
+      // Fecha de calendario: `new Date("2026-11-10")` es medianoche UTC y en
+      // UTC−4 mostraba (y reenviaba) el día anterior.
+      flight_date: parseCalendarDate(flightData.flight_date),
     },
   });
 
@@ -284,7 +292,11 @@ function EditForm({
     try {
       await updateFlightControl.mutateAsync({
         id: flightData.id,
-        data: { ...values, ...reason },
+        data: {
+          ...values,
+          flight_date: toCalendarPayload(values.flight_date),
+          ...reason,
+        },
         company: selectedCompany!.slug,
       });
       onClose();
@@ -431,7 +443,7 @@ function EditForm({
                 <FormControl>
                   <Input
                     type="number"
-                    step="0.001"
+                    step="1"
                     placeholder="EJ: 5"
                     {...field}
                   />
@@ -501,15 +513,20 @@ function CreateForm({
   const onSubmit = async (values: z.infer<typeof createFormSchema>) => {
     const flightsData = values.flights.map((f) => ({
       ...f,
+      flight_date: toCalendarPayload(f.flight_date)!,
       flight_hours: f.flight_hours ?? 0,
       flight_cycles: f.flight_cycles ?? 0,
       aircraft_id: values.aircraft_id,
     }));
-    await createFlightControl.mutateAsync({
-      data: flightsData,
-      company: selectedCompany!.slug,
-    });
-    onClose();
+    try {
+      await createFlightControl.mutateAsync({
+        data: flightsData,
+        company: selectedCompany!.slug,
+      });
+      onClose();
+    } catch {
+      // El aviso lo muestra el onError de la mutación; el formulario queda abierto.
+    }
   };
 
   return (

@@ -3,8 +3,8 @@
 import { type AppColumnDef } from "@/lib/table";
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
-import { Badge } from "@/components/ui/badge";
 import { dateFormat } from "@/lib/utils";
+import { formatNumber } from "@/lib/formatNumber";
 import { FlightControl } from "@/types";
 
 export const columns: AppColumnDef<FlightControl>[] = [
@@ -45,7 +45,12 @@ export const columns: AppColumnDef<FlightControl>[] = [
     ),
     cell: ({ row }) => {
       return (
-        <p className="font-medium text-center">{row.original.flight_hours}</p>
+        <p className="font-medium text-center tabular-nums">
+          {formatNumber(row.original.flight_hours ?? 0, {
+            minDecimals: 3,
+            maxDecimals: 3,
+          })}
+        </p>
       );
     },
   },
@@ -55,8 +60,8 @@ export const columns: AppColumnDef<FlightControl>[] = [
       <DataTableColumnHeader column={column} title="Ciclos" />
     ),
     cell: ({ row }) => (
-      <div className="text-center line-clamp-4">
-        {row.original.flight_cycles}
+      <div className="text-center tabular-nums">
+        {formatNumber(row.original.flight_cycles ?? 0)}
       </div>
     ),
   },

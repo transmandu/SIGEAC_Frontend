@@ -32,12 +32,13 @@ const fetchFlightsByDateRange = async (
 export const useGetFlightsByDateRange = (
   company?: string,
   acronym?: string,
-  dateRange?: DateRange | null
+  dateRange?: DateRange | null,
+  enabled = true,
 ) => {
   return useQuery<FlightControl[], Error>({
     queryKey: ["flights-by-date-range", company, acronym, dateRange],
     queryFn: () => fetchFlightsByDateRange(company, acronym, dateRange?? null),
     refetchOnWindowFocus: false,
-    enabled: !!company && !!acronym
+    enabled: enabled && !!company && !!acronym
   });
 };

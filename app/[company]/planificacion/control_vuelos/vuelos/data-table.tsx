@@ -1,6 +1,5 @@
 "use client";
 
-import { CreateFlightControlDialog } from "@/components/dialogs/aerolinea/administracion/CreateFlightControl";
 import { DataTablePagination } from "@/components/tables/DataTablePagination";
 import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions";
 import { Button } from "@/components/ui/button";
@@ -23,7 +22,6 @@ import {
 import { appTableFeatures, type AppColumnDef } from "@/lib/table";
 import { History } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 interface DataTableProps<TData extends RowData> {
@@ -50,10 +48,7 @@ export function DataTable<TData extends RowData>({
     },
   });
 
-  const router = useRouter();
   const { selectedCompany } = useCompanyStore();
-
-  const isFiltered = table.state.columnFilters.length > 0;
 
   return (
     <div>

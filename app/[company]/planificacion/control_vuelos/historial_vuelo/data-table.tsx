@@ -18,23 +18,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
+import { DataTablePagination } from "@/components/tables/DataTablePagination";
 import { useState } from "react";
 
 interface DataTableProps<TData extends RowData> {
   columns: AppColumnDef<TData>[];
   data: TData[];
-  totalRecords?: number;
-  currentPage?: number;
-  onPageChange?: (page: number) => void;
 }
 
 export function DataTable<TData extends RowData>({
   columns,
   data,
-  totalRecords = 0,
-  currentPage = 1,
-  onPageChange,
 }: DataTableProps<TData>) {
   // ============================================
   // STATE MANAGEMENT
@@ -126,65 +120,7 @@ export function DataTable<TData extends RowData>({
         </Table>
       </div>
 
-      {/* Paginación */}
-      <div className="flex items-center justify-between px-2">
-        <div className="flex-1 text-sm text-muted-foreground">
-          {totalRecords > 0 ? (
-            <>
-              Mostrando{" "}
-              {(currentPage - 1) * table.state.pagination.pageSize + 1} -{" "}
-              {Math.min(
-                currentPage * table.state.pagination.pageSize,
-                totalRecords,
-              )}{" "}
-              de {totalRecords} registro(s)
-            </>
-          ) : (
-            "No hay registros"
-          )}
-        </div>
-        <div className="flex items-center space-x-6 lg:space-x-8">
-          <div className="flex items-center space-x-2">
-            <p className="text-sm font-medium">Filas por página</p>
-            <select
-              value={table.state.pagination.pageSize}
-              onChange={(e) => table.setPageSize(Number(e.target.value))}
-              className="h-8 w-17.5 rounded-md border border-input bg-transparent px-2 py-1 text-sm"
-            >
-              {[25, 50, 100].map((pageSize) => (
-                <option key={pageSize} value={pageSize}>
-                  {pageSize}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="flex w-25 items-center justify-center text-sm font-medium">
-            Página {currentPage} de{" "}
-            {Math.ceil(totalRecords / table.state.pagination.pageSize)}
-          </div>
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onPageChange?.(currentPage - 1)}
-              disabled={currentPage <= 1}
-            >
-              Anterior
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onPageChange?.(currentPage + 1)}
-              disabled={
-                currentPage >=
-                Math.ceil(totalRecords / table.state.pagination.pageSize)
-              }
-            >
-              Siguiente
-            </Button>
-          </div>
-        </div>
-      </div>
+      <DataTablePagination table={table} />
     </div>
   );
 }

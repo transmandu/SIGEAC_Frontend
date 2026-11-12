@@ -5,16 +5,16 @@ import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { useGetAircraftAcronyms } from "@/hooks/mantenimiento/planificacion/useGetAircraftAcronyms";
+import { useGetMaintenanceAircrafts } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts";
 import { useGetFlightsByDateRange } from "@/hooks/aerolinea/vuelos/useGetFlightsByDateRange";
 
 import { DataTable } from "./data-table";
 import { columns } from "./columns";
-import { FlightControl } from "@/types";
+import { AircraftAcronym, FlightControl } from "@/types";
 import PeriodFilter from "./_components/PeriodFilter";
 import AircraftFilter from "./_components/AircraftFilter";
 import { useFlightFilters } from "@/hooks/general/planificacion/useFlightFilters";
-import Link from "next/link";
+import { useMemo } from "react";
 import { PageHeader } from "@/components/layout/PageHeader";
 
 const HistorialVueloPage = () => {
@@ -23,15 +23,37 @@ const HistorialVueloPage = () => {
   // Usar hook personalizado para toda la lógica de filtros
   const filterState = useFlightFilters();
 
-  // Datos de aeronaves
-  const { data: aircrafts, isLoading: loadingAircrafts } =
-    useGetAircraftAcronyms(selectedCompany?.slug);
+  // Las mismas aeronaves que el control de vuelos: el listado de siglas INAC
+  // dejaba fuera a las que no están registradas ante el INAC.
+  const { data: maintenanceAircrafts, isLoading: loadingAircrafts } =
+    useGetMaintenanceAircrafts(selectedCompany?.slug);
+  const aircrafts = useMemo<AircraftAcronym[]>(
+    () =>
+      (maintenanceAircrafts ?? []).map((a) => ({
+        id: a.id,
+        acronym: a.acronym,
+        model: a.model ?? null,
+      })),
+    [maintenanceAircrafts],
+  );
+
+  // Un rango personalizado incompleto o invertido no consulta: sin rango el
+  // backend devuelve todo el histórico, que no es lo que se pidió.
+  const rangeError =
+    filterState.periodType === "custom" &&
+    (filterState.hasCustomDateError ||
+      filterState.customFrom > filterState.customTo)
+      ? filterState.hasCustomDateError
+        ? "Indique ambas fechas del rango."
+        : "La fecha inicial no puede ser posterior a la final."
+      : undefined;
 
   // Query de vuelos usando los filtros
   const { data: flights = [], isLoading } = useGetFlightsByDateRange(
     selectedCompany?.slug,
     filterState.selectedAcronym || undefined,
     filterState.dateRange ?? null,
+    !rangeError,
   );
 
   return (
@@ -61,7 +83,7 @@ const HistorialVueloPage = () => {
               <AircraftFilter
                 selectedAcronym={filterState.selectedAcronym}
                 onAcronymChange={filterState.setSelectedAcronym}
-                aircrafts={aircrafts || []}
+                aircrafts={aircrafts}
                 loading={loadingAircrafts}
               />
             </CardHeader>
@@ -92,7 +114,15 @@ const HistorialVueloPage = () => {
             <h2 className="text-xl font-semibold">Registros de Vuelo</h2>
           </CardHeader>
           <CardContent>
-            {isLoading ? (
+            {!filterState.selectedAcronym ? (
+              <div className="text-center py-20 text-muted-foreground">
+                Seleccione una aeronave para ver su historial de vuelos
+              </div>
+            ) : rangeError ? (
+              <div className="text-center py-20 text-muted-foreground">
+                {rangeError}
+              </div>
+            ) : isLoading ? (
               <div className="flex justify-center py-20">
                 <Loader2 className="h-10 w-10 animate-spin text-primary" />
               </div>
@@ -101,13 +131,7 @@ const HistorialVueloPage = () => {
                 No hay vuelos para el período seleccionado
               </div>
             ) : (
-              <DataTable<FlightControl>
-                columns={columns}
-                data={flights}
-                totalRecords={flights.length}
-                currentPage={1}
-                onPageChange={() => {}}
-              />
+              <DataTable<FlightControl> columns={columns} data={flights} />
             )}
           </CardContent>
         </Card>

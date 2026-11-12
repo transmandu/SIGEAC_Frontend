@@ -38,6 +38,7 @@ import {
 import { usePartValue, PART_TYPES, POSITION_TYPES } from "./constants";
 import IdentificationFields from "./IdentificationFields";
 import { useResettingState } from "@/hooks/useResettingState";
+import { useState } from "react";
 
 function NumberInput({
   field,
@@ -148,11 +149,18 @@ export default function PartSection({
     null,
   );
 
-  const tsNotApplicable = timeSinceNew === null && timeSinceOverhaul === null;
+  // "No aplica" se deduce de los valores (ambos vacíos) hasta que el usuario toca
+  // la casilla. Después manda su elección: si siguiera deduciéndose, al borrar
+  // TSN y TSO uno tras otro los campos desaparecían en pleno tecleo.
+  const [tsChoice, setTsChoice] = useState<boolean | null>(null);
+  const [csChoice, setCsChoice] = useState<boolean | null>(null);
+  const tsNotApplicable =
+    tsChoice ?? (timeSinceNew === null && timeSinceOverhaul === null);
   const csNotApplicable =
-    cyclesSinceNew === null && cyclesSinceOverhaul === null;
+    csChoice ?? (cyclesSinceNew === null && cyclesSinceOverhaul === null);
 
   const toggleTSNotApplicable = (checked: boolean) => {
+    setTsChoice(checked);
     if (checked) {
       form.setValue(`${path}.time_since_new`, null);
       form.setValue(`${path}.time_since_overhaul`, null);
@@ -163,6 +171,7 @@ export default function PartSection({
   };
 
   const toggleCSNotApplicable = (checked: boolean) => {
+    setCsChoice(checked);
     if (checked) {
       form.setValue(`${path}.cycles_since_new`, null);
       form.setValue(`${path}.cycles_since_overhaul`, null);
