@@ -27,7 +27,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useUpdateRequisitionStatus } from "@/actions/mantenimiento/compras/requisiciones/actions";
 import { cn } from "@/lib/utils";
 import RequisitionActions from "./_components/RequisitionActions";
-import MetaItem from "./_components/MetaItem";
 import InfoSection from "./_components/InfoSection";
 import ImageAttachment from "./_components/ImageAttachment";
 import ArticleCard from "./_components/ArticleCard";
@@ -44,6 +43,7 @@ import {
 } from "./_components/utils/uiHelpers";
 import { PageHeader } from "@/components/layout/PageHeader";
 import PriorityChangeNotice from "@/components/misc/PriorityChangeNotice";
+import RequisitionOverview from "@/app/[company]/compras/_components/RequisitionOverview";
 import {
   AdvanceRequisitionStatusDialog,
   ADVANCE_REQUISITION_TOOLTIP,
@@ -262,43 +262,40 @@ const RequisitionPage = () => {
         </div>
 
         {data && (
-          <PriorityChangeNotice
-            requisition={data}
-            className="mx-auto w-full max-w-4xl"
-          />
+          <PriorityChangeNotice requisition={data} variant="section" />
         )}
 
-        {/* ── Meta ────────────────────────────────────────────────────── */}
-        <div className="mx-auto w-full max-w-4xl px-3 sm:px-4 py-2 sm:py-3 rounded-xl border border-slate-200 bg-white dark:border-slate-700/60 dark:bg-slate-900/60">
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-x-4 sm:gap-x-6 md:gap-x-10 gap-y-2 sm:gap-y-3 md:gap-y-4 md:justify-items-center max-md:justify-items-start max-md:[&>:last-child:nth-child(odd)]:col-span-2 max-md:[&>:last-child:nth-child(odd)]:justify-self-center">
-            <MetaItem
-              label="Creado por"
-              value={
-                data?.created_by
-                  ? `${data.created_by.first_name} ${data.created_by.last_name}`
-                  : "Sistema"
-              }
-              icon={UserCheck}
-            />
-            <MetaItem
-              label="Solicitado por"
-              value={data?.requested_by}
-              icon={UserPlus}
-            />
-            <MetaItem
-              label="Fecha de solicitud"
-              value={formatSolicitudDate(data?.submission_date)}
-              icon={CalendarDays}
-            />
-            {aircraftList.length > 0 && (
-              <MetaItem
-                label={aircraftList.length > 1 ? "Aeronaves" : "Aeronave"}
-                value={aircraftList.join(", ")}
-                icon={Plane}
-              />
-            )}
-          </div>
-        </div>
+        <RequisitionOverview
+          requisitionId={data?.id}
+          items={[
+            {
+              label: "Creado por",
+              value: data?.created_by
+                ? `${data.created_by.first_name} ${data.created_by.last_name}`
+                : "Sistema",
+              icon: UserCheck,
+            },
+            {
+              label: "Solicitado por",
+              value: data?.requested_by,
+              icon: UserPlus,
+            },
+            {
+              label: "Fecha de solicitud",
+              value: formatSolicitudDate(data?.submission_date),
+              icon: CalendarDays,
+            },
+            ...(aircraftList.length > 0
+              ? [
+                  {
+                    label: aircraftList.length > 1 ? "Aeronaves" : "Aeronave",
+                    value: aircraftList.join(", "),
+                    icon: Plane,
+                  },
+                ]
+              : []),
+          ]}
+        />
 
         {/* ── CONTEXTO DE LA REQUISICIÓN ───────────────────────────── */}
         <div className="w-full space-y-4 sm:space-y-6">
@@ -365,6 +362,7 @@ const RequisitionPage = () => {
                   batchCategory={batch.category}
                   onImageClick={setOpenImage}
                   requisitionStatus={data?.status}
+                  requisitionId={data?.id}
                 />
               ))}
             </div>

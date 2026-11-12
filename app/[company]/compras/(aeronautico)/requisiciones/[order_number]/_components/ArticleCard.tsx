@@ -7,6 +7,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import ArticleJourney from "@/components/misc/ArticleJourney";
 import CopyPartNumberButton from "@/components/misc/CopyPartNumberButton";
 import { cn } from "@/lib/utils";
 import { ImageIcon, Plane } from "lucide-react";
@@ -20,6 +21,8 @@ interface ArticleCardProps {
   batchCategory?: string;
   onImageClick: (image: string) => void;
   requisitionStatus?: string;
+  /** Solicitud a la que pertenece: de ahí sale el recorrido del artículo. */
+  requisitionId?: number;
 }
 
 const ArticleCard = ({
@@ -28,6 +31,7 @@ const ArticleCard = ({
   batchCategory,
   onImageClick,
   requisitionStatus,
+  requisitionId,
 }: ArticleCardProps) => {
   const showApprovalDetails = (status?: string) => {
     return status && status !== "PENDING" && status !== "REJECTED";
@@ -422,6 +426,15 @@ const ArticleCard = ({
           </div>
         </div>
       </div>
+
+      {/* RECORRIDO */}
+      <ArticleJourney
+        requisitionId={requisitionId}
+        lineId={article.id}
+        kind="article"
+        bare
+        className="border-t border-border/50 bg-muted/20 px-3 py-1.5"
+      />
 
       {/* JUSTIFICACIÓN */}
       {article.justification && (

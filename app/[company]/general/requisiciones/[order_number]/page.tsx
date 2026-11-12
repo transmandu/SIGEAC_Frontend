@@ -24,6 +24,8 @@ import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import LoadingPage from "@/components/misc/LoadingPage";
 import PriorityChangeNotice from "@/components/misc/PriorityChangeNotice";
+import ArticleJourney from "@/components/misc/ArticleJourney";
+import RequisitionCycle from "@/components/misc/RequisitionCycle";
 import ArticleLifecycleIcon from "@/components/misc/ArticleLifecycleIcon";
 import TransitUpdatesLink from "@/components/misc/TransitUpdatesLink";
 
@@ -256,7 +258,13 @@ const ArticleJustificationStrip = ({
 };
 
 /* -------------------- ARTICLE CARD -------------------- */
-const BatchArticleCard = ({ article }: { article: any }) => {
+const BatchArticleCard = ({
+  article,
+  requisitionId,
+}: {
+  article: any;
+  requisitionId?: number;
+}) => {
   const isPending = article.status === "PENDING";
   const showExtra = !isPending;
 
@@ -351,6 +359,13 @@ const BatchArticleCard = ({ article }: { article: any }) => {
         {showExtra && (
           <ArticleJustificationStrip justification={article.justification} />
         )}
+
+        <ArticleJourney
+          requisitionId={requisitionId}
+          lineId={article.id}
+          kind="article"
+          className="mt-2"
+        />
       </div>
 
       {/* ---------------- IMAGEN CENTRADA EN LA TARJETA ---------------- */}
@@ -378,7 +393,13 @@ const BatchArticleCard = ({ article }: { article: any }) => {
   );
 };
 
-const GeneralArticleCard = ({ article }: { article: any }) => {
+const GeneralArticleCard = ({
+  article,
+  requisitionId,
+}: {
+  article: any;
+  requisitionId?: number;
+}) => {
   const isPending = article.status === "PENDING";
   const showExtra = !isPending;
 
@@ -506,6 +527,13 @@ const GeneralArticleCard = ({ article }: { article: any }) => {
           {showExtra && (
             <ArticleJustificationStrip justification={article.justification} />
           )}
+
+          <ArticleJourney
+            requisitionId={requisitionId}
+            lineId={article.id}
+            kind="general"
+            className="mt-2"
+          />
         </div>
       </div>
 
@@ -639,6 +667,14 @@ const RequisitionPage = () => {
             />
           )}
 
+          {data && (
+            <RequisitionCycle
+              requisitionId={data.id}
+              variant="card"
+              className="mx-auto w-full max-w-4xl"
+            />
+          )}
+
           {/* IMAGEN */}
           {data?.image && (
             <div className="flex flex-col items-center gap-2">
@@ -764,7 +800,10 @@ const RequisitionPage = () => {
                   <CardContent className="space-y-3">
                     {batch.batch_articles.map((article, index) => (
                       <div key={index}>
-                        <BatchArticleCard article={article} />
+                        <BatchArticleCard
+                          article={article}
+                          requisitionId={data.id}
+                        />
 
                         {index < batch.batch_articles.length - 1 && (
                           <Separator className="my-3" />
@@ -799,7 +838,10 @@ const RequisitionPage = () => {
                 {data.general_articles.map((article, index) => (
                   <Card key={index} className="w-full flex flex-col">
                     <CardContent className="p-3 flex-1">
-                      <GeneralArticleCard article={article} />
+                      <GeneralArticleCard
+                        article={article}
+                        requisitionId={data.id}
+                      />
                     </CardContent>
                   </Card>
                 ))}

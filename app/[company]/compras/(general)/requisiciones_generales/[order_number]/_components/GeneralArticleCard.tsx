@@ -23,12 +23,15 @@ import {
   User,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
+import ArticleJourney from "@/components/misc/ArticleJourney";
 import { articleStatusUI, priorityCardBadgeCls } from "./utils/uiHelpers";
 
 interface GeneralArticleCardProps {
   article: any;
   onImageClick: (image: string) => void;
   requisitionStatus?: string;
+  /** Solicitud a la que pertenece: de ahí sale el recorrido del artículo. */
+  requisitionId?: number;
 }
 
 interface DestinationEntry {
@@ -110,6 +113,7 @@ const GeneralArticleCard = ({
   article,
   onImageClick,
   requisitionStatus,
+  requisitionId,
 }: GeneralArticleCardProps) => {
   const showApprovalDetails = (status?: string) => {
     return status && status !== "PENDING" && status !== "REJECTED";
@@ -458,6 +462,15 @@ const GeneralArticleCard = ({
           </div>
         </div>
       </div>
+
+      {/* RECORRIDO */}
+      <ArticleJourney
+        requisitionId={requisitionId}
+        lineId={article.id}
+        kind="general"
+        bare
+        className="border-t border-border/50 bg-muted/20 px-3 py-1.5"
+      />
 
       {/* JUSTIFICACIÓN */}
       {article.justification && (

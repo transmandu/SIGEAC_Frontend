@@ -55,6 +55,10 @@
   --animate-card-in: card-in 0.32s cubic-bezier(0.22, 1, 0.36, 1) backwards;
   --animate-reveal: reveal 0.22s cubic-bezier(0.22, 1, 0.36, 1) backwards;
   --animate-item-in: item-in 0.2s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  --animate-cycle-x: cycle-x 0.7s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  --animate-cycle-y: cycle-y 0.7s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  --animate-cycle-node: cycle-node 0.4s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  --animate-cycle-pulse: cycle-pulse 2.6s cubic-bezier(0.22, 1, 0.36, 1) infinite;
 
   --background-image-planeBg1: url("/plane1.jpg");
   --background-image-planeBg2: url("/plane2.jpg");
@@ -120,6 +124,36 @@
     from {
       opacity: 0;
       transform: translateX(-0.5rem);
+    }
+  }
+  /* Ciclo de la solicitud: el tramo se dibuja de una etapa a la siguiente
+     (horizontal en escritorio, vertical en móvil), el nodo asoma al llegar la
+     línea y el vigente emite un latido suave. Solo opacity/transform. */
+  @keyframes cycle-x {
+    from {
+      transform: scaleX(0);
+    }
+  }
+  @keyframes cycle-y {
+    from {
+      transform: scaleY(0);
+    }
+  }
+  @keyframes cycle-node {
+    from {
+      opacity: 0;
+      transform: scale(0.6);
+    }
+  }
+  @keyframes cycle-pulse {
+    0% {
+      opacity: 0.45;
+      transform: scale(1);
+    }
+    70%,
+    100% {
+      opacity: 0;
+      transform: scale(1.9);
     }
   }
   @keyframes indeterminate {

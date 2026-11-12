@@ -38,6 +38,46 @@ const TONES: Record<string, { panel: string; icon: string }> = {
   },
 };
 
+/**
+ * Variante para las fichas de compras: un anuncio centrado y de ancho acotado,
+ * con el fondo y el borde, planos, del color de la prioridad a la que pasó. En
+ * claro el fondo es el tono 50 de la paleta; en oscuro, una transparencia del
+ * color sobre el fondo de la página (un tono 50 sólido brillaría). Cada capa
+ * lleva su equivalente oscuro explícito.
+ */
+const SECTION_TONES: Record<
+  string,
+  { panel: string; icon: string; reason: string }
+> = {
+  HIGH: {
+    panel:
+      "border-red-300/80 bg-red-50 dark:border-red-400/25 dark:bg-red-500/10",
+    icon: "bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-300",
+    reason: "border-red-200/70 bg-white/70 dark:border-red-400/20 dark:bg-black/20",
+  },
+  MEDIUM: {
+    panel:
+      "border-orange-300/80 bg-orange-50 dark:border-orange-400/25 dark:bg-orange-500/10",
+    icon: "bg-orange-100 text-orange-600 dark:bg-orange-500/20 dark:text-orange-300",
+    reason:
+      "border-orange-200/70 bg-white/70 dark:border-orange-400/20 dark:bg-black/20",
+  },
+  LOW: {
+    panel:
+      "border-emerald-300/80 bg-emerald-50 dark:border-emerald-400/25 dark:bg-emerald-500/10",
+    icon: "bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-300",
+    reason:
+      "border-emerald-200/70 bg-white/70 dark:border-emerald-400/20 dark:bg-black/20",
+  },
+};
+
+const SECTION_FALLBACK = {
+  panel:
+    "border-slate-200 bg-slate-50 dark:border-slate-700/60 dark:bg-slate-800/30",
+  icon: "bg-slate-100 text-muted-foreground dark:bg-slate-800",
+  reason: "border-slate-200 bg-white/70 dark:border-slate-700/60 dark:bg-black/20",
+};
+
 const FALLBACK_TONE = {
   panel: "border-slate-200 bg-muted/30 dark:border-slate-700/60",
   icon: "bg-muted text-muted-foreground",
@@ -51,21 +91,29 @@ interface Props {
     status: string;
     priority_change?: RequisitionPriorityChange | null;
   };
+  /**
+   * `tinted` (por defecto) es el aviso con relleno de color de la ficha de
+   * almacén; `section` es el de las fichas de compras: más pequeño, centrado y
+   * con el color plano de la prioridad.
+   */
+  variant?: "tinted" | "section";
   className?: string;
 }
 
 /**
  * Aviso del último cambio de prioridad de una solicitud, para quien la abre
  * después de que alguien la subió (o bajó). Lo comparten el detalle de compras
- * aeronáutico, el de compras general y el de almacén/solicitante: cada página
- * decide su ancho y su sitio; el aspecto es el mismo.
+ * aeronáutico, el de compras general y el de almacén/solicitante. Cada ficha
+ * conserva su estilo: `variant` elige el de compras o el de almacén, y la
+ * página solo decide su sitio.
  *
- * La primera vez que el usuario ve un cambio aparece desplegado, con quién,
- * cuándo y el motivo; las siguientes veces queda plegado en una línea que se
+ * La primera vez que el usuario ve un cambio aparece desplegado, con quién, el
+ * día y el motivo; las siguientes veces queda plegado en una línea que se
  * despliega al pulsarla. Un cambio nuevo vuelve a aparecer desplegado.
  */
 export default function PriorityChangeNotice({
   requisition,
+  variant = "tinted",
   className,
 }: Props) {
   const { user } = useAuth();
@@ -90,6 +138,7 @@ export default function PriorityChangeNotice({
       key={change.id}
       change={change}
       seenKey={`${selectedCompany.slug}:${user.id}:${change.id}`}
+      variant={variant}
       className={className}
     />
   );
@@ -98,10 +147,12 @@ export default function PriorityChangeNotice({
 function Notice({
   change,
   seenKey,
+  variant,
   className,
 }: {
   change: RequisitionPriorityChange;
   seenKey: string;
+  variant: "tinted" | "section";
   className?: string;
 }) {
   const timeZone = useCompanyTimezone();
@@ -121,37 +172,66 @@ function Notice({
   }, [markSeen, seenKey]);
 
   const tone = TONES[change.to_priority] ?? FALLBACK_TONE;
+  const sectionTone = SECTION_TONES[change.to_priority] ?? SECTION_FALLBACK;
+  const section = variant === "section";
   const Icon = change.is_escalation ? ArrowUp : ArrowDown;
-  const meta = `Por ${change.changed_by} · ${formatInstant(change.changed_at, timeZone, "dateTime")}`;
+  // Solo el día, dicho como frase: la hora es para consultar en el registro, y
+  // una fecha suelta junto al nombre no se entiende de un vistazo.
+  const meta = `Por ${change.changed_by} el ${formatInstant(change.changed_at, timeZone, "d MMM yyyy")}`;
 
   return (
     <section
       role="status"
       aria-label="Cambio de prioridad"
-      className={cn("rounded-xl border", tone.panel, className)}
+      className={cn(
+        "rounded-xl border",
+        section
+          ? cn("mx-auto w-full max-w-3xl", sectionTone.panel)
+          : tone.panel,
+        className,
+      )}
     >
       <button
         type="button"
         aria-expanded={open}
         aria-controls={detailsId}
         onClick={() => setOpen((value) => !value)}
-        className="flex w-full touch-manipulation items-center gap-3 rounded-xl p-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className={cn(
+          "flex w-full touch-manipulation items-center gap-3 rounded-xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          section ? "px-4 py-2.5" : "p-3",
+        )}
       >
-        <div
-          className={cn(
-            "grid size-9 shrink-0 place-items-center rounded-lg",
-            tone.icon,
-          )}
-        >
-          <Icon aria-hidden className="size-5" />
-        </div>
+        {section ? (
+          <div
+            className={cn(
+              "grid size-7 shrink-0 place-items-center rounded-lg",
+              sectionTone.icon,
+            )}
+          >
+            <Icon aria-hidden className="size-4" />
+          </div>
+        ) : (
+          <div
+            className={cn(
+              "grid size-9 shrink-0 place-items-center rounded-lg",
+              tone.icon,
+            )}
+          >
+            <Icon aria-hidden className="size-5" />
+          </div>
+        )}
 
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-0.5 md:flex-nowrap">
           <span className="text-sm font-semibold text-foreground md:shrink-0">
             {change.is_escalation ? "Prioridad elevada" : "Prioridad reducida"}
           </span>
 
-          <span className="flex items-center gap-2 text-base font-semibold text-foreground md:shrink-0">
+          <span
+            className={cn(
+              "flex items-center gap-2 font-semibold text-foreground md:shrink-0",
+              section ? "text-sm" : "text-base",
+            )}
+          >
             <PriorityTag value={change.from_priority} />
             <ArrowRight
               aria-hidden
@@ -187,14 +267,24 @@ function Notice({
       {open && (
         <div
           id={detailsId}
-          className="space-y-2 pr-3 pb-3 pl-15 motion-safe:animate-reveal"
+          className={cn(
+            "space-y-2 motion-safe:animate-reveal",
+            section ? "pr-4 pb-3 pl-14" : "pr-3 pb-3 pl-15",
+          )}
         >
           <p className="text-[13px] text-muted-foreground wrap-anywhere">
             {meta}
           </p>
 
           {change.reason && (
-            <p className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm wrap-anywhere dark:border-slate-700/60 dark:bg-slate-900/60">
+            <p
+              className={cn(
+                "rounded-lg border px-3 py-2 text-sm wrap-anywhere",
+                section
+                  ? sectionTone.reason
+                  : "border-slate-200 bg-white dark:border-slate-700/60 dark:bg-slate-900/60",
+              )}
+            >
               {change.reason}
             </p>
           )}
