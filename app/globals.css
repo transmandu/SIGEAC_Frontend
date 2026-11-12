@@ -58,7 +58,8 @@
   --animate-cycle-x: cycle-x 0.7s cubic-bezier(0.22, 1, 0.36, 1) backwards;
   --animate-cycle-y: cycle-y 0.7s cubic-bezier(0.22, 1, 0.36, 1) backwards;
   --animate-cycle-node: cycle-node 0.4s cubic-bezier(0.22, 1, 0.36, 1) backwards;
-  --animate-cycle-pulse: cycle-pulse 2.6s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  --animate-cycle-pulse: cycle-pulse 2.6s cubic-bezier(0.22, 1, 0.36, 1)
+    infinite;
 
   --background-image-planeBg1: url("/plane1.jpg");
   --background-image-planeBg2: url("/plane2.jpg");

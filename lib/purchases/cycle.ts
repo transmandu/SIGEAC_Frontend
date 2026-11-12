@@ -36,7 +36,9 @@ export const liveSeconds = (
   base: number | null,
   elapsedSinceFetchMs: number,
 ): number | null =>
-  base === null ? null : base + Math.max(0, Math.floor(elapsedSinceFetchMs / 1000));
+  base === null
+    ? null
+    : base + Math.max(0, Math.floor(elapsedSinceFetchMs / 1000));
 
 /** La etapa sigue corriendo: su permanencia no está cerrada. */
 export const isRunning = (stage: RequisitionCycleStage): boolean =>

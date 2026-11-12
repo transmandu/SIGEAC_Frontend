@@ -53,7 +53,8 @@ const SECTION_TONES: Record<
     panel:
       "border-red-300/80 bg-red-50 dark:border-red-400/25 dark:bg-red-500/10",
     icon: "bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-300",
-    reason: "border-red-200/70 bg-white/70 dark:border-red-400/20 dark:bg-black/20",
+    reason:
+      "border-red-200/70 bg-white/70 dark:border-red-400/20 dark:bg-black/20",
   },
   MEDIUM: {
     panel:
@@ -75,7 +76,8 @@ const SECTION_FALLBACK = {
   panel:
     "border-slate-200 bg-slate-50 dark:border-slate-700/60 dark:bg-slate-800/30",
   icon: "bg-slate-100 text-muted-foreground dark:bg-slate-800",
-  reason: "border-slate-200 bg-white/70 dark:border-slate-700/60 dark:bg-black/20",
+  reason:
+    "border-slate-200 bg-white/70 dark:border-slate-700/60 dark:bg-black/20",
 };
 
 const FALLBACK_TONE = {

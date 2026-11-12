@@ -261,9 +261,7 @@ const RequisitionPage = () => {
           </div>
         </div>
 
-        {data && (
-          <PriorityChangeNotice requisition={data} variant="section" />
-        )}
+        {data && <PriorityChangeNotice requisition={data} variant="section" />}
 
         <RequisitionOverview
           requisitionId={data?.id}

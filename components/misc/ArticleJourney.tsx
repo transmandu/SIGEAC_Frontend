@@ -128,7 +128,9 @@ function Journey({
         ? {
             tone: "stored" as const,
             text: line.status === "DELIVERED" ? "Entregado" : "Almacenado",
-            date: stored_at ? formatInstant(stored_at, timeZone, "dd MMM") : null,
+            date: stored_at
+              ? formatInstant(stored_at, timeZone, "dd MMM")
+              : null,
           }
         : null;
 
@@ -208,7 +210,10 @@ function Journey({
                   <span className="font-normal tabular-nums">
                     {bare ? (
                       <>
-                        <span aria-hidden className="hidden @min-[800px]:inline">
+                        <span
+                          aria-hidden
+                          className="hidden @min-[800px]:inline"
+                        >
                           ·{" "}
                         </span>
                         {outcome.date}
@@ -337,7 +342,10 @@ function StageStep({
     >
       <Node tone={stage.running ? "running" : "done"} />
       <span
-        className={cn("flex items-baseline gap-1.5 text-xs", bare && TEXT_LAYOUT)}
+        className={cn(
+          "flex items-baseline gap-1.5 text-xs",
+          bare && TEXT_LAYOUT,
+        )}
       >
         <span
           className={

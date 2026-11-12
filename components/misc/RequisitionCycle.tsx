@@ -192,13 +192,7 @@ function LoadedCycle({
   const listId = useId();
   const [expanded, setExpanded] = useState(false);
 
-  const summary = (
-    <Summary
-      cycle={cycle}
-      elapsed={elapsed}
-      variant={variant}
-    />
-  );
+  const summary = <Summary cycle={cycle} elapsed={elapsed} variant={variant} />;
 
   return (
     <Shell variant={variant} className={className} action={summary}>
@@ -257,8 +251,9 @@ const repeatsTotal = (
  * La fecha de la primera etapa es la "Fecha de solicitud" de la información que
  * va al lado: no se repite.
  */
-const repeatsRequestDate = (stage: RequisitionCycleStage | undefined): boolean =>
-  stage?.key === "CREATED";
+const repeatsRequestDate = (
+  stage: RequisitionCycleStage | undefined,
+): boolean => stage?.key === "CREATED";
 
 const SEGMENT: Partial<Record<RequisitionCycleStageState, string>> = {
   done: "bg-primary",
@@ -380,7 +375,10 @@ function CompactSummary({
         {expanded ? "Ocultar las etapas" : "Ver las etapas"}
         <ChevronDown
           aria-hidden
-          className={cn("size-3.5 transition-transform", expanded && "rotate-180")}
+          className={cn(
+            "size-3.5 transition-transform",
+            expanded && "rotate-180",
+          )}
         />
       </button>
     </div>
@@ -563,7 +561,10 @@ function StageItem({
           </PopoverContent>
         </Popover>
       ) : (
-        <div className={cn(layout, "motion-safe:animate-cycle-node")} style={delay}>
+        <div
+          className={cn(layout, "motion-safe:animate-cycle-node")}
+          style={delay}
+        >
           {content}
         </div>
       )}
@@ -605,12 +606,12 @@ function Node({
       <span
         className={cn(
           "relative grid size-6 place-items-center rounded-full border @min-[700px]:size-8",
-          completed && stage.state === "done" ? NODE_COMPLETED : NODE[stage.state],
+          completed && stage.state === "done"
+            ? NODE_COMPLETED
+            : NODE[stage.state],
         )}
       >
-        {Icon && (
-          <Icon aria-hidden className="size-3.5 @min-[700px]:size-4" />
-        )}
+        {Icon && <Icon aria-hidden className="size-3.5 @min-[700px]:size-4" />}
         {dot && (
           <span
             aria-hidden
