@@ -729,7 +729,7 @@ export const PaxFlightForm = ({
                   <div className="flex items-center gap-2">
                     <FileText className="h-4 w-4 text-amber-700 dark:text-amber-400" />
                     <span className="font-semibold text-sm text-foreground">
-                      Cotejo de Manifiesto Físico: N° {manifestDetails.number}
+                      Detalles del Manifiesto: N° {manifestDetails.number}
                     </span>
                   </div>
                   <Badge
