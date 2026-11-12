@@ -42,6 +42,7 @@ import { useGetMaintenanceAircraftByAcronym } from "@/hooks/mantenimiento/planif
 import type { AeronauticalAircraft, MaintenanceAircraftPart } from "@/types";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { formatNumber } from "@/lib/formatNumber";
+import { partLabel } from "@/app/[company]/planificacion/aeronaves/_components/partLabel";
 
 // ---------- helpers ----------
 const labelFor = (obj: any): string => {
@@ -109,7 +110,7 @@ const PartRow = ({
           <div className="flex-1">
             <div className="flex items-center gap-2 flex-wrap">
               <Puzzle className="h-4 w-4 text-muted-foreground" />
-              <span className="font-medium truncate">{p.part_name}</span>
+              <span className="font-medium truncate">{partLabel(p)}</span>
               <Badge variant="outline" className="font-mono text-[10px]">
                 PN: {p.part_number}
               </Badge>
@@ -153,10 +154,32 @@ const PartRow = ({
 export default function AircraftDetailsPage() {
   const { acronym } = useParams<{ acronym: string }>();
   const { selectedCompany } = useCompanyStore();
+  const [search, setSearch] = React.useState("");
   const { data: aircraft, isLoading } = useGetMaintenanceAircraftByAcronym(
-    acronym,
     selectedCompany?.slug,
+    acronym,
   );
+
+  // El backend entrega las partes dentro de las asignaciones vigentes
+  // (`aircraft_assignments`); no existe `aircraft_parts` en la respuesta.
+  const rootParts = React.useMemo(
+    () =>
+      (aircraft?.aircraft_assignments ?? [])
+        .filter((a) => !a.removed_date)
+        .map((a) => a.aircraft_part)
+        .filter(Boolean),
+    [aircraft],
+  );
+
+  const visibleParts = React.useMemo(() => {
+    const needle = search.trim().toLowerCase();
+    if (!needle) return rootParts;
+    const matches = (p: MaintenanceAircraftPart): boolean =>
+      [p.type, p.description, p.part_number, p.serial].some((v) =>
+        v?.toLowerCase().includes(needle),
+      ) || (p.sub_parts ?? []).some(matches);
+    return rootParts.filter(matches);
+  }, [rootParts, search]);
 
   if (isLoading) return <LoadingPage />;
 
@@ -236,7 +259,7 @@ export default function AircraftDetailsPage() {
                   <Stat
                     icon={Puzzle}
                     label="Partes Instaladas"
-                    value={aircraft.aircraft_parts?.length ?? 0}
+                    value={rootParts.length}
                   />
                 </div>
               </CardContent>
@@ -257,9 +280,9 @@ export default function AircraftDetailsPage() {
                   </CardHeader>
                   <CardContent>
                     <ScrollArea className="h-125 pr-4">
-                      {aircraft.aircraft_parts?.length ? (
+                      {visibleParts.length ? (
                         <Accordion type="multiple" className="w-full">
-                          {aircraft.aircraft_parts.map((root, idx) => (
+                          {visibleParts.map((root, idx) => (
                             <PartRow
                               key={`${root.part_number}-${idx}`}
                               p={root}
@@ -269,7 +292,9 @@ export default function AircraftDetailsPage() {
                         </Accordion>
                       ) : (
                         <div className="text-sm text-muted-foreground text-center py-8">
-                          Sin partes registradas
+                          {rootParts.length
+                            ? "Ninguna parte coincide con la búsqueda"
+                            : "Sin partes registradas"}
                         </div>
                       )}
                     </ScrollArea>
@@ -310,13 +335,11 @@ export default function AircraftDetailsPage() {
                   </CardHeader>
                   <CardContent className="space-y-2">
                     <Input
-                      placeholder="Buscar por PN o nombre de parte…"
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      placeholder="Buscar por tipo, PN o serial…"
                       className="h-9"
                     />
-                    <p className="text-xs text-muted-foreground">
-                      (Wire up a un estado/filtro si deseas hacerlo
-                      interactivo).
-                    </p>
                   </CardContent>
                 </Card>
               </div>

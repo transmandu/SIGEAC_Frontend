@@ -4,6 +4,10 @@ import { ChevronDown, FileText, Folder } from "lucide-react";
 import { useState } from "react";
 import { InfoItem } from "./InfoItem";
 import { formatNumber } from "@/lib/formatNumber";
+import { partLabel } from "@/app/[company]/planificacion/aeronaves/_components/partLabel";
+
+// 0 es un valor válido; solo null/undefined/"" significan "no aplica".
+const hasValue = (v: unknown) => v !== null && v !== undefined && v !== "";
 
 export function PartSummaryCard({
   part,
@@ -36,7 +40,7 @@ export function PartSummaryCard({
               <span
                 className={`font-medium ${part.removed_date ? "line-through text-muted-foreground" : ""}`}
               >
-                {part.part_name || `Parte ${index + 1}`}
+                {part.type ? partLabel(part) : `Parte ${index + 1}`}
               </span>
               {part.part_number && (
                 <Badge variant="outline" className="ml-2">
@@ -63,40 +67,42 @@ export function PartSummaryCard({
       {expanded && (
         <CardContent className="p-4 space-y-3 border-t">
           <div className="grid grid-cols-2 gap-3">
-            <InfoItem label="Nombre" value={part.part_name} />
+            <InfoItem label="Tipo" value={part.type} />
             <InfoItem label="Número de Parte" value={part.part_number} />
             <InfoItem label="Serial" value={part.serial} />
-            <InfoItem label="Marca" value={part.brand} />
+            <InfoItem label="ATA" value={part.ata_chapter} />
+            <InfoItem label="Posición" value={part.position} />
+            <InfoItem label="Orden" value={part.part_order ?? undefined} />
             <InfoItem
               label="TSN (Time Since New)"
               value={
-                part.time_since_new
+                hasValue(part.time_since_new)
                   ? `${formatNumber(part.time_since_new, { maxDecimals: 3 })} hrs`
-                  : "No especificado"
+                  : "No aplica"
               }
             />
             <InfoItem
               label="TSO (Time Since Overhaul)"
               value={
-                part.time_since_overhaul
+                hasValue(part.time_since_overhaul)
                   ? `${formatNumber(part.time_since_overhaul, { maxDecimals: 3 })} hrs`
-                  : "No especificado"
+                  : "No aplica"
               }
             />
             <InfoItem
               label="CSN (Cycles Since New)"
               value={
-                part.cycles_since_new
+                hasValue(part.cycles_since_new)
                   ? formatNumber(part.cycles_since_new)
-                  : "No especificado"
+                  : "No aplica"
               }
             />
             <InfoItem
               label="CSO (Cycles Since Overhaul)"
               value={
-                part.cycles_since_overhaul
+                hasValue(part.cycles_since_overhaul)
                   ? formatNumber(part.cycles_since_overhaul)
-                  : "No especificado"
+                  : "No aplica"
               }
             />
           </div>

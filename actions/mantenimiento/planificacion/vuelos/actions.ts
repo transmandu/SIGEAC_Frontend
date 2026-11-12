@@ -6,10 +6,28 @@ import type { EditReasonValue } from "@/components/forms/mantenimiento/planifica
 import { invalidatePlanificationAudit } from "@/hooks/mantenimiento/planificacion/useGetPlanificationAuditStats";
 import { notifyError } from "@/lib/notify-error";
 
+import type { QueryClient } from "@tanstack/react-query";
+
+/**
+ * Un vuelo suma o resta horas y ciclos a la aeronave y a sus partes: además de
+ * la lista de vuelos, quedan viejos los totales de las aeronaves, los promedios
+ * y el historial por rango.
+ */
+export const invalidateFlightData = (queryClient: QueryClient) => {
+  queryClient.invalidateQueries({ queryKey: ["flight-control"] });
+  queryClient.invalidateQueries({ queryKey: ["flights-by-date-range"] });
+  queryClient.invalidateQueries({ queryKey: ["average-cycles-hours"] });
+  queryClient.invalidateQueries({ queryKey: ["aircrafts"] });
+  queryClient.invalidateQueries({ queryKey: ["aircraft"] });
+  invalidatePlanificationAudit(queryClient);
+};
+
 interface CreateFlightControlData {
   aircraft_id: string;
   flight_cycles: number;
   flight_hours: number;
+  /** Fecha de calendario `yyyy-MM-dd`, no un instante. */
+  flight_date: string;
   flight_number?: string;
   origin?: string;
   destination?: string;
@@ -31,8 +49,7 @@ export const useCreateFlightControl = () => {
       await axiosInstance.post(`/${company}/flight-control`, { flights });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["flight-control"] });
-      invalidatePlanificationAudit(queryClient);
+      invalidateFlightData(queryClient);
       toast.success("¡Creado!", {
         description: `El/los vuelo(s) ha(n) sido registrado(s) correctamente.`,
       });
@@ -63,8 +80,7 @@ export const useUpdateFlightControl = () => {
       await axiosInstance.put(`/${company}/flight-control/${id}`, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["flight-control"] });
-      invalidatePlanificationAudit(queryClient);
+      invalidateFlightData(queryClient);
       toast.success("¡Actualizado!", {
         description: `El vuelo ha sido actualizado correctamente.`,
       });
@@ -98,11 +114,7 @@ export const useDeleteFlightControl = () => {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["flight-control"],
-      });
-      queryClient.invalidateQueries({ queryKey: ["flight-controls"] });
-      invalidatePlanificationAudit(queryClient);
+      invalidateFlightData(queryClient);
       toast.success("¡Eliminado!", {
         description: `¡El vuelo ha sido eliminado correctamente!`,
       });

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { format, parseISO, getYear, startOfMonth, endOfMonth } from "date-fns";
+import { format, parseISO, startOfMonth, endOfMonth } from "date-fns";
 import { es } from "date-fns/locale";
 import { useGetAverageCyclesAndHours } from "@/hooks/aerolinea/vuelos/useGetAverageCyclesAndHours";
 import { Badge } from "@/components/ui/badge";
@@ -48,6 +48,8 @@ import axiosInstance from "@/lib/axios";
 import { toast } from "sonner";
 import { formatNumber } from "@/lib/formatNumber";
 import { notifyError } from "@/lib/notify-error";
+import { parseCalendarDate } from "@/lib/date";
+import { partLabel } from "./partLabel";
 
 const fmtNumber = (n: unknown) =>
   formatNumber(n, { maxDecimals: 3, fallback: "N/A" });
@@ -89,7 +91,7 @@ function TreeNode({ part, depth = 0 }: { part: any; depth?: number }) {
 
         <div className="flex flex-1 items-center justify-between ml-2">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">{part.part_name}</span>
+            <span className="text-sm font-medium">{partLabel(part)}</span>
             {part.condition_type && (
               <Badge
                 variant="outline"
@@ -163,51 +165,7 @@ export function PlanificationAircraftTab({
   const [downloadAll, setDownloadAll] = useState<boolean>(true);
   const { selectedCompany } = useCompanyStore();
 
-  // Lógica de descarga de Excel
-  const handleDownloadTraceability = async () => {
-    if (!selectedCompany?.slug || !aircraft?.id) {
-      toast.error("¡Ops! Datos de aeronave o empresa no disponibles");
-      return;
-    }
-
-    setIsDownloading(true);
-
-    try {
-      // Observa qué limpio queda: no hay URL base manual ni headers de Token
-      const response = await axiosInstance.get(
-        `/${selectedCompany.slug}/aeronautical/aircrafts/traceability-export`,
-        {
-          params: { aircraft_id: aircraft.id },
-          responseType: "blob",
-        },
-      );
-
-      const blob = new Blob([response.data], {
-        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute(
-        "download",
-        `Trazabilidad_${aircraft.acronym}_${format(new Date(), "dd-MM-yyyy")}.xlsx`,
-      );
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-
-      toast.success("Archivo generado correctamente");
-    } catch (error: any) {
-      notifyError(error, {
-        action: "generar la trazabilidad de la aeronave",
-      });
-    } finally {
-      setIsDownloading(false);
-    }
-  };
-
-  // Nueva versión que acepta filtros opcionales
+  // Descarga con o sin rango de fechas
   const handleDownloadTraceabilityFiltered = async (opts?: {
     first_date?: string;
     second_date?: string;
@@ -257,6 +215,9 @@ export function PlanificationAircraftTab({
     }
   };
 
+  const invalidRange =
+    !downloadAll && (!downloadFrom || !downloadTo || downloadFrom > downloadTo);
+
   // Solo assignments activos
   const assignments = useMemo(() => {
     return (aircraft.aircraft_assignments || []).filter(
@@ -266,33 +227,38 @@ export function PlanificationAircraftTab({
 
   // Lista plana para la pestaña de búsqueda (incluye hijos recursivamente)
   const filteredFlat = useMemo(() => {
-    const flat: AircraftAssingment[] = [];
+    const flat: (AircraftAssingment & { isSub?: boolean })[] = [];
 
+    // Las subpartes no tienen asignación propia: heredan la fila de su raíz
+    // (`isSub`) y no se les muestra las lecturas "al instalar" de otra parte.
     const flatten = (items: any[]) => {
       items.forEach((a) => {
         flat.push(a);
         const part = a.aircraft_part || a;
-        if (part.sub_parts && part.sub_parts.length > 0) {
-          part.sub_parts.forEach((sub: any) => {
-            flatten([
-              {
-                ...a,
-                id: `sub-${sub.id}-${Math.random()}`,
-                aircraft_part: sub,
-              },
-            ]);
-          });
-        }
+        (part.sub_parts ?? []).forEach((sub: any) => {
+          flatten([
+            {
+              ...a,
+              id: `sub-${sub.id}-${a.id}`,
+              isSub: true,
+              aircraft_part: sub,
+            },
+          ]);
+        });
       });
     };
 
     flatten(assignments);
 
-    if (!q) return flat;
-    return flat.filter(
-      (a) =>
-        a.aircraft_part.part_name?.toLowerCase().includes(q.toLowerCase()) ||
-        a.aircraft_part.part_number?.toLowerCase().includes(q.toLowerCase()),
+    const needle = q.trim().toLowerCase();
+    if (!needle) return flat;
+    return flat.filter((a) =>
+      [
+        a.aircraft_part.type,
+        a.aircraft_part.description,
+        a.aircraft_part.part_number,
+        a.aircraft_part.serial,
+      ].some((v) => v?.toLowerCase().includes(needle)),
     );
   }, [assignments, q]);
 
@@ -301,7 +267,7 @@ export function PlanificationAircraftTab({
       {/* Encabezado */}
       <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
         <div className="space-y-1">
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight sm:text-3xl">
               <Plane className="h-6 w-6" /> {aircraft.acronym}
             </h1>
@@ -360,6 +326,12 @@ export function PlanificationAircraftTab({
                         disabled={downloadAll}
                       />
                     </div>
+                    {invalidRange && (
+                      <p className="text-xs text-destructive">
+                        Indique ambas fechas; «Desde» no puede ser posterior a
+                        «Hasta».
+                      </p>
+                    )}
                     <div className="flex items-center gap-2">
                       <Checkbox
                         checked={downloadAll}
@@ -380,7 +352,6 @@ export function PlanificationAircraftTab({
                     </Button>
                     <Button
                       onClick={() => {
-                        // Ejecutar descarga con o sin filtros
                         if (downloadAll) {
                           handleDownloadTraceabilityFiltered();
                         } else {
@@ -391,7 +362,7 @@ export function PlanificationAircraftTab({
                         }
                         setIsDownloadModalOpen(false);
                       }}
-                      disabled={isDownloading}
+                      disabled={isDownloading || invalidRange}
                     >
                       Descargar
                     </Button>
@@ -458,9 +429,9 @@ export function PlanificationAircraftTab({
                     <CalendarIcon className="h-4 w-4" /> Fabricación
                   </div>
                   <div className="font-medium">
-                    {aircraft.fabricant_date
-                      ? getYear(parseISO(aircraft.fabricant_date))
-                      : "—"}
+                    {parseCalendarDate(
+                      aircraft.fabricant_date,
+                    )?.getFullYear() ?? "—"}
                   </div>
                 </div>
                 <Separator className="my-4" />
@@ -552,7 +523,7 @@ export function PlanificationAircraftTab({
                 <Input
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
-                  placeholder="Buscar por nombre o PN"
+                  placeholder="Buscar por tipo, PN o serial"
                   className="pl-8 h-9"
                 />
               </div>
@@ -595,7 +566,7 @@ export function PlanificationAircraftTab({
                             <div className="flex flex-col">
                               <div className="flex items-center gap-2">
                                 <span className="font-medium text-sm">
-                                  {a.aircraft_part.part_name}
+                                  {partLabel(a.aircraft_part)}
                                 </span>
                                 {a.aircraft_part.condition_type && (
                                   <Badge
@@ -670,11 +641,12 @@ export function PlanificationAircraftTab({
                           </TableCell>
 
                           <TableCell className="hidden lg:table-cell text-xs text-muted-foreground">
-                            {fmtDate(a.assigned_date)}
+                            {a.isSub ? "—" : fmtDate(a.assigned_date)}
                           </TableCell>
                           <TableCell className="text-right text-xs font-mono">
-                            {fmtNumber(a.time_since_new)} /{" "}
-                            {fmtNumber(a.cycles_since_new)}
+                            {a.isSub
+                              ? "—"
+                              : `${fmtNumber(a.time_since_new)} / ${fmtNumber(a.cycles_since_new)}`}
                           </TableCell>
                         </TableRow>
                       ))}
@@ -719,7 +691,7 @@ export function PlanificationAircraftTab({
                           <TableCell>
                             <div className="flex flex-col">
                               <span className="font-medium text-sm">
-                                {a.aircraft_part.part_name}
+                                {partLabel(a.aircraft_part)}
                               </span>
                               {a.aircraft_part.description && (
                                 <span className="text-[10px] text-muted-foreground line-clamp-1">

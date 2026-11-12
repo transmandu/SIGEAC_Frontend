@@ -34,10 +34,12 @@ export interface CreateAircraftWithPartsData {
     acronym: string;
     flight_hours: number;
     flight_cycles: number;
-    fabricant_date: Date;
+    /** Fecha de calendario `yyyy-MM-dd`: el día 1 de enero del año de fabricación. */
+    fabricant_date: string;
     comments?: string;
     location_id: string;
-    type: "MAINTENANCE" | "SHELTER";
+    /** Solo al registrar; la edición no cambia el tipo de la aeronave. */
+    type?: "MAINTENANCE" | "SHELTER";
   };
   parts: AircraftPartAPI[];
 }

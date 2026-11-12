@@ -14,25 +14,23 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import {
-  ArrowLeft,
-  CheckCircle,
-  Loader2,
-  Plane,
-  Settings,
-  ChevronDown,
-} from "lucide-react";
+import { formatNumber } from "@/lib/formatNumber";
+import { toCalendarPayload } from "@/lib/date";
+import { locationLabel } from "@/lib/locations";
+import { useGetLocationsByCompany } from "@/hooks/sistema/useGetLocationsByCompany";
+import { ArrowLeft, CheckCircle, Loader2, Plane, Settings } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { InfoItem } from "./_components/InfoItem";
 import { PartSummaryCard } from "./_components/PartSummaryCard";
 import { PageHeader } from "@/components/layout/PageHeader";
+
+/** Los vuelos acumulan hasta 3 decimales; redondear a menos alteraba lo que el usuario escribió. */
+const roundCounter = (value?: number | null) =>
+  value === null || value === undefined
+    ? null
+    : Math.round(value * 1000) / 1000;
 
 interface AircraftPart {
   category?: "ENGINE" | "APU" | "PROPELLER"; // Solo frontend
@@ -76,6 +74,7 @@ export default function NewAircraftPage() {
   const { createClient } = useCreateClient();
   const { data: clients } = useGetClients(selectedCompany?.slug);
   const { data: manufacturers } = useGetManufacturers(selectedCompany?.slug);
+  const { data: locations } = useGetLocationsByCompany(selectedCompany?.slug);
   const router = useRouter();
 
   // Función para transformar las partes del frontend al formato API
@@ -83,24 +82,10 @@ export default function NewAircraftPage() {
     const { category, ...rest } = part;
     return {
       ...rest,
-      time_since_new:
-        rest.time_since_new !== null && rest.time_since_new !== undefined
-          ? Math.round((rest.time_since_new as number) * 100) / 100
-          : null,
-      time_since_overhaul:
-        rest.time_since_overhaul !== null &&
-        rest.time_since_overhaul !== undefined
-          ? Math.round((rest.time_since_overhaul as number) * 100) / 100
-          : null,
-      cycles_since_new:
-        rest.cycles_since_new !== null && rest.cycles_since_new !== undefined
-          ? Math.round(rest.cycles_since_new as number)
-          : null,
-      cycles_since_overhaul:
-        rest.cycles_since_overhaul !== null &&
-        rest.cycles_since_overhaul !== undefined
-          ? Math.round(rest.cycles_since_overhaul as number)
-          : null,
+      time_since_new: roundCounter(rest.time_since_new),
+      time_since_overhaul: roundCounter(rest.time_since_overhaul),
+      cycles_since_new: roundCounter(rest.cycles_since_new),
+      cycles_since_overhaul: roundCounter(rest.cycles_since_overhaul),
       ata_chapter: (rest as any).ata_chapter ?? null,
       position: (rest as any).position ?? null,
       part_order: (rest as any).part_order ?? null,
@@ -115,7 +100,7 @@ export default function NewAircraftPage() {
       // Buscar cliente existente por nombre
       const clientName = aircraftData.client_name.trim().toUpperCase();
       const existingClient = clients?.find(
-        (client) => client.name.toUpperCase() === clientName,
+        (client) => client.name.trim().toUpperCase() === clientName,
       );
       let clientId = "";
 
@@ -127,7 +112,7 @@ export default function NewAircraftPage() {
         const clientResponse = await createClient.mutateAsync({
           company: selectedCompany!.slug,
           data: {
-            name: aircraftData.client_name,
+            name: aircraftData.client_name.trim(),
             authorizing: aircraftData.authorizing,
           },
         });
@@ -148,7 +133,7 @@ export default function NewAircraftPage() {
             acronym: aircraftData.acronym,
             flight_hours: Number(aircraftData.flight_hours),
             flight_cycles: Number(aircraftData.flight_cycles),
-            fabricant_date: aircraftData.fabricant_date,
+            fabricant_date: toCalendarPayload(aircraftData.fabricant_date)!,
             comments: aircraftData.comments,
             location_id: aircraftData.location_id,
             type: "MAINTENANCE", // Tipo de aeronave: mantenimiento
@@ -217,7 +202,10 @@ export default function NewAircraftPage() {
                   setPartsData(data);
                   handleNext();
                 }}
-                onBack={handleBack}
+                onBack={(data) => {
+                  setPartsData(data);
+                  handleBack();
+                }}
               />
             </TabsContent>
           )}
@@ -257,14 +245,34 @@ export default function NewAircraftPage() {
                             )?.name || aircraftData?.manufacturer_id
                           }
                         />
+                        <InfoItem
+                          label="Cliente"
+                          value={aircraftData?.client_name}
+                        />
                         <InfoItem label="Serial" value={aircraftData?.serial} />
+                        <InfoItem label="Modelo" value={aircraftData?.model} />
                         <InfoItem
                           label="Matrícula"
-                          value={aircraftData?.model}
+                          value={aircraftData?.acronym}
                         />
                         <InfoItem
                           label="Horas de Vuelo"
-                          value={aircraftData?.flight_hours}
+                          value={formatNumber(aircraftData?.flight_hours, {
+                            maxDecimals: 3,
+                          })}
+                        />
+                        <InfoItem
+                          label="Ubicación"
+                          value={locationLabel(
+                            locations?.find(
+                              (l) =>
+                                l.id.toString() === aircraftData?.location_id,
+                            ),
+                          )}
+                        />
+                        <InfoItem
+                          label="Ciclos de Vuelo"
+                          value={formatNumber(aircraftData?.flight_cycles)}
                         />
                         <InfoItem
                           label="Fecha de Fabricación"

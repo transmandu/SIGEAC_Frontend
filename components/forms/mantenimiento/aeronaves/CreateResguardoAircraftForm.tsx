@@ -36,6 +36,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import axiosInstance from "@/lib/axios";
 import { notifyError } from "@/lib/notify-error";
+import { toCalendarPayload } from "@/lib/date";
 
 const formSchema = z.object({
   acronym: z.string().min(2, "La matrícula debe tener al menos 2 caracteres"),
@@ -75,6 +76,15 @@ export function CreateResguardoAircraftForm({
   const onSubmit = async (values: FormValues) => {
     if (!selectedCompany?.slug) return;
 
+    // Sin estación activa no hay sede a la que asignarla; antes caía en la sede "1".
+    if (!selectedStation) {
+      toast.error("Seleccione una estación", {
+        description:
+          "La aeronave de resguardo se registra en la estación activa.",
+      });
+      return;
+    }
+
     try {
       await createMaintenanceAircraft.mutateAsync({
         data: {
@@ -86,9 +96,9 @@ export function CreateResguardoAircraftForm({
             acronym: values.acronym.toUpperCase(),
             flight_hours: 0,
             flight_cycles: 0,
-            fabricant_date: new Date(),
+            fabricant_date: toCalendarPayload(new Date())!,
             comments: "Aeronave de resguardo",
-            location_id: selectedStation || "1",
+            location_id: String(selectedStation),
             type: "SHELTER", // Tipo de aeronave: resguardo
           },
           parts: [],
@@ -99,7 +109,8 @@ export function CreateResguardoAircraftForm({
       // Refresh aircrafts and get the new one
       await queryClient.invalidateQueries({ queryKey: ["aircrafts"] });
 
-      const { data: updatedAircrafts } = await queryClient.fetchQuery({
+      // fetchQuery devuelve ya los datos (la lista), no un { data }.
+      const updatedAircrafts = await queryClient.fetchQuery({
         queryKey: ["aircrafts", selectedCompany.slug],
         queryFn: async () => {
           const { data } = await axiosInstance.get(

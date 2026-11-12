@@ -46,64 +46,50 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { ManufacturerCombobox } from "./ManufacturerCombobox";
+import { formatNumber, parseDecimalInput } from "@/lib/formatNumber";
+import { locationLabel } from "@/lib/locations";
 
-// Función para formatear números según el separador decimal detectado
-const fmtNumber = (n: unknown): string => {
-  if (n == null || n === "") return "";
+/** Los vuelos acumulan hasta 3 decimales; redondear a menos cambiaba el total al editar. */
+const roundHours = (n: number) => Math.round(n * 1000) / 1000;
 
-  const str = String(n).trim();
-  if (!str) return "";
-
-  const lastDot = str.lastIndexOf(".");
-  const lastComma = str.lastIndexOf(",");
-
-  // Determinar locale y parsear según posición de separadores
-  const isEuropean =
-    lastComma > lastDot || (lastComma !== -1 && lastDot === -1);
-  const num = isEuropean
-    ? Number(str.replace(/\./g, "").replace(",", "."))
-    : Number(str.replace(/,/g, ""));
-
-  if (isNaN(num)) return "";
-
-  return num.toLocaleString(isEuropean ? "de-DE" : "en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-};
+/** El valor como se muestra en el campo: 15.000,50. */
+const displayHours = (n: number) =>
+  formatNumber(roundHours(n), { minDecimals: 2, maxDecimals: 3 });
 
 // Esquema de validación para el Paso 1 (Información de la aeronave)
 const AircraftInfoSchema = z.object({
   manufacturer_id: z.string().min(1, "Debe seleccionar un fabricante"),
   client_name: z.string().min(1, "El nombre del cliente es obligatorio"),
-  authorizing: z.enum(["PROPIETARIO", "EXPLOTADOR"], {
-    error: "Debe seleccionar el tipo de autorización",
-  }),
+  // Solo hace falta para un cliente nuevo; se resuelve en onSubmit.
+  authorizing: z.enum(["PROPIETARIO", "EXPLOTADOR"]).optional(),
   serial: z.string().min(1, "El serial es obligatorio"),
   model: z.string().min(1, "El modelo es obligatorio"),
   acronym: z.string().min(1, "La matrícula es obligatoria"),
   flight_hours: z
     .string()
     .min(1, "Las horas de vuelo son obligatorias")
-    .refine((val) => {
-      if (!val || val.trim() === "") return false;
-      const normalized = val.replace(/\./g, "").replace(",", ".");
-      const num = parseFloat(normalized);
-      return !isNaN(num) && num >= 0;
-    }, "Debe ser un número mayor o igual a 0"),
+    .refine(
+      (val) => parseDecimalInput(val) !== null,
+      "Debe ser un número mayor o igual a 0",
+    ),
   flight_cycles: z.string().refine((val) => {
     const num = parseInt(val);
     return !isNaN(num) && num >= 0 && Number.isInteger(Number(val));
   }, "Debe ser un número entero mayor o igual a 0"),
-  fabricant_date: z.date(),
+  fabricant_date: z.date({ error: "Seleccione el año de fabricación" }),
   comments: z.string().optional(),
-  location_id: z.string().min(1, "La ubicación es obligatoria"),
+  location_id: z
+    .string()
+    .min(1, "Seleccione la ubicación donde se le realiza mantenimiento"),
 });
 
 type AircraftInfoType = z.infer<typeof AircraftInfoSchema>;
+type AircraftInfoSubmit = AircraftInfoType & {
+  authorizing: "PROPIETARIO" | "EXPLOTADOR";
+};
 
 interface AircraftInfoFormProps {
-  onNext: (data: AircraftInfoType) => void; // Función para avanzar al siguiente paso
+  onNext: (data: AircraftInfoSubmit) => void; // Función para avanzar al siguiente paso
   onBack?: () => void; // Función para retroceder (opcional)
   initialData?: Partial<AircraftInfoType>; // Datos iniciales (opcional)
 }
@@ -131,7 +117,20 @@ export function AircraftInfoForm({
 
   const form = useForm<AircraftInfoType>({
     resolver: zodResolver(AircraftInfoSchema),
-    defaultValues: initialData || {},
+    // Vacíos, no undefined: un campo sin tocar llegaba a zod como `undefined` y
+    // fallaba con su mensaje genérico en inglés en vez del propio.
+    defaultValues: {
+      manufacturer_id: "",
+      client_name: "",
+      serial: "",
+      model: "",
+      acronym: "",
+      flight_hours: "",
+      flight_cycles: "",
+      location_id: "",
+      comments: "",
+      ...initialData,
+    },
   });
 
   // El buscador del combobox refleja siempre client_name: escribir en el
@@ -145,11 +144,11 @@ export function AircraftInfoForm({
     if (initialData) {
       // Formatear flight_hours si existe
       const formattedData = { ...initialData };
-      if (initialData.flight_hours && initialData.flight_hours !== "") {
-        const formatted = fmtNumber(initialData.flight_hours);
-        if (formatted) {
-          formattedData.flight_hours = formatted;
-        }
+      // Los datos iniciales vienen en formato canónico del sistema ("123.456" son
+      // 123,456 horas), no tecleados: no pasan por el lector de lo que escribe el usuario.
+      const stored = String(initialData.flight_hours ?? "").trim();
+      if (stored !== "" && Number.isFinite(Number(stored))) {
+        formattedData.flight_hours = displayHours(Number(stored));
       }
 
       // Resetear el formulario con los datos formateados
@@ -157,56 +156,44 @@ export function AircraftInfoForm({
     }
   }, [initialData, form]);
 
-  // Establecer automáticamente la primera ubicación disponible
+  // Con una sola sede no hay nada que elegir.
   useEffect(() => {
-    if (locations && locations.length > 0 && !form.getValues("location_id")) {
-      const firstLocationId = locations[0].id.toString();
-      form.setValue("location_id", firstLocationId);
+    if (locations?.length === 1 && !form.getValues("location_id")) {
+      form.setValue("location_id", locations[0].id.toString());
     }
   }, [locations, form]);
 
-  const onSubmit = (data: AircraftInfoType) => {
-    // Convertir flight_hours de formato visual a número
-    const flightHoursValue = data.flight_hours;
-    if (
-      flightHoursValue &&
-      typeof flightHoursValue === "string" &&
-      flightHoursValue.trim() !== ""
-    ) {
-      const lastDot = flightHoursValue.lastIndexOf(".");
-      const lastComma = flightHoursValue.lastIndexOf(",");
+  const onSubmit = (values: AircraftInfoType) => {
+    const data = { ...values, client_name: values.client_name.trim() };
 
-      let normalized: string;
-      if (lastComma > lastDot) {
-        // Formato europeo: 1.234,50 → eliminar puntos, cambiar coma por punto
-        normalized = flightHoursValue.replace(/\./g, "").replace(",", ".");
-      } else {
-        // Formato US: 1,234.50 → eliminar comas, mantener punto
-        normalized = flightHoursValue.replace(/,/g, "");
-      }
-
-      const num = parseFloat(normalized);
-
-      if (!isNaN(num)) {
-        // Redondear a 2 decimales para evitar problemas de precisión
-        const rounded = Math.round(num * 100) / 100;
-        data.flight_hours = rounded.toFixed(2);
-      } else {
-        form.setError("flight_hours", {
-          type: "manual",
-          message: "El valor ingresado no es un número válido",
-        });
-        return;
-      }
-    } else {
-      form.setError("flight_hours", {
+    // Un cliente que ya existe aporta su autorización; uno nuevo debe crearse
+    // desde el combobox ("Crear"), donde se elige. Sin esto, escribir un nombre
+    // y cerrar el combobox dejaba el formulario bloqueado sin mensaje visible.
+    const existingClient = clients?.find(
+      (c: any) =>
+        c.name.trim().toUpperCase() === data.client_name.toUpperCase(),
+    ) as any;
+    const authorizing = existingClient?.authorizing ?? data.authorizing;
+    if (!authorizing) {
+      form.setError("client_name", {
         type: "manual",
-        message: "Las horas de vuelo son obligatorias",
+        message:
+          "Seleccione un cliente existente o use «Crear cliente» para registrar uno nuevo.",
       });
       return;
     }
+    const hours = parseDecimalInput(data.flight_hours);
+    if (hours === null) {
+      form.setError("flight_hours", {
+        type: "manual",
+        message: "El valor ingresado no es un número válido",
+      });
+      return;
+    }
+    // Se guarda canónico (15000.500): el campo muestra el formato del sistema.
+    data.flight_hours = roundHours(hours).toFixed(3);
 
-    onNext(data);
+    onNext({ ...data, authorizing });
   };
 
   return (
@@ -350,19 +337,14 @@ export function AircraftInfoForm({
                               <CommandItem
                                 value={client.name}
                                 key={client.id}
-                                onSelect={(currentValue) => {
-                                  const selectedClient = clients?.find(
-                                    (c) => c.name === currentValue,
-                                  ) as any;
-                                  form.setValue("client_name", currentValue);
-                                  if (selectedClient?.authorizing) {
-                                    form.setValue(
-                                      "authorizing",
-                                      selectedClient.authorizing,
-                                    );
-                                  } else {
-                                    form.setValue("authorizing", "PROPIETARIO");
-                                  }
+                                onSelect={() => {
+                                  form.setValue("client_name", client.name, {
+                                    shouldValidate: true,
+                                  });
+                                  form.setValue(
+                                    "authorizing",
+                                    client.authorizing ?? "PROPIETARIO",
+                                  );
                                   setOpenClient(false);
                                 }}
                               >
@@ -419,13 +401,13 @@ export function AircraftInfoForm({
               control={form.control}
               name="model"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="flex-1">
                   <FormLabel>Modelo</FormLabel>
                   <FormControl>
                     <Input placeholder="Modelo de la aeronave..." {...field} />
                   </FormControl>
                   <FormDescription className="text-xs">
-                    Serial identificador de la aeronave.
+                    Modelo de la aeronave.
                   </FormDescription>
                   <FormMessage className="text-xs" />
                 </FormItem>
@@ -435,7 +417,7 @@ export function AircraftInfoForm({
               control={form.control}
               name="serial"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="flex-1">
                   <FormLabel>Serial</FormLabel>
                   <FormControl>
                     <Input placeholder="Serial de la aeronave..." {...field} />
@@ -562,38 +544,15 @@ export function AircraftInfoForm({
                       field.onChange(value);
                     }}
                     onBlur={(e) => {
-                      const value = e.target.value.trim();
-                      if (!value) {
-                        return;
-                      }
-
-                      const lastDot = value.lastIndexOf(".");
-                      const lastComma = value.lastIndexOf(",");
-
-                      let normalized: string;
-                      if (lastComma > lastDot) {
-                        // Formato europeo: 1.234,50 → eliminar puntos, cambiar coma por punto
-                        normalized = value.replace(/\./g, "").replace(",", ".");
-                      } else {
-                        // Formato US: 1,234.50 → eliminar comas, mantener punto
-                        normalized = value.replace(/,/g, "");
-                      }
-
-                      const num = parseFloat(normalized);
-
-                      if (!isNaN(num)) {
-                        const rounded = Math.round(num * 100) / 100;
-                        // Formatear para visualización
-                        const formatted = fmtNumber(String(rounded));
-                        if (formatted) {
-                          field.onChange(formatted);
-                        }
+                      const num = parseDecimalInput(e.target.value);
+                      if (num !== null) {
+                        field.onChange(displayHours(num));
                       }
                     }}
                   />
                 </FormControl>
                 <FormDescription className="text-xs">
-                  Horas totales de vuelo de la aeronave (máx. 2 decimales).
+                  Horas totales de vuelo de la aeronave (máx. 3 decimales).
                 </FormDescription>
                 <FormMessage className="text-xs" />
               </FormItem>
@@ -627,15 +586,33 @@ export function AircraftInfoForm({
             )}
           />
         </div>
-        {/* Campo de ubicación oculto - se asigna automáticamente */}
         <FormField
           control={form.control}
           name="location_id"
           render={({ field }) => (
-            <FormItem className="hidden">
-              <FormControl>
-                <input type="hidden" {...field} />
-              </FormControl>
+            <FormItem>
+              <FormLabel>Ubicación</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value ?? ""}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccione la ubicación..." />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {locations?.map((location) => (
+                    <SelectItem
+                      key={location.id}
+                      value={location.id.toString()}
+                    >
+                      {locationLabel(location)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormDescription className="text-xs">
+                Sede donde se le realiza mantenimiento a la aeronave.
+              </FormDescription>
+              <FormMessage className="text-xs" />
             </FormItem>
           )}
         />
