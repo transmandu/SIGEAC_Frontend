@@ -1,3 +1,8 @@
+## v4.106.0 — 2026-11-12
+
+- Merge pull request #399 from transmandu/feat/manifest-preview-button
+- feat: add cargo manifest preview functionality to PaxFlightForm
+
 ## v4.105.0 — 2026-11-12
 
 - feat: add requisition cycle component and hooks (#398)
