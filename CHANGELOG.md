@@ -1,3 +1,7 @@
+## v4.105.0 — 2026-11-12
+
+- feat: add requisition cycle component and hooks (#398)
+
 ## v4.104.0 — 2026-11-11
 
 - feat: refactor document requirement handling in MoveToReceptionButton… (#397)
