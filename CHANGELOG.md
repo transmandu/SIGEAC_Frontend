@@ -1,3 +1,8 @@
+## v4.106.1 — 2026-11-12
+
+- Merge pull request #400 from transmandu/feat/manifest-preview-button
+- fix: update manifest details label in PaxFlightForm
+
 ## v4.106.0 — 2026-11-12
 
 - Merge pull request #399 from transmandu/feat/manifest-preview-button
