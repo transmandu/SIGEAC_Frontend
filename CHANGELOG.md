@@ -1,3 +1,7 @@
+## v4.107.0 — 2026-11-12
+
+- feat: enhance AircraftInfoForm with improved number formatting and va… (#401)
+
 ## v4.106.1 — 2026-11-12
 
 - Merge pull request #400 from transmandu/feat/manifest-preview-button
