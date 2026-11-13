@@ -48,13 +48,13 @@ const RequiredDocumentsSection = ({
                   </span>
                   <CopyPartNumberButton value={article.article_part_number} />
                 </div>
-                <ul className="mt-0.5 space-y-0.5 border-l border-border/50 pl-2">
+                <ul className="mt-0.5 space-y-1 border-l border-border/50 pl-2">
                   {article.document_types!.map((type) => (
                     <li
                       key={type.id}
-                      className="text-[10.5px] leading-tight text-muted-foreground truncate"
+                      className="flex gap-1.5 text-[10.5px] leading-tight text-muted-foreground wrap-anywhere before:mt-[0.35em] before:size-1 before:shrink-0 before:rounded-full before:bg-muted-foreground/50 before:content-['']"
                     >
-                      {type.name}
+                      <span className="min-w-0">{type.name}</span>
                     </li>
                   ))}
                 </ul>

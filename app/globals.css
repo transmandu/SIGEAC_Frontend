@@ -194,9 +194,9 @@
   }
 }
 
-/* Cambio de tema: la animación del círculo la dispara ThemeToggler con la Web
-   Animations API; aquí se anula el fundido por defecto del navegador para que
-   la capa nueva solo se vea revelada por el clip-path. */
+/* Cambio de tema (lo dispara ThemeToggler, que anima el círculo con la Web
+   Animations API). La captura vieja se queda quieta debajo y solo se mueve el
+   recorte de la nueva: una única capa animada, sin repintar nada por fotograma. */
 ::view-transition-group(root),
 ::view-transition-old(root),
 ::view-transition-new(root) {
@@ -210,6 +210,15 @@
 
 ::view-transition-new(root) {
   z-index: 2;
+}
+
+/* Mientras cambia el tema, ningún elemento anima sus colores: con miles de
+   nodos con `transition-colors`, cada uno arrancaba su propia transición en el
+   hilo principal justo cuando el navegador ya iba apretado. */
+html.theme-switching *,
+html.theme-switching *::before,
+html.theme-switching *::after {
+  transition: none !important;
 }
 
 /* Evita saltos de página y desplazamiento horizontal involuntario cuando Radix UI

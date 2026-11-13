@@ -34,16 +34,14 @@ export function ThemeToggler() {
   const buttonRef = React.useRef<HTMLButtonElement>(null);
   const busyRef = React.useRef(false);
 
-  // El nuevo tema se revela como un círculo que crece desde el botón (View
-  // Transitions API). Cambia de golpe, sin animación, si el navegador no la
-  // soporta, si el usuario pidió reducir el movimiento o si el equipo es de
-  // pocos núcleos (la captura de toda la pantalla con blur es lo que pesa).
+  // El tema nuevo se revela como un círculo que crece desde el botón (View
+  // Transitions API, ver globals.css). Cambia de golpe solo si el navegador no
+  // la soporta o el usuario pidió reducir el movimiento.
   const toggleTheme = () => {
-    // Un segundo clic mientras corre el círculo invertiría el tema a mitad de
-    // la animación; se ignora hasta que termine.
     if (busyRef.current) return;
 
     const next = isDark ? "light" : "dark";
+    const root = document.documentElement;
     const button = buttonRef.current;
     const doc = document as Document & {
       startViewTransition?: (cb: () => void) => {
@@ -55,11 +53,36 @@ export function ThemeToggler() {
     const canAnimate =
       !!button &&
       typeof doc.startViewTransition === "function" &&
-      !window.matchMedia("(prefers-reduced-motion: reduce)").matches &&
-      (navigator.hardwareConcurrency ?? 4) > 2;
+      !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    busyRef.current = true;
+    root.classList.add("theme-switching");
+
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      window.clearTimeout(safety);
+      setTheme(next);
+      busyRef.current = false;
+      // Un fotograma después, para que el retorno de las transiciones no
+      // anime el cambio recién hecho.
+      requestAnimationFrame(() => root.classList.remove("theme-switching"));
+    };
+    // Si la transición nunca resuelve (pestaña en segundo plano) no se queda
+    // bloqueado el botón.
+    const safety = window.setTimeout(finish, 1000);
+
+    const apply = () => {
+      // Solo clase y color-scheme: es barato y es lo que la captura necesita.
+      // El estado de next-themes se sincroniza al terminar.
+      root.classList.toggle("dark", next === "dark");
+      root.style.colorScheme = next;
+    };
 
     if (!canAnimate || !button) {
-      setTheme(next);
+      apply();
+      finish();
       return;
     }
 
@@ -71,40 +94,20 @@ export function ThemeToggler() {
       Math.max(y, window.innerHeight - y),
     );
 
-    busyRef.current = true;
-    const release = () => {
-      busyRef.current = false;
-    };
-    // Red de seguridad: si la transición nunca resuelve (pestaña en segundo
-    // plano, error del navegador) el botón no queda bloqueado.
-    const safety = window.setTimeout(release, 1500);
-
     try {
-      const transition = doc.startViewTransition!.call(doc, () => {
-        // Solo se cambia el DOM (clase + color-scheme): es lo único que la
-        // captura necesita y es barato. Re-renderizar React aquí con flushSync
-        // congelaba la pantalla unos cientos de ms antes de que empezara la
-        // animación, que era la sensación de pesadez. El estado de next-themes
-        // se sincroniza al terminar.
-        const root = document.documentElement;
-        root.classList.toggle("dark", next === "dark");
-        root.style.colorScheme = next;
-      });
+      const transition = doc.startViewTransition!.call(doc, apply);
 
       transition.ready
         .then(() => {
-          document.documentElement.animate(
+          root.animate(
             {
-              // El opacity parcial suaviza el borde del círculo: el tema nuevo
-              // entra "mezclándose" con el viejo en vez de cortarlo en seco.
               clipPath: [
                 `circle(0px at ${x}px ${y}px)`,
                 `circle(${radius}px at ${x}px ${y}px)`,
               ],
-              opacity: [0.25, 1],
             },
             {
-              duration: 480,
+              duration: 420,
               easing: "cubic-bezier(0.33, 1, 0.68, 1)",
               pseudoElement: "::view-transition-new(root)",
             },
@@ -112,17 +115,10 @@ export function ThemeToggler() {
         })
         .catch(() => {});
 
-      transition.finished
-        .catch(() => {})
-        .finally(() => {
-          window.clearTimeout(safety);
-          setTheme(next);
-          release();
-        });
+      transition.finished.then(finish, finish);
     } catch {
-      window.clearTimeout(safety);
-      release();
-      setTheme(next);
+      apply();
+      finish();
     }
   };
 
@@ -159,19 +155,16 @@ export function ThemeToggler() {
                         opacity: 0,
                         rotate: -90,
                         scale: 0.75,
-                        filter: "blur(2px)",
                       }}
                       animate={{
                         opacity: 1,
                         rotate: 0,
                         scale: 1,
-                        filter: "blur(0px)",
                       }}
                       exit={{
                         opacity: 0,
                         rotate: 90,
                         scale: 0.75,
-                        filter: "blur(2px)",
                       }}
                       transition={{
                         duration: 0.28,
@@ -188,19 +181,16 @@ export function ThemeToggler() {
                         opacity: 0,
                         rotate: 90,
                         scale: 0.75,
-                        filter: "blur(2px)",
                       }}
                       animate={{
                         opacity: 1,
                         rotate: 0,
                         scale: 1,
-                        filter: "blur(0px)",
                       }}
                       exit={{
                         opacity: 0,
                         rotate: -90,
                         scale: 0.75,
-                        filter: "blur(2px)",
                       }}
                       transition={{
                         duration: 0.28,
