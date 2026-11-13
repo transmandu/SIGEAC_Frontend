@@ -457,36 +457,47 @@ export type AircraftAssingment = {
   id: string;
   aircraft: AeronauticalAircraft;
   aircraft_part: MaintenanceAircraftPart;
-  assigned_date: Date;
-  removed_date: Date;
-  time_since_new: number;
-  cycles_since_new: number;
-  time_since_overhaul: number;
-  cycles_since_overhaul: number;
-  position: string;
-  ata_chapter: string;
-  part_order: number;
+  assigned_date: string | Date;
+  removed_date: string | Date | null;
+  time_since_new: number | null;
+  cycles_since_new: number | null;
+  time_since_overhaul: number | null;
+  cycles_since_overhaul: number | null;
+  /** Lectura de la parte al removerse; null en remociones anteriores a que se guardara. */
+  removed_time_since_new?: number | null;
+  removed_cycles_since_new?: number | null;
+  removed_time_since_overhaul?: number | null;
+  removed_cycles_since_overhaul?: number | null;
+  position: string | null;
+  ata_chapter: string | null;
+  part_order: number | null;
 };
 
 export type MaintenanceAircraftPart = {
   id?: number;
   part_number: string;
-  part_name: string;
-  serial?: string;
+  /** Ya no existe en la base: se nombra por tipo (`partLabel`); queda para vistas que aún lo leen. */
+  part_name?: string;
+  serial?: string | null;
   condition_type: string;
-  time_since_new?: number | string;
-  time_since_overhaul?: number | string;
-  cycles_since_new?: number | string;
-  cycles_since_overhaul?: number | string;
-  part_hours?: number; // Alias para time_since_new (compatibilidad)
-  part_cycles?: number; // Alias para cycles_since_new (compatibilidad)
+  time_since_new?: number | string | null;
+  time_since_overhaul?: number | string | null;
+  cycles_since_new?: number | string | null;
+  cycles_since_overhaul?: number | string | null;
   is_father?: boolean;
   aircraft_id?: string;
-  aircraft_part_id?: string | null; // ID del padre (null si es raíz)
+  parent_part_id?: number | null;
+  /** Solo en las desinstaladas: la parte de la que colgaba. */
+  parent_part?: Pick<MaintenanceAircraftPart, "id" | "part_number" | "type"> | null;
   sub_parts?: MaintenanceAircraftPart[];
   aircraft?: AeronauticalAircraft;
   type: string;
   description: string;
+  manufacturer_id?: number | string | null;
+  /** En las subpartes llegan de su instalación vigente; en las raíces están en la asignación. */
+  position?: string | null;
+  ata_chapter?: string | null;
+  part_order?: number | null;
   /** Solo en las respuestas de los controles; `part_order` fija su número ("Motor 1"). */
   current_assignment?: { part_order?: number | null } | null;
 };

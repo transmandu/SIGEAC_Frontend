@@ -762,7 +762,7 @@ const ComponentControlDetailPage = () => {
               <InfoSection key={partId} title={label} bordered>
                 <InfoItem label="Tipo" value={partTypeLabel(part.type)} />
                 <InfoItem label="Número de Parte" value={part.part_number} />
-                <InfoItem label="Serial" value={part.serial} />
+                <InfoItem label="Serial" value={part.serial ?? undefined} />
                 <InfoItem
                   label="TSN"
                   value={

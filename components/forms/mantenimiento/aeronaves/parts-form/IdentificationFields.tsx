@@ -26,7 +26,7 @@ export default function IdentificationFields({ form, path }: any) {
                 <FormItem>
                     <FormLabel>Serial</FormLabel>
                     <FormControl>
-                        <Input placeholder="Serial (opcional)" {...field} />
+                        <Input placeholder="Serial (opcional)" {...field} value={field.value ?? ""} />
                     </FormControl>
                     <FormMessage />
                 </FormItem>

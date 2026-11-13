@@ -6,6 +6,8 @@ import {
 } from "@/actions/mantenimiento/planificacion/aeronaves/actions";
 import { useCreateClient } from "@/actions/mantenimiento/clientes/actions";
 import { useGetClients } from "@/hooks/mantenimiento/clientes/useGetClients";
+import axiosInstance from "@/lib/axios";
+import { useQueryClient } from "@tanstack/react-query";
 import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufacturers";
 import { AircraftPartsInfoForm } from "@/components/forms/mantenimiento/aeronaves/AircraftPartsForm";
 import { AircraftInfoForm } from "@/components/forms/mantenimiento/aeronaves/AircraftInfoForm";
@@ -34,7 +36,11 @@ const roundCounter = (value?: number | null) =>
 
 interface AircraftPart {
   category?: "ENGINE" | "APU" | "PROPELLER"; // Solo frontend
-  part_name: string;
+  type: string;
+  ata_chapter?: string | null;
+  position?: string | null;
+  part_order?: number | null;
+  assigned_date?: string | null;
   part_number: string;
   serial: string;
   manufacturer_id: string;
@@ -76,6 +82,7 @@ export default function NewAircraftPage() {
   const { data: manufacturers } = useGetManufacturers(selectedCompany?.slug);
   const { data: locations } = useGetLocationsByCompany(selectedCompany?.slug);
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   // Función para transformar las partes del frontend al formato API
   const transformPart = (part: AircraftPart): AircraftPartAPI => {
@@ -86,15 +93,18 @@ export default function NewAircraftPage() {
       time_since_overhaul: roundCounter(rest.time_since_overhaul),
       cycles_since_new: roundCounter(rest.cycles_since_new),
       cycles_since_overhaul: roundCounter(rest.cycles_since_overhaul),
-      ata_chapter: (rest as any).ata_chapter ?? null,
-      position: (rest as any).position ?? null,
-      part_order: (rest as any).part_order ?? null,
+      ata_chapter: rest.ata_chapter ?? null,
+      position: rest.position ?? null,
+      part_order: rest.part_order ?? null,
+      assigned_date: rest.assigned_date || null,
       sub_parts: part.sub_parts?.map(transformPart),
     };
   };
 
   const handleSubmit = async () => {
     if (!aircraftData || !partsData) return;
+
+    let createdClientId: string | null = null;
 
     try {
       // Buscar cliente existente por nombre
@@ -117,6 +127,7 @@ export default function NewAircraftPage() {
           },
         });
         clientId = (clientResponse.client?.id || clientResponse.id).toString();
+        createdClientId = clientId;
       }
 
       // 2. Transformar partes
@@ -144,9 +155,17 @@ export default function NewAircraftPage() {
       });
 
       router.push(`/${selectedCompany?.slug}/planificacion/aeronaves`);
-    } catch (error) {
-      console.error("Error creating aircraft:", error);
-      // TODO: Implementar rollback si es necesario
+    } catch {
+      // Las mutaciones ya avisan el error. Un cliente creado solo para esta
+      // aeronave no debe quedar huérfano si el registro falla.
+      if (createdClientId) {
+        await axiosInstance
+          .delete(
+            `/${selectedCompany!.slug}/aeronautical/clients/${createdClientId}`,
+          )
+          .catch(() => undefined);
+        queryClient.invalidateQueries({ queryKey: ["clients"] });
+      }
     }
   };
 
