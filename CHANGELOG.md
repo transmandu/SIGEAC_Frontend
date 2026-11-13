@@ -1,3 +1,7 @@
+## v4.108.0 — 2026-11-13
+
+- feat: add removal readings functionality and enhance aircraft part ma… (#403)
+
 ## v4.107.1 — 2026-11-13
 
 - refactor: improve UI elements and theme transition handling (#402)
