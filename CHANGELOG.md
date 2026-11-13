@@ -1,3 +1,7 @@
+## v4.107.1 — 2026-11-13
+
+- refactor: improve UI elements and theme transition handling (#402)
+
 ## v4.107.0 — 2026-11-12
 
 - feat: enhance AircraftInfoForm with improved number formatting and va… (#401)
