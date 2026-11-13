@@ -488,7 +488,10 @@ export type MaintenanceAircraftPart = {
   aircraft_id?: string;
   parent_part_id?: number | null;
   /** Solo en las desinstaladas: la parte de la que colgaba. */
-  parent_part?: Pick<MaintenanceAircraftPart, "id" | "part_number" | "type"> | null;
+  parent_part?: Pick<
+    MaintenanceAircraftPart,
+    "id" | "part_number" | "type"
+  > | null;
   sub_parts?: MaintenanceAircraftPart[];
   aircraft?: AeronauticalAircraft;
   type: string;
