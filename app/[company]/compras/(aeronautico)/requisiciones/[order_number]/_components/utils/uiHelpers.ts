@@ -111,7 +111,7 @@ export const priorityPageBadgeCls = (priority?: string) => {
     medium &&
       "border-orange-500/30 bg-orange-500/10 text-orange-700 dark:text-orange-300 hover:bg-orange-500/15 dark:hover:text-orange-200",
     high &&
-      "border-red-600 bg-red-600 font-semibold text-white hover:bg-red-600 dark:border-red-500 dark:bg-red-500",
+      "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300 hover:bg-red-500/15 dark:hover:text-red-200",
     !low &&
       !medium &&
       !high &&

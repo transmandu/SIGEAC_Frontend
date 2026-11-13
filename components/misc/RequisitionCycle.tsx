@@ -445,7 +445,7 @@ function Summary({
     ? ["emerald", `Completada en ${duration ?? "—"}`]
     : cycle.rejected
       ? ["rose", `No aprobada tras ${duration ?? "—"}`]
-      : ["blue", `Lleva ${duration ?? "—"}`];
+      : ["blue", `Lleva ${duration ?? "—"} en total`];
 
   // Mientras corre, la etapa y el avance ya los dicen los nodos; solo el cierre
   // aporta algo que ellos no dicen.
@@ -691,7 +691,7 @@ function Caption({
 
   const date =
     stage.entered_at && !repeatsRequestDate(stage)
-      ? `${stage.approximate ? "≈ " : ""}${formatInstant(stage.entered_at, timeZone, "dd MMM")}`
+      ? `desde ${stage.approximate ? "≈ " : ""}${formatInstant(stage.entered_at, timeZone, "dd MMM")}`
       : null;
 
   const main =
@@ -724,6 +724,11 @@ function Caption({
               : "font-medium text-slate-700 dark:text-slate-300",
           )}
         >
+          {seconds !== null && (
+            <span className="mr-1 font-normal text-muted-foreground @min-[700px]:mr-0 @min-[700px]:block">
+              {running ? "Lleva" : "Duró"}
+            </span>
+          )}
           {main}
         </p>
       )}
@@ -754,14 +759,14 @@ function StageDetail({
     value ? formatInstant(value, timeZone, "dd MMM yyyy, HH:mm") : null;
 
   const rows: [string, string | null][] = [
-    ["Entró", moment(stage.entered_at)],
-    ["Salió", running ? null : moment(stage.left_at)],
+    ["Empezó esta etapa", moment(stage.entered_at)],
+    ["Terminó esta etapa", running ? null : moment(stage.left_at)],
     [
-      running ? "Lleva" : "Permaneció",
+      running ? "Lleva en esta etapa" : "Duró en esta etapa",
       seconds === null ? null : formatDuration(seconds),
     ],
     [
-      "Desde la creación",
+      "Llegó a esta etapa tras",
       stage.since_start_seconds === null || stage.since_start_seconds === 0
         ? null
         : formatDuration(stage.since_start_seconds),
