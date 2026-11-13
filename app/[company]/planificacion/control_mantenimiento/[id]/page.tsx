@@ -725,7 +725,7 @@ const MaintenanceControlDetailPage = () => {
                 <InfoSection key={part.id} title={part.label} bordered>
                   <InfoItem label="Tipo" value={p?.type} />
                   <InfoItem label="Número de Parte" value={p?.part_number} />
-                  <InfoItem label="Serial" value={p?.serial} />
+                  <InfoItem label="Serial" value={p?.serial ?? undefined} />
                   <InfoItem
                     label="TSN"
                     value={

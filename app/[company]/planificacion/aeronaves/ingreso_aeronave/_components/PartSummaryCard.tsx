@@ -74,6 +74,10 @@ export function PartSummaryCard({
             <InfoItem label="Posición" value={part.position} />
             <InfoItem label="Orden" value={part.part_order ?? undefined} />
             <InfoItem
+              label="Fecha de instalación"
+              value={part.assigned_date ?? "Hoy"}
+            />
+            <InfoItem
               label="TSN (Time Since New)"
               value={
                 hasValue(part.time_since_new)

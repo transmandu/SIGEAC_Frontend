@@ -45,16 +45,20 @@ import { partLabel } from "@/app/[company]/planificacion/aeronaves/_components/p
 
 interface AircraftPart {
   id?: number; // ID para actualizaciones
-  part_name: string;
+  type: string;
   part_number: string;
   serial: string;
   manufacturer_id: string;
-  time_since_new?: number; // Time Since New
-  time_since_overhaul?: number; // Time Since Overhaul
-  cycles_since_new?: number; // Cycles Since New
-  cycles_since_overhaul?: number; // Cycles Since Overhaul
+  ata_chapter?: string | null;
+  position?: string | null;
+  part_order?: number | null;
+  time_since_new?: number | null; // Time Since New
+  time_since_overhaul?: number | null; // Time Since Overhaul
+  cycles_since_new?: number | null; // Cycles Since New
+  cycles_since_overhaul?: number | null; // Cycles Since Overhaul
   condition_type: "NEW" | "OVERHAULED";
   is_father: boolean;
+  removed_date?: string | null;
   sub_parts?: AircraftPart[];
 }
 
@@ -84,6 +88,12 @@ interface AircraftAssignment {
 const fmtNumber = (n: unknown) =>
   formatNumber(n, { maxDecimals: 3, fallback: "0" });
 
+// 0 es un valor válido; solo null/undefined/"" significan "no aplica".
+const fmtCounter = (n: unknown) =>
+  n === null || n === undefined || n === ""
+    ? "No aplica"
+    : formatNumber(n, { maxDecimals: 3, fallback: "No aplica" });
+
 /** Contador de una parte tal como llega (hasta 3 decimales); null si la parte no lo lleva. */
 const toCounter = (value: unknown): number | null =>
   value === null || value === undefined || value === ""
@@ -100,9 +110,7 @@ function PartsSummaryTree({
   return (
     <div className={`space-y-2 ${level > 0 ? "pl-4 border-l" : ""}`}>
       {parts.map((part, index) => (
-        <Collapsible
-          key={`${part.id ?? part.part_number ?? part.part_name}-${index}`}
-        >
+        <Collapsible key={`${part.id ?? part.part_number}-${index}`}>
           <div className="border rounded-lg">
             <CollapsibleTrigger className="w-full">
               <div className="flex items-center justify-between p-3 hover:bg-muted/50 transition-colors text-left">
@@ -110,15 +118,13 @@ function PartsSummaryTree({
                   <ChevronDown className="h-4 w-4 transition-transform [[data-state=closed]>&]:-rotate-90" />
                   <div className="flex flex-col">
                     <span
-                      className={`font-medium text-sm ${(part as any).removed_date ? "line-through text-muted-foreground" : ""}`}
+                      className={`font-medium text-sm ${part.removed_date ? "line-through text-muted-foreground" : ""}`}
                     >
-                      {(part as any).type
-                        ? partLabel(part as any)
-                        : `Parte ${index + 1}`}
+                      {part.type ? partLabel(part) : `Parte ${index + 1}`}
                     </span>
                     <span className="text-xs text-muted-foreground">
-                      {(part as any).removed_date
-                        ? `Removida el ${formatDate((part as any).removed_date)}`
+                      {part.removed_date
+                        ? `Removida el ${formatDate(part.removed_date)}`
                         : level === 0
                           ? "Parte principal"
                           : "Subparte"}
@@ -144,20 +150,40 @@ function PartsSummaryTree({
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
                   <div>
+                    <span className="font-medium">Serial:</span>{" "}
+                    {part.serial || "N/A"}
+                  </div>
+                  <div>
+                    <span className="font-medium">ATA:</span>{" "}
+                    {part.ata_chapter || "N/A"}
+                  </div>
+                  {level === 0 && (
+                    <>
+                      <div>
+                        <span className="font-medium">Posición:</span>{" "}
+                        {part.position || "N/A"}
+                      </div>
+                      <div>
+                        <span className="font-medium">Orden:</span>{" "}
+                        {part.part_order ?? "N/A"}
+                      </div>
+                    </>
+                  )}
+                  <div>
                     <span className="font-medium">TSN:</span>{" "}
-                    {fmtNumber(part.time_since_new ?? 0)}
+                    {fmtCounter(part.time_since_new)}
                   </div>
                   <div>
                     <span className="font-medium">TSO:</span>{" "}
-                    {fmtNumber(part.time_since_overhaul ?? 0)}
+                    {fmtCounter(part.time_since_overhaul)}
                   </div>
                   <div>
                     <span className="font-medium">CSN:</span>{" "}
-                    {fmtNumber(part.cycles_since_new ?? 0)}
+                    {fmtCounter(part.cycles_since_new)}
                   </div>
                   <div>
                     <span className="font-medium">CSO:</span>{" "}
-                    {fmtNumber(part.cycles_since_overhaul ?? 0)}
+                    {fmtCounter(part.cycles_since_overhaul)}
                   </div>
                 </div>
 
@@ -191,16 +217,12 @@ function transformExistingPartsToFormFormat(apiParts: any[]): AircraftPart[] {
   return apiParts.map((part) => {
     return {
       ...(part.id && { id: part.id }),
-      part_name: part.part_name,
       part_number: part.part_number,
       serial: part.serial || "",
       manufacturer_id: part.manufacturer_id?.toString() || "",
-      type: part.type
-        ? String(part.type).charAt(0).toUpperCase() +
-          String(part.type).slice(1).toLowerCase()
-        : "",
+      type: part.type ? String(part.type).trim().toUpperCase() : "",
       ata_chapter: part.ata_chapter || part.ata_number || part.ata || "",
-      position: part.position ?? (part as any).position ?? null,
+      position: part.position ?? null,
       part_order: part.part_order ?? null,
       time_since_new: toCounter(part.time_since_new),
       time_since_overhaul: toCounter(part.time_since_overhaul),
@@ -273,9 +295,9 @@ export default function EditAircraftPage({
               null,
             position: assignmentData.position ?? src?.position ?? null,
             part_order: assignmentData.part_order ?? src?.part_order ?? null,
-            time_since_new: src?.time_since_new ?? src?.part_hours ?? null,
+            time_since_new: src?.time_since_new ?? null,
             time_since_overhaul: src?.time_since_overhaul ?? null,
-            cycles_since_new: src?.cycles_since_new ?? src?.part_cycles ?? null,
+            cycles_since_new: src?.cycles_since_new ?? null,
             cycles_since_overhaul: src?.cycles_since_overhaul ?? null,
           };
         })
@@ -347,9 +369,9 @@ export default function EditAircraftPage({
     time_since_overhaul: toCounter(part.time_since_overhaul),
     cycles_since_new: toCounter(part.cycles_since_new),
     cycles_since_overhaul: toCounter(part.cycles_since_overhaul),
-    ata_chapter: (part as any).ata_chapter ?? null,
-    position: (part as any).position ?? null,
-    part_order: (part as any).part_order ?? null,
+    ata_chapter: part.ata_chapter ?? null,
+    position: part.position ?? null,
+    part_order: part.part_order ?? null,
     sub_parts: part.sub_parts?.map(transformPart),
   });
 

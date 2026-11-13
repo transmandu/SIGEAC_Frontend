@@ -6,10 +6,11 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { notifyError } from "@/lib/notify-error";
 
-// Interfaz para las partes de la aeronave en el API (part_type en minúsculas)
 export interface AircraftPartAPI {
-  part_name: string;
+  /** Presente en las partes que ya existen; las nuevas no lo traen. */
+  id?: number;
   part_number: string;
+  type: string;
   serial: string;
   manufacturer_id: string;
   time_since_new: number | null;
@@ -18,10 +19,12 @@ export interface AircraftPartAPI {
   cycles_since_overhaul: number | null;
   condition_type: "NEW" | "OVERHAULED";
   is_father?: boolean;
-  part_type?: string;
   ata_chapter?: string | null;
   position?: string | null;
   part_order?: number | null;
+  /** Fecha de instalación `yyyy-MM-dd`; solo la fija el backend al instalar una parte nueva. */
+  assigned_date?: string | null;
+  removed_date?: string | null;
   sub_parts?: AircraftPartAPI[];
 }
 

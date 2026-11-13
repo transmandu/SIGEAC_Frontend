@@ -35,7 +35,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { usePartValue, PART_TYPES, POSITION_TYPES } from "./constants";
+import {
+  usePartValue,
+  COMPONENT_PART_TYPES,
+  MAIN_PART_TYPES,
+  POSITION_TYPES,
+  countsCycles,
+  isMainPartType,
+} from "./constants";
 import IdentificationFields from "./IdentificationFields";
 import { useResettingState } from "@/hooks/useResettingState";
 import { useState } from "react";
@@ -149,15 +156,38 @@ export default function PartSection({
     null,
   );
 
-  // "No aplica" se deduce de los valores (ambos vacíos) hasta que el usuario toca
-  // la casilla. Después manda su elección: si siguiera deduciéndose, al borrar
-  // TSN y TSO uno tras otro los campos desaparecían en pleno tecleo.
+  const partId = usePartValue<number | string | undefined>(
+    form.control,
+    `${path}.id`,
+    undefined,
+  );
+  const conditionType = usePartValue<string>(
+    form.control,
+    `${path}.condition_type`,
+    "NEW",
+  );
+  const isNew = partId === undefined || partId === null || partId === "";
+
+  // Una parte principal siempre lleva TSN, y CSN si cuenta ciclos (la hélice no):
+  // no admite "No aplica".
+  const countersRequired = level === 0 && isMainPartType(partType);
+  const cyclesRequired = level === 0 && countsCycles(partType);
+
+  // "No aplica" se deduce de los valores (ambos vacíos) en una parte que ya existe,
+  // hasta que el usuario toca la casilla. Después manda su elección: si siguiera
+  // deduciéndose, al borrar TSN y TSO uno tras otro los campos desaparecían en pleno
+  // tecleo. Una parte nueva arranca con los campos a la vista: antes arrancaba en
+  // "No aplica" y se guardaba sin horas ni ciclos sin que nadie lo notara.
   const [tsChoice, setTsChoice] = useState<boolean | null>(null);
   const [csChoice, setCsChoice] = useState<boolean | null>(null);
   const tsNotApplicable =
-    tsChoice ?? (timeSinceNew === null && timeSinceOverhaul === null);
+    !countersRequired &&
+    (tsChoice ??
+      (!isNew && timeSinceNew === null && timeSinceOverhaul === null));
   const csNotApplicable =
-    csChoice ?? (cyclesSinceNew === null && cyclesSinceOverhaul === null);
+    !cyclesRequired &&
+    (csChoice ??
+      (!isNew && cyclesSinceNew === null && cyclesSinceOverhaul === null));
 
   const toggleTSNotApplicable = (checked: boolean) => {
     setTsChoice(checked);
@@ -285,7 +315,11 @@ export default function PartSection({
                   <FormItem>
                     <FormLabel>ATA</FormLabel>
                     <FormControl>
-                      <Input placeholder="Ej: 90" {...field} />
+                      <Input
+                        placeholder="Ej: 90"
+                        {...field}
+                        value={field.value ?? ""}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -301,23 +335,53 @@ export default function PartSection({
                 render={({ field }: any) => (
                   <FormItem>
                     <FormLabel>Tipo</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value || ""}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecciona un tipo de parte" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {PART_TYPES.map((type) => (
-                          <SelectItem key={type} value={type}>
-                            {type}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    {level === 0 ? (
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value || ""}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecciona un tipo de parte" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {MAIN_PART_TYPES.map((type) => (
+                            <SelectItem key={type} value={type}>
+                              {type}
+                            </SelectItem>
+                          ))}
+                          {field.value &&
+                            !MAIN_PART_TYPES.includes(field.value) && (
+                              <SelectItem value={field.value}>
+                                {field.value}
+                              </SelectItem>
+                            )}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <>
+                        <FormControl>
+                          <Input
+                            list={`${path}-types`}
+                            placeholder="Ej: GENERADOR, BOMBA"
+                            maxLength={50}
+                            {...field}
+                            value={field.value ?? ""}
+                            onChange={(e) =>
+                              field.onChange(e.target.value.toUpperCase())
+                            }
+                          />
+                        </FormControl>
+                        <datalist id={`${path}-types`}>
+                          {[...COMPONENT_PART_TYPES, ...MAIN_PART_TYPES].map(
+                            (type) => (
+                              <option key={type} value={type} />
+                            ),
+                          )}
+                        </datalist>
+                      </>
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}
@@ -330,7 +394,11 @@ export default function PartSection({
                   <FormItem>
                     <FormLabel>Número de Parte</FormLabel>
                     <FormControl>
-                      <Input placeholder="Ej: ENG-001, WNG-202" {...field} />
+                      <Input
+                        placeholder="Ej: ENG-001, WNG-202"
+                        {...field}
+                        value={field.value ?? ""}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -341,16 +409,16 @@ export default function PartSection({
             {/* Serial + Fabricante */}
             <IdentificationFields form={form} path={path} />
 
-            {/* 3era fila: Orden + Posición */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name={`${path}.part_order`}
-                render={({ field }: any) => (
-                  <FormItem>
-                    <FormLabel>Orden de Parte</FormLabel>
-                    <FormControl>
-                      <div className="flex gap-2 items-center">
+            {/* 3era fila: Orden + Posición (solo partes principales) */}
+            {level === 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name={`${path}.part_order`}
+                  render={({ field }: any) => (
+                    <FormItem>
+                      <FormLabel>Orden de Parte</FormLabel>
+                      <FormControl>
                         <div className="flex gap-2">
                           {[1, 2, 3, 4].map((num) => (
                             <Button
@@ -360,62 +428,94 @@ export default function PartSection({
                                 field.value === num ? "default" : "outline"
                               }
                               className="w-10 h-10"
-                              onClick={() => field.onChange(num)}
+                              aria-pressed={field.value === num}
+                              onClick={() =>
+                                field.onChange(field.value === num ? null : num)
+                              }
                             >
                               {num}
                             </Button>
                           ))}
                         </div>
-                      </div>
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
+                <FormField
+                  control={form.control}
+                  name={`${path}.position`}
+                  render={({ field }: any) => (
+                    <FormItem>
+                      <FormLabel>Posición</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value || ""}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecciona posición" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {POSITION_TYPES.map((pos) => (
+                            <SelectItem key={pos.value} value={pos.value}>
+                              {pos.label}
+                            </SelectItem>
+                          ))}
+                          {field.value &&
+                            !POSITION_TYPES.some(
+                              (p) => p.value === field.value,
+                            ) && (
+                              <SelectItem key={field.value} value={field.value}>
+                                {field.value}
+                              </SelectItem>
+                            )}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
+
+            {isNew && (
               <FormField
                 control={form.control}
-                name={`${path}.position`}
+                name={`${path}.assigned_date`}
                 render={({ field }: any) => (
-                  <FormItem>
-                    <FormLabel>Posición</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value || ""}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecciona posición" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {POSITION_TYPES.map((pos) => (
-                          <SelectItem key={pos.value} value={pos.value}>
-                            {pos.label}
-                          </SelectItem>
-                        ))}
-                        {field.value &&
-                          !POSITION_TYPES.some(
-                            (p) => p.value === field.value,
-                          ) && (
-                            <SelectItem key={field.value} value={field.value}>
-                              {field.value}
-                            </SelectItem>
-                          )}
-                      </SelectContent>
-                    </Select>
+                  <FormItem className="max-w-xs">
+                    <FormLabel>Fecha de instalación</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="date"
+                        max={new Date().toISOString().slice(0, 10)}
+                        {...field}
+                        value={field.value ?? ""}
+                      />
+                    </FormControl>
+                    <p className="text-xs text-muted-foreground">
+                      Si se deja vacía, se toma la fecha de hoy.
+                    </p>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-            </div>
+            )}
 
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                checked={tsNotApplicable}
-                onCheckedChange={(checked) => toggleTSNotApplicable(!!checked)}
-              />
-              <FormLabel>No Aplica TSN / TSO</FormLabel>
-            </div>
+            {!countersRequired && (
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  checked={tsNotApplicable}
+                  onCheckedChange={(checked) =>
+                    toggleTSNotApplicable(!!checked)
+                  }
+                />
+                <FormLabel>No Aplica TSN / TSO</FormLabel>
+              </div>
+            )}
 
             {!tsNotApplicable && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -424,7 +524,7 @@ export default function PartSection({
                   name={`${path}.time_since_new`}
                   render={({ field }: any) => (
                     <FormItem>
-                      <FormLabel>TSN</FormLabel>
+                      <FormLabel>TSN{countersRequired ? " *" : ""}</FormLabel>
                       <FormControl>
                         <NumberInput field={field} placeholder="Ej: 1500" />
                       </FormControl>
@@ -437,7 +537,9 @@ export default function PartSection({
                   name={`${path}.time_since_overhaul`}
                   render={({ field }: any) => (
                     <FormItem>
-                      <FormLabel>TSO</FormLabel>
+                      <FormLabel>
+                        TSO{conditionType === "OVERHAULED" ? " *" : ""}
+                      </FormLabel>
                       <FormControl>
                         <NumberInput field={field} placeholder="Ej: 1500" />
                       </FormControl>
@@ -448,13 +550,17 @@ export default function PartSection({
               </div>
             )}
 
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                checked={csNotApplicable}
-                onCheckedChange={(checked) => toggleCSNotApplicable(!!checked)}
-              />
-              <FormLabel>No aplica (CSN / CSO)</FormLabel>
-            </div>
+            {!cyclesRequired && (
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  checked={csNotApplicable}
+                  onCheckedChange={(checked) =>
+                    toggleCSNotApplicable(!!checked)
+                  }
+                />
+                <FormLabel>No aplica (CSN / CSO)</FormLabel>
+              </div>
+            )}
 
             {!csNotApplicable && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -463,7 +569,7 @@ export default function PartSection({
                   name={`${path}.cycles_since_new`}
                   render={({ field }: any) => (
                     <FormItem>
-                      <FormLabel>CSN</FormLabel>
+                      <FormLabel>CSN{cyclesRequired ? " *" : ""}</FormLabel>
                       <FormControl>
                         <NumberInput field={field} placeholder="Ej: 1500" />
                       </FormControl>
@@ -476,7 +582,9 @@ export default function PartSection({
                   name={`${path}.cycles_since_overhaul`}
                   render={({ field }: any) => (
                     <FormItem>
-                      <FormLabel>CSO</FormLabel>
+                      <FormLabel>
+                        CSO{conditionType === "OVERHAULED" ? " *" : ""}
+                      </FormLabel>
                       <FormControl>
                         <NumberInput field={field} placeholder="Ej: 300" />
                       </FormControl>

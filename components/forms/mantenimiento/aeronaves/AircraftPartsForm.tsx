@@ -8,6 +8,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { zodResolver } from "@/lib/zod-resolver";
 import { AlertTriangle } from "lucide-react";
 import PartsList from "./parts-form/PartsList";
+import { countsCycles, isMainPartType } from "./parts-form/constants";
 import { useEffect, useMemo, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -15,16 +16,17 @@ import { toCalendarPayload } from "@/lib/date";
 
 const PartSchema: any = z.object({
   id: z.any().optional(),
-  serial: z.string().optional(),
-  manufacturer_id: z.string().optional(),
+  serial: z.string().nullable().optional(),
+  manufacturer_id: z.string().nullable().optional(),
 
   type: z.string().min(1, "Tipo obligatorio").max(50),
   category: z.enum(["ENGINE", "APU", "PROPELLER"]).optional(),
-  position: z.enum(["LH", "RH"]).optional(),
+  position: z.string().nullable().optional(),
   part_order: z.number().nullable().optional(),
 
   part_number: z.string().min(1, "N\u00famero de parte obligatorio"),
-  ata_chapter: z.string().optional(),
+  ata_chapter: z.string().nullable().optional(),
+  assigned_date: z.string().nullable().optional(),
 
   time_since_new: z.number().nullable().optional(),
   time_since_overhaul: z.number().nullable().optional(),
@@ -114,7 +116,10 @@ const normalizePart = (part: any): z.infer<typeof PartSchema> => {
   return {
     id: part.id,
     serial: part.serial || "",
-    manufacturer_id: part.manufacturer_id || "",
+    manufacturer_id:
+      part.manufacturer_id !== null && part.manufacturer_id !== undefined
+        ? String(part.manufacturer_id)
+        : "",
     type,
     category: part.category || TYPE_TO_CATEGORY[type] || "ENGINE",
     part_number: part.part_number || "",
@@ -130,9 +135,90 @@ const normalizePart = (part: any): z.infer<typeof PartSchema> => {
       typeof part.is_father === "boolean"
         ? part.is_father
         : normalizedSubParts.length > 0,
+    assigned_date: part.assigned_date || null,
     removed_date: part.removed_date || null,
     sub_parts: normalizedSubParts,
   };
+};
+
+type PartIssue = { path: string; message: string };
+
+const isBlank = (value: unknown) =>
+  value === null || value === undefined || value === "";
+
+/** Reglas que dependen de varios campos o de la lista completa; el backend las repite. */
+const collectPartIssues = (
+  parts: any[],
+  basePath = "parts",
+  depth = 0,
+): PartIssue[] => {
+  const issues: PartIssue[] = [];
+  const orders = new Set<string>();
+
+  parts.forEach((part, index) => {
+    if (!part || part.removed_date) return;
+
+    const path = `${basePath}.${index}`;
+    const type = String(part.type ?? "")
+      .trim()
+      .toUpperCase();
+
+    if (depth === 0) {
+      if (isMainPartType(type)) {
+        if (isBlank(part.time_since_new)) {
+          issues.push({
+            path: `${path}.time_since_new`,
+            message: "El TSN es obligatorio en una parte principal",
+          });
+        }
+      }
+      if (countsCycles(type) && isBlank(part.cycles_since_new)) {
+        issues.push({
+          path: `${path}.cycles_since_new`,
+          message: "El CSN es obligatorio en esta parte principal",
+        });
+      }
+
+      if (type && !isBlank(part.part_order)) {
+        const key = `${type}|${part.part_order}`;
+        if (orders.has(key)) {
+          issues.push({
+            path: `${path}.part_order`,
+            message: `Ya hay otra parte ${type} con el orden ${part.part_order}`,
+          });
+        }
+        orders.add(key);
+      }
+    }
+
+    if (part.condition_type === "OVERHAULED") {
+      if (!isBlank(part.time_since_new) && isBlank(part.time_since_overhaul)) {
+        issues.push({
+          path: `${path}.time_since_overhaul`,
+          message: "El TSO es obligatorio en una parte reacondicionada",
+        });
+      }
+      if (
+        !isBlank(part.cycles_since_new) &&
+        isBlank(part.cycles_since_overhaul)
+      ) {
+        issues.push({
+          path: `${path}.cycles_since_overhaul`,
+          message: "El CSO es obligatorio en una parte reacondicionada",
+        });
+      }
+    }
+
+    issues.push(
+      ...collectPartIssues(
+        part.sub_parts ?? [],
+        `${path}.sub_parts`,
+        depth + 1,
+      ),
+    );
+  });
+
+  return issues;
 };
 
 const buildPartsFromAssignments = (
@@ -354,7 +440,7 @@ export function AircraftPartsInfoForm({
   };
 
   const applyRemoval = () => {
-    if (!removingPath) return;
+    if (!removingPath || !tempDate) return;
     const applyDateRecursively = (path: string, date: string) => {
       form.setValue(`${path}.removed_date` as any, date);
       const currentSubparts = form.getValues(`${path}.sub_parts` as any) || [];
@@ -462,27 +548,37 @@ export function AircraftPartsInfoForm({
     // Solo se validan las partes activas: las descartadas pueden estar a medias.
     const parsed = PartsFormSchema.safeParse({ parts: activeParts });
     form.clearErrors();
+
+    const issues: PartIssue[] = [];
     if (!parsed.success) {
-      const toExpand: Record<string, boolean> = {};
       parsed.error.issues.forEach((err) => {
         // err.path = ["parts", activeIdx, "fieldName"] or ["parts", activeIdx, "sub_parts", n, "fieldName"]
         const [, activeIdx, ...fieldPath] = err.path as (string | number)[];
         const orig = origIndices[activeIdx as number];
         if (orig !== undefined && fieldPath.length > 0) {
-          form.setError(`parts.${orig}.${fieldPath.join(".")}` as any, {
-            type: "manual",
+          issues.push({
+            path: `parts.${orig}.${fieldPath.join(".")}`,
             message: err.message,
           });
+        }
+      });
+    }
+    issues.push(...collectPartIssues(parts));
 
-          // Las partes arrancan colapsadas: se abren las que traen el error
-          // (y sus ancestros) para que el campo marcado se vea.
-          let path = `parts.${orig}`;
-          toExpand[path] = true;
-          for (let i = 0; i + 1 < fieldPath.length; i += 2) {
-            if (fieldPath[i] !== "sub_parts") break;
-            path = `${path}.sub_parts.${fieldPath[i + 1]}`;
-            toExpand[path] = true;
-          }
+    if (issues.length > 0) {
+      const toExpand: Record<string, boolean> = {};
+      issues.forEach(({ path, message }) => {
+        form.setError(path as any, { type: "manual", message });
+
+        // Las partes arrancan colapsadas: se abren las que traen el error
+        // (y sus ancestros) para que el campo marcado se vea.
+        const segments = path.split(".");
+        let current = `${segments[0]}.${segments[1]}`;
+        toExpand[current] = true;
+        for (let i = 2; i + 1 < segments.length; i += 2) {
+          if (segments[i] !== "sub_parts") break;
+          current = `${current}.sub_parts.${segments[i + 1]}`;
+          toExpand[current] = true;
         }
       });
       setExpandedParts((prev) => ({ ...prev, ...toExpand }));
@@ -520,6 +616,7 @@ export function AircraftPartsInfoForm({
               <Input
                 type="date"
                 value={tempDate}
+                max={toCalendarPayload(new Date()) ?? undefined}
                 onChange={(e) => setTempDate(e.target.value)}
                 className="mb-6 mt-2"
               />

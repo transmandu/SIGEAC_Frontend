@@ -28,6 +28,7 @@ import {
   ChevronRight,
   Factory,
   FileText,
+  Archive,
   Gauge,
   Hash,
   Layers,
@@ -39,10 +40,11 @@ import { useParams } from "next/navigation";
 import LoadingPage from "@/components/misc/LoadingPage";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { useGetMaintenanceAircraftByAcronym } from "@/hooks/mantenimiento/planificacion/useGetMaitenanceAircraftByAcronym";
-import type { AeronauticalAircraft, MaintenanceAircraftPart } from "@/types";
+import type { MaintenanceAircraftPart } from "@/types";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { formatNumber } from "@/lib/formatNumber";
 import { partLabel } from "@/app/[company]/planificacion/aeronaves/_components/partLabel";
+import { removalReadings } from "@/app/[company]/planificacion/aeronaves/_components/removalReadings";
 
 // ---------- helpers ----------
 const labelFor = (obj: any): string => {
@@ -65,6 +67,35 @@ const formatDate = (iso?: string | null) => {
 
 const fmtNumber = (n: unknown) =>
   formatNumber(n, { minDecimals: 2, maxDecimals: 2, fallback: "—" });
+
+// 0 es un valor válido; solo null/undefined/"" significan "no aplica".
+const fmtCounter = (n: unknown) =>
+  n === null || n === undefined || n === ""
+    ? "No aplica"
+    : formatNumber(n, {
+        minDecimals: 2,
+        maxDecimals: 2,
+        fallback: "No aplica",
+      });
+
+type InstalledPart = MaintenanceAircraftPart & {
+  assigned_date?: string | Date | null;
+};
+
+const Detail = ({
+  label,
+  value,
+}: {
+  label: string;
+  value: React.ReactNode;
+}) => (
+  <div className="flex flex-col">
+    <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
+      {label}
+    </span>
+    <span className="text-sm">{value || "—"}</span>
+  </div>
+);
 
 const Stat = ({
   icon: Icon,
@@ -92,14 +123,14 @@ const PartRow = ({
   depth = 0,
   index = 0,
 }: {
-  p: MaintenanceAircraftPart;
+  p: InstalledPart;
   depth?: number;
   index?: number;
 }) => {
   const hasChildren = p.sub_parts && p.sub_parts.length > 0;
   return (
     <AccordionItem
-      value={`${p.part_number}-${depth}-${index}`}
+      value={`${p.id ?? p.part_number}-${depth}-${index}`}
       className="border-none"
     >
       <AccordionTrigger className="px-0 hover:no-underline">
@@ -111,6 +142,11 @@ const PartRow = ({
             <div className="flex items-center gap-2 flex-wrap">
               <Puzzle className="h-4 w-4 text-muted-foreground" />
               <span className="font-medium truncate">{partLabel(p)}</span>
+              {depth === 0 && p.part_order ? (
+                <Badge variant="secondary" className="text-[10px]">
+                  N° {p.part_order}
+                </Badge>
+              ) : null}
               <Badge variant="outline" className="font-mono text-[10px]">
                 PN: {p.part_number}
               </Badge>
@@ -118,22 +154,40 @@ const PartRow = ({
             <div className="text-xs text-muted-foreground mt-1 flex gap-3 flex-wrap">
               <span className="flex items-center gap-1">
                 <Gauge className="h-3 w-3" /> TSN:{" "}
-                {fmtNumber(p.time_since_new ?? p.part_hours)}
+                {fmtCounter(p.time_since_new)}
               </span>
               <span className="flex items-center gap-1">
                 <Layers className="h-3 w-3" /> CSN:{" "}
-                {fmtNumber(p.cycles_since_new ?? p.part_cycles)}
+                {fmtCounter(p.cycles_since_new)}
               </span>
             </div>
           </div>
         </div>
       </AccordionTrigger>
       <AccordionContent className="pl-7">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pb-3">
+          <Detail label="Serial" value={p.serial} />
+          <Detail
+            label="Condición"
+            value={
+              p.condition_type === "OVERHAULED" ? "Reacondicionada" : "Nueva"
+            }
+          />
+          <Detail label="ATA" value={p.ata_chapter} />
+          <Detail label="Posición" value={p.position} />
+          <Detail label="Orden" value={p.part_order} />
+          <Detail
+            label="Instalada"
+            value={p.assigned_date ? formatDate(String(p.assigned_date)) : null}
+          />
+          <Detail label="TSO" value={fmtCounter(p.time_since_overhaul)} />
+          <Detail label="CSO" value={fmtCounter(p.cycles_since_overhaul)} />
+        </div>
         {hasChildren ? (
           <Accordion type="multiple" className="w-full">
             {(p.sub_parts ?? []).map((sp, idx) => (
               <PartRow
-                key={`${sp.part_number}-${idx}`}
+                key={`${sp.id ?? sp.part_number}-${idx}`}
                 p={sp}
                 depth={(depth ?? 0) + 1}
                 index={idx}
@@ -162,12 +216,17 @@ export default function AircraftDetailsPage() {
 
   // El backend entrega las partes dentro de las asignaciones vigentes
   // (`aircraft_assignments`); no existe `aircraft_parts` en la respuesta.
-  const rootParts = React.useMemo(
+  const rootParts = React.useMemo<InstalledPart[]>(
     () =>
       (aircraft?.aircraft_assignments ?? [])
-        .filter((a) => !a.removed_date)
-        .map((a) => a.aircraft_part)
-        .filter(Boolean),
+        .filter((a) => !a.removed_date && a.aircraft_part)
+        .map((a) => ({
+          ...a.aircraft_part,
+          position: a.position,
+          ata_chapter: a.ata_chapter,
+          part_order: a.part_order,
+          assigned_date: a.assigned_date,
+        })),
     [aircraft],
   );
 
@@ -181,6 +240,8 @@ export default function AircraftDetailsPage() {
     return rootParts.filter(matches);
   }, [rootParts, search]);
 
+  const uninstalled = aircraft?.uninstalled_parts ?? [];
+
   if (isLoading) return <LoadingPage />;
 
   return (
@@ -190,17 +251,6 @@ export default function AircraftDetailsPage() {
       <TooltipProvider>
         {aircraft && (
           <div className="max-w-7xl mx-auto space-y-4">
-            {/* Breadcrumb-ish chips */}
-            <div className="flex items-center gap-2 text-xs">
-              <Badge variant="outline" className="gap-1">
-                <Plane className="h-3.5 w-3.5" /> Aeronave
-              </Badge>
-              <span className="opacity-50">→</span>
-              <Badge variant="outline" className="gap-1">
-                <FileText className="h-3.5 w-3.5" /> Detalle
-              </Badge>
-            </div>
-
             {/* Header */}
             <Card>
               <CardHeader className="pb-2">
@@ -284,7 +334,7 @@ export default function AircraftDetailsPage() {
                         <Accordion type="multiple" className="w-full">
                           {visibleParts.map((root, idx) => (
                             <PartRow
-                              key={`${root.part_number}-${idx}`}
+                              key={`${root.id ?? root.part_number}-${idx}`}
                               p={root}
                               index={idx}
                             />
@@ -298,6 +348,64 @@ export default function AircraftDetailsPage() {
                         </div>
                       )}
                     </ScrollArea>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Archive className="h-4 w-4" /> Partes desinstaladas
+                    </CardTitle>
+                    <CardDescription className="text-xs">
+                      Historial de remociones, con la lectura al remover
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {uninstalled.length ? (
+                      <ul className="divide-y">
+                        {uninstalled.map((a) => {
+                          const readings = removalReadings(a);
+                          return (
+                            <li key={a.id} className="py-2 space-y-1">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-medium text-sm">
+                                  {partLabel(a.aircraft_part)}
+                                </span>
+                                <Badge
+                                  variant="outline"
+                                  className="font-mono text-[10px]"
+                                >
+                                  PN: {a.aircraft_part.part_number}
+                                  {a.aircraft_part.serial
+                                    ? ` · ${a.aircraft_part.serial}`
+                                    : ""}
+                                </Badge>
+                                {a.aircraft_part.parent_part && (
+                                  <span className="text-xs text-muted-foreground">
+                                    Subparte de{" "}
+                                    {partLabel(a.aircraft_part.parent_part)} (
+                                    {a.aircraft_part.parent_part.part_number})
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-xs text-muted-foreground flex gap-x-4 gap-y-1 flex-wrap">
+                                <span>
+                                  Removida: {formatDate(String(a.removed_date))}
+                                </span>
+                                <span>TSN {fmtCounter(readings.tsn)}</span>
+                                <span>TSO {fmtCounter(readings.tso)}</span>
+                                <span>CSN {fmtCounter(readings.csn)}</span>
+                                <span>CSO {fmtCounter(readings.cso)}</span>
+                              </div>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    ) : (
+                      <div className="text-sm text-muted-foreground text-center py-4">
+                        Sin partes desinstaladas
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </div>
@@ -328,9 +436,9 @@ export default function AircraftDetailsPage() {
 
                 <Card>
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-sm">Acciones rápidas</CardTitle>
+                    <CardTitle className="text-sm">Buscar partes</CardTitle>
                     <CardDescription className="text-xs">
-                      Buscar en asignaciones
+                      Filtra las partes instaladas y sus subpartes
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-2">
