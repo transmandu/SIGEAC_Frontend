@@ -58,14 +58,16 @@ const CounterPage = () => {
   );
 
   const userRoles = user?.roles?.map((r) => r.name) || [];
-  const canImportWhatsApp = userRoles.some((r) =>
-    ["OPERADOR_COUNTER", "DESPACHADOR", "OPERADOR_CARGA", "SUPERUSER"].includes(
-      r,
-    ),
+  const isCounterStaff = userRoles.some((r) =>
+    ["OPERADOR_COUNTER", "DESPACHADOR"].includes(r),
   );
-  const canCreateManifest = userRoles.some((r) =>
-    ["OPERADOR_COUNTER", "DESPACHADOR", "SUPERUSER"].includes(r),
-  );
+  const isCargaStaff = userRoles.includes("OPERADOR_CARGA");
+  const isSuperUser = userRoles.includes("SUPERUSER");
+
+  // El personal de counter / despachador NO debe tener la opción de importar WhatsApp.
+  // Solo la tiene el personal de operaciones/carga.
+  const canImportWhatsApp = (isCargaStaff || isSuperUser) && !isCounterStaff;
+  const canCreateManifest = isCounterStaff || isSuperUser;
 
   const columns = useMemo(
     () => getCounterColumns(company, canCreateManifest),
