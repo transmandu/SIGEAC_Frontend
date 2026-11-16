@@ -1,3 +1,7 @@
+## v4.109.1 — 2026-11-16
+
+- refactor: optimize on preview function (#405)
+
 ## v4.109.0 — 2026-11-16
 
 - Merge pull request #406 from transmandu/feat/update-employee-role
