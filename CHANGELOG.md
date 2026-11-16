@@ -1,3 +1,8 @@
+## v4.110.0 — 2026-11-16
+
+- Merge pull request #407 from transmandu/feat/update-employee-role
+- feat: update user role checks for WhatsApp import functionality
+
 ## v4.109.1 — 2026-11-16
 
 - refactor: optimize on preview function (#405)
