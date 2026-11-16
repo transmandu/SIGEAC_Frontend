@@ -6,15 +6,13 @@ import { SettingsDataTable } from "@/components/tables/SettingsDataTable";
 import { CreateShippingAgencyDialog } from "@/components/dialogs/general/CreateShippingAgencyDialog";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useGetShippingAgencies } from "@/hooks/general/agencias_envio/useGetShippingAgencies";
-import { getColumns } from "./columns";
+import { columns } from "./columns";
 import { ShippingAgency } from "@/types";
 import ShippingAgenciesToolBar from "./_components/ShippingAgenciesToolBar";
 import ShippingAgenciesSubRow from "./_components/ShippingAgenciesSubRow";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { agenciasEnvioSteps } from "@/components/tour/steps/ajustes/agencia-envios/agencia-envios";
 import { phoneMatches } from "@/lib/phone";
-
-const columns = getColumns();
 
 const ShippingAgenciesPage = () => {
   const { selectedCompany } = useCompanyStore();

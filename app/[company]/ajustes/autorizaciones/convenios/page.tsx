@@ -14,7 +14,7 @@ import {
 import { CreateCompanyLoanDialog } from "@/components/dialogs/ajustes/CreateCompanyLoanDialog";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useGetCompanyLoans } from "@/hooks/ajustes/convenios/useGetCompanyLoans";
-import { getColumns, type LoanRow } from "./columns";
+import { columns, type LoanRow } from "./columns";
 
 type DirectionFilter = "ALL" | LoanRow["direction"];
 
@@ -31,8 +31,6 @@ const CompanyLoansPage = () => {
   const [search, setSearch] = useState("");
   const [direction, setDirection] = useState<DirectionFilter>("ALL");
   const deferredSearch = useDeferredValue(search);
-
-  const columns = useMemo(() => getColumns(slug), [slug]);
 
   const rows = useMemo<LoanRow[]>(() => {
     if (!data) return [];

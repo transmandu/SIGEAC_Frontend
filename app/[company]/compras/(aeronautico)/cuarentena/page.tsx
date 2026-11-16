@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { useDeferredValue, useMemo, useState } from "react";
 import { DataTable } from "@/app/[company]/compras/data-table";
-import { getColumns } from "./columns";
+import { columns } from "./columns";
 import { QuarantineCycleHistory } from "./_components/QuarantineCycleHistory";
 import QuarantineToolBar from "./_components/QuarantineToolBar";
 import {
@@ -126,8 +126,6 @@ const QuarantinePurchasesPage = () => {
       mostUrgent,
     };
   }, [allRecords, legalDays]);
-
-  const columns = useMemo(() => getColumns(legalDays), [legalDays]);
 
   return (
     <ContentLayout title="Cuarentena">

@@ -1,6 +1,12 @@
 "use client";
 
-import { type AppColumnDef } from "@/lib/table";
+import { type AppColumnDef, type AppRow } from "@/lib/table";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import {
+  useQuotePreview,
+  useQuotePreviewSelectedId,
+} from "@/components/side-panels/QuoteSplitView";
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import QuoteDropdownActions from "@/components/dropdowns/mantenimiento/compras/QuoteDropdownActions";
@@ -25,7 +31,13 @@ import type { Quote } from "@/types/purchase";
 
 import Link from "next/link";
 import PreviewPanelIcon from "@/components/misc/PreviewPanelIcon";
-import { DEFAULT_TIMEZONE, formatInstant } from "@/lib/date";
+import { formatInstant } from "@/lib/date";
+
+const ActionsColumnCell = ({ row }: { row: AppRow<Quote> }) => (
+  <div className="flex justify-center w-full">
+    <QuoteDropdownActions quote={row.original} />
+  </div>
+);
 
 const QUOTE_STATUS_LABELS: Record<string, string> = {
   PENDING: "Pendiente",
@@ -33,12 +45,121 @@ const QUOTE_STATUS_LABELS: Record<string, string> = {
   REJECTED: "Rechazada",
 };
 
-export const getColumns = (
-  selectedCompany?: { slug: string },
-  onPreview?: (quote: Quote) => void,
-  selectedPreviewId?: number | null,
-  timeZone: string = DEFAULT_TIMEZONE,
-): AppColumnDef<Quote>[] => [
+// Componentes de módulo y no flechas dentro de las columnas: React identifica
+// un componente por su función, así que una flecha nueva desmontaría la celda
+// y borraría su estado. Lo que antes entraba por parámetros se lee aquí.
+const QuoteNumberColumnCell = ({ row }: { row: AppRow<Quote> }) => {
+  const { selectedCompany } = useCompanyStore();
+
+  return (
+    <div className="flex flex-col items-center gap-1 w-full">
+      <Link
+        href={`/${selectedCompany?.slug}/compras/cotizaciones_generales/${row.original.quote_number}`}
+        className="
+            text-sm font-semibold
+            text-slate-700 dark:text-slate-200
+            text-center
+            hover:text-primary
+            transition-colors
+          "
+      >
+        {row.original.quote_number}
+      </Link>
+      {row.original.parent_quote_order && (
+        <span
+          className="select-none inline-flex items-center gap-1 rounded border border-violet-500/40 bg-violet-500/10 px-1.5 py-0.5 text-xs font-semibold text-violet-700 dark:text-violet-300"
+          title={`Complementaria de ${row.original.parent_quote_order.quote_number}`}
+        >
+          <Link2 className="size-2.5" />
+          Complementaria
+        </span>
+      )}
+    </div>
+  );
+};
+
+const RequisitionOrderColumnCell = ({ row }: { row: AppRow<Quote> }) => {
+  const { selectedCompany } = useCompanyStore();
+
+  return (
+    <div className="flex justify-center w-full">
+      <Link
+        href={`/${selectedCompany?.slug}/compras/requisiciones_generales/${row.original.requisition_order?.order_number}`}
+        className="
+            text-sm
+            text-slate-600 dark:text-slate-300
+            text-center
+            hover:text-slate-900
+            dark:hover:text-slate-400
+            hover:underline
+            underline-offset-4
+            decoration-1
+          "
+      >
+        {row.original.requisition_order?.order_number ?? "N/A"}
+      </Link>
+    </div>
+  );
+};
+
+const QuoteDateColumnCell = ({ row }: { row: AppRow<Quote> }) => {
+  const timeZone = useCompanyTimezone();
+
+  return (
+    <div className="flex justify-center w-full">
+      <span className="text-s text-slate-600 dark:text-slate-300 text-center font-medium">
+        {formatInstant(row.original.quote_date, timeZone, "short")}
+      </span>
+    </div>
+  );
+};
+
+const ArticleQuoteOrderColumnCell = ({ row }: { row: AppRow<Quote> }) => {
+  const onPreview = useQuotePreview();
+  const selectedPreviewId = useQuotePreviewSelectedId();
+
+  const total =
+    (row.original.article_quote_order?.length ?? 0) +
+    (row.original.general_article_quote_order?.length ?? 0);
+  const isActive = selectedPreviewId === row.original.id;
+
+  return (
+    <div
+      className="flex justify-center w-full"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <TooltipProvider delayDuration={120}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              onClick={() => onPreview?.(row.original)}
+              aria-label={`Vista previa: ${total} ${total === 1 ? "artículo" : "artículos"}`}
+              className={cn(
+                "flex min-w-28 items-center justify-center gap-1.5 rounded-md border px-2 py-1 text-xs font-medium tabular-nums transition-colors",
+                "max-md:min-w-0 max-md:border-transparent max-md:bg-transparent max-md:p-1 max-md:hover:bg-transparent",
+                "border-slate-500/30 bg-slate-500/10 text-slate-600 dark:text-slate-300",
+                "hover:border-blue-500/40 hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-400",
+                isActive &&
+                  "border-blue-500/40 bg-blue-500/10 text-blue-600 dark:text-blue-400",
+              )}
+            >
+              <PreviewPanelIcon active={isActive} className="size-3.5" />
+              <span className="max-md:hidden">
+                {total} {total === 1 ? "artículo" : "artículos"}
+              </span>
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>
+            {isActive ? "Cerrar vista previa" : "Vista previa de la cotización"}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    </div>
+  );
+};
+
+export const columns: AppColumnDef<Quote>[] = [
   {
     accessorKey: "quote_number",
     size: 210,
@@ -53,31 +174,7 @@ export const getColumns = (
       title: "Nro. Cotización",
     },
 
-    cell: ({ row }) => (
-      <div className="flex flex-col items-center gap-1 w-full">
-        <Link
-          href={`/${selectedCompany?.slug}/compras/cotizaciones_generales/${row.original.quote_number}`}
-          className="
-            text-sm font-semibold
-            text-slate-700 dark:text-slate-200
-            text-center
-            hover:text-primary
-            transition-colors
-          "
-        >
-          {row.original.quote_number}
-        </Link>
-        {row.original.parent_quote_order && (
-          <span
-            className="select-none inline-flex items-center gap-1 rounded border border-violet-500/40 bg-violet-500/10 px-1.5 py-0.5 text-xs font-semibold text-violet-700 dark:text-violet-300"
-            title={`Complementaria de ${row.original.parent_quote_order.quote_number}`}
-          >
-            <Link2 className="size-2.5" />
-            Complementaria
-          </span>
-        )}
-      </div>
-    ),
+    cell: QuoteNumberColumnCell,
   },
 
   {
@@ -95,25 +192,7 @@ export const getColumns = (
       mobileOrder: 4,
     },
 
-    cell: ({ row }) => (
-      <div className="flex justify-center w-full">
-        <Link
-          href={`/${selectedCompany?.slug}/compras/requisiciones_generales/${row.original.requisition_order?.order_number}`}
-          className="
-            text-sm
-            text-slate-600 dark:text-slate-300
-            text-center
-            hover:text-slate-900
-            dark:hover:text-slate-400
-            hover:underline
-            underline-offset-4
-            decoration-1
-          "
-        >
-          {row.original.requisition_order?.order_number ?? "N/A"}
-        </Link>
-      </div>
-    ),
+    cell: RequisitionOrderColumnCell,
   },
 
   {
@@ -131,15 +210,7 @@ export const getColumns = (
       mobileOrder: 2,
     },
 
-    cell: ({ row }) => {
-      return (
-        <div className="flex justify-center w-full">
-          <span className="text-s text-slate-600 dark:text-slate-300 text-center font-medium">
-            {formatInstant(row.original.quote_date, timeZone, "short")}
-          </span>
-        </div>
-      );
-    },
+    cell: QuoteDateColumnCell,
   },
 
   {
@@ -317,49 +388,7 @@ export const getColumns = (
       mobile: "preview",
     },
 
-    cell: ({ row }) => {
-      const total =
-        (row.original.article_quote_order?.length ?? 0) +
-        (row.original.general_article_quote_order?.length ?? 0);
-      const isActive = selectedPreviewId === row.original.id;
-
-      return (
-        <div
-          className="flex justify-center w-full"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <TooltipProvider delayDuration={120}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  type="button"
-                  onClick={() => onPreview?.(row.original)}
-                  aria-label={`Vista previa: ${total} ${total === 1 ? "artículo" : "artículos"}`}
-                  className={cn(
-                    "flex min-w-28 items-center justify-center gap-1.5 rounded-md border px-2 py-1 text-xs font-medium tabular-nums transition-colors",
-                    "max-md:min-w-0 max-md:border-transparent max-md:bg-transparent max-md:p-1 max-md:hover:bg-transparent",
-                    "border-slate-500/30 bg-slate-500/10 text-slate-600 dark:text-slate-300",
-                    "hover:border-blue-500/40 hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-400",
-                    isActive &&
-                      "border-blue-500/40 bg-blue-500/10 text-blue-600 dark:text-blue-400",
-                  )}
-                >
-                  <PreviewPanelIcon active={isActive} className="size-3.5" />
-                  <span className="max-md:hidden">
-                    {total} {total === 1 ? "artículo" : "artículos"}
-                  </span>
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>
-                {isActive
-                  ? "Cerrar vista previa"
-                  : "Vista previa de la cotización"}
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
-      );
-    },
+    cell: ArticleQuoteOrderColumnCell,
   },
 
   {
@@ -376,10 +405,6 @@ export const getColumns = (
       title: "Acciones",
     },
 
-    cell: ({ row }) => (
-      <div className="flex justify-center w-full">
-        <QuoteDropdownActions quote={row.original} />
-      </div>
-    ),
+    cell: ActionsColumnCell,
   },
 ];

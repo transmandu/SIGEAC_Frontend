@@ -12,7 +12,8 @@ import {
   UserPlus,
 } from "lucide-react";
 
-import { type AppColumnDef } from "@/lib/table";
+import { type AppColumnDef, type AppRow } from "@/lib/table";
+import { useCompanyStore } from "@/stores/CompanyStore";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { ConfirmActionDialog } from "@/components/dialogs/shared/ConfirmActionDialog";
 import { TagBadge } from "@/components/misc/TagBadge";
@@ -264,7 +265,21 @@ function ActionsCell({ row, slug }: { row: LoanRow; slug?: string }) {
   );
 }
 
-export const getColumns = (slug?: string): AppColumnDef<LoanRow>[] => [
+// Componentes de módulo: la empresa sale del store y no de un parámetro, así las
+// columnas son constantes y no se recrean (lo que desmontaría sus diálogos).
+const ScopesColumnCell = ({ row }: { row: AppRow<LoanRow> }) => {
+  const { selectedCompany } = useCompanyStore();
+
+  return <ScopesCell row={row.original} slug={selectedCompany?.slug} />;
+};
+
+const ActionsColumnCell = ({ row }: { row: AppRow<LoanRow> }) => {
+  const { selectedCompany } = useCompanyStore();
+
+  return <ActionsCell row={row.original} slug={selectedCompany?.slug} />;
+};
+
+export const columns: AppColumnDef<LoanRow>[] = [
   {
     accessorKey: "otherName",
     size: 220,
@@ -316,7 +331,7 @@ export const getColumns = (slug?: string): AppColumnDef<LoanRow>[] => [
         <DataTableColumnHeader column={column} title="Alcances" />
       </div>
     ),
-    cell: ({ row }) => <ScopesCell row={row.original} slug={slug} />,
+    cell: ScopesColumnCell,
   },
   {
     id: "actions",
@@ -327,6 +342,6 @@ export const getColumns = (slug?: string): AppColumnDef<LoanRow>[] => [
         <DataTableColumnHeader column={column} title="Acciones" />
       </div>
     ),
-    cell: ({ row }) => <ActionsCell row={row.original} slug={slug} />,
+    cell: ActionsColumnCell,
   },
 ];

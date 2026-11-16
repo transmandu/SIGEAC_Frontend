@@ -8,9 +8,7 @@ import { cn } from "@/lib/utils";
 import { ShippingAgency } from "@/types";
 import ShippingAgencyDropdownActions from "@/components/dropdowns/general/ShippingAgencyDropdownActions";
 
-export const getColumns = (selectedCompany?: {
-  slug: string;
-}): AppColumnDef<ShippingAgency>[] => [
+export const columns: AppColumnDef<ShippingAgency>[] = [
   {
     id: "expander",
     size: 40,

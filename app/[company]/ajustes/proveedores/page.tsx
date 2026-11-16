@@ -6,15 +6,13 @@ import { SettingsDataTable } from "@/components/tables/SettingsDataTable";
 import { CreateVendorDialog } from "@/components/dialogs/general/CreateVendorDialog";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useGetVendors } from "@/hooks/general/proveedores/useGetVendors";
-import { getColumns } from "./columns";
+import { columns } from "./columns";
 import { Vendor } from "@/types";
 import VendorsToolBar from "./_components/VendorsToolBar";
 import VendorsSubRow from "./_components/VendorsSubRow";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { proveedoresSteps } from "@/components/tour/steps/ajustes/proveedores/proveedores";
 import { phoneMatches } from "@/lib/phone";
-
-const columns = getColumns();
 
 const VendorsPage = () => {
   const { selectedCompany } = useCompanyStore();

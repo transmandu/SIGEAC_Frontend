@@ -6,7 +6,8 @@ import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { TagBadge } from "@/components/misc/TagBadge";
 import { SettingsRowActions } from "@/components/dropdowns/SettingsRowActions";
 import { formatInstant } from "@/lib/date";
-import { type AppColumnDef } from "@/lib/table";
+import { type AppColumnDef, type AppRow } from "@/lib/table";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
 import type { ErrorReport } from "@/types";
 
 import { ERROR_REPORT_MODULES } from "@/lib/errorReportModules";
@@ -19,10 +20,23 @@ const STATUS_OPTIONS = Object.entries(REPORT_STATUS).map(
 
 const center = "flex justify-center w-full";
 
-export const getColumns = (
-  onViewDetail: (report: ErrorReport) => void,
-  timeZone: string,
-): AppColumnDef<ErrorReport>[] => [
+export type ReportsTableMeta = {
+  onViewDetail: (report: ErrorReport) => void;
+};
+
+const ReportedAtColumnCell = ({ row }: { row: AppRow<ErrorReport> }) => {
+  const timeZone = useCompanyTimezone();
+
+  return (
+    <div className={center}>
+      <span className="whitespace-nowrap text-sm font-semibold tabular-nums text-slate-700 dark:text-slate-200">
+        {formatInstant(row.original.reported_at, timeZone, "dateTime", "—")}
+      </span>
+    </div>
+  );
+};
+
+export const columns: AppColumnDef<ErrorReport>[] = [
   {
     accessorKey: "reported_at",
     size: 170,
@@ -32,13 +46,7 @@ export const getColumns = (
         <DataTableColumnHeader dateRangeFilter column={column} title="Fecha" />
       </div>
     ),
-    cell: ({ row }) => (
-      <div className={center}>
-        <span className="whitespace-nowrap text-sm font-semibold tabular-nums text-slate-700 dark:text-slate-200">
-          {formatInstant(row.original.reported_at, timeZone, "dateTime", "—")}
-        </span>
-      </div>
-    ),
+    cell: ReportedAtColumnCell,
   },
   {
     accessorKey: "description",
@@ -121,7 +129,7 @@ export const getColumns = (
         <DataTableColumnHeader column={column} title="Acciones" />
       </div>
     ),
-    cell: ({ row }) => (
+    cell: ({ row, table }) => (
       <div className={center}>
         <SettingsRowActions
           actions={[
@@ -130,7 +138,10 @@ export const getColumns = (
               label: "Ver detalle",
               icon: Eye,
               tone: "blue",
-              onSelect: () => onViewDetail(row.original),
+              onSelect: () =>
+                (table.options.meta as ReportsTableMeta).onViewDetail(
+                  row.original,
+                ),
             },
           ]}
         />

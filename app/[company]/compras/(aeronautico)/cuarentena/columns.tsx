@@ -13,7 +13,8 @@ import {
 import { cn } from "@/lib/utils";
 import { quarantineRisk } from "@/lib/warehouse/quarantine";
 import type { QuarantineRecord } from "@/types/quarantine";
-import { type AppColumnDef } from "@/lib/table";
+import { type AppColumnDef, type AppRow } from "@/lib/table";
+import { useQuarantineLegalDays } from "@/hooks/general/useCompanySettings";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -105,9 +106,70 @@ function ResolveAction({ record }: { record: QuarantineRecord }) {
   );
 }
 
-export const getColumns = (
-  legalDays: number,
-): AppColumnDef<QuarantineRecord>[] => [
+const ActionsColumnCell = ({ row }: { row: AppRow<QuarantineRecord> }) => (
+  <div
+    className="flex w-full justify-center"
+    onClick={(e) => e.stopPropagation()}
+  >
+    <ResolveAction record={row.original} />
+  </div>
+);
+
+// Componentes de módulo y no flechas dentro de las columnas: React identifica
+// un componente por su función, así que una flecha nueva desmontaría la celda
+// y borraría su estado. Lo que antes entraba por parámetros se lee aquí.
+const LegalWindowColumnCell = ({ row }: { row: AppRow<QuarantineRecord> }) => {
+  const legalDays = useQuarantineLegalDays();
+
+  const record = row.original;
+  const risk = quarantineRisk(
+    record.quarantine_entry_date,
+    legalDays,
+    record.days_in_quarantine,
+  );
+
+  if (risk.days === null) {
+    return (
+      <div className="flex w-full justify-center">
+        <span className="text-xs text-muted-foreground/60">Sin fecha</span>
+      </div>
+    );
+  }
+
+  const expired = risk.state === "expired";
+  const warning = risk.state === "warning";
+
+  return (
+    <div className="flex w-full flex-col items-center gap-1">
+      <Badge
+        className={cn(
+          "select-none whitespace-nowrap rounded-md border h-6 px-2.5 text-xs font-medium",
+          expired &&
+            "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300",
+          warning &&
+            "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300",
+          !expired &&
+            !warning &&
+            "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+        )}
+      >
+        {expired ? "Vencido" : warning ? "Por vencer" : "En plazo"}
+      </Badge>
+
+      <span className="text-sm font-semibold tabular-nums">
+        {risk.days} / {legalDays}
+      </span>
+
+      <span className="text-xs tabular-nums text-muted-foreground">
+        {risk.remaining !== null && risk.remaining >= 0
+          ? `Restan ${risk.remaining} días`
+          : `Vencido por ${Math.abs(risk.remaining ?? 0)} días`}
+      </span>
+    </div>
+  );
+};
+
+export const columns: AppColumnDef<QuarantineRecord>[] = [
   {
     id: "expander",
     size: 50,
@@ -236,65 +298,18 @@ export const getColumns = (
       </div>
     ),
 
-    // Ordena por urgencia: lo vencido primero.
-    accessorFn: (row) => {
-      const risk = quarantineRisk(
+    // Ordena por urgencia: lo vencido primero. El plazo legal es uno solo para
+    // todo el listado y vencido siempre implica más días que vigente, así que
+    // los días transcurridos dan el mismo orden sin que la columna dependa de
+    // un parámetro externo (los días no cambian con el plazo).
+    accessorFn: (row) =>
+      quarantineRisk(
         row.quarantine_entry_date,
-        legalDays,
+        Number.POSITIVE_INFINITY,
         row.days_in_quarantine,
-      );
-      if (risk.days === null) return -1;
-      return risk.state === "expired" ? 1000 + risk.days : risk.days;
-    },
+      ).days ?? -1,
 
-    cell: ({ row }) => {
-      const record = row.original;
-      const risk = quarantineRisk(
-        record.quarantine_entry_date,
-        legalDays,
-        record.days_in_quarantine,
-      );
-
-      if (risk.days === null) {
-        return (
-          <div className="flex w-full justify-center">
-            <span className="text-xs text-muted-foreground/60">Sin fecha</span>
-          </div>
-        );
-      }
-
-      const expired = risk.state === "expired";
-      const warning = risk.state === "warning";
-
-      return (
-        <div className="flex w-full flex-col items-center gap-1">
-          <Badge
-            className={cn(
-              "select-none whitespace-nowrap rounded-md border h-6 px-2.5 text-xs font-medium",
-              expired &&
-                "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300",
-              warning &&
-                "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300",
-              !expired &&
-                !warning &&
-                "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
-            )}
-          >
-            {expired ? "Vencido" : warning ? "Por vencer" : "En plazo"}
-          </Badge>
-
-          <span className="text-sm font-semibold tabular-nums">
-            {risk.days} / {legalDays}
-          </span>
-
-          <span className="text-xs tabular-nums text-muted-foreground">
-            {risk.remaining !== null && risk.remaining >= 0
-              ? `Restan ${risk.remaining} días`
-              : `Vencido por ${Math.abs(risk.remaining ?? 0)} días`}
-          </span>
-        </div>
-      );
-    },
+    cell: LegalWindowColumnCell,
   },
 
   {
@@ -361,14 +376,7 @@ export const getColumns = (
       </div>
     ),
 
-    cell: ({ row }) => (
-      <div
-        className="flex w-full justify-center"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <ResolveAction record={row.original} />
-      </div>
-    ),
+    cell: ActionsColumnCell,
     enableSorting: false,
     enableHiding: false,
   },

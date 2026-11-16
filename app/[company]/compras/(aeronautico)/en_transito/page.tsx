@@ -2,14 +2,12 @@
 
 import { useState, useDeferredValue, useMemo } from "react";
 import { ContentLayout } from "@/components/layout/ContentLayout";
-import { useCompanyStore } from "@/stores/CompanyStore";
 import { DataTable } from "@/app/[company]/compras/data-table";
-import { getColumns } from "./columns";
+import { columns } from "./columns";
 import TransitToolbar from "./_components/TransitToolBar";
 import { useTransitArticles } from "./hooks/useTransitArticles";
 import type { TransitStatusFilter } from "@/types/purchase";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
 import { toAltPartNumbers } from "@/lib/utils";
 import {
   PurchasesHeading,
@@ -17,9 +15,6 @@ import {
 } from "@/app/[company]/compras/_components/PurchasesPageParts";
 
 const EnTransitoPage = () => {
-  const { selectedCompany } = useCompanyStore();
-  const timeZone = useCompanyTimezone();
-
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<TransitStatusFilter>("ALL");
 
@@ -47,11 +42,6 @@ const EnTransitoPage = () => {
         a.batch?.warehouse?.location?.address?.toLowerCase().includes(q),
     );
   }, [articles, deferredSearch]);
-
-  const columns = useMemo(
-    () => getColumns(selectedCompany ?? undefined, timeZone),
-    [selectedCompany, timeZone],
-  );
 
   return (
     <ContentLayout title="Artículos en Tránsito">

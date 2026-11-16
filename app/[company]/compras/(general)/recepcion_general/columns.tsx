@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { type AppColumnDef } from "@/lib/table";
+import { type AppColumnDef, type AppRow } from "@/lib/table";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,7 +17,7 @@ import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { DEFAULT_TIMEZONE, formatInstant } from "@/lib/date";
+import { formatInstant } from "@/lib/date";
 import {
   Building2,
   FileText,
@@ -181,9 +182,118 @@ const EditIntakeButton = ({ intake }: { intake: GeneralArticleIntake }) => {
   );
 };
 
-export const getColumns = (
-  timeZone: string = DEFAULT_TIMEZONE,
-): AppColumnDef<GeneralArticleIntake>[] => [
+const ConfirmationColumnCell = ({
+  row,
+}: {
+  row: AppRow<GeneralArticleIntake>;
+}) => {
+  const timeZone = useCompanyTimezone();
+
+  const {
+    status,
+    confirmed_by,
+    confirmed_at,
+    rejected_by,
+    rejected_at,
+    rejection_reason,
+  } = row.original;
+
+  if (status === "DELIVERED") {
+    const destination = getDestination(row.original);
+
+    return (
+      <div className="flex flex-col items-center justify-center gap-1.5 w-full">
+        <span className="text-xs text-slate-600 dark:text-slate-300 text-center leading-snug">
+          Entrega directa
+          <br />
+          <span className="text-slate-500 dark:text-slate-400">
+            {destination?.label ?? "Sin paso por almacén"}
+          </span>
+        </span>
+        <DeliveryNoteButton intake={row.original} />
+      </div>
+    );
+  }
+
+  if (status === "PENDING") {
+    return (
+      <div className="flex justify-center w-full">
+        <span className="text-muted-foreground/60 text-xs">—</span>
+      </div>
+    );
+  }
+
+  if (status === "REJECTED") {
+    return (
+      <div className="flex justify-center w-full">
+        <span className="text-xs text-slate-600 dark:text-slate-300 text-center leading-snug">
+          Rechazado por:
+          <br />
+          <span className=" font-medium">{rejected_by}</span>
+          {rejected_at && (
+            <>
+              <br />
+              El {formatInstant(rejected_at, timeZone, "dateTime")}
+            </>
+          )}
+          {rejection_reason && (
+            <>
+              <br />
+              <span className="italic text-red-700 dark:text-red-300">
+                “{rejection_reason}”
+              </span>
+            </>
+          )}
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex justify-center w-full">
+      <span className="text-xs text-slate-600 dark:text-slate-300 text-center leading-snug">
+        Confirmado por:
+        <br />
+        <span className=" font-medium">{confirmed_by}</span>
+        {confirmed_at && (
+          <>
+            <br />
+            El {formatInstant(confirmed_at, timeZone, "dateTime")}
+          </>
+        )}
+      </span>
+    </div>
+  );
+};
+
+const ActionsColumnCell = ({ row }: { row: AppRow<GeneralArticleIntake> }) => (
+  <div className="flex justify-center w-full">
+    <EditIntakeButton intake={row.original} />
+  </div>
+);
+
+// Componentes de módulo y no flechas dentro de las columnas: React identifica
+// un componente por su función, así que una flecha nueva desmontaría la celda
+// y borraría su estado. Lo que antes entraba por parámetros se lee aquí.
+const ArrivedAtColumnCell = ({
+  row,
+}: {
+  row: AppRow<GeneralArticleIntake>;
+}) => {
+  const timeZone = useCompanyTimezone();
+
+  const { arrived_at } = row.original;
+
+  return (
+    <div className="flex justify-center w-full">
+      <span className="text-[13px] text-slate-700 dark:text-slate-300">
+        {arrived_at ? formatInstant(arrived_at, timeZone, "dateTime") : "—"}
+      </span>
+    </div>
+  );
+};
+
+export const columns: AppColumnDef<GeneralArticleIntake>[] = [
   {
     accessorKey: "description",
     size: 300,
@@ -284,17 +394,7 @@ export const getColumns = (
       </div>
     ),
 
-    cell: ({ row }) => {
-      const { arrived_at } = row.original;
-
-      return (
-        <div className="flex justify-center w-full">
-          <span className="text-[13px] text-slate-700 dark:text-slate-300">
-            {arrived_at ? formatInstant(arrived_at, timeZone, "dateTime") : "—"}
-          </span>
-        </div>
-      );
-    },
+    cell: ArrivedAtColumnCell,
   },
 
   {
@@ -373,83 +473,7 @@ export const getColumns = (
       </div>
     ),
 
-    cell: ({ row }) => {
-      const {
-        status,
-        confirmed_by,
-        confirmed_at,
-        rejected_by,
-        rejected_at,
-        rejection_reason,
-      } = row.original;
-
-      if (status === "DELIVERED") {
-        const destination = getDestination(row.original);
-
-        return (
-          <div className="flex flex-col items-center justify-center gap-1.5 w-full">
-            <span className="text-xs text-slate-600 dark:text-slate-300 text-center leading-snug">
-              Entrega directa
-              <br />
-              <span className="text-slate-500 dark:text-slate-400">
-                {destination?.label ?? "Sin paso por almacén"}
-              </span>
-            </span>
-            <DeliveryNoteButton intake={row.original} />
-          </div>
-        );
-      }
-
-      if (status === "PENDING") {
-        return (
-          <div className="flex justify-center w-full">
-            <span className="text-muted-foreground/60 text-xs">—</span>
-          </div>
-        );
-      }
-
-      if (status === "REJECTED") {
-        return (
-          <div className="flex justify-center w-full">
-            <span className="text-xs text-slate-600 dark:text-slate-300 text-center leading-snug">
-              Rechazado por:
-              <br />
-              <span className=" font-medium">{rejected_by}</span>
-              {rejected_at && (
-                <>
-                  <br />
-                  El {formatInstant(rejected_at, timeZone, "dateTime")}
-                </>
-              )}
-              {rejection_reason && (
-                <>
-                  <br />
-                  <span className="italic text-red-700 dark:text-red-300">
-                    “{rejection_reason}”
-                  </span>
-                </>
-              )}
-            </span>
-          </div>
-        );
-      }
-
-      return (
-        <div className="flex justify-center w-full">
-          <span className="text-xs text-slate-600 dark:text-slate-300 text-center leading-snug">
-            Confirmado por:
-            <br />
-            <span className=" font-medium">{confirmed_by}</span>
-            {confirmed_at && (
-              <>
-                <br />
-                El {formatInstant(confirmed_at, timeZone, "dateTime")}
-              </>
-            )}
-          </span>
-        </div>
-      );
-    },
+    cell: ConfirmationColumnCell,
   },
 
   {
@@ -462,10 +486,6 @@ export const getColumns = (
       </div>
     ),
 
-    cell: ({ row }) => (
-      <div className="flex justify-center w-full">
-        <EditIntakeButton intake={row.original} />
-      </div>
-    ),
+    cell: ActionsColumnCell,
   },
 ];

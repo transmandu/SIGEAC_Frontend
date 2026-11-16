@@ -11,6 +11,7 @@ import {
 } from "@tanstack/react-table";
 import { Inbox, RefreshCw, SearchX, TriangleAlert } from "lucide-react";
 import { appTableFeatures, type AppColumnDef } from "@/lib/table";
+import { useStableRowId } from "@/lib/table-row-id";
 import { DataTablePagination } from "@/components/tables/DataTablePagination";
 import { MobileSortControl } from "@/components/tables/MobileSortControl";
 import { EmptyState } from "@/components/misc/EmptyState";
@@ -75,6 +76,8 @@ interface SettingsDataTableProps<TData extends RowData> {
   renderSubRow?: (row: TData) => React.ReactNode;
   /** `data-tour` extra del cuerpo, para tours que señalan las filas. */
   bodyTourId?: string;
+  /** Datos de la pantalla que las celdas necesitan; las columnas no los reciben por parámetro. */
+  meta?: Record<string, unknown>;
 }
 
 const SKELETON_ROWS = 5;
@@ -162,6 +165,7 @@ export function SettingsDataTable<TData extends RowData>({
   serverSorting,
   renderSubRow,
   bodyTourId,
+  meta,
 }: SettingsDataTableProps<TData>) {
   const [localSorting, setLocalSorting] = useState<SortingState>([]);
   const sorting = serverSorting ? serverSorting.value : localSorting;
@@ -171,6 +175,7 @@ export function SettingsDataTable<TData extends RowData>({
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize });
 
   const stableData = useMemo(() => data, [data]);
+  const getRowId = useStableRowId(stableData);
 
   const activePagination = serverPagination
     ? {
@@ -183,6 +188,8 @@ export function SettingsDataTable<TData extends RowData>({
     features: appTableFeatures,
     data: stableData,
     columns,
+    getRowId,
+    meta,
     manualPagination: !!serverPagination,
     manualFiltering: !!serverFilters,
     manualSorting: !!serverSorting,
