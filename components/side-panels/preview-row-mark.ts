@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 /**
  * Marca de la fila del documento cuyo panel lateral se abrió.
@@ -53,10 +53,14 @@ export function useLastPreviewMark(panelOpen: boolean) {
     [lastId, fading],
   );
 
-  const markOpened = (id: number) => {
+  // Estable a propósito: las pantallas la meten en `onPreview`, que entra en
+  // las dependencias de las columnas. Si cambiara en cada render, los
+  // temporizadores de arriba rehacerían las columnas y desmontarían las celdas
+  // de acciones, cerrando cualquier diálogo abierto desde una fila.
+  const markOpened = useCallback((id: number) => {
     setLastId(id);
     setFading(false);
-  };
+  }, []);
 
   return { last, markOpened };
 }
