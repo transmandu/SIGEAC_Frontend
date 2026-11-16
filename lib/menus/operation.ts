@@ -23,6 +23,7 @@ export function buildOperationGroup({
           "SUPERUSER",
           "OPERADOR_CARGA",
           "OPERADOR_COUNTER",
+          "DESPACHADOR",
         ],
         requiresOmac: false,
         submenus: [],

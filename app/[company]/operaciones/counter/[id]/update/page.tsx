@@ -17,12 +17,12 @@ const UpdatePaxFlightPage = () => {
   const { data: flight, isLoading, isError } = usePaxFlight(company, id);
 
   useEffect(() => {
-    if (flight && flight.status !== "BORRADOR") {
+    if (flight && flight.status !== "BORRADOR" && flight.status !== "DRAFT") {
       router.replace(`/${company}/operaciones/counter/${id}`);
     }
   }, [flight, company, id, router]);
 
-  if (flight && flight.status !== "BORRADOR") {
+  if (flight && flight.status !== "BORRADOR" && flight.status !== "DRAFT") {
     return null;
   }
 

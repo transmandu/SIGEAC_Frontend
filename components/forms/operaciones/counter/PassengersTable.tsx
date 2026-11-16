@@ -40,7 +40,7 @@ export const PassengersTable = ({
   const isCounter =
     isCounterStaff ??
     userRoles.some((r: string) =>
-      ["OPERADOR_COUNTER", "SUPERUSER"].includes(r),
+      ["OPERADOR_COUNTER", "DESPACHADOR", "SUPERUSER"].includes(r),
     );
 
   // Referencia a la lista móvil y bandera de "acabo de agregar un asiento".

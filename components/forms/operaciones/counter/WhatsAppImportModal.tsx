@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   Dialog,
   DialogContent,
@@ -60,6 +61,13 @@ interface Props {
 
 export default function WhatsAppImportModal({ open, onClose, company }: Props) {
   const router = useRouter();
+  const { user } = useAuth();
+
+  const userRoles = user?.roles?.map((r: { name: string }) => r.name) || [];
+  const canCreateManifest = userRoles.some((r: string) =>
+    ["OPERADOR_COUNTER", "DESPACHADOR", "SUPERUSER"].includes(r),
+  );
+
   const [step, setStep] = useState<1 | 2>(1);
   const [rawText, setRawText] = useState("");
   const [result, setResult] = useState<WhatsAppParseResult | null>(null);
@@ -500,16 +508,18 @@ export default function WhatsAppImportModal({ open, onClose, company }: Props) {
                         )}
                       </Button>
 
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="text-xs h-8 gap-1.5"
-                        onClick={() => handleLoadFlightIntoForm(flight, index)}
-                      >
-                        Abrir solo este en formulario
-                        <ArrowRight className="h-3.5 w-3.5" />
-                      </Button>
+                      {canCreateManifest && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="text-xs h-8 gap-1.5"
+                          onClick={() => handleLoadFlightIntoForm(flight, index)}
+                        >
+                          Abrir solo este en formulario
+                          <ArrowRight className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
                     </div>
                   </div>
                 );
