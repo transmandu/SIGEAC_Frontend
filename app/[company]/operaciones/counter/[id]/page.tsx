@@ -333,7 +333,7 @@ const PaxFlightDetailPage = () => {
               {/* Tablet / escritorio: tabla original con soporte para Counter */}
               <div className="hidden rounded-md border overflow-x-auto md:block">
                 <table
-                  className={`w-full text-sm ${isCounter ? "min-w-[1250px]" : "min-w-[850px]"}`}
+                  className={`w-full text-sm ${isCounter ? "min-w-312.5" : "min-w-212.5"}`}
                 >
                   <thead className="bg-muted/50 border-b">
                     <tr>
