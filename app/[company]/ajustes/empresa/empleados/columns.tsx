@@ -28,9 +28,7 @@ const textCell = (value?: string | null) => (
   </div>
 );
 
-export const getEmployeeColumns = (
-  mode: EmployeeMode,
-): AppColumnDef<Employee>[] => [
+const buildEmployeeColumns = (mode: EmployeeMode): AppColumnDef<Employee>[] => [
   {
     id: "expander",
     size: 40,
@@ -184,3 +182,6 @@ export const getEmployeeColumns = (
     ),
   },
 ];
+
+export const activeEmployeeColumns = buildEmployeeColumns("active");
+export const inactiveEmployeeColumns = buildEmployeeColumns("inactive");

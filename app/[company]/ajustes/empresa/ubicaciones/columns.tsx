@@ -8,8 +8,7 @@ import { Location } from "@/types";
 
 const center = "flex justify-center w-full";
 
-/** Las acciones (editar, eliminar) son solo de SUPERUSER: sin ellas no hay columna. */
-export const getColumns = (canManage: boolean): AppColumnDef<Location>[] => [
+const baseColumns: AppColumnDef<Location>[] = [
   {
     accessorKey: "address",
     size: 300,
@@ -87,24 +86,30 @@ export const getColumns = (canManage: boolean): AppColumnDef<Location>[] => [
       </div>
     ),
   },
-  ...(canManage
-    ? [
-        {
-          id: "actions",
-          size: 100,
-          enableSorting: false,
-          header: ({ column }) => (
-            <div className={center}>
-              <DataTableColumnHeader column={column} title="Acciones" />
-            </div>
-          ),
-          meta: { title: "Acciones" },
-          cell: ({ row }) => (
-            <div className={center}>
-              <LocationDropdownActions location={row.original} />
-            </div>
-          ),
-        } satisfies AppColumnDef<Location>,
-      ]
-    : []),
+];
+
+const actionsColumn: AppColumnDef<Location> = {
+  id: "actions",
+  size: 100,
+  enableSorting: false,
+  header: ({ column }) => (
+    <div className={center}>
+      <DataTableColumnHeader column={column} title="Acciones" />
+    </div>
+  ),
+  meta: { title: "Acciones" },
+  cell: ({ row }) => (
+    <div className={center}>
+      <LocationDropdownActions location={row.original} />
+    </div>
+  ),
+};
+
+/** Solo lectura: sin la columna de acciones. */
+export const readOnlyColumns = baseColumns;
+
+/** Las acciones (editar, eliminar) son solo de SUPERUSER: sin ellas no hay columna. */
+export const manageColumns: AppColumnDef<Location>[] = [
+  ...baseColumns,
+  actionsColumn,
 ];

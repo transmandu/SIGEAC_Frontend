@@ -83,21 +83,13 @@ export interface GeneralCostRow {
 
 export type DraftValue = string | number | undefined;
 
-export interface ArticleCostColumnsArgs {
-  onCostChange: (id: number, value: string) => void;
-  /** Muestra la columna de unidad (solo aplica a Consumibles). */
-  showUnit?: boolean;
-}
-
-export interface GeneralCostColumnsArgs {
-  onCostChange: (id: number, value: string) => void;
-  onViewHistory?: (row: GeneralCostRow) => void;
-}
-
-export interface BuildColumnsArgs {
-  type: CostType;
+/**
+ * Lo que las celdas de costo necesitan de la pantalla. Viaja por `meta` de la
+ * tabla y no por parámetros de las columnas: así las columnas son constantes y
+ * su identidad no cambia mientras el usuario escribe.
+ */
+export interface CostTableMeta {
+  costDrafts: Record<number, string>;
   onCostChange: (id: number, value: string) => void;
   onViewHistory?: (row: GeneralCostRow) => void;
-  /** Categoría activa del tipo ARTICLE (para decidir columnas condicionales). */
-  category?: string;
 }

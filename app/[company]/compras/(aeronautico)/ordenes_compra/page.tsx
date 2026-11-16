@@ -7,13 +7,11 @@ import { useGetPurchaseOrders } from "@/hooks/mantenimiento/compras/useGetPurcha
 import type { PurchaseOrder } from "@/types/purchase";
 import { isAeronauticalPurchaseOrder } from "@/lib/purchases/purchase-order-scope";
 import { DataTable } from "@/app/[company]/compras/data-table";
-import { getColumns } from "./columns";
+import { columns } from "./columns";
 import PurchaseOrderToolBar from "./_components/PurchaseOrderToolBar";
 import GroupedPurchaseOrderTable from "./_components/GroupedPurchaseOrderTable";
 import PurchaseOrderSplitView, {
-  usePurchaseOrderPreview,
   usePurchaseOrderPreviewSync,
-  usePurchaseOrderPreviewSelectedId,
   usePurchaseOrderRowMark,
 } from "@/components/side-panels/PurchaseOrderSplitView";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -32,8 +30,6 @@ const PurchaseOrdersPage = () => {
 
 const PurchaseOrdersPageContent = () => {
   const { selectedCompany, selectedStation } = useCompanyStore();
-  const onPreview = usePurchaseOrderPreview();
-  const selectedPreviewId = usePurchaseOrderPreviewSelectedId();
   const rowMark = usePurchaseOrderRowMark();
 
   const {
@@ -71,16 +67,6 @@ const PurchaseOrdersPageContent = () => {
 
   // El panel lateral sigue a la tabla: si el documento cambia, el panel también.
   usePurchaseOrderPreviewSync(filteredPO);
-
-  const columns = useMemo(
-    () =>
-      getColumns(
-        selectedCompany ?? undefined,
-        onPreview ?? undefined,
-        selectedPreviewId,
-      ),
-    [selectedCompany, onPreview, selectedPreviewId],
-  );
 
   return (
     <ContentLayout title="Órdenes de Compra">

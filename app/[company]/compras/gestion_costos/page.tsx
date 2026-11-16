@@ -9,7 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
 import { DataTable } from "@/app/[company]/compras/data-table";
-import { getColumns } from "./columns";
+import { selectCostColumns } from "./columns";
 
 import GroupedCostTable from "./_components/GroupedCostTable";
 
@@ -171,16 +171,13 @@ const CostManagementPage = () => {
   const [historyRow, setHistoryRow] = useState<GeneralCostRow | null>(null);
   const history = useGeneralArticleCostHistory(historyRow?.id ?? null);
 
-  const columns = useMemo(
-    () =>
-      getColumns({
-        type,
-        onCostChange,
-        onViewHistory: (row) => setHistoryRow(row),
-        category,
-      }),
-    [type, onCostChange, category],
-  );
+  const columns = selectCostColumns(type, category);
+
+  const tableMeta = {
+    costDrafts,
+    onCostChange,
+    onViewHistory: setHistoryRow,
+  };
 
   const groupedUnit = groupBy === "NONE" ? "artículo(s)" : "grupo(s)";
   const summary =
@@ -244,7 +241,7 @@ const CostManagementPage = () => {
               <DataTable
                 columns={columns}
                 data={groupRows}
-                meta={{ costDrafts }}
+                meta={tableMeta}
                 overflowVisible
                 persistKey="gestion_costos"
               />
@@ -256,7 +253,7 @@ const CostManagementPage = () => {
             data={rows}
             loading={listing.isLoading}
             error={listing.isError}
-            meta={{ costDrafts }}
+            meta={tableMeta}
             overflowVisible
             cursorPagination={cursorPagination}
           />

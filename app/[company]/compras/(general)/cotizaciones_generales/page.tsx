@@ -4,7 +4,7 @@ import { useMemo, useState, useDeferredValue } from "react";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { useGetQuotes } from "@/hooks/mantenimiento/compras/useGetQuotes";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { getColumns } from "./columns";
+import { columns } from "./columns";
 import { DataTable } from "@/app/[company]/compras/data-table";
 import QuotesToolBar from "./_components/QuotesToolBar";
 import { QuoteDraftsDialog } from "@/components/dialogs/mantenimiento/compras/QuoteDraftsDialog";
@@ -12,13 +12,10 @@ import { QuoteDraftEditorProvider } from "@/components/dialogs/mantenimiento/com
 import GroupedQuotesTable from "./_components/GroupedQuotesTable";
 import { isGeneralQuoteScope } from "@/lib/purchases/quote-scope";
 import QuoteSplitView, {
-  useQuotePreview,
   useQuotePreviewSync,
-  useQuotePreviewSelectedId,
   useQuoteRowMark,
 } from "@/components/side-panels/QuoteSplitView";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
 import {
   PurchasesHeading,
   PurchasesToolbar,
@@ -37,9 +34,6 @@ const QuotesOrdersPage = () => {
 
 const QuotesOrdersPageContent = () => {
   const { selectedCompany, selectedStation } = useCompanyStore();
-  const timeZone = useCompanyTimezone();
-  const onPreview = useQuotePreview();
-  const selectedPreviewId = useQuotePreviewSelectedId();
   const rowMark = useQuoteRowMark();
 
   const {
@@ -90,17 +84,6 @@ const QuotesOrdersPageContent = () => {
 
   // El panel lateral sigue a la tabla: si el documento cambia, el panel también.
   useQuotePreviewSync(filteredQuotes);
-
-  const columns = useMemo(
-    () =>
-      getColumns(
-        selectedCompany ?? undefined,
-        onPreview ?? undefined,
-        selectedPreviewId,
-        timeZone,
-      ),
-    [selectedCompany, onPreview, selectedPreviewId, timeZone],
-  );
 
   return (
     <ContentLayout title="Cotizaciones Generales">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import type { ColumnFiltersState, SortingState } from "@tanstack/react-table";
 import { Plus } from "lucide-react";
 
@@ -16,7 +16,7 @@ import { zonedDayToUtcIso } from "@/lib/date";
 import type { ErrorReport, ErrorReportStatus } from "@/types";
 
 import MyReportDetailDialog from "./_components/MyReportDetailDialog";
-import { getColumns } from "./columns";
+import { columns, type ReportsTableMeta } from "./columns";
 
 const DEFAULT_PAGE_SIZE = 15;
 
@@ -64,10 +64,7 @@ export default function MisReportesPage() {
     { keepPrevious: true },
   );
 
-  const columns = useMemo(
-    () => getColumns(setDetailReport, timeZone),
-    [timeZone],
-  );
+  const tableMeta: ReportsTableMeta = { onViewDetail: setDetailReport };
 
   return (
     <SettingsListPage
@@ -90,6 +87,7 @@ export default function MisReportesPage() {
     >
       <SettingsDataTable
         columns={columns}
+        meta={tableMeta}
         data={data?.reports ?? []}
         loading={isLoading}
         error={isError}

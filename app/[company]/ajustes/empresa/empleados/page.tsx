@@ -16,10 +16,7 @@ import { phoneMatches } from "@/lib/phone";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import type { Employee } from "@/types";
 import { EmployeeExpandedRow } from "./_components/EmployeeExpandedRow";
-import { getEmployeeColumns } from "./columns";
-
-const activeColumns = getEmployeeColumns("active");
-const inactiveColumns = getEmployeeColumns("inactive");
+import { activeEmployeeColumns, inactiveEmployeeColumns } from "./columns";
 
 type Tab = "active" | "inactive";
 
@@ -108,7 +105,9 @@ const EmployeePage = () => {
     >
       <SettingsDataTable
         key={tab}
-        columns={tab === "active" ? activeColumns : inactiveColumns}
+        columns={
+          tab === "active" ? activeEmployeeColumns : inactiveEmployeeColumns
+        }
         data={filtered}
         loading={loading}
         error={hasError}

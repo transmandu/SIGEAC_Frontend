@@ -1,6 +1,11 @@
 "use client";
 
-import { type AppColumnDef } from "@/lib/table";
+import { type AppColumnDef, type AppRow } from "@/lib/table";
+import {
+  useRequisitionPreview,
+  useRequisitionPreviewSelectedId,
+} from "@/components/side-panels/RequisitionSplitView";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import RequisitionsDropdownActions from "@/components/dropdowns/mantenimiento/compras/RequisitionDropdownActions";
 import { Badge } from "@/components/ui/badge";
@@ -25,7 +30,7 @@ import {
   NEXT_REQUISITION_STATUS,
 } from "@/components/dialogs/mantenimiento/compras/AdvanceRequisitionStatusDialog";
 import { useState } from "react";
-import { DEFAULT_TIMEZONE, formatInstant } from "@/lib/date";
+import { formatInstant } from "@/lib/date";
 
 const STATUS_LABELS: Record<string, string> = {
   CREATED: "Creada",
@@ -157,12 +162,100 @@ const StatusCell = ({ requisition }: { requisition: Requisition }) => {
   );
 };
 
-export const getColumns = (
-  selectedCompany?: { slug: string },
-  onPreview?: (requisition: Requisition) => void,
-  selectedPreviewId?: number | null,
-  timeZone: string = DEFAULT_TIMEZONE,
-): AppColumnDef<Requisition>[] => [
+const StatusColumnCell = ({ row }: { row: AppRow<Requisition> }) => (
+  <div
+    className="flex flex-col items-center gap-1.5 max-md:gap-3 w-full"
+    onClick={(e) => e.stopPropagation()}
+  >
+    <StatusCell requisition={row.original} />
+
+    {/* El borrador propio se apila bajo el estado: es lo que el comprador
+        dejó a medio hacer sobre esta solicitud. */}
+    {row.original.my_quote_draft && (
+      <QuoteDraftBadge draft={row.original.my_quote_draft} />
+    )}
+  </div>
+);
+
+const ActionsColumnCell = ({ row }: { row: AppRow<Requisition> }) => (
+  <div
+    className="flex justify-center w-full"
+    onClick={(e) => e.stopPropagation()}
+  >
+    <RequisitionsDropdownActions req={row.original} />
+  </div>
+);
+
+// Componentes de módulo y no flechas dentro de las columnas: React identifica
+// un componente por su función, así que una flecha nueva desmontaría la celda
+// y borraría su estado. Lo que antes entraba por parámetros se lee aquí.
+const OrderNumberColumnCell = ({ row }: { row: AppRow<Requisition> }) => {
+  const { selectedCompany } = useCompanyStore();
+
+  return (
+    <div className="flex justify-center w-full">
+      <Link
+        href={`/${selectedCompany?.slug}/compras/requisiciones/${row.original.order_number}`}
+        className="text-sm font-semibold text-slate-700 dark:text-slate-200 hover:text-primary transition-colors"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {row.original.order_number}
+      </Link>
+    </div>
+  );
+};
+
+const PreviewColumnCell = ({ row }: { row: AppRow<Requisition> }) => {
+  const onPreview = useRequisitionPreview();
+  const selectedPreviewId = useRequisitionPreviewSelectedId();
+
+  const isActive = selectedPreviewId === row.original.id;
+
+  return (
+    <div
+      className="flex justify-center px-0"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <TooltipProvider delayDuration={120}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              onClick={() => onPreview?.(row.original)}
+              className={cn(
+                "flex items-center justify-center rounded-md p-1 transition-all duration-200",
+                isActive
+                  ? "text-blue-600 dark:text-blue-400 drop-shadow-[0_0_3px_rgba(37,99,235,0.35)] dark:drop-shadow-[0_0_3px_rgba(96,165,250,0.4)]"
+                  : "text-muted-foreground hover:text-blue-600 dark:hover:text-blue-400 hover:drop-shadow-[0_0_3px_rgba(37,99,235,0.3)] dark:hover:drop-shadow-[0_0_3px_rgba(96,165,250,0.35)]",
+              )}
+            >
+              <PreviewPanelIcon active={isActive} className="size-4" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>
+            {isActive
+              ? "Cerrar vista previa"
+              : "Vista previa de la requisición"}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    </div>
+  );
+};
+
+const SubmissionDateColumnCell = ({ row }: { row: AppRow<Requisition> }) => {
+  const timeZone = useCompanyTimezone();
+
+  return (
+    <div className="flex justify-center w-full">
+      <span className="text-s text-slate-600 dark:text-slate-300 text-center font-medium">
+        {formatInstant(row.original.submission_date, timeZone, "short")}
+      </span>
+    </div>
+  );
+};
+
+export const columns: AppColumnDef<Requisition>[] = [
   {
     id: "expander",
     size: 50,
@@ -204,56 +297,13 @@ export const getColumns = (
     meta: {
       title: "Nro. Req.",
     },
-    cell: ({ row }) => (
-      <div className="flex justify-center w-full">
-        <Link
-          href={`/${selectedCompany?.slug}/compras/requisiciones/${row.original.order_number}`}
-          className="text-sm font-semibold text-slate-700 dark:text-slate-200 hover:text-primary transition-colors"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {row.original.order_number}
-        </Link>
-      </div>
-    ),
+    cell: OrderNumberColumnCell,
   },
   {
     id: "preview",
     size: 40,
     header: () => null,
-    cell: ({ row }) => {
-      const isActive = selectedPreviewId === row.original.id;
-
-      return (
-        <div
-          className="flex justify-center px-0"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <TooltipProvider delayDuration={120}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  type="button"
-                  onClick={() => onPreview?.(row.original)}
-                  className={cn(
-                    "flex items-center justify-center rounded-md p-1 transition-all duration-200",
-                    isActive
-                      ? "text-blue-600 dark:text-blue-400 drop-shadow-[0_0_3px_rgba(37,99,235,0.35)] dark:drop-shadow-[0_0_3px_rgba(96,165,250,0.4)]"
-                      : "text-muted-foreground hover:text-blue-600 dark:hover:text-blue-400 hover:drop-shadow-[0_0_3px_rgba(37,99,235,0.3)] dark:hover:drop-shadow-[0_0_3px_rgba(96,165,250,0.35)]",
-                  )}
-                >
-                  <PreviewPanelIcon active={isActive} className="size-4" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>
-                {isActive
-                  ? "Cerrar vista previa"
-                  : "Vista previa de la requisición"}
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
-      );
-    },
+    cell: PreviewColumnCell,
     enableSorting: false,
     enableHiding: false,
   },
@@ -314,20 +364,7 @@ export const getColumns = (
       title: "Estado",
       mobileOrder: 1,
     },
-    cell: ({ row }) => (
-      <div
-        className="flex flex-col items-center gap-1.5 max-md:gap-3 w-full"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <StatusCell requisition={row.original} />
-
-        {/* El borrador propio se apila bajo el estado: es lo que el comprador
-            dejó a medio hacer sobre esta solicitud. */}
-        {row.original.my_quote_draft && (
-          <QuoteDraftBadge draft={row.original.my_quote_draft} />
-        )}
-      </div>
-    ),
+    cell: StatusColumnCell,
   },
   {
     accessorKey: "priority",
@@ -404,15 +441,7 @@ export const getColumns = (
       title: "Fecha de Creación",
       mobileOrder: 4,
     },
-    cell: ({ row }) => {
-      return (
-        <div className="flex justify-center w-full">
-          <span className="text-s text-slate-600 dark:text-slate-300 text-center font-medium">
-            {formatInstant(row.original.submission_date, timeZone, "short")}
-          </span>
-        </div>
-      );
-    },
+    cell: SubmissionDateColumnCell,
   },
   {
     id: "actions",
@@ -425,13 +454,6 @@ export const getColumns = (
     meta: {
       title: "Acciones",
     },
-    cell: ({ row }) => (
-      <div
-        className="flex justify-center w-full"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <RequisitionsDropdownActions req={row.original} />
-      </div>
-    ),
+    cell: ActionsColumnCell,
   },
 ];

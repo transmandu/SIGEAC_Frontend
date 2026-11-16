@@ -2,12 +2,10 @@
 
 import { useMemo, useState, useDeferredValue } from "react";
 import { ContentLayout } from "@/components/layout/ContentLayout";
-import { useCompanyStore } from "@/stores/CompanyStore";
 import { DataTable } from "@/app/[company]/compras/data-table";
-import { getColumns } from "./columns";
+import { columns } from "./columns";
 import IntakeToolBar from "./_components/IntakeToolBar";
 import { useGetGeneralArticleIntakes } from "@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticleIntakes";
-import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
 import type { GeneralArticleIntakeStatus } from "@/types/purchase";
 import { PageHeader } from "@/components/layout/PageHeader";
 import {
@@ -18,9 +16,6 @@ import {
 type StatusFilter = "ALL" | GeneralArticleIntakeStatus;
 
 const RecepcionGeneralPage = () => {
-  const { selectedCompany } = useCompanyStore();
-  const timeZone = useCompanyTimezone();
-
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<StatusFilter>("ALL");
 
@@ -55,8 +50,6 @@ const RecepcionGeneralPage = () => {
           .includes(q),
     );
   }, [intakes, deferredSearch]);
-
-  const columns = useMemo(() => getColumns(timeZone), [timeZone]);
 
   return (
     <ContentLayout title="Recepción General">

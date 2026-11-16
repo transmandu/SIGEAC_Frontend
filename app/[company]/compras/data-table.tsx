@@ -11,6 +11,7 @@ import {
   ColumnVisibilityState,
 } from "@tanstack/react-table";
 import { appTableFeatures, type AppColumnDef, type AppRow } from "@/lib/table";
+import { useStableRowId } from "@/lib/table-row-id";
 
 import {
   Table,
@@ -310,11 +311,13 @@ function DataTableInner<TData extends RowData>({
   );
 
   const stableData = useMemo(() => data, [data]);
+  const getRowId = useStableRowId(stableData);
 
   const table = useTable({
     features: appTableFeatures,
     data: stableData,
     columns,
+    getRowId,
     state: {
       sorting,
       columnFilters,

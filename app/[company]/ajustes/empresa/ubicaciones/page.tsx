@@ -7,7 +7,7 @@ import CreateLocationDialog from "@/components/dialogs/ajustes/CreateLocationDia
 import { useIsSuperuser } from "@/hooks/helpers/useIsSuperuser";
 import { useGetLocationsByCompany } from "@/hooks/sistema/useGetLocationsByCompany";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { getColumns } from "./columns";
+import { manageColumns, readOnlyColumns } from "./columns";
 
 const LocationsPage = () => {
   const { selectedCompany } = useCompanyStore();
@@ -21,7 +21,7 @@ const LocationsPage = () => {
   const [search, setSearch] = useState("");
   const deferredSearch = useDeferredValue(search);
 
-  const columns = useMemo(() => getColumns(canManage), [canManage]);
+  const columns = canManage ? manageColumns : readOnlyColumns;
 
   const filtered = useMemo(() => {
     if (!locations) return [];

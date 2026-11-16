@@ -5,8 +5,7 @@ import { ContentLayout } from "@/components/layout/ContentLayout";
 import { useGetPurchaseRequisitions } from "@/hooks/mantenimiento/compras/useGetPurchaseRequisitions";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { QuoteDraftEditorProvider } from "@/components/dialogs/mantenimiento/compras/QuoteDraftEditorProvider";
-import { getColumns } from "./columns";
-import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import { columns } from "./columns";
 import { DataTable } from "@/app/[company]/compras/data-table";
 import RequisitionToolBar from "./_components/RequisitionToolBar";
 import { PurchasesRequisitionDialog } from "@/components/dialogs/mantenimiento/compras/PurchasesRequisitionDialog";
@@ -14,9 +13,7 @@ import { DownloadPurchaseRequisitionsByStatusDialog } from "@/components/dialogs
 import RequisitionSubRow from "./_components/RequisitionSubRow";
 import GroupedRequisitionTable from "./_components/GroupedRequisitionTable";
 import RequisitionSplitView, {
-  useRequisitionPreview,
   useRequisitionPreviewSync,
-  useRequisitionPreviewSelectedId,
   useRequisitionRowMark,
 } from "@/components/side-panels/RequisitionSplitView";
 import { CursorPagination } from "@/components/tables/CursorPagination";
@@ -40,9 +37,6 @@ const RequisitionsPage = () => {
 
 const RequisitionsPageContent = () => {
   const { selectedCompany } = useCompanyStore();
-  const timeZone = useCompanyTimezone();
-  const onPreview = useRequisitionPreview();
-  const selectedPreviewId = useRequisitionPreviewSelectedId();
   const rowMark = useRequisitionRowMark();
 
   /**
@@ -75,21 +69,8 @@ const RequisitionsPageContent = () => {
 
   const rows = useMemo(() => requisitions ?? [], [requisitions]);
 
-  // Memoizadas: antes se reconstruian en cada render, y dos veces por
-  // pantalla (la vista agrupada y la plana llamaban a getColumns aparte).
   // El panel lateral sigue a la tabla: si el documento cambia, el panel también.
   useRequisitionPreviewSync(rows);
-
-  const columns = useMemo(
-    () =>
-      getColumns(
-        selectedCompany ?? undefined,
-        onPreview ?? undefined,
-        selectedPreviewId,
-        timeZone,
-      ),
-    [selectedCompany, onPreview, selectedPreviewId, timeZone],
-  );
 
   const cursorPagination = useMemo(
     () => ({

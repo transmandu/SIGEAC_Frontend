@@ -11,9 +11,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type { ArticleCostRow, ArticleCostColumnsArgs } from "@/types/purchase";
+import type { ArticleCostRow, CostTableMeta } from "@/types/purchase";
 
-export type { ArticleCostRow, ArticleCostColumnsArgs };
+export type { ArticleCostRow };
 
 const usdFormatter = new Intl.NumberFormat("en-US", {
   minimumFractionDigits: 2,
@@ -27,10 +27,11 @@ const normalizeCostInput = (value: string) => {
     .replace(/(\..*)\./g, "$1"); // solo un punto decimal
 };
 
-export function getArticleCostColumns({
-  onCostChange,
-  showUnit = false,
-}: ArticleCostColumnsArgs): AppColumnDef<ArticleCostRow>[] {
+// Se arman una sola vez al cargar el módulo: las columnas son constantes y lo
+// que necesitan de la pantalla llega por `table.options.meta`.
+const buildArticleCostColumns = (
+  showUnit: boolean,
+): AppColumnDef<ArticleCostRow>[] => {
   const unitColumn: AppColumnDef<ArticleCostRow> = {
     accessorKey: "unit_label",
     size: 120,
@@ -142,8 +143,8 @@ export function getArticleCostColumns({
         const id = row.original.id;
         const current = row.original.cost;
 
-        const meta = table.options.meta as any;
-        const costDrafts = meta?.costDrafts ?? {};
+        const { costDrafts, onCostChange } = table.options
+          .meta as CostTableMeta;
         const draft = costDrafts[id];
 
         const modified =
@@ -230,4 +231,9 @@ export function getArticleCostColumns({
       },
     },
   ];
-}
+};
+
+export const articleCostColumns = buildArticleCostColumns(false);
+
+/** Consumibles en aeronáutico: la unidad sí es relevante. */
+export const articleCostColumnsWithUnit = buildArticleCostColumns(true);

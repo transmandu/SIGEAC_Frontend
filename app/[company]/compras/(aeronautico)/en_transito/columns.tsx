@@ -1,6 +1,7 @@
 "use client";
 
-import { type AppColumnDef } from "@/lib/table";
+import { type AppColumnDef, type AppRow } from "@/lib/table";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
 import { useState } from "react";
 import {
   CheckCircle2,
@@ -34,11 +35,7 @@ import type { TransitArticle } from "@/types/purchase";
 import { EditTransitArticleDialog } from "./_components/EditTransitArticleDialog";
 import { PendingDocumentsDialog } from "./_components/PendingDocumentsDialog";
 import { TransitUpdatesDialog } from "./_components/TransitUpdatesDialog";
-import {
-  DEFAULT_TIMEZONE,
-  formatCalendarDate,
-  formatInstant,
-} from "@/lib/date";
+import { formatCalendarDate, formatInstant } from "@/lib/date";
 
 const getPendingRequirements = blockingPendingRequirements;
 
@@ -365,10 +362,80 @@ function TransitUpdatesAction({ article }: { article: TransitArticle }) {
   );
 }
 
-export const getColumns = (
-  selectedCompany?: { slug: string },
-  timeZone: string = DEFAULT_TIMEZONE,
-): AppColumnDef<TransitArticle>[] => [
+const EditAndLogColumnCell = ({ row }: { row: AppRow<TransitArticle> }) => (
+  <div
+    className="flex justify-center w-full gap-0.5"
+    onClick={(e) => e.stopPropagation()}
+  >
+    <EditTransitArticleAction article={row.original} />
+    <TransitUpdatesAction article={row.original} />
+  </div>
+);
+
+const ActionsColumnCell = ({ row }: { row: AppRow<TransitArticle> }) => (
+  <div
+    className="flex justify-center w-full"
+    onClick={(e) => e.stopPropagation()}
+  >
+    <TransitActionButton article={row.original} />
+  </div>
+);
+
+// Componentes de módulo y no flechas dentro de las columnas: React identifica
+// un componente por su función, así que una flecha nueva desmontaría la celda
+// y borraría su estado. Lo que antes entraba por parámetros se lee aquí.
+const StatusDateColumnCell = ({ row }: { row: AppRow<TransitArticle> }) => {
+  const timeZone = useCompanyTimezone();
+
+  const status = row.original.status?.toUpperCase();
+  const isTransit = status === "TRANSIT";
+  const isReception = status === "RECEPTION";
+
+  // En tránsito se fecha por la entrada al estado: `created_at` no viaja
+  // (el modelo lo oculta) y la columna quedaba siempre vacía.
+  const date = isTransit
+    ? row.original.status_since
+    : isReception
+      ? row.original.reception_date
+      : null;
+
+  const label = isTransit
+    ? "Está en tránsito"
+    : isReception
+      ? "Está en recepción"
+      : null;
+
+  // status_since es un instante (se convierte a la zona de la compañía) y
+  // reception_date una fecha de calendario (se muestra tal cual). Antes se
+  // partía el string por "-", lo que reventaba con un ISO completo.
+  const formatDate = (value?: string | null) =>
+    value
+      ? (isTransit
+          ? formatInstant(value, timeZone, "dd MMMM yyyy", "")
+          : formatCalendarDate(value, "dd MMMM yyyy", "")
+        ).toUpperCase()
+      : null;
+
+  if (!date) {
+    return (
+      <div className="flex justify-center w-full">
+        <span className="text-xs text-muted-foreground/60">-</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col items-center justify-center w-full leading-tight">
+      <span className="text-xs text-muted-foreground">Desde el</span>
+
+      <span className="text-sm font-medium">{formatDate(date)}</span>
+
+      {label && <span className="text-xs text-muted-foreground">{label}</span>}
+    </div>
+  );
+};
+
+export const columns: AppColumnDef<TransitArticle>[] = [
   {
     id: "expander",
     size: 50,
@@ -556,56 +623,7 @@ export const getColumns = (
       </div>
     ),
 
-    cell: ({ row }) => {
-      const status = row.original.status?.toUpperCase();
-      const isTransit = status === "TRANSIT";
-      const isReception = status === "RECEPTION";
-
-      // En tránsito se fecha por la entrada al estado: `created_at` no viaja
-      // (el modelo lo oculta) y la columna quedaba siempre vacía.
-      const date = isTransit
-        ? row.original.status_since
-        : isReception
-          ? row.original.reception_date
-          : null;
-
-      const label = isTransit
-        ? "Está en tránsito"
-        : isReception
-          ? "Está en recepción"
-          : null;
-
-      // status_since es un instante (se convierte a la zona de la compañía) y
-      // reception_date una fecha de calendario (se muestra tal cual). Antes se
-      // partía el string por "-", lo que reventaba con un ISO completo.
-      const formatDate = (value?: string | null) =>
-        value
-          ? (isTransit
-              ? formatInstant(value, timeZone, "dd MMMM yyyy", "")
-              : formatCalendarDate(value, "dd MMMM yyyy", "")
-            ).toUpperCase()
-          : null;
-
-      if (!date) {
-        return (
-          <div className="flex justify-center w-full">
-            <span className="text-xs text-muted-foreground/60">-</span>
-          </div>
-        );
-      }
-
-      return (
-        <div className="flex flex-col items-center justify-center w-full leading-tight">
-          <span className="text-xs text-muted-foreground">Desde el</span>
-
-          <span className="text-sm font-medium">{formatDate(date)}</span>
-
-          {label && (
-            <span className="text-xs text-muted-foreground">{label}</span>
-          )}
-        </div>
-      );
-    },
+    cell: StatusDateColumnCell,
   },
 
   {
@@ -713,15 +731,7 @@ export const getColumns = (
       </div>
     ),
 
-    cell: ({ row }) => (
-      <div
-        className="flex justify-center w-full gap-0.5"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <EditTransitArticleAction article={row.original} />
-        <TransitUpdatesAction article={row.original} />
-      </div>
-    ),
+    cell: EditAndLogColumnCell,
     enableSorting: false,
     enableHiding: false,
   },
@@ -737,13 +747,6 @@ export const getColumns = (
       </div>
     ),
 
-    cell: ({ row }) => (
-      <div
-        className="flex justify-center w-full"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <TransitActionButton article={row.original} />
-      </div>
-    ),
+    cell: ActionsColumnCell,
   },
 ];
