@@ -75,10 +75,13 @@ export default function RequisitionSplitView({
   const [selected, setSelected] = useState<Requisition | null>(null);
   const { last, markOpened } = useLastPreviewMark(selected !== null);
 
-  const onPreview = (requisition: Requisition) => {
-    markOpened(requisition.id);
-    setSelected((prev) => (prev?.id === requisition.id ? null : requisition));
-  };
+  const onPreview = useCallback(
+    (requisition: Requisition) => {
+      markOpened(requisition.id);
+      setSelected((prev) => (prev?.id === requisition.id ? null : requisition));
+    },
+    [markOpened],
+  );
 
   // Si la fila ya no está en la tabla (se eliminó, o los filtros o la página la
   // sacaron), el panel se cierra: no debe seguir mostrando algo que la tabla no.

@@ -73,10 +73,13 @@ export default function QuoteSplitView({ children }: QuoteSplitViewProps) {
   const [selected, setSelected] = useState<Quote | null>(null);
   const { last, markOpened } = useLastPreviewMark(selected !== null);
 
-  const onPreview = (quote: Quote) => {
-    markOpened(quote.id);
-    setSelected((prev) => (prev?.id === quote.id ? null : quote));
-  };
+  const onPreview = useCallback(
+    (quote: Quote) => {
+      markOpened(quote.id);
+      setSelected((prev) => (prev?.id === quote.id ? null : quote));
+    },
+    [markOpened],
+  );
 
   // Si la fila ya no está en la tabla (se eliminó, o los filtros o la página la
   // sacaron), el panel se cierra: no debe seguir mostrando algo que la tabla no.

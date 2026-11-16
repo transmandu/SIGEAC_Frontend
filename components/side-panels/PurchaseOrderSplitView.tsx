@@ -75,12 +75,15 @@ export default function PurchaseOrderSplitView({
   const [selected, setSelected] = useState<PurchaseOrder | null>(null);
   const { last, markOpened } = useLastPreviewMark(selected !== null);
 
-  const onPreview = (purchaseOrder: PurchaseOrder) => {
-    markOpened(purchaseOrder.id);
-    setSelected((prev) =>
-      prev?.id === purchaseOrder.id ? null : purchaseOrder,
-    );
-  };
+  const onPreview = useCallback(
+    (purchaseOrder: PurchaseOrder) => {
+      markOpened(purchaseOrder.id);
+      setSelected((prev) =>
+        prev?.id === purchaseOrder.id ? null : purchaseOrder,
+      );
+    },
+    [markOpened],
+  );
 
   // Si la fila ya no está en la tabla (se eliminó, o los filtros o la página la
   // sacaron), el panel se cierra: no debe seguir mostrando algo que la tabla no.
