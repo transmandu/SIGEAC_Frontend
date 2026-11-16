@@ -1,3 +1,8 @@
+## v4.111.0 — 2026-11-16
+
+- Merge pull request #408 from transmandu/feat/update-employee-role
+- feat: refine user role checks for WhatsApp import and manifest creation
+
 ## v4.110.0 — 2026-11-16
 
 - Merge pull request #407 from transmandu/feat/update-employee-role
