@@ -58,13 +58,18 @@ const CounterPage = () => {
   );
 
   const userRoles = user?.roles?.map((r) => r.name) || [];
-  const canWrite = userRoles.some((r) =>
-    ["OPERADOR_COUNTER", "OPERADOR_CARGA", "SUPERUSER"].includes(r),
+  const canImportWhatsApp = userRoles.some((r) =>
+    ["OPERADOR_COUNTER", "DESPACHADOR", "OPERADOR_CARGA", "SUPERUSER"].includes(
+      r,
+    ),
+  );
+  const canCreateManifest = userRoles.some((r) =>
+    ["OPERADOR_COUNTER", "DESPACHADOR", "SUPERUSER"].includes(r),
   );
 
   const columns = useMemo(
-    () => getCounterColumns(company, canWrite),
-    [company, canWrite],
+    () => getCounterColumns(company, canCreateManifest),
+    [company, canCreateManifest],
   );
 
   return (
@@ -141,22 +146,26 @@ const CounterPage = () => {
             </div>
           </div>
 
-          {canWrite && (
+          {(canImportWhatsApp || canCreateManifest) && (
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full xl:w-auto pt-1 xl:pt-0 border-t xl:border-t-0">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setImportModalOpen(true)}
-                className="gap-2 border-green-600/30 text-green-700 hover:bg-green-50 hover:text-green-800 dark:border-green-800 dark:text-green-400 dark:hover:bg-green-950/40 w-full sm:w-auto"
-              >
-                <MessageSquare className="size-4 text-green-600" />
-                Importar WhatsApp
-              </Button>
-              <Button asChild className="w-full sm:w-auto">
-                <Link href={`/${company}/operaciones/counter/nuevo`}>
-                  <Plus className="size-4 mr-2" /> Emitir Manifiesto
-                </Link>
-              </Button>
+              {canImportWhatsApp && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setImportModalOpen(true)}
+                  className="gap-2 border-green-600/30 text-green-700 hover:bg-green-50 hover:text-green-800 dark:border-green-800 dark:text-green-400 dark:hover:bg-green-950/40 w-full sm:w-auto"
+                >
+                  <MessageSquare className="size-4 text-green-600" />
+                  Importar WhatsApp
+                </Button>
+              )}
+              {canCreateManifest && (
+                <Button asChild className="w-full sm:w-auto">
+                  <Link href={`/${company}/operaciones/counter/nuevo`}>
+                    <Plus className="size-4 mr-2" /> Emitir Manifiesto
+                  </Link>
+                </Button>
+              )}
             </div>
           )}
         </div>

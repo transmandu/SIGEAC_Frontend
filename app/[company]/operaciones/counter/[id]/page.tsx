@@ -64,11 +64,9 @@ const PaxFlightDetailPage = () => {
 
   const userRoles = user?.roles?.map((r) => r.name) || [];
   const canWrite = userRoles.some((r) =>
-    ["OPERADOR_COUNTER", "OPERADOR_CARGA", "SUPERUSER"].includes(r),
+    ["OPERADOR_COUNTER", "DESPACHADOR", "SUPERUSER"].includes(r),
   );
-  const isCounter = userRoles.some((r) =>
-    ["OPERADOR_COUNTER", "SUPERUSER"].includes(r),
-  );
+  const isCounter = canWrite;
 
   if (isLoading) {
     return (
