@@ -46,14 +46,15 @@ import { BackdatedDispatchField } from "./BackdatedDispatchField";
 import { DispatchTypeHelp } from "./DispatchTypeHelp";
 import { OptionCombobox } from "./OptionCombobox";
 import { SectionHeader } from "./SectionHeader";
+import { departmentLabel } from "@/lib/departments";
 import type { useDispatchForm } from "@/components/forms/mantenimiento/almacen/_hooks/useDispatchForm";
 
 /** Lo que el hook de salidas le entrega a las secciones compartidas. */
 export type DispatchFormContext = ReturnType<typeof useDispatchForm>;
 
-const departmentOption = (d: { id: number; name: string }) => ({
+const departmentOption = (d: { id: number; name: string; full_name?: string }) => ({
   value: d.id.toString(),
-  label: d.name,
+  label: departmentLabel({ name: d.name, full_name: d.full_name ?? "" }),
 });
 
 export const DISPATCH_TYPES = [
@@ -169,7 +170,7 @@ export function DispatchResponsibleSection({
                                 {items.map((e) => (
                                   <CommandItem
                                     key={e.id}
-                                    value={`${e.first_name} ${e.last_name} ${[e.job_title?.name, e.department?.name].filter(Boolean).join(" - ")}`}
+                                    value={`${e.first_name} ${e.last_name} ${[e.job_title?.name, e.department?.full_name ?? e.department?.name].filter(Boolean).join(" - ")}`}
                                     onSelect={() => {
                                       field.onChange(`${e.dni}`);
                                       setOpenEmployee(false);
@@ -188,7 +189,7 @@ export function DispatchResponsibleSection({
                                         {e.first_name} {e.last_name}
                                       </span>
                                       <span className="text-xs text-muted-foreground truncate">
-                                        {[e.job_title?.name, e.department?.name]
+                                        {[e.job_title?.name, e.department?.full_name ?? e.department?.name]
                                           .filter(Boolean)
                                           .join(" - ")}
                                       </span>

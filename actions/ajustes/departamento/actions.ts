@@ -31,6 +31,8 @@ const useDepartmentMutation = <TVariables>(
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["departments"] })
       queryClient.invalidateQueries({ queryKey: ["department-types"] })
+      // Fusionar, eliminar o mover cambia el departamento que muestran las fichas.
+      queryClient.invalidateQueries({ queryKey: ["employees"] })
 
       toast.success("¡Listo!", { description: messages.success })
     },

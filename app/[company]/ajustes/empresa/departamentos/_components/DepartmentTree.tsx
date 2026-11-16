@@ -1,5 +1,6 @@
 "use client";
 
+import { EmptyState } from "@/components/misc/EmptyState";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -17,6 +18,7 @@ import {
   Network,
   Plus,
   Search,
+  SearchX,
   Users,
   X,
 } from "lucide-react";
@@ -167,7 +169,7 @@ const TreeNode = memo(function TreeNode({
           type="button"
           aria-label="Arrastrar para mover"
           disabled={dragDisabled}
-          className="text-muted-foreground/60 hover:text-foreground cursor-grab touch-none rounded-md p-0.5 opacity-40 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 active:cursor-grabbing disabled:cursor-not-allowed"
+          className="text-muted-foreground/60 hover:text-foreground cursor-grab touch-none rounded-md p-0.5 opacity-40 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 active:cursor-grabbing disabled:cursor-not-allowed pointer-coarse:p-1.5 pointer-coarse:opacity-70"
           {...attributes}
           {...listeners}
         >
@@ -227,12 +229,20 @@ const TreeNode = memo(function TreeNode({
           </span>
         )}
 
-        <div className="flex shrink-0 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
+        {/* Con puntero táctil no hay hover: las acciones se ven solo en la fila elegida. */}
+        <div
+          className={cn(
+            "flex shrink-0 transition-opacity",
+            selected
+              ? "opacity-100"
+              : "opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 pointer-coarse:hidden",
+          )}
+        >
           <Button
             type="button"
             variant="ghost"
             size="icon"
-            className="size-7"
+            className="size-7 max-sm:size-9"
             aria-label="Subir"
             title="Subir"
             disabled={forceOpen || index === 0}
@@ -244,7 +254,7 @@ const TreeNode = memo(function TreeNode({
             type="button"
             variant="ghost"
             size="icon"
-            className="size-7"
+            className="size-7 max-sm:size-9"
             aria-label="Bajar"
             title="Bajar"
             disabled={forceOpen || index === siblings.length - 1}
@@ -256,7 +266,7 @@ const TreeNode = memo(function TreeNode({
             type="button"
             variant="ghost"
             size="icon"
-            className="size-7"
+            className="size-7 max-sm:size-9"
             aria-label="Agregar departamento dependiente"
             title="Agregar dependiente"
             onClick={() => onAddChild(node.id)}
@@ -416,9 +426,12 @@ export const DepartmentTree = memo(function DepartmentTree({
       </div>
 
       {visible.length === 0 ? (
-        <p className="text-muted-foreground py-8 text-center text-sm">
-          Ningún departamento coincide con &quot;{query}&quot;.
-        </p>
+        <EmptyState
+          icon={SearchX}
+          title="Sin coincidencias"
+          description={`Ningún departamento coincide con «${query}».`}
+          className="py-8"
+        />
       ) : (
         <ul>
           {visible.map((node, index) => (
@@ -451,7 +464,7 @@ export const DepartmentTree = memo(function DepartmentTree({
           isOver && blocked && "border-destructive bg-destructive/10 text-foreground",
         )}
       >
-        Suelta aquí para dejar un departamento en la raíz del organigrama
+        Suelte aquí para dejar un departamento en la raíz del organigrama
       </div>
     </div>
   );

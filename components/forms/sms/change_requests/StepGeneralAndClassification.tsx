@@ -19,6 +19,7 @@ import {
 import { ComboboxField } from "@/components/ui/ComboboxField";
 import { Loader2 } from "lucide-react";
 import { Department, Employee, ChangeType } from "@/types";
+import { departmentLabel } from "@/lib/departments";
 import { ChangeRequestFormValues } from "./CreateChangeRequestForm";
 
 interface StepGeneralAndClassificationProps {
@@ -51,7 +52,7 @@ export function StepGeneralAndClassification({
 
   const departmentOptions = departments.map((d) => ({
     value: d.id,
-    label: `${d.name} (${d.acronym})`,
+    label: `${departmentLabel(d)} (${d.acronym})`,
   }));
 
   const employeeOptions = employees.map((e) => ({

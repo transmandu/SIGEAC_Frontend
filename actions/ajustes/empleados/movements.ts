@@ -1,6 +1,6 @@
 import axiosInstance from "@/lib/axios"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { AxiosError } from "axios"
+import { notifyError } from "@/lib/notify-error"
 import { toast } from "sonner"
 
 export type DepartmentMovementAction =
@@ -38,15 +38,7 @@ export const useRegisterDepartmentMovement = () => {
     },
 
     onError: (error) => {
-      const data = (error as AxiosError<{ message?: string; errors?: Record<string, string[]> }>)
-        ?.response?.data
-
-      toast.error("Oops!", {
-        description:
-          (data?.errors ? Object.values(data.errors)[0]?.[0] : undefined) ??
-          data?.message ??
-          "No se pudo registrar el movimiento.",
-      })
+      notifyError(error, { action: "registrar el movimiento" })
     },
   })
 

@@ -1,17 +1,10 @@
 "use client";
 
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-  useGetDepartmentAuditLogs,
-  useGetDepartmentHistory,
-} from "@/hooks/ajustes/departamento/useGetDepartmentHistory";
-import { cn } from "@/lib/utils";
-import { useCompanyStore } from "@/stores/CompanyStore";
-import { Department } from "@/types";
 import {
   ArrowRightLeft,
   Briefcase,
   GitMerge,
+  History,
   LogIn,
   LogOut,
   MapPin,
@@ -21,9 +14,25 @@ import {
   Power,
   Tag,
   Trash2,
+  TriangleAlert,
   UserPlus,
+  Users,
   type LucideIcon,
 } from "lucide-react";
+
+import { PanelSection } from "@/components/forms/PanelSection";
+import { EmptyState } from "@/components/misc/EmptyState";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  useGetDepartmentAuditLogs,
+  useGetDepartmentHistory,
+} from "@/hooks/ajustes/departamento/useGetDepartmentHistory";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import { formatInstant } from "@/lib/date";
+import { cn } from "@/lib/utils";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { Department } from "@/types";
 
 type Event = {
   key: string;
@@ -62,23 +71,28 @@ const MOVEMENT: Record<string, { label: string; icon: LucideIcon; tone: string }
   RETIRO: { label: "Retiro", icon: LogOut, tone: DANGER },
 };
 
-const formatDate = (value: string) =>
-  new Date(value).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
-
-function Timeline({ events, empty }: { events: Event[]; empty: string }) {
+function Timeline({
+  events,
+  empty,
+  timeZone,
+}: {
+  events: Event[];
+  empty: string;
+  timeZone: string;
+}) {
   if (!events.length) {
-    return <p className="text-muted-foreground bg-muted/40 rounded-xl px-3 py-5 text-center text-sm">{empty}</p>;
+    return <p className="py-3 text-center text-sm text-muted-foreground">{empty}</p>;
   }
 
   return (
     <ol className="relative space-y-4">
-      <span aria-hidden className="bg-border absolute top-2 bottom-2 left-4.5 w-px" />
+      <span aria-hidden className="absolute top-2 bottom-2 left-4.5 w-px bg-border" />
 
       {events.map(({ key, at, icon: EventIcon, title, detail, by, tone }) => (
         <li key={key} className="relative flex gap-3">
           <span
             className={cn(
-              "ring-background relative z-10 grid size-9 shrink-0 place-content-center rounded-full ring-4",
+              "relative z-10 grid size-9 shrink-0 place-items-center rounded-full ring-4 ring-white dark:ring-slate-900",
               tone,
             )}
           >
@@ -86,10 +100,14 @@ function Timeline({ events, empty }: { events: Event[]; empty: string }) {
           </span>
 
           <div className="min-w-0 pt-0.5">
-            <p className="text-sm leading-tight font-medium">{title}</p>
-            {detail && <p className="text-muted-foreground mt-0.5 text-sm">{detail}</p>}
-            <p className="text-muted-foreground mt-0.5 text-xs">
-              {formatDate(at)}
+            <p className="text-sm leading-tight font-medium wrap-anywhere">{title}</p>
+            {detail && (
+              <p className="mt-0.5 text-sm text-slate-600 wrap-anywhere dark:text-slate-300">
+                {detail}
+              </p>
+            )}
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {formatInstant(at, timeZone, "dateTime")}
               {by && ` · ${by}`}
             </p>
           </div>
@@ -101,12 +119,13 @@ function Timeline({ events, empty }: { events: Event[]; empty: string }) {
 
 export function DepartmentHistoryTab({ department }: { department: Department }) {
   const { selectedCompany } = useCompanyStore();
+  const timeZone = useCompanyTimezone();
   const slug = selectedCompany?.slug;
 
-  const { data: logs, isLoading: loadingLogs } = useGetDepartmentAuditLogs(slug, department.id);
-  const { data: history, isLoading: loadingHistory } = useGetDepartmentHistory(slug, department.id);
+  const logsQuery = useGetDepartmentAuditLogs(slug, department.id);
+  const historyQuery = useGetDepartmentHistory(slug, department.id);
 
-  if (loadingLogs || loadingHistory) {
+  if (logsQuery.isLoading || historyQuery.isLoading) {
     return (
       <div className="space-y-3">
         <Skeleton className="h-14 rounded-xl" />
@@ -116,7 +135,31 @@ export function DepartmentHistoryTab({ department }: { department: Department })
     );
   }
 
-  const changes: Event[] = (logs ?? []).map((log) => {
+  if (logsQuery.isError || historyQuery.isError) {
+    return (
+      <EmptyState
+        icon={TriangleAlert}
+        tone="error"
+        title="No se pudo cargar el historial"
+        description="Revise su conexión e inténtelo de nuevo."
+        action={
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              void logsQuery.refetch();
+              void historyQuery.refetch();
+            }}
+          >
+            Reintentar
+          </Button>
+        }
+        className="py-8"
+      />
+    );
+  }
+
+  const changes: Event[] = (logsQuery.data ?? []).map((log) => {
     const meta = AUDIT[log.action] ?? { label: log.action, icon: Pencil, tone: NEUTRAL };
 
     return {
@@ -130,9 +173,13 @@ export function DepartmentHistoryTab({ department }: { department: Department })
     };
   });
 
-  const people: Event[] = (history ?? []).flatMap((entry) => {
+  const people: Event[] = (historyQuery.data ?? []).flatMap((entry) => {
     const name = [entry.employee?.first_name, entry.employee?.last_name].filter(Boolean).join(" ");
-    const opened = MOVEMENT[entry.movement_type];
+    const opened = MOVEMENT[entry.movement_type] ?? {
+      label: entry.movement_type,
+      icon: UserPlus,
+      tone: NEUTRAL,
+    };
     const events: Event[] = [
       {
         key: `in-${entry.id}`,
@@ -146,7 +193,11 @@ export function DepartmentHistoryTab({ department }: { department: Department })
     ];
 
     if (entry.ended_at && entry.end_type) {
-      const closed = MOVEMENT[entry.end_type];
+      const closed = MOVEMENT[entry.end_type] ?? {
+        label: entry.end_type,
+        icon: LogOut,
+        tone: NEUTRAL,
+      };
 
       events.push({
         key: `out-${entry.id}`,
@@ -164,20 +215,14 @@ export function DepartmentHistoryTab({ department }: { department: Department })
   people.sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
 
   return (
-    <div className="space-y-7">
-      <section className="space-y-3">
-        <h3 className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
-          Cambios del departamento
-        </h3>
-        <Timeline events={changes} empty="Sin cambios registrados." />
-      </section>
+    <div className="space-y-4">
+      <PanelSection icon={History} title="Cambios del departamento" compact>
+        <Timeline events={changes} empty="Sin cambios registrados." timeZone={timeZone} />
+      </PanelSection>
 
-      <section className="space-y-3">
-        <h3 className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
-          Ingresos y retiros del personal
-        </h3>
-        <Timeline events={people} empty="Sin movimientos de personal." />
-      </section>
+      <PanelSection icon={Users} title="Ingresos y retiros del personal" compact>
+        <Timeline events={people} empty="Sin movimientos de personal." timeZone={timeZone} />
+      </PanelSection>
     </div>
   );
 }

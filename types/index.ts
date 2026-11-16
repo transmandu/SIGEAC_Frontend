@@ -438,7 +438,12 @@ export type DepartmentLocation = {
   location_id: number;
   email: string | null;
   is_active: boolean;
-  location: { id: number; address: string; cod_iata: string } | null;
+  location: {
+    id: number;
+    name?: string | null;
+    address: string;
+    cod_iata: string;
+  } | null;
 };
 
 export type Department = {
@@ -485,7 +490,12 @@ export type DepartmentMembership = {
   };
   department?: Department;
   job_title?: { id: number; name: string } | null;
-  location?: { id: number; address: string; cod_iata: string } | null;
+  location?: {
+    id: number;
+    name?: string | null;
+    address: string;
+    cod_iata: string;
+  } | null;
 };
 
 export type DepartmentAuditLog = {

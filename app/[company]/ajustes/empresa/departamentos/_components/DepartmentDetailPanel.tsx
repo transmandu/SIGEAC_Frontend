@@ -1,41 +1,39 @@
 "use client";
 
+import { memo, useMemo, useState } from "react";
+import {
+  Building2,
+  ChevronRight,
+  GitMerge,
+  History,
+  Landmark,
+  MapPin,
+  Network,
+  Pencil,
+  Power,
+  Trash2,
+  Users,
+} from "lucide-react";
+
 import {
   useDeleteDepartment,
   useMoveDepartment,
   useSetDepartmentActive,
 } from "@/actions/ajustes/departamento/actions";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
-  labelClass,
-  selectTriggerClass,
-} from "@/components/forms/mantenimiento/almacen/_components/form-theme";
+import { ConfirmActionDialog } from "@/components/dialogs/shared/ConfirmActionDialog";
+import { ConfirmDeleteDialog } from "@/components/dialogs/shared/ConfirmDeleteDialog";
+import { hintClass } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
+import { OptionCombobox } from "@/components/forms/general/OptionCombobox";
+import { PanelStaticLabel } from "@/components/forms/PanelSection";
+import { SettingsRowActions, type RowAction } from "@/components/dropdowns/SettingsRowActions";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
-import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+  SegmentedTabs,
+  SegmentedTabsContent,
+  SegmentedTabsList,
+  SegmentedTabsTrigger,
+} from "@/components/misc/SegmentedTabs";
+import { TagBadge } from "@/components/misc/TagBadge";
 import {
   collectSubtreeIds,
   findDepartmentPath,
@@ -44,23 +42,11 @@ import {
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Department } from "@/types";
-import {
-  Building2,
-  ChevronRight,
-  History,
-  Landmark,
-  MapPin,
-  MoreHorizontal,
-  Network,
-  Pencil,
-  Users,
-} from "lucide-react";
-import { memo, useMemo, useState } from "react";
 import { DepartmentHistoryTab } from "./DepartmentHistoryTab";
 import { DepartmentLocationsEditor } from "./DepartmentLocationsEditor";
 import { DepartmentMembersTab } from "./DepartmentMembersTab";
 import { MergeDepartmentDialog } from "./MergeDepartmentDialog";
-import { listRowClass, tabTriggerClass } from "./theme";
+import { listRowClass } from "./theme";
 import { toneFor } from "./tones";
 
 const ROOT = "root";
@@ -73,7 +59,13 @@ interface Props {
   onSelect: (id: number) => void;
 }
 
-export const DepartmentDetailPanel = memo(function DepartmentDetailPanel({ department, tree, onEdit, onGone, onSelect }: Props) {
+export const DepartmentDetailPanel = memo(function DepartmentDetailPanel({
+  department,
+  tree,
+  onEdit,
+  onGone,
+  onSelect,
+}: Props) {
   const { selectedCompany } = useCompanyStore();
   const slug = selectedCompany?.slug;
 
@@ -81,14 +73,24 @@ export const DepartmentDetailPanel = memo(function DepartmentDetailPanel({ depar
   const { setDepartmentActive } = useSetDepartmentActive();
   const { deleteDepartment } = useDeleteDepartment();
 
+  const [tab, setTab] = useState("estructura");
   const [mergeOpen, setMergeOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [activeOpen, setActiveOpen] = useState(false);
 
   const flat = useMemo(() => flattenTreeWithDepth(tree), [tree]);
   const subtree = useMemo(() => new Set(collectSubtreeIds(department)), [department]);
   const allDepartments = useMemo(() => flat.map((entry) => entry.department), [flat]);
-  const moveTargets = useMemo(
-    () => flat.filter(({ department: candidate }) => !subtree.has(candidate.id)),
+  const parentOptions = useMemo(
+    () => [
+      { id: ROOT, label: "Raíz del organigrama" },
+      ...flat
+        .filter(({ department: candidate }) => !subtree.has(candidate.id))
+        .map(({ department: candidate, depth }) => ({
+          id: String(candidate.id),
+          label: `${"— ".repeat(depth)}${candidate.full_name}`,
+        })),
+    ],
     [flat, subtree],
   );
   const mergeCandidates = useMemo(
@@ -104,16 +106,39 @@ export const DepartmentDetailPanel = memo(function DepartmentDetailPanel({ depar
   const tone = toneFor(department.department_type_id);
   const Icon = path.length === 0 ? Landmark : children.length ? Network : Building2;
 
+  const actions: RowAction[] = [
+    {
+      key: "toggle",
+      label: department.is_active ? "Desactivar" : "Activar",
+      icon: Power,
+      tone: "blue",
+      onSelect: () => setActiveOpen(true),
+    },
+    {
+      key: "merge",
+      label: "Fusionar en otro",
+      icon: GitMerge,
+      onSelect: () => setMergeOpen(true),
+    },
+    {
+      key: "delete",
+      label: "Eliminar",
+      icon: Trash2,
+      tone: "red",
+      onSelect: () => setDeleteOpen(true),
+    },
+  ];
+
   return (
     <div className="space-y-4">
       <header className="flex items-start gap-3">
-        <span className={cn("grid size-11 shrink-0 place-content-center rounded-xl", tone.tile)}>
+        <span className={cn("grid size-11 shrink-0 place-items-center rounded-xl", tone.tile)}>
           <Icon className="size-5.5" />
         </span>
 
         <div className="min-w-0 flex-1">
           {path.length > 0 && (
-            <p className="text-muted-foreground mb-0.5 truncate text-xs">
+            <p className="mb-0.5 text-xs text-muted-foreground wrap-anywhere">
               {path.map((ancestor, index) => (
                 <span key={ancestor.id}>
                   {index > 0 && " / "}
@@ -129,113 +154,78 @@ export const DepartmentDetailPanel = memo(function DepartmentDetailPanel({ depar
             </p>
           )}
 
-          <h2 className="text-lg leading-tight font-semibold">{department.full_name}</h2>
-          <p className="text-muted-foreground mt-0.5 text-sm">
-            {[department.acronym, department.type?.name, department.is_active ? null : "Inactivo"]
-              .filter(Boolean)
-              .join(" · ")}
-          </p>
+          <h2 className="text-lg leading-tight font-semibold wrap-anywhere">
+            {department.full_name}
+          </h2>
+
+          <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+            <TagBadge tone="slate" className="font-mono">
+              {department.acronym}
+            </TagBadge>
+            {department.type && <TagBadge tone="blue">{department.type.name}</TagBadge>}
+            {!department.is_active && <TagBadge tone="amber">Inactivo</TagBadge>}
+          </div>
+
           {department.description && (
-            <p className="text-muted-foreground mt-2 text-sm">{department.description}</p>
+            <p className="mt-2 text-sm text-slate-600 wrap-anywhere dark:text-slate-300">
+              {department.description}
+            </p>
           )}
         </div>
 
         <div className="flex shrink-0 items-center gap-1">
-          <ActionTriggerButton className="h-9" onClick={() => onEdit(department)}>
+          <ActionTriggerButton className="h-9 max-sm:h-10" onClick={() => onEdit(department)}>
             <Pencil className="size-4" />
-            Editar
+            <span className="max-sm:sr-only">Editar</span>
           </ActionTriggerButton>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                size="icon"
-                variant="outline"
-                className="size-9 bg-white/80 dark:bg-slate-900/60"
-                aria-label="Más acciones"
-              >
-                <MoreHorizontal className="size-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                disabled={setDepartmentActive.isPending}
-                onClick={() =>
-                  slug &&
-                  setDepartmentActive.mutate({
-                    company: slug,
-                    id: department.id,
-                    is_active: !department.is_active,
-                  })
-                }
-              >
-                {department.is_active ? "Desactivar" : "Activar"}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setMergeOpen(true)}>Fusionar en otro…</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="text-destructive focus:text-destructive"
-                onClick={() => setDeleteOpen(true)}
-              >
-                Eliminar
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <SettingsRowActions actions={actions} />
         </div>
       </header>
 
-      <Tabs defaultValue="estructura">
-        <TabsList className="mb-1 grid h-auto w-full grid-cols-2 gap-1 sm:grid-cols-4 sm:gap-0">
-          <TabsTrigger value="estructura" className={tabTriggerClass}>
-            <Network className="size-4" />
+      <SegmentedTabs value={tab} onValueChange={setTab}>
+        <SegmentedTabsList size="sm">
+          <SegmentedTabsTrigger value="estructura">
+            <Network className="size-4 max-sm:hidden" />
             Estructura
-          </TabsTrigger>
-          <TabsTrigger value="sedes" className={tabTriggerClass}>
-            <MapPin className="size-4" />
+          </SegmentedTabsTrigger>
+          <SegmentedTabsTrigger value="sedes">
+            <MapPin className="size-4 max-sm:hidden" />
             Sedes
-          </TabsTrigger>
-          <TabsTrigger value="personal" className={tabTriggerClass}>
-            <Users className="size-4" />
+          </SegmentedTabsTrigger>
+          <SegmentedTabsTrigger value="personal">
+            <Users className="size-4 max-sm:hidden" />
             Personal
-          </TabsTrigger>
-          <TabsTrigger value="historial" className={tabTriggerClass}>
-            <History className="size-4" />
+          </SegmentedTabsTrigger>
+          <SegmentedTabsTrigger value="historial">
+            <History className="size-4 max-sm:hidden" />
             Historial
-          </TabsTrigger>
-        </TabsList>
+          </SegmentedTabsTrigger>
+        </SegmentedTabsList>
 
-        <TabsContent value="estructura" className="space-y-4 pt-3">
-          <div className="space-y-1.5">
-            <label className={labelClass}>Depende de</label>
-            <Select
+        <SegmentedTabsContent value="estructura" className="space-y-4 pt-4">
+          <div>
+            <PanelStaticLabel>Depende de</PanelStaticLabel>
+            <OptionCombobox
               value={String(department.department_parent_id ?? ROOT)}
-              onValueChange={(value) =>
+              onChange={(value) =>
                 slug &&
+                value !== String(department.department_parent_id ?? ROOT) &&
                 moveDepartment.mutate({
                   company: slug,
                   id: department.id,
                   department_parent_id: value === ROOT ? null : Number(value),
                 })
               }
-            >
-              <SelectTrigger className={selectTriggerClass}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={ROOT}>Raíz del organigrama</SelectItem>
-                {moveTargets.map(({ department: candidate, depth }) => (
-                  <SelectItem key={candidate.id} value={String(candidate.id)}>
-                    {"— ".repeat(depth)}
-                    {candidate.full_name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <p className="text-muted-foreground text-xs">También puedes arrastrarlo en el árbol.</p>
+              options={parentOptions}
+              disabled={moveDepartment.isPending}
+              searchPlaceholder="Buscar departamento..."
+            />
+            <p className={cn(hintClass, "mt-1.5")}>También puede arrastrarlo en el árbol.</p>
           </div>
 
-          <div className="space-y-1.5">
-            <label className={labelClass}>Dependientes</label>
+          <div>
+            <PanelStaticLabel>Dependientes</PanelStaticLabel>
             {children.length ? (
               <ul className="grid gap-2 sm:grid-cols-2">
                 {children.map((child) => (
@@ -243,7 +233,10 @@ export const DepartmentDetailPanel = memo(function DepartmentDetailPanel({ depar
                     <button
                       type="button"
                       onClick={() => onSelect(child.id)}
-                      className={cn(listRowClass, "flex w-full items-center gap-2.5 p-2.5 text-left")}
+                      className={cn(
+                        listRowClass,
+                        "flex w-full items-center gap-2.5 p-2.5 text-left max-sm:min-h-12",
+                      )}
                     >
                       <span
                         className={cn(
@@ -252,37 +245,41 @@ export const DepartmentDetailPanel = memo(function DepartmentDetailPanel({ depar
                         )}
                       />
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-medium">{child.full_name}</span>
-                        <span className="text-muted-foreground font-mono text-xs">{child.acronym}</span>
+                        <span className="block truncate text-sm font-medium">
+                          {child.full_name}
+                        </span>
+                        <span className="font-mono text-xs text-muted-foreground">
+                          {child.acronym}
+                        </span>
                       </span>
-                      <ChevronRight className="text-muted-foreground size-4 shrink-0" />
+                      <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
                     </button>
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="text-muted-foreground text-sm">No tiene departamentos dependientes.</p>
+              <p className="text-sm text-muted-foreground">No tiene departamentos dependientes.</p>
             )}
           </div>
 
-          <p className="text-muted-foreground text-xs">
+          <p className="text-xs text-muted-foreground">
             Registrado por {department.registered_by}
             {department.updated_by && ` · última edición de ${department.updated_by}`}
           </p>
-        </TabsContent>
+        </SegmentedTabsContent>
 
-        <TabsContent value="sedes" className="pt-3">
+        <SegmentedTabsContent value="sedes" className="pt-4">
           <DepartmentLocationsEditor department={department} />
-        </TabsContent>
+        </SegmentedTabsContent>
 
-        <TabsContent value="personal" className="pt-3">
+        <SegmentedTabsContent value="personal" className="pt-4">
           <DepartmentMembersTab department={department} departments={allDepartments} />
-        </TabsContent>
+        </SegmentedTabsContent>
 
-        <TabsContent value="historial" className="pt-3">
+        <SegmentedTabsContent value="historial" className="pt-4">
           <DepartmentHistoryTab department={department} />
-        </TabsContent>
-      </Tabs>
+        </SegmentedTabsContent>
+      </SegmentedTabs>
 
       <MergeDepartmentDialog
         open={mergeOpen}
@@ -292,29 +289,42 @@ export const DepartmentDetailPanel = memo(function DepartmentDetailPanel({ depar
         onMerged={onSelect}
       />
 
-      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar &quot;{department.full_name}&quot;?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Solo se puede eliminar un departamento sin dependientes ni registros asociados. Si ya
-              tiene historia, desactívalo o fusiónalo con otro.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={async () => {
-                if (!slug) return;
-                await deleteDepartment.mutateAsync({ company: slug, id: department.id });
-                onGone();
-              }}
-            >
-              Eliminar
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmActionDialog
+        open={activeOpen}
+        onOpenChange={setActiveOpen}
+        icon={Power}
+        tone={department.is_active ? "amber" : "primary"}
+        title={department.is_active ? "Desactivar departamento" : "Activar departamento"}
+        entityName={department.full_name}
+        confirmLabel={department.is_active ? "Desactivar" : "Activar"}
+        isPending={setDepartmentActive.isPending}
+        onConfirm={async () => {
+          if (!slug) return;
+          await setDepartmentActive.mutateAsync({
+            company: slug,
+            id: department.id,
+            is_active: !department.is_active,
+          });
+        }}
+      >
+        {department.is_active
+          ? "Deja de ofrecerse al crear solicitudes, despachos y empleados. Su historia y su personal se conservan, y puede volver a activarlo."
+          : "Vuelve a ofrecerse al crear solicitudes, despachos y empleados."}
+      </ConfirmActionDialog>
+
+      <ConfirmDeleteDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        title="Eliminar departamento"
+        entityName={department.full_name}
+        warning="Solo se puede eliminar un departamento sin dependientes ni registros asociados. Si ya tiene historia, desactívelo o fusiónelo con otro."
+        isPending={deleteDepartment.isPending}
+        onConfirm={async () => {
+          if (!slug) return;
+          await deleteDepartment.mutateAsync({ company: slug, id: department.id });
+          onGone();
+        }}
+      />
     </div>
   );
 });

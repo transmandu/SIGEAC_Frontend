@@ -1,15 +1,19 @@
 "use client";
 
+import { useState } from "react";
+import { ArrowRightLeft, TriangleAlert, Users } from "lucide-react";
+
+import { EmptyState } from "@/components/misc/EmptyState";
+import { TagBadge } from "@/components/misc/TagBadge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
 import { useGetDepartmentMembers } from "@/hooks/ajustes/departamento/useGetDepartmentMembers";
-import { cn } from "@/lib/utils";
+import { formatInstant } from "@/lib/date";
+import { locationShortLabel } from "@/lib/locations";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Department } from "@/types";
-import { ArrowRightLeft, Users } from "lucide-react";
-import { useState } from "react";
 import { EmployeeMovementDialog, MovementEmployee } from "./EmployeeMovementDialog";
-import { listRowClass } from "./theme";
 
 type Person = {
   first_name: string;
@@ -36,61 +40,84 @@ export function DepartmentMembersTab({
   departments: Department[];
 }) {
   const { selectedCompany } = useCompanyStore();
-  const { data: members, isLoading } = useGetDepartmentMembers(selectedCompany?.slug, department.id);
+  const timeZone = useCompanyTimezone();
+  const {
+    data: members,
+    isLoading,
+    isError,
+    refetch,
+  } = useGetDepartmentMembers(selectedCompany?.slug, department.id);
   const [moving, setMoving] = useState<MovementEmployee | null>(null);
 
   if (isLoading) {
     return (
       <div className="space-y-2">
-        <Skeleton className="h-16 rounded-xl" />
-        <Skeleton className="h-16 rounded-xl" />
-        <Skeleton className="h-16 rounded-xl" />
+        <Skeleton className="h-14 rounded-xl" />
+        <Skeleton className="h-14 rounded-xl" />
+        <Skeleton className="h-14 rounded-xl" />
       </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <EmptyState
+        icon={TriangleAlert}
+        tone="error"
+        title="No se pudo cargar el personal"
+        description="Revise su conexión e inténtelo de nuevo."
+        action={
+          <Button variant="outline" size="sm" onClick={() => refetch()}>
+            Reintentar
+          </Button>
+        }
+        className="py-8"
+      />
     );
   }
 
   if (!members?.length) {
     return (
-      <div className="bg-muted/40 flex flex-col items-center gap-2 rounded-xl px-4 py-10 text-center">
-        <Users className="text-muted-foreground size-8" />
-        <p className="text-sm font-medium">Sin personal activo</p>
-        <p className="text-muted-foreground text-xs">
-          Las personas aparecen aquí cuando se asignan a este departamento.
-        </p>
-      </div>
+      <EmptyState
+        icon={Users}
+        title="Sin personal activo"
+        description="Las personas aparecen aquí cuando se asignan a este departamento."
+        className="py-8"
+      />
     );
   }
 
   return (
     <>
-      <ul className="space-y-2">
+      <ul className="divide-y divide-border/60 overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-700/60 dark:bg-slate-900/60">
         {members.map((member) => (
-          <li
-            key={member.id}
-            className={cn(listRowClass, "flex items-center gap-3 p-3")}
-          >
-            <span className="bg-primary/10 text-primary grid size-10 shrink-0 place-content-center rounded-full text-sm font-semibold">
+          <li key={member.id} className="flex items-center gap-3 px-3 py-2.5">
+            <span className="grid size-10 shrink-0 place-items-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
               {initials(member.employee)}
             </span>
 
             <div className="min-w-0 flex-1">
-              <p className="flex items-center gap-2 text-sm font-medium">
-                <span className="truncate">{fullName(member.employee)}</span>
-                {member.is_head && (
-                  <span className="text-primary text-xs font-semibold">Jefe</span>
-                )}
+              <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium">
+                <span className="wrap-anywhere">{fullName(member.employee)}</span>
+                {member.is_head && <TagBadge tone="blue">Jefe</TagBadge>}
               </p>
-              <p className="text-muted-foreground truncate text-xs">
-                {member.job_title?.name ?? "Sin cargo"}
-                {member.location && ` · ${member.location.cod_iata}`}
-                {` · desde ${new Date(member.started_at).toLocaleDateString()}`}
+              <p className="text-xs text-slate-600 dark:text-slate-300">
+                {[
+                  member.job_title?.name ?? "Sin cargo",
+                  member.location ? locationShortLabel(member.location) : null,
+                  `desde ${formatInstant(member.started_at, timeZone, "date")}`,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
               </p>
             </div>
 
             <Button
+              type="button"
               variant="outline"
               size="sm"
-              className="shrink-0 bg-white/80 dark:bg-slate-900/60"
+              className="shrink-0 bg-white/80 max-sm:size-10 max-sm:p-0 dark:bg-slate-900/60"
+              aria-label={`Mover o retirar a ${fullName(member.employee)}`}
               onClick={() =>
                 setMoving({
                   id: member.employee_id,
@@ -102,7 +129,7 @@ export function DepartmentMembersTab({
               }
             >
               <ArrowRightLeft className="size-4" />
-              <span className="hidden sm:inline">Mover o retirar</span>
+              <span className="max-sm:hidden">Mover o retirar</span>
             </Button>
           </li>
         ))}

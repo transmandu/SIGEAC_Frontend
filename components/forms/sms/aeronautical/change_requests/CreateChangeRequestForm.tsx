@@ -66,6 +66,7 @@ import { ComboboxField } from "@/components/ui/ComboboxField";
 import { MultiSelectCombobox } from "@/components/ui/MultiSelectCombobox";
 import { DatePickerField } from "@/components/ui/DatePickerField";
 import FolderSelect from "@/components/library/FolderSelect";
+import { departmentLabel } from "@/lib/departments";
 
 const SEVERITIES = ["A", "B", "C", "D", "E"];
 
@@ -529,7 +530,7 @@ export function CreateChangeRequestForm({
 
   const departmentOptions = departments.map((department) => ({
     value: department.id,
-    label: `${department.name} (${department.acronym})`,
+    label: `${departmentLabel(department)} (${department.acronym})`,
   }));
 
   const employeeOptions = employees.map((employee) => ({
@@ -955,7 +956,7 @@ export function CreateChangeRequestForm({
                           <MultiSelectCombobox
                             options={departments.map((department) => ({
                               value: department.id,
-                              label: `${department.name} (${department.acronym})`,
+                              label: `${departmentLabel(department)} (${department.acronym})`,
                             }))}
                             value={field.value ?? []}
                             onChange={field.onChange}

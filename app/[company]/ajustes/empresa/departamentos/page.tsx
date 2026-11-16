@@ -4,17 +4,24 @@ import {
   useMoveDepartment,
   useReorderDepartments,
 } from "@/actions/ajustes/departamento/actions";
-import { ContentLayout } from "@/components/layout/ContentLayout";
-import { PageHeader } from "@/components/layout/PageHeader";
-import {
-  sectionClass,
-  SectionTitle,
-} from "@/components/forms/mantenimiento/almacen/_components/form-theme";
+import { fullScreenOnMobile } from "@/components/dialogs/shared/FormDialogContent";
+import { SettingsListPage } from "@/components/layout/SettingsListPage";
+import { PanelSection } from "@/components/forms/PanelSection";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
+import { EmptyState } from "@/components/misc/EmptyState";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGetDepartmentTree } from "@/hooks/ajustes/departamento/useGetDepartmentTree";
 import { useGetDepartmentTypes } from "@/hooks/ajustes/departamento/useGetDepartmentTypes";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { findDepartmentNode, flattenTreeWithDepth } from "@/lib/departments";
+import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Department } from "@/types";
 import {
@@ -28,7 +35,7 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { useQueryClient } from "@tanstack/react-query";
-import { Ban, Network, Plus, Tags } from "lucide-react";
+import { Ban, Network, Plus, Tags, TriangleAlert } from "lucide-react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { DepartmentDetailPanel } from "./_components/DepartmentDetailPanel";
@@ -54,7 +61,8 @@ const DepartmentPage = () => {
   const { selectedCompany } = useCompanyStore();
   const slug = selectedCompany?.slug;
 
-  const { data: tree, isPending, isError } = useGetDepartmentTree(slug);
+  const { data: tree, isPending, isError, refetch } = useGetDepartmentTree(slug);
+  const isDesktop = useMediaQuery("(min-width: 1024px)");
   const { data: types } = useGetDepartmentTypes(slug);
   const { moveDepartment } = useMoveDepartment();
   const { reorderDepartments } = useReorderDepartments();
@@ -184,64 +192,65 @@ const DepartmentPage = () => {
   const handleGone = useCallback(() => setSelectedId(null), []);
 
   return (
-    <ContentLayout title="Departamentos">
+    <SettingsListPage
+      title="Departamentos"
+      heading="Organigrama"
+      description="Estructura de la empresa, con las sedes, los correos y el personal de cada departamento."
+      tourPrefix="departamentos"
+    >
       <div className="flex flex-col gap-6">
-        <PageHeader />
-
-        <div className="flex flex-wrap items-end justify-between gap-4 border-b pb-4">
-          <div className="flex flex-col">
-            <h1 className="text-3xl font-semibold tracking-tight">Organigrama</h1>
-            <p className="text-muted-foreground text-sm">
-              Estructura de la empresa, con las sedes, los correos y el personal de cada
-              departamento.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <ActionTriggerButton onClick={() => setTypesOpen(true)}>
-              <Tags className="size-4" />
-              Tipos
-            </ActionTriggerButton>
-            <ActionTriggerButton onClick={() => setFormState({ department: null, parentId: null })}>
-              <Plus className="size-4" />
-              Nuevo departamento
-            </ActionTriggerButton>
-          </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <ActionTriggerButton onClick={() => setFormState({ department: null, parentId: null })}>
+            <Plus className="size-4" />
+            Crear departamento
+          </ActionTriggerButton>
+          <ActionTriggerButton onClick={() => setTypesOpen(true)}>
+            <Tags className="size-4" />
+            Tipos
+          </ActionTriggerButton>
         </div>
 
         {isPending && (
           <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
             <Skeleton className="h-96 rounded-xl" />
-            <Skeleton className="h-96 rounded-xl" />
+            <Skeleton className="h-96 rounded-xl max-lg:hidden" />
           </div>
         )}
 
         {isError && (
-          <div className="rounded-lg border border-red-500/20 bg-red-500/5 px-4 py-3">
-            <p className="text-sm text-red-500">
-              Ha ocurrido un error al cargar los departamentos.
-            </p>
-          </div>
+          <EmptyState
+            icon={TriangleAlert}
+            tone="error"
+            title="No se pudieron cargar los departamentos"
+            description="Revise su conexión e inténtelo de nuevo."
+            action={
+              <Button variant="outline" size="sm" className="mt-1 h-8 gap-2" onClick={() => refetch()}>
+                Reintentar
+              </Button>
+            }
+            className="py-16"
+          />
         )}
 
         {tree && (
           <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
-            <section className={sectionClass}>
-              <SectionTitle
-                icon={Network}
-                title="Estructura"
-                hint="Arrastra por el asa: al centro de otro lo cuelga de él; en su borde superior o inferior lo reubica a su lado."
-                action={
-                  <span className="text-muted-foreground text-xs tabular-nums">
-                    {flat.length} {flat.length === 1 ? "departamento" : "departamentos"}
-                  </span>
-                }
-              />
-
+            <PanelSection
+              icon={Network}
+              title="Estructura"
+              hint="Arrastre por el asa: al centro de otro lo cuelga de él; en su borde superior o inferior lo reubica a su lado. En pantalla táctil use las flechas de la fila elegida."
+              action={
+                <span className="text-xs text-muted-foreground tabular-nums">
+                  {flat.length} {flat.length === 1 ? "departamento" : "departamentos"}
+                </span>
+              }
+            >
               {roots.length === 0 ? (
-                <p className="text-muted-foreground py-10 text-center text-sm">
-                  Aún no hay departamentos. Crea el primero para empezar el organigrama.
-                </p>
+                <EmptyState
+                  icon={Network}
+                  title="Aún no hay departamentos"
+                  description="Cree el primero para empezar el organigrama."
+                  className="py-10"
+                />
               ) : (
                 <DndContext
                   sensors={sensors}
@@ -285,27 +294,62 @@ const DepartmentPage = () => {
                   </DragOverlay>
                 </DndContext>
               )}
-            </section>
+            </PanelSection>
 
-            <section className={`${sectionClass} lg:sticky lg:top-4`}>
-              {selected ? (
-                <DepartmentDetailPanel
-                  key={selected.id}
-                  department={selected}
-                  tree={roots}
-                  onEdit={handleEdit}
-                  onGone={handleGone}
-                  onSelect={setSelectedId}
-                />
-              ) : (
-                <p className="text-muted-foreground py-20 text-center text-sm">
-                  Selecciona un departamento del árbol.
-                </p>
-              )}
-            </section>
+            {isDesktop && (
+              <section className="rounded-xl border border-slate-200 bg-white p-4 lg:sticky lg:top-4 dark:border-slate-700/60 dark:bg-slate-900/60">
+                {selected ? (
+                  <DepartmentDetailPanel
+                    key={selected.id}
+                    department={selected}
+                    tree={roots}
+                    onEdit={handleEdit}
+                    onGone={handleGone}
+                    onSelect={setSelectedId}
+                  />
+                ) : (
+                  <EmptyState
+                    icon={Network}
+                    title="Seleccione un departamento"
+                    description="Elíjalo en el árbol para ver sus sedes, su personal y su historial."
+                    className="py-16"
+                  />
+                )}
+              </section>
+            )}
           </div>
         )}
       </div>
+
+      {/* En pantallas estrechas el detalle no cabe junto al árbol: se abre completo. */}
+      <Dialog
+        open={!isDesktop && selected !== null}
+        onOpenChange={(open) => !open && setSelectedId(null)}
+      >
+        <DialogContent
+          className={cn(
+            "flex max-h-[90vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl",
+            fullScreenOnMobile,
+          )}
+        >
+          <DialogTitle className="sr-only">{selected?.full_name}</DialogTitle>
+          <DialogDescription className="sr-only">
+            Datos, sedes, personal e historial del departamento.
+          </DialogDescription>
+          {selected && (
+            <div className="overflow-y-auto overscroll-contain px-4 pt-12 pb-6 sm:px-6">
+              <DepartmentDetailPanel
+                key={selected.id}
+                department={selected}
+                tree={roots}
+                onEdit={handleEdit}
+                onGone={handleGone}
+                onSelect={setSelectedId}
+              />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <DepartmentFormDialog
         open={formState !== null}
@@ -317,7 +361,7 @@ const DepartmentPage = () => {
       />
 
       <DepartmentTypesDialog open={typesOpen} onOpenChange={setTypesOpen} />
-    </ContentLayout>
+    </SettingsListPage>
   );
 };
 

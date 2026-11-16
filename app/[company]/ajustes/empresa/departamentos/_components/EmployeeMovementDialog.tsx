@@ -1,18 +1,25 @@
 "use client";
 
+import { useMemo, useState } from "react";
+import { ArrowRightLeft, Briefcase, Loader2 } from "lucide-react";
+
 import {
   DepartmentMovementAction,
   useRegisterDepartmentMovement,
 } from "@/actions/ajustes/empleados/movements";
 import {
-  fieldClass,
   hintClass,
-  labelClass,
   selectTriggerClass,
   textareaClass,
 } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
+import { OptionCombobox } from "@/components/forms/general/OptionCombobox";
+import {
+  PanelSection,
+  PanelStaticLabel,
+  SwitchRow,
+} from "@/components/forms/PanelSection";
+import { DateTimeField } from "@/components/misc/DateTimeField";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -20,23 +27,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
 import { useGetJobTitles } from "@/hooks/ajustes/cargo/useGetJobTitles";
 import { useGetLocationsByCompany } from "@/hooks/sistema/useGetLocationsByCompany";
+import { zonedWallClockToUtcIso } from "@/lib/date";
+import { locationLabel } from "@/lib/locations";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Department } from "@/types";
-import { ArrowRightLeft, Loader2 } from "lucide-react";
-import { useState } from "react";
 import { DialogShell } from "./DialogShell";
 
 const KEEP = "keep";
-
-const nowForDatetimeLocal = () => {
-  const now = new Date();
-  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-  return now.toISOString().slice(0, 16);
-};
+const REASON_MAX = 500;
 
 export interface MovementEmployee {
   id: number;
@@ -52,7 +54,9 @@ interface Props {
   onClose: () => void;
 }
 
-const ACTION_LABELS: Record<Exclude<DepartmentMovementAction, "rehire">, string> = {
+type MovementAction = Exclude<DepartmentMovementAction, "rehire">;
+
+const ACTION_LABELS: Record<MovementAction, string> = {
   transfer: "Trasladar a otro departamento",
   change_role: "Cambiar cargo o jefatura",
   retire: "Retirar de la empresa",
@@ -62,7 +66,12 @@ export function EmployeeMovementDialog({ employee, departments, onClose }: Props
   if (!employee) return null;
 
   return (
-    <MovementForm key={employee.id} employee={employee} departments={departments} onClose={onClose} />
+    <MovementForm
+      key={employee.id}
+      employee={employee}
+      departments={departments}
+      onClose={onClose}
+    />
   );
 }
 
@@ -76,36 +85,73 @@ function MovementForm({
   onClose: () => void;
 }) {
   const { selectedCompany } = useCompanyStore();
-  const { data: jobTitles } = useGetJobTitles(selectedCompany?.slug);
-  const { data: locations } = useGetLocationsByCompany(selectedCompany?.slug);
+  const timeZone = useCompanyTimezone();
+  const { data: jobTitles, isLoading: loadingTitles } = useGetJobTitles(selectedCompany?.slug);
+  const { data: locations, isLoading: loadingLocations } = useGetLocationsByCompany(
+    selectedCompany?.slug,
+  );
   const { registerMovement } = useRegisterDepartmentMovement();
 
-  const [action, setAction] = useState<Exclude<DepartmentMovementAction, "rehire">>("transfer");
-  const [departmentId, setDepartmentId] = useState<string>("");
-  const [locationId, setLocationId] = useState<string>(KEEP);
-  const [jobTitleId, setJobTitleId] = useState<string>(KEEP);
+  const [action, setAction] = useState<MovementAction>("transfer");
+  const [departmentId, setDepartmentId] = useState("");
+  const [locationId, setLocationId] = useState(KEEP);
+  const [jobTitleId, setJobTitleId] = useState(KEEP);
   const [isHead, setIsHead] = useState(employee.isHead);
-  const [effectiveAt, setEffectiveAt] = useState("");
+  const [effectiveAt, setEffectiveAt] = useState<Date | null>(null);
   const [reason, setReason] = useState("");
+
+  const departmentOptions = useMemo(
+    () =>
+      departments
+        .filter((d) => d.is_active && d.id !== employee.departmentId)
+        .map((d) => ({ id: String(d.id), label: d.full_name })),
+    [departments, employee.departmentId],
+  );
+  const locationOptions = useMemo(
+    () => [
+      { id: KEEP, label: "Mantener la actual" },
+      ...(locations ?? []).map((location) => ({
+        id: String(location.id),
+        label: locationLabel(location),
+      })),
+    ],
+    [locations],
+  );
+  const jobTitleOptions = useMemo(
+    () => [
+      { id: KEEP, label: "Mantener el actual" },
+      ...(jobTitles ?? []).map((title) => ({
+        id: String(title.id),
+        label: title.name,
+      })),
+    ],
+    [jobTitles],
+  );
 
   const needsReason = action === "retire";
   const canSubmit =
-    (action !== "transfer" || departmentId !== "") && (!needsReason || reason.trim() !== "");
+    (action !== "transfer" || departmentId !== "") &&
+    (!needsReason || reason.trim() !== "") &&
+    !registerMovement.isPending;
 
   const submit = async () => {
-    if (!selectedCompany?.slug) return;
+    if (!selectedCompany?.slug || !canSubmit) return;
 
-    await registerMovement.mutateAsync({
-      company: selectedCompany.slug,
-      employeeId: employee.id,
-      action,
-      department_id: action === "transfer" ? Number(departmentId) : undefined,
-      location_id: locationId === KEEP ? undefined : Number(locationId),
-      job_title_id: jobTitleId === KEEP ? undefined : Number(jobTitleId),
-      is_head: action === "retire" ? undefined : isHead,
-      effective_at: effectiveAt ? new Date(effectiveAt).toISOString() : undefined,
-      reason: reason.trim() || undefined,
-    });
+    try {
+      await registerMovement.mutateAsync({
+        company: selectedCompany.slug,
+        employeeId: employee.id,
+        action,
+        department_id: action === "transfer" ? Number(departmentId) : undefined,
+        location_id: locationId === KEEP ? undefined : Number(locationId),
+        job_title_id: jobTitleId === KEEP ? undefined : Number(jobTitleId),
+        is_head: action === "retire" ? undefined : isHead,
+        effective_at: effectiveAt ? zonedWallClockToUtcIso(effectiveAt, timeZone) : undefined,
+        reason: reason.trim() || undefined,
+      });
+    } catch {
+      return;
+    }
 
     onClose();
   };
@@ -113,137 +159,149 @@ function MovementForm({
   return (
     <DialogShell
       open
-      onOpenChange={(open) => !open && onClose()}
+      onOpenChange={(open) => !open && !registerMovement.isPending && onClose()}
       icon={ArrowRightLeft}
       title="Movimiento de personal"
       eyebrow={employee.name}
       description="Queda en el historial del empleado y del departamento."
-    >
-      <div className="space-y-5">
-        <div className="space-y-1.5">
-          <label className={labelClass}>Movimiento</label>
-          <Select value={action} onValueChange={(value) => setAction(value as typeof action)}>
-            <SelectTrigger className={selectTriggerClass}>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {Object.entries(ACTION_LABELS).map(([value, label]) => (
-                <SelectItem key={value} value={value}>
-                  {label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {action === "transfer" && (
-          <div className="space-y-1.5">
-            <label className={labelClass}>Departamento destino</label>
-            <Select value={departmentId} onValueChange={setDepartmentId}>
-              <SelectTrigger className={selectTriggerClass}>
-                <SelectValue placeholder="Selecciona un departamento" />
-              </SelectTrigger>
-              <SelectContent>
-                {departments
-                  .filter((d) => d.is_active && d.id !== employee.departmentId)
-                  .map((d) => (
-                    <SelectItem key={d.id} value={String(d.id)}>
-                      {d.full_name}
-                    </SelectItem>
-                  ))}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
-
-        {action !== "retire" && (
-          <>
-            <div className="grid gap-5 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <label className={labelClass}>Sede</label>
-                <Select value={locationId} onValueChange={setLocationId}>
-                  <SelectTrigger className={selectTriggerClass}>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={KEEP}>Mantener la actual</SelectItem>
-                    {(locations ?? []).map((location) => (
-                      <SelectItem key={location.id} value={String(location.id)}>
-                        {location.address}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className={labelClass}>Cargo</label>
-                <Select value={jobTitleId} onValueChange={setJobTitleId}>
-                  <SelectTrigger className={selectTriggerClass}>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={KEEP}>Mantener el actual</SelectItem>
-                    {(jobTitles ?? []).map((title) => (
-                      <SelectItem key={title.id} value={String(title.id)}>
-                        {title.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between rounded-lg border border-slate-400/50 p-3 dark:border-slate-600/50">
-              <label className={labelClass} htmlFor="movement-is-head">
-                Jefe del departamento
-              </label>
-              <Switch id="movement-is-head" checked={isHead} onCheckedChange={setIsHead} />
-            </div>
-          </>
-        )}
-
-        <div className="space-y-1.5">
-          <label className={labelClass} htmlFor="movement-date">
-            Fecha efectiva
-          </label>
-          <Input
-            id="movement-date"
-            type="datetime-local"
-            className={fieldClass}
-            value={effectiveAt}
-            max={nowForDatetimeLocal()}
-            onChange={(event) => setEffectiveAt(event.target.value)}
-          />
-          <p className={hintClass}>Vacío = ahora.</p>
-        </div>
-
-        <div className="space-y-1.5">
-          <label className={labelClass} htmlFor="movement-reason">
-            Motivo{needsReason ? "" : " (opcional)"}
-          </label>
-          <Textarea
-            id="movement-reason"
-            className={textareaClass}
-            rows={3}
-            value={reason}
-            onChange={(event) => setReason(event.target.value)}
-          />
-        </div>
-
-        <div className="flex justify-end gap-2 border-t pt-4">
-          <Button variant="outline" onClick={onClose}>
+      footer={
+        <>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={registerMovement.isPending}
+            onClick={onClose}
+          >
             Cancelar
           </Button>
           <Button
+            type="button"
             variant={action === "retire" ? "destructive" : "default"}
             className="min-w-35"
-            disabled={!canSubmit || registerMovement.isPending}
+            disabled={!canSubmit}
             onClick={submit}
           >
-            {registerMovement.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Registrar"}
+            {registerMovement.isPending ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              "Registrar"
+            )}
           </Button>
-        </div>
+        </>
+      }
+    >
+      <div className="space-y-4">
+        <PanelSection
+          icon={ArrowRightLeft}
+          title="Movimiento"
+          hint="Qué le ocurre al empleado en este departamento."
+        >
+          <div className="space-y-4">
+            <div>
+              <PanelStaticLabel>Tipo de movimiento</PanelStaticLabel>
+              <Select value={action} onValueChange={(value) => setAction(value as MovementAction)}>
+                <SelectTrigger className={selectTriggerClass}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(ACTION_LABELS).map(([value, label]) => (
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {action === "transfer" && (
+              <div>
+                <PanelStaticLabel>Departamento destino</PanelStaticLabel>
+                <OptionCombobox
+                  value={departmentId}
+                  onChange={setDepartmentId}
+                  options={departmentOptions}
+                  placeholder="Seleccione un departamento"
+                  searchPlaceholder="Buscar departamento..."
+                />
+              </div>
+            )}
+          </div>
+        </PanelSection>
+
+        {action !== "retire" && (
+          <PanelSection
+            icon={Briefcase}
+            title="Puesto"
+            hint="Déjelo como está si solo cambia el departamento."
+          >
+            <div className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <PanelStaticLabel>Sede</PanelStaticLabel>
+                  <OptionCombobox
+                    value={locationId}
+                    onChange={setLocationId}
+                    options={locationOptions}
+                    loading={loadingLocations}
+                    searchPlaceholder="Buscar sede..."
+                  />
+                </div>
+
+                <div>
+                  <PanelStaticLabel>Cargo</PanelStaticLabel>
+                  <OptionCombobox
+                    value={jobTitleId}
+                    onChange={setJobTitleId}
+                    options={jobTitleOptions}
+                    loading={loadingTitles}
+                    searchPlaceholder="Buscar cargo..."
+                  />
+                </div>
+              </div>
+
+              <SwitchRow
+                id="movement-is-head"
+                checked={isHead}
+                onCheckedChange={setIsHead}
+                label="Jefe del departamento"
+                description="Se registra como responsable del departamento."
+              />
+            </div>
+          </PanelSection>
+        )}
+
+        <PanelSection
+          icon={ArrowRightLeft}
+          title="Registro"
+          hint="Cuándo ocurrió y por qué."
+        >
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <DateTimeField
+                label="Fecha efectiva"
+                value={effectiveAt}
+                onChange={setEffectiveAt}
+                clearable
+                emptyLabel="Ahora"
+              />
+              <p className={hintClass}>Sin fecha se registra en este momento.</p>
+            </div>
+
+            <div>
+              <PanelStaticLabel>
+                {needsReason ? "Motivo" : "Motivo (opcional)"}
+              </PanelStaticLabel>
+              <Textarea
+                id="movement-reason"
+                className={textareaClass}
+                rows={3}
+                maxLength={REASON_MAX}
+                value={reason}
+                onChange={(event) => setReason(event.target.value)}
+              />
+            </div>
+          </div>
+        </PanelSection>
       </div>
     </DialogShell>
   );
