@@ -514,7 +514,9 @@ export default function WhatsAppImportModal({ open, onClose, company }: Props) {
                           variant="ghost"
                           size="sm"
                           className="text-xs h-8 gap-1.5"
-                          onClick={() => handleLoadFlightIntoForm(flight, index)}
+                          onClick={() =>
+                            handleLoadFlightIntoForm(flight, index)
+                          }
                         >
                           Abrir solo este en formulario
                           <ArrowRight className="h-3.5 w-3.5" />

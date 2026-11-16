@@ -59,12 +59,9 @@ const CounterPage = () => {
 
   const userRoles = user?.roles?.map((r) => r.name) || [];
   const canImportWhatsApp = userRoles.some((r) =>
-    [
-      "OPERADOR_COUNTER",
-      "DESPACHADOR",
-      "OPERADOR_CARGA",
-      "SUPERUSER",
-    ].includes(r),
+    ["OPERADOR_COUNTER", "DESPACHADOR", "OPERADOR_CARGA", "SUPERUSER"].includes(
+      r,
+    ),
   );
   const canCreateManifest = userRoles.some((r) =>
     ["OPERADOR_COUNTER", "DESPACHADOR", "SUPERUSER"].includes(r),
