@@ -3,7 +3,7 @@
  * storeDocument en el backend). El visor seguro monta PDFs por defecto, así
  * que hay que decirle explícitamente cuándo el adjunto es una imagen.
  */
-const IMAGE_EXTENSIONS = ["jpg", "jpeg", "png"];
+const IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "webp"];
 
 export const isImageDocument = (filePath?: string | null): boolean => {
   if (!filePath) return false;

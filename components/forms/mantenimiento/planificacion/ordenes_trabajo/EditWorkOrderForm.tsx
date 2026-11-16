@@ -57,6 +57,26 @@ import {
 } from "@/components/forms/mantenimiento/planificacion/EditReasonFields";
 
 // ─── Schema de validación ────────────────────────────────────────────────────
+const ALLOWED_DOCUMENT_EXTENSIONS = [".pdf", ".odt", ".ods", ".odp"];
+const ALLOWED_DOCUMENT_TYPES = [
+  "application/pdf",
+  "application/vnd.oasis.opendocument.text",
+  "application/vnd.oasis.opendocument.spreadsheet",
+  "application/vnd.oasis.opendocument.presentation",
+  "application/x-vnd.oasis.opendocument.text",
+  "application/x-vnd.oasis.opendocument.spreadsheet",
+  "application/x-vnd.oasis.opendocument.presentation",
+];
+
+const isAllowedWorkOrderDocument = (file: File) => {
+  const name = file.name.toLowerCase();
+  const hasValidExt = ALLOWED_DOCUMENT_EXTENSIONS.some((ext) =>
+    name.endsWith(ext),
+  );
+  const hasValidType = ALLOWED_DOCUMENT_TYPES.includes(file.type);
+  return hasValidExt || hasValidType;
+};
+
 const editWorkOrderSchema = z.object({
   order_number: z
     .string()
@@ -71,8 +91,8 @@ const editWorkOrderSchema = z.object({
     .instanceof(File)
     .refine((f) => f.size <= 10 * 1024 * 1024, "Máximo 10MB")
     .refine(
-      (f) => f.type === "application/pdf",
-      "Solo se permiten archivos PDF",
+      (f) => isAllowedWorkOrderDocument(f),
+      "Solo se permiten archivos PDF, ODT, ODS u ODP",
     )
     .optional(),
 });
@@ -208,8 +228,8 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
       toast.error("¡Ops! El archivo excede los 10MB permitidos.");
       return;
     }
-    if (file.type !== "application/pdf") {
-      toast.error("¡Ops! Solo se permiten archivos PDF.");
+    if (!isAllowedWorkOrderDocument(file)) {
+      toast.error("¡Ops! Solo se permiten archivos PDF, ODT, ODS u ODP.");
       return;
     }
 
@@ -505,7 +525,9 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
               name="document"
               render={({ field }) => (
                 <FormItem className="md:col-span-2">
-                  <FormLabel>Documento PDF (opcional)</FormLabel>
+                  <FormLabel>
+                    Documento adjunto (PDF, ODT, ODS, ODP - opcional)
+                  </FormLabel>
                   <div className="flex items-center gap-4">
                     {/* Muestra el nombre del archivo si ya hay uno seleccionado */}
                     {field.value && (
@@ -524,7 +546,7 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
                       <div className="relative flex-1">
                         <Input
                           type="file"
-                          accept="application/pdf"
+                          accept=".pdf,.odt,.ods,.odp,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.oasis.opendocument.spreadsheet,application/vnd.oasis.opendocument.presentation"
                           disabled={isClosed || isUploading}
                           className={cn(isUploading && "opacity-50")}
                           onChange={(e) => {

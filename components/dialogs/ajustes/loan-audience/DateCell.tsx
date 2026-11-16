@@ -1,6 +1,6 @@
 "use client";
 
-import { Input } from "@/components/ui/input";
+import { DateField } from "@/components/misc/DateField";
 
 /**
  * Fecha efectiva de una elección: desde cuándo vale (alta) o desde cuándo dejó
@@ -20,17 +20,18 @@ export function DateCell({
   onChange: (value: string) => void;
 }) {
   return (
-    <div onClick={(e) => e.stopPropagation()} className="space-y-1">
-      <p className="text-[11px] leading-none text-muted-foreground">
-        {caption}
-      </p>
-      <Input
-        type="date"
+    <div
+      onClick={(e) => e.stopPropagation()}
+      className="space-y-1 max-sm:w-full"
+    >
+      <p className="text-xs leading-none text-muted-foreground">{caption}</p>
+      <DateField
         value={value}
         max={max}
-        onChange={(e) => e.target.value && onChange(e.target.value)}
+        clearable={false}
+        onChange={(next) => next && onChange(next)}
         aria-label={caption}
-        className="h-8 w-36 text-xs"
+        className="w-40 max-sm:w-full"
       />
     </div>
   );

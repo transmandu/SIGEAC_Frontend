@@ -6,15 +6,9 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import {
   AlertOctagon,
@@ -34,29 +28,28 @@ import SignedQuoteDocumentDialog from "@/components/dialogs/mantenimiento/compra
 import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
 import PurchaseOrderMenuLink from "@/components/dropdowns/mantenimiento/compras/PurchaseOrderMenuLink";
 import CreateComplementaryQuoteDialog from "@/app/[company]/compras/(general)/cotizaciones_generales/[quote_number]/_components/CreateComplementaryQuoteDialog";
+import {
+  RowAction,
+  RowActionsBar,
+  rowActionIconClass,
+  rowActionItemClass,
+  rowActionMenuClass,
+} from "./RowAction";
 
-const iconBase =
-  "size-4.5 transition-all duration-200 ease-out group-hover:scale-110";
-
-const itemBase = `
-  group
-  relative
-  flex
-  items-center
-  justify-center
-  size-9
-  rounded-xl
-  transition-all
-  duration-200
-  ease-out
-  hover:bg-muted
-  hover:shadow-xs
-  active:scale-95
-`;
-
-const QuoteDropdownActions = ({ quote }: { quote: Quote }) => {
+/**
+ * `variant="menu"` es el menú flotante de la fila; `variant="bar"` pone las
+ * mismas acciones en una barra delgada de una sola línea (panel lateral).
+ */
+const QuoteDropdownActions = ({
+  quote,
+  variant = "menu",
+}: {
+  quote: Quote;
+  variant?: "menu" | "bar";
+}) => {
   const { user } = useAuth();
   const { selectedCompany } = useCompanyStore();
+  const inBar = variant === "bar";
 
   const [openDropdown, setOpenDropdown] = useState(false);
   const [openReject, setOpenReject] = useState(false);
@@ -85,242 +78,132 @@ const QuoteDropdownActions = ({ quote }: { quote: Quote }) => {
 
   const shouldFetchPO = canViewPO && !!selectedCompany?.slug && !!quote.id;
 
+  const run = (action: () => void) => () => {
+    setOpenDropdown(false);
+    action();
+  };
+
+  const actions = (
+    <>
+      {canApproveOrReject && (
+        <RowAction
+          inBar={inBar}
+          icon={ClipboardCheck}
+          tone="text-emerald-600"
+          title="Aprobar cotización"
+          onSelect={run(() => setOpenApprove(true))}
+        />
+      )}
+
+      {canApproveOrReject && (
+        <RowAction
+          inBar={inBar}
+          icon={ClipboardX}
+          tone="text-orange-600"
+          title="Rechazar cotización"
+          onSelect={run(() => setOpenReject(true))}
+        />
+      )}
+
+      <RowAction
+        inBar={inBar}
+        icon={FileDown}
+        tone="text-blue-600"
+        title="Descargar formato"
+        onSelect={run(() => setOpenPdf(true))}
+      />
+
+      <RowAction
+        inBar={inBar}
+        icon={quote.signed_document ? FileCheck2 : FileUp}
+        tone={quote.signed_document ? "text-emerald-600" : "text-slate-600"}
+        title={
+          quote.signed_document
+            ? "Ver / reemplazar documento firmado"
+            : "Cargar documento firmado"
+        }
+        onSelect={run(() => setOpenSigned(true))}
+      />
+
+      {canCreateComplementary && (
+        <RowAction
+          inBar={inBar}
+          icon={PackagePlus}
+          tone="text-primary"
+          title="Crear cotización complementaria"
+          onSelect={run(() => setOpenComplementary(true))}
+        />
+      )}
+
+      {canViewPO && selectedCompany?.slug && (
+        <PurchaseOrderMenuLink
+          company={selectedCompany.slug}
+          quoteId={quote.id}
+          enabled={shouldFetchPO}
+          itemClassName={rowActionItemClass}
+          iconClassName={rowActionIconClass}
+          inBar={inBar}
+        />
+      )}
+
+      {canDelete && (
+        <RowAction
+          inBar={inBar}
+          icon={Trash2}
+          tone="text-red-600"
+          title="Eliminar cotización"
+          onSelect={run(() => setOpenDelete(true))}
+        />
+      )}
+
+      {isSuperUser && (
+        <RowAction
+          inBar={inBar}
+          icon={AlertOctagon}
+          tone="text-red-700"
+          title="Eliminar en cascada (SuperUser)"
+          onSelect={run(() => setOpenCascadeDelete(true))}
+        />
+      )}
+    </>
+  );
+
   return (
     <TooltipProvider delayDuration={120}>
       <>
-        <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="
-                size-8
-                rounded-xl
-                border border-transparent
-                transition-all duration-200
-                hover:bg-muted/70
-                hover:border-border/50
-                hover:shadow-xs
-                data-[state=open]:bg-muted
-              "
+        {inBar ? (
+          <RowActionsBar>{actions}</RowActionsBar>
+        ) : (
+          <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="
+                  size-8
+                  rounded-xl
+                  border border-transparent
+                  transition-all duration-200
+                  hover:bg-muted/70
+                  hover:border-border/50
+                  hover:shadow-xs
+                  data-[state=open]:bg-muted
+                "
+              >
+                <MoreHorizontal className="size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent
+              align="center"
+              sideOffset={3}
+              collisionPadding={8}
+              className={rowActionMenuClass}
             >
-              <MoreHorizontal className="size-4" />
-            </Button>
-          </DropdownMenuTrigger>
-
-          <DropdownMenuContent
-            align="center"
-            sideOffset={3}
-            className="
-              flex items-center justify-center gap-1.5
-              rounded-2xl
-              border border-border/50
-              bg-background/90
-              backdrop-blur-xl
-              shadow-xl
-              p-1.5
-              overflow-visible
-              animate-in fade-in zoom-in-95 duration-200
-            "
-          >
-            {/* APPROVE */}
-            {canApproveOrReject && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span>
-                    <DropdownMenuItem
-                      asChild
-                      className="p-0 focus:bg-transparent"
-                    >
-                      <button
-                        onClick={() => {
-                          setOpenDropdown(false);
-                          setOpenApprove(true);
-                        }}
-                        className={`${itemBase} text-emerald-600`}
-                      >
-                        <ClipboardCheck className={iconBase} />
-                      </button>
-                    </DropdownMenuItem>
-                  </span>
-                </TooltipTrigger>
-
-                <TooltipContent>Aprobar cotización</TooltipContent>
-              </Tooltip>
-            )}
-
-            {/* REJECT */}
-            {canApproveOrReject && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span>
-                    <DropdownMenuItem
-                      asChild
-                      className="p-0 focus:bg-transparent"
-                    >
-                      <button
-                        onClick={() => {
-                          setOpenDropdown(false);
-                          setOpenReject(true);
-                        }}
-                        className={`${itemBase} text-orange-600`}
-                      >
-                        <ClipboardX className={iconBase} />
-                      </button>
-                    </DropdownMenuItem>
-                  </span>
-                </TooltipTrigger>
-
-                <TooltipContent>Rechazar cotización</TooltipContent>
-              </Tooltip>
-            )}
-
-            {/* FORMATO PARA FIRMA */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span>
-                  <DropdownMenuItem
-                    asChild
-                    className="p-0 focus:bg-transparent"
-                  >
-                    <button
-                      onClick={() => {
-                        setOpenDropdown(false);
-                        setOpenPdf(true);
-                      }}
-                      className={`${itemBase} text-blue-600`}
-                    >
-                      <FileDown className={iconBase} />
-                    </button>
-                  </DropdownMenuItem>
-                </span>
-              </TooltipTrigger>
-
-              <TooltipContent>Descargar formato</TooltipContent>
-            </Tooltip>
-
-            {/* DOCUMENTO FIRMADO */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span>
-                  <DropdownMenuItem
-                    asChild
-                    className="p-0 focus:bg-transparent"
-                  >
-                    <button
-                      onClick={() => {
-                        setOpenDropdown(false);
-                        setOpenSigned(true);
-                      }}
-                      className={`${itemBase} ${quote.signed_document ? "text-emerald-600" : "text-slate-600"}`}
-                    >
-                      {quote.signed_document ? (
-                        <FileCheck2 className={iconBase} />
-                      ) : (
-                        <FileUp className={iconBase} />
-                      )}
-                    </button>
-                  </DropdownMenuItem>
-                </span>
-              </TooltipTrigger>
-
-              <TooltipContent>
-                {quote.signed_document
-                  ? "Ver / reemplazar documento firmado"
-                  : "Cargar documento firmado"}
-              </TooltipContent>
-            </Tooltip>
-
-            {/* COMPLEMENTARY QUOTE */}
-            {canCreateComplementary && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span>
-                    <DropdownMenuItem
-                      asChild
-                      className="p-0 focus:bg-transparent"
-                    >
-                      <button
-                        onClick={() => {
-                          setOpenDropdown(false);
-                          setOpenComplementary(true);
-                        }}
-                        className={`${itemBase} text-primary`}
-                      >
-                        <PackagePlus className={iconBase} />
-                      </button>
-                    </DropdownMenuItem>
-                  </span>
-                </TooltipTrigger>
-
-                <TooltipContent>Crear cotización complementaria</TooltipContent>
-              </Tooltip>
-            )}
-
-            {/* PO LINK */}
-            {canViewPO && selectedCompany?.slug && (
-              <PurchaseOrderMenuLink
-                company={selectedCompany.slug}
-                quoteId={quote.id}
-                enabled={shouldFetchPO}
-                itemClassName={itemBase}
-                iconClassName={iconBase}
-              />
-            )}
-
-            {/* DELETE */}
-            {canDelete && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span>
-                    <DropdownMenuItem
-                      asChild
-                      className="p-0 focus:bg-transparent"
-                    >
-                      <button
-                        onClick={() => {
-                          setOpenDropdown(false);
-                          setOpenDelete(true);
-                        }}
-                        className={`${itemBase} text-red-600`}
-                      >
-                        <Trash2 className={iconBase} />
-                      </button>
-                    </DropdownMenuItem>
-                  </span>
-                </TooltipTrigger>
-
-                <TooltipContent>Eliminar cotización</TooltipContent>
-              </Tooltip>
-            )}
-
-            {/* CASCADE DELETE (SUPERUSER) */}
-            {isSuperUser && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span>
-                    <DropdownMenuItem
-                      asChild
-                      className="p-0 focus:bg-transparent"
-                    >
-                      <button
-                        onClick={() => {
-                          setOpenDropdown(false);
-                          setOpenCascadeDelete(true);
-                        }}
-                        className={`${itemBase} text-red-700`}
-                      >
-                        <AlertOctagon className={iconBase} />
-                      </button>
-                    </DropdownMenuItem>
-                  </span>
-                </TooltipTrigger>
-
-                <TooltipContent>Eliminar en cascada (SuperUser)</TooltipContent>
-              </Tooltip>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
+              {actions}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
 
         <QuoteDropdownDialogs
           quote={quote}

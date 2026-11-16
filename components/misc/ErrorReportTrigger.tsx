@@ -40,32 +40,39 @@ export default function ErrorReportTrigger() {
       <TooltipProvider disableHoverableContent>
         <Tooltip delayDuration={100}>
           <TooltipTrigger asChild>
-            <button
+            <motion.button
+              initial="rest"
+              whileHover="hover"
               onClick={handleClick}
               aria-label="Reportar un problema"
               className={cn(
                 "glass-control",
                 "relative flex items-center justify-center",
-                "h-9 w-9 rounded-full",
+                "size-9 rounded-full",
                 "border",
                 "text-foreground/90",
                 "hover:text-foreground",
                 "active:scale-95",
-                open && "bg-muted/60"
+                open && "bg-muted/60",
               )}
             >
-              <motion.div
-                whileHover={{ scale: 1.12, rotate: -8 }}
-                whileTap={{ scale: 0.9 }}
+              <motion.span
+                variants={{
+                  rest: { scale: 1, rotate: 0 },
+                  hover: { scale: 1.12, rotate: -8 },
+                }}
                 transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                className="flex"
               >
-                <HeartHandshake className="h-4 w-4" />
-              </motion.div>
-            </button>
+                <HeartHandshake className="size-4" />
+              </motion.span>
+            </motion.button>
           </TooltipTrigger>
 
           <TooltipContent side="bottom" className="z-1001">
-            {isSuperUser ? "Gestión de reportes de SIGEAC" : "Reportar un problema a IT"}
+            {isSuperUser
+              ? "Gestión de reportes de SIGEAC"
+              : "Reportar un problema a IT"}
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>

@@ -41,13 +41,14 @@ export const form_columns: AppColumnDef<IncomingArticle>[] = [
     meta: { title: "Nro. Orden" },
     cell: ({ row }) => (
       <p className="text-center">{row.original.order_number ?? "-"}</p>
-    )
+    ),
   },
   {
     accessorKey: "batch.name",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Descripción" />
     ),
+    meta: { title: "Descripción" },
     cell: ({ row }) => (
       <p className="text-center flex justify-center font-bold">
         {row.original.batch ? row.original.batch.name : "-"}
@@ -59,6 +60,7 @@ export const form_columns: AppColumnDef<IncomingArticle>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Nro. Parte" />
     ),
+    meta: { title: "Nro. Parte" },
     cell: ({ row }) => (
       <p className="text-center flex justify-center font-bold">
         {row.original.part_number}
@@ -70,6 +72,7 @@ export const form_columns: AppColumnDef<IncomingArticle>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Nro. Serie" />
     ),
+    meta: { title: "Nro. Serie" },
     cell: ({ row }) => (
       <p className="text-center font-medium">{row.original.serial}</p>
     ),

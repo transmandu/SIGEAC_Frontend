@@ -33,23 +33,32 @@ import { useUpdateMaintenanceAircraft } from "@/actions/mantenimiento/planificac
 import LoadingPage from "@/components/misc/LoadingPage";
 import { useGetClients } from "@/hooks/mantenimiento/clientes/useGetClients";
 import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufacturers";
-import { parseISO } from "date-fns";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { formatNumber } from "@/lib/formatNumber";
+import { formatDate } from "@/lib/utils";
+import { parseCalendarDate, toCalendarPayload } from "@/lib/date";
 import { useOnChange } from "@/hooks/useOnChange";
+import { locationLabel } from "@/lib/locations";
+import { useGetLocationsByCompany } from "@/hooks/sistema/useGetLocationsByCompany";
+import { useCreateClient } from "@/actions/mantenimiento/clientes/actions";
+import { partLabel } from "@/app/[company]/planificacion/aeronaves/_components/partLabel";
 
 interface AircraftPart {
   id?: number; // ID para actualizaciones
-  part_name: string;
+  type: string;
   part_number: string;
   serial: string;
   manufacturer_id: string;
-  time_since_new?: number; // Time Since New
-  time_since_overhaul?: number; // Time Since Overhaul
-  cycles_since_new?: number; // Cycles Since New
-  cycles_since_overhaul?: number; // Cycles Since Overhaul
+  ata_chapter?: string | null;
+  position?: string | null;
+  part_order?: number | null;
+  time_since_new?: number | null; // Time Since New
+  time_since_overhaul?: number | null; // Time Since Overhaul
+  cycles_since_new?: number | null; // Cycles Since New
+  cycles_since_overhaul?: number | null; // Cycles Since Overhaul
   condition_type: "NEW" | "OVERHAULED";
   is_father: boolean;
+  removed_date?: string | null;
   sub_parts?: AircraftPart[];
 }
 
@@ -79,17 +88,17 @@ interface AircraftAssignment {
 const fmtNumber = (n: unknown) =>
   formatNumber(n, { maxDecimals: 3, fallback: "0" });
 
-// Función para parsear fecha ISO sin problemas de timezone
-const parseISODate = (dateString: string | Date | null | undefined): Date => {
-  if (!dateString) return new Date();
-  if (dateString instanceof Date) return dateString;
+// 0 es un valor válido; solo null/undefined/"" significan "no aplica".
+const fmtCounter = (n: unknown) =>
+  n === null || n === undefined || n === ""
+    ? "No aplica"
+    : formatNumber(n, { maxDecimals: 3, fallback: "No aplica" });
 
-  try {
-    return parseISO(dateString);
-  } catch {
-    return new Date();
-  }
-};
+/** Contador de una parte tal como llega (hasta 3 decimales); null si la parte no lo lleva. */
+const toCounter = (value: unknown): number | null =>
+  value === null || value === undefined || value === ""
+    ? null
+    : Math.round(Number(value) * 1000) / 1000;
 
 function PartsSummaryTree({
   parts,
@@ -101,20 +110,24 @@ function PartsSummaryTree({
   return (
     <div className={`space-y-2 ${level > 0 ? "pl-4 border-l" : ""}`}>
       {parts.map((part, index) => (
-        <Collapsible
-          key={`${part.id ?? part.part_number ?? part.part_name}-${index}`}
-        >
+        <Collapsible key={`${part.id ?? part.part_number}-${index}`}>
           <div className="border rounded-lg">
             <CollapsibleTrigger className="w-full">
               <div className="flex items-center justify-between p-3 hover:bg-muted/50 transition-colors text-left">
                 <div className="flex items-center gap-2">
                   <ChevronDown className="h-4 w-4 transition-transform [[data-state=closed]>&]:-rotate-90" />
                   <div className="flex flex-col">
-                    <span className="font-medium text-sm">
-                      {part.part_name || `Parte ${index + 1}`}
+                    <span
+                      className={`font-medium text-sm ${part.removed_date ? "line-through text-muted-foreground" : ""}`}
+                    >
+                      {part.type ? partLabel(part) : `Parte ${index + 1}`}
                     </span>
                     <span className="text-xs text-muted-foreground">
-                      {level === 0 ? "Parte principal" : "Subparte"}
+                      {part.removed_date
+                        ? `Removida el ${formatDate(part.removed_date)}`
+                        : level === 0
+                          ? "Parte principal"
+                          : "Subparte"}
                     </span>
                   </div>
                 </div>
@@ -137,20 +150,40 @@ function PartsSummaryTree({
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
                   <div>
+                    <span className="font-medium">Serial:</span>{" "}
+                    {part.serial || "N/A"}
+                  </div>
+                  <div>
+                    <span className="font-medium">ATA:</span>{" "}
+                    {part.ata_chapter || "N/A"}
+                  </div>
+                  {level === 0 && (
+                    <>
+                      <div>
+                        <span className="font-medium">Posición:</span>{" "}
+                        {part.position || "N/A"}
+                      </div>
+                      <div>
+                        <span className="font-medium">Orden:</span>{" "}
+                        {part.part_order ?? "N/A"}
+                      </div>
+                    </>
+                  )}
+                  <div>
                     <span className="font-medium">TSN:</span>{" "}
-                    {fmtNumber(part.time_since_new ?? 0)}
+                    {fmtCounter(part.time_since_new)}
                   </div>
                   <div>
                     <span className="font-medium">TSO:</span>{" "}
-                    {fmtNumber(part.time_since_overhaul ?? 0)}
+                    {fmtCounter(part.time_since_overhaul)}
                   </div>
                   <div>
                     <span className="font-medium">CSN:</span>{" "}
-                    {fmtNumber(part.cycles_since_new ?? 0)}
+                    {fmtCounter(part.cycles_since_new)}
                   </div>
                   <div>
                     <span className="font-medium">CSO:</span>{" "}
-                    {fmtNumber(part.cycles_since_overhaul ?? 0)}
+                    {fmtCounter(part.cycles_since_overhaul)}
                   </div>
                 </div>
 
@@ -184,34 +217,17 @@ function transformExistingPartsToFormFormat(apiParts: any[]): AircraftPart[] {
   return apiParts.map((part) => {
     return {
       ...(part.id && { id: part.id }),
-      part_name: part.part_name,
       part_number: part.part_number,
       serial: part.serial || "",
       manufacturer_id: part.manufacturer_id?.toString() || "",
-      type: part.type
-        ? String(part.type).charAt(0).toUpperCase() +
-          String(part.type).slice(1).toLowerCase()
-        : "",
+      type: part.type ? String(part.type).trim().toUpperCase() : "",
       ata_chapter: part.ata_chapter || part.ata_number || part.ata || "",
-      position: part.position ?? (part as any).position ?? null,
+      position: part.position ?? null,
       part_order: part.part_order ?? null,
-      time_since_new:
-        (part.time_since_new ?? part.part_hours) != null
-          ? Math.round(Number(part.time_since_new ?? part.part_hours) * 100) /
-            100
-          : null,
-      time_since_overhaul:
-        part.time_since_overhaul != null
-          ? Math.round(Number(part.time_since_overhaul) * 100) / 100
-          : null,
-      cycles_since_new:
-        (part.cycles_since_new ?? part.part_cycles) != null
-          ? Math.round(Number(part.cycles_since_new ?? part.part_cycles))
-          : null,
-      cycles_since_overhaul:
-        part.cycles_since_overhaul != null
-          ? Math.round(Number(part.cycles_since_overhaul))
-          : null,
+      time_since_new: toCounter(part.time_since_new),
+      time_since_overhaul: toCounter(part.time_since_overhaul),
+      cycles_since_new: toCounter(part.cycles_since_new),
+      cycles_since_overhaul: toCounter(part.cycles_since_overhaul),
       condition_type:
         part.condition_type === "OVERHAULED" ? "OVERHAULED" : "NEW",
       is_father:
@@ -237,6 +253,7 @@ export default function EditAircraftPage({
   const [partsData, setPartsData] = useState<PartsData>({ parts: [] });
   const [isInitialized, setIsInitialized] = useState(false);
   const { updateMaintenanceAircraft } = useUpdateMaintenanceAircraft();
+  const { createClient } = useCreateClient();
   const [reason, setReason] = useState<EditReasonValue>({});
   const [reasonError, setReasonError] = useState<string>();
   const { selectedCompany } = useCompanyStore();
@@ -254,6 +271,7 @@ export default function EditAircraftPage({
 
   // Obtener lista de fabricantes para mostrar el nombre en el resumen
   const { data: manufacturers } = useGetManufacturers(selectedCompany?.slug);
+  const { data: locations } = useGetLocationsByCompany(selectedCompany?.slug);
 
   const transformAssignmentsToFormFormat = useCallback(
     (assignments: AircraftAssignment[] = []): AircraftPart[] => {
@@ -277,9 +295,9 @@ export default function EditAircraftPage({
               null,
             position: assignmentData.position ?? src?.position ?? null,
             part_order: assignmentData.part_order ?? src?.part_order ?? null,
-            time_since_new: src?.time_since_new ?? src?.part_hours ?? null,
+            time_since_new: src?.time_since_new ?? null,
             time_since_overhaul: src?.time_since_overhaul ?? null,
-            cycles_since_new: src?.cycles_since_new ?? src?.part_cycles ?? null,
+            cycles_since_new: src?.cycles_since_new ?? null,
             cycles_since_overhaul: src?.cycles_since_overhaul ?? null,
           };
         })
@@ -320,100 +338,85 @@ export default function EditAircraftPage({
         model: (aircraft as any).model || "",
         acronym: aircraft.acronym || "",
         flight_hours: aircraft.flight_hours
-          ? Number(aircraft.flight_hours).toFixed(2)
-          : "0.00",
+          ? Number(aircraft.flight_hours).toFixed(3)
+          : "0.000",
+        // Sin redondear: un valor no entero debe verse (y corregirse) en el
+        // formulario, no cambiar en silencio al guardar.
         flight_cycles: aircraft.flight_cycles
-          ? Math.round(Number(aircraft.flight_cycles)).toString()
+          ? String(Number(aircraft.flight_cycles))
           : "0",
-        fabricant_date: parseISODate(aircraft.fabricant_date),
+        fabricant_date:
+          parseCalendarDate(aircraft.fabricant_date) ?? new Date(),
         location_id: aircraft.location?.id?.toString() || "",
         comments: aircraft.comments || "",
       });
 
-      // Inicializar datos de las partes
-      if (aircraft.aircraft_parts?.length > 0) {
-        setPartsData({
-          parts: transformExistingPartsToFormFormat(aircraft.aircraft_parts),
-        });
-        setIsInitialized(true);
-        return;
-      }
-
-      if ((aircraft as any).aircraft_assignments?.length > 0) {
-        setPartsData({
-          parts: transformAssignmentsToFormFormat(
-            (aircraft as any).aircraft_assignments,
-          ),
-        });
-        setIsInitialized(true);
-        return;
-      }
-
-      setPartsData({ parts: [] });
+      // Las partes vienen en las asignaciones vigentes (`aircraft_assignments`).
+      setPartsData({
+        parts: transformAssignmentsToFormFormat(
+          (aircraft as any).aircraft_assignments ?? [],
+        ),
+      });
       setIsInitialized(true);
     },
   );
 
   // Función para transformar las partes del formulario al formato API
-  const transformPart = (part: AircraftPart, originalPart?: any): any => {
-    const { ...rest } = part;
-
-    return {
-      ...(originalPart?.id && { id: originalPart.id }), // Preservar ID para actualizaciones
-      ...rest,
-      part_type: originalPart?.part_type || "engine",
-      time_since_new:
-        rest.time_since_new !== null && rest.time_since_new !== undefined
-          ? Math.round((rest.time_since_new as number) * 100) / 100
-          : null,
-      time_since_overhaul:
-        rest.time_since_overhaul !== null &&
-        rest.time_since_overhaul !== undefined
-          ? Math.round((rest.time_since_overhaul as number) * 100) / 100
-          : null,
-      cycles_since_new:
-        rest.cycles_since_new !== null && rest.cycles_since_new !== undefined
-          ? Math.round(rest.cycles_since_new as number)
-          : null,
-      cycles_since_overhaul:
-        rest.cycles_since_overhaul !== null &&
-        rest.cycles_since_overhaul !== undefined
-          ? Math.round(rest.cycles_since_overhaul as number)
-          : null,
-      ata_chapter:
-        (rest as any).ata_chapter ?? originalPart?.ata_chapter ?? null,
-      position: (rest as any).position ?? originalPart?.position ?? null,
-      part_order: (rest as any).part_order ?? originalPart?.part_order ?? null,
-      sub_parts: part.sub_parts?.map((subPart, index) => {
-        const originalSubPart = originalPart?.sub_parts?.[index];
-        return transformPart(subPart, originalSubPart);
-      }),
-    };
-  };
+  // El formulario ya trae el `id` de cada parte existente; las nuevas no lo traen.
+  const transformPart = (part: AircraftPart): any => ({
+    ...part,
+    time_since_new: toCounter(part.time_since_new),
+    time_since_overhaul: toCounter(part.time_since_overhaul),
+    cycles_since_new: toCounter(part.cycles_since_new),
+    cycles_since_overhaul: toCounter(part.cycles_since_overhaul),
+    ata_chapter: part.ata_chapter ?? null,
+    position: part.position ?? null,
+    part_order: part.part_order ?? null,
+    sub_parts: part.sub_parts?.map(transformPart),
+  });
 
   const handleSubmit = async () => {
     if (!aircraftData || !partsData || !aircraft) return;
 
     try {
-      const transformedParts = partsData.parts.map((part, index) =>
-        transformPart(part, aircraft.aircraft_parts?.[index]),
-      );
+      const transformedParts = partsData.parts.map(transformPart);
+
+      // El cliente se puede cambiar en el paso 1: se resuelve por nombre (o se
+      // crea), igual que al registrar. Antes se enviaba siempre el original.
+      const clientName = aircraftData.client_name.trim();
+      let clientId = aircraft.client?.id?.toString() || "";
+      if (
+        clientName.toUpperCase() !== (aircraft.client?.name ?? "").toUpperCase()
+      ) {
+        const existingClient = clients?.find(
+          (client) =>
+            client.name.trim().toUpperCase() === clientName.toUpperCase(),
+        );
+        if (existingClient) {
+          clientId = existingClient.id.toString();
+        } else {
+          const created = await createClient.mutateAsync({
+            company: selectedCompany!.slug,
+            data: { name: clientName, authorizing: aircraftData.authorizing },
+          });
+          clientId = (created.client?.id || created.id).toString();
+        }
+      }
 
       await updateMaintenanceAircraft.mutateAsync({
         acronym: aircraft.acronym,
         data: {
           aircraft: {
             manufacturer_id: aircraftData.manufacturer_id,
-            client_id: aircraft.client?.id?.toString() || "",
+            client_id: clientId,
             serial: aircraftData.serial,
             model: aircraftData.model,
             acronym: aircraftData.acronym,
             flight_hours: Number(aircraftData.flight_hours),
             flight_cycles: Number(aircraftData.flight_cycles),
-            fabricant_date: aircraftData.fabricant_date,
+            fabricant_date: toCalendarPayload(aircraftData.fabricant_date)!,
             comments: aircraftData.comments,
             location_id: aircraftData.location_id,
-            type: "MAINTENANCE",
           },
           parts: transformedParts,
           ...reason,
@@ -573,6 +576,18 @@ export default function EditAircraftPage({
                         </div>
 
                         <div className="text-sm text-muted-foreground">
+                          Ubicación
+                        </div>
+                        <div className="text-sm font-medium">
+                          {locationLabel(
+                            locations?.find(
+                              (l) =>
+                                l.id.toString() === aircraftData?.location_id,
+                            ),
+                          )}
+                        </div>
+
+                        <div className="text-sm text-muted-foreground">
                           Serial
                         </div>
                         <div className="text-sm font-medium">
@@ -658,7 +673,10 @@ export default function EditAircraftPage({
                       Cancelar
                     </Button>
                     <Button
-                      disabled={updateMaintenanceAircraft.isPending}
+                      disabled={
+                        updateMaintenanceAircraft.isPending ||
+                        createClient.isPending
+                      }
                       type="button"
                       onClick={handleSubmit}
                       className="min-w-45"

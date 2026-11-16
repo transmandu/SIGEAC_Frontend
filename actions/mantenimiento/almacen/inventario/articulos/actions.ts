@@ -1000,6 +1000,13 @@ export const useConfirmIncomingArticle = () => {
 
       queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
       queryClient.invalidateQueries({ queryKey: ["articles"] });
+      // La ficha que abrió la inspección queda obsoleta, pero sin refrescarla
+      // ahora: la pantalla está por salir y mostraría un instante "ya no está
+      // pendiente" antes de irse. Se vuelve a pedir al abrirla de nuevo.
+      queryClient.invalidateQueries({
+        queryKey: ["article"],
+        refetchType: "none",
+      });
       if (company) {
         queryClient.invalidateQueries({
           queryKey: ["articles", company, "INCOMING"],
@@ -1188,6 +1195,10 @@ export const useSendToQuarantine = () => {
 
       queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
       queryClient.invalidateQueries({ queryKey: ["articles"] });
+      queryClient.invalidateQueries({
+        queryKey: ["article"],
+        refetchType: "none",
+      });
       if (company) {
         queryClient.invalidateQueries({
           queryKey: ["articles", company, "INCOMING"],

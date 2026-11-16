@@ -11,29 +11,25 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import {
-  formatQuarantineDate,
-  quarantineRisk,
-} from "@/lib/warehouse/quarantine";
+import { quarantineRisk } from "@/lib/warehouse/quarantine";
 import type { QuarantineRecord } from "@/types/quarantine";
-import { type AppColumnDef } from "@/lib/table";
+import { type AppColumnDef, type AppRow } from "@/lib/table";
+import { useQuarantineLegalDays } from "@/hooks/general/useCompanySettings";
 import {
   AlertTriangle,
-  CalendarClock,
   CheckCircle2,
   ChevronRight,
   FileWarning,
-  Repeat2,
   ShieldCheck,
-  User,
   Wrench,
 } from "lucide-react";
 import { useState } from "react";
+import { QuarantineReasonCell } from "./_components/QuarantineReasonCell";
 import { ResolveQuarantineDialog } from "./_components/ResolveQuarantineDialog";
 
 const pendingDocumentCount = (record: QuarantineRecord) =>
   (record.article?.document_requirements ?? []).filter(
-    (req) => req.documents.length === 0,
+    (req) => (req.documents ?? []).length === 0,
   ).length;
 
 /**
@@ -51,7 +47,7 @@ function ResolveAction({ record }: { record: QuarantineRecord }) {
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
+            <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
               {record.status === "PENDING_REINSPECTION" ? (
                 <>
                   <ShieldCheck className="size-3.5 text-sky-500" />
@@ -84,7 +80,7 @@ function ResolveAction({ record }: { record: QuarantineRecord }) {
           e.stopPropagation();
           setOpen(true);
         }}
-        className="h-7 gap-1.5 rounded-full border border-slate-200/60 bg-white/50 px-3 text-[11px] hover:bg-slate-100 dark:border-slate-700/60 dark:bg-slate-800/40 dark:hover:bg-slate-800"
+        className="h-7 gap-1.5 rounded-md border border-slate-200/60 bg-white/50 px-3 text-xs hover:bg-slate-100 dark:border-slate-700/60 dark:bg-slate-800/40 dark:hover:bg-slate-800"
       >
         {pendingDocs > 0 ? (
           <FileWarning className="size-3 text-amber-500" />
@@ -93,7 +89,7 @@ function ResolveAction({ record }: { record: QuarantineRecord }) {
         )}
         Resolver
         {pendingDocs > 0 && (
-          <span className="flex size-3.5 items-center justify-center rounded-full bg-amber-500 text-[9px] font-semibold text-white">
+          <span className="flex size-4 items-center justify-center rounded-full bg-amber-500 text-[10px] font-semibold text-white">
             {pendingDocs}
           </span>
         )}
@@ -110,12 +106,74 @@ function ResolveAction({ record }: { record: QuarantineRecord }) {
   );
 }
 
-export const getColumns = (
-  legalDays: number,
-): AppColumnDef<QuarantineRecord>[] => [
+const ActionsColumnCell = ({ row }: { row: AppRow<QuarantineRecord> }) => (
+  <div
+    className="flex w-full justify-center"
+    onClick={(e) => e.stopPropagation()}
+  >
+    <ResolveAction record={row.original} />
+  </div>
+);
+
+// Componentes de módulo y no flechas dentro de las columnas: React identifica
+// un componente por su función, así que una flecha nueva desmontaría la celda
+// y borraría su estado. Lo que antes entraba por parámetros se lee aquí.
+const LegalWindowColumnCell = ({ row }: { row: AppRow<QuarantineRecord> }) => {
+  const legalDays = useQuarantineLegalDays();
+
+  const record = row.original;
+  const risk = quarantineRisk(
+    record.quarantine_entry_date,
+    legalDays,
+    record.days_in_quarantine,
+  );
+
+  if (risk.days === null) {
+    return (
+      <div className="flex w-full justify-center">
+        <span className="text-xs text-muted-foreground/60">Sin fecha</span>
+      </div>
+    );
+  }
+
+  const expired = risk.state === "expired";
+  const warning = risk.state === "warning";
+
+  return (
+    <div className="flex w-full flex-col items-center gap-1">
+      <Badge
+        className={cn(
+          "select-none whitespace-nowrap rounded-md border h-6 px-2.5 text-xs font-medium",
+          expired &&
+            "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300",
+          warning &&
+            "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300",
+          !expired &&
+            !warning &&
+            "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+        )}
+      >
+        {expired ? "Vencido" : warning ? "Por vencer" : "En plazo"}
+      </Badge>
+
+      <span className="text-sm font-semibold tabular-nums">
+        {risk.days} / {legalDays}
+      </span>
+
+      <span className="text-xs tabular-nums text-muted-foreground">
+        {risk.remaining !== null && risk.remaining >= 0
+          ? `Restan ${risk.remaining} días`
+          : `Vencido por ${Math.abs(risk.remaining ?? 0)} días`}
+      </span>
+    </div>
+  );
+};
+
+export const columns: AppColumnDef<QuarantineRecord>[] = [
   {
     id: "expander",
     size: 50,
+    meta: { title: "historial de cuarentena" },
     header: () => null,
     cell: ({ row }) => (
       <div className="flex w-full justify-center">
@@ -136,6 +194,7 @@ export const getColumns = (
   {
     accessorKey: "article.part_number",
     size: 210,
+    meta: { title: "Número de Parte" },
 
     header: ({ column }) => (
       <div className="flex w-full justify-center">
@@ -151,7 +210,7 @@ export const getColumns = (
         <div className="flex w-full justify-start">
           <div className="min-w-0 space-y-1">
             <div className="flex items-center gap-2">
-              <span className="select-none rounded-md border border-emerald-200/50 bg-emerald-100/60 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-widest text-emerald-700 dark:border-emerald-800/40 dark:bg-emerald-900/30 dark:text-emerald-300">
+              <span className="shrink-0 whitespace-nowrap select-none rounded-md border border-emerald-200/50 bg-emerald-100/60 px-1.5 py-0.5 text-xs font-semibold text-emerald-700 dark:border-emerald-800/40 dark:bg-emerald-900/30 dark:text-emerald-300">
                 P/N
               </span>
               <span className="rounded px-1 py-0.5 text-[13px] font-semibold tracking-tight text-slate-900 dark:text-slate-100">
@@ -163,7 +222,7 @@ export const getColumns = (
             <div className="flex items-center gap-2">
               <span
                 className={cn(
-                  "rounded-md px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-widest",
+                  "shrink-0 whitespace-nowrap rounded-md px-1.5 py-0.5 text-xs font-semibold",
                   serial
                     ? "border border-slate-300/40 bg-slate-200/60 text-slate-600 dark:border-slate-600/40 dark:bg-slate-700/40 dark:text-slate-300"
                     : "bg-slate-100 text-slate-400 dark:bg-slate-800",
@@ -172,11 +231,11 @@ export const getColumns = (
                 S/N
               </span>
               {serial ? (
-                <span className="font-mono text-[11px] text-muted-foreground">
+                <span className="font-mono text-xs text-muted-foreground">
                   {serial}
                 </span>
               ) : (
-                <span className="text-[11px] italic text-muted-foreground/40">
+                <span className="text-xs italic text-muted-foreground/60">
                   Sin serial
                 </span>
               )}
@@ -190,6 +249,12 @@ export const getColumns = (
   {
     accessorKey: "article.batch.name",
     size: 190,
+    meta: {
+      title: "Descripción",
+      mobile: "wide",
+      mobileAlign: "center",
+      mobileOrder: 1,
+    },
 
     header: ({ column }) => (
       <div className="flex w-full items-center justify-center text-center">
@@ -208,7 +273,8 @@ export const getColumns = (
 
   {
     id: "reason",
-    size: 260,
+    size: 340,
+    meta: { title: "Motivo de la retención", mobile: "wide", mobileOrder: 4 },
 
     header: ({ column }) => (
       <div className="flex w-full justify-center">
@@ -218,39 +284,13 @@ export const getColumns = (
 
     accessorFn: (row) => row.reason,
 
-    cell: ({ row }) => {
-      const record = row.original;
-      const attempts = record.cycles?.length ?? 0;
-
-      return (
-        <div className="space-y-1">
-          <p className="max-w-65 text-sm text-slate-800 dark:text-slate-200">
-            {record.reason}
-          </p>
-          <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
-            <span className="inline-flex items-center gap-1">
-              <User className="size-3" />
-              {record.inspector ?? "—"}
-            </span>
-            <span className="inline-flex items-center gap-1">
-              <CalendarClock className="size-3" />
-              {formatQuarantineDate(record.quarantine_entry_date)}
-            </span>
-            {attempts > 1 && (
-              <span className="inline-flex items-center gap-1 font-semibold text-amber-600 dark:text-amber-400">
-                <Repeat2 className="size-3" />
-                {attempts} intentos
-              </span>
-            )}
-          </div>
-        </div>
-      );
-    },
+    cell: ({ row }) => <QuarantineReasonCell record={row.original} />,
   },
 
   {
     id: "legal_window",
-    size: 150,
+    size: 130,
+    meta: { title: "Plazo legal", mobileOrder: 2 },
 
     header: ({ column }) => (
       <div className="flex w-full justify-center">
@@ -258,70 +298,24 @@ export const getColumns = (
       </div>
     ),
 
-    // Ordena por urgencia: lo vencido primero.
-    accessorFn: (row) => {
-      const risk = quarantineRisk(
+    // Ordena por urgencia: lo vencido primero. El plazo legal es uno solo para
+    // todo el listado y vencido siempre implica más días que vigente, así que
+    // los días transcurridos dan el mismo orden sin que la columna dependa de
+    // un parámetro externo (los días no cambian con el plazo).
+    accessorFn: (row) =>
+      quarantineRisk(
         row.quarantine_entry_date,
-        legalDays,
+        Number.POSITIVE_INFINITY,
         row.days_in_quarantine,
-      );
-      if (risk.days === null) return -1;
-      return risk.state === "expired" ? 1000 + risk.days : risk.days;
-    },
+      ).days ?? -1,
 
-    cell: ({ row }) => {
-      const record = row.original;
-      const risk = quarantineRisk(
-        record.quarantine_entry_date,
-        legalDays,
-        record.days_in_quarantine,
-      );
-
-      if (risk.days === null) {
-        return (
-          <div className="flex w-full justify-center">
-            <span className="text-xs text-muted-foreground/40">Sin fecha</span>
-          </div>
-        );
-      }
-
-      const expired = risk.state === "expired";
-      const warning = risk.state === "warning";
-
-      return (
-        <div className="flex w-full flex-col items-center gap-1">
-          <Badge
-            className={cn(
-              "select-none whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-xs",
-              expired &&
-                "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300",
-              warning &&
-                "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300",
-              !expired &&
-                !warning &&
-                "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
-            )}
-          >
-            {expired ? "Vencido" : warning ? "Por vencer" : "En plazo"}
-          </Badge>
-
-          <span className="text-sm font-semibold tabular-nums">
-            {risk.days} / {legalDays}
-          </span>
-
-          <span className="text-[10px] tabular-nums text-muted-foreground">
-            {risk.remaining !== null && risk.remaining >= 0
-              ? `Restan ${risk.remaining} días`
-              : `Vencido por ${Math.abs(risk.remaining ?? 0)} días`}
-          </span>
-        </div>
-      );
-    },
+    cell: LegalWindowColumnCell,
   },
 
   {
     accessorKey: "status",
-    size: 170,
+    size: 150,
+    meta: { title: "Estado", mobileOrder: 3 },
 
     header: ({ column }) => (
       <div className="flex w-full justify-center">
@@ -339,7 +333,7 @@ export const getColumns = (
         <div className="flex w-full justify-center">
           <Badge
             className={cn(
-              "gap-1 whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-xs transition-colors duration-150",
+              "gap-1 whitespace-nowrap rounded-md border h-6 px-2.5 text-xs font-medium transition-colors duration-150",
               isOpen &&
                 "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300",
               isPending &&
@@ -373,7 +367,8 @@ export const getColumns = (
 
   {
     id: "actions",
-    size: 150,
+    size: 130,
+    meta: { mobile: "action" },
 
     header: () => (
       <div className="flex w-full justify-center text-xs font-medium text-muted-foreground">
@@ -381,14 +376,7 @@ export const getColumns = (
       </div>
     ),
 
-    cell: ({ row }) => (
-      <div
-        className="flex w-full justify-center"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <ResolveAction record={row.original} />
-      </div>
-    ),
+    cell: ActionsColumnCell,
     enableSorting: false,
     enableHiding: false,
   },

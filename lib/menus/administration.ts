@@ -42,6 +42,7 @@ export function buildAdministrationGroup({
       {
         href: `/${currentCompany?.slug}/administracion/recepciones`,
         label: "Historial de Recepciones",
+        requiresTables: ["articles"],
         active: pathname.includes(
           `/${currentCompany?.slug}/administracion/recepciones`,
         ),
@@ -58,6 +59,7 @@ export function buildAdministrationGroup({
       {
         href: `/${currentCompany?.slug}/administracion/facturacion-carga`,
         label: "Facturación de Carga",
+        requiresTables: ["cargo_charges"],
         active: pathname.includes(
           `/${currentCompany?.slug}/administracion/facturacion-carga`,
         ),

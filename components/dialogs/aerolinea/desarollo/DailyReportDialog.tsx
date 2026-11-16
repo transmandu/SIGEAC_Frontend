@@ -1,5 +1,6 @@
 "use client";
 import { useRegisterActivity } from "@/actions/aerolinea/desarrollo/reportes_diarios/actions";
+import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -56,6 +57,7 @@ export const DailyReportDialog = ({
   onClose,
 }: DailyReportDialogProps) => {
   const { user } = useAuth();
+  const { company } = useParams<{ company: string }>();
   const { registerActivity } = useRegisterActivity();
   const [manualTime, setManualTime] = useState(false);
   const [manualDate, setManualDate] = useState(false);
@@ -90,7 +92,7 @@ export const DailyReportDialog = ({
       activity_report_id: report_id,
     } as z.infer<typeof FormSchema> & { activity_report_id: string | number };
 
-    await registerActivity.mutateAsync(submissionData);
+    await registerActivity.mutateAsync({ company, ...submissionData });
     form.reset();
     setOpen(false);
     onClose();

@@ -1,46 +1,32 @@
 "use client";
 
-import Image from "next/image";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
-import { AlertTriangle, CheckCircle2, Clock, ImageOff } from "lucide-react";
+import {
+  CheckCircle2,
+  HeartHandshake,
+  Image as ImageIcon,
+  ImageOff,
+  Info,
+  MessageSquareText,
+} from "lucide-react";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  Chip,
-  STATUS_CHIP,
-} from "@/app/sistema/reportes/_components/errorReportChips";
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
+import { PanelSection } from "@/components/forms/PanelSection";
+import { EvidenceGallery } from "@/components/misc/EvidenceGallery";
+import { TagBadge } from "@/components/misc/TagBadge";
+import { Button } from "@/components/ui/button";
+import { Dialog } from "@/components/ui/dialog";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import { formatInstant } from "@/lib/date";
 import { normalizeAssetUrl } from "@/lib/utils";
 import type { ErrorReport } from "@/types";
 
-const STATUS_ICON: Record<ErrorReport["status"], typeof AlertTriangle> = {
-  OPEN: AlertTriangle,
-  IN_PROGRESS: Clock,
-  RESOLVED: CheckCircle2,
-};
+import { REPORT_STATUS } from "./reportStatus";
 
-/** Qué esperar según el estado, en lenguaje de usuario y no de desarrollo. */
-const STATUS_HINT: Record<ErrorReport["status"], string> = {
-  OPEN: "Tu reporte fue recibido y está en espera de ser revisado por el equipo.",
-  IN_PROGRESS: "El equipo está trabajando en tu reporte.",
-  RESOLVED: "El equipo resolvió tu reporte.",
-};
-
-const Field = ({ label, value }: { label: string; value: string }) => (
-  <div className="flex flex-col gap-0.5">
-    <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-      {label}
-    </span>
-    <span className="text-sm">{value}</span>
-  </div>
-);
+const TONE_BY_STATUS = {
+  OPEN: "rose",
+  IN_PROGRESS: "amber",
+  RESOLVED: "emerald",
+} as const;
 
 /**
  * Detalle de un reporte para quien lo hizo. A propósito no muestra causa
@@ -56,10 +42,11 @@ export default function MyReportDetailDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const timeZone = useCompanyTimezone();
+
   if (!report) return null;
 
-  const { label, tone } = STATUS_CHIP[report.status];
-  const Icon = STATUS_ICON[report.status];
+  const { label, tone, icon, hint } = REPORT_STATUS[report.status];
   const isResolved = report.status === "RESOLVED";
 
   const images = report.images
@@ -67,110 +54,122 @@ export default function MyReportDetailDialog({
     .filter((image): image is { id: number; url: string } => !!image.url);
 
   const formatDate = (value: string | null) =>
-    value
-      ? format(new Date(value), "d 'de' MMMM yyyy, h:mm a", { locale: es })
-      : "—";
+    formatInstant(value, timeZone, "d 'de' MMMM yyyy, h:mm a", "—");
+
+  const details = [
+    { label: "Módulo", value: report.module ?? "No especificado" },
+    { label: "Fecha del reporte", value: formatDate(report.reported_at) },
+    ...(report.error_reference
+      ? [
+          {
+            label: "Código de error",
+            value: report.error_reference,
+            mono: true,
+          },
+        ]
+      : []),
+    ...(isResolved
+      ? [
+          { label: "Resuelto por", value: report.resolved_by ?? "—" },
+          {
+            label: "Fecha de resolución",
+            value: formatDate(report.resolved_at),
+          },
+        ]
+      : []),
+  ];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+      <FormDialogContent
+        icon={HeartHandshake}
+        tone={TONE_BY_STATUS[report.status]}
+        title={
+          <span className="flex flex-wrap items-center gap-2">
             Reporte #{report.id}
-            <Chip tone={tone} icon={<Icon className="h-3 w-3" />}>
+            <TagBadge tone={tone} icon={icon}>
               {label}
-            </Chip>
-          </DialogTitle>
-          <DialogDescription>{STATUS_HINT[report.status]}</DialogDescription>
-        </DialogHeader>
-
-        <ScrollArea className="max-h-[65vh] pr-3">
-          <div className="space-y-5">
-            {/* La solución primero: es lo que el usuario viene a buscar. */}
-            {isResolved && (
-              <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-4">
-                <p className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-400">
-                  <CheckCircle2 className="h-3.5 w-3.5" />
-                  Solución
-                </p>
-                <p className="whitespace-pre-wrap text-sm">
-                  {report.resolution?.trim() ||
-                    "El equipo no registró un detalle de la solución."}
-                </p>
-              </div>
-            )}
-
-            <div className="flex flex-col gap-1">
-              <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                Lo que reportaste
-              </span>
-              <p className="whitespace-pre-wrap rounded-lg border bg-muted/30 p-3 text-sm">
-                {report.description}
+            </TagBadge>
+          </span>
+        }
+        description={hint}
+        lockOutside={false}
+        className="sm:max-w-2xl"
+        footer={
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cerrar
+          </Button>
+        }
+      >
+        <div className="space-y-4">
+          {/* La solución primero: es lo que el usuario viene a buscar. */}
+          {isResolved && (
+            <PanelSection
+              icon={CheckCircle2}
+              title="Solución"
+              hint="Lo que hizo el equipo."
+              className="border-emerald-300/70 dark:border-emerald-700/40"
+            >
+              <p className="whitespace-pre-wrap text-sm wrap-anywhere">
+                {report.resolution?.trim() ||
+                  "El equipo no registró un detalle de la solución."}
               </p>
-            </div>
+            </PanelSection>
+          )}
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field
-                label="Módulo"
-                value={report.module ?? "No especificado"}
-              />
-              <Field
-                label="Fecha del reporte"
-                value={formatDate(report.reported_at)}
-              />
-              {report.error_reference && (
-                <Field label="Código de error" value={report.error_reference} />
-              )}
-              {isResolved && (
-                <>
-                  <Field
-                    label="Resuelto por"
-                    value={report.resolved_by ?? "—"}
-                  />
-                  <Field
-                    label="Fecha de resolución"
-                    value={formatDate(report.resolved_at)}
-                  />
-                </>
-              )}
-            </div>
+          <PanelSection
+            icon={MessageSquareText}
+            title="Lo que reportó"
+            hint="Tal como lo escribió."
+          >
+            <p className="whitespace-pre-wrap text-sm wrap-anywhere">
+              {report.description}
+            </p>
+          </PanelSection>
 
-            {images.length > 0 && (
-              <div className="flex flex-col gap-2">
-                <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                  Imágenes adjuntas
-                </span>
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                  {images.map((image) => (
-                    <a
-                      key={image.id}
-                      href={image.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="relative aspect-video overflow-hidden rounded-md border bg-muted/30 transition-opacity hover:opacity-80"
-                    >
-                      <Image
-                        src={image.url}
-                        alt="Imagen del reporte"
-                        fill
-                        sizes="200px"
-                        className="object-cover"
-                      />
-                    </a>
-                  ))}
+          <PanelSection icon={Info} title="Detalles">
+            <dl className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
+              {details.map((detail) => (
+                <div key={detail.label} className="min-w-0">
+                  <dt className="text-[13px] text-muted-foreground">
+                    {detail.label}
+                  </dt>
+                  <dd
+                    className={
+                      detail.mono
+                        ? "font-mono text-sm font-medium wrap-anywhere"
+                        : "text-sm font-medium wrap-anywhere"
+                    }
+                  >
+                    {detail.value}
+                  </dd>
                 </div>
-              </div>
-            )}
+              ))}
+            </dl>
+          </PanelSection>
 
-            {report.images.length > 0 && images.length === 0 && (
-              <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <ImageOff className="h-3.5 w-3.5" />
-                No se pudieron cargar las imágenes adjuntas.
-              </p>
-            )}
-          </div>
-        </ScrollArea>
-      </DialogContent>
+          {images.length > 0 && (
+            <PanelSection
+              icon={ImageIcon}
+              title="Imágenes adjuntas"
+              hint={`${images.length} ${images.length === 1 ? "imagen" : "imágenes"}`}
+            >
+              <EvidenceGallery
+                images={images}
+                title="Imagen del reporte"
+                size={96}
+              />
+            </PanelSection>
+          )}
+
+          {report.images.length > 0 && images.length === 0 && (
+            <p className="flex items-center gap-1.5 text-[13px] text-muted-foreground">
+              <ImageOff className="size-3.5" />
+              No se pudieron cargar las imágenes adjuntas.
+            </p>
+          )}
+        </div>
+      </FormDialogContent>
     </Dialog>
   );
 }

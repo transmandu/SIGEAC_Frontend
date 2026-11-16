@@ -4,6 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 export type MyBirthdayToday = {
   is_birthday: boolean;
   first_name?: string;
+  /** Día de hoy (YYYY-MM-DD) en la zona de la empresa; solo viene si hay empleado. */
+  date?: string;
 };
 
 const fetchMyBirthdayToday = async (
@@ -19,7 +21,7 @@ const fetchMyBirthdayToday = async (
  * pestaña abierta de un día para el otro, el saludo no aparece nunca. El
  * endpoint es de dos columnas sin joins, así que la consulta no vale la pena
  * evitarla. Que el saludo no se repita en cada navegación lo resuelve
- * BirthdayConfetti con sessionStorage, que es donde corresponde.
+ * BirthdayConfetti con una marca por usuario y día en localStorage.
  */
 export const useGetMyBirthdayToday = (company: string | undefined) => {
   return useQuery<MyBirthdayToday, Error>({

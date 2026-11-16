@@ -18,6 +18,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
+import { ConditionCombobox } from "@/components/forms/general/compras/_components/ConditionCombobox";
+import { useGetConditions } from "@/hooks/general/condiciones/useGetConditions";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import {
   AlertTriangle,
@@ -41,7 +43,13 @@ interface DispatchReturnDialogProps {
 /** Lo que el usuario marcó devolver, por línea de la salida. */
 type Selection = Record<
   number,
-  { checked: boolean; quantity: string; altered: boolean }
+  {
+    checked: boolean;
+    quantity: string;
+    altered: boolean;
+    /** Condición de reingreso elegida; vacío = la de salida. */
+    conditionId: string;
+  }
 >;
 
 // Tope de `max_file_uploads` de PHP (20 por defecto), con margen para los demás
@@ -135,6 +143,9 @@ const DispatchReturnDialog = ({
 }: DispatchReturnDialogProps) => {
   const { selectedCompany } = useCompanyStore();
   const { createDispatchReturn } = useCreateDispatchReturn();
+  const { data: conditions, isLoading: isConditionsLoading } = useGetConditions(
+    selectedCompany?.slug,
+  );
 
   const [selection, setSelection] = useState<Selection>({});
   const [justification, setJustification] = useState("");
@@ -163,6 +174,20 @@ const DispatchReturnDialog = ({
     !!selection[article.article_dispatch_order_id!]?.altered;
 
   const alteredCount = selected.filter(isAltered).length;
+
+  // Solo la unidad serializada que reingresa al stock cambia de condición: un
+  // consumible es un renglón con cantidad, y lo que va a inspección lo califica
+  // el inspector. El backend ignora ambos casos.
+  const changedConditionOf = (article: DispatchArticle): number | undefined => {
+    const chosen = selection[article.article_dispatch_order_id!]?.conditionId;
+
+    if (!article.is_inspectable || isAltered(article) || !chosen) {
+      return undefined;
+    }
+    if (Number(chosen) === article.dispatched_condition_id) return undefined;
+
+    return Number(chosen);
+  };
 
   /**
    * Cantidad válida para esta línea, o null si no lo es.
@@ -205,7 +230,12 @@ const DispatchReturnDialog = ({
     setSelection((prev) => ({
       ...prev,
       [lineId]: {
-        ...(prev[lineId] ?? { checked: false, quantity: "", altered: false }),
+        ...(prev[lineId] ?? {
+          checked: false,
+          quantity: "",
+          altered: false,
+          conditionId: "",
+        }),
         ...patch,
       },
     }));
@@ -275,6 +305,8 @@ const DispatchReturnDialog = ({
           // isAltered vuelve a mirar is_inspectable: la casilla pudo marcarse y
           // luego dejar de mostrarse, quedando su estado en true.
           condition: isAltered(a) ? ("ALTERED" as const) : ("SEALED" as const),
+          // Solo si la cambió: sin valor, el backend conserva la de salida.
+          condition_id: changedConditionOf(a),
         })),
         // Solo las fotos de artículos que realmente se devuelven: si el usuario
         // adjuntó y luego deseleccionó la línea, no hay a qué colgarlas.
@@ -440,6 +472,34 @@ const DispatchReturnDialog = ({
                                 : ""}
                             </Badge>
                           </div>
+
+                          {checked && article.is_inspectable && !altered && (
+                            <div className="mt-3 flex flex-wrap items-center gap-2">
+                              <Label className="text-xs text-muted-foreground">
+                                Condición al reingresar
+                                {article.dispatched_condition
+                                  ? ` (salió ${article.dispatched_condition})`
+                                  : ""}
+                              </Label>
+                              <div className="w-48">
+                                <ConditionCombobox
+                                  value={
+                                    entry?.conditionId ||
+                                    String(
+                                      article.dispatched_condition_id ?? "",
+                                    )
+                                  }
+                                  onChange={(val) =>
+                                    patchLine(lineId, { conditionId: val })
+                                  }
+                                  conditions={conditions}
+                                  disabled={isConditionsLoading}
+                                  triggerClassName="h-8 w-full text-xs"
+                                  placeholder="Sin cambio"
+                                />
+                              </div>
+                            </div>
+                          )}
 
                           {/* mt-auto lo pega al fondo de la columna, que es
                               donde cae el check de la otra: así comparten fila

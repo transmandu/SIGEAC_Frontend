@@ -1,29 +1,23 @@
 "use client";
 
-import { useCreateDispatchRequest } from "@/actions/mantenimiento/almacen/solicitudes/salida/action";
-import { Button } from "@/components/ui/button";
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { useAuth } from "@/contexts/AuthContext";
-import { useGetBatchesWithInWarehouseArticles } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesWithInWarehouseArticles";
-import { useGetWorkOrderEmployees } from "@/hooks/mantenimiento/planificacion/useGetWorkOrderEmployees";
-import { useGetMaintenanceAircrafts } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts";
-import { cn } from "@/lib/utils";
-import { useCompanyStore } from "@/stores/CompanyStore";
-import { Article, Batch } from "@/types";
-import { zodResolver } from "@/lib/zod-resolver";
-import { format } from "date-fns";
-import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
+  DispatchRequestSection,
+  DispatchResponsibleSection,
+} from "@/components/forms/mantenimiento/almacen/_components/DispatchSections";
+import { ConversionPanel } from "@/components/forms/mantenimiento/almacen/_components/ConversionPanel";
+import { GeneralArticleRow } from "@/components/forms/mantenimiento/almacen/_components/GeneralArticleRow";
+import { SearchAwareGroup } from "@/components/forms/mantenimiento/almacen/_components/SearchAwareGroup";
+import { SectionHeader } from "@/components/forms/mantenimiento/almacen/_components/SectionHeader";
+import { ToolRowCard } from "@/components/forms/mantenimiento/almacen/_components/ToolRowCard";
+import { truncateText } from "@/components/forms/mantenimiento/almacen/_components/truncate";
+import {
+  aeroKey,
+  genKey,
+  useDispatchForm,
+} from "@/components/forms/mantenimiento/almacen/_hooks/useDispatchForm";
+import EvidenceCapture from "@/components/misc/EvidenceCapture";
+import { TagBadge } from "@/components/misc/TagBadge";
+import { Button } from "@/components/ui/button";
 import {
   Command,
   CommandEmpty,
@@ -33,396 +27,487 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from "@/components/ui/form";
+import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
-import { BackdatedDispatchField } from "./_components/BackdatedDispatchField";
+import { cn } from "@/lib/utils";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-
-const FormSchema = z
-  .object({
-    requested_by: z.string(),
-    // La salida se registra el día en que ocurre: la fecha la pone el backend.
-    // Sólo el registro extemporáneo la trae, y sólo si el rol lo habilita.
-    is_backdated: z.boolean().default(false),
-    submission_date: z.date().optional(),
-    articles: z.array(
-      z.object({
-        article_id: z.coerce.number(),
-        serial: z.string().nullable(),
-        quantity: z.number(),
-        batch_id: z.number(),
-      }),
-      {
-        message: "Debe seleccionar el (los) articulos que se van a despachar.",
-      },
-    ),
-    justification: z.string({
-      message: "Debe ingresar una justificación de la salida.",
-    }),
-    department_id: z.string(),
-    status: z.string(),
-  })
-  .superRefine((data, ctx) => {
-    if (data.is_backdated && !data.submission_date) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Debe indicar la fecha real de la salida.",
-        path: ["submission_date"],
-      });
-    }
-  });
-
-type FormSchemaType = z.infer<typeof FormSchema>;
-
-// Registrar una salida con fecha distinta a la de hoy es una excepción: sólo la
-// jefatura de almacén responde por ella.
-const BACKDATE_ROLES = ["JEFE_ALMACEN", "SUPERUSER"];
+  Check,
+  ChevronsUpDown,
+  Loader2,
+  PackagePlus,
+  Wrench,
+  X,
+} from "lucide-react";
+import { useMemo } from "react";
 
 interface FormProps {
   onClose: () => void;
 }
 
-interface BatchesWithCountProp extends Batch {
-  articles: Article[];
-  batch_id: number;
-}
-
 export function ToolDispatchForm({ onClose }: FormProps) {
-  const { user } = useAuth();
-
-  const [open, setOpen] = useState(false);
-
-  // const [openBatches, setOpenBatches] = useState(false);
-
-  // const [filteredBatches, setFilteredBatches] = useState<
-  //   BatchesWithCountProp[]
-  // >([]);
-
-  const [articleSelected, setArticleSelected] = useState<Article>();
-
-  const [isDepartment, setIsDepartment] = useState(false);
-
-  const { createDispatchRequest } = useCreateDispatchRequest();
-
-  const { selectedStation, selectedCompany } = useCompanyStore();
+  const ctx = useDispatchForm(onClose, "tool");
 
   const {
-    data: batches,
-    isPending: isBatchesLoading,
-    isError: batchesError,
-  } = useGetBatchesWithInWarehouseArticles({
-    location_id: Number(selectedStation!),
-    company: selectedCompany!.slug,
-    category: "tool",
-  });
+    form,
+    onSubmit,
+    createDispatchRequest,
+    openAdd,
+    setOpenAdd,
+    addTab,
+    setAddTab,
+    batches,
+    isBatchesLoading,
+    hardwareArticles,
+    isHardwareLoading,
+    aeroFA,
+    genFA,
+    watchedAero,
+    watchedGen,
+    aeroSelectedSet,
+    genSelectedSet,
+    aeroById,
+    genById,
+    aeroBatchNameById,
+    getGenMax,
+    qtyByKey,
+    setQtyByKey,
+    msgByKey,
+    convByKey,
+    cutByKey,
+    updateCut,
+    evidenceByKey,
+    setEvidence,
+    commitGenQty,
+    setToMaxGen,
+    setQuantityGen,
+    convState,
+    setConvState,
+    activeConversions,
+    isActiveConversionLoading,
+    activeBaseUnitLabel,
+    closeConversion,
+    openConversionForGeneral,
+    applyConversion,
+    handleAddAeronautical,
+    handleAddGeneral,
+    removeAeroRow,
+    removeGenRow,
+    hasBlockingQtyError,
+    hasInvalidQty,
+    aeronauticalCount,
+    generalCount,
+    disabledAdd,
+  } = ctx;
 
-  const {
-    data: employees,
-    isLoading: employeesLoading,
-    isError: employeesError,
-  } = useGetWorkOrderEmployees({
-    company: selectedCompany?.slug,
-    location_id: selectedStation!,
-    acronym: "MANP",
-  });
-
-  const { data: aircrafts, isLoading: isAircraftsLoading } =
-    useGetMaintenanceAircrafts(selectedCompany?.slug);
-
-  // useEffect(() => {
-  //   if (selectedStation) {
-  //     mutate({
-  //       location_id: Number(selectedStation),
-  //       company: selectedCompany!.slug,
-  //     });
-  //   }
-  // }, [selectedStation, mutate, selectedCompany]);
-
-  // useEffect(() => {
-  //   if (batches) {
-  //     // Filtrar los batches por categoría
-  //     const filtered = batches.filter(
-  //       (batch) => batch.category === "herramienta"
-  //     );
-  //     setFilteredBatches(filtered);
-  //   }
-  // }, [batches]);
-
-  const form = useForm<FormSchemaType>({
-    resolver: zodResolver(FormSchema),
-    defaultValues: {
-      articles: [],
-      justification: "",
-      requested_by: "",
-      department_id: "",
-      status: "proceso",
-      is_backdated: false,
-    },
-  });
-
-  const { setValue } = form;
-
-  const canBackdate = (user?.roles ?? []).some((role) =>
-    BACKDATE_ROLES.includes(role.name.toUpperCase()),
+  const conversionPanelNode = useMemo(
+    () => (
+      <ConversionPanel
+        conversions={activeConversions}
+        isLoading={isActiveConversionLoading}
+        selectedConversion={convState.selected}
+        conversionInput={convState.input}
+        baseUnitLabel={activeBaseUnitLabel}
+        convertibleType="general-articles"
+        convertibleId={convState.generalArticleId}
+        onConversionChange={(conv) =>
+          setConvState((p) => ({ ...p, selected: conv, input: "" }))
+        }
+        onInputChange={(val) => setConvState((p) => ({ ...p, input: val }))}
+        onApply={applyConversion}
+        onClose={closeConversion}
+      />
+    ),
+    [
+      activeConversions,
+      isActiveConversionLoading,
+      activeBaseUnitLabel,
+      convState,
+      applyConversion,
+      closeConversion,
+      setConvState,
+    ],
   );
 
-  const onSubmit = async (data: FormSchemaType) => {
-    const { articles, ...rest } = data;
-    // Sin registro extemporáneo no se manda fecha: el backend la sella con el
-    // momento real de creación. La bandera viaja aparte para que allá se vuelva
-    // a verificar el rol en vez de confiar en que llegue o no la fecha.
-    const isBackdated =
-      canBackdate && data.is_backdated && !!data.submission_date;
-    const formattedData = {
-      ...rest,
-      aeronautical_articles: articles,
-      created_by: `${user?.employee[0].dni}`,
-      is_backdated: isBackdated,
-      submission_date: isBackdated
-        ? format(data.submission_date!, "yyyy-MM-dd")
-        : undefined,
-      category: "herramienta",
-      user_id: Number(user!.id),
-      isDepartment: isDepartment,
-      aircraft_id: isDepartment ? undefined : data.department_id,
-    };
-    await createDispatchRequest.mutateAsync({
-      data: formattedData,
-      company: selectedCompany!.slug,
-    });
-    onClose();
-  };
-
-  const handleArticleSelect = (
-    id: number,
-    serial: string | null,
-    batch_id: number,
-  ) => {
-    setValue("articles", [
-      {
-        article_id: Number(id),
-        serial: serial ? serial : null,
-        quantity: 1,
-        batch_id: Number(batch_id),
-      },
-    ]);
-  };
   return (
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="flex flex-col space-y-3 w-full"
+        className="flex w-full min-w-0 flex-col space-y-6"
       >
-        <div className="flex gap-2">
-          <FormField
-            control={form.control}
-            name="requested_by"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Recibe / MTTO</FormLabel>
-                <Select onValueChange={field.onChange}>
-                  <FormControl>
-                    <SelectTrigger className="w-60">
-                      <SelectValue placeholder="Seleccione el responsable..." />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {employeesLoading && (
-                      <Loader2 className="size-4 animate-spin" />
+        <div className="space-y-4">
+          <DispatchResponsibleSection ctx={ctx} />
+        </div>
+
+        <div className="space-y-4">
+          <DispatchRequestSection ctx={ctx} />
+        </div>
+
+        <div className="space-y-4">
+          <SectionHeader label="Artículos a Retirar" />
+
+          <div className="space-y-2">
+            <label className="flex items-center justify-between text-sm font-medium">
+              Agregar artículo
+              <span className="text-xs text-muted-foreground">
+                Herramientas: {aeronauticalCount} · General/Ferretería:{" "}
+                {generalCount}
+              </span>
+            </label>
+
+            <Popover
+              open={openAdd}
+              onOpenChange={(open) => {
+                setOpenAdd(open);
+                if (open) setAddTab("aero");
+              }}
+            >
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={openAdd}
+                  className="h-10 w-full justify-between"
+                  disabled={disabledAdd}
+                >
+                  <span className="flex items-center gap-2 text-muted-foreground">
+                    {disabledAdd ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <PackagePlus className="h-4 w-4" />
                     )}
-                    {employees &&
-                      employees.map((employee) => (
-                        <SelectItem key={employee.id} value={`${employee.dni}`}>
-                          {employee.first_name} {employee.last_name} -{" "}
-                          {employee.job_title.name}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="articles"
-            render={({ field }) => (
-              <FormItem className="flex flex-col mt-2.5">
-                <FormLabel>Herramienta a Retirar</FormLabel>
-                <Popover open={open} onOpenChange={setOpen}>
-                  <PopoverTrigger asChild>
+                    Seleccione una herramienta o artículo...
+                  </span>
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+
+              <PopoverContent className="p-0" align="start" matchTriggerWidth>
+                {/* La X va absoluta para que los tabs queden centrados en el
+                    desplegable y no desplazados por el botón de cerrar. */}
+                <div className="relative border-b p-2">
+                  <div className="flex flex-wrap items-center justify-center gap-2 px-10">
                     <Button
-                      variant="outline"
-                      role="combobox"
-                      aria-expanded={open}
-                      className="w-50 justify-between"
+                      type="button"
+                      variant={addTab === "aero" ? "default" : "outline"}
+                      className="h-8"
+                      onClick={() => setAddTab("aero")}
                     >
-                      {articleSelected
-                        ? `${articleSelected.serial}`
-                        : "Selec. la herramienta"}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      Herramientas{" "}
+                      <span className="ml-2 text-xs opacity-80">
+                        ({aeronauticalCount})
+                      </span>
                     </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="p-0" matchTriggerWidth>
-                    <Command>
-                      <CommandInput placeholder="Buscar una herramienta" />
-                      <CommandList>
-                        <CommandEmpty className="flex justify-center">
-                          {isBatchesLoading ? (
-                            <Loader2 className="size-4 animate-spin" />
-                          ) : batchesError ? (
-                            <p>
-                              Ha ocurrido un error al cargar las herramientas
-                            </p>
-                          ) : (
-                            <p className="text-sm text-muted-foreground italic">
-                              No se han encontrado herramientas disponibles...
-                            </p>
-                          )}
-                        </CommandEmpty>
-                        {batches?.map((batch) => (
-                          <CommandGroup
-                            key={batch.batch_id}
+                    <Button
+                      type="button"
+                      variant={addTab === "general" ? "default" : "outline"}
+                      className="h-8"
+                      onClick={() => setAddTab("general")}
+                    >
+                      General/Ferretería{" "}
+                      <span className="ml-2 text-xs opacity-80">
+                        ({generalCount})
+                      </span>
+                    </Button>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-2 top-2 h-8 w-8"
+                    onClick={() => setOpenAdd(false)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                {/* key por tab: sin remontar, el texto buscado sigue
+                    filtrando la otra lista al cambiar. */}
+                <Command key={addTab}>
+                  <CommandInput
+                    placeholder={
+                      addTab === "aero"
+                        ? "Buscar por lote, parte, serial o descripción..."
+                        : "Buscar por descripción, modelo o tipo..."
+                    }
+                  />
+                  <CommandList>
+                    <CommandEmpty>
+                      No se han encontrado artículos...
+                    </CommandEmpty>
+
+                    {addTab === "aero" ? (
+                      isBatchesLoading ? (
+                        <div className="flex items-center justify-center py-6">
+                          <Loader2 className="size-4 animate-spin" />
+                        </div>
+                      ) : (
+                        batches?.map((batch) => (
+                          <SearchAwareGroup
+                            key={`tool-${batch.batch_id}`}
                             heading={batch.name}
                           >
                             {batch.articles.map((article) => {
-                              const isInUse = article.status === "InUse";
+                              const already = aeroSelectedSet.has(
+                                Number(article.id),
+                              );
+                              // Una herramienta vencida se avisa pero se deja
+                              // elegir: por ahora no se bloquea la salida.
                               const isExpired =
                                 article.tool_status === "EXPIRED";
+
                               return (
                                 <CommandItem
-                                  disabled={isInUse || isExpired}
-                                  key={article.id}
+                                  key={`t-${article.id}-${batch.batch_id}`}
+                                  value={`${batch.name} ${article.part_number} ${article.serial ?? ""} ${article.description ?? ""}`}
                                   className="max-w-full"
-                                  onSelect={() => {
-                                    handleArticleSelect(
-                                      article.id!,
-                                      article.serial ? article.serial : null,
+                                  onSelect={() =>
+                                    handleAddAeronautical(
+                                      article,
                                       batch.batch_id,
-                                    );
-                                    setArticleSelected(article);
-                                  }}
+                                    )
+                                  }
                                 >
                                   <Check
                                     className={cn(
                                       "mr-2 h-4 w-4",
-                                      articleSelected?.id === article.id
-                                        ? "opacity-100"
-                                        : "opacity-0",
+                                      already ? "opacity-100" : "opacity-0",
                                     )}
                                   />
-                                  <p className="min-w-0 truncate font-medium">
-                                    <span className="text-muted-foreground">
-                                      SN:{" "}
+                                  <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+                                    <span className="truncate font-medium">
+                                      {article.part_number}
+                                      {article.serial
+                                        ? ` · SN: ${article.serial}`
+                                        : ""}
                                     </span>
-                                    {article.serial} {isInUse && "- En uso"}
-                                    {isExpired && (
-                                      <span className="text-destructive">
-                                        {" "}
-                                        - Vencida
-                                      </span>
-                                    )}
-                                  </p>
+                                    <span className="truncate text-xs text-muted-foreground">
+                                      {truncateText(article.description) ||
+                                        "Sin nota"}
+                                    </span>
+                                  </div>
+                                  {isExpired && (
+                                    <TagBadge tone="rose" className="ml-2">
+                                      Calibración vencida
+                                    </TagBadge>
+                                  )}
                                 </CommandItem>
                               );
                             })}
-                          </CommandGroup>
-                        ))}
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                          </SearchAwareGroup>
+                        ))
+                      )
+                    ) : isHardwareLoading ? (
+                      <div className="flex items-center justify-center py-6">
+                        <Loader2 className="size-4 animate-spin" />
+                      </div>
+                    ) : (
+                      <CommandGroup heading="Inventario general">
+                        {hardwareArticles.map((ga) => {
+                          const already = genSelectedSet.has(Number(ga.id));
+
+                          return (
+                            <CommandItem
+                              key={`g-${ga.id}`}
+                              value={`${ga.description ?? ""} ${ga.brand_model ?? ""} ${ga.variant_type ?? ""}`}
+                              className="max-w-full"
+                              onSelect={() => handleAddGeneral(ga)}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  already ? "opacity-100" : "opacity-0",
+                                )}
+                              />
+                              <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+                                <span className="truncate font-medium">
+                                  {truncateText(ga.description) || "N/A"}
+                                </span>
+                                <span className="truncate text-xs text-muted-foreground">
+                                  {ga.brand_model ?? "N/A"} ·{" "}
+                                  {ga.variant_type ?? "N/A"} · Disp:{" "}
+                                  {ga.quantity ?? 0}{" "}
+                                  {ga.general_primary_unit?.label ?? ""}
+                                </span>
+                              </div>
+                            </CommandItem>
+                          );
+                        })}
+                      </CommandGroup>
+                    )}
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          {aeronauticalCount === 0 && generalCount === 0 && (
+            <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed py-8 text-center text-muted-foreground">
+              <Wrench className="h-8 w-8 opacity-40" />
+              <p className="text-sm">Ningún artículo seleccionado.</p>
+              <p className="text-xs opacity-70">
+                Use el selector de arriba para agregar herramientas.
+              </p>
+            </div>
+          )}
+
+          {aeroFA.fields.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Herramientas
+              </p>
+              {aeroFA.fields.map((field, index) => {
+                const key = aeroKey(field.id);
+                const articleId = Number(watchedAero[index]?.article_id || 0);
+                const article = articleId ? aeroById.get(articleId) : undefined;
+
+                return (
+                  <ToolRowCard
+                    key={field.id}
+                    title={
+                      article?.part_number ??
+                      (articleId ? `ID: ${articleId}` : "Herramienta")
+                    }
+                    subtitle={[
+                      article?.serial ? `SN: ${article.serial}` : null,
+                      aeroBatchNameById.get(articleId) ?? "Sin lote",
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")}
+                    toolStatus={article?.tool_status}
+                    evidenceNode={
+                      <EvidenceCapture
+                        files={evidenceByKey[key] ?? []}
+                        onChange={(files) => setEvidence(key, files)}
+                        label={article?.part_number ?? "la herramienta"}
+                      />
+                    }
+                    onRemove={() => removeAeroRow(index, field.id)}
+                  />
+                );
+              })}
+            </div>
+          )}
+
+          {genFA.fields.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                General/Ferretería
+              </p>
+              {genFA.fields.map((field, index) => {
+                const key = genKey(field.id);
+                const generalId = Number(
+                  watchedGen[index]?.general_article_id || 0,
+                );
+                const ga = generalId ? genById.get(generalId) : undefined;
+
+                return (
+                  <GeneralArticleRow
+                    key={field.id}
+                    article={ga}
+                    generalId={generalId}
+                    qty={qtyByKey[key] ?? ""}
+                    max={generalId ? getGenMax(generalId) : 0}
+                    rowMsg={msgByKey[key]}
+                    conversion={convByKey[key]}
+                    showConversionPanel={
+                      convState.target === "general" &&
+                      convState.rowFieldId === field.id &&
+                      !!ga
+                    }
+                    conversionPanelNode={conversionPanelNode}
+                    cut={cutByKey[key]}
+                    evidenceNode={
+                      <EvidenceCapture
+                        files={evidenceByKey[key] ?? []}
+                        onChange={(files) => setEvidence(key, files)}
+                        label={ga?.description ?? "el artículo"}
+                      />
+                    }
+                    onQtyChange={(val) =>
+                      setQtyByKey((p) => ({ ...p, [key]: val }))
+                    }
+                    onCommit={() => commitGenQty(index, field.id)}
+                    onSetMax={() => setToMaxGen(index, field.id)}
+                    onSetQuantity={(value) =>
+                      setQuantityGen(index, field.id, value)
+                    }
+                    onOpenConversion={() =>
+                      openConversionForGeneral(index, field.id, generalId)
+                    }
+                    onRemove={() => removeGenRow(index, field.id)}
+                    onCutChange={(next) => updateCut(index, field.id, next)}
+                  />
+                );
+              })}
+            </div>
+          )}
         </div>
-        <div className="flex gap-2">
+
+        <div className="space-y-4">
+          <SectionHeader label="Justificación" />
           <FormField
             control={form.control}
-            name="department_id"
+            name="justification"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Destino</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  disabled={isAircraftsLoading}
-                >
-                  <FormControl>
-                    <SelectTrigger className="w-57.5">
-                      <SelectValue placeholder="Seleccione una aeronave..." />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {isAircraftsLoading && (
-                      <div className="flex items-center justify-center py-4">
-                        <Loader2 className="size-4 animate-spin text-muted-foreground" />
-                      </div>
-                    )}
-                    {!isAircraftsLoading &&
-                      aircrafts &&
-                      aircrafts.length === 0 && (
-                        <div className="py-4 text-center text-sm text-muted-foreground">
-                          No hay aeronaves disponibles
-                        </div>
-                      )}
-                    {aircrafts &&
-                      aircrafts.map((aircraft) => (
-                        <SelectItem
-                          key={aircraft.id}
-                          value={aircraft.id.toString()}
-                        >
-                          {aircraft.acronym}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
+                <FormControl>
+                  <Textarea
+                    rows={4}
+                    className="w-full resize-none"
+                    placeholder="Ej: Se necesita para la limpieza de..."
+                    {...field}
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
         </div>
 
-        <BackdatedDispatchField form={form} canBackdate={canBackdate} />
+        <Separator className="my-2" />
 
-        <FormField
-          control={form.control}
-          name="justification"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Justificacion</FormLabel>
-              <FormControl>
-                <Textarea
-                  rows={5}
-                  className="w-full"
-                  placeholder="EJ: Se necesita para la limpieza de..."
-                  {...field}
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-        <Button
-          className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70"
-          disabled={createDispatchRequest?.isPending}
-          type="submit"
-        >
-          {createDispatchRequest?.isPending ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <p>Crear</p>
-          )}
-        </Button>
+        <div className="flex justify-end gap-3 pt-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            disabled={createDispatchRequest?.isPending}
+            className="h-10 min-w-25"
+          >
+            Cancelar
+          </Button>
+          <Button
+            className="h-10 min-w-30 bg-primary text-white hover:bg-primary/90 disabled:bg-primary/70"
+            disabled={
+              createDispatchRequest?.isPending ||
+              aeronauticalCount + generalCount === 0 ||
+              hasBlockingQtyError ||
+              hasInvalidQty
+            }
+            type="submit"
+          >
+            {createDispatchRequest?.isPending ? (
+              <>
+                <Loader2 className="mr-2 size-4 animate-spin" />
+                Creando...
+              </>
+            ) : (
+              "Crear Salida"
+            )}
+          </Button>
+        </div>
       </form>
     </Form>
   );

@@ -75,7 +75,9 @@ export function DataTable<TData extends RowData>({
       <div className="flex items-center py-4">
         <Button
           onClick={() => {
-            router.push(`/transmandu/sms/reportes/reportes_obligatorios/nuevo_reporte`);
+            router.push(
+              `/${selectedCompany?.slug}/sms/reportes/reportes_obligatorios/nuevo_reporte`,
+            );
           }}
           variant="outline"
           size="sm"
@@ -107,7 +109,7 @@ export function DataTable<TData extends RowData>({
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                     </TableHead>
                   );
@@ -126,7 +128,7 @@ export function DataTable<TData extends RowData>({
                     <TableCell key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}

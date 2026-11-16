@@ -1,7 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
-import { type AppColumnDef } from "@/lib/table";
+import { type AppColumnDef, type AppRow } from "@/lib/table";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,7 +17,7 @@ import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { DEFAULT_TIMEZONE, formatInstant } from "@/lib/date";
+import { formatInstant } from "@/lib/date";
 import {
   Building2,
   FileText,
@@ -87,7 +89,7 @@ const DeliveryNoteButton = ({ intake }: { intake: GeneralArticleIntake }) => {
       document.body.appendChild(a);
       a.click();
       a.remove();
-      window.URL.revokeObjectURL(url);
+      setTimeout(() => window.URL.revokeObjectURL(url), 100);
     } catch (error) {
       notifyError(error, { action: "descargar la nota de entrega" });
     } finally {
@@ -120,6 +122,21 @@ const DeliveryNoteButton = ({ intake }: { intake: GeneralArticleIntake }) => {
       </TooltipTrigger>
       <TooltipContent>Descargar Nota de Entrega</TooltipContent>
     </Tooltip>
+  );
+};
+
+// La solicitud de compra de origen: lleva a su detalle.
+const RequisitionLink = ({ orderNumber }: { orderNumber: string }) => {
+  const { selectedCompany } = useCompanyStore();
+
+  return (
+    <Link
+      href={`/${selectedCompany?.slug}/compras/requisiciones_generales/${orderNumber}`}
+      className="text-[13px] text-slate-700 transition-colors hover:text-primary dark:text-slate-300"
+      onClick={(e) => e.stopPropagation()}
+    >
+      {orderNumber}
+    </Link>
   );
 };
 
@@ -165,12 +182,122 @@ const EditIntakeButton = ({ intake }: { intake: GeneralArticleIntake }) => {
   );
 };
 
-export const getColumns = (
-  timeZone: string = DEFAULT_TIMEZONE,
-): AppColumnDef<GeneralArticleIntake>[] => [
+const ConfirmationColumnCell = ({
+  row,
+}: {
+  row: AppRow<GeneralArticleIntake>;
+}) => {
+  const timeZone = useCompanyTimezone();
+
+  const {
+    status,
+    confirmed_by,
+    confirmed_at,
+    rejected_by,
+    rejected_at,
+    rejection_reason,
+  } = row.original;
+
+  if (status === "DELIVERED") {
+    const destination = getDestination(row.original);
+
+    return (
+      <div className="flex flex-col items-center justify-center gap-1.5 w-full">
+        <span className="text-xs text-slate-600 dark:text-slate-300 text-center leading-snug">
+          Entrega directa
+          <br />
+          <span className="text-slate-500 dark:text-slate-400">
+            {destination?.label ?? "Sin paso por almacén"}
+          </span>
+        </span>
+        <DeliveryNoteButton intake={row.original} />
+      </div>
+    );
+  }
+
+  if (status === "PENDING") {
+    return (
+      <div className="flex justify-center w-full">
+        <span className="text-muted-foreground/60 text-xs">—</span>
+      </div>
+    );
+  }
+
+  if (status === "REJECTED") {
+    return (
+      <div className="flex justify-center w-full">
+        <span className="text-xs text-slate-600 dark:text-slate-300 text-center leading-snug">
+          Rechazado por:
+          <br />
+          <span className=" font-medium">{rejected_by}</span>
+          {rejected_at && (
+            <>
+              <br />
+              El {formatInstant(rejected_at, timeZone, "dateTime")}
+            </>
+          )}
+          {rejection_reason && (
+            <>
+              <br />
+              <span className="italic text-red-700 dark:text-red-300">
+                “{rejection_reason}”
+              </span>
+            </>
+          )}
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex justify-center w-full">
+      <span className="text-xs text-slate-600 dark:text-slate-300 text-center leading-snug">
+        Confirmado por:
+        <br />
+        <span className=" font-medium">{confirmed_by}</span>
+        {confirmed_at && (
+          <>
+            <br />
+            El {formatInstant(confirmed_at, timeZone, "dateTime")}
+          </>
+        )}
+      </span>
+    </div>
+  );
+};
+
+const ActionsColumnCell = ({ row }: { row: AppRow<GeneralArticleIntake> }) => (
+  <div className="flex justify-center w-full">
+    <EditIntakeButton intake={row.original} />
+  </div>
+);
+
+// Componentes de módulo y no flechas dentro de las columnas: React identifica
+// un componente por su función, así que una flecha nueva desmontaría la celda
+// y borraría su estado. Lo que antes entraba por parámetros se lee aquí.
+const ArrivedAtColumnCell = ({
+  row,
+}: {
+  row: AppRow<GeneralArticleIntake>;
+}) => {
+  const timeZone = useCompanyTimezone();
+
+  const { arrived_at } = row.original;
+
+  return (
+    <div className="flex justify-center w-full">
+      <span className="text-[13px] text-slate-700 dark:text-slate-300">
+        {arrived_at ? formatInstant(arrived_at, timeZone, "dateTime") : "—"}
+      </span>
+    </div>
+  );
+};
+
+export const columns: AppColumnDef<GeneralArticleIntake>[] = [
   {
     accessorKey: "description",
     size: 300,
+    meta: { title: "Artículo", mobile: "wide" },
 
     header: ({ column }) => (
       <div className="flex justify-center w-full">
@@ -189,7 +316,7 @@ export const getColumns = (
             </span>
 
             {(brand_model || variant_type) && (
-              <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+              <div className="flex items-center gap-1 text-xs text-slate-600 dark:text-slate-300">
                 {brand_model && <span>{brand_model}</span>}
                 {brand_model && variant_type && <span>·</span>}
                 {variant_type && <span>{variant_type}</span>}
@@ -204,6 +331,7 @@ export const getColumns = (
   {
     accessorKey: "quantity",
     size: 140,
+    meta: { title: "Cantidad" },
 
     header: ({ column }) => (
       <div className="flex justify-center w-full">
@@ -215,15 +343,13 @@ export const getColumns = (
       const { quantity, unit } = row.original;
 
       return (
-        <div className="flex justify-center w-full">
-          <span className="text-sm font-semibold tabular-nums">
-            {quantity}
-            {unit?.label && (
-              <span className="ml-1 font-mono text-[10px] bg-muted/60 px-1 py-0.5 rounded border border-border/40">
-                {unit.label}
-              </span>
-            )}
-          </span>
+        <div className="flex w-full flex-col items-center gap-0.5 leading-tight">
+          <span className="text-sm font-semibold tabular-nums">{quantity}</span>
+          {unit?.label && (
+            <span className="max-w-full text-center text-xs text-slate-600 dark:text-slate-300">
+              {unit.label}
+            </span>
+          )}
         </div>
       );
     },
@@ -232,6 +358,7 @@ export const getColumns = (
   {
     accessorKey: "purchase_order",
     size: 180,
+    meta: { title: "Solicitud de Compra" },
 
     header: ({ column }) => (
       <div className="flex justify-center w-full">
@@ -246,9 +373,11 @@ export const getColumns = (
 
       return (
         <div className="flex justify-center w-full">
-          <span className="text-xs text-muted-foreground">
-            {orderNumber ?? "—"}
-          </span>
+          {orderNumber ? (
+            <RequisitionLink orderNumber={orderNumber} />
+          ) : (
+            <span className="text-xs text-muted-foreground">—</span>
+          )}
         </div>
       );
     },
@@ -257,6 +386,7 @@ export const getColumns = (
   {
     accessorKey: "arrived_at",
     size: 180,
+    meta: { title: "Llegada" },
 
     header: ({ column }) => (
       <div className="flex justify-center w-full">
@@ -264,22 +394,13 @@ export const getColumns = (
       </div>
     ),
 
-    cell: ({ row }) => {
-      const { arrived_at } = row.original;
-
-      return (
-        <div className="flex justify-center w-full">
-          <span className="text-xs text-muted-foreground">
-            {arrived_at ? formatInstant(arrived_at, timeZone, "dateTime") : "—"}
-          </span>
-        </div>
-      );
-    },
+    cell: ArrivedAtColumnCell,
   },
 
   {
     accessorKey: "registered_by",
     size: 180,
+    meta: { title: "Entregado por" },
 
     header: ({ column }) => (
       <div className="flex justify-center w-full">
@@ -289,7 +410,7 @@ export const getColumns = (
 
     cell: ({ row }) => (
       <div className="flex justify-center w-full">
-        <span className="text-xs text-muted-foreground uppercase">
+        <span className="text-[13px] text-slate-700 dark:text-slate-300">
           {row.original.registered_by}
         </span>
       </div>
@@ -299,6 +420,7 @@ export const getColumns = (
   {
     accessorKey: "status",
     size: 160,
+    meta: { title: "Estado" },
 
     header: ({ column }) => (
       <div className="flex justify-center w-full">
@@ -317,7 +439,7 @@ export const getColumns = (
           <Badge
             variant="outline"
             className={cn(
-              "whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-xs transition-colors duration-150 cursor-default uppercase",
+              "whitespace-nowrap rounded-md border h-6 px-2.5 text-xs font-medium transition-colors duration-150 cursor-default",
               isPending
                 ? "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300"
                 : isRejected
@@ -328,12 +450,12 @@ export const getColumns = (
             )}
           >
             {isPending
-              ? "PENDIENTE"
+              ? "Pendiente"
               : isRejected
-                ? "RECHAZADA"
+                ? "Rechazada"
                 : isDelivered
-                  ? "ENTREGADA"
-                  : "CONFIRMADA"}
+                  ? "Entregada"
+                  : "Confirmada"}
           </Badge>
         </div>
       );
@@ -343,6 +465,7 @@ export const getColumns = (
   {
     accessorKey: "confirmed_by",
     size: 200,
+    meta: { title: "Confirmación" },
 
     header: ({ column }) => (
       <div className="flex justify-center w-full">
@@ -350,83 +473,7 @@ export const getColumns = (
       </div>
     ),
 
-    cell: ({ row }) => {
-      const {
-        status,
-        confirmed_by,
-        confirmed_at,
-        rejected_by,
-        rejected_at,
-        rejection_reason,
-      } = row.original;
-
-      if (status === "DELIVERED") {
-        const destination = getDestination(row.original);
-
-        return (
-          <div className="flex flex-col items-center justify-center gap-1.5 w-full">
-            <span className="text-[11px] text-muted-foreground text-center leading-snug">
-              Entrega directa
-              <br />
-              <span className="text-muted-foreground/70">
-                {destination?.label ?? "Sin paso por almacén"}
-              </span>
-            </span>
-            <DeliveryNoteButton intake={row.original} />
-          </div>
-        );
-      }
-
-      if (status === "PENDING") {
-        return (
-          <div className="flex justify-center w-full">
-            <span className="text-muted-foreground/40 text-xs">—</span>
-          </div>
-        );
-      }
-
-      if (status === "REJECTED") {
-        return (
-          <div className="flex justify-center w-full">
-            <span className="text-[11px] text-muted-foreground text-center leading-snug">
-              Rechazado por:
-              <br />
-              <span className="uppercase font-medium">{rejected_by}</span>
-              {rejected_at && (
-                <>
-                  <br />
-                  El {formatInstant(rejected_at, timeZone, "dateTime")}
-                </>
-              )}
-              {rejection_reason && (
-                <>
-                  <br />
-                  <span className="italic text-red-600/80 dark:text-red-400/80">
-                    “{rejection_reason}”
-                  </span>
-                </>
-              )}
-            </span>
-          </div>
-        );
-      }
-
-      return (
-        <div className="flex justify-center w-full">
-          <span className="text-[11px] text-muted-foreground text-center leading-snug">
-            Confirmado por:
-            <br />
-            <span className="uppercase font-medium">{confirmed_by}</span>
-            {confirmed_at && (
-              <>
-                <br />
-                El {formatInstant(confirmed_at, timeZone, "dateTime")}
-              </>
-            )}
-          </span>
-        </div>
-      );
-    },
+    cell: ConfirmationColumnCell,
   },
 
   {
@@ -439,10 +486,6 @@ export const getColumns = (
       </div>
     ),
 
-    cell: ({ row }) => (
-      <div className="flex justify-center w-full">
-        <EditIntakeButton intake={row.original} />
-      </div>
-    ),
+    cell: ActionsColumnCell,
   },
 ];

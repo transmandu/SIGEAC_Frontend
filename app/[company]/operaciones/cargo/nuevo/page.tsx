@@ -16,7 +16,11 @@ export default function CreateGenericCargoPage() {
   const { registerTour, unregisterTour } = useTourContext();
 
   useEffect(() => {
-    registerTour("cargo-guia-crear", "Nuevo Registro de Carga", cargoGuiaCrearSteps);
+    registerTour(
+      "cargo-guia-crear",
+      "Nuevo Registro de Carga",
+      cargoGuiaCrearSteps,
+    );
     return () => unregisterTour("cargo-guia-crear");
   }, [registerTour, unregisterTour]);
 
@@ -24,15 +28,23 @@ export default function CreateGenericCargoPage() {
     <ContentLayout title="Nuevo Registro">
       <PageHeader className="mb-6" />
 
-      <div className="flex items-center gap-4 mb-8">
-        <Button asChild variant="outline" size="icon" className="h-9 w-9">
+      <div className="mb-8 flex items-start gap-3 sm:items-center sm:gap-4">
+        <Button
+          asChild
+          variant="outline"
+          size="icon"
+          className="h-9 w-9 shrink-0"
+        >
           <Link href={`/${company}/operaciones/cargo`}>
             <ArrowLeft className="h-4 w-4" />
           </Link>
         </Button>
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-primary flex items-center gap-2" data-tour="cargo-crear-title">
-            <PackagePlus className="text-muted-foreground mr-1 size-7" />
+        <div className="min-w-0">
+          <h1
+            className="flex items-center gap-2 break-words text-2xl font-bold tracking-tight text-primary sm:text-3xl"
+            data-tour="cargo-crear-title"
+          >
+            <PackagePlus className="mr-1 size-6 shrink-0 text-muted-foreground sm:size-7" />
             Nuevo Registro De Carga
           </h1>
           <p className="text-muted-foreground mt-1">

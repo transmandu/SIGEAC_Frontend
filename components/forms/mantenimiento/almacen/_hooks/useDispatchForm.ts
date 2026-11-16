@@ -48,7 +48,15 @@ export type RowMsg = { msg: string; level: MsgLevel } | undefined;
 export type ConversionTarget = "aero" | "general";
 export type DispatchType =
   "aircraft" | "department" | "other_company" | "third_party" | "location";
-export type ItemCategory = "consumable" | "component" | "part";
+export type ItemCategory = "consumable" | "component" | "part" | "tool";
+
+// Valor que el backend espera en `category` de la salida.
+const BACKEND_CATEGORY: Record<ItemCategory, string> = {
+  consumable: "consumible",
+  component: "componente",
+  part: "parte",
+  tool: "herramienta",
+};
 
 type ConvState = {
   target: ConversionTarget | null;
@@ -347,6 +355,8 @@ export function useDispatchForm(
       company: selectedCompany!.slug,
       category: itemCategory,
     });
+
+  const isTool = itemCategory === "tool";
 
   const { data: employees, isLoading: employeesLoading } =
     useGetEmployeesByCompany(selectedCompany?.slug);
@@ -930,14 +940,15 @@ export function useDispatchForm(
       }
       aeroFA.append({
         article_id: id,
-        quantity: 0,
+        // Una herramienta es una unidad: no se captura cantidad.
+        quantity: isTool ? 1 : 0,
         serial: article.serial ?? null,
         batch_id: batchId,
       });
-      if (article.unit !== "u") setValue("unit", "litros");
+      if (!isTool && article.unit !== "u") setValue("unit", "litros");
       setOpenAdd(false);
     },
-    [aeroSelectedSet, watchedAero, aeroFA, removeAeroRow, setValue],
+    [aeroSelectedSet, watchedAero, aeroFA, removeAeroRow, setValue, isTool],
   );
 
   const handleAddGeneral = useCallback(
@@ -1013,10 +1024,11 @@ export function useDispatchForm(
     };
 
     return (
-      aeroFA.fields.some((f) => rowInvalid(aeroKey(f.id))) ||
+      // Una herramienta es una unidad: su fila no captura cantidad.
+      (!isTool && aeroFA.fields.some((f) => rowInvalid(aeroKey(f.id)))) ||
       genFA.fields.some((f) => rowInvalid(genKey(f.id)))
     );
-  }, [aeroFA.fields, genFA.fields, qtyByKey, cutByKey]);
+  }, [aeroFA.fields, genFA.fields, qtyByKey, cutByKey, isTool]);
 
   // ── Submit ────────────────────────────────────────────────────────────────
 
@@ -1174,12 +1186,7 @@ export function useDispatchForm(
           submission_date: isBackdated
             ? format(data.submission_date!, "yyyy-MM-dd")
             : undefined,
-          category:
-            itemCategory === "consumable"
-              ? "consumible"
-              : itemCategory === "component"
-                ? "componente"
-                : "parte",
+          category: BACKEND_CATEGORY[itemCategory],
           status: "APPROVED",
           approved_by: user?.employee?.[0]?.dni,
           delivered_by: user?.employee?.[0]?.dni,
@@ -1348,5 +1355,6 @@ export function useDispatchForm(
     // 4. Exportamos variables útiles para que la UI sepa cómo comportarse
     itemCategory,
     needsConversion: itemCategory === "consumable",
+    isTool,
   };
 }

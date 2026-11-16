@@ -7,7 +7,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { TransitUpdatesReadOnlyDialog } from "@/components/dialogs/mantenimiento/almacen/TransitUpdatesReadOnlyDialog";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useGetArticleStatusHistory } from "@/hooks/mantenimiento/almacen/articulos/useGetArticleStatusHistory";
 import {
@@ -17,7 +19,8 @@ import {
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
-import { Loader2 } from "lucide-react";
+import { Loader2, NotebookPen } from "lucide-react";
+import { useState } from "react";
 
 /**
  * "3 d 4 h", "45 min": la unidad mayor y la que le sigue bastan para leer la
@@ -59,6 +62,7 @@ export default function ArticleStatusHistoryDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   const { selectedCompany } = useCompanyStore();
+  const [transitUpdatesOpen, setTransitUpdatesOpen] = useState(false);
 
   // Solo se consulta con el diálogo abierto: la tabla monta una acción por fila.
   const { data, isLoading, isError } = useGetArticleStatusHistory(
@@ -110,7 +114,7 @@ export default function ArticleStatusHistoryDialog({
                 return (
                   <li key={`${entry.from}-${entry.status}`} className="ml-6">
                     <span
-                      className={`absolute left-[-7px] flex size-3.5 rounded-full border-2 border-background ${
+                      className={`absolute -left-1.75 flex size-3.5 rounded-full border-2 border-background ${
                         isCurrent ? "bg-primary" : "bg-muted-foreground"
                       }`}
                     />
@@ -131,6 +135,19 @@ export default function ArticleStatusHistoryDialog({
                         <span className="text-xs text-muted-foreground italic">
                           estado actual
                         </span>
+                      )}
+                      {entry.status === "TRANSIT" && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          aria-label="Ver la bitácora de tránsito"
+                          title="Ver la bitácora de tránsito"
+                          onClick={() => setTransitUpdatesOpen(true)}
+                          className="size-6 text-muted-foreground hover:text-foreground"
+                        >
+                          <NotebookPen className="size-3.5" />
+                        </Button>
                       )}
                     </div>
 
@@ -165,6 +182,14 @@ export default function ArticleStatusHistoryDialog({
               })}
             </ol>
           </ScrollArea>
+        )}
+
+        {transitUpdatesOpen && (
+          <TransitUpdatesReadOnlyDialog
+            articleId={Number(articleId)}
+            open={transitUpdatesOpen}
+            onOpenChange={setTransitUpdatesOpen}
+          />
         )}
       </DialogContent>
     </Dialog>

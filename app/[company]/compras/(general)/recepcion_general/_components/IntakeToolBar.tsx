@@ -1,35 +1,48 @@
-'use client'
+"use client";
 
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Search, SlidersHorizontal } from 'lucide-react'
-import type { GeneralArticleIntakeStatus } from '@/types/purchase'
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Search, SlidersHorizontal } from "lucide-react";
+import type { GeneralArticleIntakeStatus } from "@/types/purchase";
 
-type StatusFilter = 'ALL' | GeneralArticleIntakeStatus
+type StatusFilter = "ALL" | GeneralArticleIntakeStatus;
 
 type Props = {
-  search: string
-  setSearch: (value: string) => void
-  status: StatusFilter
-  setStatus: (value: StatusFilter) => void
-}
+  search: string;
+  setSearch: (value: string) => void;
+  status: StatusFilter;
+  setStatus: (value: StatusFilter) => void;
+};
 
-const selectTriggerClass = `h-8 w-full pl-8 text-xs bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60 transition-colors focus:ring-1 focus:ring-primary/40 data-placeholder:text-muted-foreground [&>span]:truncate`
-const selectContentClass = `border-slate-200/60 dark:border-slate-700/60`
+const selectTriggerClass = `h-8 max-sm:h-10 w-full pl-8 text-xs bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60 transition-colors focus:ring-1 focus:ring-primary/40 data-placeholder:text-muted-foreground [&>span]:truncate`;
+const selectContentClass = `border-slate-200/60 dark:border-slate-700/60`;
 
 const StatusSelect = ({
   status,
   setStatus,
 }: {
-  status: StatusFilter
-  setStatus: (value: StatusFilter) => void
+  status: StatusFilter;
+  setStatus: (value: StatusFilter) => void;
 }) => (
   <div className="relative sm:w-44 sm:shrink-0">
     <SlidersHorizontal className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 z-10 size-3.5 text-muted-foreground" />
 
-    <Select value={status} onValueChange={(value) => setStatus(value as StatusFilter)}>
+    <Select
+      value={status}
+      onValueChange={(value) => setStatus(value as StatusFilter)}
+    >
       <SelectTrigger className={selectTriggerClass}>
         <SelectValue placeholder="Estado" />
       </SelectTrigger>
@@ -43,12 +56,11 @@ const StatusSelect = ({
       </SelectContent>
     </Select>
   </div>
-)
+);
 
 const IntakeToolBar = ({ search, setSearch, status, setStatus }: Props) => {
   return (
     <div className="flex items-center gap-2">
-
       {/* SEARCH */}
       <div className="relative flex-1 sm:flex-none sm:w-72">
         <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
@@ -57,7 +69,7 @@ const IntakeToolBar = ({ search, setSearch, status, setStatus }: Props) => {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Buscar descripción, solicitud, responsable..."
-          className="pl-8 h-8 text-xs bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60 focus-visible:ring-1 focus-visible:ring-primary/40"
+          className="pl-8 h-8 max-sm:h-10 text-xs bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60 focus-visible:ring-1 focus-visible:ring-primary/40"
         />
       </div>
 
@@ -68,7 +80,7 @@ const IntakeToolBar = ({ search, setSearch, status, setStatus }: Props) => {
             <Button
               variant="outline"
               size="icon"
-              className="h-8 w-8 shrink-0 bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60"
+              className="h-8 w-8 max-sm:size-10 shrink-0 bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60"
             >
               <SlidersHorizontal className="size-4" />
             </Button>
@@ -76,7 +88,7 @@ const IntakeToolBar = ({ search, setSearch, status, setStatus }: Props) => {
 
           <PopoverContent
             align="end"
-            className="w-72 p-3 space-y-3 border-slate-200/60 dark:border-slate-700/60"
+            className="w-72 max-w-[calc(100vw-2rem)] p-3 space-y-3 border-slate-200/60 dark:border-slate-700/60"
           >
             <StatusSelect status={status} setStatus={setStatus} />
           </PopoverContent>
@@ -87,9 +99,8 @@ const IntakeToolBar = ({ search, setSearch, status, setStatus }: Props) => {
       <div className="hidden sm:flex items-center gap-2">
         <StatusSelect status={status} setStatus={setStatus} />
       </div>
-
     </div>
-  )
-}
+  );
+};
 
-export default IntakeToolBar
+export default IntakeToolBar;

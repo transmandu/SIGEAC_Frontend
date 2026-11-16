@@ -232,6 +232,31 @@ export function getResult(index: string) {
   }
 }
 
+/**
+ * Colores de los índices de riesgo (5A…1E) según su tolerabilidad, para las
+ * barras y porciones de los gráficos estadísticos: rojo (intolerable),
+ * amarillo (tolerable) y verde (aceptable).
+ */
+export const RISK_RESULT_COLORS = {
+  INTOLERABLE: "#dc2626",
+  TOLERABLE: "#d4a017",
+  ACEPTABLE: "#16a34a",
+  UNKNOWN: "#6b7280",
+} as const;
+
+export function getResultColor(index: string) {
+  switch (getResult(index.trim().toUpperCase())) {
+    case "INTOLERABLE":
+      return RISK_RESULT_COLORS.INTOLERABLE;
+    case "TOLERABLE":
+      return RISK_RESULT_COLORS.TOLERABLE;
+    case "ACEPTABLE":
+      return RISK_RESULT_COLORS.ACEPTABLE;
+    default:
+      return RISK_RESULT_COLORS.UNKNOWN;
+  }
+}
+
 // COLORES PARA LOS GRAFICOS ESTADISTICOS DYNAMIC CHART & PIE CHART COMPONENT
 export const COLORS: string[] = [
   // Agregamos 'export' aquí

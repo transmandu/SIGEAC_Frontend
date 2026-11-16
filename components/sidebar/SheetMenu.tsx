@@ -127,7 +127,7 @@ export function SheetMenu() {
 
       <SheetContent
         side="left"
-        className="sm:max-w-72 px-3 h-full flex flex-col"
+        className="max-sm:w-4/5 sm:max-w-72 px-3 h-full flex flex-col"
       >
         {/* HEADER */}
         <SheetHeader>
@@ -152,7 +152,7 @@ export function SheetMenu() {
 
         {/* MENU / STATE */}
         {selectedCompany && selectedStation ? (
-          <Menu isOpen />
+          <Menu isOpen scrollKey="sheet" />
         ) : (
           <p className="text-sm text-muted-foreground text-center mt-10">
             Por favor, seleccione una <strong>Empresa</strong> y una{" "}

@@ -1,48 +1,50 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { Form, FormLabel } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { useToast } from "@/components/ui/use-toast"
-import { zodResolver } from "@/lib/zod-resolver"
-import { AlertTriangle } from "lucide-react"
-import PartsList from "./parts-form/PartsList"
-import { useEffect, useMemo, useState } from "react"
-import { useFieldArray, useForm } from "react-hook-form"
-import { z } from "zod"
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Form, FormLabel } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/components/ui/use-toast";
+import { zodResolver } from "@/lib/zod-resolver";
+import { AlertTriangle } from "lucide-react";
+import PartsList from "./parts-form/PartsList";
+import { countsCycles, isMainPartType } from "./parts-form/constants";
+import { useEffect, useMemo, useState } from "react";
+import { useFieldArray, useForm } from "react-hook-form";
+import { z } from "zod";
 import { toCalendarPayload } from "@/lib/date";
-
-
 
 const PartSchema: any = z.object({
   id: z.any().optional(),
-  serial: z.string().optional(),
-  manufacturer_id: z.string().optional(),
+  serial: z.string().nullable().optional(),
+  manufacturer_id: z.string().nullable().optional(),
 
   type: z.string().min(1, "Tipo obligatorio").max(50),
   category: z.enum(["ENGINE", "APU", "PROPELLER"]).optional(),
-  position: z.enum(["LH", "RH"]).optional(),
+  position: z.string().nullable().optional(),
   part_order: z.number().nullable().optional(),
 
   part_number: z.string().min(1, "N\u00famero de parte obligatorio"),
-  ata_chapter: z.string().optional(),
+  ata_chapter: z.string().nullable().optional(),
+  assigned_date: z.string().nullable().optional(),
 
   time_since_new: z.number().nullable().optional(),
   time_since_overhaul: z.number().nullable().optional(),
   cycles_since_new: z.number().nullable().optional(),
   cycles_since_overhaul: z.number().nullable().optional(),
 
-  condition_type: z.enum(["NEW", "OVERHAULED"], { error: "Condici\u00f3n requerida" }),
+  condition_type: z.enum(["NEW", "OVERHAULED"], {
+    error: "Condici\u00f3n requerida",
+  }),
   is_father: z.boolean().default(false),
   removed_date: z.string().nullable().optional(),
 
-  sub_parts: z.array(z.lazy(() => PartSchema)).optional()
-})
+  sub_parts: z.array(z.lazy(() => PartSchema)).optional(),
+});
 
 const PartsFormSchema = z.object({
-  parts: z.array(PartSchema)
-})
+  parts: z.array(PartSchema),
+});
 
 export const PART_CATEGORIES: Record<string, string> = {
   ENGINE: "Planta de Poder",
@@ -57,7 +59,7 @@ const TYPE_TO_CATEGORY: Record<string, "ENGINE" | "APU" | "PROPELLER"> = {
   APU: "APU",
 };
 
-type PartsFormType = z.infer<typeof PartsFormSchema>
+type PartsFormType = z.infer<typeof PartsFormSchema>;
 
 type RawPart = {
   id?: number | string;
@@ -114,7 +116,10 @@ const normalizePart = (part: any): z.infer<typeof PartSchema> => {
   return {
     id: part.id,
     serial: part.serial || "",
-    manufacturer_id: part.manufacturer_id || "",
+    manufacturer_id:
+      part.manufacturer_id !== null && part.manufacturer_id !== undefined
+        ? String(part.manufacturer_id)
+        : "",
     type,
     category: part.category || TYPE_TO_CATEGORY[type] || "ENGINE",
     part_number: part.part_number || "",
@@ -126,55 +131,162 @@ const normalizePart = (part: any): z.infer<typeof PartSchema> => {
     cycles_since_new: nullableNumber(part.cycles_since_new),
     cycles_since_overhaul: nullableNumber(part.cycles_since_overhaul),
     condition_type: part.condition_type === "OVERHAULED" ? "OVERHAULED" : "NEW",
-    is_father: typeof part.is_father === "boolean" ? part.is_father : normalizedSubParts.length > 0,
+    is_father:
+      typeof part.is_father === "boolean"
+        ? part.is_father
+        : normalizedSubParts.length > 0,
+    assigned_date: part.assigned_date || null,
     removed_date: part.removed_date || null,
-    sub_parts: normalizedSubParts
+    sub_parts: normalizedSubParts,
   };
 };
 
-const buildPartsFromAssignments = (assignments: AircraftAssignmentLike[] = []): z.infer<typeof PartSchema>[] => {
-  const entries = assignments.filter(a => a.removed_date === null || a.removed_date === undefined);
+type PartIssue = { path: string; message: string };
 
-  const activeEntries: RawPart[] = entries.map((assignment) => {
-    const src = (assignment.aircraft_part as any) ?? (assignment as any);
-    const assignmentData = assignment as any;
-    const position = assignmentData.position ?? src.position ?? null;
-    const part_order = assignmentData.part_order ?? src.part_order ?? null;
-    const ata_chapter = assignmentData.ata_chapter ?? src.ata_chapter ?? assignmentData.ata_number ?? src.ata_number ?? src.ata ?? null;
-    const time_since_new = assignmentData.time_since_new ?? src.time_since_new ?? null;
-    const time_since_overhaul = assignmentData.time_since_overhaul ?? src.time_since_overhaul ?? null;
-    const cycles_since_new = assignmentData.cycles_since_new ?? src.cycles_since_new ?? null;
-    const cycles_since_overhaul = assignmentData.cycles_since_overhaul ?? src.cycles_since_overhaul ?? null;
-    const condition_type = assignmentData.condition_type ?? src.condition_type ?? "NEW";
-    const type = assignmentData.type ?? src.type ?? "";
-    const serial = assignmentData.serial ?? src.serial ?? "";
-    const manufacturer_id = assignmentData.manufacturer_id ?? src.manufacturer_id ?? "";
+const isBlank = (value: unknown) =>
+  value === null || value === undefined || value === "";
 
-    return {
-      ...(src ?? {}),
-      type,
-      serial,
-      manufacturer_id,
-      time_since_new,
-      time_since_overhaul,
-      cycles_since_new,
-      cycles_since_overhaul,
-      condition_type,
-      position,
-      part_order,
-      ata_chapter,
-    } as RawPart;
-  }).filter(Boolean);
+/** Reglas que dependen de varios campos o de la lista completa; el backend las repite. */
+const collectPartIssues = (
+  parts: any[],
+  basePath = "parts",
+  depth = 0,
+): PartIssue[] => {
+  const issues: PartIssue[] = [];
+  const orders = new Set<string>();
+
+  parts.forEach((part, index) => {
+    if (!part || part.removed_date) return;
+
+    const path = `${basePath}.${index}`;
+    const type = String(part.type ?? "")
+      .trim()
+      .toUpperCase();
+
+    if (depth === 0) {
+      if (isMainPartType(type)) {
+        if (isBlank(part.time_since_new)) {
+          issues.push({
+            path: `${path}.time_since_new`,
+            message: "El TSN es obligatorio en una parte principal",
+          });
+        }
+      }
+      if (countsCycles(type) && isBlank(part.cycles_since_new)) {
+        issues.push({
+          path: `${path}.cycles_since_new`,
+          message: "El CSN es obligatorio en esta parte principal",
+        });
+      }
+
+      if (type && !isBlank(part.part_order)) {
+        const key = `${type}|${part.part_order}`;
+        if (orders.has(key)) {
+          issues.push({
+            path: `${path}.part_order`,
+            message: `Ya hay otra parte ${type} con el orden ${part.part_order}`,
+          });
+        }
+        orders.add(key);
+      }
+    }
+
+    if (part.condition_type === "OVERHAULED") {
+      if (!isBlank(part.time_since_new) && isBlank(part.time_since_overhaul)) {
+        issues.push({
+          path: `${path}.time_since_overhaul`,
+          message: "El TSO es obligatorio en una parte reacondicionada",
+        });
+      }
+      if (
+        !isBlank(part.cycles_since_new) &&
+        isBlank(part.cycles_since_overhaul)
+      ) {
+        issues.push({
+          path: `${path}.cycles_since_overhaul`,
+          message: "El CSO es obligatorio en una parte reacondicionada",
+        });
+      }
+    }
+
+    issues.push(
+      ...collectPartIssues(
+        part.sub_parts ?? [],
+        `${path}.sub_parts`,
+        depth + 1,
+      ),
+    );
+  });
+
+  return issues;
+};
+
+const buildPartsFromAssignments = (
+  assignments: AircraftAssignmentLike[] = [],
+): z.infer<typeof PartSchema>[] => {
+  const entries = assignments.filter(
+    (a) => a.removed_date === null || a.removed_date === undefined,
+  );
+
+  const activeEntries: RawPart[] = entries
+    .map((assignment) => {
+      const src = (assignment.aircraft_part as any) ?? (assignment as any);
+      const assignmentData = assignment as any;
+      const position = assignmentData.position ?? src.position ?? null;
+      const part_order = assignmentData.part_order ?? src.part_order ?? null;
+      const ata_chapter =
+        assignmentData.ata_chapter ??
+        src.ata_chapter ??
+        assignmentData.ata_number ??
+        src.ata_number ??
+        src.ata ??
+        null;
+      const time_since_new =
+        assignmentData.time_since_new ?? src.time_since_new ?? null;
+      const time_since_overhaul =
+        assignmentData.time_since_overhaul ?? src.time_since_overhaul ?? null;
+      const cycles_since_new =
+        assignmentData.cycles_since_new ?? src.cycles_since_new ?? null;
+      const cycles_since_overhaul =
+        assignmentData.cycles_since_overhaul ??
+        src.cycles_since_overhaul ??
+        null;
+      const condition_type =
+        assignmentData.condition_type ?? src.condition_type ?? "NEW";
+      const type = assignmentData.type ?? src.type ?? "";
+      const serial = assignmentData.serial ?? src.serial ?? "";
+      const manufacturer_id =
+        assignmentData.manufacturer_id ?? src.manufacturer_id ?? "";
+
+      return {
+        ...(src ?? {}),
+        type,
+        serial,
+        manufacturer_id,
+        time_since_new,
+        time_since_overhaul,
+        cycles_since_new,
+        cycles_since_overhaul,
+        condition_type,
+        position,
+        part_order,
+        ata_chapter,
+      } as RawPart;
+    })
+    .filter(Boolean);
 
   const partsById = new Map<string, RawPart>();
 
   const collectPartTree = (part: RawPart) => {
-    const key = String(part.id ?? `${part.parent_part_id ?? "root"}-${part.part_number ?? part.type ?? Math.random()}`);
+    const key = String(
+      part.id ??
+        `${part.parent_part_id ?? "root"}-${part.part_number ?? part.type ?? Math.random()}`,
+    );
     const existing = partsById.get(key);
 
     partsById.set(key, {
       ...part,
-      sub_parts: part.sub_parts || existing?.sub_parts || []
+      sub_parts: part.sub_parts || existing?.sub_parts || [],
     });
     (part.sub_parts || []).forEach(collectPartTree);
   };
@@ -184,7 +296,8 @@ const buildPartsFromAssignments = (assignments: AircraftAssignmentLike[] = []): 
   const parts = Array.from(partsById.values());
   const childrenByParent = new Map<string, RawPart[]>();
   parts.forEach((part) => {
-    if (part.parent_part_id === null || part.parent_part_id === undefined) return;
+    if (part.parent_part_id === null || part.parent_part_id === undefined)
+      return;
 
     const parentKey = String(part.parent_part_id);
     const siblings = childrenByParent.get(parentKey) || [];
@@ -200,64 +313,123 @@ const buildPartsFromAssignments = (assignments: AircraftAssignmentLike[] = []): 
     const relatedChildren = childrenByParent.get(String(part.id ?? "")) || [];
     const mergedChildren = [...nestedChildren];
     relatedChildren.forEach((child) => {
-      if (!mergedChildren.some((existing) => String(existing.id) === String(child.id))) {
+      if (
+        !mergedChildren.some(
+          (existing) => String(existing.id) === String(child.id),
+        )
+      ) {
         mergedChildren.push(composeTree(child));
       }
     });
     return {
       ...part,
-      sub_parts: mergedChildren
+      sub_parts: mergedChildren,
     };
   };
 
   return parts
-    .filter((part) => part.parent_part_id === null || part.parent_part_id === undefined)
+    .filter(
+      (part) =>
+        part.parent_part_id === null || part.parent_part_id === undefined,
+    )
     .map(composeTree)
     .map(normalizePart);
 };
 
-export function AircraftPartsInfoForm({ onNext, onBack, initialData }: {
-  onNext: (data: PartsFormType) => void,
-  onBack: (data: PartsFormType) => void,
-  initialData?: any
+/** Reubica los marcadores "abierta" tras quitar el elemento `index` de la lista `parentPath`. */
+const shiftExpandedPaths = (
+  expanded: Record<string, boolean>,
+  parentPath: string,
+  index: number,
+): Record<string, boolean> => {
+  const next: Record<string, boolean> = {};
+  const prefix = `${parentPath}.`;
+
+  for (const [key, value] of Object.entries(expanded)) {
+    if (!key.startsWith(prefix)) {
+      next[key] = value;
+      continue;
+    }
+
+    const [head, ...tail] = key.slice(prefix.length).split(".");
+    const position = Number(head);
+    if (position === index) continue;
+
+    next[
+      [parentPath, position > index ? position - 1 : position, ...tail].join(
+        ".",
+      )
+    ] = value;
+  }
+
+  return next;
+};
+
+export function AircraftPartsInfoForm({
+  onNext,
+  onBack,
+  initialData,
+}: {
+  onNext: (data: PartsFormType) => void;
+  onBack: (data: PartsFormType) => void;
+  initialData?: any;
 }) {
   const { toast } = useToast();
   const [removingPath, setRemovingPath] = useState<string | null>(null);
-  const [tempDate, setTempDate] = useState<string>(toCalendarPayload(new Date()) ?? '');
+  const [removeEpoch, setRemoveEpoch] = useState(0);
+  const [tempDate, setTempDate] = useState<string>(
+    toCalendarPayload(new Date()) ?? "",
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const normalizedInitialData = useMemo(() => {
     if (initialData?.parts) {
       const parts = (initialData.parts || []).map((p: any) => normalizePart(p));
-      return { parts: parts.length ? parts : [{ condition_type: "NEW", removed_date: null }] };
+      return {
+        parts: parts.length
+          ? parts
+          : [{ condition_type: "NEW", removed_date: null }],
+      };
     }
 
     if (initialData?.aircraft_parts) {
-      const parts = (initialData.aircraft_parts || []).map((p: any) => normalizePart(p));
-      return { parts: parts.length ? parts : [{ condition_type: "NEW", removed_date: null }] };
+      const parts = (initialData.aircraft_parts || []).map((p: any) =>
+        normalizePart(p),
+      );
+      return {
+        parts: parts.length
+          ? parts
+          : [{ condition_type: "NEW", removed_date: null }],
+      };
     }
 
     if (initialData?.aircraft_assignments) {
-      const parts = buildPartsFromAssignments(initialData.aircraft_assignments || []);
-      return { parts: parts.length ? parts : [{ condition_type: "NEW", removed_date: null }] };
+      const parts = buildPartsFromAssignments(
+        initialData.aircraft_assignments || [],
+      );
+      return {
+        parts: parts.length
+          ? parts
+          : [{ condition_type: "NEW", removed_date: null }],
+      };
     }
 
-    return { parts: [{ condition_type: "NEW", removed_date: null }] }
-  }, [initialData])
+    return { parts: [{ condition_type: "NEW", removed_date: null }] };
+  }, [initialData]);
 
   const form = useForm<PartsFormType>({
     resolver: zodResolver(PartsFormSchema),
-    defaultValues: normalizedInitialData
-  })
+    defaultValues: normalizedInitialData,
+  });
 
   useEffect(() => {
     form.reset(normalizedInitialData);
   }, [form, normalizedInitialData]);
 
-  const { fields, append } = useFieldArray({
+  const { fields, append, remove } = useFieldArray({
     control: form.control,
-    name: "parts"
-  })
+    name: "parts",
+  });
 
   const reactivatePartTree = (path: string) => {
     form.setValue(`${path}.removed_date` as any, null);
@@ -268,7 +440,7 @@ export function AircraftPartsInfoForm({ onNext, onBack, initialData }: {
   };
 
   const applyRemoval = () => {
-    if (!removingPath) return;
+    if (!removingPath || !tempDate) return;
     const applyDateRecursively = (path: string, date: string) => {
       form.setValue(`${path}.removed_date` as any, date);
       const currentSubparts = form.getValues(`${path}.sub_parts` as any) || [];
@@ -286,45 +458,75 @@ export function AircraftPartsInfoForm({ onNext, onBack, initialData }: {
     const part = form.getValues(fullPath as any);
     // New empty shell (no id) → remove directly without confirmation modal
     if (!part?.id) {
-      const pathParts = fullPath.split('.');
+      const pathParts = fullPath.split(".");
       const index = Number(pathParts.pop());
-      const parentPath = pathParts.join('.') || 'parts';
-      const current = form.getValues(parentPath as any) || [];
-      form.setValue(parentPath as any, [
-        ...current.slice(0, index),
-        ...current.slice(index + 1)
-      ]);
+      const parentPath = pathParts.join(".") || "parts";
+
+      if (parentPath === "parts") {
+        remove(index);
+      } else {
+        const current = form.getValues(parentPath as any) || [];
+        form.setValue(
+          parentPath as any,
+          current.filter((_: unknown, i: number) => i !== index),
+        );
+      }
+
+      // Las subpartes se identifican por su posición: al quitar una, las que
+      // siguen corren un lugar, y con ellas lo que se recuerda de cada una
+      // (abierta/cerrada y su "No aplica" local).
+      setExpandedParts((prev) => shiftExpandedPaths(prev, parentPath, index));
+      setRemoveEpoch((epoch) => epoch + 1);
       return;
     }
     // Existing part → show removal confirmation with date picker
     setRemovingPath(fullPath);
   };
 
-  const [expandedParts, setExpandedParts] = useState<Record<string, boolean>>({});
+  const [expandedParts, setExpandedParts] = useState<Record<string, boolean>>(
+    {},
+  );
 
   const toggleExpand = (path: string) => {
-    setExpandedParts(prev => ({ ...prev, [path]: !prev[path] }));
+    setExpandedParts((prev) => ({ ...prev, [path]: !prev[path] }));
   };
 
   const addSubpart = (partPath: string) => {
-    const currentSubparts = form.getValues(`${partPath}.sub_parts` as any) || [];
+    const currentSubparts =
+      form.getValues(`${partPath}.sub_parts` as any) || [];
     const parentPart = form.getValues(partPath as any);
-    const parentCategory = parentPart?.category || TYPE_TO_CATEGORY[parentPart?.type] || "ENGINE";
+    const parentCategory =
+      parentPart?.category || TYPE_TO_CATEGORY[parentPart?.type] || "ENGINE";
     form.setValue(`${partPath}.sub_parts` as any, [
       ...currentSubparts,
-      { condition_type: "NEW", category: parentCategory }
+      { condition_type: "NEW", category: parentCategory },
     ]);
-    if (!expandedParts[partPath]) {
-      toggleExpand(partPath);
-    }
+    // Se abren el padre y la subparte nueva: queda lista para llenarse.
+    setExpandedParts((prev) => ({
+      ...prev,
+      [partPath]: true,
+      [`${partPath}.sub_parts.${currentSubparts.length}`]: true,
+    }));
   };
 
+  const appendPart = (value: any) => {
+    setExpandedParts((prev) => ({ ...prev, [`parts.${fields.length}`]: true }));
+    append(value);
+  };
+
+  // Una parte sin la marca "contiene subpartes" no manda las subpartes nuevas
+  // que quedaron ocultas al desmarcarla; las ya registradas (con id) se respetan.
   const addCategoryToParts = (parts: any[]): any[] => {
-    return parts.map(part => ({
-      ...part,
-      category: part.category || TYPE_TO_CATEGORY[part.type] || "ENGINE",
-      sub_parts: part.sub_parts ? addCategoryToParts(part.sub_parts) : undefined
-    }));
+    return parts.map((part) => {
+      const subParts = part.is_father
+        ? part.sub_parts
+        : (part.sub_parts ?? []).filter((s: any) => s?.id);
+      return {
+        ...part,
+        category: part.category || TYPE_TO_CATEGORY[part.type] || "ENGINE",
+        sub_parts: subParts ? addCategoryToParts(subParts) : undefined,
+      };
+    });
   };
 
   const submitFiltered = () => {
@@ -332,7 +534,7 @@ export function AircraftPartsInfoForm({ onNext, onBack, initialData }: {
     setIsSubmitting(true);
 
     const values = form.getValues();
-    const parts = values.parts || [];
+    const parts = addCategoryToParts(values.parts || []);
 
     // Keep mapping of original indexes for error mapping
     const origIndices: number[] = [];
@@ -346,25 +548,50 @@ export function AircraftPartsInfoForm({ onNext, onBack, initialData }: {
     // Solo se validan las partes activas: las descartadas pueden estar a medias.
     const parsed = PartsFormSchema.safeParse({ parts: activeParts });
     form.clearErrors();
+
+    const issues: PartIssue[] = [];
     if (!parsed.success) {
-      parsed.error.issues.forEach(err => {
+      parsed.error.issues.forEach((err) => {
         // err.path = ["parts", activeIdx, "fieldName"] or ["parts", activeIdx, "sub_parts", n, "fieldName"]
         const [, activeIdx, ...fieldPath] = err.path as (string | number)[];
         const orig = origIndices[activeIdx as number];
         if (orig !== undefined && fieldPath.length > 0) {
-          form.setError(`parts.${orig}.${fieldPath.join('.')}` as any, { type: 'manual', message: err.message });
+          issues.push({
+            path: `parts.${orig}.${fieldPath.join(".")}`,
+            message: err.message,
+          });
         }
       });
-      toast({ title: 'Errores en el formulario', description: 'Corrige los campos marcados.' });
+    }
+    issues.push(...collectPartIssues(parts));
+
+    if (issues.length > 0) {
+      const toExpand: Record<string, boolean> = {};
+      issues.forEach(({ path, message }) => {
+        form.setError(path as any, { type: "manual", message });
+
+        // Las partes arrancan colapsadas: se abren las que traen el error
+        // (y sus ancestros) para que el campo marcado se vea.
+        const segments = path.split(".");
+        let current = `${segments[0]}.${segments[1]}`;
+        toExpand[current] = true;
+        for (let i = 2; i + 1 < segments.length; i += 2) {
+          if (segments[i] !== "sub_parts") break;
+          current = `${current}.sub_parts.${segments[i + 1]}`;
+          toExpand[current] = true;
+        }
+      });
+      setExpandedParts((prev) => ({ ...prev, ...toExpand }));
+      toast({
+        title: "Errores en el formulario",
+        description: "Corrige los campos marcados.",
+      });
       setIsSubmitting(false);
       return;
     }
 
-    // Add category to all parts based on type
-    const partsWithCategory = addCategoryToParts(parts);
-
     // If valid, send all parts (registered and removals) to the next step
-    onNext({ parts: partsWithCategory });
+    onNext({ parts });
     setIsSubmitting(false);
   };
 
@@ -389,25 +616,39 @@ export function AircraftPartsInfoForm({ onNext, onBack, initialData }: {
               <Input
                 type="date"
                 value={tempDate}
+                max={toCalendarPayload(new Date()) ?? undefined}
                 onChange={(e) => setTempDate(e.target.value)}
                 className="mb-6 mt-2"
               />
               <div className="flex justify-end gap-3">
-                <Button variant="ghost" type="button" onClick={() => setRemovingPath(null)}>Cancelar</Button>
-                <Button variant="destructive" type="button" onClick={applyRemoval}>Confirmar Remoción</Button>
+                <Button
+                  variant="ghost"
+                  type="button"
+                  onClick={() => setRemovingPath(null)}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  variant="destructive"
+                  type="button"
+                  onClick={applyRemoval}
+                >
+                  Confirmar Remoción
+                </Button>
               </div>
             </Card>
           </div>
         )}
 
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Partes de Aeronave 2222</h2>
+          <h2 className="text-xl font-semibold">Partes de Aeronave</h2>
         </div>
 
         <PartsList
+          key={removeEpoch}
           fields={fields}
           form={form}
-          append={append}
+          append={appendPart}
           onRemove={removeItem}
           onReactivate={reactivatePartTree}
           onToggleExpand={toggleExpand}
@@ -416,8 +657,19 @@ export function AircraftPartsInfoForm({ onNext, onBack, initialData }: {
         />
 
         <div className="flex justify-between pt-4">
-          <Button type="button" variant="outline" onClick={() => onBack(form.getValues())} disabled={isSubmitting}>Anterior</Button>
-          <Button type="button" onClick={submitFiltered} disabled={isSubmitting}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onBack(form.getValues())}
+            disabled={isSubmitting}
+          >
+            Anterior
+          </Button>
+          <Button
+            type="button"
+            onClick={submitFiltered}
+            disabled={isSubmitting}
+          >
             {isSubmitting ? "Procesando..." : "Siguiente"}
           </Button>
         </div>
@@ -425,4 +677,3 @@ export function AircraftPartsInfoForm({ onNext, onBack, initialData }: {
     </Form>
   );
 }
-

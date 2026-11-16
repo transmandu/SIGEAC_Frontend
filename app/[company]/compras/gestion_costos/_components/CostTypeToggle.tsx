@@ -1,60 +1,51 @@
-'use client'
+"use client";
 
-import { cn } from '@/lib/utils'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { motion, AnimatePresence } from "motion/react"
+import { motion, AnimatePresence } from "motion/react";
+import { Boxes, Wrench, Layers, Cpu, Package, Droplets } from "lucide-react";
 import {
-  Boxes,
-  Wrench,
-  Layers,
-  Cpu,
-  Package,
-  Droplets,
-} from 'lucide-react'
+  SegmentedTabs,
+  SegmentedTabsList,
+  SegmentedTabsTrigger,
+} from "@/components/misc/SegmentedTabs";
 
-type CostType = 'ARTICLE' | 'GENERAL'
+type CostType = "ARTICLE" | "GENERAL";
 
-type Category =
-  | 'all'
-  | 'COMPONENT'
-  | 'PART'
-  | 'CONSUMABLE'
-  | 'TOOL'
+type Category = "all" | "COMPONENT" | "PART" | "CONSUMABLE" | "TOOL";
 
 type Props = {
-  type: CostType
-  setType: (type: CostType) => void
+  type: CostType;
+  setType: (type: CostType) => void;
 
-  category: Category
-  setCategory: (category: Category) => void
+  category: Category;
+  setCategory: (category: Category) => void;
 
   /** Oculta el selector de tipo cuando el usuario solo tiene acceso a uno */
-  showTabs?: boolean
-}
+  showTabs?: boolean;
+};
 
 const categoryLabels: Record<Category, string> = {
-  all: 'Todos',
-  COMPONENT: 'Componente',
-  PART: 'Parte',
-  CONSUMABLE: 'Consumible',
-  TOOL: 'Herramienta',
-}
+  all: "Todos",
+  COMPONENT: "Componente",
+  PART: "Parte",
+  CONSUMABLE: "Consumible",
+  TOOL: "Herramienta",
+};
 
-const categoryIcons: Record<Category, any> = {
+const categoryIcons: Record<Category, typeof Layers> = {
   all: Layers,
   COMPONENT: Cpu,
   PART: Package,
   CONSUMABLE: Droplets,
   TOOL: Wrench,
-}
+};
 
 const categories: Category[] = [
-  'all',
-  'COMPONENT',
-  'PART',
-  'CONSUMABLE',
-  'TOOL',
-]
+  "all",
+  "COMPONENT",
+  "PART",
+  "CONSUMABLE",
+  "TOOL",
+];
 
 const CostTypeToggle = ({
   type,
@@ -64,115 +55,80 @@ const CostTypeToggle = ({
   showTabs = true,
 }: Props) => {
   return (
-    <div className="flex flex-col items-center gap-2 w-full">
-
+    <div className="flex w-full flex-col items-center">
       {showTabs && (
-        <Tabs
+        <SegmentedTabs
           value={type}
           onValueChange={(val) => {
-            const next = val as CostType
-            setType(next)
-            if (next === 'GENERAL') setCategory('all')
+            const next = val as CostType;
+            setType(next);
+            if (next === "GENERAL") setCategory("all");
           }}
-          className="w-full flex justify-center"
         >
-          <TabsList
-            className={cn(
-              'px-8 py-3 rounded-2xl border backdrop-blur-md',
-              'bg-slate-200/50 border-slate-200/40',
-              'dark:bg-slate-800/60 dark:border-slate-800/60'
-            )}
-          >
-            <div className="flex gap-2">
+          <SegmentedTabsList aria-label="Tipo de costo">
+            <SegmentedTabsTrigger value="ARTICLE">
+              <Boxes className="size-4 shrink-0" />
+              Artículos
+            </SegmentedTabsTrigger>
 
-              <TabsTrigger
-                value="ARTICLE"
-                className={cn(
-                  'px-4 py-2 rounded-xl text-xs font-medium transition-all duration-200',
-                  'flex items-center justify-center gap-2',
-                  'text-muted-foreground hover:text-primary',
-                  'data-[state=active]:bg-white/80 dark:data-[state=active]:bg-slate-900/50',
-                  'data-[state=active]:text-primary',
-                  'data-[state=active]:shadow-[0_0_18px_hsl(var(--primary)/0.25)]',
-                  'data-[state=active]:ring-1 data-[state=active]:ring-primary/30'
-                )}
-              >
-                <Boxes className="w-4 h-4 shrink-0" />
-                Artículos
-              </TabsTrigger>
-
-              <TabsTrigger
-                value="GENERAL"
-                className={cn(
-                  'px-4 py-2 rounded-xl text-xs font-medium transition-all duration-200',
-                  'flex items-center justify-center gap-2',
-                  'text-muted-foreground hover:text-primary',
-                  'data-[state=active]:bg-white/80 dark:data-[state=active]:bg-slate-900/50',
-                  'data-[state=active]:text-primary',
-                  'data-[state=active]:shadow-[0_0_18px_hsl(var(--primary)/0.25)]',
-                  'data-[state=active]:ring-1 data-[state=active]:ring-primary/30'
-                )}
-              >
-                <Wrench className="w-4 h-4 shrink-0" />
-                General / Ferretería
-              </TabsTrigger>
-
-            </div>
-          </TabsList>
-        </Tabs>
+            <SegmentedTabsTrigger value="GENERAL">
+              <Wrench className="size-4 shrink-0" />
+              General / Ferretería
+            </SegmentedTabsTrigger>
+          </SegmentedTabsList>
+        </SegmentedTabs>
       )}
 
-      <AnimatePresence mode="wait">
-        {type === 'ARTICLE' && (
+      <AnimatePresence initial={false}>
+        {type === "ARTICLE" && (
+          // La altura se despliega junto con el fundido, así el contenido de
+          // abajo baja con la barra en lugar de dar un salto. La separación va
+          // como padding interno para que también crezca desde cero.
           <motion.div
             key="categories"
-            initial={{ opacity: 0, y: -6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.2, ease: 'easeOut' }}
-            className={cn(
-              'flex flex-wrap justify-center gap-2',
-              'px-12 py-1.5 rounded-xl border backdrop-blur-xs', // ⬅️ más ancho también aquí
-              'bg-slate-200/50 border-slate-200/40',
-              'dark:bg-slate-800/60 dark:border-slate-800/60'
-            )}
+            initial={{ height: 0, opacity: 0 }}
+            animate={{
+              height: "auto",
+              opacity: 1,
+              transition: {
+                height: { duration: 0.34, ease: [0.22, 1, 0.36, 1] },
+                opacity: { duration: 0.28, delay: 0.06, ease: "easeOut" },
+              },
+            }}
+            exit={{
+              height: 0,
+              opacity: 0,
+              transition: {
+                height: { duration: 0.26, ease: [0.4, 0, 0.2, 1] },
+                opacity: { duration: 0.16, ease: "easeIn" },
+              },
+            }}
+            className="w-full overflow-hidden"
           >
-            {categories.map((cat) => {
-              const isActive = category === cat
-              const Icon = categoryIcons[cat]
+            <div className="pt-2">
+              <SegmentedTabs
+                value={category}
+                onValueChange={(val) => setCategory(val as Category)}
+              >
+                <SegmentedTabsList size="sm" aria-label="Categoría">
+                  {categories.map((cat) => {
+                    const Icon = categoryIcons[cat];
 
-              return (
-                <button
-                  key={cat}
-                  onClick={() => setCategory(cat)}
-                  className={cn(
-                    'px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200',
-                    'flex items-center justify-center gap-1.5',
-                    isActive
-                      ? [
-                          'bg-white/80 dark:bg-slate-900/60',
-                          'text-primary',
-                          'shadow-xs',
-                          'ring-1 ring-primary/30',
-                        ]
-                      : [
-                          'text-muted-foreground',
-                          'hover:text-primary',
-                          'hover:bg-white/60 dark:hover:bg-slate-900/40',
-                        ]
-                  )}
-                >
-                  <Icon className="w-3.5 h-3.5 shrink-0" />
-                  {categoryLabels[cat]}
-                </button>
-              )
-            })}
+                    return (
+                      <SegmentedTabsTrigger key={cat} value={cat}>
+                        <Icon className="size-3.5 shrink-0" />
+                        {categoryLabels[cat]}
+                      </SegmentedTabsTrigger>
+                    );
+                  })}
+                </SegmentedTabsList>
+              </SegmentedTabs>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
-
     </div>
-  )
-}
+  );
+};
 
-export default CostTypeToggle
+export default CostTypeToggle;

@@ -327,20 +327,12 @@ invalida. `_method=` indica spoofing de Laravel; `multipart` indica subida de ar
 
 | Hook | HTTP | Endpoint | Invalida |
 |---|---|---|---|
-| `useCreateActivityReport` | POST | `/transmandu/activity-report` | ["user-activity"]<br>["activities"] |
-| `useRegisterActivity` | POST | `/transmandu/activity` | ["activities"]<br>["user-activity"] |
-| `useDeleteActivity` | DELETE | `/transmandu/activity/${id}` | ["activities"]<br>["user-activity"] |
-| `useEditActivity` | PATCH | `/transmandu/update-allActivity/${data.id}` | ["activities"]<br>["user-activity"]<br>["update-activity"] |
-| `useUpdateFinalHour` | PUT | `/transmandu/update-activity/${data.id}` | ["user-activity"]<br>["activities"] |
-| `useUpdateObservation` | PATCH | `/transmandu/update-observation/${data.id}` | ["daily-activity"]<br>["activities"] |
-
-**actions/aerolinea/empresa/actions.ts**
-
-| Hook | HTTP | Endpoint | Invalida |
-|---|---|---|---|
-| `useCreateAdministrationCompany` | POST | `/transmandu/administration-company` | ['admin-company'] |
-| `useDeleteAdministrationCompany` | DELETE | `/transmandu/administration-company/${id}` | ['admin-company'] |
-| `useUpdateAdministrationCompany` | PUT | `/transmandu/administration-company/${id}` | ['admin-company'] |
+| `useCreateActivityReport` | POST | `/${company}/activity-report` | ["user-activity"]<br>["activities"] |
+| `useRegisterActivity` | POST | `/${company}/activity` | ["activities"]<br>["user-activity"] |
+| `useDeleteActivity` | DELETE | `/${company}/activity/${id}` | ["activities"]<br>["user-activity"] |
+| `useEditActivity` | PATCH | `/${company}/update-allActivity/${data.id}` | ["activities"]<br>["user-activity"]<br>["update-activity"] |
+| `useUpdateFinalHour` | PUT | `/${company}/update-activity/${data.id}` | ["user-activity"]<br>["activities"] |
+| `useUpdateObservation` | PATCH | `/${company}/update-observation/${data.id}` | ["daily-activity"]<br>["activities"] |
 
 **actions/aerolinea/movimientos/actions.tsx**
 
@@ -935,7 +927,6 @@ invalida. `_method=` indica spoofing de Laravel; `multipart` indica subida de ar
 | Hook | HTTP | Endpoint | Invalida |
 |---|---|---|---|
 | `useCreateAnalysis` | POST `multipart` | `/${company}/sms/analysis` | ["analysis"]<br>["danger-identifications", data.company]<br>["danger-identification"] |
-| `useDeleteAnalysis` | DELETE | `/transmandu/sms/analysis/${id}` | ["analysis"] |
 | `useUpdateAnalyses` | PATCH | `/${company}/sms/analysis/${id}` | ["analysis"]<br>["danger-identifications", data.company] |
 
 **actions/sms/boletin/actions.ts**
@@ -993,7 +984,7 @@ invalida. `_method=` indica spoofing de Laravel; `multipart` indica subida de ar
 
 | Hook | HTTP | Endpoint | Invalida |
 |---|---|---|---|
-| `useCreateObligatoryReport` | POST `multipart` | `/transmandu/sms/obligatory-reports` | ["obligatory-reports"] |
+| `useCreateObligatoryReport` | POST `multipart` | `/${company}/sms/obligatory-reports` | ["obligatory-reports"] |
 | `useDeleteObligatoryReport` | DELETE | `/${company}/sms/obligatory-reports/${id}` | ["danger-identifications", data.company]<br>["obligatory-reports"] |
 | `useUpdateObligatoryReport` | POST `multipart` | `/${company}/sms/update-obligatory-reports/${id}` | ["obligatory-reports"] |
 | `useAcceptObligatoryReport` | PATCH | `/${company}/sms/accept-obligatory-reports/${id}` | ["obligatory-reports"] |

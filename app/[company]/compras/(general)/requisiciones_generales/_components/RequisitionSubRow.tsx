@@ -17,9 +17,9 @@ import { instantToCalendarDay } from "@/lib/date";
 import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
 
 const QUOTE_STATUS_LABELS: Record<string, string> = {
-  PENDING: "PENDIENTE",
-  APPROVED: "APROBADA",
-  REJECTED: "RECHAZADA",
+  PENDING: "Pendiente",
+  APPROVED: "Aprobada",
+  REJECTED: "Rechazada",
 };
 
 // Aprobada primero, luego su(s) complementaria(s), luego el resto en orden
@@ -59,7 +59,7 @@ export default function RequisitionSubRow({ requisition }: Props) {
         </div>
         <Badge
           variant="outline"
-          className="select-none rounded-md px-2 py-0.5 text-[11px] font-medium bg-background/60"
+          className="select-none rounded-md px-2 py-0.5 text-xs font-medium bg-background/60"
         >
           {quotes.length} {quotes.length === 1 ? "cotización" : "cotizaciones"}
         </Badge>
@@ -82,12 +82,12 @@ export default function RequisitionSubRow({ requisition }: Props) {
               key={quote.quote_number}
               className="group flex items-center justify-between gap-3 rounded-lg border px-3 py-2 bg-background/70 backdrop-blur-xs border-slate-200/70 dark:border-slate-700/60 hover:border-primary/40 hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-all"
             >
-              <div className="flex items-center gap-2.5">
-                <div className="flex h-8 w-8 items-center justify-center rounded-md bg-slate-100 dark:bg-slate-800">
+              <div className="flex min-w-0 items-center gap-2.5">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-slate-100 dark:bg-slate-800">
                   <FileText className="h-4 w-4 text-slate-600 dark:text-slate-300" />
                 </div>
-                <div className="flex flex-col leading-tight">
-                  <div className="flex items-center gap-1.5">
+                <div className="flex min-w-0 flex-col leading-tight">
+                  <div className="flex flex-wrap items-center gap-1.5">
                     <Link
                       href={`/${selectedCompany?.slug}/compras/cotizaciones_generales/${quote.quote_number}`}
                       className="text-sm font-medium text-slate-800 dark:text-slate-100 hover:text-primary transition-colors"
@@ -98,27 +98,27 @@ export default function RequisitionSubRow({ requisition }: Props) {
                     {quote.parent_quote_order_id && (
                       <Badge
                         variant="outline"
-                        className="select-none rounded-md border-sky-500/30 bg-sky-500/10 px-1.5 py-0 text-[9px] font-semibold tracking-wide text-sky-700 dark:text-sky-300 gap-0.5"
+                        className="select-none rounded-md border-sky-500/30 bg-sky-500/10 px-1.5 py-0 text-xs font-semibold text-sky-700 dark:text-sky-300 gap-0.5"
                       >
                         <Link2 className="h-2.5 w-2.5" />
                         Complementaria
                       </Badge>
                     )}
                   </div>
-                  <span className="text-[11px] text-muted-foreground truncate max-w-60">
+                  <span className="text-xs text-muted-foreground truncate max-w-60">
                     {retailerLabel}
                   </span>
                 </div>
               </div>
 
-              <div className="flex items-center gap-4">
-                <div className="hidden md:flex items-center gap-1 text-[11px] text-muted-foreground">
+              <div className="flex shrink-0 items-center gap-4">
+                <div className="hidden md:flex items-center gap-1 text-xs text-muted-foreground">
                   <CalendarDays className="h-3 w-3" />
                   <span>{decisionDate ?? "Sin decisión"}</span>
                 </div>
                 <Badge
                   className={cn(
-                    `whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-xs transition-colors duration-150 cursor-default`,
+                    `whitespace-nowrap rounded-md border h-6 px-2.5 text-xs font-medium transition-colors duration-150 cursor-default`,
 
                     approved &&
                       `border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300`,

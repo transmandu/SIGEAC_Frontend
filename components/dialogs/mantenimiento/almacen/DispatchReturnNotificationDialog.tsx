@@ -1,19 +1,10 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
+import { TagBadge } from "@/components/misc/TagBadge";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog } from "@/components/ui/dialog";
 import { Notification } from "@/types/notifications/types";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
 import { PackageCheck, ShieldAlert, Undo2 } from "lucide-react";
 
 interface DispatchReturnNotificationDialogProps {
@@ -26,16 +17,6 @@ function formatQty(value: number): string {
   return Number(value.toFixed(4)).toLocaleString("es-VE", {
     maximumFractionDigits: 4,
   });
-}
-
-// El backend ya manda "dd/mm/yyyy HH:mm" formateado; solo se re-envuelve si
-// llega algo que Date sepa parsear, para no reventar con el string tal cual.
-function safeDate(raw?: string) {
-  if (!raw) return "Fecha no disponible";
-  const parsed = new Date(raw);
-  return Number.isNaN(parsed.getTime())
-    ? raw
-    : format(parsed, "dd MMM yyyy 'a las' HH:mm", { locale: es });
 }
 
 /**
@@ -56,18 +37,21 @@ const DispatchReturnNotificationDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg flex flex-col max-h-[90vh] p-0">
-        <DialogHeader className="px-6 pt-6">
-          <DialogTitle className="flex items-center gap-2">
-            <Undo2 className="h-5 w-5" />
-            Devolución registrada
-          </DialogTitle>
-          <DialogDescription>
-            Salida {data.request_number ?? "N/A"} · {safeDate(data.returned_at)}
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3">
+      <FormDialogContent
+        icon={Undo2}
+        title="Devolución registrada"
+        // `returned_at` ya llega como "dd/mm/yyyy HH:mm" en la zona de la
+        // empresa: reinterpretarlo con `new Date` lo leería como mm/dd.
+        description={`Salida ${data.request_number ?? "N/A"} · ${data.returned_at ?? "Fecha no disponible"}`}
+        lockOutside={false}
+        className="z-1100 sm:max-w-lg"
+        footer={
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cerrar
+          </Button>
+        }
+      >
+        <div className="space-y-3">
           {items.map((item, index) => (
             <div
               key={`${item.part_number}-${index}`}
@@ -85,9 +69,9 @@ const DispatchReturnNotificationDialog = ({
                     {item.category ? ` · ${item.category}` : ""}
                   </p>
                 </div>
-                <Badge className="shrink-0 tabular-nums">
+                <TagBadge tone="slate" className="tabular-nums">
                   {formatQty(item.quantity)} {item.unit}
-                </Badge>
+                </TagBadge>
               </div>
 
               <div className="mt-2 flex items-center gap-1.5">
@@ -123,13 +107,7 @@ const DispatchReturnNotificationDialog = ({
             </p>
           )}
         </div>
-
-        <DialogFooter className="border-t px-6 py-4">
-          <DialogClose asChild>
-            <Button variant="outline">Cerrar</Button>
-          </DialogClose>
-        </DialogFooter>
-      </DialogContent>
+      </FormDialogContent>
     </Dialog>
   );
 };

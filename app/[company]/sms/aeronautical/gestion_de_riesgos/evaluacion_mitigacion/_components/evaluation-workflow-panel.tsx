@@ -21,6 +21,7 @@ export function EvaluationWorkflowPanel({
   currentPlanAnalysis,
   currentPostMitigationAnalysis,
   currentMeasures,
+  onChangeNotification,
 }: EvaluationWorkflowPanelProps) {
   const hasPlanAndAnalysis = Boolean(
     currentMitigationPlan && currentPlanAnalysis,
@@ -56,71 +57,67 @@ export function EvaluationWorkflowPanel({
 
   return (
     <Card>
-      <CardContent>
-        <div className="space-y-6">
-          <EvaluationWorkflowHeader
+      <EvaluationWorkflowHeader
+        selectedNotification={selectedNotification}
+        onChangeNotification={onChangeNotification}
+      />
+
+      <CardContent className="space-y-5 pt-5">
+        <EvaluationWorkflowTabs
+          defaultTab={defaultTab}
+          hasPlanAndAnalysis={hasPlanAndAnalysis}
+          hasPostMitigationAnalysis={hasPostMitigationAnalysis}
+          currentMeasuresCount={currentMeasures.length}
+          totalControls={totalControls}
+          hasMitigationPlan={Boolean(currentMitigationPlan)}
+          notificationId={selectedNotification.id}
+        >
+          <EvaluationPlanTab
+            company={company}
             selectedNotification={selectedNotification}
+            currentMitigationPlan={currentMitigationPlan}
+            currentPlanAnalysis={currentPlanAnalysis}
+            currentRiskAssessment={currentRiskAssessment}
+            hasRiskAssessment={hasRiskAssessment}
+            hasPlanAndAnalysis={hasPlanAndAnalysis}
+            isRiskAssessmentFormOpen={isRiskAssessmentFormOpen}
+            isPlanFormOpen={isPlanFormOpen}
+            setIsRiskAssessmentFormOpen={setIsRiskAssessmentFormOpen}
+            setIsPlanFormOpen={setIsPlanFormOpen}
+            onAssessmentSaved={setAssessmentDraft}
+          />
+
+          <EvaluationMeasuresTab
+            hasPlanAndAnalysis={hasPlanAndAnalysis}
+            currentMitigationPlan={currentMitigationPlan}
+            currentMeasures={currentMeasures}
+            measureEditorId={measureEditorId}
+            expandedMeasureIds={expandedMeasureIds}
+            setMeasureEditorId={setMeasureEditorId}
+            setExpandedMeasureIds={setExpandedMeasureIds}
+          />
+
+          <EvaluationControlsTab
+            company={company}
+            hasPlanAndAnalysis={hasPlanAndAnalysis}
+            currentMeasures={currentMeasures}
+            controlEditorKey={controlEditorKey}
+            expandedControlIds={expandedControlIds}
+            setControlEditorKey={setControlEditorKey}
+            setExpandedControlIds={setExpandedControlIds}
+          />
+
+          <EvaluationPostAnalysisTab
+            selectedNotification={selectedNotification}
+            currentMitigationPlan={currentMitigationPlan}
+            currentPostMitigationAnalysis={currentPostMitigationAnalysis}
             currentMeasures={currentMeasures}
             hasPlanAndAnalysis={hasPlanAndAnalysis}
             hasPostMitigationAnalysis={hasPostMitigationAnalysis}
+            isPostAnalysisFormOpen={isPostAnalysisFormOpen}
+            setIsPostAnalysisFormOpen={setIsPostAnalysisFormOpen}
           />
-
-          <EvaluationWorkflowTabs
-            defaultTab={defaultTab}
-            hasPlanAndAnalysis={hasPlanAndAnalysis}
-            hasPostMitigationAnalysis={hasPostMitigationAnalysis}
-            currentMeasuresCount={currentMeasures.length}
-            totalControls={totalControls}
-            hasMitigationPlan={Boolean(currentMitigationPlan)}
-            notificationId={selectedNotification.id}
-          >
-            <EvaluationPlanTab
-              company={company}
-              selectedNotification={selectedNotification}
-              currentMitigationPlan={currentMitigationPlan}
-              currentPlanAnalysis={currentPlanAnalysis}
-              currentRiskAssessment={currentRiskAssessment}
-              hasRiskAssessment={hasRiskAssessment}
-              hasPlanAndAnalysis={hasPlanAndAnalysis}
-              isRiskAssessmentFormOpen={isRiskAssessmentFormOpen}
-              isPlanFormOpen={isPlanFormOpen}
-              setIsRiskAssessmentFormOpen={setIsRiskAssessmentFormOpen}
-              setIsPlanFormOpen={setIsPlanFormOpen}
-              onAssessmentSaved={setAssessmentDraft}
-            />
-
-            <EvaluationMeasuresTab
-              hasPlanAndAnalysis={hasPlanAndAnalysis}
-              currentMitigationPlan={currentMitigationPlan}
-              currentMeasures={currentMeasures}
-              measureEditorId={measureEditorId}
-              expandedMeasureIds={expandedMeasureIds}
-              setMeasureEditorId={setMeasureEditorId}
-              setExpandedMeasureIds={setExpandedMeasureIds}
-            />
-
-            <EvaluationControlsTab
-              company={company}
-              hasPlanAndAnalysis={hasPlanAndAnalysis}
-              currentMeasures={currentMeasures}
-              controlEditorKey={controlEditorKey}
-              expandedControlIds={expandedControlIds}
-              setControlEditorKey={setControlEditorKey}
-              setExpandedControlIds={setExpandedControlIds}
-            />
-
-            <EvaluationPostAnalysisTab
-              selectedNotification={selectedNotification}
-              currentMitigationPlan={currentMitigationPlan}
-              currentPostMitigationAnalysis={currentPostMitigationAnalysis}
-              currentMeasures={currentMeasures}
-              hasPlanAndAnalysis={hasPlanAndAnalysis}
-              hasPostMitigationAnalysis={hasPostMitigationAnalysis}
-              isPostAnalysisFormOpen={isPostAnalysisFormOpen}
-              setIsPostAnalysisFormOpen={setIsPostAnalysisFormOpen}
-            />
-          </EvaluationWorkflowTabs>
-        </div>
+        </EvaluationWorkflowTabs>
       </CardContent>
     </Card>
   );

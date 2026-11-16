@@ -4,18 +4,15 @@ import { Contact, Truck } from "lucide-react";
 import { Control } from "react-hook-form";
 
 import {
-  FieldLabelRow,
-  FormSection,
   fieldClass,
-  labelClass,
   selectTriggerClass,
 } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
+import { PanelSection, PanelFieldLabel } from "@/components/forms/PanelSection";
 import { RequiredIndicator } from "@/components/misc/RequiredIndicator";
 import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -42,7 +39,7 @@ export function ShippingAgencyFormFields({
 }) {
   return (
     <div className="flex flex-col gap-4">
-      <FormSection compact icon={Truck} title="Identificación">
+      <PanelSection compact icon={Truck} title="Identificación">
         <div className="space-y-3">
           <div className="grid gap-3 md:grid-cols-[1fr_10rem_11rem]">
             <FormField
@@ -50,12 +47,10 @@ export function ShippingAgencyFormFields({
               name="name"
               render={({ field, fieldState }) => (
                 <FormItem data-tour="agencias-envio-crear-name">
-                  <FieldLabelRow>
-                    <FormLabel className={labelClass}>
-                      Nombre
-                      <RequiredIndicator invalid={!!fieldState.error} />
-                    </FormLabel>
-                  </FieldLabelRow>
+                  <PanelFieldLabel>
+                    Nombre
+                    <RequiredIndicator invalid={!!fieldState.error} />
+                  </PanelFieldLabel>
                   <FormControl>
                     <Input
                       placeholder="Ej: DHL Express"
@@ -75,12 +70,10 @@ export function ShippingAgencyFormFields({
               name="code"
               render={({ field, fieldState }) => (
                 <FormItem data-tour="agencias-envio-crear-code">
-                  <FieldLabelRow>
-                    <FormLabel className={labelClass}>
-                      Código
-                      <RequiredIndicator invalid={!!fieldState.error} />
-                    </FormLabel>
-                  </FieldLabelRow>
+                  <PanelFieldLabel>
+                    Código
+                    <RequiredIndicator invalid={!!fieldState.error} />
+                  </PanelFieldLabel>
                   <FormControl>
                     <Input
                       placeholder="Ej: DHL001"
@@ -100,12 +93,10 @@ export function ShippingAgencyFormFields({
               name="type"
               render={({ field, fieldState }) => (
                 <FormItem data-tour="agencias-envio-crear-type">
-                  <FieldLabelRow>
-                    <FormLabel className={labelClass}>
-                      Tipo
-                      <RequiredIndicator invalid={!!fieldState.error} />
-                    </FormLabel>
-                  </FieldLabelRow>
+                  <PanelFieldLabel>
+                    Tipo
+                    <RequiredIndicator invalid={!!fieldState.error} />
+                  </PanelFieldLabel>
                   <Select
                     value={field.value || undefined}
                     onValueChange={field.onChange}
@@ -136,9 +127,7 @@ export function ShippingAgencyFormFields({
             name="description"
             render={({ field }) => (
               <FormItem data-tour="agencias-envio-crear-description">
-                <FieldLabelRow>
-                  <FormLabel className={labelClass}>Descripción</FormLabel>
-                </FieldLabelRow>
+                <PanelFieldLabel>Descripción</PanelFieldLabel>
                 <FormControl>
                   <Input
                     placeholder="Describe brevemente la agencia"
@@ -154,18 +143,16 @@ export function ShippingAgencyFormFields({
             )}
           />
         </div>
-      </FormSection>
+      </PanelSection>
 
-      <FormSection compact icon={Contact} title="Contacto">
+      <PanelSection compact icon={Contact} title="Contacto">
         <div className="grid gap-3 md:grid-cols-2">
           <FormField
             control={control}
             name="phone"
             render={({ field }) => (
               <FormItem data-tour="agencias-envio-crear-phone">
-                <FieldLabelRow>
-                  <FormLabel className={labelClass}>Teléfono</FormLabel>
-                </FieldLabelRow>
+                <PanelFieldLabel>Teléfono</PanelFieldLabel>
                 <FormControl>
                   <PhoneInput
                     disabled={disabled}
@@ -185,11 +172,7 @@ export function ShippingAgencyFormFields({
             name="email"
             render={({ field }) => (
               <FormItem data-tour="agencias-envio-crear-email">
-                <FieldLabelRow>
-                  <FormLabel className={labelClass}>
-                    Correo electrónico
-                  </FormLabel>
-                </FieldLabelRow>
+                <PanelFieldLabel>Correo electrónico</PanelFieldLabel>
                 <FormControl>
                   <Input
                     type="email"
@@ -206,7 +189,7 @@ export function ShippingAgencyFormFields({
             )}
           />
         </div>
-      </FormSection>
+      </PanelSection>
     </div>
   );
 }

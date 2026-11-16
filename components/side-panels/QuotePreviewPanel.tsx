@@ -20,8 +20,11 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import CopyPartNumberButton from "@/components/misc/CopyPartNumberButton";
+import QuoteDropdownActions from "@/components/dropdowns/mantenimiento/compras/QuoteDropdownActions";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import { formatInstant } from "@/lib/date";
 import type {
   ArticleQuoteOrder,
   GeneralArticleQuoteOrder,
@@ -34,9 +37,9 @@ interface Props {
 }
 
 const STATUS_LABELS: Record<string, string> = {
-  PENDING: "PENDIENTE",
-  APPROVED: "APROBADA",
-  REJECTED: "RECHAZADA",
+  PENDING: "Pendiente",
+  APPROVED: "Aprobada",
+  REJECTED: "Rechazada",
 };
 
 const statusLabel = (status?: string) =>
@@ -47,7 +50,7 @@ const statusBadgeClass = (status?: string) => {
   const approved = status === "APPROVED";
 
   return cn(
-    "select-none whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-xs",
+    "select-none whitespace-nowrap rounded-md border h-6 px-2.5 text-xs font-medium",
     pending &&
       "border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300",
     approved &&
@@ -56,17 +59,6 @@ const statusBadgeClass = (status?: string) => {
       !approved &&
       "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300",
   );
-};
-
-const formatDate = (date?: string | null) => {
-  if (!date) return "—";
-  const d = new Date(date);
-  if (Number.isNaN(d.getTime())) return "—";
-  return d.toLocaleDateString("es-VE", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
 };
 
 const money = (value: number | string | null | undefined) => {
@@ -81,13 +73,15 @@ interface MetaItemProps {
 }
 
 const MetaItem = ({ label, value, icon: Icon }: MetaItemProps) => (
-  <div className="flex flex-col gap-0.5">
-    <span className="text-[10px] font-medium tracking-wider text-muted-foreground/60 select-none">
+  <div className="flex min-w-0 flex-col gap-0.5">
+    <span className="text-xs font-medium text-muted-foreground select-none">
       {label}
     </span>
-    <span className="text-sm font-medium flex items-center gap-1.5">
-      {Icon && <Icon className="size-3.5 text-muted-foreground/50 shrink-0" />}
-      {value ?? "—"}
+    <span className="flex items-start gap-1.5 text-sm font-medium">
+      {Icon && (
+        <Icon className="mt-0.5 size-3.5 shrink-0 text-muted-foreground/50" />
+      )}
+      <span className="min-w-0 wrap-anywhere">{value ?? "—"}</span>
     </span>
   </div>
 );
@@ -101,8 +95,8 @@ interface CompareRowProps {
 }
 
 const CompareRow = ({ label, requested, quoted, changed }: CompareRowProps) => (
-  <div className="flex items-center justify-between gap-2 text-[11px]">
-    <span className="shrink-0 text-muted-foreground/70">{label}</span>
+  <div className="flex items-center justify-between gap-2 text-xs">
+    <span className="shrink-0 text-muted-foreground">{label}</span>
     {changed ? (
       <div className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400">
         <span className="tabular-nums line-through opacity-60">
@@ -140,19 +134,19 @@ const BatchArticleRow = ({ article }: { article: ArticleQuoteOrder }) => {
         <div className="min-w-0 flex-1 space-y-1">
           {/* Protagonista 1: lote (batch.name) — línea propia */}
           <span className="block text-sm font-semibold leading-snug wrap-break-word">
-            {req?.batch?.name ?? "SIN LOTE"}
+            {req?.batch?.name ?? "Sin lote"}
           </span>
 
           {/* Badges de contexto del lote — línea propia, no comparte con el nombre */}
           {(req?.batch?.category || isNotQuoted) && (
             <div className="flex items-center gap-1.5 flex-wrap">
               {req?.batch?.category && (
-                <span className="select-none shrink-0 rounded bg-muted/60 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide text-muted-foreground/80">
+                <span className="select-none shrink-0 rounded bg-muted/60 px-1.5 py-0.5 text-xs font-medium text-muted-foreground">
                   {req.batch.category}
                 </span>
               )}
               {isNotQuoted && (
-                <span className="select-none inline-flex items-center gap-1 rounded bg-red-500/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-red-600 dark:text-red-400">
+                <span className="select-none inline-flex items-center gap-1 rounded bg-red-500/10 px-1.5 py-0.5 text-xs font-semibold text-red-600 dark:text-red-400">
                   <Ban className="size-2.5" />
                   No cotizado
                 </span>
@@ -162,7 +156,7 @@ const BatchArticleRow = ({ article }: { article: ArticleQuoteOrder }) => {
 
           {/* Protagonista 2: P/N — línea propia */}
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="shrink-0 text-[9px] px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 font-medium select-none">
+            <span className="shrink-0 text-xs px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 font-medium select-none">
               P/N
             </span>
             <span className="text-[13px] font-medium text-foreground/90 wrap-break-word">
@@ -173,10 +167,10 @@ const BatchArticleRow = ({ article }: { article: ArticleQuoteOrder }) => {
 
           {req?.article_alt_part_number && (
             <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="shrink-0 text-[9px] px-1.5 py-0.5 rounded bg-slate-500/10 text-slate-600 border border-slate-500/20 font-medium select-none">
+              <span className="shrink-0 text-xs px-1.5 py-0.5 rounded bg-slate-500/10 text-slate-600 border border-slate-500/20 font-medium select-none">
                 ALT
               </span>
-              <span className="text-[11px] text-muted-foreground wrap-break-word">
+              <span className="text-xs text-muted-foreground wrap-break-word">
                 {req.article_alt_part_number}
               </span>
               <CopyPartNumberButton
@@ -186,7 +180,7 @@ const BatchArticleRow = ({ article }: { article: ArticleQuoteOrder }) => {
             </div>
           )}
 
-          <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
+          <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
             <span>
               Proveedor:{" "}
               <span className="text-foreground/70">
@@ -205,9 +199,7 @@ const BatchArticleRow = ({ article }: { article: ArticleQuoteOrder }) => {
         </div>
 
         <div className="flex flex-col items-end gap-0.5 shrink-0">
-          <span className="text-[10px] uppercase tracking-wide text-muted-foreground/60">
-            Total
-          </span>
+          <span className="text-xs text-muted-foreground">Total</span>
           <span className="text-sm font-semibold tabular-nums">
             {money(amount)}
           </span>
@@ -215,15 +207,15 @@ const BatchArticleRow = ({ article }: { article: ArticleQuoteOrder }) => {
       </div>
 
       <div className="flex items-center justify-between border-t border-border/50 px-3 py-2">
-        <div className="flex items-center gap-4 text-[11px]">
-          <span className="text-muted-foreground/60">
+        <div className="flex items-center gap-4 text-xs">
+          <span className="text-muted-foreground">
             Cant.{" "}
             <span className="font-medium tabular-nums text-foreground/80">
               {article.quantity}
             </span>{" "}
             {article.unit?.label ?? ""}
           </span>
-          <span className="text-muted-foreground/60">
+          <span className="text-muted-foreground">
             P/U{" "}
             <span className="font-medium tabular-nums text-foreground/80">
               {money(article.unit_price)}
@@ -235,7 +227,7 @@ const BatchArticleRow = ({ article }: { article: ArticleQuoteOrder }) => {
           <button
             type="button"
             onClick={() => setExpanded((v) => !v)}
-            className="flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-medium text-violet-600 dark:text-violet-400 hover:bg-violet-500/10 transition-colors"
+            className="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-violet-600 dark:text-violet-400 hover:bg-violet-500/10 transition-colors"
           >
             <Scale className="size-3" />
             Ver comparativa
@@ -251,7 +243,7 @@ const BatchArticleRow = ({ article }: { article: ArticleQuoteOrder }) => {
 
       {expanded && hasComparison && (
         <div className="border-t border-amber-500/30 bg-amber-50/40 dark:bg-amber-900/10 px-3 py-2 space-y-1.5">
-          <span className="block text-[9px] font-semibold uppercase tracking-widest text-amber-700 dark:text-amber-400 mb-1">
+          <span className="block text-xs font-semibold text-amber-700 dark:text-amber-400 mb-1">
             Solicitado vs. cotizado
           </span>
           <CompareRow
@@ -300,13 +292,13 @@ const GeneralArticleRow = ({
               {req?.description ?? "N/A"}
             </span>
             {isNotQuoted && (
-              <span className="select-none inline-flex items-center gap-1 rounded bg-red-500/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-red-600 dark:text-red-400">
+              <span className="select-none inline-flex items-center gap-1 rounded bg-red-500/10 px-1.5 py-0.5 text-xs font-semibold text-red-600 dark:text-red-400">
                 <Ban className="size-2.5" />
                 No cotizado
               </span>
             )}
           </div>
-          <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
+          <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
             {req?.variant_type && (
               <span>
                 Present. / Especif.:{" "}
@@ -331,9 +323,7 @@ const GeneralArticleRow = ({
         </div>
 
         <div className="flex flex-col items-end gap-0.5 shrink-0">
-          <span className="text-[10px] uppercase tracking-wide text-muted-foreground/60">
-            Total
-          </span>
+          <span className="text-xs text-muted-foreground">Total</span>
           <span className="text-sm font-semibold tabular-nums">
             {money(amount)}
           </span>
@@ -341,15 +331,15 @@ const GeneralArticleRow = ({
       </div>
 
       <div className="flex items-center justify-between border-t border-border/50 px-3 py-2">
-        <div className="flex items-center gap-4 text-[11px]">
-          <span className="text-muted-foreground/60">
+        <div className="flex items-center gap-4 text-xs">
+          <span className="text-muted-foreground">
             Cant.{" "}
             <span className="font-medium tabular-nums text-foreground/80">
               {article.quantity}
             </span>{" "}
             {article.unit?.label ?? ""}
           </span>
-          <span className="text-muted-foreground/60">
+          <span className="text-muted-foreground">
             P/U{" "}
             <span className="font-medium tabular-nums text-foreground/80">
               {money(article.unit_price)}
@@ -361,7 +351,7 @@ const GeneralArticleRow = ({
           <button
             type="button"
             onClick={() => setExpanded((v) => !v)}
-            className="flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-medium text-violet-600 dark:text-violet-400 hover:bg-violet-500/10 transition-colors"
+            className="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-violet-600 dark:text-violet-400 hover:bg-violet-500/10 transition-colors"
           >
             <Scale className="size-3" />
             Ver comparativa
@@ -377,7 +367,7 @@ const GeneralArticleRow = ({
 
       {expanded && hasComparison && (
         <div className="border-t border-amber-500/30 bg-amber-50/40 dark:bg-amber-900/10 px-3 py-2 space-y-1.5">
-          <span className="block text-[9px] font-semibold uppercase tracking-widest text-amber-700 dark:text-amber-400 mb-1">
+          <span className="block text-xs font-semibold text-amber-700 dark:text-amber-400 mb-1">
             Solicitado vs. cotizado
           </span>
           <CompareRow
@@ -400,6 +390,7 @@ const GeneralArticleRow = ({
 
 export default function QuotePreviewPanel({ quote, onClose }: Props) {
   const { selectedCompany } = useCompanyStore();
+  const timeZone = useCompanyTimezone();
 
   if (!quote) return null;
 
@@ -430,13 +421,18 @@ export default function QuotePreviewPanel({ quote, onClose }: Props) {
     <div className="flex h-full flex-col overflow-hidden">
       <div className="flex items-start justify-between gap-2 border-b px-4 py-3">
         <div className="flex flex-col gap-1.5 min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="font-semibold truncate">{quote.quote_number}</span>
-            <Badge className={statusBadgeClass(quote.status)}>
+          <div className="flex items-center gap-2">
+            <span
+              className="min-w-0 truncate text-sm font-semibold"
+              title={quote.quote_number ?? undefined}
+            >
+              {quote.quote_number}
+            </span>
+            <Badge className={cn(statusBadgeClass(quote.status), "shrink-0")}>
               {statusLabel(quote.status)}
             </Badge>
             {quote.parent_quote_order && (
-              <span className="select-none rounded border border-violet-500/40 bg-violet-500/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-violet-700 dark:text-violet-300">
+              <span className="inline-flex h-6 shrink-0 select-none items-center rounded-md border border-violet-500/40 bg-violet-500/10 px-2.5 text-xs font-medium text-violet-700 dark:text-violet-300">
                 Complementaria
               </span>
             )}
@@ -471,27 +467,27 @@ export default function QuotePreviewPanel({ quote, onClose }: Props) {
         </div>
       )}
 
+      <div className="flex justify-center px-4 pt-3 empty:hidden">
+        <QuoteDropdownActions quote={quote} variant="bar" />
+      </div>
+
       <div className="flex flex-col gap-5 overflow-y-auto px-4 py-4">
         {/* ── Resumen ─────────────────────────────────────── */}
         <div className="rounded-md border border-border/50 bg-muted/20 px-3 py-3">
           <div className="grid grid-cols-2 gap-x-4 gap-y-3">
             <MetaItem
-              label={vendorNames.length > 0 ? "PROVEEDOR" : "LUGAR DE COMPRA"}
+              label={vendorNames.length > 0 ? "Proveedor" : "Lugar de compra"}
               value={placeLabel || undefined}
               icon={Truck}
             />
+            <MetaItem label="Creado por" value={quote.created_by} icon={User} />
             <MetaItem
-              label="CREADO POR"
-              value={quote.created_by?.toUpperCase?.() ?? quote.created_by}
-              icon={User}
-            />
-            <MetaItem
-              label="FECHA DE COTIZACIÓN"
-              value={formatDate(quote.quote_date)}
+              label="Fecha de cotización"
+              value={formatInstant(quote.quote_date, timeZone, "short", "—")}
               icon={CalendarDays}
             />
             <MetaItem
-              label="REQUISICIÓN ORIGEN"
+              label="Requisición origen"
               value={quote.requisition_order?.order_number}
               icon={MapPin}
             />
@@ -503,7 +499,7 @@ export default function QuotePreviewPanel({ quote, onClose }: Props) {
           <div className="rounded-md border border-violet-500/30 bg-violet-500/5 p-3">
             <div className="flex items-center gap-2 mb-2 select-none">
               <Link2 className="size-3.5 text-violet-600 dark:text-violet-400" />
-              <span className="text-[10px] font-semibold tracking-widest text-violet-700 dark:text-violet-300">
+              <span className="text-xs font-semibold text-violet-700 dark:text-violet-300">
                 JUSTIFICACIÓN DEL COMPLEMENTO
               </span>
             </div>
@@ -518,8 +514,8 @@ export default function QuotePreviewPanel({ quote, onClose }: Props) {
           <div className="rounded-md border border-border/60 bg-linear-to-b from-muted/30 to-muted/10 p-3">
             <div className="flex items-center gap-2 mb-2 select-none">
               <MessageSquare className="size-3.5 text-muted-foreground/60" />
-              <span className="text-[10px] font-semibold tracking-widest text-muted-foreground">
-                OBSERVACIÓN
+              <span className="text-xs font-semibold text-muted-foreground">
+                Observación
               </span>
             </div>
             <p className="text-sm text-foreground/80 whitespace-pre-wrap">
@@ -531,13 +527,11 @@ export default function QuotePreviewPanel({ quote, onClose }: Props) {
         {/* ── Artículos ────────────────────────────────────── */}
         <div className="space-y-2">
           <div className="flex items-center justify-between border-b border-border/60 pb-2 select-none">
-            <span className="text-xs font-semibold tracking-wide text-foreground/90">
+            <span className="text-xs font-semibold text-foreground/90">
               ARTÍCULOS COTIZADOS
             </span>
             <div className="flex items-center gap-1.5 rounded-md border border-border/50 bg-muted/30 px-2 py-0.5">
-              <span className="text-[9px] tracking-wider text-muted-foreground">
-                TOTAL
-              </span>
+              <span className="text-xs text-muted-foreground">Total</span>
               <span className="text-xs font-semibold tabular-nums">
                 {totalArticles}
               </span>
@@ -563,9 +557,9 @@ export default function QuotePreviewPanel({ quote, onClose }: Props) {
 
         {/* ── Total general ──────────────────────────────── */}
         <div className="flex items-center justify-between gap-4 rounded-md bg-muted/10 px-4 py-2.5 border border-border/40">
-          <span className="flex items-center gap-1.5 text-[10px] font-medium tracking-wide text-muted-foreground">
+          <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
             <FileText className="size-3.5" />
-            TOTAL GENERAL
+            Total general
           </span>
           <span className="font-mono text-lg font-semibold tabular-nums leading-none">
             {money(quote.total)}

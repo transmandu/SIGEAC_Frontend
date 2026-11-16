@@ -27,6 +27,27 @@ export function parseNumeric(value: unknown): number | null {
 }
 
 /**
+ * Lee lo que el usuario escribe en un campo numérico, con el formato del sistema:
+ * punto para los miles y coma para los decimales ("15.000,50"). Sin coma, un punto
+ * con grupos de tres cifras ("15.000") son miles; cualquier otro punto ("15000.5",
+ * el valor que guarda el sistema) es decimal. Solo acepta números no negativos;
+ * lo demás devuelve null.
+ */
+export function parseDecimalInput(value: unknown): number | null {
+  const text = String(value ?? "").trim();
+  if (!/^\d[\d.,]*$/.test(text)) return null;
+
+  const normalized = text.includes(",")
+    ? text.replace(/\./g, "").replace(",", ".")
+    : /^\d{1,3}(\.\d{3})+$/.test(text)
+      ? text.replace(/\./g, "")
+      : text;
+
+  const number = Number(normalized);
+  return Number.isFinite(number) ? number : null;
+}
+
+/**
  * Formato numérico único del sistema: punto para los miles y coma para los
  * decimales (17.970,81). Se arma a mano, no con `toLocaleString`: el locale
  * "es-ES" no agrupa los de cuatro cifras (1234) y "es-VE" depende del

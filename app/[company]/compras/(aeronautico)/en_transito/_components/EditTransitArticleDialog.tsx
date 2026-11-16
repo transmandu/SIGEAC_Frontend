@@ -1,17 +1,12 @@
 "use client";
 
 import RegisterArticleForm from "@/components/forms/mantenimiento/almacen/RegisterArticleForm";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
+import { Dialog } from "@/components/ui/dialog";
 import { useGetArticleById } from "@/hooks/mantenimiento/almacen/articulos/useGetArticleById";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useQueryClient } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
+import { FilePen, Loader2 } from "lucide-react";
 
 interface Props {
   articleId: number;
@@ -54,12 +49,12 @@ export function EditTransitArticleDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] max-w-6xl overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
-        </DialogHeader>
-
+      <FormDialogContent
+        className="sm:max-w-6xl"
+        icon={FilePen}
+        title={title}
+        description={description}
+      >
         {isLoading || !data ? (
           <div className="flex min-h-50 items-center justify-center">
             <Loader2 className="size-6 animate-spin text-muted-foreground" />
@@ -75,7 +70,7 @@ export function EditTransitArticleDialog({
             submitLabel="Guardar avance"
           />
         )}
-      </DialogContent>
+      </FormDialogContent>
     </Dialog>
   );
 }

@@ -189,48 +189,83 @@ export function CargoShipmentDetail({ shipment }: { shipment: CargoShipment }) {
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
-          <Table>
-            <TableHeader className="bg-muted/30">
-              <TableRow>
-                <TableHead className="text-center">N°</TableHead>
-                <TableHead className="text-center">
-                  Descripción del Producto
-                </TableHead>
-                <TableHead className="text-center">Unidades / Piezas</TableHead>
-                <TableHead className="text-center pr-6">Peso (Kg)</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+          {/* Móvil: lista apilada, para no forzar scroll horizontal. */}
+          <div className="md:hidden" data-tour="cargo-detalle-items-movil">
+            <div className="divide-y">
               {shipment.items.map((item, index) => (
-                <TableRow key={item.id}>
-                  <TableCell className="text-center text-muted-foreground">
-                    {index + 1}
-                  </TableCell>
-                  <TableCell className="font-medium text-center">
+                <div key={item.id} className="px-4 py-3">
+                  <p className="break-words text-sm font-medium">
+                    <span className="text-muted-foreground">{index + 1}. </span>
                     {item.product_description}
+                  </p>
+                  <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                    <span>
+                      {item.units}{" "}
+                      {Number(item.units) === 1 ? "unidad" : "unidades"}
+                    </span>
+                    <span className="font-semibold text-foreground">
+                      {item.weight} kg
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="flex items-center justify-between gap-3 border-t-2 bg-muted/50 px-4 py-3">
+              <span className="text-sm font-bold uppercase">
+                Total Declarado
+              </span>
+              <span className="text-right text-sm font-bold text-primary">
+                {totalUnits} und. · {totalWeight.toFixed(2)} kg
+              </span>
+            </div>
+          </div>
+
+          <div className="hidden md:block">
+            <Table>
+              <TableHeader className="bg-muted/30">
+                <TableRow>
+                  <TableHead className="text-center">N°</TableHead>
+                  <TableHead className="text-center">
+                    Descripción del Producto
+                  </TableHead>
+                  <TableHead className="text-center">
+                    Unidades / Piezas
+                  </TableHead>
+                  <TableHead className="text-center pr-6">Peso (Kg)</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {shipment.items.map((item, index) => (
+                  <TableRow key={item.id}>
+                    <TableCell className="text-center text-muted-foreground">
+                      {index + 1}
+                    </TableCell>
+                    <TableCell className="font-medium text-center">
+                      {item.product_description}
+                    </TableCell>
+                    <TableCell className="text-center">{item.units}</TableCell>
+                    <TableCell className="text-center font-semibold pr-6">
+                      {item.weight} kg
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+              <TableFooter className="bg-muted/50 font-bold border-t">
+                <TableRow>
+                  <TableCell className="text-center" />
+                  <TableCell className="text-center uppercase">
+                    Total Declarado
                   </TableCell>
-                  <TableCell className="text-center">{item.units}</TableCell>
-                  <TableCell className="text-center font-semibold pr-6">
-                    {item.weight} kg
+                  <TableCell className="text-center text-base text-primary">
+                    {totalUnits}
+                  </TableCell>
+                  <TableCell className="text-center text-base text-primary pr-6">
+                    {totalWeight.toFixed(2)} kg
                   </TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-            <TableFooter className="bg-muted/50 font-bold border-t">
-              <TableRow>
-                <TableCell className="text-center" />
-                <TableCell className="text-center uppercase">
-                  Total Declarado
-                </TableCell>
-                <TableCell className="text-center text-base text-primary">
-                  {totalUnits}
-                </TableCell>
-                <TableCell className="text-center text-base text-primary pr-6">
-                  {totalWeight.toFixed(2)} kg
-                </TableCell>
-              </TableRow>
-            </TableFooter>
-          </Table>
+              </TableFooter>
+            </Table>
+          </div>
         </CardContent>
       </Card>
     </>

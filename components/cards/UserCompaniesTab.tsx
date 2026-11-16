@@ -1,11 +1,12 @@
 "use client";
 
+import { locationName } from "@/lib/locations";
 import {
   useAddCompanyToUser,
   useRemoveCompanyFromUser,
 } from "@/actions/sistema/usuarios/actions";
 import { useGetCompanies } from "@/hooks/sistema/useGetCompanies";
-import { useLocationsOfCompany } from "@/hooks/sistema/useGetLocationsByCompanyId";
+import { useGetLocationsByCompany } from "@/hooks/sistema/useGetLocationsByCompany";
 import { useResettingState } from "@/hooks/useResettingState";
 import { User } from "@/types";
 import { cn } from "@/lib/utils";
@@ -30,6 +31,7 @@ type UserCompany = {
   locations?: {
     id: number;
     address: string;
+    name?: string | null;
     cod_iata?: string;
     isMainBase?: boolean;
   }[];
@@ -41,10 +43,11 @@ const UserCompaniesTab = ({ user }: { user: User }) => {
   const { removeCompany } = useRemoveCompanyFromUser();
 
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>("");
+  const selectedCompanySlug = allCompanies?.find(
+    (company) => String(company.id) === selectedCompanyId,
+  )?.slug;
   const { data: locations, isFetching: loadingLocations } =
-    useLocationsOfCompany(
-      selectedCompanyId ? Number(selectedCompanyId) : undefined,
-    );
+    useGetLocationsByCompany(selectedCompanySlug);
   const availableLocations = locations ?? [];
   // Las sedes elegidas pertenecen a la compañía elegida: al cambiarla se vacían.
   const [selectedLocationIds, setSelectedLocationIds] = useResettingState<
@@ -151,7 +154,7 @@ const UserCompaniesTab = ({ user }: { user: User }) => {
                         className="flex items-center gap-1.5 text-xs text-muted-foreground"
                       >
                         <MapPin className="size-3 shrink-0" />
-                        <span>{loc.address}</span>
+                        <span>{locationName(loc)}</span>
 
                         {loc.cod_iata && (
                           <span className="font-mono bg-muted/60 px-1 rounded border border-border/30">
@@ -230,7 +233,7 @@ const UserCompaniesTab = ({ user }: { user: User }) => {
                       className="flex items-center gap-1.5 text-xs cursor-pointer"
                     >
                       <MapPin className="size-3 text-muted-foreground" />
-                      {loc.address}
+                      {locationName(loc)}
 
                       {loc.cod_iata && (
                         <span className="font-mono bg-muted/60 px-1 rounded border border-border/30">

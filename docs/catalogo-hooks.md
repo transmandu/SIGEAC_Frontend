@@ -250,7 +250,6 @@ Los marcados `_(useMutation)_` son las lecturas a demanda de la [sección 5](#5-
 | Hook | Archivo | queryKey | Endpoint |
 |---|---|---|---|
 | `useGetConditions` | `administracion/useGetConditions.ts` | ["conditions"] | `—` |
-| `useGetDepartamentEmployees` | `administracion/useGetDepartamentEmployees.ts` | _(useMutation)_ | `—` |
 | `useGetWarehouses` | `administracion/useGetWarehouses.ts` | ['warehouses'] | `—` |
 | `useGetWarehousesByLocation` | `administracion/useGetWarehousesByUser.ts` | ['warehousesByLocation', company, location_id] | `—` |
 
@@ -306,11 +305,9 @@ Los marcados `_(useMutation)_` son las lecturas a demanda de la [sección 5](#5-
 | `useGetDepartmentById` | `ajustes/departamento/useGetDepartmentsById.ts` | ["departments", company] | `—` |
 | `useGetEmployeeById` | `ajustes/empleados/useGetEmployeeById.ts` | ["employee", id] | `—` |
 | `useGetEmployeesByCompany` | `ajustes/empleados/useGetEmployees.ts` | ['employees', company] | `—` |
-| `useGetEmployesByDepartment` | `ajustes/empleados/useGetEmployeesByDepartment.ts` | ["employees-by-department", acronym, location_id, company] | `—` |
 | `useGetInactiveEmployeesByCompany` | `ajustes/empleados/useGetInactiveEmployees.ts` | ['employees-inactive', company] | `—` |
 | `useGetUserDepartamentEmployees` | `ajustes/empleados/useGetUserDepartamentEmployees.ts` | ['departament-employees', company] | `—` |
 | `useGetPilotByDni` | `ajustes/piloto/useGetPilotById.ts` | ["pilots", dni] | `—` |
-| `useGetLocations` | `ajustes/ubicaciones/useGetLocations.ts` | ['locations'] | `—` |
 
 ## curso  (11 archivos, 11 hooks)
 
@@ -372,7 +369,6 @@ Los marcados `_(useMutation)_` son las lecturas a demanda de la [sección 5](#5-
 | `useUpdateArticleUnitConversion` | `mantenimiento/almacen/articulos/useArticleUnitConversions.ts` | _(useMutation)_ | `—` |
 | `useDeleteArticleUnitConversion` | `mantenimiento/almacen/articulos/useArticleUnitConversions.ts` | _(useMutation)_ | `—` |
 | `useGetAllWarehouseZones` | `mantenimiento/almacen/articulos/useGetAllWarehouseZones.ts` | ["warehouse-zones-all", selectedCompany?.slug, selectedStation] | `—` |
-| `useGetArticle` | `mantenimiento/almacen/articulos/useGetArticle.ts` | _(useMutation)_ | `—` |
 | `useGetArticleById` | `mantenimiento/almacen/articulos/useGetArticleById.ts` | ["article", id, company] | `—` |
 | `useGetArticleDocumentTypes` | `mantenimiento/almacen/articulos/useGetArticleDocumentTypes.ts` | ["article-document-types", company] | `—` |
 | `useGetArticlesByBatch` | `mantenimiento/almacen/articulos/useGetArticlesByBatch.ts` | _(useMutation)_ | `—` |
@@ -399,7 +395,7 @@ Los marcados `_(useMutation)_` son las lecturas a demanda de la [sección 5](#5-
 | `useGetBatches` | `mantenimiento/almacen/renglones/useGetBatches.ts` | ["batches", company] | `—` |
 | `useSearchBatchesByPartNumber` | `mantenimiento/almacen/renglones/useGetBatchesByArticlePartNumber.ts` | ["search-batches", company, location_id, part_number , category] | `—` |
 | `useGetBatchesByCategory` | `mantenimiento/almacen/renglones/useGetBatchesByCategory.ts` | ["search-batches", selectedCompany, selectedStation, category] | `—` |
-| `useGetBatchesByLocationId` | `mantenimiento/almacen/renglones/useGetBatchesByLocationId.ts` | _(useMutation)_ | `—` |
+| `useGetBatchesByLocation` | `mantenimiento/almacen/renglones/useGetBatchesByLocation.ts` | ["batches", "by-location", company, location_id] | `—` |
 | `useGetBatchesWithArticlesCount` | `mantenimiento/almacen/renglones/useGetBatchesWithArticleCount.ts` | ["batches", "company"] | `—` |
 | `useGetBatchesWithArticlesByLocation` | `mantenimiento/almacen/renglones/useGetBatchesWithArticlesByLocation.ts` | _(useMutation)_ | `—` |
 | `useGetBatchesWithInWarehouseArticles` | `mantenimiento/almacen/renglones/useGetBatchesWithInWarehouseArticles.ts` | ['batches-in-warehouse', company, location_id, category] | `—` |
@@ -475,22 +471,15 @@ Los marcados `_(useMutation)_` son las lecturas a demanda de la [sección 5](#5-
 | `useGetActiveCompanyLogo` | `sistema/useGetActiveCompanyLogo.ts` | ['active-company-logo', company] | `—` |
 | `useGetCompanies` | `sistema/useGetCompanies.ts` | ['companies'] | `—` |
 | `useGetCompaniesWithWarehouses` | `sistema/useGetCompaniesWithWarehouses.ts` | ['companieswithwarehouses'] | `—` |
-| `useGetEmployeesByDepartment` | `sistema/useGetEmployeesByDepartament.ts` | ["employees-by-department", department_acronym, company] | `—` |
+| `useGetEmployeesByDepartment` | `sistema/useGetEmployeesByDepartment.ts` | ["employees-by-department", company, location_id, acronym] | `—` |
 | `useGetLocationsByCompanies` | `sistema/useGetLocationsByCompanies.ts` | ['company-locations'] | `/locations-by-companies` |
 | `useGetLocationsByCompany` | `sistema/useGetLocationsByCompany.ts` | ['location'] | `—` |
-| `useGetLocationsByCompanyId` | `sistema/useGetLocationsByCompanyId.ts` | _(useMutation)_ | `—` |
 | `useGetModules` | `sistema/useGetModules.ts` | ["modules"] | `—` |
-| `useGetModulesByCompanyId` | `sistema/useGetModulesByCompanyId.ts` | _(useMutation)_ | `—` |
-| `useGetUsers` | `sistema/useGetUsers.ts` | ['users'] | `—` |
-| `useGetWarehouses` | `sistema/useGetWarehouses.ts` | ['warehouses'] | `—` |
-| `useGetWarehousesByUser` | `sistema/useGetWarehousesByUser.ts` | ['warehousesByUser'] | `—` |
 | `useIsOmac` | `sistema/useIsOmac.ts` | ['is_omac', company] | `—` |
 | `useGetPermissions` | `sistema/usuario/useGetPermissions.ts` | ['permissions'] | `—` |
-| `useGetPermissionsByCompanyId` | `sistema/usuario/useGetPermissionsByCompanyId.ts` | _(useMutation)_ | `—` |
 | `useGetRoles` | `sistema/usuario/useGetRoles.ts` | ['roles', companyId] | `—` |
 | `useGetUserById` | `sistema/usuario/useGetUserById.ts` | ['user', id] | `—` |
-| `useGetUserLocationsByCompanyId` | `sistema/usuario/useGetUserLocationsByCompanyId.ts` | _(useMutation)_ | `—` |
-| `useUserLocationsByCompanyId` | `sistema/usuario/useGetUserLocationsByCompanyId.ts` | — | `—` |
+| `useGetUserLocations` | `sistema/usuario/useGetUserLocations.ts` | ["user-locations", company] | `—` |
 | `useGetUsers` | `sistema/usuario/useGetUsers.ts` | ['users'] | `—` |
 | `useMyEmployee` | `sistema/usuario/useMyEmployee.ts` | ["me-employee", companySlug, user?.id] | `—` |
 | `useGetMyBirthdayToday` | `sistema/usuario/useGetMyBirthdayToday.ts` | ["my-birthday-today", company] | `—` |
@@ -544,6 +533,7 @@ Los marcados `_(useMutation)_` son las lecturas a demanda de la [sección 5](#5-
 | `useGetObligatoryReportAverage` | `sms/useGetObligatoryReportAverage.ts` | [ "obligatory-reports-average-by-date-range", company, from_first, to_first, from_second, to_second, ] | `—` |
 | `useGetObligatoryReportById` | `sms/useGetObligatoryReportById.ts` | ["obligatory-report", company, id] | `—` |
 | `useGetObligatoryReports` | `sms/useGetObligatoryReports.ts` | ["obligatory-reports"] | `—` |
+| `useGetPilotNames` | `sms/useGetPilotNames.ts` | ["pilot-names", company] | `—` |
 | `useGetPilots` | `sms/useGetPilots.ts` | ["pilots"] | `—` |
 | `useGetPostRiskCountByDateRange` | `sms/useGetPostRiskByDateRange.ts` | ["post-risk-count-by-date-range", company, from, to, reportType] | `—` |
 | `useGetReportsNumberByMonth` | `sms/useGetReportsByMonth.ts` | ["reports-number-by-month", company, from, to] | `—` |

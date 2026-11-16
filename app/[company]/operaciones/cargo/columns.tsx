@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useDeleteCargoShipment } from "@/actions/cargo/actions";
 import { type AppColumnDef } from "@/lib/table";
 import { CargoShipment } from "@/types";
@@ -27,6 +27,63 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
+
+const STATUS_CONFIG: Record<
+  string,
+  { label: string; variant: string; className: string }
+> = {
+  pending: {
+    label: "PENDIENTE",
+    variant: "outline",
+    className: "text-muted-foreground",
+  },
+  partial: {
+    label: "PARCIAL",
+    variant: "warning",
+    className: "",
+  },
+  manifested: {
+    label: "MANIFESTADO",
+    variant: "default",
+    className: "bg-green-600 hover:bg-green-600/80",
+  },
+  modified: {
+    label: "MODIFICADO",
+    variant: "default",
+    className: "bg-orange-500 hover:bg-orange-500/80",
+  },
+};
+
+/** El backend sirve el estado en mayúsculas; las claves son minúsculas. */
+const getStatusConfig = (status?: string) =>
+  STATUS_CONFIG[status?.toLowerCase() ?? ""] ?? STATUS_CONFIG.pending;
+
+export const StatusBadge = ({ status }: { status?: string }) => {
+  const config = getStatusConfig(status);
+  return (
+    <Badge variant={config.variant as any} className={config.className}>
+      {config.label}
+    </Badge>
+  );
+};
+
+/**
+ * Fecha de registro formateada.
+ *
+ * getUTC* extrae el día en UTC, que es el día real del registro y evita el
+ * corrimiento de un día al convertir a la zona horaria local.
+ */
+const formatRegistrationDate = (dateStr?: string) => {
+  if (!dateStr) return "—";
+  const date = parseISO(dateStr);
+  if (!isValid(date)) return "—";
+  const localDate = new Date(
+    date.getUTCFullYear(),
+    date.getUTCMonth(),
+    date.getUTCDate(),
+  );
+  return format(localDate, "dd/MM/yyyy");
+};
 
 const ActionsCell = ({ row, isCurrentMonth, company, canWrite }: any) => {
   const shipment = row.original;
@@ -158,21 +215,11 @@ export const getColumns = (
         className="justify-center"
       />
     ),
-    cell: ({ row }) => {
-      const dateStr = row.original.registration_date;
-      if (!dateStr) return <div className="text-center">—</div>;
-      const date = parseISO(dateStr);
-      if (!isValid(date)) return <div className="text-center">—</div>;
-      // ✅ getUTCDate() extrae el día en UTC, que es el día real del registro
-      const localDate = new Date(
-        date.getUTCFullYear(),
-        date.getUTCMonth(),
-        date.getUTCDate(),
-      );
-      return (
-        <div className="text-center">{format(localDate, "dd/MM/yyyy")}</div>
-      );
-    },
+    cell: ({ row }) => (
+      <div className="text-center">
+        {formatRegistrationDate(row.original.registration_date)}
+      </div>
+    ),
   },
   {
     accessorKey: "client.name",
@@ -216,39 +263,9 @@ export const getColumns = (
       />
     ),
     cell: ({ row }) => {
-      const status = row.original.manifest_status;
-      const config: Record<
-        string,
-        { label: string; variant: string; className: string }
-      > = {
-        pending: {
-          label: "PENDIENTE",
-          variant: "outline",
-          className: "text-muted-foreground",
-        },
-        partial: {
-          label: "PARCIAL",
-          variant: "warning",
-          className: "",
-        },
-        manifested: {
-          label: "MANIFESTADO",
-          variant: "default",
-          className: "bg-green-600 hover:bg-green-600/80",
-        },
-        modified: {
-          label: "MODIFICADO",
-          variant: "default",
-          className: "bg-orange-500 hover:bg-orange-500/80",
-        },
-      };
-      // El backend sirve el estado en mayúsculas; las claves son minúsculas.
-      const c = config[status?.toLowerCase()] || config.pending;
       return (
         <div className="text-center">
-          <Badge variant={c.variant as any} className={c.className}>
-            {c.label}
-          </Badge>
+          <StatusBadge status={row.original.manifest_status} />
         </div>
       );
     },
@@ -310,3 +327,78 @@ export const getColumns = (
     ),
   },
 ];
+
+const CardField = ({
+  label,
+  children,
+}: {
+  label: string;
+  children: ReactNode;
+}) => (
+  <div className="min-w-0">
+    <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+      {label}
+    </p>
+    <p className="break-words text-sm">{children}</p>
+  </div>
+);
+
+/**
+ * Versión en tarjeta de una fila de guía.
+ *
+ * Se usa en pantallas chicas, donde la tabla de ocho columnas no entra sin
+ * scroll horizontal. Reutiliza las mismas acciones que la fila de la tabla.
+ */
+export const CargoShipmentCard = ({
+  shipment,
+  isCurrentMonth,
+  company,
+  canWrite,
+}: {
+  shipment: CargoShipment;
+  isCurrentMonth: boolean;
+  company: string;
+  canWrite: boolean;
+}) => {
+  const carrier = shipment.carrier
+    ? `${shipment.carrier.name} ${shipment.carrier.last_name}`
+    : "Sin asignar";
+  const aircraft =
+    shipment.aircraft?.acronym || shipment.external_aircraft || "Sin asignar";
+
+  return (
+    <div className="rounded-lg border bg-background p-3.5">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="break-words font-semibold text-primary">
+            {shipment.guide_number}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            {formatRegistrationDate(shipment.registration_date)}
+          </p>
+        </div>
+        <StatusBadge status={shipment.manifest_status} />
+      </div>
+
+      <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2.5">
+        <CardField label="Cliente">
+          {shipment.client?.name || "No Asignado"}
+        </CardField>
+        <CardField label="Transportista">{carrier}</CardField>
+        <CardField label="Aeronave">{aircraft}</CardField>
+        <CardField label="Total">
+          {shipment.total_units} und. · {shipment.total_weight} kg
+        </CardField>
+      </div>
+
+      <div className="mt-1 flex justify-end border-t pt-1">
+        <ActionsCell
+          row={{ original: shipment }}
+          isCurrentMonth={isCurrentMonth}
+          company={company}
+          canWrite={canWrite}
+        />
+      </div>
+    </div>
+  );
+};

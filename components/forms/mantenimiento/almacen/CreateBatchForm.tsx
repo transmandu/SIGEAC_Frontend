@@ -22,30 +22,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { useGetWarehousesByLocation } from "@/hooks/administracion/useGetWarehousesByUser";
-import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits";
 import { batches_categories } from "@/lib/batches_categories";
 import { generateSlug, getValueFromLabel } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { zodResolver } from "@/lib/zod-resolver";
-import { Loader2, Plus } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
-import CreateUnitForm from "@/components/forms/ajustes/CreateUnitForm";
 import { useGetBatchesByCategory } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByCategory";
 import { NumericInput } from "@/components/forms/mantenimiento/almacen/_components/NumericInput";
 import { Batch } from "@/types";
-import { format } from "path";
 
 const CATEGORY_VALUES = {
   COMPONENT: "COMPONENT",
@@ -54,17 +44,7 @@ const CATEGORY_VALUES = {
   PART: "PART",
 } as const;
 
-const UNIT_LABEL = ["UNIDADES", "UNIDAD"];
-const WAREHOUSE_TYPE = "AERONAUTICO";
-
-// Función para determinar si una categoría requiere las restricciones especiales
-const requiresUnidadAndWarehouseRestrictions = (category: string) => {
-  return (
-    category === CATEGORY_VALUES.COMPONENT ||
-    category === CATEGORY_VALUES.TOOL ||
-    category === CATEGORY_VALUES.PART
-  );
-};
+const WAREHOUSE_TYPE = "AERONAUTICAL";
 
 // Función para determinar si una categoría requiere almacén aeronáutico
 const requiresAeronauticWarehouse = (category: string) => {
@@ -141,11 +121,6 @@ export function CreateBatchForm({
     location_id: selectedStation,
   });
 
-  const {
-    data: units,
-    isLoading: isUnitsLoading,
-    refetch: refetchUnits,
-  } = useGetUnits(selectedCompany?.slug);
   const { createBatch } = useCreateBatch();
   const { updateBatch } = useUpdateBatch();
 
@@ -167,11 +142,10 @@ export function CreateBatchForm({
     },
   });
 
-  const { control, setError, clearErrors, setValue } = form;
+  const { control, setError, clearErrors } = form;
   const name = useWatch({ control, name: "name" });
   const category = useWatch({ control, name: "category" });
   const { data: batches } = useGetBatchesByCategory(category || "");
-  const [isUnitDialogOpen, setIsUnitDialogOpen] = useState(false);
   const isNameDuplicate =
     category && name && batches?.some((batch) => batch.name === name);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -181,21 +155,7 @@ export function CreateBatchForm({
       form.setValue("category", defaultCategory, { shouldValidate: true });
   }, [defaultCategory, form]);
 
-  const shouldRestrictUnit = requiresUnidadAndWarehouseRestrictions(category);
-
-  // useEffect(() => {
-  //   if (shouldRestrictUnit && units?.length && !isUnitsLoading) {
-  //     const unidad = units.find((u) => UNIT_LABEL.includes(u.label));
-  //     if (unidad && form.getValues("medition_unit") !== unidad.value) {
-  //       form.setValue("medition_unit", unidad.value, {
-  //         shouldValidate: true,
-  //         shouldDirty: false,
-  //       });
-  //     }
-  //   }
-  // }, [shouldRestrictUnit, units, isUnitsLoading, form]);
-
-  // Efecto para restringir almacén a tipo "AERONAUTICO" para categorías específicas
+  // Efecto para restringir almacén a tipo "AERONAUTICAL" para categorías específicas
   useEffect(() => {
     if (
       requiresAeronauticWarehouse(category) &&
@@ -353,77 +313,6 @@ export function CreateBatchForm({
           />
         </div>
         <div className="flex gap-2 w-full">
-          {/* Selector de unidad primaria deshabilitado: la unidad se define
-              ahora por artículo, no por renglón. Se conserva junto al diálogo
-              de creación del final por si se reactiva. */}
-          {/* <FormField
-            control={form.control}
-            name="medition_unit"
-            render={({ field }) => (
-              <FormItem className="w-full">
-                <FormLabel>Unidades</FormLabel>
-                <div className="flex gap-2">
-                  <Select
-                    disabled={isUnitsLoading}
-                    onValueChange={field.onChange}
-                    value={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger className="flex-1">
-                        <SelectValue
-                          placeholder={
-                            isUnitsLoading ? (
-                              <Loader2 className="size-4 animate-spin" />
-                            ) : (
-                              "Seleccione..."
-                            )
-                          }
-                        />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {isUnitsLoading && (
-                        <Loader2 className="size-4 animate-spin" />
-                      )}
-                      {units
-                        ?.filter((unit) =>
-                          requiresUnidadAndWarehouseRestrictions(category)
-                            ? UNIT_LABEL.includes(unit.label)
-                            : true,
-                        )
-                        .map((unit) => (
-                          <SelectItem key={unit.id} value={unit.value}>
-                            {unit.label}
-                          </SelectItem>
-                        ))}
-                      {!units?.length && (
-                        <p className="text-xs p-2 text-muted-foreground">
-                          No se han encontrado unidades...
-                        </p>
-                      )}
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setIsUnitDialogOpen(true)}
-                    className="shrink-0"
-                    disabled={
-                      requiresUnidadAndWarehouseRestrictions(category) ||
-                      isUnitsLoading
-                    }
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </div>
-                <FormDescription>
-                  Unidad primaria para medir el renglón.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          /> */}
           <FormField
             control={form.control}
             name="warehouse_id"
@@ -581,26 +470,6 @@ export function CreateBatchForm({
           )}
         </Button>
       </form>
-      {/* <Dialog open={isUnitDialogOpen} onOpenChange={setIsUnitDialogOpen}>
-        <DialogContent className="sm:max-w-105">
-          <DialogHeader>
-            <DialogTitle>Crear Unidad Primaria</DialogTitle>
-            <DialogDescription>
-              Cree una nueva unidad primaria rellenando la información
-              necesaria.
-            </DialogDescription>
-          </DialogHeader>
-          <CreateUnitForm
-            onClose={() => setIsUnitDialogOpen(false)}
-            onSuccess={(unitData) => {
-              refetchUnits().then(() => {
-                setValue("medition_unit", unitData.value);
-                setIsUnitDialogOpen(false);
-              });
-            }}
-          />
-        </DialogContent>
-      </Dialog> */}
     </Form>
   );
 }

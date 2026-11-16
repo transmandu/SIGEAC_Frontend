@@ -12,6 +12,7 @@ export function buildQualityControlGroup({
       {
         href: `/${currentCompany?.slug}/control_calidad/transito_articulos`,
         label: "Tránsito de Artículos",
+        requiresTables: ["articles"],
         active: pathname.includes(
           `/${currentCompany?.slug}/control_calidad/transito_articulos`,
         ),
@@ -23,6 +24,7 @@ export function buildQualityControlGroup({
       {
         href: `/${currentCompany?.slug}/control_calidad/incoming`,
         label: "Gestión de Incoming",
+        requiresTables: ["incoming_inspections"],
         active: pathname.includes(
           `/${currentCompany?.slug}/control_calidad/incoming`,
         ),
@@ -34,6 +36,7 @@ export function buildQualityControlGroup({
       {
         href: `/${currentCompany?.slug}/control_calidad/cuarentena`,
         label: "Gestión de Cuarentena",
+        requiresTables: ["quarantine_articles"],
         active: pathname.includes(
           `/${currentCompany?.slug}/control_calidad/cuarentena`,
         ),

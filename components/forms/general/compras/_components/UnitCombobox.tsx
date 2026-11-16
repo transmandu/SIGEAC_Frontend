@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Check, ChevronsUpDown, Plus } from "lucide-react";
+import { Check, ChevronsUpDown, Plus, Ruler } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { triggerButtonClass } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -17,15 +18,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog } from "@/components/ui/dialog";
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import CreateUnitForm from "@/components/forms/ajustes/CreateUnitForm";
 import type { Unit } from "@/types";
+import { useCanManageCatalog } from "@/hooks/helpers/useCanManageCatalog";
 
 interface UnitComboboxProps {
   /** Selected unit id as a string (matches the form field value). */
@@ -50,6 +47,7 @@ export function UnitCombobox({
 }: UnitComboboxProps) {
   const [open, setOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
+  const canCreate = useCanManageCatalog("units");
 
   const selected = units?.find((u) => u.id.toString() === value);
 
@@ -64,7 +62,8 @@ export function UnitCombobox({
             aria-expanded={open}
             disabled={disabled}
             className={cn(
-              "w-full min-w-0 justify-between bg-background/70 font-normal",
+              triggerButtonClass,
+              "h-10 min-w-0 max-sm:text-base",
               !selected && "text-muted-foreground",
               invalid && "border-destructive/60 ring-1 ring-destructive/30",
               triggerClassName,
@@ -86,26 +85,34 @@ export function UnitCombobox({
               itemValue.toLowerCase().includes(search.toLowerCase()) ? 1 : 0
             }
           >
-            <CommandInput placeholder="Buscar unidad..." className="h-9" />
+            <CommandInput
+              placeholder="Buscar unidad..."
+              className="h-10 max-sm:text-base"
+            />
 
-            {/* Crear unidad — always the first, non-filtered action */}
-            <button
-              type="button"
-              onClick={() => {
-                setOpen(false);
-                setCreateOpen(true);
-              }}
-              className="flex w-full items-center gap-2 border-b px-3 py-2 text-sm font-medium text-emerald-600 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-950/30"
-            >
-              <Plus className="size-4" />
-              Crear unidad
-            </button>
+            {canCreate && (
+              <>
+                {/* Crear unidad — always the first, non-filtered action */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOpen(false);
+                    setCreateOpen(true);
+                  }}
+                  className="flex w-full items-center gap-2 border-b px-3 py-2 text-sm font-medium max-sm:py-3 text-emerald-600 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-950/30"
+                >
+                  <Plus className="size-4" />
+                  Crear unidad
+                </button>
+              </>
+            )}
 
             <CommandList>
               <CommandEmpty>Sin resultados</CommandEmpty>
               <CommandGroup>
                 {units?.map((unit) => (
                   <CommandItem
+                    className="max-sm:py-3"
                     key={unit.id}
                     value={`${unit.label} ${unit.value}`}
                     onSelect={() => {
@@ -135,24 +142,24 @@ export function UnitCombobox({
         </PopoverContent>
       </Popover>
 
-      {/* Crear unidad modal — auto-selects the new unit on success */}
-      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent
-          className="max-h-[90vh] overflow-y-auto sm:max-w-lg"
-          onInteractOutside={(e) => e.preventDefault()}
-        >
-          <DialogHeader>
-            <DialogTitle>Creación de Unidad</DialogTitle>
-            <DialogDescription>
-              Registre una unidad de medida rellenando la información necesaria.
-            </DialogDescription>
-          </DialogHeader>
-          <CreateUnitForm
-            onClose={() => setCreateOpen(false)}
-            onCreated={(unit) => onChange(unit.id.toString())}
-          />
-        </DialogContent>
-      </Dialog>
+      {canCreate && (
+        <>
+          {/* Crear unidad modal — auto-selects the new unit on success */}
+          <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+            <FormDialogContent
+              className="sm:max-w-2xl"
+              icon={Ruler}
+              title="Creación de Unidad"
+              description="Registre una unidad de medida rellenando la información necesaria."
+            >
+              <CreateUnitForm
+                onClose={() => setCreateOpen(false)}
+                onCreated={(unit) => onChange(unit.id.toString())}
+              />
+            </FormDialogContent>
+          </Dialog>
+        </>
+      )}
     </>
   );
 }

@@ -67,12 +67,12 @@ export default function UpdateCargoShipmentPage() {
       <PageHeader className="mb-6" currentLabel={cargoShipment?.guide_number} />
 
       <div className="flex flex-col gap-4">
-        <div className="flex items-center gap-4 mb-4">
+        <div className="mb-4 flex items-start gap-3 sm:items-center sm:gap-4">
           <Button
             asChild
             variant="outline"
             size="icon"
-            className="h-9 w-9"
+            className="h-9 w-9 shrink-0"
             data-tour="cargo-crear-btn-volver"
           >
             <Link href={backHref}>
@@ -80,7 +80,7 @@ export default function UpdateCargoShipmentPage() {
             </Link>
           </Button>
           <h1
-            className="text-3xl font-bold text-center"
+            className="min-w-0 break-words text-xl font-bold sm:text-3xl"
             data-tour="cargo-crear-title"
           >
             Modificar Carga {cargoShipment?.guide_number}
@@ -116,7 +116,7 @@ export default function UpdateCargoShipmentPage() {
         )}
 
         {cargoShipment && cargoShipment.manifest_status !== "MANIFESTED" && (
-          <div className="nax-w-4xl mx-auto w-full">
+          <div className="mx-auto w-full max-w-4xl">
             <CreateCargoShipmentForm initialData={cargoShipment} />
           </div>
         )}

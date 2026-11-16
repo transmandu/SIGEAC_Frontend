@@ -84,7 +84,30 @@ export default function CriticalAlertsButton() {
   const [open, setOpen] = useState(false);
   const [tooltipOpen, setTooltipOpen] = useState(false);
 
+  // Mientras el botón está a la vista, el del tour se apila encima: 56 px del
+  // botón + 24 de margen + 12 de separación (ver TourProvider).
+  useEffect(() => {
+    if (!hasAlerts) return;
+
+    document.documentElement.style.setProperty("--fab-alert-offset", "5.75rem");
+
+    return () => {
+      document.documentElement.style.removeProperty("--fab-alert-offset");
+    };
+  }, [hasAlerts]);
+
+  // Mientras el panel está abierto, el botón del tour se retira (ver globals.css):
+  // si no, quedaría entre el botón de alertas y el panel que sale de él.
+  useEffect(() => {
+    if (!open) return;
+
+    document.documentElement.setAttribute("data-alerts-open", "");
+
+    return () => document.documentElement.removeAttribute("data-alerts-open");
+  }, [open]);
+
   const panelRef = useRef<HTMLDivElement>(null);
+  const scrimRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   // Rodadura real: la rotación se deriva de la distancia recorrida
@@ -112,6 +135,10 @@ export default function CriticalAlertsButton() {
       const target = event.target as Node;
       if (panelRef.current?.contains(target)) return;
       if (buttonRef.current?.contains(target)) return;
+      // El velo cierra con su propio clic (ver abajo): cerrar aquí, en
+      // pointerdown, lo quitaba antes de que llegara el clic y este caía en lo
+      // que hay detrás de él.
+      if (scrimRef.current?.contains(target)) return;
       setOpen(false);
     };
 
@@ -179,7 +206,7 @@ export default function CriticalAlertsButton() {
               }
               className={cn(
                 "flex items-center justify-center",
-                "fixed bottom-6 right-6 z-1003",
+                "fixed bottom-6 right-6 z-40",
                 "h-14 w-14 rounded-full",
                 "backdrop-blur-md",
                 "shadow-[0_8px_30px_rgba(0,0,0,0.18)]",
@@ -250,6 +277,24 @@ export default function CriticalAlertsButton() {
         </Tooltip>
       </TooltipProvider>
 
+      {/* Velo de móvil: sin espacio a los lados el panel se mezclaba con la
+          página de atrás. Solo oscurece: un desenfoque aquí mareaba y daba lag.
+          Va por debajo del botón (z-39 contra z-40) para que el origen del
+          panel quede nítido. Desde `sm` no hace falta. */}
+      <div
+        ref={scrimRef}
+        aria-hidden
+        onClick={(event) => {
+          // El clic termina aquí: no debe activar nada de la página de atrás.
+          event.stopPropagation();
+          setOpen(false);
+        }}
+        className={cn(
+          "fixed inset-0 z-39 bg-black/20 transition-opacity duration-300 sm:hidden",
+          open ? "opacity-100" : "pointer-events-none opacity-0",
+        )}
+      />
+
       {/* Posición fija propia en vez de Popover: el ancla que Radix medía para
           colocarlo llegaba en 0x0 y el panel caía en la esquina superior izquierda. */}
       <div
@@ -258,9 +303,10 @@ export default function CriticalAlertsButton() {
         aria-label="Alertas críticas"
         aria-hidden={!open}
         className={cn(
-          "fixed bottom-24 right-6 z-1002",
+          // Pegado a su botón: es de él de donde nace.
+          "fixed bottom-24 right-6 z-45",
           "flex max-h-[70vh] w-96 max-w-[calc(100vw-3rem)] flex-col overflow-hidden",
-          "rounded-2xl bg-popover text-popover-foreground shadow-2xl",
+          "rounded-2xl bg-popover text-popover-foreground shadow-2xl max-sm:border max-sm:border-border/60",
           !open && "pointer-events-none",
         )}
         style={{

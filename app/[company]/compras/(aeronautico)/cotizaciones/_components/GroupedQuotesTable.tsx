@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import GroupedEmpty from "@/app/[company]/compras/_components/GroupedEmpty";
 
 import GroupRow from "./GroupRow";
 import GroupPagination from "@/components/misc/GroupPagination";
@@ -9,6 +10,8 @@ import { useResettingState } from "@/hooks/useResettingState";
 type GroupableKey = "vendor" | "requisition_order";
 
 type Props<T> = {
+  isLoading?: boolean;
+  isError?: boolean;
   data: T[];
   groupBy: GroupableKey;
   renderTable: (rows: T[]) => React.ReactNode;
@@ -27,6 +30,8 @@ const formatGroupLabel = (value?: string | null) => {
 };
 
 const GroupedQuotesTable = <T extends Record<string, any>>({
+  isLoading,
+  isError,
   data,
   groupBy,
   renderTable,
@@ -86,19 +91,11 @@ const GroupedQuotesTable = <T extends Record<string, any>>({
 
   if (!groups.length) {
     return (
-      <div
-        className="
-          rounded-xl border
-          bg-white dark:bg-slate-900/60
-          border-slate-200 dark:border-slate-700/60
-          px-6 py-10
-          text-center
-        "
-      >
-        <p className="text-sm text-muted-foreground">
-          No hay cotizaciones agrupadas disponibles.
-        </p>
-      </div>
+      <GroupedEmpty
+        subject="cotizaciones"
+        isLoading={isLoading}
+        isError={isError}
+      />
     );
   }
 

@@ -84,6 +84,7 @@ export const useCreateSurveyAnswers = () => {
       return response.data;
     },
     onSuccess: (_, data) => {
+      queryClient.invalidateQueries({ queryKey: ["survey-is-completed"] });
       toast.success("Creado!", {
         description: `Respuestas enviadas exitosamente`,
       });

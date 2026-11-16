@@ -48,7 +48,7 @@ export default function CourseListDialog({
   } = useGetCoursesByStatusDateRange({
     from,
     to,
-    status: "OPEN",
+    status: "ABIERTO",
     company: selectedCompany?.slug,
     location_id: selectedStation!,
   });
@@ -91,7 +91,7 @@ export default function CourseListDialog({
                       <Button
                         onClick={() => {
                           router.push(
-                            `/${selectedCompany?.slug}/general/cursos/${course.id}`
+                            `/${selectedCompany?.slug}/general/cursos/${course.id}`,
                           );
                         }}
                         size="sm"

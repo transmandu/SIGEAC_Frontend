@@ -20,6 +20,7 @@ interface ObligatoryReportData {
   status: string;
   image?: File | string;
   document?: File | string;
+  library_folder_paths?: string[];
 }
 
 interface UpdateObligatoryReportData {
@@ -48,6 +49,7 @@ interface UpdateObligatoryReportData {
     phone_number?: string | null;
     image?: string | File;
     document?: string | File;
+    library_folder_paths?: string[];
   };
 }
 
@@ -106,7 +108,9 @@ export const useDeleteObligatoryReport = () => {
       company: string | null;
       id: string;
     }) => {
-      await axiosInstance.delete(`/${company}/sms/obligatory-reports/${id}`);
+      await axiosInstance.delete(
+        `/${company}/sms/aeronautical/obligatory-reports/${id}`,
+      );
     },
     onSuccess: (_, data) => {
       queryClient.invalidateQueries({
@@ -134,7 +138,7 @@ export const useUpdateObligatoryReport = () => {
     mutationKey: ["obligatory-reports"],
     mutationFn: async ({ company, id, data }: UpdateObligatoryReportData) => {
       await axiosInstance.post(
-        `/${company}/sms/update-obligatory-reports/${id}`,
+        `/${company}/aeronautical/sms/update-obligatory-reports/${id}`,
         data,
         {
           headers: {

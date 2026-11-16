@@ -18,7 +18,7 @@ const MetaItem = ({ label, value, icon: Icon, wrap, clamp }: MetaItemProps) => {
         (wrap || clamp) && "min-w-0 max-w-65",
       )}
     >
-      <span className="text-[10px] font-medium tracking-wider text-muted-foreground/60 select-none">
+      <span className="text-xs font-medium text-muted-foreground select-none">
         {label}
       </span>
       <span

@@ -83,9 +83,9 @@ export const columns: AppColumnDef<Course>[] = [
     meta: { title: "Estado" },
     cell: ({ row }) => {
       const color =
-        row.original.status === "CLOSED"
+        row.original.status === "CERRADO"
           ? "bg-red-500 hover:bg-red-700"
-          : row.original.status === "OPEN"
+          : row.original.status === "ABIERTO"
             ? "bg-green-500 hover:bg-green-700"
             : "bg-gray-200"; // Agrega una clase por defecto para otros estados
       return (

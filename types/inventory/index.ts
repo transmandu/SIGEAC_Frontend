@@ -77,6 +77,8 @@ export interface CompanyInventoryArticle {
   category: string;
   is_hazardous: boolean;
   condition: string | null;
+  /** Estado del artículo; null cuando la fila resume varias unidades. */
+  status: string | null;
   /** Existencia almacenada: cero significa "No disponible". */
   available_quantity: number;
   unit: InventoryUnit | null;

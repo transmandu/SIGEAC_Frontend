@@ -9,31 +9,44 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useGetFlightControl } from "@/hooks/mantenimiento/planificacion/useGetFlightsControl";
 import { useGetMaintenanceAircrafts } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { AlertTriangle, Plane } from "lucide-react";
+import { AlertTriangle, Loader2, Plane } from "lucide-react";
 import { useMemo, useState } from "react";
 import { getColumns } from "./columns";
 import { DataTable } from "./data-table";
 import { AircraftStatsBanner } from "./_components/AircraftStatsBanner";
 import { useGetAverageCyclesAndHours } from "@/hooks/aerolinea/vuelos/useGetAverageCyclesAndHours";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { ImportFlightLogDialog } from "@/components/dialogs/mantenimiento/planificacion/ImportFlightLogDialog";
+import { useIsSuperuser } from "@/hooks/helpers/useIsSuperuser";
 
 const FlightControlPage = () => {
   const { selectedCompany } = useCompanyStore();
   const companySlug = selectedCompany?.slug ?? "";
+  const isSuperuser = useIsSuperuser();
+
+  const {
+    data: aircrafts,
+    isLoading: isAircraftsLoading,
+    isError: isAircraftsError,
+  } = useGetMaintenanceAircrafts(companySlug);
+
+  const [selectedAircraftId, setActiveAircraftId] = useState<string>("");
+
+  // La elegida mientras siga existiendo; si no, la primera aeronave.
+  const activeAircraftId = aircrafts?.some(
+    (a) => String(a.id) === selectedAircraftId,
+  )
+    ? selectedAircraftId
+    : aircrafts?.length
+      ? String(aircrafts[0].id)
+      : "";
 
   const {
     data: flights,
     isLoading,
-    isError,
-  } = useGetFlightControl(companySlug);
-  const { data: aircrafts, isLoading: isAircraftsLoading } =
-    useGetMaintenanceAircrafts(companySlug);
-
-  const [selectedAircraftId, setActiveAircraftId] = useState<string>("");
-
-  // Sin una elección del usuario, la primera aeronave.
-  const activeAircraftId =
-    selectedAircraftId || (aircrafts?.length ? String(aircrafts[0].id) : "");
+    isError: isFlightsError,
+  } = useGetFlightControl(companySlug, activeAircraftId);
+  const isError = isAircraftsError || isFlightsError;
 
   const activeAircraftAcronym = useMemo(() => {
     const selected = aircrafts?.find((a) => String(a.id) === activeAircraftId);
@@ -46,13 +59,9 @@ const FlightControlPage = () => {
     isError: isErrorAverageStats,
   } = useGetAverageCyclesAndHours(selectedCompany?.slug, activeAircraftAcronym);
 
-  const columns = useMemo(() => getColumns(companySlug), [companySlug]);
+  const columns = useMemo(() => getColumns(), []);
 
-  const activeFlights = useMemo(() => {
-    if (!flights?.length || !activeAircraftId) return [];
-    const id = Number(activeAircraftId);
-    return flights.filter((f) => f.aircraft?.id === id);
-  }, [flights, activeAircraftId]);
+  const activeFlights = useMemo(() => flights ?? [], [flights]);
 
   const stats = useMemo(() => {
     const totalHours = activeFlights.reduce(
@@ -70,7 +79,7 @@ const FlightControlPage = () => {
     };
   }, [activeFlights]);
 
-  if (isLoading || isAircraftsLoading) return <LoadingPage />;
+  if (isAircraftsLoading) return <LoadingPage />;
 
   return (
     <ContentLayout title="Control de Horas de Vuelo">
@@ -86,7 +95,12 @@ const FlightControlPage = () => {
           </p>
         </header>
 
-        <CreateFlightControlDialog defaultAircraftId={activeAircraftId} />
+        <div className="flex flex-wrap items-center gap-2">
+          <CreateFlightControlDialog defaultAircraftId={activeAircraftId} />
+          {isSuperuser && (
+            <ImportFlightLogDialog defaultAircraftId={activeAircraftId} />
+          )}
+        </div>
 
         {isError && (
           <Alert variant="destructive">
@@ -98,7 +112,17 @@ const FlightControlPage = () => {
           </Alert>
         )}
 
-        {!!aircrafts?.length && flights && (
+        {aircrafts && !aircrafts.length && (
+          <div className="flex min-h-60 flex-col items-center justify-center gap-2 rounded-lg border border-dashed p-8 text-center">
+            <Plane className="h-5 w-5 text-muted-foreground" />
+            <p className="text-sm font-medium">No hay aeronaves registradas</p>
+            <p className="text-xs text-muted-foreground">
+              Registre una aeronave en Planificación para cargar sus vuelos.
+            </p>
+          </div>
+        )}
+
+        {!!aircrafts?.length && (
           <Card className="">
             <div className="flex">
               <AircraftStatsBanner
@@ -106,6 +130,7 @@ const FlightControlPage = () => {
                 cycles={stats.totalCycles}
                 hours={stats.totalHours}
                 flights={stats.count}
+                isLoading={isLoading}
                 isVisible={true}
               />
 
@@ -140,9 +165,7 @@ const FlightControlPage = () => {
                 </TabsList>
 
                 {aircrafts.map((aircraft) => {
-                  const data = flights.filter(
-                    (f) => f.aircraft?.id === aircraft.id,
-                  );
+                  const isActive = String(aircraft.id) === activeAircraftId;
 
                   return (
                     <TabsContent
@@ -150,8 +173,12 @@ const FlightControlPage = () => {
                       value={String(aircraft.id)}
                       className="mt-4"
                     >
-                      {data.length ? (
-                        <DataTable columns={columns} data={data} />
+                      {isActive && isLoading ? (
+                        <div className="flex min-h-60 items-center justify-center">
+                          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                        </div>
+                      ) : isActive && activeFlights.length ? (
+                        <DataTable columns={columns} data={activeFlights} />
                       ) : (
                         <div className="flex min-h-60 flex-col items-center justify-center gap-2 rounded-lg border border-dashed p-8 text-center">
                           <Plane className="h-5 w-5 text-muted-foreground" />

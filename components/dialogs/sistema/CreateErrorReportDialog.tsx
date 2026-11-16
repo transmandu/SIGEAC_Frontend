@@ -1,6 +1,8 @@
 "use client";
 
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { fullScreenOnMobile } from "@/components/dialogs/shared/FormDialogContent";
+import { cn } from "@/lib/utils";
 import CreateErrorReportForm from "@/components/forms/sistema/CreateErrorReportForm";
 import type { ErrorReportDraft } from "@/stores/ErrorReportDraftStore";
 
@@ -21,7 +23,15 @@ export default function CreateErrorReportDialog({
 }: CreateErrorReportDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[85vh] flex-col overflow-hidden rounded-2xl border-slate-200/80 p-0 sm:max-w-140 dark:border-slate-800/80">
+      <DialogContent
+        className={cn(
+          "flex max-h-[90vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-140",
+          fullScreenOnMobile,
+        )}
+        // Lo escrito y las capturas adjuntas no se recuperan: un clic de más
+        // fuera del diálogo no debe cerrarlo.
+        onInteractOutside={(event) => event.preventDefault()}
+      >
         <CreateErrorReportForm
           onClose={() => onOpenChange(false)}
           showAdvancedFields={showAdvancedFields}

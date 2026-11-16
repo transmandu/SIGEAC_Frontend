@@ -1,6 +1,5 @@
 "use client";
 
-import { CreateFlightControlDialog } from "@/components/dialogs/aerolinea/administracion/CreateFlightControl";
 import { DataTablePagination } from "@/components/tables/DataTablePagination";
 import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions";
 import { Button } from "@/components/ui/button";
@@ -23,7 +22,6 @@ import {
 import { appTableFeatures, type AppColumnDef } from "@/lib/table";
 import { History } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 interface DataTableProps<TData extends RowData> {
@@ -50,31 +48,28 @@ export function DataTable<TData extends RowData>({
     },
   });
 
-  const router = useRouter();
   const { selectedCompany } = useCompanyStore();
-
-  const isFiltered = table.state.columnFilters.length > 0;
 
   return (
     <div>
       <div className="flex items-center justify-between py-4">
-          <div>
-            <Link
-              href={`/${selectedCompany?.slug}/planificacion/control_vuelos/historial_vuelo`}
+        <div>
+          <Link
+            href={`/${selectedCompany?.slug}/planificacion/control_vuelos/historial_vuelo`}
+          >
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-2"
             >
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex items-center gap-2"
-              >
-                <History className="h-4 w-4" />
-                Historial de Vuelos
-              </Button>
-            </Link>
-          </div>
-          <div>
-            <DataTableViewOptions table={table} />
-          </div>
+              <History className="h-4 w-4" />
+              Historial de Vuelos
+            </Button>
+          </Link>
+        </div>
+        <div>
+          <DataTableViewOptions table={table} />
+        </div>
       </div>
       <div className="rounded-md border mb-4">
         <Table>

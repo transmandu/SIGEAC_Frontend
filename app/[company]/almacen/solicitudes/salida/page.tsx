@@ -42,6 +42,9 @@ export type DispatchArticle = {
   // Solo la unidad serializada puede mandarse a incoming: un consumible es un
   // renglón con cantidad, no una pieza que un inspector pueda retener.
   is_inspectable?: boolean;
+  /** Condición con que salió la línea; es la que se propone al devolver. */
+  dispatched_condition_id?: number | null;
+  dispatched_condition?: string | null;
   // La devolución se captura en la unidad en que se despachó: si salieron 30
   // UNIDADES de un artículo con base METRO, se devuelve en unidades.
   return_unit?: string;

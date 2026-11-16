@@ -23,7 +23,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useGetUserActivity } from "@/hooks/aerolinea/desarrollo/useGetUserActivities";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { Activity } from "@/types";
 import { useOnChange } from "@/hooks/useOnChange";
 
@@ -37,6 +37,7 @@ export const ActivityDropdownActions = ({
   finished,
 }: ActivityDropdownActionsProps) => {
   const router = useRouter();
+  const { company } = useParams<{ company: string }>();
 
   // Uso correcto de los hooks de mutación
   const { updateFinalHour } = useUpdateFinalHour();
@@ -100,6 +101,7 @@ export const ActivityDropdownActions = ({
     setIsLoading(true);
     try {
       await updateFinalHour.mutateAsync({
+        company,
         final_hour: endTime,
         id: initialData.id.toString(),
         result: result,
@@ -114,7 +116,10 @@ export const ActivityDropdownActions = ({
   const handleDelete = async () => {
     setIsLoading(true);
     try {
-      await deleteActivity.mutateAsync({ id: initialData.id.toString() });
+      await deleteActivity.mutateAsync({
+        company,
+        id: initialData.id.toString(),
+      });
       setDeleteDialogOpen(false);
     } finally {
       setIsLoading(false);
@@ -125,6 +130,7 @@ export const ActivityDropdownActions = ({
     setIsLoading(true);
     try {
       await editActivity.mutateAsync({
+        company,
         id: initialData.id.toString(),
         start_hour: startTime,
         final_hour: endTime,

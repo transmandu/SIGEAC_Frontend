@@ -16,7 +16,7 @@ export const notificacionesSteps: StepType[] = [
   {
     selector: '[data-tour="notificaciones-list"]',
     content:
-      "Cada notificación muestra el título, mensaje y estado (Nueva/Leída). Haga clic para ir al recurso relacionado o pase el cursor y presione ✓ para marcar como leída.",
+      "Cada notificación muestra el título, el mensaje y su estado (Nueva/Leída); el color indica el tipo de aviso: rojo lo que bloquea o falla, ámbar los recordatorios, verde lo resuelto y azul lo demás. Toque o haga clic para ir al recurso relacionado, o use el botón ✓ para marcarla como leída. Arriba puede marcar todas como leídas o eliminar las que ya no necesite.",
     position: "top",
   },
 ];

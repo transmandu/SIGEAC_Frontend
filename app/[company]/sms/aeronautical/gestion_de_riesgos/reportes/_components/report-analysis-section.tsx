@@ -1,90 +1,69 @@
 "use client";
 
-import { Activity, AlertTriangle, Layers3 } from "lucide-react";
+import { Activity } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
-import { DetailGrid } from "@/app/[company]/sms/aeronautical/gestion_de_riesgos/_components/detail-grid";
-
 import {
-    buildAnalysisDetails,
-    getRiskMatrixTone,
+  buildAnalysisDetails,
+  getRiskMatrixTone,
 } from "./report-detail-helpers";
+import { ReportDataGrid } from "./report-data-grid";
+import { ReportSection } from "./report-section";
 import { ReportAnalysisEntry } from "./report-detail-types";
 
 type ReportAnalysisSectionProps = {
-    entries: ReportAnalysisEntry[];
+  entries: ReportAnalysisEntry[];
 };
 
 export function ReportAnalysisSection({ entries }: ReportAnalysisSectionProps) {
-    if (!entries.length) {
-        return null;
-    }
+  if (!entries.length) {
+    return null;
+  }
 
-    return (
-        <Card>
-            <CardHeader className="space-y-2">
-                <CardTitle className="flex items-center gap-2 text-xl">
-                    <Activity className="h-5 w-5" />
-                    Análisis
-                </CardTitle>
-                <CardDescription>
-                    {entries.length > 1
-                        ? "Análisis asociados a la notificación de peligro y al plan de mitigación."
-                        : "Análisis asociado al elemento vinculado al reporte."}
-                </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                {entries.map((entry) => (
-                    <div
-                        key={entry.key}
-                        className={cn(
-                            "space-y-3 rounded-xl border p-4",
-                            getRiskMatrixTone(entry.analysis).card,
-                        )}
-                    >
-                        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                            <div className="space-y-1">
-                                <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                                    {entry.title}
-                                </h3>
-                                <p className="text-sm text-muted-foreground">{entry.description}</p>
-                            </div>
+  return (
+    <ReportSection
+      icon={Activity}
+      title="Análisis de riesgo"
+      description={
+        entries.length > 1
+          ? "Evaluación previa y posterior a la mitigación."
+          : "Evaluación asociada al reporte."
+      }
+    >
+      <div className="space-y-6">
+        {entries.map((entry) => {
+          const tone = getRiskMatrixTone(entry.analysis);
 
-                            <div className="flex flex-wrap items-center gap-2">
-                                <span
-                                    className={cn(
-                                        "inline-flex items-center gap-2 rounded-full px-2 py-1 text-xs",
-                                        getRiskMatrixTone(entry.analysis).chip,
-                                    )}
-                                >
-                                    <Activity className="h-4 w-4" />
-                                    {String(entry.analysis.probability ?? "N/A")}
-                                </span>
-                                <span
-                                    className={cn(
-                                        "inline-flex items-center gap-2 rounded-full px-2 py-1 text-xs",
-                                        getRiskMatrixTone(entry.analysis).chip,
-                                    )}
-                                >
-                                    <AlertTriangle className="h-4 w-4" />
-                                    {String(entry.analysis.severity ?? "N/A")}
-                                </span>
-                                {entry.analysis.result ? (
-                                    <Badge className={cn("text-xs", getRiskMatrixTone(entry.analysis).chip)}>
-                                        <Layers3 className="mr-1 h-3.5 w-3.5" />
-                                        {String(entry.analysis.result)}
-                                    </Badge>
-                                ) : null}
-                            </div>
-                        </div>
+          return (
+            <div
+              key={entry.key}
+              className={cn("space-y-3 border-l-2 pl-4", tone.accent)}
+            >
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div className="space-y-0.5">
+                  <p className="text-sm font-semibold">{entry.title}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {entry.description}
+                  </p>
+                </div>
 
-                        <DetailGrid items={buildAnalysisDetails(entry.analysis)} />
-                    </div>
-                ))}
-            </CardContent>
-        </Card>
-    );
+                {entry.analysis.result ? (
+                  <Badge className={cn("border-transparent", tone.chip)}>
+                    {String(entry.analysis.result)}
+                  </Badge>
+                ) : null}
+              </div>
+
+              <ReportDataGrid
+                items={buildAnalysisDetails(entry.analysis)}
+                className="sm:grid-cols-2 xl:grid-cols-3"
+              />
+            </div>
+          );
+        })}
+      </div>
+    </ReportSection>
+  );
 }

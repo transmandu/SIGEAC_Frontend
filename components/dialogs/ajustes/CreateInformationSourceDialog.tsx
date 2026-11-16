@@ -1,17 +1,11 @@
 "use client";
 
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 
 import { useState } from "react";
-import { Plus } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Plus, Rss } from "lucide-react";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { CreateInformationSourceForm } from "@/components/forms/aerolinea/sms/CreateInformationSourceForm";
 
 export default function CreateInformationSourceDialog() {
@@ -25,18 +19,14 @@ export default function CreateInformationSourceDialog() {
           Crear fuente
         </ActionTriggerButton>
       </DialogTrigger>
-      <DialogContent
-        className="max-h-[90vh] overflow-y-auto sm:max-w-lg"
-        onInteractOutside={(e) => e.preventDefault()}
+      <FormDialogContent
+        icon={Rss}
+        title="Creación de Fuente de Información"
+        description="Registre una fuente de información indicando su nombre y tipo."
+        className="sm:max-w-lg"
       >
-        <DialogHeader>
-          <DialogTitle>Creación de Fuente de Información</DialogTitle>
-          <DialogDescription>
-            Registre una fuente de información indicando su nombre y tipo.
-          </DialogDescription>
-        </DialogHeader>
         <CreateInformationSourceForm onClose={() => setOpen(false)} />
-      </DialogContent>
+      </FormDialogContent>
     </Dialog>
   );
 }

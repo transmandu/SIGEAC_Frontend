@@ -7,13 +7,14 @@ export const cursosCrearSteps: StepType[] = [
     position: "center",
   },
   {
-    selector: '[data-tour="cursos-create-nombre"]',
-    content: "Ingrese el nombre del curso.",
+    selector: '[data-tour="cursos-create-tipo"]',
+    content: "Seleccione el tipo: RECURRENTE o INICIAL.",
     position: "bottom",
   },
   {
-    selector: '[data-tour="cursos-create-tipo"]',
-    content: "Seleccione el tipo: RECURRENTE o INICIAL.",
+    selector: '[data-tour="cursos-create-horas"]',
+    content:
+      "Seleccione la duración. Las opciones dependen del tipo de curso elegido.",
     position: "bottom",
   },
   {

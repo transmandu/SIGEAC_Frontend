@@ -1,17 +1,11 @@
 "use client";
 
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 
 import { useState } from "react";
-import { Plus } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Plus, PlaneTakeoff } from "lucide-react";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { CreatePilotForm } from "@/components/forms/general/CreatePilotForm";
 
 export default function CreatePilotDialog() {
@@ -25,18 +19,14 @@ export default function CreatePilotDialog() {
           Registrar piloto
         </ActionTriggerButton>
       </DialogTrigger>
-      <DialogContent
-        className="max-h-[90vh] overflow-y-auto sm:max-w-2xl"
-        onInteractOutside={(e) => e.preventDefault()}
+      <FormDialogContent
+        icon={PlaneTakeoff}
+        title="Registro de Piloto"
+        description="Seleccione el empleado e indique su número de licencia."
+        className="sm:max-w-2xl"
       >
-        <DialogHeader>
-          <DialogTitle>Registro de Piloto</DialogTitle>
-          <DialogDescription>
-            Seleccione el empleado e indique su número de licencia.
-          </DialogDescription>
-        </DialogHeader>
         <CreatePilotForm onClose={() => setOpen(false)} />
-      </DialogContent>
+      </FormDialogContent>
     </Dialog>
   );
 }

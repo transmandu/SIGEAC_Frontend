@@ -3,7 +3,7 @@ import { useCreateRequisition } from "@/actions/mantenimiento/compras/requisicio
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { useAuth } from "@/contexts/AuthContext";
-import { useGetBatchesByLocationId } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByLocationId";
+import { useGetBatchesByLocation } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByLocation";
 import {
   useSearchBatchesWithArticles,
   type BatchWithArticles,
@@ -20,12 +20,12 @@ import { z } from "zod";
 import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits";
 import { useDebounce } from "@/lib/useDebounce";
 import type { RequisitionBatchForm } from "@/types/purchase";
-import { Separator } from "@/components/ui/separator";
 import { RequisitionHeader } from "./_components/RequisitionHeader";
 import { BatchArticlesSection } from "./_components/BatchArticlesSection";
 import { AdditionalInfoSection } from "./_components/AdditionalInfoSection";
 import { isHigherPriority, type Priority } from "./_components/priorityUtils";
 import { canAddRequisitionArticle } from "@/lib/purchases/requisition-article-limit";
+import FormActions from "@/components/forms/mantenimiento/compras/_components/FormActions";
 
 const FormSchema = z.object({
   justification: z
@@ -80,14 +80,13 @@ interface FormProps {
 export function CreateAeronauticalRequisitionForm({ onClose }: FormProps) {
   const { user } = useAuth();
 
-  const {
-    mutate,
-    mutateAsync,
-    data: batches,
-    isPending: isBatchesLoading,
-  } = useGetBatchesByLocationId();
-
   const { selectedCompany, selectedStation } = useCompanyStore();
+
+  const {
+    data: batches,
+    isLoading: isBatchesLoading,
+    refetch: refetchBatches,
+  } = useGetBatchesByLocation(selectedCompany?.slug, selectedStation);
 
   // Solicitantes base: mantenimiento, almacén e ingeniería (ambas sedes; el
   // backend acota por location_id). Si el usuario pertenece a otro departamento
@@ -220,15 +219,6 @@ export function CreateAeronauticalRequisitionForm({ onClose }: FormProps) {
   }, [user, form, selectedCompany, selectedStation]);
 
   useEffect(() => {
-    if (selectedStation) {
-      mutate({
-        location_id: Number(selectedStation),
-        company: selectedCompany?.slug,
-      });
-    }
-  }, [selectedStation, mutate, selectedCompany]);
-
-  useEffect(() => {
     form.setValue("articles", selectedBatches, {
       shouldValidate: form.formState.isSubmitted,
     });
@@ -288,6 +278,7 @@ export function CreateAeronauticalRequisitionForm({ onClose }: FormProps) {
         {
           batch: batchId,
           batch_name: batchName,
+          batch_category,
           batch_articles: [
             {
               part_number: "",
@@ -330,6 +321,7 @@ export function CreateAeronauticalRequisitionForm({ onClose }: FormProps) {
           {
             batch: batchId,
             batch_name: batch.name,
+            batch_category: batch.category,
             batch_articles: [
               {
                 part_number: article.part_number,
@@ -426,7 +418,7 @@ export function CreateAeronauticalRequisitionForm({ onClose }: FormProps) {
             {
               part_number: "",
               quantity: 1,
-              unit: getDefaultUnit(batch.batch_name),
+              unit: getDefaultUnit(batch.batch_category ?? ""),
               priority: "MEDIUM",
               aircraft_id: headerAircraftId,
               document_type_ids: [],
@@ -460,11 +452,8 @@ export function CreateAeronauticalRequisitionForm({ onClose }: FormProps) {
 
   const handleBatchCreated = async (batchName: string) => {
     if (!selectedStation) return;
-    const updatedBatches = await mutateAsync({
-      location_id: Number(selectedStation),
-      company: selectedCompany?.slug,
-    });
-    const newBatch = updatedBatches.find((b) => b.name === batchName);
+    const { data: updatedBatches } = await refetchBatches();
+    const newBatch = updatedBatches?.find((b) => b.name === batchName);
     if (newBatch) {
       handleBatchSelect(
         newBatch.name,
@@ -485,10 +474,16 @@ export function CreateAeronauticalRequisitionForm({ onClose }: FormProps) {
       aircraft_id: data.aircraft_id ? Number(data.aircraft_id) : undefined,
     };
 
-    await createRequisition.mutateAsync({
-      data: formattedData,
-      company: selectedCompany!.slug,
-    });
+    try {
+      await createRequisition.mutateAsync({
+        data: formattedData,
+        company: selectedCompany!.slug,
+      });
+    } catch {
+      // La mutación ya avisó el error; el formulario conserva lo capturado.
+      return;
+    }
+
     onClose();
   };
 
@@ -550,20 +545,19 @@ export function CreateAeronauticalRequisitionForm({ onClose }: FormProps) {
 
         <AdditionalInfoSection form={form} />
 
-        <div className="flex justify-between items-center gap-x-4">
-          <Separator className="flex-1" />
-          <p className="text-muted-foreground text-xs select-none">SIGEAC</p>
-          <Separator className="flex-1" />
-        </div>
-
-        <Button disabled={createRequisition.isPending} className="gap-2">
-          <>
-            <Send className="size-4" /> Generar Requisición
-          </>
-          {createRequisition.isPending && (
-            <Loader2 className="size-4 animate-spin" />
-          )}
-        </Button>
+        <FormActions>
+          <Button
+            disabled={createRequisition.isPending}
+            className="min-w-35 gap-2"
+          >
+            <>
+              <Send className="size-4" /> Generar requisición
+            </>
+            {createRequisition.isPending && (
+              <Loader2 className="size-4 animate-spin" />
+            )}
+          </Button>
+        </FormActions>
       </form>
     </Form>
   );

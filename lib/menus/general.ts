@@ -1,3 +1,4 @@
+import { WAREHOUSE_ROLES } from "@/lib/inventory-access";
 import type { Group, MenuContext } from "@/lib/menus/types";
 import {
   CalendarRange,
@@ -13,27 +14,8 @@ import {
 export function buildGeneralGroup({
   pathname,
   currentCompany,
-  userRoles,
 }: MenuContext): Group {
-  const hasInventarioArticulosAccess = [
-    "TESTER",
-    "JEFE_COMPRAS",
-    "ANALISTA_COMPRAS",
-    "JEFE_PLANIFICACION",
-    "ANALISTA_PLANIFICACION",
-    "JEFE_ADMINISTRACION",
-    "RRHH_ADMINISTRACION",
-    "ANALISTA_ADMINISTRACION",
-    "CONTADOR_ADMINISTRACION",
-    "JEFE_CONTROL_CALIDAD",
-    "JEFE_MANTENIMIENTO",
-    "TECNICO_MANTENIMIENTO_AERONAUTICO",
-    "ENGINEERING",
-  ].some((role) => userRoles.includes(role));
-
-  const inventarioHref = hasInventarioArticulosAccess
-    ? `/${currentCompany?.slug}/general/inventario_articulos`
-    : `/${currentCompany?.slug}/general/inventario_general`;
+  const inventoryHref = `/${currentCompany?.slug}/general/inventario_articulos`;
 
   return {
     groupLabel: "General",
@@ -41,6 +23,7 @@ export function buildGeneralGroup({
       {
         href: `/${currentCompany?.slug}/general/calendario`,
         label: "Calendario de Eventos",
+        requiresTables: ["calendar_events"],
         active: pathname === `/${currentCompany?.slug}/general/calendario`,
         icon: CalendarRange,
         roles: [],
@@ -49,6 +32,7 @@ export function buildGeneralGroup({
       {
         href: `/${currentCompany?.slug}/general/cursos`,
         label: "Cursos",
+        requiresTables: ["courses"],
         roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
         active: pathname === `/${currentCompany?.slug}/general/cursos`,
         icon: Presentation,
@@ -62,7 +46,16 @@ export function buildGeneralGroup({
           {
             href: `/${currentCompany?.slug}/general/cursos`,
             label: "Cursos",
+            requiresTables: ["courses"],
             active: pathname === `/${currentCompany?.slug}/general/cursos`,
+          },
+          {
+            href: `/${currentCompany?.slug}/general/cursos/matriz-capacitacion`,
+            label: "Programación de Personal Aeronáutico",
+            roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
+            active:
+              pathname ===
+              `/${currentCompany?.slug}/general/cursos/matriz-capacitacion`,
           },
           {
             href: `/${currentCompany?.slug}/general/cursos/estadisticas`,
@@ -74,6 +67,7 @@ export function buildGeneralGroup({
           {
             href: `/${currentCompany?.slug}/sms/certificados`,
             label: "Certificados",
+            requiresTables: ["certificates"],
             roles: [],
             active: pathname === `/${currentCompany?.slug}/sms/certificados`,
           },
@@ -97,6 +91,7 @@ export function buildGeneralGroup({
           {
             href: `/${currentCompany?.slug}/general/reporte/voluntario`,
             label: "Reporte Voluntario",
+            requiresTables: ["voluntary_reports"],
             roles: [],
             active:
               pathname ===
@@ -105,6 +100,7 @@ export function buildGeneralGroup({
           {
             href: `/${currentCompany?.slug}/general/reporte/obligatorio`,
             label: "Reporte Obligatorio",
+            requiresTables: ["obligatory_reports"],
             roles: [],
             active:
               pathname ===
@@ -127,23 +123,20 @@ export function buildGeneralGroup({
         ],
       },
       {
-        href: inventarioHref,
+        href: inventoryHref,
         label: "Inventario",
-        active: pathname.includes(inventarioHref),
+        requiresTables: ["articles"],
+        active: pathname.includes(inventoryHref),
         icon: PackageSearch,
         roles: [],
-        excludedRoles: [
-          "ANALISTA_ALMACEN",
-          "JEFE_ALMACEN",
-          "JEFE_MANTENIMIENTO",
-          "SUPERUSER",
-        ],
+        excludedRoles: [...WAREHOUSE_ROLES],
         submenus: [],
         requiresOmac: true,
       },
       {
         href: `/${currentCompany?.slug}/general/requisiciones`,
         label: "Solicitudes de Compra",
+        requiresTables: ["requisition_orders"],
         active: pathname.includes(
           `/${currentCompany?.slug}/general/requisiciones`,
         ),
@@ -160,6 +153,7 @@ export function buildGeneralGroup({
       {
         href: `/${currentCompany?.slug}/general/manuales`,
         label: "Manuales de Mtto.",
+        requiresTables: ["maintenance_catalog_manuals"],
         active: pathname.includes(`/${currentCompany?.slug}/general/manuales`),
         icon: BookOpen,
         moduleValue: [
@@ -182,6 +176,7 @@ export function buildGeneralGroup({
       {
         href: `/${currentCompany?.slug}/general/biblioteca`,
         label: "Biblioteca Digital",
+        requiresTables: ["library_documents"],
         active: pathname.includes(
           `/${currentCompany?.slug}/general/biblioteca`,
         ),

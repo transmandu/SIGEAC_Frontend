@@ -93,9 +93,9 @@ const ShowCourse = () => {
                     </div>
                     <Badge
                       className={`font-bold ${
-                        course.status === "CLOSED"
+                        course.status === "CERRADO"
                           ? "bg-red-500"
-                          : course.status === "OPEN"
+                          : course.status === "ABIERTO"
                             ? "bg-green-500"
                             : "bg-gray-500"
                       }`}

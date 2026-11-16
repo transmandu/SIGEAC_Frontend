@@ -1,22 +1,18 @@
 "use client";
 
+import { PanelSection } from "@/components/forms/PanelSection";
 import {
   assertCanSendToReinspection,
   useSendToReinspection,
 } from "@/actions/mantenimiento/control_calidad/cuarentena/actions";
 import RegisterArticleForm from "@/components/forms/mantenimiento/almacen/RegisterArticleForm";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
+import { Dialog } from "@/components/ui/dialog";
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
+import { textareaClass } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
 import { Textarea } from "@/components/ui/textarea";
 import CopyPartNumberButton from "@/components/misc/CopyPartNumberButton";
+import { TagBadge } from "@/components/misc/TagBadge";
 import { useGetArticleById } from "@/hooks/mantenimiento/almacen/articulos/useGetArticleById";
 import { cn } from "@/lib/utils";
 import { formatQuarantineDate } from "@/lib/warehouse/quarantine";
@@ -26,6 +22,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import {
   AlertTriangle,
   CalendarClock,
+  Info,
   Loader2,
   PencilLine,
   SendHorizonal,
@@ -105,10 +102,15 @@ export function ResolveQuarantineDialog({ record, open, onOpenChange }: Props) {
   };
 
   const sendToQuality = async () => {
-    await sendToReinspection.mutateAsync({
-      id: record.id,
-      resolution_notes: notes.trim(),
-    });
+    try {
+      await sendToReinspection.mutateAsync({
+        id: record.id,
+        resolution_notes: notes.trim(),
+      });
+    } catch {
+      // La mutación ya avisó el error; el diálogo sigue abierto para reintentar.
+      return;
+    }
 
     close();
   };
@@ -171,22 +173,39 @@ export function ResolveQuarantineDialog({ record, open, onOpenChange }: Props) {
       open={open}
       onOpenChange={(next) => (next ? onOpenChange(true) : close())}
     >
-      <DialogContent className="flex max-h-[92vh] max-w-6xl flex-col gap-0 overflow-hidden p-0">
-        <DialogHeader className="shrink-0 border-b px-6 py-4">
-          <DialogTitle className="flex items-center gap-2 text-base">
-            <ShieldX className="size-4 text-red-500" />
-            Corregir artículo en cuarentena
-          </DialogTitle>
-          <DialogDescription className="text-xs">
-            Resuelva el hallazgo de calidad y describa qué corrigió. El artículo
-            pasará a re-inspección.
-          </DialogDescription>
-        </DialogHeader>
-
-        <div
-          ref={scrollRef}
-          className="min-h-0 flex-1 space-y-5 overflow-y-auto px-6 py-5"
-        >
+      <FormDialogContent
+        className="sm:max-w-6xl"
+        icon={ShieldX}
+        tone="rose"
+        title="Corregir artículo en cuarentena"
+        description="Resuelva el hallazgo de calidad y describa qué corrigió. El artículo pasará a re-inspección."
+        footer={
+          <>
+            <Button variant="outline" onClick={close} disabled={busy}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleConfirm}
+              disabled={busy || !notesAreValid}
+              className="min-w-35 gap-2"
+            >
+              {busy ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : formState.canSave && !articleSaved ? (
+                <PencilLine className="size-4" />
+              ) : (
+                <SendHorizonal className="size-4" />
+              )}
+              {articleSaved
+                ? "Reintentar envío"
+                : formState.canSave
+                  ? "Guardar y enviar"
+                  : "Enviar a re-inspección"}
+            </Button>
+          </>
+        }
+      >
+        <div ref={scrollRef} className="space-y-4">
           {/* Hallazgo: el punto de partida de todo lo que sigue */}
           <section
             className={cn(
@@ -196,17 +215,17 @@ export function ResolveQuarantineDialog({ record, open, onOpenChange }: Props) {
                 : "border-slate-200/70 bg-slate-50/60 dark:border-slate-700/60 dark:bg-slate-900/40",
             )}
           >
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <span className="select-none rounded-md border border-emerald-200/50 bg-emerald-100/60 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-widest text-emerald-700 dark:border-emerald-800/40 dark:bg-emerald-900/30 dark:text-emerald-300">
+            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+              <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+                <span className="shrink-0 select-none whitespace-nowrap rounded-md border border-emerald-200/50 bg-emerald-100/60 px-1.5 py-0.5 text-xs font-semibold text-emerald-700 dark:border-emerald-800/40 dark:bg-emerald-900/30 dark:text-emerald-300">
                   P/N
                 </span>
-                <span className="text-[13px] font-semibold tracking-tight text-slate-900 dark:text-slate-100">
+                <span className="min-w-0 text-sm font-semibold tracking-tight text-slate-900 wrap-anywhere dark:text-slate-100">
                   {record.article?.part_number ?? "Sin part number"}
                 </span>
                 <CopyPartNumberButton value={record.article?.part_number} />
                 {record.article?.serial && (
-                  <span className="font-mono text-[11px] text-muted-foreground">
+                  <span className="font-mono text-[13px] text-muted-foreground wrap-anywhere">
                     S/N {record.article.serial}
                   </span>
                 )}
@@ -214,36 +233,33 @@ export function ResolveQuarantineDialog({ record, open, onOpenChange }: Props) {
 
               <div className="flex items-center gap-2">
                 {cycles.length > 1 && (
-                  <Badge className="select-none rounded-md border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold text-amber-700 shadow-xs dark:text-amber-300">
-                    Intento {cycles.length}
-                  </Badge>
+                  <TagBadge tone="amber">Intento {cycles.length}</TagBadge>
                 )}
                 {record.is_overdue && (
-                  <Badge className="select-none gap-1 rounded-md border border-red-500/30 bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold text-red-700 shadow-xs dark:text-red-300">
-                    <AlertTriangle className="size-3" />
+                  <TagBadge tone="rose" icon={AlertTriangle}>
                     Plazo vencido
-                  </Badge>
+                  </TagBadge>
                 )}
               </div>
             </div>
 
-            <p className="mt-3 text-sm text-slate-800 dark:text-slate-200">
+            <p className="mt-3 text-sm text-slate-800 wrap-anywhere dark:text-slate-200">
               {currentCycle?.reason ?? record.reason}
             </p>
 
-            <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground">
+            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-muted-foreground">
               <span className="inline-flex items-center gap-1">
-                <User className="size-3" />
+                <User className="size-3.5" />
                 {record.inspector ?? "—"}
               </span>
               <span className="inline-flex items-center gap-1">
-                <CalendarClock className="size-3" />
+                <CalendarClock className="size-3.5" />
                 {formatQuarantineDate(record.quarantine_entry_date)}
               </span>
-              {record.days_in_quarantine !== null && (
+              {record.days_in_quarantine != null && (
                 <span>
                   {record.days_in_quarantine} día(s) retenido
-                  {record.days_remaining !== null && (
+                  {record.days_remaining != null && (
                     <>
                       {" · "}
                       {record.days_remaining >= 0
@@ -257,26 +273,54 @@ export function ResolveQuarantineDialog({ record, open, onOpenChange }: Props) {
           </section>
 
           {/* Declaración: lo que el inspector verificará */}
-          <section className="space-y-2 rounded-xl border border-slate-200/70 p-4 dark:border-slate-700/60">
-            <Label htmlFor="q-notes" className="text-sm font-semibold">
-              ¿Qué corrigió? <span className="text-red-500">*</span>
-            </Label>
-            <Textarea
-              id="q-notes"
-              value={notes}
-              disabled={busy}
-              onChange={(e) => setNotes(e.target.value)}
-              rows={3}
-              className="resize-none"
-              placeholder="Ej.: se cargó el certificado 8130-3 faltante y se corrigió el número de serie."
-            />
-            {notes.length > 0 && !notesAreValid && (
-              <p className="text-xs text-destructive">
-                Mínimo {MIN_NOTES_LENGTH} caracteres: es lo que el inspector va
-                a verificar.
+          <PanelSection
+            icon={PencilLine}
+            title={
+              <>
+                ¿Qué corrigió? <span className="text-red-500">*</span>
+              </>
+            }
+            hint="Es lo que el inspector va a verificar."
+            compact
+          >
+            <div className="space-y-3">
+              <Textarea
+                id="q-notes"
+                aria-label="Qué corrigió"
+                value={notes}
+                disabled={busy}
+                aria-invalid={(notes.length > 0 && !notesAreValid) || undefined}
+                onChange={(e) => setNotes(e.target.value)}
+                rows={3}
+                className={textareaClass}
+                placeholder="Ej.: se cargó el certificado 8130-3 faltante y se corrigió el número de serie."
+              />
+              {notes.length > 0 && !notesAreValid && (
+                <p className="text-[13px] text-destructive">
+                  Escriba al menos {MIN_NOTES_LENGTH} caracteres.
+                </p>
+              )}
+
+              <p
+                aria-live="polite"
+                className={cn(
+                  "flex items-start gap-1.5 text-[13px] leading-snug",
+                  articleSaved
+                    ? "font-medium text-amber-700 dark:text-amber-400"
+                    : "text-muted-foreground",
+                )}
+              >
+                <Info className="mt-0.5 size-3.5 shrink-0" />
+                {articleSaved
+                  ? "Los cambios del artículo ya se guardaron; falta enviarlo a re-inspección."
+                  : !notesAreValid
+                    ? "Describa la corrección para poder enviar el artículo."
+                    : formState.canSave
+                      ? "Se guardarán los cambios del artículo y pasará a re-inspección."
+                      : "El artículo pasará a re-inspección con la corrección descrita."}
               </p>
-            )}
-          </section>
+            </div>
+          </PanelSection>
 
           {isLoading || !article ? (
             <div className="flex min-h-60 items-center justify-center">
@@ -295,52 +339,7 @@ export function ResolveQuarantineDialog({ record, open, onOpenChange }: Props) {
             />
           )}
         </div>
-
-        <div className="shrink-0 border-t px-6 py-4">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <p
-              className={cn(
-                "text-[11px]",
-                articleSaved
-                  ? "font-medium text-amber-600 dark:text-amber-400"
-                  : "text-muted-foreground",
-              )}
-            >
-              {articleSaved
-                ? "Los cambios del artículo ya se guardaron; falta enviarlo a re-inspección."
-                : !notesAreValid
-                  ? "Describa la corrección para poder enviar el artículo."
-                  : formState.canSave
-                    ? "Se guardarán los cambios del artículo y pasará a re-inspección."
-                    : "El artículo pasará a re-inspección con la corrección descrita."}
-            </p>
-
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={close} disabled={busy}>
-                Cancelar
-              </Button>
-              <Button
-                onClick={handleConfirm}
-                disabled={busy || !notesAreValid}
-                className="gap-1.5"
-              >
-                {busy ? (
-                  <Loader2 className="size-3.5 animate-spin" />
-                ) : formState.canSave && !articleSaved ? (
-                  <PencilLine className="size-3.5" />
-                ) : (
-                  <SendHorizonal className="size-3.5" />
-                )}
-                {articleSaved
-                  ? "Reintentar envío a re-inspección"
-                  : formState.canSave
-                    ? "Guardar y enviar a re-inspección"
-                    : "Enviar a re-inspección"}
-              </Button>
-            </div>
-          </div>
-        </div>
-      </DialogContent>
+      </FormDialogContent>
     </Dialog>
   );
 }

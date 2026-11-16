@@ -1,16 +1,10 @@
 "use client";
 
-import { Plus } from "lucide-react";
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
+import { Plus, UserRound } from "lucide-react";
 
 import { useState } from "react";
-import {
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 
 import { CreateEmployeeForm } from "@/components/forms/general/CreateEmployeeForm";
@@ -26,15 +20,14 @@ export function CreateEmployeeDialog() {
         </ActionTriggerButton>
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-5xl">
-        <DialogHeader>
-          <DialogTitle>Crear Empleado</DialogTitle>
-          <DialogDescription>
-            Completa la información para registrar un nuevo empleado.
-          </DialogDescription>
-        </DialogHeader>
+      <FormDialogContent
+        icon={UserRound}
+        title="Crear Empleado"
+        description="Registre a la persona, su contacto y dónde trabaja; si va a iniciar sesión, dele acceso al sistema."
+        className="sm:max-w-3xl"
+      >
         <CreateEmployeeForm onSuccess={() => setOpen(false)} />
-      </DialogContent>
+      </FormDialogContent>
     </Dialog>
   );
 }

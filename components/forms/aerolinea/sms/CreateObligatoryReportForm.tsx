@@ -340,7 +340,10 @@ export function CreateObligatoryReportForm({
       };
 
       try {
-        const response = await createObligatoryReport.mutateAsync(value);
+        const response = await createObligatoryReport.mutateAsync({
+          company: selectedCompany!.slug,
+          data: value,
+        });
         if (shouldEnableField) {
           router.push(
             `/${selectedCompany?.slug}/sms/reportes/reportes_obligatorios/${response.obligatory_report_id}`,

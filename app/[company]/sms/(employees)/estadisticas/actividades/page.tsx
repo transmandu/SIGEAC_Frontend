@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/collapsible";
 import { Label } from "@/components/ui/label";
 import { useGetSMSActivityStats } from "@/hooks/sms/useGetSMSActivityStats";
+import { useIsOmac } from "@/hooks/sistema/useIsOmac";
+import { AeronauticalActivityStatsView } from "./_components/aeronautical-activity-stats-view";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { format, startOfMonth } from "date-fns";
 import { CalendarRange, ChevronDown, Loader2 } from "lucide-react";
@@ -19,7 +21,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { PageHeader } from "@/components/layout/PageHeader";
 
-const SMSActivityStatsPage = () => {
+const AirlineActivityStatsView = () => {
   const { selectedCompany, selectedStation } = useCompanyStore();
   const router = useRouter();
   const pathname = usePathname();
@@ -213,6 +215,28 @@ const SMSActivityStatsPage = () => {
         </div>
       </div>
     </ContentLayout>
+  );
+};
+
+const SMSActivityStatsPage = () => {
+  const { selectedCompany } = useCompanyStore();
+  const { data: isOMAC, isLoading } = useIsOmac(selectedCompany?.slug);
+
+  if (isLoading) {
+    return (
+      <ContentLayout title="Dashboard de Actividades SMS">
+        <PageHeader className="mb-6" />
+        <div className="flex w-full items-center justify-center py-20">
+          <Loader2 className="size-10 animate-spin text-muted-foreground" />
+        </div>
+      </ContentLayout>
+    );
+  }
+
+  return isOMAC ? (
+    <AeronauticalActivityStatsView />
+  ) : (
+    <AirlineActivityStatsView />
   );
 };
 

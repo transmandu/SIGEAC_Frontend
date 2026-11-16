@@ -4,7 +4,6 @@ import { type AppColumnDef } from "@/lib/table";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import React from "react";
 import { CopyPlus } from "lucide-react";
 import {
   Tooltip,
@@ -12,9 +11,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type { ArticleCostRow, ArticleCostColumnsArgs } from "@/types/purchase";
+import type { ArticleCostRow, CostTableMeta } from "@/types/purchase";
 
-export type { ArticleCostRow, ArticleCostColumnsArgs };
+export type { ArticleCostRow };
 
 const usdFormatter = new Intl.NumberFormat("en-US", {
   minimumFractionDigits: 2,
@@ -28,13 +27,15 @@ const normalizeCostInput = (value: string) => {
     .replace(/(\..*)\./g, "$1"); // solo un punto decimal
 };
 
-export function getArticleCostColumns({
-  onCostChange,
-  showUnit = false,
-}: ArticleCostColumnsArgs): AppColumnDef<ArticleCostRow>[] {
+// Se arman una sola vez al cargar el módulo: las columnas son constantes y lo
+// que necesitan de la pantalla llega por `table.options.meta`.
+const buildArticleCostColumns = (
+  showUnit: boolean,
+): AppColumnDef<ArticleCostRow>[] => {
   const unitColumn: AppColumnDef<ArticleCostRow> = {
     accessorKey: "unit_label",
     size: 120,
+    meta: { title: "Unidad" },
     header: ({ column }) => (
       <div className="flex justify-center w-full">
         <DataTableColumnHeader column={column} title="Unidad" />
@@ -53,6 +54,7 @@ export function getArticleCostColumns({
     {
       accessorKey: "part_number",
       size: 220,
+      meta: { title: "Part Number", mobileTitle: true },
       header: ({ column }) => (
         <div className="flex justify-center w-full">
           <DataTableColumnHeader filter column={column} title="Part Number" />
@@ -70,6 +72,7 @@ export function getArticleCostColumns({
     {
       accessorKey: "batch_name",
       size: 320,
+      meta: { title: "Descripción", mobile: "wide" },
       header: ({ column }) => (
         <div className="flex justify-center w-full">
           <DataTableColumnHeader column={column} title="Descripción" />
@@ -87,6 +90,7 @@ export function getArticleCostColumns({
     {
       accessorKey: "serial",
       size: 220,
+      meta: { title: "Serial / Lote" },
       header: ({ column }) => (
         <div className="flex justify-center w-full">
           <DataTableColumnHeader column={column} title="Serial / Lote" />
@@ -104,6 +108,7 @@ export function getArticleCostColumns({
     {
       accessorKey: "condition",
       size: 120,
+      meta: { title: "Condición" },
       header: ({ column }) => (
         <div className="flex justify-center w-full">
           <DataTableColumnHeader column={column} title="Condición" />
@@ -123,6 +128,7 @@ export function getArticleCostColumns({
     {
       accessorKey: "cost",
       size: 140,
+      meta: { title: "Costo Unitario" },
       header: ({ column }) => (
         <div className="flex justify-center w-full">
           <DataTableColumnHeader
@@ -137,8 +143,8 @@ export function getArticleCostColumns({
         const id = row.original.id;
         const current = row.original.cost;
 
-        const meta = table.options.meta as any;
-        const costDrafts = meta?.costDrafts ?? {};
+        const { costDrafts, onCostChange } = table.options
+          .meta as CostTableMeta;
         const draft = costDrafts[id];
 
         const modified =
@@ -225,4 +231,9 @@ export function getArticleCostColumns({
       },
     },
   ];
-}
+};
+
+export const articleCostColumns = buildArticleCostColumns(false);
+
+/** Consumibles en aeronáutico: la unidad sí es relevante. */
+export const articleCostColumnsWithUnit = buildArticleCostColumns(true);

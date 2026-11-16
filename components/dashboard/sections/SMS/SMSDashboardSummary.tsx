@@ -217,7 +217,7 @@ export default function DashboardSummary({
                               const last = t.history
                                 ?.filter(
                                   (h) =>
-                                    h.event_type === "EXPIRED" && h.expiration,
+                                    h.event_type === "VENCIDO" && h.expiration,
                                 )
                                 .sort(
                                   (a, b) =>

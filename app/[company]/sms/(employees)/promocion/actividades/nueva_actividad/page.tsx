@@ -23,6 +23,9 @@ import {
 } from "@/actions/sms/survey/actions";
 import { Survey } from "@/types";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { Loader2 } from "lucide-react";
+import { useIsOmac } from "@/hooks/sistema/useIsOmac";
+import { CreateAeronauticalActivityForm } from "@/components/forms/sms/aeronautical/activities/CreateAeronauticalActivityForm";
 
 type Step = 1 | 2;
 type SurveyMode = "create" | "link";
@@ -32,7 +35,7 @@ const CONTENT_LABELS: Record<ActivityContentKind, string> = {
   encuesta: "Encuesta",
 };
 
-const CreateSMSActivity = () => {
+const AirlineNewActivity = () => {
   const router = useRouter();
   const { selectedCompany, selectedStation } = useCompanyStore();
 
@@ -90,6 +93,9 @@ const CreateSMSActivity = () => {
   /**
    * Crea la actividad una sola vez y devuelve su id. A partir de ahi cada
    * contenido del paso 2 se crea aparte y se asocia con `sms_activity_id`.
+   *
+   * `extra` permite enviar contenido embebido (`bulletin`/`survey`) para que
+   * se cree en la misma transacción que la actividad.
    */
   const ensureActivityCreated = async (
     extra?: Record<string, unknown>,
@@ -124,24 +130,35 @@ const CreateSMSActivity = () => {
     setIsSubmitting(true);
 
     try {
-      const activityId = await ensureActivityCreated();
+      const bulletinPayload = {
+        title: childData.title,
+        description: childData.description,
+        date: childData.date,
+        image: childData.image instanceof File ? childData.image : undefined,
+        document:
+          childData.document instanceof File ? childData.document : undefined,
+      };
 
-      await createBulletin.mutateAsync({
-        company: selectedCompany.slug,
-        data: {
-          title: childData.title,
-          description: childData.description,
-          date: childData.date,
-          image: childData.image instanceof File ? childData.image : undefined,
-          document:
-            childData.document instanceof File ? childData.document : undefined,
-          sms_activity_id: activityId.toString(),
-        },
-      });
+      if (createdActivityId) {
+        // La actividad ya existe: se crea el boletín aparte. Con el orden
+        // actual del wizard esto no ocurre porque el boletín siempre es el
+        // primer contenido.
+        await createBulletin.mutateAsync({
+          company: selectedCompany.slug,
+          data: {
+            ...bulletinPayload,
+            sms_activity_id: createdActivityId.toString(),
+          },
+        });
+      } else {
+        // Actividad y boletín se crean juntos en una sola transacción. Si
+        // falla cualquiera de los dos, no se persiste ninguno.
+        await ensureActivityCreated({ bulletin: bulletinPayload });
+      }
 
       handleNextContentOrFinish();
     } catch (error) {
-      console.error("Error al crear la actividad y su boletin", error);
+      console.error("Error al crear la actividad y su boletín", error);
     } finally {
       setIsSubmitting(false);
     }
@@ -327,6 +344,45 @@ const CreateSMSActivity = () => {
           </div>
         </div>
       )}
+    </ContentLayout>
+  );
+};
+
+const CreateSMSActivity = () => {
+  const router = useRouter();
+  const { selectedCompany } = useCompanyStore();
+  const { data: isOMAC, isLoading } = useIsOmac(selectedCompany?.slug);
+
+  if (isLoading) {
+    return (
+      <ContentLayout title="Nueva Actividad SMS">
+        <PageHeader className="mb-6" />
+        <div className="flex w-full items-center justify-center py-20">
+          <Loader2 className="size-10 animate-spin text-muted-foreground" />
+        </div>
+      </ContentLayout>
+    );
+  }
+
+  if (!isOMAC) {
+    return <AirlineNewActivity />;
+  }
+
+  return (
+    <ContentLayout title="Nueva Actividad SMS">
+      <PageHeader className="mb-6" />
+      <div className="rounded-lg border border-border/60 p-4 sm:p-6">
+        <CreateAeronauticalActivityForm
+          company={selectedCompany!.slug}
+          onSuccess={(activity) =>
+            router.push(
+              `/${selectedCompany?.slug}/sms/promocion/actividades/${
+                activity?.activity_number ?? ""
+              }`,
+            )
+          }
+        />
+      </div>
     </ContentLayout>
   );
 };

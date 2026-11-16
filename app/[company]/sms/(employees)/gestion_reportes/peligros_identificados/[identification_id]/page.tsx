@@ -318,7 +318,9 @@ const ShowDangerIdentification = () => {
               >
                 Reintentar
               </Button>
-              <Link href="/transmandu/sms/peligros_identificados">
+              <Link
+                href={`/${selectedCompany?.slug}/sms/gestion_reportes/peligros_identificados`}
+              >
                 <Button variant="outline" size="sm">
                   Volver a la lista
                 </Button>

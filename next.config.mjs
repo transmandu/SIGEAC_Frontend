@@ -38,6 +38,36 @@ const parseHostnamePattern = (value) => {
 const hostnamePattern = parseHostnamePattern(process.env.NEXT_PUBLIC_HOSTNAME);
 
 const nextConfig = {
+  // Rutas anteriores del inventario de consulta, unificadas en una sola.
+  async redirects() {
+    return [
+      // La gestión de cambio se unificó bajo aseguramiento de la calidad y el
+      // contenido (aeronáutico/aerolínea) se decide con `useIsOmac`, así que
+      // la antigua ruta deja de existir. Se redirige para no romper enlaces
+      // viejos ni marcadores guardados.
+      {
+        source: "/:company/sms/aeronautical/gestion_de_cambio",
+        destination: "/:company/sms/aseguramiento_calidad/gestion_de_cambio",
+        permanent: false,
+      },
+      {
+        source: "/:company/sms/aeronautical/gestion_de_cambio/:path*",
+        destination:
+          "/:company/sms/aseguramiento_calidad/gestion_de_cambio/:path*",
+        permanent: false,
+      },
+      {
+        source: "/:company/general/inventario_aeronautico",
+        destination: "/:company/general/inventario_articulos",
+        permanent: false,
+      },
+      {
+        source: "/:company/general/inventario_general",
+        destination: "/:company/general/inventario_articulos",
+        permanent: false,
+      },
+    ];
+  },
   env: {
     NEXT_PUBLIC_APP_VERSION: pkg.version,
     NEXT_PUBLIC_COMMIT: resolveCommit() ?? "",

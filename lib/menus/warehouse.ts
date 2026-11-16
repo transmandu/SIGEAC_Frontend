@@ -1,3 +1,4 @@
+import { WAREHOUSE_ROLES } from "@/lib/inventory-access";
 import type { Group, MenuContext } from "@/lib/menus/types";
 import {
   ClipboardCopy,
@@ -13,12 +14,7 @@ export function buildWarehouseGroup({
   pathname,
   currentCompany,
 }: MenuContext): Group {
-  const ALMACEN_ROLES = [
-    "ANALISTA_ALMACEN",
-    "JEFE_ALMACEN",
-    "JEFE_MANTENIMIENTO",
-    "SUPERUSER",
-  ];
+  const ALMACEN_ROLES = [...WAREHOUSE_ROLES];
 
   return {
     groupLabel: "Almacen",
@@ -27,6 +23,7 @@ export function buildWarehouseGroup({
       {
         href: `/${currentCompany?.slug}/almacen/recepcion_administrativa`,
         label: "Recepción Administrativa",
+        requiresTables: ["articles"],
         active: pathname.includes(
           `/${currentCompany?.slug}/almacen/recepcion_administrativa`,
         ),
@@ -40,6 +37,7 @@ export function buildWarehouseGroup({
         // manda otra sede. Cada una es un tab de la misma pantalla.
         href: `/${currentCompany?.slug}/almacen/recepcion_articulos`,
         label: "Recepción de Artículos",
+        requiresTables: ["articles"],
         active: pathname.includes(
           `/${currentCompany?.slug}/almacen/recepcion_articulos`,
         ),
@@ -51,6 +49,7 @@ export function buildWarehouseGroup({
       {
         href: `/${currentCompany?.slug}/almacen/inventario_articulos/gestion_inventario`,
         label: "Inventario",
+        requiresTables: ["articles"],
         active: pathname.includes(
           `/${currentCompany?.slug}/almacen/inventario_articulos`,
         ),
@@ -90,6 +89,7 @@ export function buildWarehouseGroup({
           {
             href: `/${currentCompany?.slug}/almacen/solicitudes/salida`,
             label: "Salidas",
+            requiresTables: ["dispatch_orders"],
             active:
               pathname ===
               `/${currentCompany?.slug}/almacen/solicitudes/salida`,
@@ -97,6 +97,7 @@ export function buildWarehouseGroup({
           {
             href: `/${currentCompany?.slug}/almacen/solicitudes/salida_taller`,
             label: "Salidas a Taller",
+            requiresTables: ["workshop_dispatch_orders"],
             active: pathname.includes(
               `/${currentCompany?.slug}/almacen/solicitudes/salida_taller`,
             ),
@@ -107,6 +108,7 @@ export function buildWarehouseGroup({
       {
         href: `/${currentCompany?.slug}/almacen/caja_herramientas`,
         label: "Cajas de Herramientas",
+        requiresTables: ["tool_boxes"],
         roles: ALMACEN_ROLES,
         active: pathname.includes(
           `/${currentCompany?.slug}/almacen/caja_herramientas`,
@@ -117,6 +119,7 @@ export function buildWarehouseGroup({
       {
         href: `/${currentCompany?.slug}/almacen/combustible`,
         label: "Combustible",
+        requiresTables: ["fuel_movements"],
         roles: ALMACEN_ROLES,
         active: pathname.includes(
           `/${currentCompany?.slug}/almacen/combustible`,
@@ -127,6 +130,7 @@ export function buildWarehouseGroup({
       {
         href: `/${currentCompany?.slug}/almacen/gestion_cantidades`,
         label: "Gestión de Cantidades",
+        requiresTables: ["articles"],
         roles: ALMACEN_ROLES,
         active: pathname.includes(
           `/${currentCompany?.slug}/almacen/gestion_cantidades`,

@@ -14,7 +14,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 const DailyActivitiesPage = () => {
   const { user, loading } = useAuth();
   const router = useRouter();
-  const params = useParams<{ date: string }>();
+  const params = useParams<{ company: string; date: string }>();
   const [dialogDismissed, setDialogDismissed] = useState(false);
   const { createActivityReport } = useCreateActivityReport();
   const { data: report, isLoading: isReportLoading } =
@@ -32,7 +32,7 @@ const DailyActivitiesPage = () => {
 
   const handleCreateActivityReport = () => {
     createActivityReport.mutate(
-      { date: params.date },
+      { company: params.company, date: params.date },
       {
         onSuccess: () => {
           window.location.reload();

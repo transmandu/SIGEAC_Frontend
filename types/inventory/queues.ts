@@ -77,6 +77,8 @@ export interface EngineeringCheck {
 
 /** Recepción del almacén y compras · en tránsito. */
 export interface TransitQueueArticle extends QueueArticleBase {
+  /** Lote del consumible; con `serial` identifica la pieza física. */
+  lot_number: string | null;
   /** Entrada al estado actual (ISO). */
   status_since: string | null;
   reception_date: string | null;
@@ -93,6 +95,12 @@ export interface TransitQueueArticle extends QueueArticleBase {
   /** Desde cuándo puede volver a avisarse que el incoming está detenido (ISO). */
   incoming_blocked_next_notification_at?: string | null;
   category_details: CategoryDetails | null;
+  /** Novedades vigentes en la bitácora de tránsito. */
+  transit_updates_count: number;
+  /** Días en tránsito sin noticias (desde la última novedad o la entrada al estado); null fuera de tránsito. */
+  transit_idle_days: number | null;
+  /** Superó el umbral del servidor sin ninguna novedad: el envío se señala. */
+  transit_idle: boolean;
 }
 
 /** Compras · destino indeterminado. */

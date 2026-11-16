@@ -38,6 +38,7 @@ export default function SecureFileViewer({
   isImage,
 }: SecureFileViewerProps) {
   const [currentTheme, setCurrentTheme] = useState<"light" | "dark">("dark");
+  const [detectedIsImage, setDetectedIsImage] = useState(false);
 
   const {
     url: fileUrl,
@@ -46,6 +47,33 @@ export default function SecureFileViewer({
     retry,
   } = useBlobUrlLoader(fetchBlobUrl, isOpen ? "open" : null);
   const error = failed ? LOAD_ERROR : null;
+
+  useEffect(() => {
+    if (!fileUrl) {
+      setDetectedIsImage(false);
+      return;
+    }
+    if (isImage) {
+      setDetectedIsImage(true);
+      return;
+    }
+
+    let cancelled = false;
+    fetch(fileUrl)
+      .then((res) => res.blob())
+      .then((blob) => {
+        if (!cancelled && blob.type.startsWith("image/")) {
+          setDetectedIsImage(true);
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, [fileUrl, isImage]);
+
+  const showAsImage = isImage || detectedIsImage;
 
   useEffect(() => {
     const updateTheme = () => {
@@ -220,7 +248,7 @@ export default function SecureFileViewer({
           ) : (
             fileUrl && (
               <div className="absolute inset-0">
-                {isImage ? (
+                {showAsImage ? (
                   <div className="flex h-full w-full items-center justify-center overflow-auto p-4">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img

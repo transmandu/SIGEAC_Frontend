@@ -5,37 +5,39 @@ import { ContentLayout } from "@/components/layout/ContentLayout";
 import { useGetPurchaseRequisitions } from "@/hooks/mantenimiento/compras/useGetPurchaseRequisitions";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { QuoteDraftEditorProvider } from "@/components/dialogs/mantenimiento/compras/QuoteDraftEditorProvider";
-import { getColumns } from "./columns";
-import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import { columns } from "./columns";
 import { DataTable } from "@/app/[company]/compras/data-table";
 import RequisitionToolBar from "./_components/RequisitionToolBar";
 import { PurchasesRequisitionDialog } from "@/components/dialogs/mantenimiento/compras/PurchasesRequisitionDialog";
+import { DownloadPurchaseRequisitionsByStatusDialog } from "@/components/dialogs/mantenimiento/compras/DownloadPurchaseRequisitionsByStatusDialog";
 import RequisitionSubRow from "./_components/RequisitionSubRow";
 import GroupedRequisitionTable from "./_components/GroupedRequisitionTable";
 import RequisitionSplitView, {
-  useRequisitionPreview,
-  useRequisitionPreviewSelectedId,
+  useRequisitionPreviewSync,
+  useRequisitionRowMark,
 } from "@/components/side-panels/RequisitionSplitView";
 import { CursorPagination } from "@/components/tables/CursorPagination";
 import { PageHeader } from "@/components/layout/PageHeader";
+import {
+  PurchasesHeading,
+  PurchasesToolbar,
+} from "@/app/[company]/compras/_components/PurchasesPageParts";
 
 const RequisitionsPage = () => {
   return (
-    <RequisitionSplitView>
-      {/* Provee el editor de borradores que abren el badge de la fila y el
-          dropdown de acciones. */}
-      <QuoteDraftEditorProvider>
+    // El proveedor envuelve al panel lateral: sus acciones también abren el
+    // editor de borradores.
+    <QuoteDraftEditorProvider>
+      <RequisitionSplitView>
         <RequisitionsPageContent />
-      </QuoteDraftEditorProvider>
-    </RequisitionSplitView>
+      </RequisitionSplitView>
+    </QuoteDraftEditorProvider>
   );
 };
 
 const RequisitionsPageContent = () => {
   const { selectedCompany } = useCompanyStore();
-  const timeZone = useCompanyTimezone();
-  const onPreview = useRequisitionPreview();
-  const selectedPreviewId = useRequisitionPreviewSelectedId();
+  const rowMark = useRequisitionRowMark();
 
   /**
    * Búsqueda, filtros y paginación corren en el servidor: con paginación por
@@ -67,18 +69,8 @@ const RequisitionsPageContent = () => {
 
   const rows = useMemo(() => requisitions ?? [], [requisitions]);
 
-  // Memoizadas: antes se reconstruian en cada render, y dos veces por
-  // pantalla (la vista agrupada y la plana llamaban a getColumns aparte).
-  const columns = useMemo(
-    () =>
-      getColumns(
-        selectedCompany ?? undefined,
-        onPreview ?? undefined,
-        selectedPreviewId,
-        timeZone,
-      ),
-    [selectedCompany, onPreview, selectedPreviewId, timeZone],
-  );
+  // El panel lateral sigue a la tabla: si el documento cambia, el panel también.
+  useRequisitionPreviewSync(rows);
 
   const cursorPagination = useMemo(
     () => ({
@@ -108,22 +100,12 @@ const RequisitionsPageContent = () => {
       <div className="flex flex-col gap-6">
         <PageHeader />
 
-        <div className="flex flex-col gap-2 border-b pb-4">
-          <div className="flex items-end justify-between">
-            <div className="flex flex-col">
-              <h1 className="text-3xl font-semibold tracking-tight">
-                Solicitudes de Compra
-              </h1>
+        <PurchasesHeading
+          heading="Solicitudes de Compra"
+          description="Visualice y gestione las requisiciones registradas dentro del sistema de compras y abastecimiento."
+        />
 
-              <p className="text-sm text-muted-foreground">
-                Visualiza y gestiona las requisiciones registradas dentro del
-                sistema de compras y abastecimiento.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between gap-4 px-3 py-2 rounded-xl border bg-slate-200/40 border-slate-200/40 dark:bg-slate-800/70 dark:border-slate-700/60 backdrop-blur-md dark:shadow-[0_4px_20px_rgba(0,0,0,0.35)]">
+        <PurchasesToolbar>
           <RequisitionToolBar
             search={search}
             setSearch={setSearch}
@@ -140,18 +122,24 @@ const RequisitionsPageContent = () => {
           <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
             {total} {total === 1 ? "requisición" : "requisiciones"}
           </span>
-        </div>
+        </PurchasesToolbar>
 
         <div className="flex items-center gap-2">
           <PurchasesRequisitionDialog />
+          {/* Esta pantalla lista solo requisiciones aeronáuticas: el reporte se
+              acota al mismo tipo. */}
+          <DownloadPurchaseRequisitionsByStatusDialog type="AERONAUTICAL" />
         </div>
 
         {groupBy === "requested_by" ? (
           <>
             <GroupedRequisitionTable
+              isLoading={isLoading}
+              isError={isError}
               data={rows}
               renderTable={(groupedRows) => (
                 <DataTable
+                  error={isError}
                   columns={columns}
                   data={groupedRows}
                   renderSubRow={(row) => (
@@ -161,6 +149,7 @@ const RequisitionsPageContent = () => {
                     />
                   )}
                   canExpandRow={(row) => !!row.original.quotes?.length}
+                  getRowMark={rowMark}
                   loading={isLoading}
                   overflowVisible
                   // Agrupar parte en bloques la página ya recibida: cada bloque
@@ -175,6 +164,7 @@ const RequisitionsPageContent = () => {
           </>
         ) : (
           <DataTable
+            error={isError}
             columns={columns}
             data={rows}
             renderSubRow={(row) => (
@@ -184,17 +174,10 @@ const RequisitionsPageContent = () => {
               />
             )}
             canExpandRow={(row) => !!row.original.quotes?.length}
+            getRowMark={rowMark}
             loading={isLoading}
             cursorPagination={cursorPagination}
           />
-        )}
-
-        {isError && (
-          <div className="rounded-lg border border-red-500/20 bg-red-500/5 px-4 py-3">
-            <p className="text-sm text-red-500">
-              Ha ocurrido un error al cargar las solicitudes de compra.
-            </p>
-          </div>
         )}
       </div>
     </ContentLayout>

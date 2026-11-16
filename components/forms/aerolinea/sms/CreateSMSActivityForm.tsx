@@ -40,7 +40,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useGetActivityCategories } from "@/hooks/sms/useGetActivityCategories";
-import { useGetEmployeesByDepartment } from "@/hooks/sistema/useGetEmployeesByDepartament";
+import { useGetEmployeesByDepartment } from "@/hooks/sistema/useGetEmployeesByDepartment";
 import { cn, parseServerDate } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { SMSActivity } from "@/types";
@@ -64,30 +64,77 @@ import { ActivityCategoriesForm } from "./ActivityCategoriesForm";
 import FolderSelect from "@/components/library/FolderSelect";
 import { useResettingState } from "@/hooks/useResettingState";
 
+const MAX_TOPICS_LENGTH = 10000;
+const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+/**
+ * Campo de texto obligatorio. El mensaje se usa tanto cuando el valor llega
+ * vacío como cuando falta por completo (por ejemplo, un Select sin elegir).
+ */
+const requiredString = (message: string) =>
+  z.string({ error: message }).trim().min(1, message);
+
+const RequiredMark = () => (
+  <span className="ml-0.5 text-red-500" aria-hidden="true">
+    *
+  </span>
+);
+
 const FormSchema = z
   .object({
-    activity_name: z.string(),
-    activity_number: z.string(),
+    activity_name: requiredString(
+      "El nombre de la actividad es obligatorio.",
+    ).max(50, "El nombre no puede superar los 50 caracteres."),
+    activity_number: requiredString(
+      "El número de la actividad es obligatorio.",
+    ).max(50, "El número no puede superar los 50 caracteres."),
     start_date: z
-      .date()
-      .refine((val) => !isNaN(val.getTime()), { message: "Fecha inválida" }),
+      .date({ error: "La fecha de inicio es obligatoria." })
+      .refine((val) => !isNaN(val.getTime()), {
+        message: "La fecha de inicio no es válida.",
+      }),
     end_date: z
-      .date()
-      .refine((val) => !isNaN(val.getTime()), { message: "Fecha inválida" }),
-    start_time: z.string(),
-    end_time: z.string(),
-    place: z.string().max(500, "Máximo 500 caracteres"),
-    topics: z
+      .date({ error: "La fecha final es obligatoria." })
+      .refine((val) => !isNaN(val.getTime()), {
+        message: "La fecha final no es válida.",
+      }),
+    start_time: requiredString("La hora de inicio es obligatoria.").regex(
+      TIME_PATTERN,
+      "La hora de inicio debe tener el formato HH:mm.",
+    ),
+    end_time: requiredString("La hora final es obligatoria.").regex(
+      TIME_PATTERN,
+      "La hora final debe tener el formato HH:mm.",
+    ),
+    place: requiredString("El lugar de la actividad es obligatorio.").max(
+      500,
+      "El lugar no puede superar los 500 caracteres.",
+    ),
+    topics: requiredString("Debe agregar al menos un tema.").max(
+      MAX_TOPICS_LENGTH,
+      `Los temas no pueden superar los ${MAX_TOPICS_LENGTH.toLocaleString("es-ES")} caracteres.`,
+    ),
+    categories: z
+      .array(z.string())
+      .min(1, "Seleccione al menos una categoría."),
+    objetive: requiredString("El objetivo de la actividad es obligatorio.").max(
+      500,
+      "El objetivo no puede superar los 500 caracteres.",
+    ),
+    description: requiredString("Las observaciones son obligatorias.").max(
+      2000,
+      "Las observaciones no pueden superar los 2000 caracteres.",
+    ),
+    authorized_by: requiredString("Seleccione quién autoriza la actividad."),
+    planned_by: requiredString("Seleccione quién elabora la actividad."),
+    executed_by: z
       .string()
-      .min(1, "Debe agregar al menos un tema")
-      .max(1000, "Máximo 1000 caracteres"),
-    categories: z.array(z.string()),
-    objetive: z.string().max(500, "Máximo 500 caracteres"),
-    description: z.string().max(2000, "Máximo 2000 caracteres"),
-    authorized_by: z.string(),
-    planned_by: z.string(),
-    executed_by: z.string().optional(),
-    title: z.string(),
+      .max(100, "El campo 'Realizado por' no puede superar los 100 caracteres.")
+      .optional(),
+    title: requiredString("El título de la actividad es obligatorio.").max(
+      100,
+      "El título no puede superar los 100 caracteres.",
+    ),
     image: z.any().optional(),
     document: z.any().optional(),
     is_pre: z.boolean().default(false),
@@ -214,19 +261,38 @@ export default function CreateSMSActivityForm({
     }
   }, [isEditing, initialData, employees, nextNumberData, form]);
   const addTopic = () => {
-    if (newTopic.trim()) {
-      const updated = [...topics, newTopic.trim()];
-      setTopics(updated);
-      form.setValue("topics", updated.join(","));
-      setNewTopic("");
+    const value = newTopic.trim();
+    if (!value) return;
+
+    const updated = [...topics, value];
+    const serialized = updated.join(",");
+
+    if (serialized.length > MAX_TOPICS_LENGTH) {
+      form.setError("topics", {
+        type: "max",
+        message: `Máximo ${MAX_TOPICS_LENGTH.toLocaleString("es-ES")} caracteres en los temas abordados`,
+      });
+      return;
     }
+
+    setTopics(updated);
+    form.clearErrors("topics");
+    form.setValue("topics", serialized, { shouldValidate: true });
+    setNewTopic("");
   };
 
   const removeTopic = (index: number) => {
     const updated = topics.filter((_, i) => i !== index);
     setTopics(updated);
-    form.setValue("topics", updated.join(","));
+    form.clearErrors("topics");
+    form.setValue("topics", updated.join(","), { shouldValidate: true });
   };
+
+  const topicsLength = topics.join(",").length;
+  const remainingTopicsChars = Math.max(
+    0,
+    MAX_TOPICS_LENGTH - topicsLength - (topics.length > 0 ? 1 : 0),
+  );
 
   const handleTopicKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
@@ -296,7 +362,9 @@ export default function CreateSMSActivityForm({
             name="activity_number"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Número de la Actividad</FormLabel>
+                <FormLabel>
+                  Número de la Actividad <RequiredMark />
+                </FormLabel>
                 <FormControl>
                   <Input
                     {...field}
@@ -316,7 +384,9 @@ export default function CreateSMSActivityForm({
             name="title"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Titulo de la Actividad</FormLabel>
+                <FormLabel>
+                  Título de la Actividad <RequiredMark />
+                </FormLabel>
                 <FormControl>
                   <Input {...field} maxLength={100} />
                 </FormControl>
@@ -330,7 +400,9 @@ export default function CreateSMSActivityForm({
             name="activity_name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Nombre de la Actividad</FormLabel>
+                <FormLabel>
+                  Nombre de la Actividad <RequiredMark />
+                </FormLabel>
                 <FormControl>
                   <Input {...field} maxLength={50} />
                 </FormControl>
@@ -345,7 +417,9 @@ export default function CreateSMSActivityForm({
             name="start_date"
             render={({ field }) => (
               <FormItem className="flex flex-col mt-2.5 w-full">
-                <FormLabel>Fecha de Inicio</FormLabel>
+                <FormLabel>
+                  Fecha de Inicio <RequiredMark />
+                </FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
                     <FormControl>
@@ -390,7 +464,9 @@ export default function CreateSMSActivityForm({
             name="end_date"
             render={({ field }) => (
               <FormItem className="flex flex-col mt-2.5 w-full">
-                <FormLabel>Fecha Final</FormLabel>
+                <FormLabel>
+                  Fecha Final <RequiredMark />
+                </FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
                     <FormControl>
@@ -406,7 +482,7 @@ export default function CreateSMSActivityForm({
                             locale: es,
                           })
                         ) : (
-                          <span>Seleccionar Fecha de Inicio</span>
+                          <span>Seleccionar Fecha Final</span>
                         )}
                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                       </Button>
@@ -436,7 +512,9 @@ export default function CreateSMSActivityForm({
             name="start_time"
             render={({ field }) => (
               <FormItem className="w-full">
-                <FormLabel>Hora de Inicio</FormLabel>
+                <FormLabel>
+                  Hora de Inicio <RequiredMark />
+                </FormLabel>
                 <FormControl>
                   <Input
                     type="time"
@@ -460,7 +538,9 @@ export default function CreateSMSActivityForm({
             name="end_time"
             render={({ field }) => (
               <FormItem className="w-full">
-                <FormLabel>Hora Final</FormLabel>
+                <FormLabel>
+                  Hora Final <RequiredMark />
+                </FormLabel>
                 <FormControl>
                   <Input
                     type="time"
@@ -485,7 +565,9 @@ export default function CreateSMSActivityForm({
             name="place"
             render={({ field }) => (
               <FormItem className="w-full">
-                <FormLabel>Lugar de Actividad</FormLabel>
+                <FormLabel>
+                  Lugar de Actividad <RequiredMark />
+                </FormLabel>
                 <FormControl>
                   <Input {...field} maxLength={500} />
                 </FormControl>
@@ -499,7 +581,9 @@ export default function CreateSMSActivityForm({
             name="objetive"
             render={({ field }) => (
               <FormItem className="w-full">
-                <FormLabel>Objetivo de la Acividad</FormLabel>
+                <FormLabel>
+                  Objetivo de la Actividad <RequiredMark />
+                </FormLabel>
                 <FormControl>
                   <Input {...field} maxLength={500} />
                 </FormControl>
@@ -509,7 +593,9 @@ export default function CreateSMSActivityForm({
           />
         </div>
         <FormItem>
-          <FormLabel>Temas Abordados</FormLabel>
+          <FormLabel>
+            Temas Abordados <RequiredMark />
+          </FormLabel>
           <div className="space-y-2">
             <div className="flex gap-2">
               <Input
@@ -517,11 +603,23 @@ export default function CreateSMSActivityForm({
                 value={newTopic}
                 onChange={(e) => setNewTopic(e.target.value)}
                 onKeyPress={handleTopicKeyPress}
+                maxLength={remainingTopicsChars}
               />
               <Button type="button" onClick={addTopic} size="icon">
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
+            <p
+              className={cn(
+                "text-xs text-right",
+                remainingTopicsChars === 0
+                  ? "text-destructive"
+                  : "text-muted-foreground",
+              )}
+            >
+              {topicsLength.toLocaleString("es-ES")} /{" "}
+              {MAX_TOPICS_LENGTH.toLocaleString("es-ES")} caracteres
+            </p>
             <div className="flex flex-wrap gap-2 p-2 border rounded-md max-h-48 overflow-y-auto">
               {topics.map((item, index) => (
                 <div
@@ -562,7 +660,9 @@ export default function CreateSMSActivityForm({
           render={({ field }) => (
             <FormItem className="w-full">
               <div className="flex items-center justify-between gap-2">
-                <FormLabel>Categorías</FormLabel>
+                <FormLabel>
+                  Categorías <RequiredMark />
+                </FormLabel>
                 <ActivityCategoriesForm />
               </div>
               <FormControl>
@@ -661,7 +761,9 @@ export default function CreateSMSActivityForm({
           name="description"
           render={({ field }) => (
             <FormItem className="w-full">
-              <FormLabel>Observaciones</FormLabel>
+              <FormLabel>
+                Observaciones <RequiredMark />
+              </FormLabel>
               <FormControl>
                 <Textarea {...field} maxLength={2000} />
               </FormControl>
@@ -675,7 +777,9 @@ export default function CreateSMSActivityForm({
             name="authorized_by"
             render={({ field }) => (
               <FormItem className="w-full">
-                <FormLabel>Autorizado por..</FormLabel>
+                <FormLabel>
+                  Autorizado por <RequiredMark />
+                </FormLabel>
                 {isLoadingEmployees ? (
                   <div className="flex items-center gap-2 p-2 border rounded-md bg-muted">
                     <Loader2 className="h-4 w-4 animate-spin" />{" "}
@@ -689,7 +793,7 @@ export default function CreateSMSActivityForm({
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Autorizador por.." />
+                        <SelectValue placeholder="Seleccione quién autoriza" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -714,7 +818,9 @@ export default function CreateSMSActivityForm({
             name="planned_by"
             render={({ field }) => (
               <FormItem className="w-full">
-                <FormLabel>Elaborado por..</FormLabel>
+                <FormLabel>
+                  Elaborado por <RequiredMark />
+                </FormLabel>
                 {isLoadingEmployees ? (
                   <div className="flex items-center gap-2 p-2 border rounded-md bg-muted">
                     <Loader2 className="h-4 w-4 animate-spin" />{" "}
@@ -728,7 +834,7 @@ export default function CreateSMSActivityForm({
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Elaborado por.." />
+                        <SelectValue placeholder="Seleccione quién elabora" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -752,7 +858,7 @@ export default function CreateSMSActivityForm({
             name="executed_by"
             render={({ field }) => (
               <FormItem className="w-full">
-                <FormLabel>Realizado por..</FormLabel>
+                <FormLabel>Realizado por</FormLabel>
                 <FormControl>
                   <Input {...field} maxLength={100} />
                 </FormControl>

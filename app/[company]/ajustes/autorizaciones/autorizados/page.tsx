@@ -77,7 +77,7 @@ const ExternalStaffPage = () => {
             value={scope}
             onValueChange={(value) => setScope(value as ScopeFilter)}
           >
-            <SelectTrigger className="h-8 w-56 border-slate-200/60 bg-white/80 pl-8 text-left text-xs transition-colors focus:ring-1 focus:ring-primary/40 dark:border-slate-700/60 dark:bg-slate-900/60">
+            <SelectTrigger className="h-8 w-56 max-sm:h-10 max-sm:w-full border-slate-200/60 bg-white/80 pl-8 text-left text-xs transition-colors focus:ring-1 focus:ring-primary/40 dark:border-slate-700/60 dark:bg-slate-900/60">
               <SelectValue placeholder="Alcance" />
             </SelectTrigger>
             <SelectContent className="border-slate-200/60 dark:border-slate-700/60">

@@ -10,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { ArticleStatusPill } from "@/components/misc/ArticleStatusPill";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
@@ -159,13 +160,14 @@ const AvailabilityBadge = ({
     (status === undefined || status?.toLowerCase() === "stored");
 
   return (
-    <div className="flex justify-center">
+    <div className="flex flex-col items-center gap-1.5">
       <Badge
         variant={isAvailable ? "default" : "destructive"}
         className="whitespace-nowrap px-3 py-1 text-xs font-bold"
       >
         {isAvailable ? "Disponible" : "No Disponible"}
       </Badge>
+      {!isAvailable && status && <ArticleStatusPill status={status} />}
     </div>
   );
 };

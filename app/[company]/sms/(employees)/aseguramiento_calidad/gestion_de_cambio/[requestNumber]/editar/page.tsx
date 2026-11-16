@@ -1,21 +1,16 @@
 "use client";
 
-import { useParams } from "next/navigation";
-import { ContentLayout } from "@/components/layout/ContentLayout";
-import { EditChangeRequestForm } from "@/components/forms/sms/change_requests/EditChangeRequestForm";
-import { useCompanyStore } from "@/stores/CompanyStore";
-import { useGetChangeRequestByNumber } from "@/hooks/sms/gestion_de_cambio/useGetChangeRequestByNumber";
 import { Loader2 } from "lucide-react";
 
-const EditarSolicitudCambioPage = () => {
-  const params = useParams();
-  const { selectedCompany } = useCompanyStore();
-  const requestNumber = params.requestNumber as string;
+import { ContentLayout } from "@/components/layout/ContentLayout";
+import { useIsOmac } from "@/hooks/sistema/useIsOmac";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import AirlineEditChangeRequest from "@/app/[company]/sms/(employees)/aseguramiento_calidad/gestion_de_cambio/_components/airline-edit";
+import AeronauticalEditChangeRequest from "@/app/[company]/sms/(employees)/aseguramiento_calidad/gestion_de_cambio/_components/aeronautical-edit";
 
-  const { data: changeRequest, isLoading } = useGetChangeRequestByNumber(
-    selectedCompany?.slug,
-    requestNumber,
-  );
+export default function EditarSolicitudCambioPage() {
+  const { selectedCompany } = useCompanyStore();
+  const { data: isOMAC, isLoading } = useIsOmac(selectedCompany?.slug);
 
   if (isLoading) {
     return (
@@ -27,23 +22,9 @@ const EditarSolicitudCambioPage = () => {
     );
   }
 
-  if (!changeRequest) {
-    return (
-      <ContentLayout title="Editar Solicitud de Cambio">
-        <div className="flex items-center justify-center py-20">
-          <p className="text-sm text-muted-foreground">
-            No se encontró la solicitud de cambio.
-          </p>
-        </div>
-      </ContentLayout>
-    );
-  }
-
-  return (
-    <ContentLayout title={`Editar Solicitud ${changeRequest.request_number}`}>
-      <EditChangeRequestForm changeRequest={changeRequest} />
-    </ContentLayout>
+  return isOMAC ? (
+    <AeronauticalEditChangeRequest />
+  ) : (
+    <AirlineEditChangeRequest />
   );
-};
-
-export default EditarSolicitudCambioPage;
+}

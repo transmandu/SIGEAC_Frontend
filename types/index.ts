@@ -520,36 +520,50 @@ export type AircraftAssingment = {
   id: string;
   aircraft: AeronauticalAircraft;
   aircraft_part: MaintenanceAircraftPart;
-  assigned_date: Date;
-  removed_date: Date;
-  time_since_new: number;
-  cycles_since_new: number;
-  time_since_overhaul: number;
-  cycles_since_overhaul: number;
-  position: string;
-  ata_chapter: string;
-  part_order: number;
+  assigned_date: string | Date;
+  removed_date: string | Date | null;
+  time_since_new: number | null;
+  cycles_since_new: number | null;
+  time_since_overhaul: number | null;
+  cycles_since_overhaul: number | null;
+  /** Lectura de la parte al removerse; null en remociones anteriores a que se guardara. */
+  removed_time_since_new?: number | null;
+  removed_cycles_since_new?: number | null;
+  removed_time_since_overhaul?: number | null;
+  removed_cycles_since_overhaul?: number | null;
+  position: string | null;
+  ata_chapter: string | null;
+  part_order: number | null;
 };
 
 export type MaintenanceAircraftPart = {
   id?: number;
   part_number: string;
-  part_name: string;
-  serial?: string;
+  /** Ya no existe en la base: se nombra por tipo (`partLabel`); queda para vistas que aún lo leen. */
+  part_name?: string;
+  serial?: string | null;
   condition_type: string;
-  time_since_new?: number | string;
-  time_since_overhaul?: number | string;
-  cycles_since_new?: number | string;
-  cycles_since_overhaul?: number | string;
-  part_hours?: number; // Alias para time_since_new (compatibilidad)
-  part_cycles?: number; // Alias para cycles_since_new (compatibilidad)
+  time_since_new?: number | string | null;
+  time_since_overhaul?: number | string | null;
+  cycles_since_new?: number | string | null;
+  cycles_since_overhaul?: number | string | null;
   is_father?: boolean;
   aircraft_id?: string;
-  aircraft_part_id?: string | null; // ID del padre (null si es raíz)
+  parent_part_id?: number | null;
+  /** Solo en las desinstaladas: la parte de la que colgaba. */
+  parent_part?: Pick<
+    MaintenanceAircraftPart,
+    "id" | "part_number" | "type"
+  > | null;
   sub_parts?: MaintenanceAircraftPart[];
   aircraft?: AeronauticalAircraft;
   type: string;
   description: string;
+  manufacturer_id?: number | string | null;
+  /** En las subpartes llegan de su instalación vigente; en las raíces están en la asignación. */
+  position?: string | null;
+  ata_chapter?: string | null;
+  part_order?: number | null;
   /** Solo en las respuestas de los controles; `part_order` fija su número ("Motor 1"). */
   current_assignment?: { part_order?: number | null } | null;
 };
@@ -1369,14 +1383,70 @@ export type FlightPayment = {
 export type JobTitle = {
   id: number;
   name: string;
-  description: string;
+  description: string | null;
+  /** Empleados con este cargo (lo trae el listado). */
+  employees_count?: number;
+};
+
+export type SmsTrainingGroup = {
+  id: number;
+  name: string;
+  description?: string | null;
+  sms_training_module_pattern_id: number;
+  pattern?: SmsTrainingModulePattern | null;
+  job_titles: JobTitle[];
+  active_employees_count: number;
+  initial_total_hours?: number;
+  recurrent_total_hours?: number;
+  registered_by?: string;
+  updated_by?: string | null;
+};
+
+export type SmsTrainingModule = {
+  id: number;
+  number: number;
+  name: string;
+  description?: string | null;
+  is_active: boolean;
+  registered_by?: string;
+  updated_by?: string | null;
+};
+
+export type SmsTrainingPatternModule = SmsTrainingModule & {
+  pivot: {
+    initial_hours: string | number;
+    sort_order: number;
+  };
+};
+
+export type SmsTrainingModulePattern = {
+  id: number;
+  name: string;
+  description?: string | null;
+  is_active: boolean;
+  modules: SmsTrainingPatternModule[];
+  initial_total_hours: number;
+  recurrent_total_hours: number;
+  registered_by?: string;
+  updated_by?: string | null;
+};
+
+export type SmsTrainingGroupEmployee = {
+  dni: string;
+  dni_type?: string | null;
+  first_name: string;
+  last_name: string;
+  job_title?: {
+    id?: number;
+    name: string;
+  } | null;
 };
 
 export type Location = {
   id: number;
-  name: string;
+  /** Opcional: distingue dos sedes de una misma ciudad. Sin él, se usa `address`. */
+  name?: string | null;
   address: string;
-  type: string;
   isMainBase: boolean;
   cod_iata: string;
   companies: Company[];
@@ -1606,8 +1676,11 @@ export type Employee = {
   phone?: string | null;
   address?: string | null;
   location: Location;
+  location_id?: number;
   job_title: JobTitle;
+  job_title_id?: number;
   department: Department;
+  department_id?: number;
   user?: User;
   user_id?: number | null;
   start_date?: string | null;
@@ -1635,10 +1708,14 @@ export type Warehouse = {
   location: {
     id?: number;
     address: string;
-    type: string;
+    name?: string | null;
+    cod_iata?: string | null;
   };
   company: string;
-  type: string;
+  /** `AERONAUTICAL` o `GENERAL`; vacío en las compañías cuya tabla no lo guarda. */
+  type: string | null;
+  /** Registros que cuelgan del almacén (lo trae el listado de ajustes). */
+  records_count?: number;
 };
 
 export interface WorkOrder extends Request {
@@ -1928,10 +2005,23 @@ export type CourseAttendance = {
   employee: Employee;
 };
 
+export type CourseUploadedCertificate = {
+  id: number;
+  employee_dni: string;
+  course_id: number;
+  completion_date: string;
+  document: string;
+  employee?: {
+    dni: string;
+    first_name: string;
+    last_name: string;
+  } | null;
+};
+
 export type SMSTrainingHistoryEntry = {
   id: number;
   employee_dni: string;
-  /** EXPIRED | RENEWED | INITIAL_TAKEN */
+  /** VENCIDO | RENOVADO | INICIAL_TOMADO */
   event_type: string;
   base_course_id?: number | null;
   course_id?: number | null;
@@ -1949,7 +2039,7 @@ export type SMSTraining = {
   /** Curso inicial (base). Null cuando venció el recurrente y hay que repetirlo. */
   course: Course | null;
   last_enrollment: CourseAttendance | null;
-  /** Null cuando no hay vigencia (PENDING). */
+  /** Null cuando no hay vigencia (PENDIENTE). */
   expiration: Date | null;
   status: string;
   is_initial: boolean | null;
@@ -2151,6 +2241,10 @@ export type GeneralArticleCostHistoryEntry = {
   unit_label?: string | null;
   date: string | null;
   by: string | null;
+  /** Solo en compras: quien registró la entrega desde compras. Nombre completo. */
+  registered_by?: string | null;
+  /** Solo en compras: quien confirmó el ingreso al almacén. Nombre completo. */
+  confirmed_by?: string | null;
   purchase_order_number?: string | null;
   requisition_order_number?: string | null;
 };
@@ -2287,6 +2381,40 @@ export interface SMSCertificateImport {
   started_at: string | null;
   finished_at: string | null;
 }
+
+export type CourseExamImportStatus =
+  "queued" | "running" | "completed" | "failed";
+
+export interface CourseExamImportResult {
+  /** Nombre original del archivo. */
+  file: string;
+  /** DNI leído del nombre del archivo. */
+  dni: string | null;
+  /** Empleado al que se asignó, si se encontró. */
+  employee: string | null;
+  status: "imported" | "failed";
+  /** Motivo del fallo, solo cuando `status` es `failed`. */
+  message: string | null;
+}
+
+export interface CourseExamImport {
+  id: string;
+  status: CourseExamImportStatus;
+  course_exam_id: number;
+  exam_name: string;
+  course_name: string;
+  total: number;
+  processed: number;
+  imported: number;
+  failed: number;
+  percentage: number;
+  results: CourseExamImportResult[];
+  error: string | null;
+  created_at: string;
+  updated_at: string;
+  started_at: string | null;
+  finished_at: string | null;
+}
 export interface ShippingAgency {
   id: number;
   name: string;
@@ -2380,6 +2508,15 @@ export type CargoManifest = {
   updated_at?: string;
   updated_by?: string | null;
   items: CargoManifestItem[];
+};
+
+export type AvailableCargoManifestSummary = {
+  id: number;
+  manifest_number: string;
+  total_weight: number;
+  aircraft_label?: string | null;
+  items_count?: number;
+  client_breakdown?: Record<string, number>;
 };
 
 export type CargoManifestItem = {
@@ -2899,3 +3036,99 @@ export type UpdateChangeRequestPayload = {
   document?: string | null;
   library_folder_paths?: string[];
 };
+
+export type FlightType = "PAX" | "CARGO_ONLY" | "HYBRID";
+export type FlightStatus =
+  "DRAFT" | "IN_FLIGHT" | "FINALIZED" | "BORRADOR" | "EN_VUELO" | "FINALIZADO";
+export type LodgeType =
+  | "TOURIST"
+  | "PARTICULAR"
+  | "RESIDENT"
+  | "EMPLOYEE"
+  | "N/A"
+  | "TURISTAS"
+  | "TURISTA"
+  | "RESIDENTE"
+  | "EMPLEADO";
+
+export type PaxPassenger = {
+  id?: number;
+  pax_flight_id?: number;
+  seat_number: number;
+  full_name: string;
+  nationality: string;
+  id_number: string;
+  lodge_type: LodgeType;
+  agency?: string | null;
+  luggage_weight?: string | null;
+  body_weight?: number | null;
+  payment_method?: string | null;
+  amount_paid?: number | null;
+  return_flight?: boolean | null;
+  registered_by?: string;
+};
+
+export type PaxFlight = {
+  id: number;
+  flight_code: string;
+  flight_date: string | null;
+  flight_date_raw: string | null;
+  route: string;
+  aircraft_id: number | null;
+  external_aircraft: string | null;
+  aircraft_label: string;
+  aircraft_model: string;
+  captain_id: number | null;
+  first_officer_id: number | null;
+  external_captain_id: number | null;
+  external_first_officer_id: number | null;
+  captain_label: string;
+  first_officer_label: string;
+  flight_type: FlightType;
+  status: FlightStatus;
+  cargo_manifest_id: number | null;
+  cargo_manifest_number?: string | null;
+  month: number;
+  year: number;
+  passengers: PaxPassenger[];
+  cargo_breakdown: Record<string, number>;
+  created_by: string;
+  updated_by?: string | null;
+};
+
+export type CreatePaxFlightInput = {
+  flight_date: string;
+  route: string;
+  aircraft_id?: number | null;
+  external_aircraft?: string | null;
+  captain_id?: number | null;
+  first_officer_id?: number | null;
+  external_captain_id?: number | null;
+  external_first_officer_id?: number | null;
+  flight_type: FlightType;
+  cargo_manifest_id?: number | null;
+  passengers?: Omit<PaxPassenger, "id">[];
+};
+
+// ─── WhatsApp Import ────────────────────────────────────────────────────────
+
+export type WhatsAppItemType = "pax" | "frio" | "carga" | "agua";
+
+export interface WhatsAppParsedItem {
+  client: string;
+  type: WhatsAppItemType;
+  weight: number;
+  pax_count: number;
+}
+
+export interface WhatsAppParsedFlight {
+  items: WhatsAppParsedItem[];
+  total_weight: number;
+  pax_count: number;
+  cargo_weight: number;
+}
+
+export interface WhatsAppParseResult {
+  flights: WhatsAppParsedFlight[];
+  warnings: string[];
+}

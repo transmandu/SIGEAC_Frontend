@@ -1,6 +1,11 @@
 "use client";
 
-import { type AppColumnDef } from "@/lib/table";
+import { type AppColumnDef, type AppRow } from "@/lib/table";
+import {
+  usePurchaseOrderPreview,
+  usePurchaseOrderPreviewSelectedId,
+} from "@/components/side-panels/PurchaseOrderSplitView";
+import { useCompanyStore } from "@/stores/CompanyStore";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -12,8 +17,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import type { PurchaseOrder } from "@/types/purchase";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
+import FormattedInstant from "@/components/misc/FormattedInstant";
 import Link from "next/link";
 import PurchaseOrderDropdownActions from "@/components/dropdowns/mantenimiento/compras/PurchaseOrderDropdownActions";
 import { Loader2 } from "lucide-react";
@@ -66,7 +70,7 @@ const ArticlesCountAction = ({
         `
           relative
           flex items-center justify-center
-          px-2 py-0.5
+          min-w-26 px-2 py-0.5
           rounded-md
           text-xs tabular-nums
           border
@@ -77,7 +81,7 @@ const ArticlesCountAction = ({
         `,
         canRegisterDelivery &&
           hasPendingDelivery &&
-          "cursor-pointer hover:bg-emerald-50 hover:border-emerald-300/60 dark:hover:bg-emerald-950/30 dark:hover:border-emerald-700/50",
+          "cursor-pointer hover:border-blue-500/40 hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-400",
       )}
     >
       {hasPendingDelivery && !registerGeneralArticlesDelivery.isPending && (
@@ -95,7 +99,7 @@ const ArticlesCountAction = ({
       </span>
 
       {isEmpty && (
-        <span className="ml-1 text-[10px] text-muted-foreground/70">vacío</span>
+        <span className="ml-1 text-xs text-muted-foreground">vacío</span>
       )}
     </div>
   );
@@ -154,17 +158,115 @@ const ArticlesCountAction = ({
   );
 };
 
-const PO_STATUS_LABELS: Record<string, string> = {
-  PENDING: "PENDIENTE",
-  PAID: "PAGADA",
-  COMPLETED: "COMPLETADA",
+const ArticlesColumnCell = ({ row }: { row: AppRow<PurchaseOrder> }) => {
+  const { selectedCompany } = useCompanyStore();
+
+  return (
+    <div
+      className="flex justify-center w-full"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <ArticlesCountAction po={row.original} company={selectedCompany?.slug} />
+    </div>
+  );
 };
 
-export const getColumns = (
-  selectedCompany?: { slug: string },
-  onPreview?: (po: PurchaseOrder) => void,
-  selectedPreviewId?: number | null,
-): AppColumnDef<PurchaseOrder>[] => [
+const ActionsColumnCell = ({ row }: { row: AppRow<PurchaseOrder> }) => (
+  <div
+    className="flex justify-center w-full"
+    onClick={(e) => e.stopPropagation()}
+  >
+    <PurchaseOrderDropdownActions po={row.original} />
+  </div>
+);
+
+const PO_STATUS_LABELS: Record<string, string> = {
+  PENDING: "Pendiente",
+  PAID: "Pagada",
+  COMPLETED: "Completada",
+};
+
+// Componentes de módulo y no flechas dentro de las columnas: React identifica
+// un componente por su función, así que una flecha nueva desmontaría la celda
+// y borraría su estado. Lo que antes entraba por parámetros se lee aquí.
+const OrderNumberColumnCell = ({ row }: { row: AppRow<PurchaseOrder> }) => {
+  const { selectedCompany } = useCompanyStore();
+
+  return (
+    <div className="flex justify-center w-full">
+      <Link
+        href={`/${selectedCompany?.slug}/compras/ordenes_compra_generales/${row.original.order_number}`}
+        onClick={(e) => e.stopPropagation()}
+        className="
+            text-sm font-semibold
+            text-slate-700 dark:text-slate-200
+
+            hover:text-primary
+
+            transition-colors
+          "
+      >
+        {row.original.order_number}
+      </Link>
+    </div>
+  );
+};
+
+const PreviewColumnCell = ({ row }: { row: AppRow<PurchaseOrder> }) => {
+  const onPreview = usePurchaseOrderPreview();
+  const selectedPreviewId = usePurchaseOrderPreviewSelectedId();
+
+  const isActive = selectedPreviewId === row.original.id;
+
+  return (
+    <div
+      className="flex justify-center px-0"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <TooltipProvider delayDuration={120}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              onClick={() => onPreview?.(row.original)}
+              className={cn(
+                "flex items-center justify-center rounded-md p-1 transition-all duration-200",
+                isActive
+                  ? "text-blue-600 dark:text-blue-400 drop-shadow-[0_0_3px_rgba(37,99,235,0.35)] dark:drop-shadow-[0_0_3px_rgba(96,165,250,0.4)]"
+                  : "text-muted-foreground hover:text-blue-600 dark:hover:text-blue-400 hover:drop-shadow-[0_0_3px_rgba(37,99,235,0.3)] dark:hover:drop-shadow-[0_0_3px_rgba(96,165,250,0.35)]",
+              )}
+            >
+              <PreviewPanelIcon active={isActive} className="size-4" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>
+            {isActive
+              ? "Cerrar vista previa"
+              : "Vista previa de la orden de compra"}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    </div>
+  );
+};
+
+const QuoteOrderColumnCell = ({ row }: { row: AppRow<PurchaseOrder> }) => {
+  const { selectedCompany } = useCompanyStore();
+
+  return (
+    <div className="flex justify-center w-full">
+      <Link
+        href={`/${selectedCompany?.slug}/compras/cotizaciones_generales/${row.original.quote_order?.quote_number}`}
+        onClick={(e) => e.stopPropagation()}
+        className="text-sm text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-400 hover:underline underline-offset-4 decoration-1"
+      >
+        {row.original.quote_order?.quote_number ?? "—"}
+      </Link>
+    </div>
+  );
+};
+
+export const columns: AppColumnDef<PurchaseOrder>[] = [
   {
     accessorKey: "order_number",
     size: 210,
@@ -179,64 +281,14 @@ export const getColumns = (
       title: "Nro. Orden",
     },
 
-    cell: ({ row }) => (
-      <div className="flex justify-center w-full">
-        <Link
-          href={`/${selectedCompany?.slug}/compras/ordenes_compra_generales/${row.original.order_number}`}
-          onClick={(e) => e.stopPropagation()}
-          className="
-            text-sm font-semibold
-            text-slate-700 dark:text-slate-200
-
-            hover:text-primary
-
-            transition-colors
-          "
-        >
-          {row.original.order_number}
-        </Link>
-      </div>
-    ),
+    cell: OrderNumberColumnCell,
   },
 
   {
     id: "preview",
     size: 40,
     header: () => null,
-    cell: ({ row }) => {
-      const isActive = selectedPreviewId === row.original.id;
-
-      return (
-        <div
-          className="flex justify-center px-0"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <TooltipProvider delayDuration={120}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  type="button"
-                  onClick={() => onPreview?.(row.original)}
-                  className={cn(
-                    "flex items-center justify-center rounded-md p-1 transition-all duration-200",
-                    isActive
-                      ? "text-blue-600 dark:text-blue-400 drop-shadow-[0_0_3px_rgba(37,99,235,0.35)] dark:drop-shadow-[0_0_3px_rgba(96,165,250,0.4)]"
-                      : "text-muted-foreground hover:text-blue-600 dark:hover:text-blue-400 hover:drop-shadow-[0_0_3px_rgba(37,99,235,0.3)] dark:hover:drop-shadow-[0_0_3px_rgba(96,165,250,0.35)]",
-                  )}
-                >
-                  <PreviewPanelIcon active={isActive} className="size-4" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>
-                {isActive
-                  ? "Cerrar vista previa"
-                  : "Vista previa de la orden de compra"}
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
-      );
-    },
+    cell: PreviewColumnCell,
     enableSorting: false,
     enableHiding: false,
   },
@@ -253,19 +305,11 @@ export const getColumns = (
 
     meta: {
       title: "Cotización",
+      mobileOrder: 5,
+      mobile: "wide",
     },
 
-    cell: ({ row }) => (
-      <div className="flex justify-center w-full">
-        <Link
-          href={`/${selectedCompany?.slug}/compras/cotizaciones_generales/${row.original.quote_order?.quote_number}`}
-          onClick={(e) => e.stopPropagation()}
-          className="text-sm text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-400 hover:underline underline-offset-4 decoration-1"
-        >
-          {row.original.quote_order?.quote_number ?? "—"}
-        </Link>
-      </div>
-    ),
+    cell: QuoteOrderColumnCell,
   },
 
   {
@@ -280,6 +324,7 @@ export const getColumns = (
 
     meta: {
       title: "Comercio",
+      mobileOrder: 3,
     },
 
     cell: ({ row }) => {
@@ -315,15 +360,16 @@ export const getColumns = (
 
     meta: {
       title: "Fecha de Creación",
+      mobileOrder: 2,
     },
 
     cell: ({ row }) => {
-      const date = new Date(row.original.purchase_date);
+      const date = row.original.purchase_date;
 
       return (
         <div className="flex justify-center w-full">
-          <span className="text-s text-slate-600 dark:text-slate-300 text-center font-medium tracking-wide uppercase">
-            {format(date, "dd MMM yyyy", { locale: es })}
+          <span className="text-s text-slate-600 dark:text-slate-300 text-center font-medium">
+            <FormattedInstant value={date} format="dd MMM yyyy" />
           </span>
         </div>
       );
@@ -342,6 +388,7 @@ export const getColumns = (
 
     meta: {
       title: "Estado",
+      mobileOrder: 1,
     },
 
     cell: ({ row }) => {
@@ -357,11 +404,7 @@ export const getColumns = (
               `
                 rounded-md
                 border
-                px-2 py-0.5
-                text-[10px]
-                font-semibold
-                tracking-wide
-                shadow-xs
+                h-6 px-2.5 text-xs font-medium
                 transition-colors duration-150
                 cursor-default
               `,
@@ -396,19 +439,10 @@ export const getColumns = (
 
     meta: {
       title: "Artículos",
+      mobileOrder: 4,
     },
 
-    cell: ({ row }) => (
-      <div
-        className="flex justify-center w-full"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <ArticlesCountAction
-          po={row.original}
-          company={selectedCompany?.slug}
-        />
-      </div>
-    ),
+    cell: ArticlesColumnCell,
   },
 
   {
@@ -422,13 +456,6 @@ export const getColumns = (
     meta: {
       title: "Acciones",
     },
-    cell: ({ row }) => (
-      <div
-        className="flex justify-center w-full"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <PurchaseOrderDropdownActions po={row.original} />
-      </div>
-    ),
+    cell: ActionsColumnCell,
   },
 ];

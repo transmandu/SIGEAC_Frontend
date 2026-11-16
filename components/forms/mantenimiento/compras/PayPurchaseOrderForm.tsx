@@ -6,13 +6,12 @@ import {
 } from "@/actions/mantenimiento/compras/ordenes_compras/actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -32,7 +31,15 @@ import { useGetShippingAgencies } from "@/hooks/general/agencias_envio/useGetShi
 import { cn } from "@/lib/utils";
 import type { PurchaseOrder } from "@/types/purchase";
 import { zodResolver } from "@/lib/zod-resolver";
-import { Building2, Loader2, Truck, Wallet } from "lucide-react";
+import {
+  Building2,
+  CreditCard,
+  Loader2,
+  Package,
+  Receipt,
+  Truck,
+  Wallet,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
@@ -43,15 +50,31 @@ import {
   createInvoiceEntry,
   type InvoiceEntry,
 } from "./InvoicesField";
+import { PanelFieldLabel, PanelSection } from "@/components/forms/PanelSection";
+import {
+  fieldClass,
+  selectTriggerClass,
+} from "@/components/forms/mantenimiento/almacen/_components/form-theme";
+import FormActions from "@/components/forms/mantenimiento/compras/_components/FormActions";
+import { ShippingAgencyCombobox } from "@/components/forms/general/compras/_components/ShippingAgencyCombobox";
 
-const LABEL_CLS =
-  "select-none text-[10px] leading-none text-muted-foreground uppercase";
+const LABEL_CLS = "select-none text-[13px] leading-none text-muted-foreground";
 
-const INPUT_CLS =
-  "h-9 rounded-lg border-border/50 bg-background/80 text-sm shadow-xs transition-shadow focus-visible:ring-1 focus-visible:ring-primary/40 focus-visible:ring-offset-0";
+// En móvil los campos suben a 40 px y 16 px de texto: por debajo de 16 px iOS
+// hace zoom al enfocarlos.
+const INPUT_CLS = cn(
+  fieldClass,
+  "h-9 rounded-lg text-sm max-sm:h-10 max-sm:text-base",
+);
 
-const SELECT_TRIGGER_CLS =
-  "h-9 rounded-lg border-border/50 bg-background/80 text-sm shadow-xs focus:ring-1 focus:ring-primary/40 focus:ring-offset-0";
+const SELECT_TRIGGER_CLS = cn(
+  selectTriggerClass,
+  "h-9 rounded-lg text-sm max-sm:h-10 max-sm:text-base",
+);
+
+/** Compara en centavos: 3 × 1.1 da 3.3000000000000003 y no es igual a "3.30". */
+const sameAmount = (a: number, b: number) =>
+  Math.round(a * 100) === Math.round(b * 100);
 
 const FormSchema = z.object({
   tax: z.string(),
@@ -298,7 +321,10 @@ export function PayPurchaseOrderForm({
 
     const missingJustification = data.articles_purchase_orders.some(
       (article) =>
-        Number(article.total) !== article.quoted_total &&
+        // En centavos: 3 × 1.1 da 3.3000000000000003 y no es igual al "3.30"
+        // del campo, aunque el usuario no haya cambiado nada.
+        Math.round(Number(article.total) * 100) !==
+          Math.round(article.quoted_total * 100) &&
         !article.total_justification?.trim(),
     );
     if (missingJustification) {
@@ -308,14 +334,16 @@ export function PayPurchaseOrderForm({
       return;
     }
 
-    // Una factura sin archivo no se puede guardar; la fila vacía del formulario
-    // se descarta sin avisar, pero un número escrito sin adjunto sí es un error.
+    // Una factura ya guardada (reintento tras un pago fallido) conserva su
+    // archivo aunque no se reemplace; una nueva sin adjunto no se puede
+    // persistir. La fila vacía se descarta sin avisar.
     const filledInvoices = invoices.filter(
-      (invoice) => invoice.file || invoice.invoice_number.trim(),
+      (invoice) =>
+        invoice.id != null || invoice.file || invoice.invoice_number.trim(),
     );
 
-    if (filledInvoices.some((invoice) => !invoice.file)) {
-      toast.error("¡Ops! Cada factura debe tener su archivo adjunto.");
+    if (filledInvoices.some((invoice) => invoice.id == null && !invoice.file)) {
+      toast.error("¡Ops! Cada factura nueva debe tener su archivo adjunto.");
       return;
     }
 
@@ -334,59 +362,66 @@ export function PayPurchaseOrderForm({
       Number(data.shipping_fee || 0) +
       Number(data.international_shipping || 0);
 
-    await completePurchase.mutateAsync({
-      id: po.id,
-      data: {
-        tax: Number(data.tax || 0),
-        wire_fee: wireFee,
-        handling_fee: Number(data.handling_fee || 0),
-        shipping_fee: data.knows_shipping_info
-          ? Number(data.shipping_fee || 0)
-          : 0,
-        international_shipping: data.knows_shipping_info
-          ? Number(data.international_shipping || 0)
-          : 0,
-        sub_total: computedSubTotal,
-        total: computedTotal,
-        // La tarjeta determina su cuenta; sin tarjeta va la cuenta elegida
-        // (o ninguna, para métodos como Efectivo). El backend valida la coherencia.
-        payment_method_id: Number(data.payment_method_id),
-        bank_account_id: selectedCard
-          ? selectedCard.bank_account_id
-          : data.bank_account_id
-            ? Number(data.bank_account_id)
-            : null,
-        bank_card_id: selectedCard ? selectedCard.id : null,
-        shipping_agency_id:
-          data.knows_shipping_info && data.shipping_agency_id
-            ? Number(data.shipping_agency_id)
-            : null,
-        observation: data.observation || null,
-        invoices: filledInvoices.map((invoice) => ({
-          invoice_number: invoice.invoice_number.trim() || null,
-          file: invoice.file,
-        })),
-        articles_purchase_orders: data.articles_purchase_orders.map(
-          (article) => ({
-            article_purchase_order_id: article.article_purchase_order_id,
-            total: Number(article.total),
-            total_justification: article.total_justification || null,
-            shipping_tracking: data.knows_shipping_info
-              ? article.shipping_tracking || null
+    try {
+      await completePurchase.mutateAsync({
+        id: po.id,
+        data: {
+          tax: Number(data.tax || 0),
+          wire_fee: wireFee,
+          handling_fee: Number(data.handling_fee || 0),
+          shipping_fee: data.knows_shipping_info
+            ? Number(data.shipping_fee || 0)
+            : 0,
+          international_shipping: data.knows_shipping_info
+            ? Number(data.international_shipping || 0)
+            : 0,
+          sub_total: computedSubTotal,
+          total: computedTotal,
+          // La tarjeta determina su cuenta; sin tarjeta va la cuenta elegida
+          // (o ninguna, para métodos como Efectivo). El backend valida la coherencia.
+          payment_method_id: Number(data.payment_method_id),
+          bank_account_id: selectedCard
+            ? selectedCard.bank_account_id
+            : data.bank_account_id
+              ? Number(data.bank_account_id)
               : null,
-            international_shipping_tracking: data.knows_shipping_info
-              ? article.international_shipping_tracking || null
+          bank_card_id: selectedCard ? selectedCard.id : null,
+          shipping_agency_id:
+            data.knows_shipping_info && data.shipping_agency_id
+              ? Number(data.shipping_agency_id)
               : null,
-          }),
-        ),
-      },
-      company: selectedCompany!.slug,
-    });
+          observation: data.observation || null,
+          invoices: filledInvoices.map((invoice) => ({
+            id: invoice.id,
+            invoice_number: invoice.invoice_number.trim() || null,
+            file: invoice.file,
+          })),
+          articles_purchase_orders: data.articles_purchase_orders.map(
+            (article) => ({
+              article_purchase_order_id: article.article_purchase_order_id,
+              total: Number(article.total),
+              total_justification: article.total_justification || null,
+              shipping_tracking: data.knows_shipping_info
+                ? article.shipping_tracking || null
+                : null,
+              international_shipping_tracking: data.knows_shipping_info
+                ? article.international_shipping_tracking || null
+                : null,
+            }),
+          ),
+        },
+        company: selectedCompany!.slug,
+      });
 
-    await markPurchaseOrderAsPaid.mutateAsync({
-      id: po.id,
-      company: selectedCompany!.slug,
-    });
+      await markPurchaseOrderAsPaid.mutateAsync({
+        id: po.id,
+        company: selectedCompany!.slug,
+      });
+    } catch {
+      // Las mutaciones ya avisaron el error; el formulario conserva lo capturado
+      // (las facturas ya subidas se precargan en el reintento).
+      return;
+    }
 
     onClose();
   };
@@ -405,33 +440,27 @@ export function PayPurchaseOrderForm({
           control={form.control}
           name="knows_shipping_info"
           render={({ field }) => (
-            <FormItem
-              className={cn(
-                "flex items-center gap-2 rounded-lg border px-3 py-2 transition-colors",
-                field.value
-                  ? "border-primary/20 bg-primary/4"
-                  : "border-border/40 bg-muted/10",
-              )}
-            >
-              <FormControl>
-                <Checkbox
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                  className="size-3.5"
-                />
-              </FormControl>
-              <Truck
-                className={cn(
-                  "size-3.5",
-                  field.value ? "text-primary" : "text-muted-foreground/60",
-                )}
+            <FormItem className="space-y-0">
+              <PanelSection
+                icon={Truck}
+                title={
+                  <label
+                    htmlFor="knows-shipping-info"
+                    className="cursor-pointer"
+                  >
+                    Datos de envío
+                  </label>
+                }
+                hint="Active si ya conoce la agencia, los costos y el tracking por artículo."
+                action={
+                  <Switch
+                    id="knows-shipping-info"
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    aria-label="Ya conozco los datos de envío"
+                  />
+                }
               />
-              <FormLabel className="mt-0! text-xs font-medium cursor-pointer select-none text-foreground/90">
-                Ya conozco los datos de envío
-              </FormLabel>
-              <span className="text-[11px] text-muted-foreground/70 select-none">
-                — agencia, costos y tracking por artículo
-              </span>
             </FormItem>
           )}
         />
@@ -439,7 +468,8 @@ export function PayPurchaseOrderForm({
         {/* ── Artículos ──────────────────────────────────────────────────── */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold text-foreground select-none">
+            <span className="flex items-center gap-2 text-sm font-semibold text-foreground select-none">
+              <Package aria-hidden className="size-4 text-muted-foreground" />
               Artículos
             </span>
             <span className="text-xs text-muted-foreground tabular-nums select-none">
@@ -448,16 +478,20 @@ export function PayPurchaseOrderForm({
           </div>
 
           <ScrollArea
-            className={cn("w-full", articleRows.length > 1 && "h-75")}
+            className={cn(
+              "w-full",
+              articleRows.length > 1 && "h-75 max-sm:h-auto",
+            )}
           >
-            <div className="space-y-2 pr-1">
+            <div className="space-y-2 pr-1 max-sm:pr-0">
               {articleRows.map((article, index) => {
                 const currentTotal = Number(
                   articles_purchase_orders?.[index]?.total,
                 );
-                const differs =
+                const matchesQuote =
                   !Number.isNaN(currentTotal) &&
-                  currentTotal !== article.quotedTotal;
+                  sameAmount(currentTotal, article.quotedTotal);
+                const differs = !Number.isNaN(currentTotal) && !matchesQuote;
                 return (
                   <div
                     key={article.article_purchase_order_id}
@@ -472,7 +506,7 @@ export function PayPurchaseOrderForm({
                         {article.batchCategory && (
                           <Badge
                             variant="secondary"
-                            className="h-5 px-2 text-[10px] font-medium uppercase tracking-wide text-muted-foreground select-none"
+                            className="h-5 px-2 text-xs font-medium text-muted-foreground select-none"
                           >
                             {article.batchCategory}
                           </Badge>
@@ -482,9 +516,9 @@ export function PayPurchaseOrderForm({
 
                     {/* BODY */}
                     <div className="relative px-3 py-2.5">
-                      <div className="grid grid-cols-[2fr_1fr_1fr_1fr] gap-x-3 gap-y-2.5">
-                        <div className="flex items-center gap-1.5 min-w-0">
-                          <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20 shrink-0 select-none">
+                      <div className="grid grid-cols-2 gap-x-3 gap-y-2.5 sm:grid-cols-[2fr_1fr_1fr_1fr]">
+                        <div className="flex items-center gap-1.5 min-w-0 max-sm:col-span-2">
+                          <span className="text-xs px-1.5 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20 shrink-0 select-none">
                             P/N
                           </span>
                           <span className="truncate text-sm font-medium text-foreground">
@@ -542,9 +576,9 @@ export function PayPurchaseOrderForm({
                         />
                       </div>
 
-                      {currentTotal !== article.quotedTotal && (
+                      {!matchesQuote && (
                         <div className="mt-2.5 border-t border-amber-500/30 bg-amber-50/40 -mx-3 px-3 py-2 dark:bg-amber-900/10">
-                          <span className="select-none text-[10px] leading-none text-amber-700 dark:text-amber-400 uppercase">
+                          <span className="select-none text-[13px] leading-none text-amber-700 dark:text-amber-400">
                             Justificación de la diferencia
                           </span>
                           <FormField
@@ -556,7 +590,7 @@ export function PayPurchaseOrderForm({
                                   <Textarea
                                     {...field}
                                     placeholder="Explique el motivo de la diferencia con el monto cotizado..."
-                                    className="mt-1 min-h-12.5 resize-none border-amber-500/40 bg-background/70 text-sm"
+                                    className="mt-1 min-h-12.5 resize-none border-amber-500/40 bg-background/70 text-[13px] max-sm:text-base"
                                   />
                                 </FormControl>
                                 <FormMessage />
@@ -581,7 +615,7 @@ export function PayPurchaseOrderForm({
                                     placeholder="Tracking #"
                                     className={cn(
                                       INPUT_CLS,
-                                      "h-8 font-mono text-xs mt-0.5",
+                                      "h-8 font-mono text-[13px] mt-0.5",
                                     )}
                                     {...field}
                                   />
@@ -603,7 +637,7 @@ export function PayPurchaseOrderForm({
                                     placeholder="Tracking #"
                                     className={cn(
                                       INPUT_CLS,
-                                      "h-8 font-mono text-xs mt-0.5",
+                                      "h-8 font-mono text-[13px] mt-0.5",
                                     )}
                                     {...field}
                                   />
@@ -625,18 +659,19 @@ export function PayPurchaseOrderForm({
         {/* ── Costos de compra + Pago ───────────────────────────────────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Costos de compra */}
-          <div className="space-y-3 rounded-xl border border-border/60 bg-muted/10 p-4">
-            <span className="text-xs font-semibold uppercase tracking-wider text-foreground select-none">
-              Costos de compra
-            </span>
-
+          <PanelSection
+            icon={Receipt}
+            title="Costos de compra"
+            hint="Impuestos, comisiones y envío."
+            compact
+          >
             <div className="grid grid-cols-2 gap-3">
               <FormField
                 control={form.control}
                 name="tax"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className={LABEL_CLS}>Tax</FormLabel>
+                    <PanelFieldLabel>Tax</PanelFieldLabel>
                     <FormControl>
                       <AmountInput
                         placeholder="$0.00"
@@ -654,7 +689,7 @@ export function PayPurchaseOrderForm({
                   name="wire_fee"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className={LABEL_CLS}>Wire Fee</FormLabel>
+                      <PanelFieldLabel>Wire Fee</PanelFieldLabel>
                       <FormControl>
                         <AmountInput
                           placeholder="$0.00"
@@ -672,7 +707,7 @@ export function PayPurchaseOrderForm({
                 name="handling_fee"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className={LABEL_CLS}>Handling Fee</FormLabel>
+                    <PanelFieldLabel>Handling Fee</PanelFieldLabel>
                     <FormControl>
                       <AmountInput
                         placeholder="$0.00"
@@ -692,9 +727,7 @@ export function PayPurchaseOrderForm({
                     name="shipping_fee"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className={LABEL_CLS}>
-                          Envío nacional
-                        </FormLabel>
+                        <PanelFieldLabel>Envío nacional</PanelFieldLabel>
                         <FormControl>
                           <AmountInput
                             placeholder="$0.00"
@@ -711,9 +744,7 @@ export function PayPurchaseOrderForm({
                     name="international_shipping"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className={LABEL_CLS}>
-                          Envío internacional
-                        </FormLabel>
+                        <PanelFieldLabel>Envío internacional</PanelFieldLabel>
                         <FormControl>
                           <AmountInput
                             placeholder="$0.00"
@@ -730,31 +761,16 @@ export function PayPurchaseOrderForm({
                     name="shipping_agency_id"
                     render={({ field }) => (
                       <FormItem className="col-span-2">
-                        <FormLabel className={LABEL_CLS}>
-                          Agencia de envío
-                        </FormLabel>
-                        <Select
-                          disabled={isAgenciesLoading}
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger className={SELECT_TRIGGER_CLS}>
-                              <SelectValue placeholder="Seleccionar agencia..." />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {shippingAgencies?.map((agency) => (
-                              <SelectItem
-                                value={agency.id.toString()}
-                                key={agency.id}
-                                className="text-sm"
-                              >
-                                {agency.name} ({agency.code})
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <PanelFieldLabel>Agencia de envío</PanelFieldLabel>
+                        <FormControl>
+                          <ShippingAgencyCombobox
+                            value={field.value}
+                            onChange={field.onChange}
+                            agencies={shippingAgencies}
+                            loading={isAgenciesLoading}
+                            triggerClassName={SELECT_TRIGGER_CLS}
+                          />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -762,14 +778,15 @@ export function PayPurchaseOrderForm({
                 </>
               )}
             </div>
-          </div>
+          </PanelSection>
 
           {/* Pago */}
-          <div className="space-y-3 rounded-xl border border-border/60 bg-muted/10 p-4">
-            <span className="text-xs font-semibold uppercase tracking-wider text-foreground select-none">
-              Pago
-            </span>
-
+          <PanelSection
+            icon={CreditCard}
+            title="Pago"
+            hint="Método, tarjeta o cuenta, y las facturas recibidas."
+            compact
+          >
             <div className="grid grid-cols-2 gap-3">
               {/* 1. Método de pago: catálogo fijo del sistema, siempre primero */}
               <FormField
@@ -777,7 +794,7 @@ export function PayPurchaseOrderForm({
                 name="payment_method_id"
                 render={({ field }) => (
                   <FormItem className="col-span-2">
-                    <FormLabel className={LABEL_CLS}>Método de pago</FormLabel>
+                    <PanelFieldLabel>Método de pago</PanelFieldLabel>
                     <Select
                       disabled={isMethodsLoading}
                       onValueChange={(value) => {
@@ -824,7 +841,7 @@ export function PayPurchaseOrderForm({
                   name="bank_card_id"
                   render={({ field }) => (
                     <FormItem className="col-span-2">
-                      <FormLabel className={LABEL_CLS}>Tarjeta</FormLabel>
+                      <PanelFieldLabel>Tarjeta</PanelFieldLabel>
                       <Select
                         onValueChange={field.onChange}
                         value={field.value}
@@ -856,9 +873,9 @@ export function PayPurchaseOrderForm({
 
               {/* Cuenta determinada por la tarjeta elegida: se muestra, no se elige */}
               {selectedCard && (
-                <div className="col-span-2 flex items-center gap-2 rounded-lg border border-border/40 bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
+                <div className="col-span-2 flex items-center gap-2 rounded-lg border border-border/40 bg-muted/20 px-3 py-2 text-[13px] text-muted-foreground">
                   <Building2 className="size-3.5 shrink-0" />
-                  <span>
+                  <span className="min-w-0 wrap-anywhere">
                     Cuenta:{" "}
                     <span className="font-medium text-foreground/90">
                       {selectedCard.bank_account.name}
@@ -880,9 +897,7 @@ export function PayPurchaseOrderForm({
                   name="bank_account_id"
                   render={({ field }) => (
                     <FormItem className="col-span-2">
-                      <FormLabel className={LABEL_CLS}>
-                        Cuenta bancaria
-                      </FormLabel>
+                      <PanelFieldLabel>Cuenta bancaria</PanelFieldLabel>
                       <Select
                         onValueChange={field.onChange}
                         value={field.value}
@@ -913,17 +928,17 @@ export function PayPurchaseOrderForm({
 
               <InvoicesField value={invoices} onChange={setInvoices} />
             </div>
-          </div>
+          </PanelSection>
         </div>
 
         {/* ── Total general ── */}
         <div className="flex justify-end pt-2 border-t border-border/60">
-          <div className="flex items-center justify-between gap-6 rounded-md bg-muted/10 px-4 py-2 border border-border/40 min-w-55">
+          <div className="flex items-center justify-between gap-6 rounded-md bg-muted/10 px-4 py-2 border border-border/40 min-w-55 max-sm:w-full">
             <div className="flex flex-col">
-              <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground whitespace-nowrap">
+              <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">
                 Total general
               </span>
-              <span className="text-[10px] text-muted-foreground/70 tabular-nums">
+              <span className="text-xs text-muted-foreground tabular-nums">
                 Subtotal ${subTotal.toFixed(2)}
               </span>
             </div>
@@ -933,18 +948,8 @@ export function PayPurchaseOrderForm({
           </div>
         </div>
 
-        {/* ── Enviar ── */}
-        <div className="flex justify-center">
-          <Button
-            disabled={isPending}
-            type="submit"
-            className="
-              w-100 h-10 rounded-lg
-              shadow-xs
-              transition-colors
-              flex items-center justify-center gap-2
-            "
-          >
+        <FormActions>
+          <Button disabled={isPending} type="submit" className="min-w-35 gap-2">
             {isPending ? (
               <Loader2 className="size-4 animate-spin" />
             ) : (
@@ -954,7 +959,7 @@ export function PayPurchaseOrderForm({
               </>
             )}
           </Button>
-        </div>
+        </FormActions>
       </form>
     </Form>
   );

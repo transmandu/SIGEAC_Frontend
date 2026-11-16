@@ -66,6 +66,9 @@ export interface BatchArticle {
   aircraft?: string | { acronym: string } | null;
   document_types?: BatchArticleDocumentType[];
   lifecycle_stage?: ArticleLifecycleStage | null;
+  /** Artículo físico de la línea y novedades vigentes de su bitácora de tránsito. */
+  transit_article_id?: number | null;
+  transit_updates_count?: number;
 }
 
 export interface RequisitionBatch {
@@ -162,6 +165,8 @@ export interface Requisition {
       aircraft?: string;
       priority?: PurchasePriority | string;
       lifecycle_stage?: ArticleLifecycleStage | null;
+      transit_article_id?: number | null;
+      transit_updates_count?: number;
     }[];
   }[];
   general_articles?: {
@@ -179,8 +184,6 @@ export interface Requisition {
     authorized_employee?: GeneralArticleAuthorizedEmployee | null;
     lifecycle_stage?: ArticleLifecycleStage | null;
   }[];
-  received_by?: string | null;
-  received_at?: string | null;
   justification: string;
   arrival_date?: string;
   submission_date: string;
@@ -255,17 +258,113 @@ export type GeneralSalesReport = {
 }[];
 
 // ── Requisition Detail ─────────────────────────────────────────────────────
+/** Último cambio de prioridad de la solicitud (no el de sus artículos). */
+export interface RequisitionPriorityChange {
+  id: number;
+  from_priority: PurchasePriority | string;
+  to_priority: PurchasePriority | string;
+  /** El cambio subió la urgencia (p. ej. Media → Alta). */
+  is_escalation: boolean;
+  reason: string | null;
+  /** Nombre de quien lo hizo. */
+  changed_by: string;
+  /** Instante UTC; se imprime con `formatInstant`. */
+  changed_at: string;
+}
+
+/**
+ * done = superada · current = donde está · partial = llegó a una parte de las
+ * líneas · pending = aún no · skipped = compras se la saltó · halted = donde
+ * se detuvo una solicitud rechazada · rejected = el cierre por rechazo.
+ */
+export type RequisitionCycleStageState =
+  | "done"
+  | "current"
+  | "partial"
+  | "pending"
+  | "skipped"
+  | "halted"
+  | "rejected";
+
+export interface RequisitionCycleStage {
+  key: string;
+  label: string;
+  state: RequisitionCycleStageState;
+  /** ISO 8601; null si la etapa no se alcanzó o no dejó registro. */
+  entered_at: string | null;
+  left_at: string | null;
+  /** Permanencia; en la etapa vigente, lo que lleva hasta que se pidió. */
+  seconds: number | null;
+  since_start_seconds: number | null;
+  visits: number;
+  /** Solo en etapas por línea u orden: cuántas llegaron de cuántas. */
+  reached: number | null;
+  total: number | null;
+  /** El pago es opcional en artículos generales. */
+  optional: boolean;
+  /** La fecha es una cota (última modificación), no el instante exacto. */
+  approximate: boolean;
+  by: string | null;
+  /** Estados en que están hoy las líneas que se encuentran en esta etapa. */
+  holding: Record<string, number> | never[];
+}
+
+/** Un tramo del recorrido de un artículo: tránsito, recepción, Incoming o intake. */
+export interface RequisitionCycleJourneyStage {
+  key: "TRANSIT" | "RECEPTION" | "INCOMING" | "INTAKE";
+  label: string;
+  entered_at: string;
+  left_at: string | null;
+  seconds: number | null;
+  running: boolean;
+  visits: number;
+  /** Cada paso por separado (en Incoming: inspección, revisión, cuarentena…). */
+  steps: {
+    status: string;
+    from: string;
+    until: string | null;
+    seconds: number;
+  }[];
+}
+
+/** Cuánto estuvo un artículo en cada tramo, hasta su primer almacenamiento. */
+export interface RequisitionCycleLine {
+  /** Id de la línea de la solicitud (de `batch_articles` o `general_articles`). */
+  requisition_line_id: number;
+  kind: "article" | "general";
+  article_id: number | null;
+  status: string;
+  journey: {
+    stages: RequisitionCycleJourneyStage[];
+    stored_at: string | null;
+    stored: boolean;
+  };
+}
+
+export interface RequisitionCycle {
+  type: "AERONAUTICAL" | "GENERAL";
+  status: string;
+  current_stage: string | null;
+  completed: boolean;
+  rejected: boolean;
+  started_at: string | null;
+  ended_at: string | null;
+  elapsed_seconds: number | null;
+  generated_at: string;
+  stages: RequisitionCycleStage[];
+  lines: RequisitionCycleLine[];
+}
+
 export interface RequisitionByOrderNumber {
   id: number;
   order_number: string;
   status: string;
   priority?: PurchasePriority | string;
+  priority_change?: RequisitionPriorityChange | null;
   type: RequisitionType;
   created_by: User | null;
   requested_by: string;
   updated_by?: string | null;
-  received_by?: string | null;
-  received_at?: string | null;
   justification: string;
   image?: string | null;
   submission_date?: string | null;
@@ -344,6 +443,8 @@ export interface RequisitionBatchArticleForm {
 export interface RequisitionBatchForm {
   batch: string;
   batch_name: string;
+  /** Define la unidad por defecto de las filas que se agreguen después. */
+  batch_category?: string;
   batch_articles: RequisitionBatchArticleForm[];
 }
 

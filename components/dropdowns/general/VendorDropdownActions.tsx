@@ -1,7 +1,8 @@
 "use client";
 
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import { useState } from "react";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, Building2 } from "lucide-react";
 
 import { useDeleteVendor } from "@/actions/ajustes/proveedores/actions";
 import { ConfirmDeleteDialog } from "@/components/dialogs/shared/ConfirmDeleteDialog";
@@ -10,13 +11,7 @@ import {
   type RowAction,
 } from "@/components/dropdowns/SettingsRowActions";
 import UpdateVendorForm from "@/components/forms/general/UpdateVendorForm";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog } from "@/components/ui/dialog";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Vendor } from "@/types";
 
@@ -51,23 +46,23 @@ const VendorDropdownActions = ({ vendor }: { vendor: Vendor }) => {
       <SettingsRowActions actions={actions} tourId="proveedores-actions" />
 
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent
-          className="max-h-[90vh] overflow-y-auto sm:max-w-2xl"
-          onInteractOutside={(e) => e.preventDefault()}
-        >
-          <DialogHeader>
-            <DialogTitle>Editar proveedor</DialogTitle>
-            <DialogDescription>
+        <FormDialogContent
+          icon={Building2}
+          title="Editar proveedor"
+          description={
+            <>
               Modifique lo necesario de{" "}
-              <span className="font-medium text-foreground">{vendor.name}</span>
+              <span className="font-medium text-foreground">{vendor.name}</span>{" "}
               ; solo se guardará lo que cambie.
-            </DialogDescription>
-          </DialogHeader>
+            </>
+          }
+          className="sm:max-w-2xl"
+        >
           <UpdateVendorForm
             vendor={vendor}
             onClose={() => setEditOpen(false)}
           />
-        </DialogContent>
+        </FormDialogContent>
       </Dialog>
 
       <ConfirmDeleteDialog

@@ -6,6 +6,7 @@ import { notifyError } from "@/lib/notify-error";
 interface WarehouseSchema {
   name: string;
   location_id: number;
+  type: string;
 }
 
 export const useCreateWarehouse = () => {
@@ -28,7 +29,7 @@ export const useCreateWarehouse = () => {
       });
     },
     onError: (error) => {
-      notifyError(error, { action: "crear el registro" });
+      notifyError(error, { action: "crear el almacén" });
     },
   });
 
@@ -59,7 +60,7 @@ export const useUpdateWarehouse = () => {
       });
     },
     onError: (error) => {
-      notifyError(error, { action: "actualizar el registro" });
+      notifyError(error, { action: "actualizar el almacén" });
     },
   });
 
@@ -87,7 +88,7 @@ export const useDeleteWarehouse = () => {
         description: `¡El almacén ha sido eliminado correctamente!`,
       });
     },
-    onError: (error: any) => {
+    onError: (error) => {
       notifyError(error, { action: "eliminar el almacén" });
     },
   });

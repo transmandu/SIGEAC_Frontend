@@ -239,6 +239,119 @@ export const instantToCalendarDay = (
   return format(shiftToTimeZone(date, timeZone), "yyyy-MM-dd");
 };
 
+const DAY_MS = 86_400_000;
+
+/** Número de día (desde 1970) de un "yyyy-MM-dd": para contar días entre dos fechas. */
+export const calendarDayNumber = (day: string): number => {
+  const [year, month, date] = day.split("-").map(Number);
+  return Date.UTC(year, month - 1, date) / DAY_MS;
+};
+
+/**
+ * "Hoy", "Ayer" o la fecha escrita ("miércoles 12 de noviembre", con el año si
+ * no es el actual), para encabezar un grupo de un historial o una bandeja.
+ * Ambos días son "yyyy-MM-dd" en la zona de la compañía.
+ */
+export const relativeDayLabel = (day: string, today: string): string => {
+  const diff = calendarDayNumber(today) - calendarDayNumber(day);
+  if (diff === 0) return "Hoy";
+  if (diff === 1) return "Ayer";
+
+  return formatCalendarDate(
+    day,
+    day.slice(0, 4) === today.slice(0, 4)
+      ? "EEEE d 'de' MMMM"
+      : "d 'de' MMMM 'de' yyyy",
+  );
+};
+
+/**
+ * La hora de pared de un instante en la zona de la compañía, como un Date cuyos
+ * campos locales (día, hora, minuto) son los de esa zona. Para poblar un
+ * selector de fecha y hora que edita un instante: mostrar `new Date(iso)` tal
+ * cual usaría la zona del navegador y no la de la compañía.
+ */
+export const toZonedWallClock = (
+  value: string | Date | null | undefined,
+  timeZone: string = DEFAULT_TIMEZONE,
+): Date | null => {
+  if (!value) return null;
+
+  const date = parseInstant(value);
+
+  return date ? shiftToTimeZone(date, timeZone) : null;
+};
+
+/** Desfase (ms) de una zona respecto de UTC en un instante dado. */
+const offsetAt = (instantMs: number, timeZone: string): number => {
+  const parts = formatterFor(timeZone).formatToParts(new Date(instantMs));
+  const get = (type: string) =>
+    Number(parts.find((p) => p.type === type)?.value);
+
+  const asUtc = Date.UTC(
+    get("year"),
+    get("month") - 1,
+    get("day"),
+    get("hour") % 24,
+    get("minute"),
+    get("second"),
+  );
+
+  return asUtc - Math.floor(instantMs / 1000) * 1000;
+};
+
+/**
+ * El inicio o el fin de un día de calendario en la zona de la compañía, como
+ * instante UTC (ISO) listo para filtrar una columna datetime en el servidor.
+ * Mandar el día pelado dejaría fuera todo lo ocurrido ese mismo día.
+ */
+export const zonedDayToUtcIso = (
+  day: string | null | undefined,
+  edge: "start" | "end",
+  timeZone: string = DEFAULT_TIMEZONE,
+): string | undefined => {
+  const match = day?.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!match) return undefined;
+
+  const [, year, month, date] = match.map(Number);
+  const wall =
+    edge === "start"
+      ? Date.UTC(year, month - 1, date, 0, 0, 0, 0)
+      : Date.UTC(year, month - 1, date, 23, 59, 59, 999);
+
+  // Segunda pasada: el desfase puede cambiar entre la estimación y el
+  // instante real cuando el día cruza un cambio de horario.
+  const first = wall - offsetAt(wall, timeZone);
+  const utc = wall - offsetAt(first, timeZone);
+
+  return new Date(utc).toISOString();
+};
+
+/**
+ * El inverso de `toZonedWallClock`: una hora de pared en la zona de la compañía,
+ * como instante UTC (ISO) listo para mandar al backend.
+ */
+export const zonedWallClockToUtcIso = (
+  wall: Date,
+  timeZone: string = DEFAULT_TIMEZONE,
+): string => {
+  const asUtc = Date.UTC(
+    wall.getFullYear(),
+    wall.getMonth(),
+    wall.getDate(),
+    wall.getHours(),
+    wall.getMinutes(),
+    wall.getSeconds(),
+  );
+
+  // Segunda pasada: el desfase puede cambiar entre la estimación y el instante
+  // real cuando la hora cruza un cambio de horario.
+  const first = asUtc - offsetAt(asUtc, timeZone);
+  const utc = asUtc - offsetAt(first, timeZone);
+
+  return new Date(utc).toISOString();
+};
+
 /**
  * Una fecha de calendario lista para mandar al backend, en hora local. El
  * `.toISOString()` de un Date tomado del calendario corre el día hacia atrás
@@ -254,9 +367,12 @@ export const toCalendarPayload = (
  * UTC y en UTC−4 mostraría el día anterior.
  */
 export const parseCalendarDate = (
-  value: string | null | undefined,
+  value: string | Date | null | undefined,
 ): Date | undefined => {
   if (!value) return undefined;
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? undefined : value;
+  }
 
   const match = String(value).match(CALENDAR_DATE);
   if (!match) return undefined;

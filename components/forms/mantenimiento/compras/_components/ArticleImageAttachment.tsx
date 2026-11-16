@@ -81,7 +81,7 @@ export const ArticleImageAttachment = ({ article, onChangeImage }: Props) => {
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="h-7 w-7 shrink-0"
+                    className="h-7 w-7 shrink-0 max-sm:size-9"
                   >
                     <Paperclip className="size-3.5 text-primary" />
                   </Button>
@@ -127,7 +127,7 @@ export const ArticleImageAttachment = ({ article, onChangeImage }: Props) => {
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7 shrink-0 text-muted-foreground"
+                className="h-7 w-7 shrink-0 text-muted-foreground max-sm:size-9"
                 onClick={handleButtonClick}
               >
                 <Paperclip className="size-3.5" />

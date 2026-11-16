@@ -26,7 +26,6 @@ import {
 import { useGetSMSActivityAttendanceStatus } from "@/hooks/sms/useGetSMSActivityAttendanceStatus";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { SMSActivity } from "@/types";
 import { zodResolver } from "@/lib/zod-resolver";
 import {
   Check,
@@ -50,7 +49,7 @@ const normalizeAuthorizedEmployeeId = (value: unknown): number | null => {
 
 interface FormProps {
   onClose: () => void;
-  initialData: SMSActivity;
+  initialData: { activity_number: string };
 }
 
 interface EmployeeSelection {

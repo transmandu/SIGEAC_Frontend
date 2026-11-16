@@ -6,6 +6,12 @@
       "sourceType": "github",
       "computedHash": "5cafa1558b0b6bd4d4c71f23d5567b7fcbbcdb4b0a50b0c5f69a80a3cebaf9b8"
     },
+    "impeccable-design": {
+      "source": "majinmagros/magros.ai-skills",
+      "sourceType": "github",
+      "skillPath": "skills/impeccable-design/SKILL.md",
+      "computedHash": "a7d4a4885e0a2010965035534969a1f30f6caab382223210b7318374f5eae64d"
+    },
     "interface-design": {
       "source": "dammyjay93/interface-design",
       "sourceType": "github",

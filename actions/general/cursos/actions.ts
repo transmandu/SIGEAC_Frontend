@@ -3,20 +3,23 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { notifyError } from "@/lib/notify-error";
+import type { CourseExamImport } from "@/types";
+import type { AxiosProgressEvent } from "axios";
 
 interface CourseData {
   company: string;
   location_id: string;
   course: {
-    name: string;
     description: string;
-    start_date: Date;
-    end_date: Date;
+    /** Fecha de calendario en formato "yyyy-MM-dd". */
+    start_date: string;
+    end_date: string;
     start_time: string;
     end_time: string;
     course_type: string;
     hours?: number;
     instructor?: string;
+    training_group_ids?: number[];
     document?: File;
     library_folder_paths?: string[];
   };
@@ -26,12 +29,12 @@ interface updateCourseData {
   company: string;
   id: string;
   data: {
-    name: string;
     description: string;
     instructor?: string;
     course_type: string;
-    start_date: Date;
-    end_date: Date;
+    /** Fecha de calendario en formato "yyyy-MM-dd". */
+    start_date: string;
+    end_date: string;
     start_time: string;
     end_time: string;
     hours: number;
@@ -159,11 +162,10 @@ export const useUpdateCourse = () => {
 
       const formData = new FormData();
       formData.append("_method", "PATCH");
-      formData.append("name", data.name);
       formData.append("description", data.description);
       formData.append("course_type", data.course_type);
-      formData.append("start_date", new Date(data.start_date).toISOString());
-      formData.append("end_date", new Date(data.end_date).toISOString());
+      formData.append("start_date", data.start_date);
+      formData.append("end_date", data.end_date);
       formData.append("start_time", data.start_time);
       formData.append("end_time", data.end_time);
       formData.append("hours", String(data.hours));
@@ -206,7 +208,7 @@ export const useUpdateCourseCalendar = () => {
 
   const updateCourseMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: any }) => {
-      if (data.status === "CLOSED") {
+      if (data.status === "CERRADO") {
         throw new Error(
           "No se puede actualizar el calendario de un curso cerrado.",
         );
@@ -370,4 +372,48 @@ export const useUpdateCourseExamResult = () => {
   return {
     updateCourseExamResult: updateMutation,
   };
+};
+
+// --- CARGAR LOTE DE EXÁMENES ---
+// Sube varios documentos nombrados `dni_nombre_apellido` y los asigna a los
+// empleados inscritos. Igual que en certificados, el backend procesa el lote
+// en la misma petición y devuelve el balance final.
+export const useBulkCreateCourseExams = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      company,
+      exam_id,
+      data,
+      onUploadProgress,
+    }: {
+      company: string;
+      exam_id: string;
+      data: FormData;
+      onUploadProgress?: (event: AxiosProgressEvent) => void;
+    }) => {
+      const response = await axiosInstance.post<{ data: CourseExamImport }>(
+        `/general/${company}/course-exam/${exam_id}/bulk-attendance`,
+        data,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+          onUploadProgress,
+        },
+      );
+
+      return response.data.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["course-exam-attendance"] });
+      queryClient.invalidateQueries({ queryKey: ["course-exams"] });
+      queryClient.invalidateQueries({ queryKey: ["course-exam-documents"] });
+      queryClient.invalidateQueries({
+        queryKey: ["employee-training-profile"],
+      });
+    },
+    onError: (error) => {
+      notifyError(error, { action: "subir el lote de exámenes" });
+    },
+  });
 };

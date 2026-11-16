@@ -23,7 +23,11 @@ import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import LoadingPage from "@/components/misc/LoadingPage";
+import PriorityChangeNotice from "@/components/misc/PriorityChangeNotice";
+import ArticleJourney from "@/components/misc/ArticleJourney";
+import RequisitionCycle from "@/components/misc/RequisitionCycle";
 import ArticleLifecycleIcon from "@/components/misc/ArticleLifecycleIcon";
+import TransitUpdatesLink from "@/components/misc/TransitUpdatesLink";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -254,7 +258,13 @@ const ArticleJustificationStrip = ({
 };
 
 /* -------------------- ARTICLE CARD -------------------- */
-const BatchArticleCard = ({ article }: { article: any }) => {
+const BatchArticleCard = ({
+  article,
+  requisitionId,
+}: {
+  article: any;
+  requisitionId?: number;
+}) => {
   const isPending = article.status === "PENDING";
   const showExtra = !isPending;
 
@@ -306,6 +316,11 @@ const BatchArticleCard = ({ article }: { article: any }) => {
                   {translateStatus(article.status)}
                 </Badge>
                 <ArticleLifecycleIcon stage={article.lifecycle_stage} />
+                <TransitUpdatesLink
+                  articleId={article.transit_article_id}
+                  stage={article.lifecycle_stage}
+                  count={article.transit_updates_count}
+                />
               </div>
             )}
           </div>
@@ -344,6 +359,13 @@ const BatchArticleCard = ({ article }: { article: any }) => {
         {showExtra && (
           <ArticleJustificationStrip justification={article.justification} />
         )}
+
+        <ArticleJourney
+          requisitionId={requisitionId}
+          lineId={article.id}
+          kind="article"
+          className="mt-2"
+        />
       </div>
 
       {/* ---------------- IMAGEN CENTRADA EN LA TARJETA ---------------- */}
@@ -358,10 +380,10 @@ const BatchArticleCard = ({ article }: { article: any }) => {
             alt="batch article"
             width={100}
             height={100}
-            className="w-25 h-[100px] object-contain border rounded-md"
+            className="size-25 object-contain border rounded-md"
           />
         ) : (
-          <div className="flex flex-col items-center justify-center text-muted-foreground text-xs gap-1 h-[100px] w-25 border rounded-md">
+          <div className="flex flex-col items-center justify-center text-muted-foreground text-xs gap-1 size-25 border rounded-md">
             <ImageIcon className="w-5 h-5 opacity-70" />
             <span>Sin imagen</span>
           </div>
@@ -371,7 +393,13 @@ const BatchArticleCard = ({ article }: { article: any }) => {
   );
 };
 
-const GeneralArticleCard = ({ article }: { article: any }) => {
+const GeneralArticleCard = ({
+  article,
+  requisitionId,
+}: {
+  article: any;
+  requisitionId?: number;
+}) => {
   const isPending = article.status === "PENDING";
   const showExtra = !isPending;
 
@@ -499,6 +527,13 @@ const GeneralArticleCard = ({ article }: { article: any }) => {
           {showExtra && (
             <ArticleJustificationStrip justification={article.justification} />
           )}
+
+          <ArticleJourney
+            requisitionId={requisitionId}
+            lineId={article.id}
+            kind="general"
+            className="mt-2"
+          />
         </div>
       </div>
 
@@ -514,10 +549,10 @@ const GeneralArticleCard = ({ article }: { article: any }) => {
             alt="general article"
             width={100}
             height={100}
-            className="w-25 h-[100px] object-contain border rounded-md"
+            className="size-25 object-contain border rounded-md"
           />
         ) : (
-          <div className="flex flex-col items-center justify-center text-muted-foreground text-xs gap-1 h-[100px] w-25 border rounded-md">
+          <div className="flex flex-col items-center justify-center text-muted-foreground text-xs gap-1 size-25 border rounded-md">
             <ImageIcon className="w-5 h-5 opacity-70" />
             <span>Sin imagen</span>
           </div>
@@ -602,7 +637,7 @@ const RequisitionPage = () => {
                   className={cn(
                     "text-xs",
                     data.priority === "HIGH"
-                      ? "bg-red-100 text-red-700"
+                      ? "bg-red-600 font-semibold text-white hover:bg-red-600"
                       : data.priority === "MEDIUM"
                         ? "bg-yellow-100 text-yellow-700"
                         : "bg-green-100 text-green-700",
@@ -625,6 +660,21 @@ const RequisitionPage = () => {
         </CardHeader>
 
         <CardContent className="flex flex-col gap-6">
+          {data && (
+            <PriorityChangeNotice
+              requisition={data}
+              className="mx-auto w-full max-w-4xl"
+            />
+          )}
+
+          {data && (
+            <RequisitionCycle
+              requisitionId={data.id}
+              variant="card"
+              className="mx-auto w-full max-w-4xl"
+            />
+          )}
+
           {/* IMAGEN */}
           {data?.image && (
             <div className="flex flex-col items-center gap-2">
@@ -637,7 +687,7 @@ const RequisitionPage = () => {
                 alt="Requisición"
                 width={160}
                 height={160}
-                className="w-[160px] h-[160px] object-contain border rounded-md"
+                className="size-40 object-contain border rounded-md"
               />
               <p className="text-xs text-muted-foreground">
                 Imagen de la requisición
@@ -750,7 +800,10 @@ const RequisitionPage = () => {
                   <CardContent className="space-y-3">
                     {batch.batch_articles.map((article, index) => (
                       <div key={index}>
-                        <BatchArticleCard article={article} />
+                        <BatchArticleCard
+                          article={article}
+                          requisitionId={data.id}
+                        />
 
                         {index < batch.batch_articles.length - 1 && (
                           <Separator className="my-3" />
@@ -785,7 +838,10 @@ const RequisitionPage = () => {
                 {data.general_articles.map((article, index) => (
                   <Card key={index} className="w-full flex flex-col">
                     <CardContent className="p-3 flex-1">
-                      <GeneralArticleCard article={article} />
+                      <GeneralArticleCard
+                        article={article}
+                        requisitionId={data.id}
+                      />
                     </CardContent>
                   </Card>
                 ))}

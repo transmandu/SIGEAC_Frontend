@@ -1,13 +1,12 @@
-'use client'
+"use client";
 
-import { PackageSearch } from 'lucide-react'
+import { PackageSearch } from "lucide-react";
 
-import { ContentLayout } from '@/components/layout/ContentLayout'
+import { ContentLayout } from "@/components/layout/ContentLayout";
 
 const QuoteOutOfScope = () => {
   return (
     <ContentLayout title="Cotización">
-
       <div
         className="
           flex items-center justify-center
@@ -31,12 +30,11 @@ const QuoteOutOfScope = () => {
             dark:shadow-[0_10px_35px_rgba(0,0,0,0.35)]
           "
         >
-
           <div
             className="
               flex items-center justify-center
               size-14
-              rounded-full
+              rounded-2xl
               bg-amber-50
               dark:bg-amber-950/30
               border
@@ -54,7 +52,6 @@ const QuoteOutOfScope = () => {
           </div>
 
           <div className="flex flex-col items-center text-center gap-1.5">
-
             <h2
               className="
                 text-lg
@@ -72,17 +69,14 @@ const QuoteOutOfScope = () => {
                 leading-relaxed
               "
             >
-              Esta cotización corresponde a compras generales y no se
-              gestiona dentro del módulo de compras aeronáuticas.
+              Esta cotización corresponde a compras generales y no se gestiona
+              dentro del módulo de compras aeronáuticas.
             </p>
-
           </div>
-
         </div>
       </div>
-
     </ContentLayout>
-  )
-}
+  );
+};
 
-export default QuoteOutOfScope
+export default QuoteOutOfScope;

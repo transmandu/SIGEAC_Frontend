@@ -160,7 +160,7 @@ export function DataTableColumnHeader<TData extends RowData, TValue>({
   if (!canSort && !filter && !hasOptions && !dateRangeFilter) {
     return (
       <div className={cn("flex items-center", justify, className)}>
-        <span className="flex h-8 items-center gap-2 px-2 text-sm font-medium">
+        <span className="flex h-8 items-center gap-2 px-2 text-[13px] font-medium normal-case">
           {Icon ? <Icon className="h-4 w-4 opacity-70" /> : null}
           <span className="truncate">{title}</span>
         </span>
@@ -190,7 +190,7 @@ export function DataTableColumnHeader<TData extends RowData, TValue>({
             type="button"
             variant="ghost"
             size="sm"
-            className="h-8 px-2 data-[state=open]:bg-accent"
+            className="h-8 px-2 text-[13px] normal-case data-[state=open]:bg-accent"
           >
             {Icon ? <Icon className="mr-2 h-4 w-4 opacity-70" /> : null}
             <span className="truncate">{title}</span>

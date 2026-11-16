@@ -146,21 +146,6 @@ export const columns: AppColumnDef<AirlineAircraft>[] = [
     ),
   },
   {
-    accessorKey: "inac",
-    size: 80,
-    header: ({ column }) => (
-      <div className="flex justify-center w-full">
-        <DataTableColumnHeader column={column} title="INAC" />
-      </div>
-    ),
-    meta: { title: "INAC" },
-    cell: ({ row }) => (
-      <div className="flex justify-center w-full">
-        <span className={PLAIN}>{row.original.inac ? "Sí" : "No"}</span>
-      </div>
-    ),
-  },
-  {
     id: "actions",
     size: 90,
     header: ({ column }) => (

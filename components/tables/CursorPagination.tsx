@@ -55,11 +55,11 @@ export function CursorPagination({
         bg-transparent
       "
     >
-      <div className="flex-1 text-sm text-muted-foreground tabular-nums">
+      <div className="flex-1 text-sm text-muted-foreground tabular-nums max-md:text-center">
         {summary}
       </div>
 
-      <div className="flex items-center space-x-6 lg:space-x-8">
+      <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 lg:gap-x-8">
         {/* PAGE SIZE */}
         <div className="flex items-center space-x-2">
           <p className="text-xs font-medium text-muted-foreground">
@@ -130,7 +130,7 @@ export function CursorPagination({
               key={label}
               variant="ghost"
               className="
-                h-8 w-8 p-0 rounded-md
+                h-8 w-8 p-0 rounded-md max-sm:size-10
                 text-muted-foreground
                 hover:text-foreground
                 hover:bg-white dark:hover:bg-slate-800/50

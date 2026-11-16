@@ -93,8 +93,41 @@ export const isStaleSessionResponse = (sentHeaders?: unknown): boolean => {
 
 // El manejo del 401 (limpiar sesión y expulsar al login) vive en un único
 // interceptor registrado por AuthContext, que es quien puede además resetear el
-// estado de React y navegar.
-export const isAuthEndpoint = (url?: string) =>
-  !!url && (url.includes("/login") || url.includes("/register"));
+// estado de React y navegar. Estas rutas quedan fuera: su 401 es una respuesta
+// normal (credenciales malas, token ya revocado), no una sesión caída.
+const AUTH_PATHS = ["/login", "/register", "/logout"];
+
+// Coincidencia por ruta completa: con includes(), "/register" también atrapaba
+// rutas como ".../register-attendance" y su 401 dejaba de cerrar la sesión.
+export const isAuthEndpoint = (url?: string) => {
+  if (!url) return false;
+
+  const path = url.split("?")[0].replace(/\/+$/, "");
+
+  return AUTH_PATHS.some((auth) => path === auth || path.endsWith(auth));
+};
+
+/**
+ * Revoca en el servidor el token de la sesión que se cierra. Quien llama debe
+ * ESPERARLO antes de navegar: en paralelo con router.replace() el navegador
+ * cancelaba la petición (aparecía "canceled" en red) y el token seguía vivo. El
+ * token viaja explícito porque el interceptor de petición lee la cookie y esta
+ * se borra justo después. Es de mejor esfuerzo y con tope de tiempo: si falla,
+ * la sesión local se cierra igual y el token vence solo.
+ */
+export const revokeSession = async (): Promise<void> => {
+  const token = Cookies.get("auth_token");
+
+  if (!token) return;
+
+  try {
+    await axiosInstance.post("/logout", null, {
+      headers: { Authorization: withBearer(token) },
+      timeout: 3_000,
+    });
+  } catch {
+    // Sin red o token ya muerto: no hay nada más que revocar.
+  }
+};
 
 export default axiosInstance;

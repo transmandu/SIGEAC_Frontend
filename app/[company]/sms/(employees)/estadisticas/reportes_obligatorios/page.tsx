@@ -29,7 +29,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
+import { cn, getResultColor } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import MultipleBarChartComponent from "@/components/charts/MultipleBarChartComponent";
 import { PieChartComponent } from "@/components/charts/PieChartComponent";
@@ -487,6 +487,7 @@ const Statistics = () => {
               <PieChartComponent
                 data={riskData}
                 title="Porcentaje de Índice de Riesgo Pre-Mitigación"
+                getColor={getResultColor}
               />
             ) : (
               <>
@@ -512,6 +513,7 @@ const Statistics = () => {
               <MultipleBarChartComponent
                 data={riskData}
                 title="Número de Reportes por Cada Índice de Riesgo"
+                getColor={getResultColor}
               />
             ) : (
               <>
@@ -537,6 +539,7 @@ const Statistics = () => {
               <PieChartComponent
                 data={postRiskData}
                 title="Índice de Riesgo Post-Mitigación"
+                getColor={getResultColor}
               />
             ) : (
               <>
@@ -562,6 +565,7 @@ const Statistics = () => {
               <MultipleBarChartComponent
                 data={postRiskData}
                 title="Número de Reportes por Cada Índice de Riesgo"
+                getColor={getResultColor}
               />
             ) : (
               <>

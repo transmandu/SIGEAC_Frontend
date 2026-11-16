@@ -289,7 +289,6 @@ export const columns: AppColumnDef<DispatchGroupRow>[] = [
       <div className="flex justify-center">
         <DispatchRequestDropdownActions
           id={row.original.id}
-          category={row.original.articles[0]?.category}
           articles={row.original.articles}
           status={row.original.status}
           requestNumber={row.original.request_number}

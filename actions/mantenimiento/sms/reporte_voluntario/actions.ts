@@ -20,6 +20,7 @@ interface VoluntaryReportData {
     reporter_email?: string;
     image?: File | string;
     document?: File | string;
+    library_folder_paths?: string[];
   };
 }
 interface UpdateVoluntaryReportData {
@@ -39,6 +40,7 @@ interface UpdateVoluntaryReportData {
     reporter_email?: string;
     image?: File | string;
     document?: File | string;
+    library_folder_paths?: string[];
   };
 }
 interface CloseVoluntaryReportData {

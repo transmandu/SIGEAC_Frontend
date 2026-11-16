@@ -40,7 +40,7 @@ import {
   RiskAssessmentQuestion,
 } from "@/types/sms/mantenimiento";
 
-import { getNotificationSource } from "./workflow-helpers";
+import { FormSection } from "@/components/forms/mantenimiento/sms/_components/form-parts";
 import { useResettingState } from "@/hooks/useResettingState";
 
 const FORM_SCHEMA = z.object({
@@ -395,62 +395,48 @@ function QuestionField({
   return (
     <div
       className={cn(
-        "rounded-lg border bg-background/80 p-4 dark:bg-muted/20",
-        error && "border-destructive",
+        "space-y-3 border-b pb-4 last:border-b-0 last:pb-0",
+        error && "border-destructive/50",
       )}
     >
-      <div className="space-y-1">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
         <p className="text-sm font-medium">{question.question}</p>
-        <p className="text-xs text-muted-foreground">Código: {question.code}</p>
+        <span className="text-[11px] font-medium tracking-wider text-muted-foreground uppercase">
+          {question.code}
+        </span>
       </div>
 
-      <div className="mt-4">
-        {question.answer_type === "yes_no" ? (
-          <RadioGroup
-            value={value || ""}
-            onValueChange={onChange}
-            className="gap-2"
-          >
-            <label
-              className={cn(
-                "flex cursor-pointer items-center gap-3 rounded-md border p-3 transition-colors",
-                value === YES_VALUE
-                  ? "border-primary bg-primary/5"
-                  : "hover:bg-muted/40",
-              )}
-            >
-              <RadioGroupItem value={YES_VALUE} aria-invalid={Boolean(error)} />
-              <span className="text-sm">Sí</span>
-            </label>
-            <label
-              className={cn(
-                "flex cursor-pointer items-center gap-3 rounded-md border p-3 transition-colors",
-                value === NO_VALUE
-                  ? "border-primary bg-primary/5"
-                  : "hover:bg-muted/40",
-              )}
-            >
-              <RadioGroupItem value={NO_VALUE} aria-invalid={Boolean(error)} />
-              <span className="text-sm">No</span>
-            </label>
-          </RadioGroup>
-        ) : (
-          <Select value={value || ""} onValueChange={onChange}>
-            <SelectTrigger aria-invalid={Boolean(error)}>
-              <SelectValue placeholder="Seleccione una opción" />
-            </SelectTrigger>
-            <SelectContent>
-              {selectOptions.map((option) => (
-                <SelectItem key={option} value={option}>
-                  {formatOptionLabel(option)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-      </div>
+      {question.answer_type === "yes_no" ? (
+        <RadioGroup
+          value={value || ""}
+          onValueChange={onChange}
+          className="flex flex-wrap gap-6"
+        >
+          <label className="flex cursor-pointer items-center gap-2 text-sm">
+            <RadioGroupItem value={YES_VALUE} aria-invalid={Boolean(error)} />
+            <span>Sí</span>
+          </label>
+          <label className="flex cursor-pointer items-center gap-2 text-sm">
+            <RadioGroupItem value={NO_VALUE} aria-invalid={Boolean(error)} />
+            <span>No</span>
+          </label>
+        </RadioGroup>
+      ) : (
+        <Select value={value || ""} onValueChange={onChange}>
+          <SelectTrigger aria-invalid={Boolean(error)} className="sm:max-w-xs">
+            <SelectValue placeholder="Seleccione una opción" />
+          </SelectTrigger>
+          <SelectContent>
+            {selectOptions.map((option) => (
+              <SelectItem key={option} value={option}>
+                {formatOptionLabel(option)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
 
-      {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
+      {error && <p className="text-xs font-medium text-destructive">{error}</p>}
     </div>
   );
 }
@@ -686,131 +672,113 @@ export function RiskAssessmentForm({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-5">
-        <div className="rounded-lg border bg-muted/20 p-4">
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Hazard notification activa
+        {form.formState.errors.hazard_notification_id?.message && (
+          <p className="text-sm font-medium text-destructive">
+            {form.formState.errors.hazard_notification_id.message}
           </p>
-          <p className="mt-2 text-sm font-medium">
-            {getNotificationSource(selectedNotification)}
-          </p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {selectedNotification.description}
-          </p>
-          {form.formState.errors.hazard_notification_id?.message && (
-            <p className="mt-3 text-sm text-destructive">
-              {form.formState.errors.hazard_notification_id.message}
-            </p>
-          )}
-        </div>
+        )}
 
-        <div className="grid gap-5 xl:grid-cols-2">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between gap-3">
-              <div>
+        <FormSection
+          title="Cuestionario de evaluación"
+          hint="Responda en orden; el flujo se detiene cuando la respuesta ya permite determinar el valor."
+        >
+          <div className="grid gap-8 xl:grid-cols-2">
+            <div className="space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 <h4 className="text-sm font-semibold">
                   Estimación de severidad
                 </h4>
-                <p className="text-sm text-muted-foreground">
-                  Cada respuesta afirmativa detiene el flujo y calcula la
-                  severidad.
-                </p>
+                {derivedSeverity && (
+                  <Badge>
+                    {derivedSeverity} — {SEVERITY_LABELS[derivedSeverity]}
+                  </Badge>
+                )}
               </div>
-              {derivedSeverity && (
-                <Badge>
-                  Severidad estimada: {derivedSeverity} —{" "}
-                  {SEVERITY_LABELS[derivedSeverity]}
-                </Badge>
+
+              {isLoading ? (
+                <p className="text-sm text-muted-foreground">
+                  Cargando preguntas de severidad…
+                </p>
+              ) : isError ? (
+                <p className="text-sm text-muted-foreground">
+                  No fue posible cargar las preguntas.{" "}
+                  <button
+                    type="button"
+                    onClick={() => refetch()}
+                    className="font-medium text-primary underline underline-offset-4"
+                  >
+                    Reintentar
+                  </button>
+                </p>
+              ) : (
+                visibleSeverityQuestions.map((question) => (
+                  <QuestionField
+                    key={question.code}
+                    question={question}
+                    value={answers[question.code]}
+                    error={questionErrors[question.code]}
+                    onChange={(value) =>
+                      handleAnswerChange(question.code, value)
+                    }
+                  />
+                ))
               )}
             </div>
 
-            {isLoading ? (
-              <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
-                Cargando preguntas de severidad...
-              </div>
-            ) : isError ? (
-              <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
-                No fue posible cargar las preguntas.{" "}
-                <button
-                  type="button"
-                  onClick={() => refetch()}
-                  className="font-medium text-primary underline underline-offset-4"
-                >
-                  Reintentar
-                </button>
-              </div>
-            ) : (
-              visibleSeverityQuestions.map((question) => (
-                <QuestionField
-                  key={question.code}
-                  question={question}
-                  value={answers[question.code]}
-                  error={questionErrors[question.code]}
-                  onChange={(value) => handleAnswerChange(question.code, value)}
-                />
-              ))
-            )}
-          </div>
-
-          <div className="space-y-4">
-            <div className="flex items-center justify-between gap-3">
-              <div>
+            <div className="space-y-4 xl:border-l xl:border-border xl:pl-8">
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 <h4 className="text-sm font-semibold">
                   Estimación de probabilidad
                 </h4>
+                {derivedProbability && (
+                  <Badge variant="secondary">
+                    Sugerida: {getProbabilityLabel(derivedProbability)}
+                  </Badge>
+                )}
+              </div>
+
+              {isLoading ? (
                 <p className="text-sm text-muted-foreground">
-                  El flujo se detiene cuando la respuesta ya permite determinar
-                  un valor.
+                  Cargando preguntas de probabilidad…
                 </p>
-              </div>
-              {derivedProbability && (
-                <Badge variant="secondary">
-                  Probabilidad sugerida:{" "}
-                  {getProbabilityLabel(derivedProbability)}
-                </Badge>
+              ) : isError ? (
+                <p className="text-sm text-muted-foreground">
+                  No fue posible cargar las preguntas.{" "}
+                  <button
+                    type="button"
+                    onClick={() => refetch()}
+                    className="font-medium text-primary underline underline-offset-4"
+                  >
+                    Reintentar
+                  </button>
+                </p>
+              ) : (
+                visibleProbabilityQuestions.map((question) => (
+                  <QuestionField
+                    key={question.code}
+                    question={question}
+                    value={answers[question.code]}
+                    error={questionErrors[question.code]}
+                    onChange={(value) =>
+                      handleAnswerChange(question.code, value)
+                    }
+                  />
+                ))
               )}
-            </div>
 
-            {isLoading ? (
-              <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
-                Cargando preguntas de probabilidad...
-              </div>
-            ) : isError ? (
-              <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
-                No fue posible cargar las preguntas.{" "}
-                <button
-                  type="button"
-                  onClick={() => refetch()}
-                  className="font-medium text-primary underline underline-offset-4"
-                >
-                  Reintentar
-                </button>
-              </div>
-            ) : (
-              visibleProbabilityQuestions.map((question) => (
-                <QuestionField
-                  key={question.code}
-                  question={question}
-                  value={answers[question.code]}
-                  error={questionErrors[question.code]}
-                  onChange={(value) => handleAnswerChange(question.code, value)}
-                />
-              ))
-            )}
-
-            <div className="rounded-lg border bg-background/80 p-4 dark:bg-muted/20">
-              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">
-                    Probabilidad seleccionada
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Si responde las preguntas de probabilidad, puede aplicar la
-                    sugerencia al valor canónico.
-                  </p>
-                </div>
+              <div className="flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-sm text-muted-foreground">
+                  Probabilidad seleccionada:{" "}
+                  <span className="font-medium text-foreground">
+                    {watchedProbability
+                      ? getProbabilityLabel(watchedProbability)
+                      : "Sin definir"}
+                  </span>
+                </p>
                 <Button
                   type="button"
                   variant="outline"
+                  size="sm"
                   onClick={handleApplyDerivedProbability}
                   disabled={!derivedProbability}
                 >
@@ -819,63 +787,55 @@ export function RiskAssessmentForm({
               </div>
             </div>
           </div>
-        </div>
+        </FormSection>
 
-        <div className="rounded-lg border bg-muted/20 p-4">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div className="space-y-2">
-              <p className="text-sm font-semibold">Vista previa calculada</p>
-              <div className="flex flex-wrap gap-2 text-sm">
-                {derivedProbability && (
-                  <Badge variant="secondary">
-                    Prob. estimada: {getProbabilityLabel(derivedProbability)}
-                  </Badge>
-                )}
-                {watchedProbability ? (
-                  <Badge variant="secondary">
-                    Prob. enviada: {getProbabilityLabel(watchedProbability)}
-                  </Badge>
-                ) : null}
-                {derivedSeverity && (
-                  <Badge variant="secondary">
-                    Severidad: {derivedSeverity} —{" "}
-                    {SEVERITY_LABELS[derivedSeverity]}
-                  </Badge>
-                )}
-                {previewResult && <Badge>{previewResult}</Badge>}
-                {previewRiskLevel && renderRiskLevelBadge(previewRiskLevel)}
-              </div>
+        <div className="flex flex-col gap-3 border-t pt-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="space-y-2">
+            <p className="text-sm font-semibold">Vista previa calculada</p>
+            <div className="flex flex-wrap gap-2 text-sm">
+              {derivedProbability && (
+                <Badge variant="secondary">
+                  Prob. estimada: {getProbabilityLabel(derivedProbability)}
+                </Badge>
+              )}
+              {watchedProbability ? (
+                <Badge variant="secondary">
+                  Prob. enviada: {getProbabilityLabel(watchedProbability)}
+                </Badge>
+              ) : null}
+              {derivedSeverity && (
+                <Badge variant="secondary">
+                  Severidad: {derivedSeverity} —{" "}
+                  {SEVERITY_LABELS[derivedSeverity]}
+                </Badge>
+              )}
+              {previewResult && <Badge>{previewResult}</Badge>}
+              {previewRiskLevel && renderRiskLevelBadge(previewRiskLevel)}
             </div>
-
-            <Button
-              type="submit"
-              className="lg:min-w-52"
-              disabled={
-                !selectedNotification.id || !watchedProbability || isSaving
-              }
-            >
-              {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {currentAssessment
-                ? "Actualizar evaluación"
-                : "Guardar evaluación"}
-            </Button>
           </div>
+
+          <Button
+            type="submit"
+            className="w-full sm:w-auto lg:min-w-52"
+            disabled={
+              !selectedNotification.id || !watchedProbability || isSaving
+            }
+          >
+            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {currentAssessment ? "Actualizar evaluación" : "Guardar evaluación"}
+          </Button>
         </div>
 
         {historyEntries.length > 0 && (
-          <div className="space-y-3 rounded-lg border border-dashed p-4">
-            <div>
-              <h4 className="text-sm font-semibold">Historial</h4>
-              <p className="text-sm text-muted-foreground">
-                Registros previos asociados a esta evaluación.
-              </p>
-            </div>
-
-            <div className="space-y-3">
+          <FormSection
+            title="Historial"
+            hint="Evaluaciones registradas previamente para esta notificación."
+          >
+            <div className="divide-y divide-border">
               {historyEntries.map((entry, index) => (
                 <div
                   key={`${entry.id || index}-${entry.updated_at || entry.created_at || index}`}
-                  className="rounded-lg border bg-background/80 p-4 dark:bg-muted/20"
+                  className="flex flex-wrap items-center justify-between gap-3 py-3 first:pt-0 last:pb-0"
                 >
                   <div className="flex flex-wrap gap-2">
                     {entry.probability && (
@@ -894,7 +854,7 @@ export function RiskAssessmentForm({
                     {entry.result && <Badge>{entry.result}</Badge>}
                   </div>
 
-                  <p className="mt-3 text-xs text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     {entry.updated_at || entry.created_at
                       ? formatDate(entry.updated_at || entry.created_at || "")
                       : "Sin fecha registrada"}
@@ -902,7 +862,7 @@ export function RiskAssessmentForm({
                 </div>
               ))}
             </div>
-          </div>
+          </FormSection>
         )}
       </form>
     </Form>

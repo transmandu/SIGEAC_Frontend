@@ -20,7 +20,11 @@ export const metadata: Metadata = {
   title: { default: "SIGEAC", template: "SIGEAC · %s" },
   description: "Sistema de Gestión Aeronáutica Civil",
   icons: {
-    icon: "/logo.png",
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/icon.png", type: "image/png", sizes: "256x256" },
+    ],
+    apple: "/icon.png",
   },
 };
 

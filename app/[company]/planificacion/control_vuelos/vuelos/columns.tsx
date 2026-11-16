@@ -1,12 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { type AppColumnDef } from "@/lib/table";
 import { formatNumber } from "@/lib/formatNumber";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { FlightControl } from "@/types";
 import FlightControlDropdownActions from "@/components/dropdowns/mantenimiento/FlightControlDropdownActions";
 import {
@@ -19,9 +17,7 @@ import {
 } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 
-export const getColumns = (
-  companySlug: string,
-): AppColumnDef<FlightControl>[] => [
+export const getColumns = (): AppColumnDef<FlightControl>[] => [
   {
     id: "select",
     header: ({ table }) => (
@@ -54,21 +50,15 @@ export const getColumns = (
     header: ({ column }) => (
       <DataTableColumnHeader filter column={column} title="Vuelo" />
     ),
-    cell: ({ row }) => {
-      const n = row.original.flight_number;
-      const href = `/${companySlug}/planificacion/control_vuelos/vuelos/${n}`;
-
-      return (
-        <div className="flex items-center justify-center gap-2">
-          <Hash className="h-4 w-4 text-muted-foreground" />
-          <Button asChild variant="link" className="h-auto p-0 font-medium">
-            <Link href={href} className="font-mono text-sm">
-              {n ?? "-"}
-            </Link>
-          </Button>
-        </div>
-      );
-    },
+    // No hay pantalla de detalle de un vuelo: el número va como texto.
+    cell: ({ row }) => (
+      <div className="flex items-center justify-center gap-2">
+        <Hash className="h-4 w-4 text-muted-foreground" />
+        <span className="font-mono text-sm font-medium">
+          {row.original.flight_number || "-"}
+        </span>
+      </div>
+    ),
   },
   {
     id: "route",
@@ -97,7 +87,7 @@ export const getColumns = (
     cell: ({ row }) => (
       <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
         <Calendar className="h-4 w-4" />
-        <span>{formatDate((row.original as any)?.flight_date)}</span>
+        <span>{formatDate(row.original.flight_date)}</span>
       </div>
     ),
   },

@@ -4,18 +4,15 @@ import { Radar } from "lucide-react";
 import { Control } from "react-hook-form";
 
 import {
-  FieldLabelRow,
-  FormSection,
   fieldClass,
-  labelClass,
   selectTriggerClass,
 } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
+import { PanelSection, PanelFieldLabel } from "@/components/forms/PanelSection";
 import { RequiredIndicator } from "@/components/misc/RequiredIndicator";
 import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -40,19 +37,17 @@ export function InformationSourceFormFields({
   disabled?: boolean;
 }) {
   return (
-    <FormSection compact icon={Radar} title="Fuente">
+    <PanelSection compact icon={Radar} title="Fuente">
       <div className="grid gap-3 md:grid-cols-[1fr_13rem]">
         <FormField
           control={control}
           name="name"
           render={({ field, fieldState }) => (
             <FormItem>
-              <FieldLabelRow>
-                <FormLabel className={labelClass}>
-                  Nombre de la fuente
-                  <RequiredIndicator invalid={!!fieldState.error} />
-                </FormLabel>
-              </FieldLabelRow>
+              <PanelFieldLabel>
+                Nombre de la fuente
+                <RequiredIndicator invalid={!!fieldState.error} />
+              </PanelFieldLabel>
               <FormControl>
                 <Input
                   placeholder="Ej: Inspección, auditoría interna"
@@ -72,12 +67,10 @@ export function InformationSourceFormFields({
           name="type"
           render={({ field, fieldState }) => (
             <FormItem>
-              <FieldLabelRow>
-                <FormLabel className={labelClass}>
-                  Tipo
-                  <RequiredIndicator invalid={!!fieldState.error} />
-                </FormLabel>
-              </FieldLabelRow>
+              <PanelFieldLabel>
+                Tipo
+                <RequiredIndicator invalid={!!fieldState.error} />
+              </PanelFieldLabel>
               <Select
                 value={field.value || undefined}
                 onValueChange={field.onChange}
@@ -101,6 +94,6 @@ export function InformationSourceFormFields({
           )}
         />
       </div>
-    </FormSection>
+    </PanelSection>
   );
 }

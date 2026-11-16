@@ -1,41 +1,47 @@
-"use client"
-import { memo, useMemo, useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ArrowRight, Calculator, Copy, Loader2, Plus, X } from "lucide-react"
-import type { Convertion, Unit } from "@/types"
-import type { ConversionDirection } from "@/types/supervisor"
-import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits"
+"use client";
+import { memo, useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ArrowRight, Calculator, Copy, Loader2, Plus, X } from "lucide-react";
+import type { Convertion, Unit } from "@/types";
+import type { ConversionDirection } from "@/types/supervisor";
+import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits";
 import {
   useCreateArticleUnitConversion,
   type ConvertibleType,
-} from "@/hooks/mantenimiento/almacen/articulos/useArticleUnitConversions"
-import { useCompanyStore } from "@/stores/CompanyStore"
-import { ConversionSuggestionPicker } from "./ConversionSuggestionPicker"
-import type { ConversionSuggestion } from "@/hooks/mantenimiento/almacen/articulos/useUnitConversionCatalog"
+} from "@/hooks/mantenimiento/almacen/articulos/useArticleUnitConversions";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { ConversionSuggestionPicker } from "./ConversionSuggestionPicker";
+import type { ConversionSuggestion } from "@/hooks/mantenimiento/almacen/articulos/useUnitConversionCatalog";
 
 function sanitizeDecimal(raw: string) {
-  const cleaned = raw.replace(/[^\d.]/g, "")
-  const parts = cleaned.split(".")
-  if (parts.length <= 1) return cleaned
-  return `${parts[0]}.${parts.slice(1).join("")}`
+  const cleaned = raw.replace(/[^\d.]/g, "");
+  const parts = cleaned.split(".");
+  if (parts.length <= 1) return cleaned;
+  return `${parts[0]}.${parts.slice(1).join("")}`;
 }
 
 interface ConversionPanelProps {
-  conversions: Convertion[] | undefined
-  isLoading: boolean
-  selectedConversion: Convertion | null
-  conversionInput: string
+  conversions: Convertion[] | undefined;
+  isLoading: boolean;
+  selectedConversion: Convertion | null;
+  conversionInput: string;
   /** Unidad base del artículo: es la unidad en que queda la cantidad aplicada. */
-  baseUnitLabel?: string
+  baseUnitLabel?: string;
   /** Artículo al que pertenecerán las conversiones que se creen aquí. */
-  convertibleType?: ConvertibleType
-  convertibleId?: number | null
-  onConversionChange: (conv: Convertion | null) => void
-  onInputChange: (val: string) => void
-  onApply: () => void
-  onClose: () => void
+  convertibleType?: ConvertibleType;
+  convertibleId?: number | null;
+  onConversionChange: (conv: Convertion | null) => void;
+  onInputChange: (val: string) => void;
+  onApply: () => void;
+  onClose: () => void;
 }
 
 export const ConversionPanel = memo(function ConversionPanel({
@@ -51,9 +57,9 @@ export const ConversionPanel = memo(function ConversionPanel({
   onApply,
   onClose,
 }: ConversionPanelProps) {
-  const [creating, setCreating] = useState(false)
-  const isEmpty = !isLoading && (!conversions || conversions.length === 0)
-  const canCreate = !!convertibleType && !!convertibleId
+  const [creating, setCreating] = useState(false);
+  const isEmpty = !isLoading && (!conversions || conversions.length === 0);
+  const canCreate = !!convertibleType && !!convertibleId;
 
   return (
     <div className="mt-3 rounded-md border border-dashed bg-muted/20 p-3 space-y-3">
@@ -62,7 +68,13 @@ export const ConversionPanel = memo(function ConversionPanel({
           <Calculator className="h-3.5 w-3.5 text-muted-foreground" />
           Conversión de Unidades
         </span>
-        <Button type="button" variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={onClose}>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="h-7 text-xs gap-1"
+          onClick={onClose}
+        >
           <X className="h-3 w-3" />
           Cerrar
         </Button>
@@ -73,14 +85,18 @@ export const ConversionPanel = memo(function ConversionPanel({
           <Select
             value={selectedConversion?.id?.toString() || ""}
             onValueChange={(value) => {
-              const conv = conversions?.find((c) => c.id.toString() === value)
-              onConversionChange(conv ?? null)
-              onInputChange("")
+              const conv = conversions?.find((c) => c.id.toString() === value);
+              onConversionChange(conv ?? null);
+              onInputChange("");
             }}
             disabled={isLoading}
           >
             <SelectTrigger className="h-10 flex-1">
-              <SelectValue placeholder={isLoading ? "Cargando..." : "Seleccione unidad origen"} />
+              <SelectValue
+                placeholder={
+                  isLoading ? "Cargando..." : "Seleccione unidad origen"
+                }
+              />
             </SelectTrigger>
             <SelectContent>
               {conversions?.map((conv) => (
@@ -101,7 +117,12 @@ export const ConversionPanel = memo(function ConversionPanel({
             disabled={!selectedConversion}
           />
 
-          <Button type="button" className="h-10 shrink-0" onClick={onApply} disabled={!selectedConversion || !conversionInput}>
+          <Button
+            type="button"
+            className="h-10 shrink-0"
+            onClick={onApply}
+            disabled={!selectedConversion || !conversionInput}
+          >
             Usar esta cantidad
           </Button>
         </div>
@@ -110,7 +131,10 @@ export const ConversionPanel = memo(function ConversionPanel({
       {selectedConversion && conversionInput && (
         <p className="text-xs text-muted-foreground">
           {conversionInput} {selectedConversion.unit.label} ={" "}
-          {((parseFloat(conversionInput) || 0) * selectedConversion.base_per_unit).toFixed(6)}{" "}
+          {(
+            (parseFloat(conversionInput) || 0) *
+            selectedConversion.base_per_unit
+          ).toFixed(6)}{" "}
           {baseUnitLabel ?? "unidades"}
         </p>
       )}
@@ -146,11 +170,13 @@ export const ConversionPanel = memo(function ConversionPanel({
       )}
 
       {!isLoading && isEmpty && !canCreate && (
-        <p className="text-xs text-muted-foreground">No hay conversiones disponibles para este artículo.</p>
+        <p className="text-xs text-muted-foreground">
+          No hay conversiones disponibles para este artículo.
+        </p>
       )}
     </div>
-  )
-})
+  );
+});
 
 /**
  * Alta de una conversión sin salir del despacho: si el almacenista descubre
@@ -169,21 +195,28 @@ const NewConversionForm = memo(function NewConversionForm({
   onDone,
   onCancel,
 }: {
-  type: ConvertibleType
-  articleId: number
-  baseUnitLabel?: string
-  existing: Convertion[] | undefined
-  onDone: () => void
-  onCancel: () => void
+  type: ConvertibleType;
+  articleId: number;
+  baseUnitLabel?: string;
+  existing: Convertion[] | undefined;
+  onDone: () => void;
+  onCancel: () => void;
 }) {
-  const { selectedCompany } = useCompanyStore()
-  const { data: units, isLoading: unitsLoading } = useGetUnits(selectedCompany?.slug)
-  const createConversion = useCreateArticleUnitConversion(type, articleId, selectedCompany?.slug)
+  const { selectedCompany } = useCompanyStore();
+  const { data: units, isLoading: unitsLoading } = useGetUnits(
+    selectedCompany?.slug,
+  );
+  const createConversion = useCreateArticleUnitConversion(
+    type,
+    articleId,
+    selectedCompany?.slug,
+  );
 
-  const [unitId, setUnitId] = useState<number | "">("")
-  const [direction, setDirection] = useState<ConversionDirection>("base_per_unit")
-  const [value, setValue] = useState("")
-  const [copiedFrom, setCopiedFrom] = useState<string | null>(null)
+  const [unitId, setUnitId] = useState<number | "">("");
+  const [direction, setDirection] =
+    useState<ConversionDirection>("base_per_unit");
+  const [value, setValue] = useState("");
+  const [copiedFrom, setCopiedFrom] = useState<string | null>(null);
 
   /**
    * Copia el factor de una equivalencia ya registrada. Llega en forma canónica
@@ -191,46 +224,52 @@ const NewConversionForm = memo(function NewConversionForm({
    * usuario puede cambiarla o corregir el número antes de guardar.
    */
   const applySuggestion = (suggestion: ConversionSuggestion) => {
-    if (!suggestion.unit) return
+    if (!suggestion.unit) return;
 
-    setUnitId(suggestion.unit.id)
-    setDirection("base_per_unit")
-    setValue(String(suggestion.base_per_unit))
-    setCopiedFrom(suggestion.lectura)
-  }
+    setUnitId(suggestion.unit.id);
+    setDirection("base_per_unit");
+    setValue(String(suggestion.base_per_unit));
+    setCopiedFrom(suggestion.lectura);
+  };
 
   // Ni la unidad base ni las ya registradas: para cambiar una existente se
   // edita desde el artículo, no se crea otra encima.
   const availableUnits = useMemo(() => {
-    const taken = new Set((existing ?? []).map((row) => Number(row.unit?.id)))
+    const taken = new Set((existing ?? []).map((row) => Number(row.unit?.id)));
     return (units ?? []).filter(
       (unit: Unit) => unit.label !== baseUnitLabel && !taken.has(unit.id),
-    )
-  }, [units, existing, baseUnitLabel])
+    );
+  }, [units, existing, baseUnitLabel]);
 
-  const numericValue = Number(value)
-  const isValid = !!unitId && Number.isFinite(numericValue) && numericValue > 0
+  const numericValue = Number(value);
+  const isValid = !!unitId && Number.isFinite(numericValue) && numericValue > 0;
 
-  const unitLabel = units?.find((unit: Unit) => unit.id === unitId)?.label ?? "unidad"
-  const baseLabel = baseUnitLabel ?? "unidad base"
-  const leftLabel = direction === "base_per_unit" ? unitLabel : baseLabel
-  const rightLabel = direction === "base_per_unit" ? baseLabel : unitLabel
+  const unitLabel =
+    units?.find((unit: Unit) => unit.id === unitId)?.label ?? "unidad";
+  const baseLabel = baseUnitLabel ?? "unidad base";
+  const leftLabel = direction === "base_per_unit" ? unitLabel : baseLabel;
+  const rightLabel = direction === "base_per_unit" ? baseLabel : unitLabel;
 
   // Cuánto descontaría del stock despachar 1 de la unidad elegida.
-  const factor = direction === "base_per_unit" ? numericValue : 1 / (numericValue || 1)
+  const factor =
+    direction === "base_per_unit" ? numericValue : 1 / (numericValue || 1);
 
   const submit = () => {
-    if (!isValid) return
+    if (!isValid) return;
 
     createConversion.mutate(
       { unit_id: Number(unitId), direction, value: numericValue },
       { onSuccess: onDone },
-    )
-  }
+    );
+  };
 
   return (
     <div className="rounded-md border bg-background/70 p-3 space-y-2.5">
-      <ConversionSuggestionPicker type={type} articleId={articleId} onPick={applySuggestion} />
+      <ConversionSuggestionPicker
+        type={type}
+        articleId={articleId}
+        onPick={applySuggestion}
+      />
 
       <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
         <span className="h-px flex-1 bg-border" />o escríbala
@@ -256,7 +295,11 @@ const NewConversionForm = memo(function NewConversionForm({
           </SelectTrigger>
           <SelectContent>
             {availableUnits.map((unit: Unit) => (
-              <SelectItem key={unit.id} value={String(unit.id)} className="text-xs">
+              <SelectItem
+                key={unit.id}
+                value={String(unit.id)}
+                className="text-xs"
+              >
                 {unit.label} ({unit.value})
               </SelectItem>
             ))}
@@ -266,12 +309,12 @@ const NewConversionForm = memo(function NewConversionForm({
         <Select
           value={direction}
           onValueChange={(next) => {
-            setDirection(next as ConversionDirection)
-            setCopiedFrom(null)
+            setDirection(next as ConversionDirection);
+            setCopiedFrom(null);
           }}
           disabled={!unitId}
         >
-          <SelectTrigger className="h-9 md:w-[200px] text-xs">
+          <SelectTrigger className="h-9 md:w-50 text-xs">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -287,7 +330,9 @@ const NewConversionForm = memo(function NewConversionForm({
 
       {!!unitId && (
         <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground whitespace-nowrap">1 {leftLabel} =</span>
+          <span className="text-xs text-muted-foreground whitespace-nowrap">
+            1 {leftLabel} =
+          </span>
           <Input
             autoFocus
             type="text"
@@ -295,19 +340,22 @@ const NewConversionForm = memo(function NewConversionForm({
             placeholder="Ej: 100"
             value={value}
             onChange={(e) => {
-              setValue(sanitizeDecimal(e.target.value))
-              setCopiedFrom(null)
+              setValue(sanitizeDecimal(e.target.value));
+              setCopiedFrom(null);
             }}
             className="h-9 w-28"
           />
-          <span className="text-xs text-muted-foreground whitespace-nowrap">{rightLabel}</span>
+          <span className="text-xs text-muted-foreground whitespace-nowrap">
+            {rightLabel}
+          </span>
         </div>
       )}
 
       {copiedFrom && (
         <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <Copy className="h-3 w-3 shrink-0" />
-          Copiada de <span className="font-medium text-foreground">{copiedFrom}</span>
+          Copiada de{" "}
+          <span className="font-medium text-foreground">{copiedFrom}</span>
         </p>
       )}
 
@@ -330,13 +378,21 @@ const NewConversionForm = memo(function NewConversionForm({
           onClick={submit}
           disabled={!isValid || createConversion.isPending}
         >
-          {createConversion.isPending && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />}
+          {createConversion.isPending && (
+            <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+          )}
           Guardar conversión
         </Button>
-        <Button type="button" variant="ghost" size="sm" className="h-8 text-xs" onClick={onCancel}>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="h-8 text-xs"
+          onClick={onCancel}
+        >
           Cancelar
         </Button>
       </div>
     </div>
-  )
-})
+  );
+});

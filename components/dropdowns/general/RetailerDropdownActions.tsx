@@ -1,7 +1,8 @@
 "use client";
 
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import { useState } from "react";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, Store } from "lucide-react";
 import { useDeleteRetailer } from "@/actions/ajustes/comercios/actions";
 import { ConfirmDeleteDialog } from "@/components/dialogs/shared/ConfirmDeleteDialog";
 import UpdateRetailerForm from "@/components/forms/general/UpdateRetailerForm";
@@ -9,13 +10,7 @@ import {
   SettingsRowActions,
   type RowAction,
 } from "@/components/dropdowns/SettingsRowActions";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog } from "@/components/ui/dialog";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Retailer } from "@/types";
 
@@ -47,25 +42,26 @@ export function RetailerDropdownActions({ retailer }: { retailer: Retailer }) {
       <SettingsRowActions actions={actions} tourId="comercios-actions" />
 
       <Dialog open={openEdit} onOpenChange={setOpenEdit}>
-        <DialogContent
-          className="max-h-[90vh] overflow-y-auto sm:max-w-lg"
-          onInteractOutside={(e) => e.preventDefault()}
-        >
-          <DialogHeader>
-            <DialogTitle>Editar comercio</DialogTitle>
-            <DialogDescription>
+        <FormDialogContent
+          icon={Store}
+          title="Editar comercio"
+          description={
+            <>
               Modifique lo necesario de{" "}
               <span className="font-medium text-foreground">
-                {retailer.name}
-              </span>
+                {" "}
+                {retailer.name}{" "}
+              </span>{" "}
               ; solo se guardará lo que cambie.
-            </DialogDescription>
-          </DialogHeader>
+            </>
+          }
+          className="sm:max-w-lg"
+        >
           <UpdateRetailerForm
             retailer={retailer}
             onClose={() => setOpenEdit(false)}
           />
-        </DialogContent>
+        </FormDialogContent>
       </Dialog>
 
       <ConfirmDeleteDialog

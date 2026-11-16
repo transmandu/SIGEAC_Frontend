@@ -56,6 +56,7 @@ export const useCreateHazardNotification = () => {
       });
       queryClient.invalidateQueries({ queryKey: ["voluntary-reports"] });
       queryClient.invalidateQueries({ queryKey: ["voluntary-report"] });
+      queryClient.invalidateQueries({ queryKey: ["obligatory-reports"] });
       queryClient.invalidateQueries({ queryKey: ["analysis"] });
       toast.success("¡Creado!", {
         description: ` La identificacion de peligro ha sido creado correctamente.`,
@@ -87,6 +88,9 @@ export const UpdateHazardNotification = () => {
         queryKey: ["danger-identifications", data.company],
       });
       queryClient.invalidateQueries({ queryKey: ["danger-identification"] });
+      queryClient.invalidateQueries({ queryKey: ["voluntary-reports"] });
+      queryClient.invalidateQueries({ queryKey: ["voluntary-report"] });
+      queryClient.invalidateQueries({ queryKey: ["obligatory-reports"] });
       toast.success("¡Actualizado!", {
         description: `La identificacion de peligro ha sido actualizada correctamente.`,
       });

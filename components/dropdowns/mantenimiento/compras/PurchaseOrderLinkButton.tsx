@@ -1,62 +1,62 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { ExternalLink } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { ExternalLink } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger
-} from "@/components/ui/popover"
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Tooltip,
   TooltipContent,
-  TooltipTrigger
-} from "@/components/ui/tooltip"
-import { useGetPurchaseOrderByQuoteId } from "@/hooks/mantenimiento/compras/useGetPurchaseOrderByQuoteId"
-import { isAeronauticalPurchaseOrder } from "@/lib/purchases/purchase-order-scope"
-import { cn } from "@/lib/utils"
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { useGetPurchaseOrderByQuoteId } from "@/hooks/mantenimiento/compras/useGetPurchaseOrderByQuoteId";
+import { isAeronauticalPurchaseOrder } from "@/lib/purchases/purchase-order-scope";
+import { cn } from "@/lib/utils";
 
 type Props = {
-  company: string
-  quoteId: number
-  enabled: boolean
-  className?: string
-  iconClassName?: string
-}
+  company: string;
+  quoteId: number;
+  enabled: boolean;
+  className?: string;
+  iconClassName?: string;
+};
 
 const PurchaseOrderLinkButton = ({
   company,
   quoteId,
   enabled,
   className,
-  iconClassName
+  iconClassName,
 }: Props) => {
-  const router = useRouter()
-  const [open, setOpen] = useState(false)
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
 
   const { data: purchaseOrders, isFetching } = useGetPurchaseOrderByQuoteId({
     company,
     quoteId,
-    enabled
-  })
+    enabled,
+  });
 
-  const orders = purchaseOrders ?? []
-  const hasSingle = orders.length === 1
-  const hasMultiple = orders.length > 1
+  const orders = purchaseOrders ?? [];
+  const hasSingle = orders.length === 1;
+  const hasMultiple = orders.length > 1;
 
   const goToPO = (orderNumber: string) => {
-    setOpen(false)
+    setOpen(false);
     const segment = isAeronauticalPurchaseOrder(orderNumber)
       ? "ordenes_compra"
-      : "ordenes_compra_generales"
-    router.push(`/${company}/compras/${segment}/${orderNumber}`)
-  }
+      : "ordenes_compra_generales";
+    router.push(`/${company}/compras/${segment}/${orderNumber}`);
+  };
 
   const handleClick = () => {
-    if (hasSingle) goToPO(orders[0].order_number)
-  }
+    if (hasSingle) goToPO(orders[0].order_number);
+  };
 
   const trigger = (
     <Button
@@ -68,15 +68,15 @@ const PurchaseOrderLinkButton = ({
     >
       <ExternalLink className={iconClassName} />
     </Button>
-  )
+  );
 
   const tooltipLabel = isFetching
     ? "Cargando..."
     : hasMultiple
-    ? "Ver órdenes de compra"
-    : orders.length
-    ? "Ver orden de compra"
-    : "No existe orden de compra"
+      ? "Ver órdenes de compra"
+      : orders.length
+        ? "Ver orden de compra"
+        : "No existe orden de compra";
 
   if (!hasMultiple) {
     return (
@@ -84,7 +84,7 @@ const PurchaseOrderLinkButton = ({
         <TooltipTrigger asChild>{trigger}</TooltipTrigger>
         <TooltipContent>{tooltipLabel}</TooltipContent>
       </Tooltip>
-    )
+    );
   }
 
   return (
@@ -100,7 +100,7 @@ const PurchaseOrderLinkButton = ({
         align="center"
         className="w-64 rounded-2xl border border-border/50 bg-background/95 backdrop-blur-xl shadow-xl p-1.5"
       >
-        <p className="px-2.5 pt-1.5 pb-2 text-[10px] tracking-wide text-muted-foreground select-none">
+        <p className="px-2.5 pt-1.5 pb-2 text-xs tracking-wide text-muted-foreground select-none">
           ÓRDENES DE COMPRA
         </p>
 
@@ -121,7 +121,7 @@ const PurchaseOrderLinkButton = ({
                 <span className="truncate font-medium text-foreground">
                   {po.vendor_name ?? po.retailer_name ?? "Sin proveedor"}
                 </span>
-                <span className="truncate text-[11px] text-muted-foreground">
+                <span className="truncate text-xs text-muted-foreground">
                   {po.order_number}
                 </span>
               </span>
@@ -132,7 +132,7 @@ const PurchaseOrderLinkButton = ({
         </div>
       </PopoverContent>
     </Popover>
-  )
-}
+  );
+};
 
-export default PurchaseOrderLinkButton
+export default PurchaseOrderLinkButton;

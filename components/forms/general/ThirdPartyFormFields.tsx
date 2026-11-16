@@ -4,18 +4,15 @@ import { Building2 } from "lucide-react";
 import { Control } from "react-hook-form";
 
 import {
-  FieldLabelRow,
-  FormSection,
   fieldClass,
-  labelClass,
   selectTriggerClass,
 } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
+import { PanelSection, PanelFieldLabel } from "@/components/forms/PanelSection";
 import { RequiredIndicator } from "@/components/misc/RequiredIndicator";
 import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -41,19 +38,17 @@ export function ThirdPartyFormFields({
   disabled?: boolean;
 }) {
   return (
-    <FormSection compact icon={Building2} title="Identificación">
+    <PanelSection compact icon={Building2} title="Identificación">
       <div className="grid gap-3 md:grid-cols-[1fr_14rem]">
         <FormField
           control={control}
           name="name"
           render={({ field, fieldState }) => (
             <FormItem>
-              <FieldLabelRow>
-                <FormLabel className={labelClass}>
-                  Nombre
-                  <RequiredIndicator invalid={!!fieldState.error} />
-                </FormLabel>
-              </FieldLabelRow>
+              <PanelFieldLabel>
+                Nombre
+                <RequiredIndicator invalid={!!fieldState.error} />
+              </PanelFieldLabel>
               <FormControl>
                 <Input
                   placeholder="Ej: Empresa ABC S.A."
@@ -81,12 +76,10 @@ export function ThirdPartyFormFields({
 
             return (
               <FormItem>
-                <FieldLabelRow>
-                  <FormLabel className={labelClass}>
-                    Tipo
-                    <RequiredIndicator invalid={!!fieldState.error} />
-                  </FormLabel>
-                </FieldLabelRow>
+                <PanelFieldLabel>
+                  Tipo
+                  <RequiredIndicator invalid={!!fieldState.error} />
+                </PanelFieldLabel>
                 <Select
                   value={field.value || undefined}
                   onValueChange={field.onChange}
@@ -116,6 +109,6 @@ export function ThirdPartyFormFields({
           }}
         />
       </div>
-    </FormSection>
+    </PanelSection>
   );
 }

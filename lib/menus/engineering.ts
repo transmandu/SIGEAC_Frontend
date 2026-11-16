@@ -12,6 +12,7 @@ export function buildEngineeringGroup({
       {
         href: `/${currentCompany?.slug}/ingenieria/confirmar_inventario`,
         label: "Confirmar Inventario",
+        requiresTables: ["articles"],
         active: pathname.includes(
           `/${currentCompany?.slug}/ingenieria/confirmar_inventario`,
         ),

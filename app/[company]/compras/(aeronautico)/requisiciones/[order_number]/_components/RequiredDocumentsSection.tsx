@@ -29,11 +29,11 @@ const RequiredDocumentsSection = ({
   }, [batches]);
 
   return (
-    <div className="relative flex h-full flex-col rounded-xl border border-border/60 bg-linear-to-b from-muted/30 to-muted/10 p-4 sm:p-5 shadow-xs">
+    <div className="relative flex h-full flex-col rounded-xl border border-slate-200 bg-white dark:border-slate-700/60 dark:bg-slate-900/60 p-4 sm:p-5 shadow-xs">
       <div className="flex items-center gap-2 mb-3 select-none shrink-0">
         <FileBadge className="size-3 text-muted-foreground/70 shrink-0" />
-        <span className="text-[9px] sm:text-[10px] font-semibold tracking-widest text-muted-foreground whitespace-nowrap">
-          DOCUMENTOS REQUERIDOS
+        <span className="text-xs font-semibold text-muted-foreground whitespace-nowrap">
+          Documentos requeridos
         </span>
       </div>
 
@@ -43,18 +43,18 @@ const RequiredDocumentsSection = ({
             {items.map((article, idx) => (
               <li key={`${article.article_part_number}-${idx}`}>
                 <div className="flex min-w-0 items-center gap-1">
-                  <span className="truncate text-[11px] font-medium text-foreground/90">
+                  <span className="truncate text-xs font-medium text-foreground/90">
                     {article.article_part_number}
                   </span>
                   <CopyPartNumberButton value={article.article_part_number} />
                 </div>
-                <ul className="mt-0.5 space-y-0.5 border-l border-border/50 pl-2">
+                <ul className="mt-0.5 space-y-1 border-l border-border/50 pl-2">
                   {article.document_types!.map((type) => (
                     <li
                       key={type.id}
-                      className="text-[10.5px] leading-tight text-muted-foreground truncate"
+                      className="flex gap-1.5 text-[10.5px] leading-tight text-muted-foreground wrap-anywhere before:mt-[0.35em] before:size-1 before:shrink-0 before:rounded-full before:bg-muted-foreground/50 before:content-['']"
                     >
-                      {type.name}
+                      <span className="min-w-0">{type.name}</span>
                     </li>
                   ))}
                 </ul>
@@ -62,9 +62,9 @@ const RequiredDocumentsSection = ({
             ))}
           </ul>
         ) : (
-          <div className="flex h-full flex-col items-center justify-center gap-1 text-muted-foreground/60 select-none">
-            <span className="text-[9px] sm:text-[10px] tracking-widest text-center">
-              SIN DOCUMENTOS REQUERIDOS
+          <div className="flex h-full flex-col items-center justify-center gap-1 text-muted-foreground select-none">
+            <span className="text-xs text-center">
+              Sin documentos requeridos
             </span>
           </div>
         )}

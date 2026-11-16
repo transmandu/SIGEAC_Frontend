@@ -4,19 +4,16 @@ import { MapPin, Store } from "lucide-react";
 import { Control } from "react-hook-form";
 
 import {
-  FieldLabelRow,
-  FormSection,
   fieldClass,
   hintClass,
-  labelClass,
 } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
+import { PanelSection, PanelFieldLabel } from "@/components/forms/PanelSection";
 import { RequiredIndicator } from "@/components/misc/RequiredIndicator";
 import {
   FormControl,
   FormDescription,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -33,7 +30,7 @@ export function RetailerFormFields({
 }) {
   return (
     <>
-      <FormSection
+      <PanelSection
         icon={Store}
         title="Identificación"
         hint="Tienda física o sitio en línea donde se compra."
@@ -43,12 +40,10 @@ export function RetailerFormFields({
           name="name"
           render={({ field, fieldState }) => (
             <FormItem>
-              <FieldLabelRow>
-                <FormLabel className={labelClass}>
-                  Nombre del comercio
-                  <RequiredIndicator invalid={!!fieldState.error} />
-                </FormLabel>
-              </FieldLabelRow>
+              <PanelFieldLabel>
+                Nombre del comercio
+                <RequiredIndicator invalid={!!fieldState.error} />
+              </PanelFieldLabel>
               <FormControl>
                 <Input
                   placeholder="Ej: Ferretería EPA, Mercado Libre"
@@ -63,9 +58,9 @@ export function RetailerFormFields({
             </FormItem>
           )}
         />
-      </FormSection>
+      </PanelSection>
 
-      <FormSection
+      <PanelSection
         icon={MapPin}
         title="Contacto"
         hint="Opcional. Cómo ubicar o comunicarse con el comercio."
@@ -76,9 +71,7 @@ export function RetailerFormFields({
             name="phone"
             render={({ field }) => (
               <FormItem>
-                <FieldLabelRow>
-                  <FormLabel className={labelClass}>Teléfono</FormLabel>
-                </FieldLabelRow>
+                <PanelFieldLabel>Teléfono</PanelFieldLabel>
                 <FormControl>
                   <PhoneInput
                     disabled={disabled}
@@ -98,9 +91,7 @@ export function RetailerFormFields({
             name="address"
             render={({ field }) => (
               <FormItem>
-                <FieldLabelRow>
-                  <FormLabel className={labelClass}>Ubicación</FormLabel>
-                </FieldLabelRow>
+                <PanelFieldLabel>Ubicación</PanelFieldLabel>
                 <FormControl>
                   <Input
                     placeholder="Ej: Av. Principal, local 3"
@@ -119,7 +110,7 @@ export function RetailerFormFields({
             )}
           />
         </div>
-      </FormSection>
+      </PanelSection>
     </>
   );
 }

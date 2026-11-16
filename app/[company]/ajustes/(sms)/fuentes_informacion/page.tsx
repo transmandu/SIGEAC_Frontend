@@ -42,7 +42,7 @@ const InformationSourcePage = () => {
     <SettingsListPage
       title="Fuentes de Información"
       heading="Fuentes de Información"
-      description="Administra las fuentes desde las que se identifican los peligros del SMS."
+      description="Administre las fuentes desde las que se identifican los peligros del SMS."
       search={{
         value: search,
         onChange: setSearch,
@@ -52,7 +52,7 @@ const InformationSourcePage = () => {
         <div className="relative">
           <SlidersHorizontal className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 z-10 size-3.5 text-muted-foreground" />
           <Select value={type} onValueChange={setType}>
-            <SelectTrigger className="h-8 w-50 pl-8 text-xs bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60 transition-colors focus:ring-1 focus:ring-primary/40">
+            <SelectTrigger className="h-8 w-50 max-sm:h-10 max-sm:w-full pl-8 text-xs bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60 transition-colors focus:ring-1 focus:ring-primary/40">
               <SelectValue placeholder="Tipo" />
             </SelectTrigger>
             <SelectContent className="border-slate-200/60 dark:border-slate-700/60">

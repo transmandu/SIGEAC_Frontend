@@ -48,7 +48,7 @@ const RetailersPage = () => {
     <SettingsListPage
       title="Comercios"
       heading="Control de Comercios"
-      description="Administra los comercios y lugares de compra (tiendas físicas o en línea) donde se adquieren los artículos generales."
+      description="Administre los comercios y lugares de compra (tiendas físicas o en línea) donde se adquieren los artículos generales."
       tourPrefix="comercios"
       search={{
         value: search,

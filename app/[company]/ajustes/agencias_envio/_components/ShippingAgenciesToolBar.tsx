@@ -30,22 +30,22 @@ const ShippingAgenciesToolBar = ({
       className="flex flex-wrap items-center gap-2"
       data-tour="agencias-envio-toolbar"
     >
-      <div className="relative w-64 sm:w-72">
+      <div className="relative w-64 sm:w-72 max-sm:w-full">
         <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
 
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder={placeholder}
-          className="pl-8 h-8 text-xs bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60 focus-visible:ring-1 focus-visible:ring-primary/40"
+          className="pl-8 h-8 max-sm:h-10 text-xs bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60 focus-visible:ring-1 focus-visible:ring-primary/40"
         />
       </div>
 
-      <div className="relative">
+      <div className="relative max-sm:w-full">
         <SlidersHorizontal className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 z-10 size-3.5 text-muted-foreground" />
 
         <Select value={type} onValueChange={setType}>
-          <SelectTrigger className="h-8 w-[180px] pl-8 text-xs bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60 transition-colors focus:ring-1 focus:ring-primary/40 data-placeholder:text-muted-foreground">
+          <SelectTrigger className="h-8 w-[180px] max-sm:h-10 max-sm:w-full pl-8 text-xs bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60 transition-colors focus:ring-1 focus:ring-primary/40 data-placeholder:text-muted-foreground">
             <SelectValue placeholder="Tipo" />
           </SelectTrigger>
 

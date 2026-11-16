@@ -16,6 +16,8 @@ type Props = {
   title: string;
   height?: number;
   colors?: string[];
+  /** Color opcional por categoría (por ejemplo, índices de riesgo 5A…1E). */
+  getColor?: (name: string) => string | undefined;
 };
 
 export const DEFAULT_COLORS = [
@@ -33,6 +35,7 @@ export const PieChartComponent: React.FC<Props> = ({
   title,
   height = 260,
   colors = DEFAULT_COLORS,
+  getColor,
 }) => {
   const palette = useMemo(
     () => (colors && colors.length > 0 ? colors : DEFAULT_COLORS),
@@ -86,7 +89,9 @@ export const PieChartComponent: React.FC<Props> = ({
               {data.map((entry, index) => (
                 <Cell
                   key={`cell-${entry.name}-${index}`}
-                  fill={palette[index % palette.length]}
+                  fill={
+                    getColor?.(entry.name) ?? palette[index % palette.length]
+                  }
                 />
               ))}
             </Pie>

@@ -5,13 +5,13 @@ import { notifyError } from "@/lib/notify-error";
 
 interface JobTitleFormSchema {
   company: string;
-  data: { name: string; description: string };
+  data: { name: string; description?: string };
 }
 
 interface UpdateJobTitleFormSchema {
   company: string;
   id: string;
-  data: { name: string; description: string };
+  data: { name?: string; description?: string };
 }
 
 export const useCreateJobTitle = () => {
@@ -70,10 +70,8 @@ export const useDeleteJobTitle = () => {
         description: "¡El cargo ha sido eliminado correctamente!",
       });
     },
-    onError: (error: any) => {
-      notifyError(error, {
-        action: "eliminar el cargo! Puede que tenga empleados asignados",
-      });
+    onError: (error) => {
+      notifyError(error, { action: "eliminar el cargo" });
     },
   });
 

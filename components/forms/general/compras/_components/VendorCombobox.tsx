@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Check, ChevronsUpDown, Plus } from "lucide-react";
+import { Check, ChevronsUpDown, Plus, Truck } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { triggerButtonClass } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -17,15 +18,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog } from "@/components/ui/dialog";
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import CreateVendorForm from "@/components/forms/general/CreateVendorForm";
 import type { Vendor } from "@/types";
+import { useCanManageCatalog } from "@/hooks/helpers/useCanManageCatalog";
 
 interface VendorComboboxProps {
   /** Selected vendor id as a string (matches the form field value). */
@@ -50,6 +47,7 @@ export function VendorCombobox({
 }: VendorComboboxProps) {
   const [open, setOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
+  const canCreate = useCanManageCatalog("vendors");
 
   const selected = vendors?.find((v) => v.id.toString() === value);
 
@@ -64,7 +62,8 @@ export function VendorCombobox({
             aria-expanded={open}
             disabled={disabled}
             className={cn(
-              "w-full min-w-0 justify-between bg-background/70 font-normal",
+              triggerButtonClass,
+              "h-10 min-w-0 max-sm:text-base",
               !selected && "text-muted-foreground",
               invalid && "border-destructive/60 ring-1 ring-destructive/30",
               triggerClassName,
@@ -86,26 +85,34 @@ export function VendorCombobox({
               itemValue.toLowerCase().includes(search.toLowerCase()) ? 1 : 0
             }
           >
-            <CommandInput placeholder="Buscar proveedor..." className="h-9" />
+            <CommandInput
+              placeholder="Buscar proveedor..."
+              className="h-10 max-sm:text-base"
+            />
 
-            {/* Crear proveedor — always the first, non-filtered action */}
-            <button
-              type="button"
-              onClick={() => {
-                setOpen(false);
-                setCreateOpen(true);
-              }}
-              className="flex w-full items-center gap-2 border-b px-3 py-2 text-sm font-medium text-emerald-600 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-950/30"
-            >
-              <Plus className="size-4" />
-              Crear proveedor
-            </button>
+            {canCreate && (
+              <>
+                {/* Crear proveedor — always the first, non-filtered action */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOpen(false);
+                    setCreateOpen(true);
+                  }}
+                  className="flex w-full items-center gap-2 border-b px-3 py-2 text-sm font-medium max-sm:py-3 text-emerald-600 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-950/30"
+                >
+                  <Plus className="size-4" />
+                  Crear proveedor
+                </button>
+              </>
+            )}
 
             <CommandList>
               <CommandEmpty>Sin resultados</CommandEmpty>
               <CommandGroup>
                 {vendors?.map((vendor) => (
                   <CommandItem
+                    className="max-sm:py-3"
                     key={vendor.id}
                     value={vendor.name}
                     onSelect={() => {
@@ -130,25 +137,24 @@ export function VendorCombobox({
         </PopoverContent>
       </Popover>
 
-      {/* Crear proveedor modal — auto-selects the new vendor on success */}
-      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent
-          className="max-h-[90vh] overflow-y-auto sm:max-w-2xl"
-          onInteractOutside={(e) => e.preventDefault()}
-        >
-          <DialogHeader>
-            <DialogTitle>Creación de Proveedor</DialogTitle>
-            <DialogDescription>
-              Registre un proveedor o beneficiario rellenando la información
-              necesaria.
-            </DialogDescription>
-          </DialogHeader>
-          <CreateVendorForm
-            onClose={() => setCreateOpen(false)}
-            onCreated={(created) => onChange(created.id.toString())}
-          />
-        </DialogContent>
-      </Dialog>
+      {canCreate && (
+        <>
+          {/* Crear proveedor modal — auto-selects the new vendor on success */}
+          <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+            <FormDialogContent
+              className="sm:max-w-2xl"
+              icon={Truck}
+              title="Creación de Proveedor"
+              description="Registre un proveedor o beneficiario rellenando la información necesaria."
+            >
+              <CreateVendorForm
+                onClose={() => setCreateOpen(false)}
+                onCreated={(created) => onChange(created.id.toString())}
+              />
+            </FormDialogContent>
+          </Dialog>
+        </>
+      )}
     </>
   );
 }

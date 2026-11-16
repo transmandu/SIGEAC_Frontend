@@ -80,7 +80,7 @@ export const CertificateImportProgressBar = ({
           <p className="truncate text-xs text-muted-foreground">
             {courseName
               ? `${courseName}${completionDate ? ` · ${completionDate}` : ""}`
-              : "Asignando cada PDF al empleado indicado por su DNI"}
+              : "Asignando cada archivo al empleado indicado por su DNI"}
           </p>
         </div>
         <span className="shrink-0 font-mono text-lg font-bold">

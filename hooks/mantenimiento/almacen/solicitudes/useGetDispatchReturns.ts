@@ -7,6 +7,9 @@ export interface DispatchReturnItem {
   // El destino de ESTE artículo. La condición de la devolución solo dice que
   // alguno de sus artículos fue a inspección, no cuál.
   condition: "SEALED" | "ALTERED";
+  /** Condición con que salió, y con la que volvió (null si no se cambió). */
+  dispatched_condition?: string | null;
+  returned_condition?: string | null;
   // En la unidad en que se despachó, que es en la que se registró la
   // devolución; `base_quantity` es lo que realmente movió el inventario.
   quantity: number;
@@ -47,10 +50,7 @@ const fetchDispatchReturns = async ({
   return data.data;
 };
 
-export const useGetDispatchReturns = (
-  id: number | string,
-  enabled = true
-) => {
+export const useGetDispatchReturns = (id: number | string, enabled = true) => {
   const { selectedCompany } = useCompanyStore();
 
   return useQuery<DispatchReturn[], Error>({

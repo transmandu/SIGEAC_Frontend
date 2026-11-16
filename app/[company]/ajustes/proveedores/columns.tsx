@@ -9,9 +9,7 @@ import { Vendor } from "@/types";
 import VendorDropdownActions from "@/components/dropdowns/general/VendorDropdownActions";
 import { formatPhone } from "@/lib/phone";
 
-export const getColumns = (selectedCompany?: {
-  slug: string;
-}): AppColumnDef<Vendor>[] => [
+export const columns: AppColumnDef<Vendor>[] = [
   {
     id: "expander",
     size: 40,

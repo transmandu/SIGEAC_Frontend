@@ -11,13 +11,18 @@ export interface CreateEmployeeSchema {
   second_last_name?: string;
   dni: string;
   dni_type: string;
-  blood_type: string;
+  blood_type?: string;
   gender: "MALE" | "FEMALE";
   job_title_id: string;
   department_id: string;
   location_id: string;
   user_id?: string;
   company: string;
+  birth_date?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  start_date?: string;
   profile_photo?: File;
 }
 export interface UpdateEmployeePayload {
@@ -109,6 +114,46 @@ export const useUpdateEmployee = () => {
       console.error("Update Employee Error:", error?.response?.data);
 
       notifyError(error, { action: "actualizar empleado" });
+    },
+  });
+};
+
+/**
+ * Vincula (o desvincula, con `userId` vacío) el usuario de un empleado ya
+ * creado. Es el último paso de "crear empleado con usuario": se hace después de
+ * crear el empleado, para que un fallo al crear el usuario no deje al empleado
+ * sin registrar. No avisa por sí misma: quien la llama ya muestra su resultado.
+ */
+export const useLinkEmployeeUser = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      company,
+      id,
+      userId,
+    }: {
+      company: string;
+      id: number;
+      userId: string;
+    }) => {
+      const formData = new FormData();
+      formData.append("user_id", userId);
+
+      const { data } = await axiosInstance.post(
+        `/${encodeURIComponent(company)}/employees/${id}`,
+        formData,
+        { params: { _method: "PATCH" } },
+      );
+
+      return data;
+    },
+
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["employees", variables.company],
+      });
+      queryClient.invalidateQueries({ queryKey: ["users"] });
     },
   });
 };

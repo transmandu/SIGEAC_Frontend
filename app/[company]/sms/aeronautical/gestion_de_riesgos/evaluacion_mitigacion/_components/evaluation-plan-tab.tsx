@@ -1,159 +1,205 @@
-'use client';
+"use client";
 
-import { ClipboardCheck, FileText, PencilLine, Plus } from 'lucide-react';
+import { PencilLine, Plus } from "lucide-react";
 
-import CreateMitigationPlanAnalysis from '@/components/forms/mantenimiento/sms/CreateMitigationPlanAnalysis';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { TabsContent } from '@/components/ui/tabs';
-import { Analysis, HazardNotification, MitigationPlan, RiskAssessment } from '@/types/sms/mantenimiento';
+import CreateMitigationPlanAnalysis from "@/components/forms/mantenimiento/sms/CreateMitigationPlanAnalysis";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { TabsContent } from "@/components/ui/tabs";
+import {
+  Analysis,
+  HazardNotification,
+  MitigationPlan,
+  RiskAssessment,
+} from "@/types/sms/mantenimiento";
 
-import { RiskAssessmentForm } from './risk-assessment-form';
-import { PlanSummary, RiskAssessmentSummary } from './evaluation-workflow-shared';
+import { RiskAssessmentForm } from "./risk-assessment-form";
+import {
+  PlanSummary,
+  RiskAssessmentSummary,
+} from "./evaluation-workflow-shared";
 
 type EvaluationPlanTabProps = {
-    company: string;
-    selectedNotification: HazardNotification;
-    currentMitigationPlan: MitigationPlan | null;
-    currentPlanAnalysis: Analysis | null;
-    currentRiskAssessment: RiskAssessment | null;
-    hasRiskAssessment: boolean;
-    hasPlanAndAnalysis: boolean;
-    isRiskAssessmentFormOpen: boolean;
-    isPlanFormOpen: boolean;
-    setIsRiskAssessmentFormOpen: (open: boolean | ((value: boolean) => boolean)) => void;
-    setIsPlanFormOpen: (open: boolean | ((value: boolean) => boolean)) => void;
-    onAssessmentSaved: (assessment: RiskAssessment | null) => void;
+  company: string;
+  selectedNotification: HazardNotification;
+  currentMitigationPlan: MitigationPlan | null;
+  currentPlanAnalysis: Analysis | null;
+  currentRiskAssessment: RiskAssessment | null;
+  hasRiskAssessment: boolean;
+  hasPlanAndAnalysis: boolean;
+  isRiskAssessmentFormOpen: boolean;
+  isPlanFormOpen: boolean;
+  setIsRiskAssessmentFormOpen: (
+    open: boolean | ((value: boolean) => boolean),
+  ) => void;
+  setIsPlanFormOpen: (open: boolean | ((value: boolean) => boolean)) => void;
+  onAssessmentSaved: (assessment: RiskAssessment | null) => void;
 };
 
 export function EvaluationPlanTab({
-    company,
-    selectedNotification,
-    currentMitigationPlan,
-    currentPlanAnalysis,
-    currentRiskAssessment,
-    hasRiskAssessment,
-    hasPlanAndAnalysis,
-    isRiskAssessmentFormOpen,
-    isPlanFormOpen,
-    setIsRiskAssessmentFormOpen,
-    setIsPlanFormOpen,
-    onAssessmentSaved,
+  company,
+  selectedNotification,
+  currentMitigationPlan,
+  currentPlanAnalysis,
+  currentRiskAssessment,
+  hasRiskAssessment,
+  hasPlanAndAnalysis,
+  isRiskAssessmentFormOpen,
+  isPlanFormOpen,
+  setIsRiskAssessmentFormOpen,
+  setIsPlanFormOpen,
+  onAssessmentSaved,
 }: EvaluationPlanTabProps) {
-    return (
-        <TabsContent value="plan" className="space-y-4">
-            <Card className="border-dashed">
-                <CardHeader className="gap-4 sm:flex-row sm:items-start sm:justify-between">
-                    <div className="space-y-1.5">
-                        <CardTitle className="flex items-center gap-2 text-lg">
-                            <ClipboardCheck className="h-5 w-5" />
-                            Estimación de riesgo
-                        </CardTitle>
-                        <CardDescription>
-                            Responda el árbol de probabilidad y severidad estimada.
-                        </CardDescription>
-                    </div>
+  return (
+    <TabsContent value="plan" className="mt-0 space-y-4">
+      <Card>
+        <CardHeader className="pb-4">
+          <CardTitle className="text-base">Plan y análisis</CardTitle>
+          <CardDescription>
+            Primero estime el riesgo; después documente el plan de mitigación.
+          </CardDescription>
+        </CardHeader>
 
-                    <Button
-                        type="button"
-                        variant={hasRiskAssessment ? 'outline' : 'default'}
-                        className="w-full whitespace-normal sm:w-auto"
-                        onClick={() => setIsRiskAssessmentFormOpen((value) => !value)}
-                    >
-                        {hasRiskAssessment ? <PencilLine className="mr-2 h-4 w-4" /> : <Plus className="mr-2 h-4 w-4" />}
-                        {isRiskAssessmentFormOpen
-                            ? 'Ocultar formulario'
-                            : hasRiskAssessment
-                              ? 'Editar evaluación estimada'
-                              : 'Crear evaluación estimada'}
-                    </Button>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <RiskAssessmentSummary assessment={currentRiskAssessment} />
-                </CardContent>
-            </Card>
+        <CardContent className="space-y-5">
+          <section className="space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-sm font-medium">Estimación de riesgo</p>
+                {hasRiskAssessment ? (
+                  <Badge
+                    variant="outline"
+                    className="border-emerald-200 text-emerald-700 dark:border-emerald-900/60 dark:text-emerald-300"
+                  >
+                    Listo
+                  </Badge>
+                ) : null}
+              </div>
+
+              <Button
+                type="button"
+                size="sm"
+                variant={isRiskAssessmentFormOpen ? "ghost" : "outline"}
+                onClick={() => setIsRiskAssessmentFormOpen((value) => !value)}
+              >
+                {isRiskAssessmentFormOpen ? (
+                  <>Cerrar</>
+                ) : hasRiskAssessment ? (
+                  <>
+                    <PencilLine className="mr-2 h-4 w-4" />
+                    Editar
+                  </>
+                ) : (
+                  <>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Estimar
+                  </>
+                )}
+              </Button>
+            </div>
 
             {isRiskAssessmentFormOpen ? (
-                <Card className="border-dashed">
-                    <CardHeader>
-                        <CardTitle className="text-base">
-                            {hasRiskAssessment ? 'Editar evaluación estimada' : 'Crear evaluación estimada'}
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <RiskAssessmentForm
-                            company={company}
-                            selectedNotification={selectedNotification}
-                            currentAssessment={currentRiskAssessment}
-                            onSaved={(assessment) => {
-                                onAssessmentSaved(assessment);
-                                setIsRiskAssessmentFormOpen(false);
-                            }}
-                        />
-                    </CardContent>
-                </Card>
-            ) : null}
+              <div className="border-t pt-4">
+                <RiskAssessmentForm
+                  company={company}
+                  selectedNotification={selectedNotification}
+                  currentAssessment={currentRiskAssessment}
+                  onSaved={(assessment) => {
+                    onAssessmentSaved(assessment);
+                    setIsRiskAssessmentFormOpen(false);
+                  }}
+                />
+              </div>
+            ) : hasRiskAssessment ? (
+              <RiskAssessmentSummary assessment={currentRiskAssessment} />
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Aún no hay una estimación de riesgo registrada.
+              </p>
+            )}
+          </section>
 
-            <Card className="border-dashed">
-                <CardHeader className="gap-4 sm:flex-row sm:items-start sm:justify-between">
-                    <div className="space-y-1.5">
-                        <CardTitle className="flex items-center gap-2 text-lg">
-                            <FileText className="h-5 w-5" />
-                            Plan de mitigación y análisis
-                        </CardTitle>
-                        <CardDescription>
-                            Revise la información cargada y abra el formulario solo cuando necesite crear o editar.
-                        </CardDescription>
-                    </div>
+          <Separator />
 
-                    <Button
-                        type="button"
-                        variant={hasPlanAndAnalysis ? 'outline' : 'default'}
-                        className="w-full whitespace-normal sm:w-auto"
-                        onClick={() => setIsPlanFormOpen((value) => !value)}
-                    >
-                        {hasPlanAndAnalysis ? <PencilLine className="mr-2 h-4 w-4" /> : <Plus className="mr-2 h-4 w-4" />}
-                        {isPlanFormOpen
-                            ? 'Ocultar formulario'
-                            : hasPlanAndAnalysis
-                              ? 'Editar plan y análisis'
-                              : 'Crear plan y análisis'}
-                    </Button>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <PlanSummary mitigationPlan={currentMitigationPlan} analysis={currentPlanAnalysis} />
-                </CardContent>
-            </Card>
+          <section className="space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-sm font-medium">Plan de mitigación</p>
+                {hasPlanAndAnalysis ? (
+                  <Badge
+                    variant="outline"
+                    className="border-emerald-200 text-emerald-700 dark:border-emerald-900/60 dark:text-emerald-300"
+                  >
+                    Listo
+                  </Badge>
+                ) : null}
+              </div>
+
+              <Button
+                type="button"
+                size="sm"
+                variant={hasPlanAndAnalysis ? "ghost" : "default"}
+                onClick={() => setIsPlanFormOpen((value) => !value)}
+              >
+                {isPlanFormOpen ? (
+                  <>Cerrar</>
+                ) : hasPlanAndAnalysis ? (
+                  <>
+                    <PencilLine className="mr-2 h-4 w-4" />
+                    Editar
+                  </>
+                ) : (
+                  <>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Completar
+                  </>
+                )}
+              </Button>
+            </div>
 
             {isPlanFormOpen ? (
-                <Card className="border-dashed">
-                    <CardHeader>
-                        <CardTitle className="text-base">
-                            {hasPlanAndAnalysis ? 'Editar plan y análisis' : 'Crear plan y análisis'}
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <CreateMitigationPlanAnalysis
-                            key={`plan-${selectedNotification.id}-${currentMitigationPlan?.id || 'new'}-${currentPlanAnalysis?.id || 'new'}`}
-                            hazardNotification={selectedNotification}
-                            initialData={{
-                                mitigationPlan: currentMitigationPlan,
-                                analysis: currentPlanAnalysis,
-                            }}
-                            suggestedAnalysis={
-                                currentRiskAssessment?.severity
-                                    ? {
-                                          probability: String(currentRiskAssessment.probability),
-                                          severity: currentRiskAssessment.severity,
-                                      }
-                                    : null
-                            }
-                            onSuccess={() => setIsPlanFormOpen(false)}
-                            onCancel={() => setIsPlanFormOpen(false)}
-                        />
-                    </CardContent>
-                </Card>
-            ) : null}
-        </TabsContent>
-    );
+              <div className="border-t pt-4">
+                <CreateMitigationPlanAnalysis
+                  key={`plan-${selectedNotification.id}-${currentMitigationPlan?.id || "new"}-${currentPlanAnalysis?.id || "new"}`}
+                  hazardNotification={selectedNotification}
+                  initialData={{
+                    mitigationPlan: currentMitigationPlan,
+                    analysis: currentPlanAnalysis,
+                  }}
+                  suggestedAnalysis={
+                    currentRiskAssessment?.severity
+                      ? {
+                          probability: String(
+                            currentRiskAssessment.probability,
+                          ),
+                          severity: currentRiskAssessment.severity,
+                        }
+                      : null
+                  }
+                  onSuccess={() => setIsPlanFormOpen(false)}
+                  onCancel={() => setIsPlanFormOpen(false)}
+                />
+              </div>
+            ) : hasPlanAndAnalysis ? (
+              <PlanSummary
+                mitigationPlan={currentMitigationPlan}
+                analysis={currentPlanAnalysis}
+              />
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Aún no hay un plan de mitigación registrado.
+              </p>
+            )}
+          </section>
+        </CardContent>
+      </Card>
+    </TabsContent>
+  );
 }

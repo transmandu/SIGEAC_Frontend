@@ -1,5 +1,6 @@
 "use client";
 
+import { locationShortLabel } from "@/lib/locations";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -11,7 +12,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@/lib/zod-resolver";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { useState } from "react";
 import { useCreateObligatoryReport } from "@/actions/mantenimiento/sms/reporte_obligatorio/actions";
@@ -30,7 +31,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Separator } from "@/components/ui/separator";
+import { invalidFormHandler } from "@/components/forms/mantenimiento/almacen/_components/form-feedback";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -49,6 +50,8 @@ import {
 import { useGetLocationsByCompany } from "@/hooks/sistema/useGetLocationsByCompany";
 import { PhoneInput } from "@/components/ui/PhoneInput";
 import { phoneSchema } from "@/lib/phone";
+import { useAuth } from "@/contexts/AuthContext";
+import FolderSelect from "@/components/library/FolderSelect";
 
 interface FormProps {
   isEditing?: boolean;
@@ -56,11 +59,24 @@ interface FormProps {
   onClose: () => void;
 }
 
-export function CreateGenObliReport({
-  onClose,
-  isEditing,
-  initialData,
-}: FormProps) {
+export function CreateGenObliReport({ onClose, initialData }: FormProps) {
+  const onInvalid = invalidFormHandler({
+    incident_location_id: "Ubicación del incidente",
+    report_location_id: "Ubicación del reporte",
+    description: "Descripción",
+    name: "Nombre",
+    last_name: "Apellido",
+    email: "Correo electrónico",
+    report_date: "Fecha del reporte",
+    incident_date: "Fecha del incidente",
+    incident_time: "Hora del incidente",
+    report_time: "Hora del reporte",
+    incidents: "Incidentes",
+    other_incidents: "Otros incidentes",
+    image: "Imagen",
+    document: "Documento",
+  });
+
   const FormSchema = z
     .object({
       incident_location_id: z
@@ -109,6 +125,7 @@ export function CreateGenObliReport({
           "Solo se permiten archivos PDF",
         )
         .optional(),
+      library_folder_paths: z.array(z.string()).optional().default([]),
     })
     .refine(
       (data) => {
@@ -126,6 +143,7 @@ export function CreateGenObliReport({
 
   const { createObligatoryReport } = useCreateObligatoryReport();
   const { company } = useParams<{ company: string }>();
+  const { isAuthenticated } = useAuth();
 
   const [showOtherInput, setShowOtherInput] = useState(
     initialData?.other_incidents ? true : false,
@@ -187,7 +205,13 @@ export function CreateGenObliReport({
         : [],
       other_incidents: initialData?.other_incidents ?? "",
       description: initialData?.description ?? "",
+      library_folder_paths: initialData?.library_folder_paths ?? [],
     },
+  });
+
+  const selectedDocument = useWatch({
+    control: form.control,
+    name: "document",
   });
 
   const onSubmit = async (data: FormSchemaType) => {
@@ -208,6 +232,7 @@ export function CreateGenObliReport({
       status: "IN_PROCESS",
       image: data.image,
       document: data.document,
+      library_folder_paths: data.library_folder_paths,
     };
 
     try {
@@ -255,7 +280,7 @@ export function CreateGenObliReport({
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit(onSubmit)}
+        onSubmit={form.handleSubmit(onSubmit, onInvalid)}
         className="flex flex-col space-y-5 w-full pb-4"
       >
         {/* Header */}
@@ -453,7 +478,7 @@ export function CreateGenObliReport({
                       <SelectContent>
                         {locations?.map((loc) => (
                           <SelectItem key={loc.id} value={loc.id.toString()}>
-                            {loc.cod_iata}
+                            {locationShortLabel(loc)}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -490,7 +515,7 @@ export function CreateGenObliReport({
                       <SelectContent>
                         {locations?.map((loc) => (
                           <SelectItem key={loc.id} value={loc.id.toString()}>
-                            {loc.cod_iata}
+                            {locationShortLabel(loc)}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -772,6 +797,57 @@ export function CreateGenObliReport({
                 </FormItem>
               )}
             />
+            <FormField
+              control={form.control}
+              name="document"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Documento adjunto (PDF)
+                  </FormLabel>
+                  <div className="flex flex-col gap-3 mt-2">
+                    {field.value ? (
+                      <p className="text-sm text-muted-foreground border border-border/60 rounded-md bg-muted/20 px-3 py-2">
+                        {field.value.name}
+                      </p>
+                    ) : null}
+                    <FormControl>
+                      <Input
+                        type="file"
+                        accept="application/pdf"
+                        onChange={(e) => field.onChange(e.target.files?.[0])}
+                        className="cursor-pointer file:cursor-pointer"
+                      />
+                    </FormControl>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {selectedDocument && isAuthenticated && (
+              <FormField
+                control={form.control}
+                name="library_folder_paths"
+                render={({ field }) => (
+                  <FormItem className="sm:col-span-2">
+                    <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      Carpetas en Librería
+                    </FormLabel>
+                    <FolderSelect
+                      company={company}
+                      value={field.value ?? []}
+                      onChange={(paths) => field.onChange(paths)}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      El documento también estará disponible en la biblioteca
+                      dentro de estas carpetas.
+                    </p>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
           </div>
         </div>
 

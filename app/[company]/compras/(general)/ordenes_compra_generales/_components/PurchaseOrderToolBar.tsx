@@ -1,33 +1,43 @@
-'use client'
+"use client";
 
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Search, SlidersHorizontal } from 'lucide-react'
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Search, SlidersHorizontal } from "lucide-react";
 
 type Props = {
-  search: string
-  setSearch: (value: string) => void
-  status: string
-  setStatus: (value: string) => void
-  groupBy: string
-  setGroupBy: (value: string) => void
-  placeholder?: string
-}
+  search: string;
+  setSearch: (value: string) => void;
+  status: string;
+  setStatus: (value: string) => void;
+  groupBy: string;
+  setGroupBy: (value: string) => void;
+  placeholder?: string;
+};
 
-const selectTriggerClass = `h-8 w-full pl-8 text-xs bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60 transition-colors focus:ring-1 focus:ring-primary/40 data-placeholder:text-muted-foreground [&>span]:truncate`
-const selectContentClass = `border-slate-200/60 dark:border-slate-700/60`
+const selectTriggerClass = `h-8 max-sm:h-10 w-full pl-8 text-xs bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60 transition-colors focus:ring-1 focus:ring-primary/40 data-placeholder:text-muted-foreground [&>span]:truncate`;
+const selectContentClass = `border-slate-200/60 dark:border-slate-700/60`;
 
 const StatusFilter = ({
   status,
   setStatus,
 }: {
-  status: string
-  setStatus: (value: string) => void
+  status: string;
+  setStatus: (value: string) => void;
 }) => (
   <div className="relative sm:w-44 sm:shrink-0">
-    <SlidersHorizontal className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 z-10 size-3.5 text-muted-foreground"/>
+    <SlidersHorizontal className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 z-10 size-3.5 text-muted-foreground" />
 
     <Select value={status} onValueChange={setStatus}>
       <SelectTrigger className={selectTriggerClass}>
@@ -35,35 +45,27 @@ const StatusFilter = ({
       </SelectTrigger>
 
       <SelectContent className={selectContentClass}>
-        <SelectItem value="ALL">
-          Todos los estados
-        </SelectItem>
+        <SelectItem value="ALL">Todos los estados</SelectItem>
 
-        <SelectItem value="PENDING">
-          Pendiente
-        </SelectItem>
+        <SelectItem value="PENDING">Pendiente</SelectItem>
 
-        <SelectItem value="PAID">
-          Pagada
-        </SelectItem>
+        <SelectItem value="PAID">Pagada</SelectItem>
 
-        <SelectItem value="COMPLETED">
-          Completada
-        </SelectItem>
+        <SelectItem value="COMPLETED">Completada</SelectItem>
       </SelectContent>
     </Select>
   </div>
-)
+);
 
 const GroupFilter = ({
   groupBy,
   setGroupBy,
 }: {
-  groupBy: string
-  setGroupBy: (value: string) => void
+  groupBy: string;
+  setGroupBy: (value: string) => void;
 }) => (
   <div className="relative sm:w-44 sm:shrink-0">
-    <SlidersHorizontal className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 z-10 size-3.5 text-muted-foreground"/>
+    <SlidersHorizontal className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 z-10 size-3.5 text-muted-foreground" />
 
     <Select value={groupBy} onValueChange={setGroupBy}>
       <SelectTrigger className={selectTriggerClass}>
@@ -71,21 +73,15 @@ const GroupFilter = ({
       </SelectTrigger>
 
       <SelectContent className={selectContentClass}>
-        <SelectItem value="NONE">
-          Sin agrupación
-        </SelectItem>
+        <SelectItem value="NONE">Sin agrupación</SelectItem>
 
-        <SelectItem value="quote">
-          Cotización
-        </SelectItem>
+        <SelectItem value="quote">Cotización</SelectItem>
 
-        <SelectItem value="retailer">
-          Comercio
-        </SelectItem>
+        <SelectItem value="retailer">Comercio</SelectItem>
       </SelectContent>
     </Select>
   </div>
-)
+);
 
 const PurchaseOrderToolBar = ({
   search,
@@ -94,20 +90,19 @@ const PurchaseOrderToolBar = ({
   setStatus,
   groupBy,
   setGroupBy,
-  placeholder = 'Buscar órdenes de compra...',
+  placeholder = "Buscar órdenes de compra...",
 }: Props) => {
   return (
     <div className="flex items-center gap-2">
-
       {/* SEARCH */}
       <div className="relative flex-1 sm:flex-none sm:w-72">
-        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground"/>
+        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
 
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder={placeholder}
-          className="pl-8 h-8 text-xs bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60 focus-visible:ring-1 focus-visible:ring-primary/40"
+          className="pl-8 h-8 max-sm:h-10 text-xs bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60 focus-visible:ring-1 focus-visible:ring-primary/40"
         />
       </div>
 
@@ -118,7 +113,7 @@ const PurchaseOrderToolBar = ({
             <Button
               variant="outline"
               size="icon"
-              className="h-8 w-8 shrink-0 bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60"
+              className="h-8 w-8 max-sm:size-10 shrink-0 bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60"
             >
               <SlidersHorizontal className="size-4" />
             </Button>
@@ -126,36 +121,23 @@ const PurchaseOrderToolBar = ({
 
           <PopoverContent
             align="end"
-            className="w-72 p-3 space-y-3 border-slate-200/60 dark:border-slate-700/60"
+            className="w-72 max-w-[calc(100vw-2rem)] p-3 space-y-3 border-slate-200/60 dark:border-slate-700/60"
           >
-            <StatusFilter
-              status={status}
-              setStatus={setStatus}
-            />
+            <StatusFilter status={status} setStatus={setStatus} />
 
-            <GroupFilter
-              groupBy={groupBy}
-              setGroupBy={setGroupBy}
-            />
+            <GroupFilter groupBy={groupBy} setGroupBy={setGroupBy} />
           </PopoverContent>
         </Popover>
       </div>
 
       {/* DESKTOP FILTER */}
       <div className="hidden sm:flex items-center gap-2">
-        <StatusFilter
-          status={status}
-          setStatus={setStatus}
-        />
+        <StatusFilter status={status} setStatus={setStatus} />
 
-        <GroupFilter
-          groupBy={groupBy}
-          setGroupBy={setGroupBy}
-        />
+        <GroupFilter groupBy={groupBy} setGroupBy={setGroupBy} />
       </div>
-
     </div>
-  )
-}
+  );
+};
 
-export default PurchaseOrderToolBar
+export default PurchaseOrderToolBar;

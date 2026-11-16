@@ -2,7 +2,13 @@
 
 import { Menu } from "@/components/sidebar/Menu";
 import { SidebarToggle } from "@/components/sidebar/SidebarToggle";
-import { Button } from "@/components/ui/button";
+import Image from "next/image";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useSidebarToggle } from "@/hooks/helpers/use-sidebar-toggle";
 import { useStoreHydrated } from "@/hooks/helpers/use-store";
 import { cn } from "@/lib/utils";
@@ -30,31 +36,62 @@ export function Sidebar() {
 
       <div className="glass-panel relative h-full flex flex-col px-2 py-4 overflow-hidden">
         {/* LOGO CONTAINER */}
-        <div
-          className={cn(
-            "flex justify-center items-center mb-1 mt-4",
-            "px-4 py-4",
-          )}
-        >
-          <Button
-            className={cn(
-              "transition-transform ease-in-out duration-300 w-full justify-center",
-              isOpen === false ? "translate-x-1" : "translate-x-0",
-            )}
-            variant="link"
-            asChild
-          >
-            <Link
-              href={
-                selectedCompany && selectedStation
-                  ? `/${selectedCompany.slug}/dashboard`
-                  : "/inicio"
-              }
-              className="flex items-center justify-center w-full"
-            >
-              <Logo width={120} height={120} />
-            </Link>
-          </Button>
+        <div className="relative mb-1 mt-4 h-24 shrink-0">
+          {/* Plegada, la barra mide 74 px útiles y el logo horizontal quedaba
+              ilegible: se muestra solo el avión de la marca, centrado en el
+              mismo eje que los iconos del menú. */}
+          <TooltipProvider disableHoverableContent>
+            <Tooltip delayDuration={100}>
+              <TooltipTrigger asChild>
+                <Link
+                  href={
+                    selectedCompany && selectedStation
+                      ? `/${selectedCompany.slug}/dashboard`
+                      : "/inicio"
+                  }
+                  aria-label="Inicio"
+                  className="absolute inset-0 flex items-center justify-center"
+                >
+                  <span
+                    className={cn(
+                      "absolute px-4 transition-opacity duration-200",
+                      isOpen === false
+                        ? "pointer-events-none opacity-0"
+                        : "opacity-100",
+                    )}
+                  >
+                    <Logo width={120} height={120} />
+                  </span>
+                  {/* Avión recortado de cada versión del logo (public/plane*.png).
+                      Como en Logo.tsx, el tema lo resuelve CSS, no JS. */}
+                  {[
+                    { src: "/plane.png", theme: "dark:hidden" },
+                    { src: "/plane-dark.png", theme: "hidden dark:block" },
+                  ].map(({ src, theme }) => (
+                    <Image
+                      key={src}
+                      src={src}
+                      alt=""
+                      width={64}
+                      height={64}
+                      draggable={false}
+                      loading="eager"
+                      className={cn(
+                        "pointer-events-none absolute size-16 max-w-none select-none transition-opacity duration-200",
+                        theme,
+                        isOpen === false ? "opacity-100" : "opacity-0",
+                      )}
+                    />
+                  ))}
+                </Link>
+              </TooltipTrigger>
+              {isOpen === false && (
+                <TooltipContent side="right" className="rounded-lg">
+                  Inicio
+                </TooltipContent>
+              )}
+            </Tooltip>
+          </TooltipProvider>
         </div>
 
         {/* Sin compañía el menú no se oculta: getMenuList ya devuelve solo los

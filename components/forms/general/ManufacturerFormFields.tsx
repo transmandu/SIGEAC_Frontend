@@ -4,20 +4,17 @@ import { Factory, Tag } from "lucide-react";
 import { Control } from "react-hook-form";
 
 import {
-  FieldLabelRow,
-  FormSection,
   fieldClass,
   hintClass,
-  labelClass,
   selectTriggerClass,
 } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
+import { PanelSection, PanelFieldLabel } from "@/components/forms/PanelSection";
 import { RequiredIndicator } from "@/components/misc/RequiredIndicator";
 import {
   FormControl,
   FormDescription,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -43,7 +40,7 @@ export function ManufacturerFormFields({
 }) {
   return (
     <>
-      <FormSection
+      <PanelSection
         icon={Factory}
         title="Identificación"
         hint="Cómo se conoce al fabricante en el sistema."
@@ -54,12 +51,10 @@ export function ManufacturerFormFields({
             name="name"
             render={({ field, fieldState }) => (
               <FormItem>
-                <FieldLabelRow>
-                  <FormLabel className={labelClass}>
-                    Abreviatura
-                    <RequiredIndicator invalid={!!fieldState.error} />
-                  </FormLabel>
-                </FieldLabelRow>
+                <PanelFieldLabel>
+                  Abreviatura
+                  <RequiredIndicator invalid={!!fieldState.error} />
+                </PanelFieldLabel>
                 <FormControl>
                   <Input
                     placeholder="Ej: Boeing, Airbus, GE"
@@ -82,9 +77,7 @@ export function ManufacturerFormFields({
             name="description"
             render={({ field }) => (
               <FormItem>
-                <FieldLabelRow>
-                  <FormLabel className={labelClass}>Nombre completo</FormLabel>
-                </FieldLabelRow>
+                <PanelFieldLabel>Nombre completo</PanelFieldLabel>
                 <FormControl>
                   <Input
                     placeholder="Ej: The Boeing Company"
@@ -103,9 +96,9 @@ export function ManufacturerFormFields({
             )}
           />
         </div>
-      </FormSection>
+      </PanelSection>
 
-      <FormSection
+      <PanelSection
         icon={Tag}
         title="Clasificación"
         hint="Define en qué selectores aparece el fabricante."
@@ -115,12 +108,10 @@ export function ManufacturerFormFields({
           name="type"
           render={({ field, fieldState }) => (
             <FormItem>
-              <FieldLabelRow>
-                <FormLabel className={labelClass}>
-                  Tipo
-                  <RequiredIndicator invalid={!!fieldState.error} />
-                </FormLabel>
-              </FieldLabelRow>
+              <PanelFieldLabel>
+                Tipo
+                <RequiredIndicator invalid={!!fieldState.error} />
+              </PanelFieldLabel>
               <Select
                 onValueChange={field.onChange}
                 value={field.value}
@@ -145,7 +136,7 @@ export function ManufacturerFormFields({
             </FormItem>
           )}
         />
-      </FormSection>
+      </PanelSection>
     </>
   );
 }

@@ -8,15 +8,19 @@ import { TrainingStatusBadge } from "@/components/sms/TrainingStatusBadge";
 import { TrainingHistoryDialog } from "@/components/sms/TrainingHistoryDialog";
 
 /**
- * Cuando el estado es PENDING (el recurrente venció y hay que repetir el
+ * Cuando el estado es PENDIENTE (el recurrente venció y hay que repetir el
  * INICIAL), la expiración actual es null. Si hay histórico, mostramos la
  * última fecha en que efectivamente venció.
  */
 function lastExpiration(row: SMSTraining): Date | null {
   if (row.expiration) return new Date(row.expiration);
   const lastExpired = row.history
-    ?.filter((h) => h.event_type === "EXPIRED" && h.expiration)
-    .sort((a, b) => new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime())[0];
+    ?.filter((h) => h.event_type === "VENCIDO" && h.expiration)
+    .sort(
+      (a, b) =>
+        new Date(b.created_at ?? 0).getTime() -
+        new Date(a.created_at ?? 0).getTime(),
+    )[0];
   return lastExpired?.expiration ? new Date(lastExpired.expiration) : null;
 }
 
@@ -85,9 +89,7 @@ export const columns: AppColumnDef<SMSTraining>[] = [
       return (
         <div className="flex justify-center text-center">
           {exp ? (
-            <p className="font-medium text-center">
-              {dateFormat(exp, "PPP")}
-            </p>
+            <p className="font-medium text-center">{dateFormat(exp, "PPP")}</p>
           ) : (
             <p className="font-medium text-center">N/A</p>
           )}

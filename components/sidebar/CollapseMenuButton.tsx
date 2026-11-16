@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ChevronDown, Dot, LucideIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { getGroupOpen, setGroupOpen } from "@/lib/sidebar-state";
 import { Button } from "@/components/ui/button";
 import { DropdownMenuArrow } from "@radix-ui/react-dropdown-menu";
 import {
@@ -39,6 +40,8 @@ interface CollapseMenuButtonProps {
   active: boolean;
   submenus: Submenu[];
   isOpen: boolean | undefined;
+  /** Identifica el grupo para recordar si estaba abierto entre montajes. */
+  stateKey?: string;
 }
 
 export function CollapseMenuButton({
@@ -47,9 +50,18 @@ export function CollapseMenuButton({
   active,
   submenus,
   isOpen,
+  stateKey,
 }: CollapseMenuButtonProps) {
   const isSubmenuActive = submenus.some((submenu) => submenu.active);
-  const [isCollapsed, setIsCollapsed] = useState<boolean>(isSubmenuActive);
+  // El grupo de la ruta actual siempre arranca abierto; los demás, como el
+  // usuario los dejó la última vez que se montó el menú.
+  const [isCollapsed, setIsCollapsed] = useState<boolean>(
+    isSubmenuActive || (stateKey ? (getGroupOpen(stateKey) ?? false) : false),
+  );
+
+  useEffect(() => {
+    if (stateKey) setGroupOpen(stateKey, isCollapsed);
+  }, [stateKey, isCollapsed]);
   // Al navegar a una ruta de este grupo, se abre solo. Se compara contra el
   // valor previo en vez de forzarlo en cada render, para no reabrir el grupo
   // que el usuario acaba de cerrar estando dentro de una de sus rutas.
@@ -65,7 +77,9 @@ export function CollapseMenuButton({
   }
 
   const triggerClassName = cn(
-    "group relative h-11 w-full justify-start overflow-hidden rounded-xl border pl-2 pr-2 text-[13px] transition-all duration-200",
+    // pl-4 igual que los items simples de Menu.tsx: el icono no cambia de sitio
+    // al plegar la barra.
+    "group relative h-11 w-full justify-start overflow-hidden rounded-xl border pl-4 pr-2 text-[13px] transition-colors duration-200",
     "border-transparent bg-transparent text-muted-foreground hover:border-border/70 hover:bg-muted/40 hover:text-foreground",
     (active || isSubmenuActive) &&
       "border-border/80 bg-muted/60 text-foreground shadow-xs shadow-black/5",
@@ -92,7 +106,7 @@ export function CollapseMenuButton({
             <div className="flex min-w-0 flex-1 items-center">
               <span
                 className={cn(
-                  "mr-3 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-transparent bg-muted/30 text-muted-foreground transition-all duration-200 group-hover:border-border/60 group-hover:bg-background/70 group-hover:text-foreground",
+                  "mr-3 flex size-8 shrink-0 items-center justify-center rounded-lg border border-transparent bg-muted/30 text-muted-foreground transition-all duration-200 group-hover:border-border/60 group-hover:bg-background/70 group-hover:text-foreground",
                   (active || isSubmenuActive) &&
                     "glass-control text-foreground",
                 )}
@@ -148,7 +162,7 @@ export function CollapseMenuButton({
                   index === submenus.length - 1 && "h-0"
                 )}
               /> */}
-              <span className="mr-2 flex h-6 w-6 shrink-0 items-center justify-center text-muted-foreground/80">
+              <span className="mr-2 flex size-6 shrink-0 items-center justify-center text-muted-foreground/80">
                 <Dot size={16} />
               </span>
               <p
@@ -175,20 +189,20 @@ export function CollapseMenuButton({
               <Button
                 variant="ghost"
                 className={cn(
-                  "group h-11 w-full justify-start rounded-xl border border-transparent bg-transparent pl-2 pr-2 text-muted-foreground transition-all duration-200",
+                  "group h-11 w-full justify-start overflow-hidden rounded-xl border border-transparent bg-transparent pl-4 pr-2 text-muted-foreground transition-colors duration-200",
                   "hover:border-border/70 hover:bg-muted/40 hover:text-foreground",
                   (active || isSubmenuActive) &&
                     "border-border/80 bg-muted/60 text-foreground shadow-xs shadow-black/5",
                 )}
               >
                 <div className="w-full items-center flex justify-between">
-                  <div className="flex items-center">
+                  <div className="flex w-full items-center">
                     <span
                       className={cn(
-                        "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-transparent bg-muted/30 text-muted-foreground transition-all duration-200 group-hover:border-border/60 group-hover:bg-background/70 group-hover:text-foreground",
+                        "flex size-8 shrink-0 items-center justify-center rounded-lg border border-transparent bg-muted/30 text-muted-foreground transition-all duration-200 group-hover:border-border/60 group-hover:bg-background/70 group-hover:text-foreground",
                         (active || isSubmenuActive) &&
                           "glass-control text-foreground",
-                        isOpen === false ? "mx-auto" : "mr-3",
+                        "mr-3",
                       )}
                     >
                       <Icon size={18} />
@@ -196,7 +210,7 @@ export function CollapseMenuButton({
                     <p
                       className={cn(
                         "max-w-50 truncate text-[13px] font-medium",
-                        isOpen === false ? "opacity-0" : "opacity-100",
+                        isOpen === false && "opacity-0",
                       )}
                     >
                       {label}
@@ -242,7 +256,7 @@ export function CollapseMenuButton({
                   active && "border-border/70 bg-muted/50 text-foreground",
                 )}
               >
-                <span className="mr-2 flex h-6 w-6 items-center justify-center text-muted-foreground/80">
+                <span className="mr-2 flex size-6 items-center justify-center text-muted-foreground/80">
                   <Dot size={16} />
                 </span>
                 <p className="max-w-45 truncate">{label}</p>

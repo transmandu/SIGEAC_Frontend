@@ -153,8 +153,11 @@ export const useCreateSMSActivity = () => {
       );
       return response.data;
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["sms-activities"] });
+      if (variables.data.bulletin) {
+        queryClient.invalidateQueries({ queryKey: ["safety-bulletins"] });
+      }
       toast.success("¡Creado!", {
         description: `La Actividad ha sido creado correctamente.`,
       });

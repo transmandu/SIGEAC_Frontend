@@ -2,6 +2,7 @@
 
 import { type AppColumnDef } from "@/lib/table";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
+import { TagBadge } from "@/components/misc/TagBadge";
 
 export interface AuthorizedEmployee {
   id: number;
@@ -32,8 +33,8 @@ export const columns: AppColumnDef<AuthorizedEmployee>[] = [
 
     cell: ({ row }) => (
       <div className="flex justify-center w-full">
-        <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
-          V-{row.original.dni_employee}
+        <span className="text-sm font-medium tabular-nums text-slate-700 dark:text-slate-200">
+          {row.original.dni_employee}
         </span>
       </div>
     ),
@@ -124,7 +125,7 @@ export const columns: AppColumnDef<AuthorizedEmployee>[] = [
 
     cell: ({ row }) => (
       <div className="flex justify-center w-full">
-        <span className="text-sm text-slate-600 dark:text-slate-300 uppercase">
+        <span className="text-sm font-medium text-slate-600 dark:text-slate-300 uppercase">
           {row.original.from_company_name ?? row.original.from_company_db}
         </span>
       </div>
@@ -147,10 +148,16 @@ export const columns: AppColumnDef<AuthorizedEmployee>[] = [
     },
 
     cell: ({ row }) => (
-      <div className="flex justify-center w-full">
-        <span className="text-sm text-center text-slate-600 dark:text-slate-300">
-          {row.original.scopes?.join(", ") || "—"}
-        </span>
+      <div className="flex w-full flex-wrap items-center justify-center gap-1.5">
+        {row.original.scopes?.length ? (
+          row.original.scopes.map((scope) => (
+            <TagBadge key={scope} tone="slate">
+              {scope}
+            </TagBadge>
+          ))
+        ) : (
+          <span className="text-sm text-muted-foreground">—</span>
+        )}
       </div>
     ),
   },

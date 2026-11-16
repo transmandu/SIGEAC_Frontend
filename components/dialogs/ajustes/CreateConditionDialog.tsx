@@ -1,19 +1,13 @@
 "use client";
 
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { useState } from "react";
 import { CreateConditionForm } from "@/components/forms/ajustes/CreateConditionForm";
 import { Condition } from "@/types";
-import { Plus } from "lucide-react";
+import { Plus, BadgeCheck } from "lucide-react";
 
 interface CreateConditionDialogProps {
   onSuccess?: (condition: Condition) => void;
@@ -35,23 +29,18 @@ export function CreateConditionDialog({
           </ActionTriggerButton>
         )}
       </DialogTrigger>
-      <DialogContent
-        className="max-h-[90vh] overflow-y-auto sm:max-w-lg"
-        onInteractOutside={(e) => e.preventDefault()}
+      <FormDialogContent
+        icon={BadgeCheck}
+        title="Creación de Condición"
+        description="Cree una condición para los artículos del almacén."
+        tourId="condiciones-dialog-header"
+        className="sm:max-w-lg"
       >
-        <DialogHeader>
-          <DialogTitle data-tour="condiciones-dialog-header">
-            Creación de Condición
-          </DialogTitle>
-          <DialogDescription>
-            Cree una condición para los artículos del almacén.
-          </DialogDescription>
-        </DialogHeader>
         <CreateConditionForm
           onClose={() => setOpen(false)}
           onSuccess={onSuccess}
         />
-      </DialogContent>
+      </FormDialogContent>
     </Dialog>
   );
 }

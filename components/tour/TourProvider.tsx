@@ -128,7 +128,11 @@ function FloatingTourMenu() {
     <div
       ref={ref}
       data-tour-menu="true"
-      className="fixed bottom-4 right-4 z-100 flex flex-col items-end gap-2 pointer-events-auto"
+      // Por encima de los diálogos a propósito: hay tours que se inician desde
+      // dentro de uno. Con alertas a la vista sube sobre su botón (z-40, por
+      // debajo de diálogos y menús) para que nunca se solapen, y se retira
+      // mientras el panel de alertas está abierto (ver globals.css).
+      className="fixed bottom-[var(--fab-alert-offset,1rem)] right-7 z-100 flex flex-col items-end gap-2 pointer-events-auto transition-[bottom,opacity] duration-300"
     >
       {open && (
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl w-64 p-2">

@@ -17,6 +17,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useGetActivityAttendanceList } from "@/hooks/sms/useGetActivityAttendanceList";
 import { useGetSMSActivityAttendanceStats } from "@/hooks/sms/useGetSMSActivityAttendanceStats";
 import { useGetSMSActivityByNumber } from "@/hooks/sms/useGetSMSActivityByNumber";
+import { useIsOmac } from "@/hooks/sistema/useIsOmac";
+import { AeronauticalActivityDetail } from "@/app/[company]/sms/(employees)/promocion/actividades/_components/aeronautical-activity-detail";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { generateMinutaPDF } from "@/utils/generateMinutaPDF";
 import { addDays, format } from "date-fns";
@@ -49,7 +51,7 @@ const statusClassName = {
     "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-800",
 } as const;
 
-const ShowSMSActivity = () => {
+const AirlineActivityDetail = () => {
   const { selectedCompany } = useCompanyStore();
   const { activity_number } = useParams<{ activity_number: string }>();
 
@@ -761,6 +763,24 @@ const ShowSMSActivity = () => {
       )}
     </>
   );
+};
+
+const ShowSMSActivity = () => {
+  const { selectedCompany } = useCompanyStore();
+  const { data: isOMAC, isLoading } = useIsOmac(selectedCompany?.slug);
+
+  if (isLoading) {
+    return (
+      <ContentLayout title="Actividad SMS">
+        <PageHeader className="mb-6" />
+        <div className="flex w-full items-center justify-center py-20">
+          <Loader2 className="size-10 animate-spin text-muted-foreground" />
+        </div>
+      </ContentLayout>
+    );
+  }
+
+  return isOMAC ? <AeronauticalActivityDetail /> : <AirlineActivityDetail />;
 };
 
 export default ShowSMSActivity;

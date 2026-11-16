@@ -1,16 +1,10 @@
 "use client";
 
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import { useState, useEffect } from "react";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Plus } from "lucide-react";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import { Plus, Truck } from "lucide-react";
 import { CreateShippingAgencyForm } from "@/components/forms/general/CreateShippingAgencyForm";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { agenciasEnvioCrearSteps } from "@/components/tour/steps/ajustes/agencia-envios/agencias-envio-crear";
@@ -41,19 +35,15 @@ export function CreateShippingAgencyDialog() {
         </ActionTriggerButton>
       </DialogTrigger>
 
-      <DialogContent
-        className="max-h-[90vh] overflow-y-auto sm:max-w-2xl"
-        onInteractOutside={(e) => e.preventDefault()}
+      <FormDialogContent
+        icon={Truck}
+        title="Nueva agencia de envío"
+        description="Registre una agencia de envío para la gestión de distribución y logística."
+        tourId="agencias-envio-crear-header"
+        className="sm:max-w-2xl"
       >
-        <DialogHeader data-tour="agencias-envio-crear-header">
-          <DialogTitle>Nueva agencia de envío</DialogTitle>
-          <DialogDescription>
-            Registre una agencia de envío para la gestión de distribución y
-            logística.
-          </DialogDescription>
-        </DialogHeader>
         <CreateShippingAgencyForm onClose={() => setOpen(false)} />
-      </DialogContent>
+      </FormDialogContent>
     </Dialog>
   );
 }

@@ -504,7 +504,7 @@ export function IncomingReview({ article }: { article: any }) {
   const consumable = article?.consumable;
 
   /* ── Checklist state ── */
-  const { data: groups = [], isLoading } = useGetIncomingChecks(expectsDocs);
+  const { data: groups = [], isLoading } = useGetIncomingChecks();
 
   /* ── Document download (nuevo sistema documental) ── */
   const handleDownloadDocument = async (doc: ArticleDocument) => {
@@ -563,6 +563,13 @@ export function IncomingReview({ article }: { article: any }) {
   const [quarantineEntryDate, setQuarantineEntryDate] = useState<Date>(
     new Date(),
   );
+
+  // Un NO en un check crítico rechaza el artículo en el servidor aunque se
+  // elija "almacén": el inspector debe saberlo antes de confirmar.
+  const failedCritical = flat.filter(
+    (item) => item.critical && checklist[item.key] === false,
+  );
+  const willBeRejected = decision === "STORE" && failedCritical.length > 0;
 
   const quarantineEnabled = inspectorNotes.trim().length >= 5;
   const actionDisabled =
@@ -633,7 +640,13 @@ export function IncomingReview({ article }: { article: any }) {
       return;
     }
 
-    await confirmIncoming.mutateAsync(buildPayload());
+    try {
+      await confirmIncoming.mutateAsync(buildPayload());
+    } catch {
+      // El hook ya avisó del error; el diálogo se queda abierto para reintentar.
+      return;
+    }
+
     setAcceptOpen(false);
     router.push(`/${selectedCompany.slug}/control_calidad/incoming`);
   };
@@ -646,7 +659,12 @@ export function IncomingReview({ article }: { article: any }) {
       quarantine_entry_date: format(quarantineEntryDate, "yyyy-MM-dd"),
       inspector: `${user.username}`,
     };
-    await sendToQuarantine.mutateAsync(payload);
+    try {
+      await sendToQuarantine.mutateAsync(payload);
+    } catch {
+      return;
+    }
+
     setQuarantineOpen(false);
     router.push(`/${selectedCompany.slug}/control_calidad/incoming`);
   };
@@ -1093,21 +1111,42 @@ export function IncomingReview({ article }: { article: any }) {
                 </button>
               </div>
 
+              {willBeRejected && (
+                <p className="mt-4 flex items-start gap-2 rounded-lg border border-red-300/60 bg-red-50 p-3 text-xs text-red-700 dark:border-red-700/40 dark:bg-red-950/30 dark:text-red-400">
+                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                  <span>
+                    {failedCritical.length === 1
+                      ? "Un check crítico está en NO"
+                      : `${failedCritical.length} checks críticos están en NO`}
+                    : el artículo será rechazado y pasará a cuarentena aunque
+                    elija almacén.
+                  </span>
+                </p>
+              )}
+
               <Button
                 className="mt-4 h-12 w-full text-sm font-semibold"
                 onClick={openDecisionDialog}
                 disabled={actionDisabled}
-                variant={decision === "QUARANTINE" ? "destructive" : "default"}
+                variant={
+                  decision === "QUARANTINE" || willBeRejected
+                    ? "destructive"
+                    : "default"
+                }
               >
                 {decision === "QUARANTINE"
                   ? "Enviar a cuarentena"
-                  : "Confirmar ingreso a almacén"}
+                  : willBeRejected
+                    ? "Registrar inspección (irá a cuarentena)"
+                    : "Confirmar ingreso a almacén"}
               </Button>
 
               <p className="mt-2 text-center text-xs text-muted-foreground">
-                {decision === "QUARANTINE"
-                  ? "La nota del inspector será usada como motivo de cuarentena."
-                  : "Se registrarán los checks que estén marcados."}
+                {total === 0
+                  ? "No hay checks de inspección configurados: no se puede registrar la inspección."
+                  : decision === "QUARANTINE"
+                    ? "La nota del inspector será usada como motivo de cuarentena."
+                    : "Se registrarán los checks que estén marcados."}
               </p>
             </section>
           </div>
@@ -1184,6 +1223,7 @@ export function IncomingReview({ article }: { article: any }) {
                   mode="single"
                   selected={incomingDate}
                   onSelect={(d) => d && setIncomingDate(d)}
+                  disabled={{ after: new Date() }}
                   locale={es}
                 />
               </PopoverContent>
@@ -1226,6 +1266,7 @@ export function IncomingReview({ article }: { article: any }) {
                   mode="single"
                   selected={quarantineEntryDate}
                   onSelect={(d) => d && setQuarantineEntryDate(d)}
+                  disabled={{ after: new Date() }}
                   locale={es}
                 />
               </PopoverContent>

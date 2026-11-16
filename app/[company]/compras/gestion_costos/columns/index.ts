@@ -1,28 +1,32 @@
-'use client'
+"use client";
 
 import { type AppColumnDef } from "@/lib/table";
-import { getArticleCostColumns } from './article-cost.columns'
-import { getGeneralCostColumns } from './general-cost.columns'
-import type { CostType, BuildColumnsArgs } from '@/types/purchase'
+import {
+  articleCostColumns,
+  articleCostColumnsWithUnit,
+} from "./article-cost.columns";
+import { generalCostColumns } from "./general-cost.columns";
+import type { CostType } from "@/types/purchase";
 
-export { type ArticleCostRow, type GeneralCostRow, type DraftValue } from '@/types/purchase'
+export {
+  type ArticleCostRow,
+  type GeneralCostRow,
+  type DraftValue,
+} from "@/types/purchase";
 
-export const getColumns = ({
-  type,
-  onCostChange,
-  onViewHistory,
-  category,
-}: BuildColumnsArgs): AppColumnDef<any>[] => {
-  if (type === 'GENERAL') {
-    return getGeneralCostColumns({
-      onCostChange,
-      onViewHistory,
-    })
-  }
+/**
+ * Elige el conjunto de columnas del tipo activo. Devuelve siempre la misma
+ * constante para cada combinación: no construye nada, así que su identidad es
+ * estable entre renders.
+ */
+export const selectCostColumns = (
+  type: CostType,
+  category?: string,
+): AppColumnDef<any>[] => {
+  if (type === "GENERAL") return generalCostColumns;
 
-  return getArticleCostColumns({
-    onCostChange,
-    // La unidad solo es relevante para Consumibles en aeronáutico
-    showUnit: category === 'CONSUMABLE',
-  })
-}
+  // La unidad solo es relevante para Consumibles en aeronáutico
+  return category === "CONSUMABLE"
+    ? articleCostColumnsWithUnit
+    : articleCostColumns;
+};
