@@ -1,3 +1,7 @@
+## v4.108.1 — 2026-11-16
+
+- refactor: optimize onPreview function with useCallback in split view … (#404)
+
 ## v4.108.0 — 2026-11-13
 
 - feat: add removal readings functionality and enhance aircraft part ma… (#403)
