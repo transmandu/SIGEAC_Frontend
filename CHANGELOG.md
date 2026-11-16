@@ -1,3 +1,9 @@
+## v4.109.0 — 2026-11-16
+
+- Merge pull request #406 from transmandu/feat/update-employee-role
+- style: formato automatico (prettier)
+- feat: update user roles and permissions for counter operations
+
 ## v4.108.1 — 2026-11-16
 
 - refactor: optimize onPreview function with useCallback in split view … (#404)
