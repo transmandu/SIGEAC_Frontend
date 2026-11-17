@@ -263,8 +263,8 @@ importers:
         specifier: ^3.7.3
         version: 3.7.3
       '@schedule-x/react':
-        specifier: ^3.7.0
-        version: 3.7.0(@schedule-x/calendar@3.7.3(@preact/signals@2.11.3(preact@10.29.8))(preact@10.29.8)(temporal-polyfill@0.3.0))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+        specifier: ^4.1.0
+        version: 4.1.0(@schedule-x/calendar@3.7.3(@preact/signals@2.11.3(preact@10.29.8))(preact@10.29.8)(temporal-polyfill@0.3.0))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@schedule-x/resize':
         specifier: ^3.7.3
         version: 3.7.3
@@ -1684,10 +1684,10 @@ packages:
   '@schedule-x/events-service@3.7.3':
     resolution: {integrity: sha512-MxfKuyzK+2TeQ/CmvaXx/jO8yjegD6JZ7b2q1NIm7tH59GKDfWI+h87vTZ0yPfINoAMXRfxaKKLXXxfYWsL+ug==}
 
-  '@schedule-x/react@3.7.0':
-    resolution: {integrity: sha512-2D7eZYVPXpwElu/uLn1pQKhHbOrZaSbkjcr2EKsd5MdBw0zZnutsVp1H3TH+ArlMsnA1W7oztmljoNYh58IWyQ==}
+  '@schedule-x/react@4.1.0':
+    resolution: {integrity: sha512-l2hn1kdTModk4Lbt+nEr/VAcuNMA+w+hAAtgz8VLOj5UeieM7PWoK+cDapzPHCjUKisCSPd8QZfAX966Ma82kQ==}
     peerDependencies:
-      '@schedule-x/calendar': ^3.1.0
+      '@schedule-x/calendar': ^3.1.0 || ^4.0.0
       react: ^16.7.0 || ^17 || ^18 || ^19
       react-dom: ^16.7.0 || ^17 || ^18 || ^19
 
@@ -5105,7 +5105,7 @@ snapshots:
 
   '@schedule-x/events-service@3.7.3': {}
 
-  '@schedule-x/react@3.7.0(@schedule-x/calendar@3.7.3(@preact/signals@2.11.3(preact@10.29.8))(preact@10.29.8)(temporal-polyfill@0.3.0))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)':
+  '@schedule-x/react@4.1.0(@schedule-x/calendar@3.7.3(@preact/signals@2.11.3(preact@10.29.8))(preact@10.29.8)(temporal-polyfill@0.3.0))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)':
     dependencies:
       '@schedule-x/calendar': 3.7.3(@preact/signals@2.11.3(preact@10.29.8))(preact@10.29.8)(temporal-polyfill@0.3.0)
       react: 19.3.1
