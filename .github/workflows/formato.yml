@@ -14,9 +14,11 @@ on:
   pull_request:
     branches: [main]
 
-# Necesario para commitear en la rama del PR.
+# contents: commitear en la rama del PR.
+# actions: lanzar Calidad sobre ese commit (ver el último paso).
 permissions:
   contents: write
+  actions: write
 
 # Si llegan dos pushes seguidos, la corrida vieja se cancela. Sin esto, dos
 # jobs podrian intentar commitear a la vez sobre la misma rama.
@@ -26,14 +28,21 @@ concurrency:
 
 jobs:
   prettier:
-    name: Prettier
+    name: Formato · Prettier
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
-    # El bot commitea; sin esto sus propios commits dispararian otra corrida.
-    if: github.actor != 'github-actions[bot]'
+    # - github-actions[bot]: el bot commitea; sin esto sus propios commits
+    #   podrian disparar otra corrida.
+    # - dependabot[bot]: en sus PR el token es de solo lectura por diseño, asi
+    #   que el push fallaria en rojo; y aunque pudiera, un commit ajeno en su
+    #   rama hace que Dependabot deje de rebasearla.
+    if: >
+      github.actor != 'github-actions[bot]' &&
+      github.actor != 'dependabot[bot]'
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           # Por defecto el checkout de un PR deja la HEAD en modo detached.
@@ -41,14 +50,15 @@ jobs:
           ref: ${{ github.event.pull_request.head.ref }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
 
-      - uses: pnpm/action-setup@v6
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .nvmrc
           cache: pnpm
 
-      - run: pnpm install --frozen-lockfile
+      - name: Instalar dependencias
+        run: pnpm install --frozen-lockfile
 
       - name: Formatear los archivos del PR
         id: fmt
@@ -57,23 +67,26 @@ jobs:
         run: |
           set -euo pipefail
 
-          FILES=$(git diff --name-only --diff-filter=d \
-            "origin/${BASE}...HEAD" \
-            | grep -E '\.(ts|tsx|js|jsx|mjs|cjs|json|css)$' || true)
+          # La lista viaja separada por NUL (-z / xargs -0) para que una ruta
+          # con espacios no se parta en dos argumentos.
+          LISTA="$RUNNER_TEMP/archivos-del-pr.list"
+          git diff -z --name-only --diff-filter=d "origin/${BASE}...HEAD" \
+            | { grep -zE '\.(ts|tsx|js|jsx|mjs|cjs|json|css)$' || true; } \
+            > "$LISTA"
 
-          if [ -z "$FILES" ]; then
+          if [ ! -s "$LISTA" ]; then
             echo "El PR no toca archivos formateables."
             echo "cambios=no" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
           echo "Archivos del PR:"
-          echo "$FILES" | sed 's/^/  /'
+          tr '\0' '\n' < "$LISTA" | sed 's/^/  /'
 
           # --write, no --check: prettier reescribe lo que haga falta.
           # --ignore-unknown evita que un archivo excluido por .prettierignore
           # corte la corrida entera.
-          echo "$FILES" | xargs pnpm exec prettier --write --ignore-unknown
+          xargs -0 -a "$LISTA" pnpm exec prettier --write --ignore-unknown
 
           if git diff --quiet; then
             echo "Todo ya estaba formateado."
@@ -95,19 +108,25 @@ jobs:
         if: >
           steps.fmt.outputs.cambios == 'si' &&
           github.event.pull_request.head.repo.full_name != github.repository
+        # Los nombres de archivo vienen del fork: por env, nunca interpolados
+        # en el script, o un archivo llamado `$(cmd)` ejecutaria el comando.
+        env:
+          ARREGLADOS: ${{ steps.fmt.outputs.arreglados }}
         run: |
           echo "::warning::Este PR viene de un fork y el formato no se puede"
           echo "::warning::commitear automaticamente. Corre 'pnpm format:changed'"
           echo "::warning::en tu rama y vuelve a subir."
           echo "Archivos que necesitan formato:"
-          echo "${{ steps.fmt.outputs.arreglados }}"
+          echo "$ARREGLADOS"
 
-      - name: Commitear el formato
+      - name: Commitear el formato y relanzar Calidad
         if: >
           steps.fmt.outputs.cambios == 'si' &&
           github.event.pull_request.head.repo.full_name == github.repository
         env:
           ARREGLADOS: ${{ steps.fmt.outputs.arreglados }}
+          RAMA: ${{ github.event.pull_request.head.ref }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
 
@@ -116,12 +135,22 @@ jobs:
 
           git add --update
 
-          # "style" mantiene la convencion de pr-title.yml y sube el parche,
+          # "style" mantiene la convencion de titulo-pr.yml y sube el parche,
           # no la menor: formatear no agrega funcionalidad.
           git commit -m 'style: formato automatico (prettier)' \
                      -m "$ARREGLADOS"
 
-          git push origin "HEAD:${{ github.event.pull_request.head.ref }}"
+          # Si el autor empujó mientras corría el job, el push sería rechazado:
+          # se rebasea sobre lo nuevo en vez de fallar en rojo.
+          git pull --rebase origin "$RAMA"
+          git push origin "HEAD:$RAMA"
+
+          # Un push hecho con GITHUB_TOKEN no dispara `pull_request`, así que
+          # el commit del bot quedaría sin Calidad (y sin el check que exige el
+          # ruleset). Las excepciones a esa regla son workflow_dispatch y
+          # repository_dispatch: se lanza Calidad a mano sobre la rama, y sus
+          # checks se cuelgan del commit nuevo y del PR.
+          gh workflow run calidad.yml --ref "$RAMA"
 
           echo "### Formato aplicado" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"

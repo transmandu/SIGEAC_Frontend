@@ -154,6 +154,12 @@ updates:
           - patch
 
     ignore:
+      # temporal-polyfill esta clavado sin ^ en 0.3.0 a proposito: es el peer
+      # EXACTO de @schedule-x/calendar 3.7.x. Subirlo (el PR #369 lo llevo a
+      # 1.0.6) deja el aviso de peer dependencies sin resolver. Se sube a mano,
+      # junto con @schedule-x/*, cuando estos pidan otra version.
+      - dependency-name: 'temporal-polyfill'
+
       # pdfjs-dist esta clavado sin ^ a proposito (5.4.296): react-pdf exige
       # que la version del worker coincida exactamente con la de la libreria.
       # Subirlo solo rompe el visor de PDF en tiempo de ejecucion, no en build.

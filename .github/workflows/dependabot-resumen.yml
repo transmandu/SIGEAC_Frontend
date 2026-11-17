@@ -1,4 +1,4 @@
-name: Resumen de dependencias
+name: Dependabot · Resumen
 
 # Cada PR que abre Dependabot recibe un comentario con:
 #   - que es cada dependencia y para que sirve, en lenguaje llano
@@ -24,23 +24,31 @@ permissions:
   pull-requests: write
   issues: write
 
+# Un push seguido al PR (rebase de Dependabot) reemplaza la corrida anterior en
+# vez de dejar dos escribiendo el mismo comentario.
+concurrency:
+  group: resumen-dependencias-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   resumen:
-    # github.actor es el que abrio el PR; Dependabot no puede suplantarlo.
+    name: Dependabot · Resumen del PR
+    # Solo Dependabot; es el patron que documenta dependabot/fetch-metadata.
     if: github.actor == 'dependabot[bot]'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       # Traduce el titulo/rama del PR a datos estructurados: que paquetes,
       # de que version a cual, si es mayor/menor/parche, y el ecosistema.
       - name: Leer metadatos del PR
         id: meta
-        uses: dependabot/fetch-metadata@v3
+        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Construir y publicar el resumen
-        uses: actions/github-script@v9
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           # Umbral de compatibilidad exigido. Ver la nota larga en el paso de
           # evaluacion mas abajo sobre que mide realmente este numero.
@@ -86,7 +94,11 @@ jobs:
                 + `&previous-version=${encodeURIComponent(dep.prevVersion)}`
                 + `&new-version=${encodeURIComponent(dep.newVersion)}`;
               try {
-                const r = await fetch(url, { redirect: 'follow' });
+                // Sin limite, un servicio caido colgaba el job entero.
+                const r = await fetch(url, {
+                  redirect: 'follow',
+                  signal: AbortSignal.timeout(15000),
+                });
                 if (!r.ok) return null;
                 const svg = await r.text();
                 const m = svg.match(/(\d{1,3})\s*%/);
@@ -97,10 +109,10 @@ jobs:
               }
             }
 
-            const filas = [];
-            for (const d of deps) {
-              filas.push({ ...d, score: await puntaje(d) });
-            }
+            // En paralelo: un PR agrupado trae decenas de paquetes y pedirlos de
+            // a uno sumaba la espera de cada consulta.
+            const filas = await Promise.all(
+              deps.map(async d => ({ ...d, score: await puntaje(d) })));
 
             // --- Veredicto -----------------------------------------------
             const bajas = filas.filter(f => f.score !== null && f.score < UMBRAL);
@@ -153,10 +165,11 @@ jobs:
             // --- Tabla tecnica -------------------------------------------
             function changelog(nombre) {
               if (ecosistema === 'composer') return `https://packagist.org/packages/${nombre}`;
-              // 'npm' aqui cubre tambien a pnpm: fetch-metadata reporta el
-              // ecosistema, no el gestor, y npmjs.com es el registro del que
-              // pnpm descarga igual.
-              if (ecosistema === 'npm') return `https://www.npmjs.com/package/${nombre}`;
+              // fetch-metadata reporta 'npm_and_yarn' (el nombre interno de
+              // Dependabot), no 'npm': comparar solo con 'npm' mandaba todos
+              // los enlaces a la busqueda de GitHub. Cubre tambien a pnpm:
+              // es el ecosistema, no el gestor, y npmjs.com es el registro.
+              if (ecosistema === 'npm_and_yarn' || ecosistema === 'npm') return `https://www.npmjs.com/package/${nombre}`;
               if (ecosistema === 'github_actions') return `https://github.com/${nombre}/releases`;
               return `https://github.com/search?q=${encodeURIComponent(nombre)}`;
             }
@@ -224,10 +237,13 @@ jobs:
             // Un solo comentario por PR: en cada push se reescribe el mismo
             // en vez de apilar uno nuevo.
             const marcador = '<!-- resumen-dependencias -->';
-            const { data: previos } = await github.rest.issues.listComments({
+            // paginate: listComments devuelve solo 30; en un PR largo el
+            // comentario propio podia quedar fuera y se duplicaba.
+            const previos = await github.paginate(github.rest.issues.listComments, {
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.payload.pull_request.number,
+              per_page: 100,
             });
             const mio = previos.find(c =>
               c.user.type === 'Bot' && c.body.includes(marcador));
