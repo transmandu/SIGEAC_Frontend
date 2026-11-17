@@ -30,6 +30,10 @@ interface DataTableProps<TData extends RowData> {
    * oculta en móvil y cada fila se muestra como tarjeta.
    */
   renderMobileCard?: (props: { row: AppRow<TData> }) => React.ReactNode;
+  /** ID de la columna por la que se filtra en el input de búsqueda. */
+  filterColumn: string;
+  /** Placeholder del input de búsqueda. */
+  filterPlaceholder: string;
 }
 export function DataTable<TData extends RowData>({
   columns,
@@ -37,6 +41,8 @@ export function DataTable<TData extends RowData>({
   renderSubComponent,
   getRowCanExpand,
   renderMobileCard,
+  filterColumn,
+  filterPlaceholder,
 }: DataTableProps<TData>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -60,14 +66,14 @@ export function DataTable<TData extends RowData>({
       <div className="flex items-center py-4 gap-2">
         <Input
           data-tour="cargo-guia-tabla-search"
-          placeholder="Filtrar por N° de guía"
+          placeholder={filterPlaceholder}
           value={
-            (table.getColumn("manifest_number")?.getFilterValue() as string) ??
+            (table.getColumn(filterColumn)?.getFilterValue() as string) ??
             ""
           }
           onChange={(event) =>
             table
-              .getColumn("manifest_number")
+              .getColumn(filterColumn)
               ?.setFilterValue(event.target.value)
           }
           className="max-w-sm text-center"

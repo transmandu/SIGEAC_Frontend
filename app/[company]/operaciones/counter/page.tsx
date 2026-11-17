@@ -212,7 +212,7 @@ const CounterPage = () => {
             Error al consultar los manifiestos de vuelo.
           </p>
         ) : (
-          <DataTable columns={columns} data={flights || []} />
+          <DataTable columns={columns} data={flights || []} filterColumn="flight_code" filterPlaceholder="Filtrar por N° de vuelo" />
         )}
 
         <WhatsAppImportModal
