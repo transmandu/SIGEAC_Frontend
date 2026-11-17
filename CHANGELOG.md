@@ -1,3 +1,7 @@
+## v4.111.1 — 2026-11-17
+
+- chore: update workflows and dependencies, add PR title validation (#409)
+
 ## v4.111.0 — 2026-11-16
 
 - Merge pull request #408 from transmandu/feat/update-employee-role
