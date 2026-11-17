@@ -1,3 +1,11 @@
+## v4.112.0 — 2026-11-17
+
+- Merge pull request #418 from transmandu/feat/add-external-aircraft-counter
+- style: formato automatico (prettier)
+- fix(counter): apply WhatsApp prefill during render
+- fix(operation): declare the cargo table filter column explicitly
+- feat: add support for external aircraft selection in flight forms and counters
+
 ## v4.111.1 — 2026-11-17
 
 - chore: update workflows and dependencies, add PR title validation (#409)

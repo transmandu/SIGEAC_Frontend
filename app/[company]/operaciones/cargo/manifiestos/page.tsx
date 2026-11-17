@@ -175,7 +175,12 @@ const ManifestsPage = () => {
           </p>
         ) : (
           <div data-tour="cargo-manifiestos-tabla">
-            <DataTable columns={columns} data={manifests || []} />
+            <DataTable
+              columns={columns}
+              data={manifests || []}
+              filterColumn="manifest_number"
+              filterPlaceholder="Filtrar por N° de manifiesto"
+            />
           </div>
         )}
       </div>
