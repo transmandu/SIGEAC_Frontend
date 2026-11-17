@@ -499,17 +499,41 @@ export const PaxFlightForm = ({
             {aircraftType === "internal" ? (
               <Select
                 value={aircraftId ? String(aircraftId) : ""}
-                onValueChange={(val) => setAircraftId(Number(val))}
+                onValueChange={(val) => {
+                  if (val.startsWith("ext:")) {
+                    // Seleccionó una aeronave externa → cambia modo y precarga la matrícula
+                    setAircraftType("external");
+                    setAircraftId(null);
+                    setExternalAircraft(val.slice(4));
+                  } else {
+                    setAircraftId(Number(val));
+                  }
+                }}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Seleccione aeronave" />
                 </SelectTrigger>
                 <SelectContent>
-                  {aircrafts?.map((a: any) => (
-                    <SelectItem key={a.id} value={String(a.id)}>
-                      {a.acronym} {a.model ? `- ${a.model}` : ""}
-                    </SelectItem>
-                  ))}
+                  {aircrafts && aircrafts.length > 0 && (
+                    <SelectGroup>
+                      <SelectLabel>Flota Propia</SelectLabel>
+                      {aircrafts.map((a: any) => (
+                        <SelectItem key={a.id} value={String(a.id)}>
+                          {a.acronym} {a.model ? `- ${a.model}` : ""}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  )}
+                  {externalAircrafts && externalAircrafts.length > 0 && (
+                    <SelectGroup>
+                      <SelectLabel>Aeronaves Externas</SelectLabel>
+                      {externalAircrafts.map((ea: any) => (
+                        <SelectItem key={`ext-${ea.acronym}`} value={`ext:${ea.acronym}`}>
+                          {ea.acronym} {ea.model ? `- ${ea.model}` : ""}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  )}
                 </SelectContent>
               </Select>
             ) : (
