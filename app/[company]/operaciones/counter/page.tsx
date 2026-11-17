@@ -12,6 +12,7 @@ import { getCounterColumns } from "./columns";
 import { usePaxFlights } from "@/actions/counter/actions";
 import { useAuth } from "@/contexts/AuthContext";
 import { useGetAircrafts } from "@/hooks/aerolinea/aeronaves/useGetAircrafts";
+import { useGetExternalAircraftSuggestions } from "@/hooks/operaciones/cargo/useGetExternalAircraftSuggestions";
 import {
   Select,
   SelectContent,
@@ -36,6 +37,9 @@ const CounterPage = () => {
     return new Date(y, m - 1, 1);
   });
   const [filterAircraftId, setFilterAircraftId] = useState<number | null>(null);
+  const [filterExternalAircraft, setFilterExternalAircraft] = useState<
+    string | null
+  >(null);
   const [filterType, setFilterType] = useState<string>("all");
   const [importModalOpen, setImportModalOpen] = useState<boolean>(false);
 
@@ -44,6 +48,12 @@ const CounterPage = () => {
 
   const { data: aircrafts } = useGetAircrafts(company);
   const internalAircrafts = useMemo(() => aircrafts ?? [], [aircrafts]);
+  const { data: externalAircrafts } =
+    useGetExternalAircraftSuggestions(company);
+  const externalAircraftsList = useMemo(
+    () => externalAircrafts ?? [],
+    [externalAircrafts],
+  );
 
   const {
     data: flights,
@@ -55,6 +65,7 @@ const CounterPage = () => {
     year,
     filterAircraftId,
     filterType === "all" ? null : filterType,
+    filterExternalAircraft,
   );
 
   const userRoles = user?.roles?.map((r) => r.name) || [];
@@ -108,10 +119,25 @@ const CounterPage = () => {
             {/* Filtro por Aeronave */}
             <div className="w-full sm:w-52">
               <Select
-                value={filterAircraftId ? String(filterAircraftId) : "all"}
-                onValueChange={(val) =>
-                  setFilterAircraftId(val === "all" ? null : Number(val))
+                value={
+                  filterAircraftId
+                    ? String(filterAircraftId)
+                    : filterExternalAircraft
+                      ? `ext:${filterExternalAircraft}`
+                      : "all"
                 }
+                onValueChange={(val) => {
+                  if (val === "all") {
+                    setFilterAircraftId(null);
+                    setFilterExternalAircraft(null);
+                  } else if (val.startsWith("ext:")) {
+                    setFilterAircraftId(null);
+                    setFilterExternalAircraft(val.slice(4));
+                  } else {
+                    setFilterAircraftId(Number(val));
+                    setFilterExternalAircraft(null);
+                  }
+                }}
               >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Todas las aeronaves" />
@@ -123,6 +149,19 @@ const CounterPage = () => {
                       <SelectLabel>Flota Propia</SelectLabel>
                       {internalAircrafts.map((a: any) => (
                         <SelectItem key={a.id} value={String(a.id)}>
+                          {a.acronym} {a.model ? `- ${a.model}` : ""}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  )}
+                  {externalAircraftsList.length > 0 && (
+                    <SelectGroup>
+                      <SelectLabel>Aeronaves Externas</SelectLabel>
+                      {externalAircraftsList.map((a: any) => (
+                        <SelectItem
+                          key={`ext-${a.acronym}`}
+                          value={`ext:${a.acronym}`}
+                        >
                           {a.acronym} {a.model ? `- ${a.model}` : ""}
                         </SelectItem>
                       ))}
@@ -182,7 +221,12 @@ const CounterPage = () => {
             Error al consultar los manifiestos de vuelo.
           </p>
         ) : (
-          <DataTable columns={columns} data={flights || []} />
+          <DataTable
+            columns={columns}
+            data={flights || []}
+            filterColumn="flight_code"
+            filterPlaceholder="Filtrar por N° de vuelo"
+          />
         )}
 
         <WhatsAppImportModal

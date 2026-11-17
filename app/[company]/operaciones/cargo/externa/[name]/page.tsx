@@ -131,6 +131,8 @@ const ExternalAircraftCargoPage = () => {
             <DataTable
               columns={columns}
               data={data}
+              filterColumn="guide_number"
+              filterPlaceholder="Filtrar por N° de guía"
               renderMobileCard={({ row }) => (
                 <CargoShipmentCard
                   shipment={row.original}
