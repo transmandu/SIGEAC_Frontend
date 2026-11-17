@@ -43,6 +43,7 @@ export default function UnknownDestinationPage() {
         article.part_number,
         ...toAltPartNumbers(article.alternative_part_number),
         article.serial,
+        article.identifier,
         article.batch?.category,
         article.batch?.name,
         article.manufacturer?.name,

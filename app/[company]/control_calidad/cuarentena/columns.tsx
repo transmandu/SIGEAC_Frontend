@@ -104,12 +104,14 @@ export const getColumns = (
   {
     accessorKey: "article.serial",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Nro. Serie/Lote" />
+      <DataTableColumnHeader column={column} title="Nro. Serie/Lote/Espec." />
     ),
     meta: { title: "Nro. Serie/Lote" },
     cell: ({ row }) => (
       <p className="text-center font-medium">
-        {row.original.article?.serial ?? "-"}
+        {row.original.article?.serial ??
+          row.original.article?.tool?.specification ??
+          "-"}
       </p>
     ),
   },

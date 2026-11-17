@@ -90,6 +90,7 @@ const QuarantinePurchasesPage = () => {
       return (
         article?.part_number?.toLowerCase().includes(q) ||
         article?.serial?.toLowerCase().includes(q) ||
+        article?.tool?.specification?.toLowerCase().includes(q) ||
         article?.batch?.name?.toLowerCase().includes(q) ||
         record.reason?.toLowerCase().includes(q)
       );

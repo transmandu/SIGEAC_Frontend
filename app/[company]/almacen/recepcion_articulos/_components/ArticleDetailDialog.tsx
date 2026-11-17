@@ -262,10 +262,11 @@ export function ArticleDetailDialog({
           onOpenAutoFocus={(e) => e.preventDefault()}
         >
           <DialogTitle className="sr-only">
-            Detalle del artículo {article.part_number}
+            Detalle del artículo {article.part_number || article.batch?.name}
           </DialogTitle>
           <DialogDescription className="sr-only">
-            Ficha de inventario del artículo {article.part_number}
+            Ficha de inventario del artículo{" "}
+            {article.part_number || article.batch?.name}
           </DialogDescription>
 
           {/* Placa de identificación */}
@@ -285,7 +286,7 @@ export function ArticleDetailDialog({
                   </p>
                 </div>
                 <p className="mt-1 truncate font-mono text-2xl font-bold leading-tight tracking-tight">
-                  {article.part_number}
+                  {article.part_number || "Sin P/N"}
                 </p>
                 <p className="truncate text-sm text-muted-foreground">
                   {article.batch?.name ?? "Sin descripción"}
@@ -341,7 +342,11 @@ export function ArticleDetailDialog({
                       ) || null,
                     strong: true,
                   },
-                  { label: "Serial", value: article.serial, strong: true },
+                  {
+                    label: article.serial ? "Serial" : "Especificación",
+                    value: article.identifier ?? article.serial,
+                    strong: true,
+                  },
                   { label: "Código ATA", value: article.ata_code },
                   { label: "Condición", value: article.condition?.name },
                   { label: "Fabricante", value: article.manufacturer?.name },
@@ -536,7 +541,9 @@ export function ArticleDetailDialog({
         <SecureFileViewer
           isOpen={!!previewDoc}
           onClose={() => setPreviewDoc(null)}
-          title={previewDoc.file_path?.split("/").pop() ?? article.part_number}
+          title={
+            previewDoc.file_path?.split("/").pop() ?? article.part_number ?? ""
+          }
           isImage={isImageDocument(previewDoc.file_path)}
           fetchBlobUrl={async () => {
             const { data } = await axiosInstance.get(

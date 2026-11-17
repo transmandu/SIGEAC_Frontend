@@ -360,7 +360,10 @@ export function CreateToolBoxForm({ onClose, initialData }: FormProps) {
                               >
                                 <Wrench className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                                 <span className="flex-1 truncate">
-                                  SN - {article.serial}
+                                  {article.serial
+                                    ? `SN - ${article.serial}`
+                                    : (article.identifier ??
+                                      `ID ${article.id}`)}
                                 </span>
                                 {isExpired && (
                                   <Badge
@@ -379,7 +382,8 @@ export function CreateToolBoxForm({ onClose, initialData }: FormProps) {
                                   )}
                                 />
                                 <span className="hidden">
-                                  {article.serial} {batch.name}
+                                  {article.serial} {article.identifier}{" "}
+                                  {batch.name}
                                 </span>
                               </CommandItem>
                             );
@@ -403,7 +407,11 @@ export function CreateToolBoxForm({ onClose, initialData }: FormProps) {
                         className="gap-1 py-1 pl-2 pr-1 font-normal"
                       >
                         <Wrench className="h-3 w-3 text-muted-foreground" />
-                        {article ? `SN - ${article.serial}` : toolId}
+                        {article
+                          ? article.serial
+                            ? `SN - ${article.serial}`
+                            : (article.identifier ?? `ID ${article.id}`)
+                          : toolId}
                         <button
                           type="button"
                           onClick={() => handleToolSelect(toolId)}

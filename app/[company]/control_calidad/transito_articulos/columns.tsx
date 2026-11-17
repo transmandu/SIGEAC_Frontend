@@ -47,25 +47,25 @@ export const columns: AppColumnDef<TransitArticle>[] = [
   },
   {
     id: "serial_lot",
-    accessorFn: (row) => row.serial ?? row.lot_number ?? "",
+    accessorFn: (row) => row.serial ?? row.lot_number ?? row.identifier ?? "",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Serial / Lote" />
+      <DataTableColumnHeader column={column} title="Serial / Lote / Espec." />
     ),
-    meta: { title: "Serial / Lote" },
+    meta: { title: "Serial / Lote / Espec." },
     cell: ({ row }) => {
-      const { serial, lot_number } = row.original;
+      const { serial, lot_number, identifier } = row.original;
 
-      if (!serial && !lot_number) {
+      if (!serial && !lot_number && !identifier) {
         return <p className="text-center text-muted-foreground/40">-</p>;
       }
 
       return (
         <div className="flex flex-col items-center gap-0.5">
           <span className="text-[9px] font-semibold uppercase tracking-widest text-muted-foreground/60">
-            {serial ? "Serial" : "Lote"}
+            {serial ? "Serial" : lot_number ? "Lote" : "Especificación"}
           </span>
           <span className="font-mono text-[12px] font-semibold">
-            {serial ?? lot_number}
+            {serial ?? lot_number ?? identifier}
           </span>
         </div>
       );

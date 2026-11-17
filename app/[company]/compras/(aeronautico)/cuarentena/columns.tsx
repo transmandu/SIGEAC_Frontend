@@ -204,7 +204,7 @@ export const columns: AppColumnDef<QuarantineRecord>[] = [
 
     cell: ({ row }) => {
       const article = row.original.article;
-      const serial = article?.serial;
+      const serial = article?.serial ?? article?.tool?.specification;
 
       return (
         <div className="flex w-full justify-start">

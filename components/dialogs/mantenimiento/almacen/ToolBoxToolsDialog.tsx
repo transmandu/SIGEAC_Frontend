@@ -24,6 +24,8 @@ interface DialogProps {
   tools?: {
     article: ToolArticle;
     serial: string;
+    /** Distingue la herramienta cuando no tiene número de parte ni serial. */
+    specification?: string | null;
   }[];
   name: string;
 }
@@ -57,7 +59,7 @@ const ToolBoxToolsDialog = ({ tools, name }: DialogProps) => {
           </DialogHeader>
           <div className="flex flex-col gap-2">
             {tools?.map((tool) => (
-              <div key={tool.serial} className="flex flex-col items-center">
+              <div key={tool.article.id} className="flex flex-col items-center">
                 <h1 className="text-lg font-bold">
                   {tool.article.batches?.name}
                 </h1>
@@ -65,7 +67,15 @@ const ToolBoxToolsDialog = ({ tools, name }: DialogProps) => {
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <p className="text-muted-foreground italic cursor-pointer hover:text-black">
-                        PN: {tool.article.part_number} - {tool.article.serial}
+                        {tool.article.part_number
+                          ? `PN: ${tool.article.part_number}`
+                          : "Sin P/N"}
+                        {[tool.article.serial, tool.specification].filter(
+                          Boolean,
+                        ).length > 0 &&
+                          ` - ${[tool.article.serial, tool.specification]
+                            .filter(Boolean)
+                            .join(" - ")}`}
                       </p>
                     </TooltipTrigger>
                     <TooltipContent>

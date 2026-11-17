@@ -47,7 +47,7 @@ export const columns: AppColumnDef<WaitingToLocateQueueArticle>[] = [
     cell: ({ row }) => (
       <div className="flex items-center justify-center">
         <span className="select-none rounded-md border bg-muted/30 px-2 py-1 text-xs font-mono font-semibold">
-          {row.original.part_number}
+          {row.original.part_number || "Sin P/N"}
         </span>
       </div>
     ),

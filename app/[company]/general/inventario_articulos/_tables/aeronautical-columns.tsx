@@ -37,7 +37,11 @@ const baseCols: AppColumnDef<CompanyInventoryArticle>[] = [
     ),
     cell: ({ row }) => (
       <div className="font-bold text-center text-base">
-        {row.original.part_number}
+        {row.original.part_number ?? (
+          <span className="text-sm font-medium text-muted-foreground italic">
+            Sin P/N
+          </span>
+        )}
       </div>
     ),
   },
@@ -62,14 +66,15 @@ const baseCols: AppColumnDef<CompanyInventoryArticle>[] = [
       <DataTableColumnHeader column={column} title="Serial / Lote" />
     ),
     cell: ({ row }) => {
-      const { serial, lot_number, serial_count } = row.original;
+      const { identifier, serial, lot_number, serial_count } = row.original;
+      const shown = identifier || serial || lot_number;
 
       return (
         <div className="text-center text-sm font-medium">
           {serial_count > 1 ? (
             <Dash />
-          ) : serial || lot_number ? (
-            serial || lot_number
+          ) : shown ? (
+            shown
           ) : (
             <span className="text-muted-foreground italic">N/A</span>
           )}

@@ -29,9 +29,12 @@ export interface InventoryUnit {
 /** Fila del inventario del almacén (aeronáutico). */
 export interface WarehouseInventoryArticle {
   id: number;
-  part_number: string;
+  /** `null` en una herramienta registrada sin número de parte. */
+  part_number: string | null;
   alternative_part_number: string[];
   serial: string | null;
+  /** Lo que distingue la unidad: serial, lote o, en una herramienta, su especificación. */
+  identifier: string | null;
   lot_number: string | null;
   batch_id: number;
   /** La descripción de un artículo aeronáutico es el nombre de su renglón. */
@@ -59,6 +62,7 @@ export interface WarehouseInventoryArticle {
     calibration_date: string | null;
     next_calibration: number | string | null;
     model: string | null;
+    specification: string | null;
   } | null;
   /** Clave del grupo cuando la vista agrupa. */
   group_key: string | null;
@@ -67,9 +71,14 @@ export interface WarehouseInventoryArticle {
 /** Fila del inventario de consulta de la compañía (aeronáutico). */
 export interface CompanyInventoryArticle {
   id: number;
-  part_number: string;
+  /** `null` en una herramienta registrada sin número de parte. */
+  part_number: string | null;
   alternative_part_number: string[];
   serial: string | null;
+  /** Lo que distingue la unidad; `null` en una fila que resume varias. */
+  identifier: string | null;
+  /** Renglón: con él se piden las unidades de un grupo sin número de parte. */
+  batch_id: number;
   lot_number: string | null;
   /** Unidades que resume la fila: más de una cuando se agrupa por número de parte. */
   serial_count: number;
@@ -92,9 +101,10 @@ export interface CompanyInventoryArticle {
 /** Fila de la cola de revisión de ingeniería. */
 export interface CheckingArticle {
   id: number;
-  part_number: string;
+  part_number: string | null;
   alternative_part_number: string[];
   serial: string | null;
+  identifier: string | null;
   lot_number: string | null;
   batch_id: number;
   batch_name: string | null;

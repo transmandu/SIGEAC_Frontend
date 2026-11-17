@@ -29,7 +29,8 @@ import ArticleStatusSincePopover, {
 import { AirlineAircraft, ArticleDimension } from "@/types";
 export interface IArticleSimple {
   id: number;
-  part_number: string;
+  /** `null` en una herramienta registrada sin número de parte. */
+  part_number: string | null;
   alternative_part_number?: string[];
   unit?: Unit;
   quantity: number;
@@ -37,6 +38,8 @@ export interface IArticleSimple {
   zone: string;
   article_type: string;
   serial?: string;
+  /** Serial, lote o, en una herramienta sin serial, su especificación. */
+  identifier?: string;
   lot_number?: string;
   status: string;
   status_since?: string | null;
@@ -57,6 +60,7 @@ export interface IArticleSimple {
     next_calibration_date?: string | null;
     next_calibration?: number | string | null;
     model?: string | null;
+    specification?: string | null;
   };
   component?: {
     expiration_date?: string | null;
@@ -147,6 +151,7 @@ export const flattenArticles = (
     part_number: article.part_number,
     alternative_part_number: article.alternative_part_number,
     serial: article.serial ?? undefined,
+    identifier: article.identifier ?? undefined,
     lot_number: article.lot_number ?? undefined,
     zone: article.zone ?? "",
 
@@ -324,7 +329,7 @@ const actionsCol: AppColumnDef<IArticleSimple> = {
           id={item.id}
           status={item.status}
           hasDocumentation={!!item.has_documentation}
-          partNumber={item.part_number}
+          partNumber={item.part_number ?? undefined}
         />
       </div>
     );
@@ -375,14 +380,24 @@ const buildBaseCols = (
     ),
     cell: ({ row }) => (
       <div className="flex items-center justify-center">
-        <span className="font-bold text-base">{row.original.part_number}</span>
+        {row.original.part_number ? (
+          <span className="font-bold text-base">
+            {row.original.part_number}
+          </span>
+        ) : (
+          <span className="text-sm font-medium text-muted-foreground italic">
+            Sin P/N
+          </span>
+        )}
       </div>
     ),
   },
   {
     accessorKey: "serial",
     // La celda cae a lot_number cuando no hay serial; ordenar/filtrar sigue lo mostrado.
-    sortFn: textSortingFn((row) => row.serial || row.lot_number),
+    sortFn: textSortingFn(
+      (row) => row.identifier || row.serial || row.lot_number,
+    ),
     // La fila agrupada muestra "—", pero se queda si alguno de sus artículos
     // tiene el serial buscado.
     filterFn: (row, _id, value) => {
@@ -392,7 +407,7 @@ const buildBaseCols = (
       if (!raw) return true;
 
       const matches = (article: IArticleSimple) =>
-        (article.serial || article.lot_number || "")
+        (article.identifier || article.serial || article.lot_number || "")
           .toLowerCase()
           .includes(raw);
 
@@ -401,15 +416,21 @@ const buildBaseCols = (
         : matches(row.original);
     },
     header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Serial / Lote" />
+      <DataTableColumnHeader
+        filter
+        column={column}
+        title="Serial / Lote / Espec."
+      />
     ),
     cell: ({ row }) => (
       <div className="text-center text-sm font-medium">
         {row.original.__isGroup ? (
           <span className="text-muted-foreground italic">—</span>
-        ) : row.original.serial ? (
-          row.original.serial
-        ) : row.original.lot_number ? (
+        ) : row.original.identifier ||
+          row.original.serial ||
+          row.original.lot_number ? (
+          row.original.identifier ||
+          row.original.serial ||
           row.original.lot_number
         ) : (
           <span className="text-muted-foreground italic">N/A</span>
@@ -455,7 +476,7 @@ const buildBaseCols = (
       row.original.__isGroup ? null : (
         <ArticleImageCell
           image={row.original.image}
-          alt={row.original.batch_name || row.original.part_number}
+          alt={row.original.batch_name || row.original.part_number || ""}
         />
       ),
     enableSorting: false,

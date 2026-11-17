@@ -178,6 +178,7 @@ export function TrasladosEntreSedesTab() {
           (line) =>
             line.article?.part_number?.toLowerCase().includes(q) ||
             line.article?.serial?.toLowerCase().includes(q) ||
+            line.article?.tool?.specification?.toLowerCase().includes(q) ||
             line.article?.batch?.name?.toLowerCase().includes(q) ||
             line.article?.consumable?.lot_number?.toLowerCase().includes(q) ||
             line.general_article?.description?.toLowerCase().includes(q),

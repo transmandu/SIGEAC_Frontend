@@ -55,6 +55,9 @@ import {
 import { PriorityChoice } from "./PriorityChoice";
 import { labelClass } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
 
+/** Solo la herramienta puede pedirse sin número de parte. */
+const isToolBatch = (category?: string) => category?.toUpperCase() === "TOOL";
+
 interface BatchArticlesSectionProps {
   form: UseFormReturn<any>;
   batches?: Batch[];
@@ -394,10 +397,16 @@ export function BatchArticlesSection({
                                     )}
                                   >
                                     P/N
-                                    <RequiredIndicator />
+                                    <RequiredIndicator
+                                      show={!isToolBatch(batch.batch_category)}
+                                    />
                                   </label>
                                   <Input
-                                    placeholder="Ej: 123-456-789"
+                                    placeholder={
+                                      isToolBatch(batch.batch_category)
+                                        ? "Opcional: se pide por el nombre del renglón"
+                                        : "Ej: 123-456-789"
+                                    }
                                     className={rowFieldClass}
                                     value={article.part_number}
                                     onChange={(e) =>

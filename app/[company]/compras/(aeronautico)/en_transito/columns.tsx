@@ -495,7 +495,7 @@ export const columns: AppColumnDef<TransitArticle>[] = [
                 px-1 py-0.5 rounded
               "
               >
-                {row.original.part_number}
+                {row.original.part_number || "Sin P/N"}
               </span>
 
               <CopyPartNumberButton value={row.original.part_number} />

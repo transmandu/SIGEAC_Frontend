@@ -40,7 +40,10 @@ const ConfirmInventory = () => {
 
   return (
     <ContentLayout title="Confirmar Ingreso">
-      <PageHeader className="mb-6" currentLabel={data?.part_number} />
+      <PageHeader
+        className="mb-6"
+        currentLabel={data?.part_number || data?.batch?.name}
+      />
 
       <div className="space-y-5">
         <div className="flex flex-wrap items-start justify-between gap-3">

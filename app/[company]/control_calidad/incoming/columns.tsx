@@ -62,7 +62,9 @@ export const columns: AppColumnDef<IncomingArticle>[] = [
     ),
     meta: { title: "Nro. Serie" },
     cell: ({ row }) => (
-      <p className="text-center font-medium">{row.original.serial}</p>
+      <p className="text-center font-medium">
+        {row.original.identifier ?? row.original.serial}
+      </p>
     ),
   },
   {

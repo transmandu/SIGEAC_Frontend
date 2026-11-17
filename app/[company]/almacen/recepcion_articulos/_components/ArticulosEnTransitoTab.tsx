@@ -187,7 +187,7 @@ const ArticleRow = memo(function ArticleRow({
         <TableCell className="text-center">
           <div className="space-y-1 flex flex-col items-center">
             <div className="font-mono text-[12px] font-semibold bg-muted/60 px-1.5 py-0.5 rounded border border-border/40 w-fit tracking-wide">
-              {article.part_number}
+              {article.part_number || "Sin P/N"}
             </div>
             {toAltPartNumbers(article.alternative_part_number).length > 0 ? (
               <div className="flex items-center gap-1">
@@ -217,13 +217,17 @@ const ArticleRow = memo(function ArticleRow({
 
         {/* Serial / Lote: lo único que distingue dos artículos con el mismo P/N y descripción */}
         <TableCell className="text-center">
-          {article.serial || article.lot_number ? (
+          {article.serial || article.lot_number || article.identifier ? (
             <div className="flex flex-col items-center gap-0.5">
               <span className="text-[9px] font-semibold uppercase tracking-widest text-muted-foreground/60">
-                {article.serial ? "Serial" : "Lote"}
+                {article.serial
+                  ? "Serial"
+                  : article.lot_number
+                    ? "Lote"
+                    : "Especificación"}
               </span>
               <span className="font-mono text-[12px] font-semibold">
-                {article.serial ?? article.lot_number}
+                {article.serial ?? article.lot_number ?? article.identifier}
               </span>
             </div>
           ) : (
@@ -433,7 +437,7 @@ const ArticleRow = memo(function ArticleRow({
                                   Se enviará una notificación y un correo sobre
                                   el artículo{" "}
                                   <span className="font-mono font-semibold text-foreground">
-                                    {article.part_number}
+                                    {article.part_number || article.batch?.name}
                                   </span>{" "}
                                   a <strong>compras</strong> —para que aporten
                                   lo que falta— y al personal de{" "}
@@ -676,6 +680,7 @@ export function ArticulosEnTransitoTab() {
         ) ||
         a.batch?.name?.toLowerCase().includes(q) ||
         a.serial?.toLowerCase().includes(q) ||
+        a.identifier?.toLowerCase().includes(q) ||
         a.lot_number?.toLowerCase().includes(q) ||
         a.batch?.warehouse?.location?.address?.toLowerCase().includes(q),
     );

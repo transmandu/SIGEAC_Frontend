@@ -206,9 +206,9 @@ export const columns: AppColumnDef<DestinationArticle>[] = [
 
     cell: ({ row }) => (
       <div className="flex w-full justify-center">
-        {row.original.serial ? (
+        {(row.original.identifier ?? row.original.serial) ? (
           <span className="text-sm font-medium tabular-nums text-slate-800 dark:text-slate-200">
-            {row.original.serial}
+            {row.original.identifier ?? row.original.serial}
           </span>
         ) : (
           <span className="text-muted-foreground/60">—</span>

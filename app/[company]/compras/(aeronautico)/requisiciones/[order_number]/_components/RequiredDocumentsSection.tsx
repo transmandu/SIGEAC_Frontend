@@ -5,8 +5,9 @@ import CopyPartNumberButton from "@/components/misc/CopyPartNumberButton";
 
 interface RequiredDocumentsSectionProps {
   batches: {
+    name?: string;
     batch_articles: {
-      article_part_number: string;
+      article_part_number: string | null;
       document_types?: {
         id: number;
         name: string;
@@ -20,12 +21,16 @@ const RequiredDocumentsSection = ({
   batches,
 }: RequiredDocumentsSectionProps) => {
   const items = useMemo(() => {
+    // Una herramienta pedida sin número de parte se nombra por su renglón.
     return batches
-      .flatMap((batch) => batch.batch_articles ?? [])
+      .flatMap((batch) =>
+        (batch.batch_articles ?? []).map((article) => ({
+          ...article,
+          label: article.article_part_number || batch.name || "N/A",
+        })),
+      )
       .filter((article) => (article.document_types?.length ?? 0) > 0)
-      .sort((a, b) =>
-        a.article_part_number.localeCompare(b.article_part_number),
-      );
+      .sort((a, b) => a.label.localeCompare(b.label));
   }, [batches]);
 
   return (
@@ -41,12 +46,14 @@ const RequiredDocumentsSection = ({
         {items.length > 0 ? (
           <ul className="space-y-2">
             {items.map((article, idx) => (
-              <li key={`${article.article_part_number}-${idx}`}>
+              <li key={`${article.label}-${idx}`}>
                 <div className="flex min-w-0 items-center gap-1">
                   <span className="truncate text-xs font-medium text-foreground/90">
-                    {article.article_part_number}
+                    {article.label}
                   </span>
-                  <CopyPartNumberButton value={article.article_part_number} />
+                  <CopyPartNumberButton
+                    value={article.article_part_number ?? undefined}
+                  />
                 </div>
                 <ul className="mt-0.5 space-y-1 border-l border-border/50 pl-2">
                   {article.document_types!.map((type) => (

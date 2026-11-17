@@ -41,6 +41,8 @@ export interface IncomingTransfer {
         lot_number?: string | null;
         primary_unit?: { label: string } | null;
       } | null;
+      /** Una herramienta sin serial se distingue por su especificación. */
+      tool?: { specification?: string | null } | null;
     } | null;
     general_article?: {
       id: number;

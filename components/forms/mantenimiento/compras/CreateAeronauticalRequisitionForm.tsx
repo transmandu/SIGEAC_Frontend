@@ -27,49 +27,74 @@ import { isHigherPriority, type Priority } from "./_components/priorityUtils";
 import { canAddRequisitionArticle } from "@/lib/purchases/requisition-article-limit";
 import FormActions from "@/components/forms/mantenimiento/compras/_components/FormActions";
 
-const FormSchema = z.object({
-  justification: z
-    .string({ message: "La justificación debe ser válida." })
-    .min(2, { message: "La justificación debe ser válida." }),
-  company: z.string(),
-  location_id: z.string(),
-  created_by: z.string(),
-  requested_by: z.string().min(1, "Debe ingresar quien lo solicita."),
-  priority: z.enum(["HIGH", "MEDIUM", "LOW"]).optional(),
-  work_order_id: z.string().optional(),
-  work_order: z.string().optional(),
-  aircraft_id: z.string().optional(),
-  image: z
-    .instanceof(File)
-    .refine((file) => file.size <= 5 * 1024 * 1024, "Max 5MB")
-    .refine(
-      (file) => ["image/jpeg", "image/png"].includes(file.type),
-      "Solo JPEG/PNG",
-    )
-    .optional(),
-  articles: z
-    .array(
-      z.object({
-        batch: z.string(),
-        batch_name: z.string(),
-        batch_articles: z.array(
-          z.object({
-            part_number: z.string().min(1, "El número de parte es obligatorio"),
-            alt_part_number: z.string().optional(),
-            quantity: z.number().min(1, "Debe ingresar una cantidad válida"),
-            unit: z.string().optional(),
-            aircraft_id: z.string().optional(),
-            priority: z.enum(["HIGH", "MEDIUM", "LOW"]).optional(),
-            image: z.any().optional(),
-            document_type_ids: z
-              .array(z.number())
-              .min(1, "Debe seleccionar al menos un tipo de documento"),
-          }),
-        ),
-      }),
-    )
-    .min(1, "Debe agregar al menos un artículo"),
-});
+const FormSchema = z
+  .object({
+    justification: z
+      .string({ message: "La justificación debe ser válida." })
+      .min(2, { message: "La justificación debe ser válida." }),
+    company: z.string(),
+    location_id: z.string(),
+    created_by: z.string(),
+    requested_by: z.string().min(1, "Debe ingresar quien lo solicita."),
+    priority: z.enum(["HIGH", "MEDIUM", "LOW"]).optional(),
+    work_order_id: z.string().optional(),
+    work_order: z.string().optional(),
+    aircraft_id: z.string().optional(),
+    image: z
+      .instanceof(File)
+      .refine((file) => file.size <= 5 * 1024 * 1024, "Max 5MB")
+      .refine(
+        (file) => ["image/jpeg", "image/png"].includes(file.type),
+        "Solo JPEG/PNG",
+      )
+      .optional(),
+    articles: z
+      .array(
+        z.object({
+          batch: z.string(),
+          batch_name: z.string(),
+          batch_category: z.string().optional(),
+          batch_articles: z.array(
+            z.object({
+              part_number: z.string(),
+              alt_part_number: z.string().optional(),
+              quantity: z.number().min(1, "Debe ingresar una cantidad válida"),
+              unit: z.string().optional(),
+              aircraft_id: z.string().optional(),
+              priority: z.enum(["HIGH", "MEDIUM", "LOW"]).optional(),
+              image: z.any().optional(),
+              document_type_ids: z
+                .array(z.number())
+                .min(1, "Debe seleccionar al menos un tipo de documento"),
+            }),
+          ),
+        }),
+      )
+      .min(1, "Debe agregar al menos un artículo"),
+  })
+  .superRefine((values, ctx) => {
+    // Solo la herramienta puede pedirse sin número de parte: se identifica por
+    // el nombre de su renglón. El resto lo necesita para cotizarse y recibirse.
+    values.articles.forEach((group, groupIndex) => {
+      if (group.batch_category?.toUpperCase() === "TOOL") return;
+
+      group.batch_articles.forEach((line, lineIndex) => {
+        if (line.part_number.trim()) return;
+
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "El número de parte es obligatorio",
+          path: [
+            "articles",
+            groupIndex,
+            "batch_articles",
+            lineIndex,
+            "part_number",
+          ],
+        });
+      });
+    });
+  });
 
 type FormSchemaType = z.infer<typeof FormSchema>;
 

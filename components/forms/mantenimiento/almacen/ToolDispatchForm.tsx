@@ -270,7 +270,7 @@ export function ToolDispatchForm({ onClose }: FormProps) {
                               return (
                                 <CommandItem
                                   key={`t-${article.id}-${batch.batch_id}`}
-                                  value={`${batch.name} ${article.part_number} ${article.serial ?? ""} ${article.description ?? ""}`}
+                                  value={`${batch.name} ${article.part_number ?? ""} ${article.identifier ?? article.serial ?? ""} ${article.tool_model ?? ""} ${article.description ?? ""}`}
                                   className="max-w-full"
                                   onSelect={() =>
                                     handleAddAeronautical(
@@ -287,9 +287,9 @@ export function ToolDispatchForm({ onClose }: FormProps) {
                                   />
                                   <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
                                     <span className="truncate font-medium">
-                                      {article.part_number}
-                                      {article.serial
-                                        ? ` · SN: ${article.serial}`
+                                      {article.part_number ?? batch.name}
+                                      {article.identifier
+                                        ? ` · ${article.serial ? "SN: " : ""}${article.identifier}`
                                         : ""}
                                     </span>
                                     <span className="truncate text-xs text-muted-foreground">
@@ -377,10 +377,13 @@ export function ToolDispatchForm({ onClose }: FormProps) {
                     key={field.id}
                     title={
                       article?.part_number ??
+                      aeroBatchNameById.get(articleId) ??
                       (articleId ? `ID: ${articleId}` : "Herramienta")
                     }
                     subtitle={[
-                      article?.serial ? `SN: ${article.serial}` : null,
+                      article?.identifier
+                        ? `${article.serial ? "SN: " : ""}${article.identifier}`
+                        : null,
                       aeroBatchNameById.get(articleId) ?? "Sin lote",
                     ]
                       .filter(Boolean)

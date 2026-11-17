@@ -259,7 +259,7 @@ export default function ArticlesSummary({ data, isLoading, isError }: Props) {
                               </TableCell>
 
                               <TableCell className="text-center wrap-break-word">
-                                {item.part_number}
+                                {item.part_number || item.identifier || "N/A"}
                               </TableCell>
 
                               <TableCell className="text-center wrap-break-word">

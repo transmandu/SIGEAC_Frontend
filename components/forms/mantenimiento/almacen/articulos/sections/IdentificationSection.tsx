@@ -150,6 +150,8 @@ export const IdentificationSection = ({
   onBatchCreated,
   purchaseOrderLocked,
   manufacturerRequired,
+  withoutPartNumber,
+  leading,
   disabled,
   /** Campos propios de la categoría, dentro del mismo grid. */
   children,
@@ -164,8 +166,12 @@ export const IdentificationSection = ({
   batchCategory: string;
   onBatchCreated?: (batchName: string) => void | Promise<void>;
   purchaseOrderLocked?: boolean;
-  /** Solo las herramientas lo exigen: en el resto el fabricante es opcional. */
+  /** Ninguna categoría lo exige hoy; se conserva para quien lo necesite. */
   manufacturerRequired?: boolean;
+  /** Oculta número de parte y alternos: la unidad se reconoce por otros datos. */
+  withoutPartNumber?: boolean;
+  /** Contenido sobre la cuadrícula de campos, p. ej. la casilla «sin número de parte». */
+  leading?: React.ReactNode;
   disabled?: boolean;
   children?: React.ReactNode;
   /**
@@ -182,35 +188,39 @@ export const IdentificationSection = ({
       title="Identificación"
       hint="Con qué datos se reconoce el artículo en el inventario."
     >
+      {leading}
+
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-        <FormField
-          control={control}
-          name="part_number"
-          render={({ field, fieldState }) => (
-            <FormItem className="w-full">
-              <FieldLabelRow>
-                <FormLabel className={labelClass}>
-                  Nro. de parte
-                  <RequiredIndicator invalid={!!fieldState.error} />
-                </FormLabel>
-              </FieldLabelRow>
-              <FormControl>
-                <Input
-                  placeholder="Ej: 234ABAC"
-                  {...field}
-                  value={field.value ?? ""}
-                  disabled={disabled}
-                  className={fieldClass}
-                  onBlur={(e) => field.onChange(upper(e.target.value))}
-                />
-              </FormControl>
-              <FormDescription className={hintClass}>
-                Identificador principal del artículo.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {!withoutPartNumber && (
+          <FormField
+            control={control}
+            name="part_number"
+            render={({ field, fieldState }) => (
+              <FormItem className="w-full">
+                <FieldLabelRow>
+                  <FormLabel className={labelClass}>
+                    Nro. de parte
+                    <RequiredIndicator invalid={!!fieldState.error} />
+                  </FormLabel>
+                </FieldLabelRow>
+                <FormControl>
+                  <Input
+                    placeholder="Ej: 234ABAC"
+                    {...field}
+                    value={field.value ?? ""}
+                    disabled={disabled}
+                    className={fieldClass}
+                    onBlur={(e) => field.onChange(upper(e.target.value))}
+                  />
+                </FormControl>
+                <FormDescription className={hintClass}>
+                  Identificador principal del artículo.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
 
         <FormField
           control={control}
@@ -392,36 +402,38 @@ export const IdentificationSection = ({
       <div className="mt-4 grid grid-cols-1 gap-4 border-t border-slate-400/30 pt-4 md:grid-cols-2 dark:border-slate-600/30">
         {identifiers}
 
-        <FormField
-          control={control}
-          name="alternative_part_number"
-          render={({ field }) => (
-            <FormItem className="w-full">
-              <FieldLabelRow>
-                <FormLabel className={labelClass}>
-                  Nros. de parte alternos
-                </FormLabel>
-              </FieldLabelRow>
-              <FormControl>
-                <MultiInputField
-                  values={field.value || []}
-                  onChange={(values: string[]) =>
-                    field.onChange(values.map(upper))
-                  }
-                  placeholder="Ej: 234ABAC"
-                  disabled={disabled}
-                />
-              </FormControl>
-              {/* Los cinco campos vecinos llevan línea de apoyo y
+        {!withoutPartNumber && (
+          <FormField
+            control={control}
+            name="alternative_part_number"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FieldLabelRow>
+                  <FormLabel className={labelClass}>
+                    Nros. de parte alternos
+                  </FormLabel>
+                </FieldLabelRow>
+                <FormControl>
+                  <MultiInputField
+                    values={field.value || []}
+                    onChange={(values: string[]) =>
+                      field.onChange(values.map(upper))
+                    }
+                    placeholder="Ej: 234ABAC"
+                    disabled={disabled}
+                  />
+                </FormControl>
+                {/* Los cinco campos vecinos llevan línea de apoyo y
                                 este no: sin ella su celda medía menos y la fila
                                 quedaba descuadrada. */}
-              <FormDescription className={hintClass}>
-                Otros identificadores con que llega el artículo.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                <FormDescription className={hintClass}>
+                  Otros identificadores con que llega el artículo.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
       </div>
     </FormSection>
   );

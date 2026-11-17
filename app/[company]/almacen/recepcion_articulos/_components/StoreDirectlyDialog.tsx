@@ -222,7 +222,7 @@ export function StoreDirectlyDialog({
               {article.batch?.name ?? "N/A"}
             </p>
             <p className="font-mono text-xs text-muted-foreground">
-              {article.part_number}
+              {article.part_number || "Sin P/N"}
             </p>
           </div>
 

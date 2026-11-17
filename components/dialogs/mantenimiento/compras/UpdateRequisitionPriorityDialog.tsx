@@ -71,8 +71,10 @@ const PriorityForm = ({ req, setOpen, onSuccess }: Omit<Props, "open">) => {
       )
       .map((article) => ({
         id: article.id,
-        title: article.article_part_number,
-        subtitle: batch.name,
+        title: article.article_part_number || batch.name,
+        subtitle: article.article_part_number
+          ? batch.name
+          : "Sin número de parte",
         priority: article.priority,
       })),
   );

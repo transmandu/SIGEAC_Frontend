@@ -448,7 +448,7 @@ export function WorkshopDispatchForm({ onClose }: FormProps) {
                             return (
                               <CommandItem
                                 key={`a-${article.id}-${batch.batch_id}`}
-                                value={`${batch.name} ${article.part_number} ${article.serial ?? ""} ${article.description ?? ""}`}
+                                value={`${batch.name} ${article.part_number ?? ""} ${article.identifier ?? article.serial ?? ""} ${article.description ?? ""}`}
                                 className="max-w-full"
                                 onSelect={() =>
                                   handleAddAeronautical(article, batch.batch_id)
@@ -462,9 +462,9 @@ export function WorkshopDispatchForm({ onClose }: FormProps) {
                                 />
                                 <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
                                   <span className="font-medium truncate">
-                                    {article.part_number}{" "}
-                                    {article.serial
-                                      ? `· ${article.serial}`
+                                    {article.part_number ?? batch.name}{" "}
+                                    {article.identifier
+                                      ? `· ${article.identifier}`
                                       : ""}
                                   </span>
                                   <span className="text-xs text-muted-foreground truncate">

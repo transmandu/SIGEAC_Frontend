@@ -77,7 +77,7 @@ function formatQuantity(r: IArticleSimple) {
 }
 
 function toSearchable(r: IArticleSimple) {
-  const serialOrLot = r.serial || r.lot_number || "";
+  const serialOrLot = r.identifier || r.serial || r.lot_number || "";
   const desc = r.batch_name || "";
   const status = (r.status || "").toUpperCase();
   const zone = r.zone || "";
@@ -308,7 +308,8 @@ export function PartNumberGroupDialog({
 
                     <div className="divide-y">
                       {filtered.map((r) => {
-                        const serialOrLot = r.serial || r.lot_number || "N/A";
+                        const serialOrLot =
+                          r.identifier || r.serial || r.lot_number || "N/A";
                         const desc = r.batch_name || "Sin descripción";
                         const shelf = formatShelf(r);
                         const canModify = canModifyArticle(
@@ -588,7 +589,9 @@ export function PartNumberGroupDialog({
         {documentsArticle && (
           <ArticleDocumentsDialog
             articleId={documentsArticle.id}
-            partNumber={documentsArticle.part_number}
+            partNumber={
+              documentsArticle.part_number ?? documentsArticle.batch_name
+            }
             open
             onOpenChange={(next) => !next && setDocumentsArticle(null)}
           />
