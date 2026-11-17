@@ -1,23 +1,33 @@
 name: Calidad
 
-# Lo que un PR no puede romper.
-#
-# Hasta ahora el CI del frontend solo formateaba (format.yml); nada comprobaba
-# que el código compilara ni que respetara las reglas del proyecto. Aquí van
-# dos barreras que hoy están en verde, así que un PR nuevo no puede ponerlas
-# en rojo sin enterarse:
+# Lo que un PR no puede romper. Tres barreras, las tres en verde hoy, así que un
+# PR nuevo no puede ponerlas en rojo sin enterarse:
 #
 #  - Lint: `eslint .` sin errores. Las advertencias (que hay muchas, de los
 #    diagnósticos del compilador de React) no cuentan; solo los errores. Incluye
 #    el contrato de errores: cómo se avisa un fallo al usuario
 #    (docs/manejo-de-errores.md).
 #  - Tipos: `tsc` sin un solo error.
+#  - Build: `next build` termina. Es lo que corre el despliegue, y lint más tipos
+#    no lo garantizan (rutas mal formadas, imports de servidor en cliente,
+#    páginas que fallan al prerenderizar).
+#
+# Son tres jobs y no tres pasos: no se necesitan entre sí, y en paralelo la
+# espera es la del más lento en vez de la suma. La instalación tarda ~5 s con la
+# caché del store, así que repetirla en cada job casi no cuesta.
+#
+# Los nombres de los jobs son los que se exigen como check obligatorio en el
+# ruleset de main (docs/manual-versionado.md): cambiarlos exige cambiar el
+# ruleset.
 
 on:
   pull_request:
     branches: [main]
   push:
     branches: [main]
+  # formato.yml lo lanza después de commitear el formato: los commits hechos con
+  # GITHUB_TOKEN no disparan `pull_request`, pero un workflow_dispatch sí.
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -27,24 +37,85 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  calidad:
-    name: Lint y tipos
+  lint:
+    name: Calidad · Lint
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: pnpm/action-setup@v6
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .nvmrc
           cache: pnpm
 
-      - run: pnpm install --frozen-lockfile
+      - name: Instalar dependencias
+        run: pnpm install --frozen-lockfile
 
       - name: Lint
         run: pnpm lint
 
+  tipos:
+    name: Calidad · Tipos
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Instalar dependencias
+        run: pnpm install --frozen-lockfile
+
       - name: Tipos
         run: pnpm typecheck
+
+  build:
+    name: Calidad · Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    # Nada de esto es secreto ni toca un servidor real: el build solo necesita
+    # que las variables existan para armar las URLs que embebe en el bundle.
+    env:
+      NEXT_TELEMETRY_DISABLED: '1'
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:8000/api
+      NEXT_PUBLIC_STORAGE_BASE_URL: http://localhost:8000/storage/
+      NEXT_PUBLIC_URL: http://localhost:3000
+      NEXT_PUBLIC_FRONTEND_URL: http://localhost:3000
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      # Caché de compilación de Next (la que recomienda su documentación): sin
+      # ella cada build recompila todo desde cero. Se renueva en cada commit y
+      # se parte de la última del mismo lockfile.
+      - name: Caché de Next
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .next/cache
+          key: next-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.sha }}
+          restore-keys: |
+            next-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
+
+      - name: Instalar dependencias
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
