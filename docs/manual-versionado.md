@@ -50,7 +50,7 @@ tres `fix:` producen una versión menor.
 ### Lo único que hay que hacer
 
 Escribir bien el título del PR. Un check lo valida antes de permitir el merge
-(`.github/workflows/pr-title.yml`) y explica el formato si no coincide.
+(`.github/workflows/titulo-pr.yml`) y explica el formato si no coincide.
 
 ```
 feat: panel de supervisor de compras
@@ -114,10 +114,67 @@ El valor por defecto de GitHub (`COMMIT_OR_PR_TITLE`) es una trampa: cuando el P
 trae **un solo commit**, usa el título de *ese commit* en vez del título del PR.
 Así llegaban a `main` títulos como `fixes` aunque el PR estuviera bien nombrado.
 
-**3. Check obligatorio** — ruleset que exige `validate` antes de mergear a `main`,
-con `github-actions[bot]` en la lista de excepciones para que pueda empujar el
-commit de versión.
+**3. Ruleset de `main`.** Exige PR, squash y los checks de abajo, y bloquea el
+borrado y el force-push. Dos excepciones (`bypass_actors`):
 
+- **GitHub Actions** (`Integration` 15368): sin ella `release.yml` no puede empujar
+  el commit de versión, porque ese commit no pasa por un PR ni tiene checks.
+- **Rol admin** (`RepositoryRole` 5): salida de emergencia.
+
+Checks obligatorios (son el `name:` de cada job, no el del archivo):
+
+| Check | Workflow |
+| --- | --- |
+| `Calidad · Lint` | `calidad.yml` |
+| `Calidad · Tipos` | `calidad.yml` |
+| `Calidad · Build` | `calidad.yml` |
+| `Título del PR · Convención` | `titulo-pr.yml` |
+
+Si se renombra un job hay que actualizar el ruleset, o el PR se queda esperando
+un check que ya no existe. Se aplica **después** de que los workflows estén en
+`main` (un check inexistente bloquea todos los PR):
+
+```bash
+gh api -X PUT repos/transmandu/SIGEAC_Frontend/rulesets/21434428 --input - <<'EOF'
+{
+  "name": "main - protección",
+  "target": "branch",
+  "enforcement": "active",
+  "conditions": { "ref_name": { "include": ["~DEFAULT_BRANCH"], "exclude": [] } },
+  "bypass_actors": [
+    { "actor_id": 15368, "actor_type": "Integration", "bypass_mode": "always" },
+    { "actor_id": 5, "actor_type": "RepositoryRole", "bypass_mode": "always" }
+  ],
+  "rules": [
+    { "type": "deletion" },
+    { "type": "non_fast_forward" },
+    { "type": "pull_request", "parameters": {
+        "required_approving_review_count": 0,
+        "dismiss_stale_reviews_on_push": false,
+        "require_code_owner_review": false,
+        "require_last_push_approval": false,
+        "required_review_thread_resolution": false,
+        "allowed_merge_methods": ["squash"] } },
+    { "type": "required_status_checks", "parameters": {
+        "strict_required_status_checks_policy": false,
+        "required_status_checks": [
+          { "context": "Calidad · Lint" },
+          { "context": "Calidad · Tipos" },
+          { "context": "Calidad · Build" },
+          { "context": "Título del PR · Convención" } ] } }
+  ]
+}
+EOF
+```
+
+Sin revisiones obligatorias (`required_approving_review_count: 0`) a propósito:
+el equipo es pequeño y exigir una aprobación frenaría cada merge. `strict` queda
+en `false` para no obligar a rebasear cada PR cada vez que otro entra a `main`.
+
+**4. Formato automático.** `formato.yml` commitea el resultado de prettier con
+`GITHUB_TOKEN`, y GitHub no dispara `pull_request` por ese commit. Por eso, tras
+el push, lanza `calidad.yml` con `workflow_dispatch` (una de las dos excepciones
+a esa regla) y los checks se cuelgan del commit nuevo.
 > **Solo aplicado en el Frontend.** La organización está en plan **Free**, que no
 > permite reglas de rama en repositorios privados. Como `SIGEAC_Backend` es
 > privado, ahí el validador de títulos **corre y se ve en rojo, pero no bloquea

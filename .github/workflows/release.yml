@@ -20,16 +20,24 @@ permissions:
 
 jobs:
   release:
+    name: Release · Versión y tag
     runs-on: ubuntu-latest
-    # Los commits que este workflow crea vuelven a disparar el push. Sin esto
-    # el workflow se llamaría a sí mismo en bucle. En un lanzamiento manual no
-    # hay head_commit y la comparación se evalúa contra vacío, que no coincide.
+    timeout-minutes: 10
+    # Red de seguridad: el commit de release se sube con GITHUB_TOKEN, que por
+    # diseño no dispara workflows, pero si algún día se cambia por un PAT este
+    # filtro evita el bucle. En un lanzamiento manual no hay head_commit y la
+    # comparación se evalúa contra vacío, que no coincide.
     if: "!startsWith(github.event.head_commit.message || '', 'chore(release):')"
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          # La punta actual de main, no el commit que disparó la corrida. Con
+          # la cola de concurrency, el segundo release arrancaba sobre un
+          # commit que no incluía el commit de release del primero, y el push
+          # era rechazado por no ser fast-forward.
+          ref: main
 
       - name: Determinar versión
         id: version
