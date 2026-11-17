@@ -1,3 +1,7 @@
+## v4.114.0 — 2026-11-17
+
+- feat: add dialog and overlay animations for smoother transitions
+
 ## v4.113.0 — 2026-11-17
 
 - Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
