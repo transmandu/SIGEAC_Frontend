@@ -1,3 +1,8 @@
+## v4.113.0 — 2026-11-17
+
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- feat: implement panel presence hook with CSS transitions for smoother animations
+
 ## v4.112.0 — 2026-11-17
 
 - Merge pull request #418 from transmandu/feat/add-external-aircraft-counter
