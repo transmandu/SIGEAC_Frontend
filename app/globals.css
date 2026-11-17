@@ -854,6 +854,49 @@ html[data-queue-open] [data-tour-menu] {
   }
 }
 
+/* Paneles laterales: entrada y salida con transiciones de transform/opacity,
+   que el navegador resuelve en el compositor sin tocar el hilo principal. Son
+   transiciones y no keyframes a propósito: se pueden interrumpir, así que abrir
+   y cerrar varias veces seguidas invierte el movimiento desde donde va, sin
+   saltos. Nada de resortes en JS, de `transition: all` ni de `backdrop-filter`
+   dentro de la capa en movimiento. El estado lo pone `usePanelPresence`. */
+.panel-slide-right {
+  transform: translate3d(100%, 0, 0);
+  transition: transform 0.24s cubic-bezier(0.4, 0, 1, 1);
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+.panel-slide-right[data-state="open"] {
+  transform: translate3d(0, 0, 0);
+  transition-duration: 0.3s;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.panel-slide-right[data-state="closed"] {
+  pointer-events: none;
+}
+
+.panel-scrim {
+  opacity: 0;
+  transition: opacity 0.24s ease;
+}
+
+.panel-scrim[data-state="open"] {
+  opacity: 1;
+}
+
+.panel-scrim[data-state="closed"] {
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel-slide-right,
+  .panel-scrim {
+    transition-duration: 0.01ms !important;
+  }
+}
+
 /* Animaciones */
 @keyframes fade-in {
   0% {
