@@ -59,6 +59,12 @@ interface PaxFlightFormProps {
   isEditing?: boolean;
 }
 
+interface PaxFlightPrefill {
+  flightType?: FlightType;
+  passengers?: Omit<PaxPassenger, "id">[];
+  source?: string;
+}
+
 export const PaxFlightForm = ({
   company,
   initialData,
@@ -75,6 +81,31 @@ export const PaxFlightForm = ({
     );
   }, [user]);
 
+  // Prefill one-shot del importador de WhatsApp. Se lee durante el primer
+  // render para que el form nazca con los datos y no parpadee en blanco.
+  // La lectura es pura (no borra la clave) porque React puede invocar el
+  // inicializador dos veces en StrictMode; el borrado va en un effect.
+  const [prefill] = useState<PaxFlightPrefill | null>(() => {
+    if (isEditing || initialData || typeof window === "undefined") {
+      return null;
+    }
+    const stored = sessionStorage.getItem("sigeac_prefill_pax_flight");
+    if (!stored) {
+      return null;
+    }
+    try {
+      return JSON.parse(stored) as PaxFlightPrefill;
+    } catch {
+      return null;
+    }
+  });
+
+  useEffect(() => {
+    if (prefill) {
+      sessionStorage.removeItem("sigeac_prefill_pax_flight");
+    }
+  }, [prefill]);
+
   // Form State
   const [flightDate, setFlightDate] = useState<string>(() => {
     if (initialData?.flight_date_raw) return initialData.flight_date_raw;
@@ -88,7 +119,7 @@ export const PaxFlightForm = ({
 
   const [route, setRoute] = useState<string>(initialData?.route || "PZO-CAJ");
   const [flightType, setFlightType] = useState<FlightType>(
-    initialData?.flight_type || "PAX",
+    initialData?.flight_type || prefill?.flightType || "PAX",
   );
 
   // Aeronave
@@ -148,39 +179,18 @@ export const PaxFlightForm = ({
             p.return_flight != null ? Boolean(p.return_flight) : false,
         }));
       }
+      if (prefill?.passengers && prefill.passengers.length > 0) {
+        return prefill.passengers;
+      }
       return [];
     },
   );
 
-  const [importedNotice, setImportedNotice] = useState<string | null>(null);
+  const [importedNotice, setImportedNotice] = useState<string | null>(
+    prefill?.source ?? null,
+  );
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isCargoPreviewOpen, setIsCargoPreviewOpen] = useState(false);
-
-  useEffect(() => {
-    if (!isEditing && !initialData && typeof window !== "undefined") {
-      const stored = sessionStorage.getItem("sigeac_prefill_pax_flight");
-      if (stored) {
-        try {
-          const parsed = JSON.parse(stored);
-          if (parsed.flightType) {
-            setFlightType(parsed.flightType);
-          }
-          if (
-            Array.isArray(parsed.passengers) &&
-            parsed.passengers.length > 0
-          ) {
-            setPassengers(parsed.passengers);
-          }
-          if (parsed.source) {
-            setImportedNotice(parsed.source);
-          }
-          sessionStorage.removeItem("sigeac_prefill_pax_flight");
-        } catch {
-          // ignore parsing error
-        }
-      }
-    }
-  }, [isEditing, initialData]);
 
   // Queries externas
   const { data: aircrafts } = useGetAircrafts(company);
