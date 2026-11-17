@@ -19,6 +19,9 @@ import { useGetSMSActivityAttendanceStats } from "@/hooks/sms/useGetSMSActivityA
 import { useGetSMSActivityByNumber } from "@/hooks/sms/useGetSMSActivityByNumber";
 import { useIsOmac } from "@/hooks/sistema/useIsOmac";
 import { AeronauticalActivityDetail } from "@/app/[company]/sms/(employees)/promocion/actividades/_components/aeronautical-activity-detail";
+import { DrillEvaluationSummary } from "@/app/[company]/sms/(employees)/promocion/actividades/_components/drill-evaluation-summary";
+import { hasDrillActivityCategory } from "@/lib/sms/activity-categories";
+import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { generateMinutaPDF } from "@/utils/generateMinutaPDF";
 import { addDays, format } from "date-fns";
@@ -28,6 +31,7 @@ import {
   AreaChartIcon,
   BarChart3,
   Check,
+  ClipboardCheck,
   FileText,
   Info,
   Loader2,
@@ -104,6 +108,8 @@ const AirlineActivityDetail = () => {
       ? Math.round((attendanceStats.attended / attendanceStats.total) * 100)
       : 0;
 
+  const hasDrillCategory = hasDrillActivityCategory(activity?.categories);
+
   return (
     <>
       <ContentLayout title="Actividad de SMS">
@@ -148,7 +154,12 @@ const AirlineActivityDetail = () => {
 
           {activity && (
             <Tabs defaultValue="informacion" className="w-full">
-              <TabsList className="mb-5 grid w-full grid-cols-2 gap-2 border border-border/60 bg-transparent p-1 sm:grid-cols-4">
+              <TabsList
+                className={cn(
+                  "mb-5 grid w-full grid-cols-2 gap-2 border border-border/60 bg-transparent p-1",
+                  hasDrillCategory ? "sm:grid-cols-5" : "sm:grid-cols-4",
+                )}
+              >
                 <TabsTrigger
                   value="informacion"
                   className="flex items-center gap-2 px-2 data-[state=active]:bg-muted"
@@ -185,6 +196,17 @@ const AirlineActivityDetail = () => {
                     Estadísticas
                   </span>
                 </TabsTrigger>
+                {hasDrillCategory && (
+                  <TabsTrigger
+                    value="simulacro"
+                    className="flex items-center gap-2 px-2 data-[state=active]:bg-muted"
+                  >
+                    <ClipboardCheck className="h-4 w-4 shrink-0" />
+                    <span className="truncate text-xs sm:text-sm">
+                      Simulacro
+                    </span>
+                  </TabsTrigger>
+                )}
               </TabsList>
 
               <TabsContent value="informacion" className="space-y-5">
@@ -711,6 +733,15 @@ const AirlineActivityDetail = () => {
                   )}
                 </div>
               </TabsContent>
+
+              {hasDrillCategory && (
+                <TabsContent value="simulacro">
+                  <DrillEvaluationSummary
+                    activityNumber={activity_number}
+                    categories={activity.categories}
+                  />
+                </TabsContent>
+              )}
             </Tabs>
           )}
 
