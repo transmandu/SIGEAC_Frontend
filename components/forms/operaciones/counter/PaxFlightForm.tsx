@@ -538,7 +538,10 @@ export const PaxFlightForm = ({
                     <SelectGroup>
                       <SelectLabel>Aeronaves Externas</SelectLabel>
                       {externalAircrafts.map((ea: any) => (
-                        <SelectItem key={`ext-${ea.acronym}`} value={`ext:${ea.acronym}`}>
+                        <SelectItem
+                          key={`ext-${ea.acronym}`}
+                          value={`ext:${ea.acronym}`}
+                        >
                           {ea.acronym} {ea.model ? `- ${ea.model}` : ""}
                         </SelectItem>
                       ))}

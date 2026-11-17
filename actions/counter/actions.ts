@@ -18,7 +18,15 @@ export const usePaxFlights = (
   externalAircraft?: string | null,
 ) => {
   return useQuery({
-    queryKey: ["pax-flights", company, month, year, aircraftId, flightType, externalAircraft],
+    queryKey: [
+      "pax-flights",
+      company,
+      month,
+      year,
+      aircraftId,
+      flightType,
+      externalAircraft,
+    ],
     queryFn: async (): Promise<PaxFlight[]> => {
       const response = await axiosInstance.get(`/${company}/pax-flights`, {
         params: {

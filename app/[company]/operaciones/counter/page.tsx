@@ -37,7 +37,9 @@ const CounterPage = () => {
     return new Date(y, m - 1, 1);
   });
   const [filterAircraftId, setFilterAircraftId] = useState<number | null>(null);
-  const [filterExternalAircraft, setFilterExternalAircraft] = useState<string | null>(null);
+  const [filterExternalAircraft, setFilterExternalAircraft] = useState<
+    string | null
+  >(null);
   const [filterType, setFilterType] = useState<string>("all");
   const [importModalOpen, setImportModalOpen] = useState<boolean>(false);
 
@@ -46,8 +48,12 @@ const CounterPage = () => {
 
   const { data: aircrafts } = useGetAircrafts(company);
   const internalAircrafts = useMemo(() => aircrafts ?? [], [aircrafts]);
-  const { data: externalAircrafts } = useGetExternalAircraftSuggestions(company);
-  const externalAircraftsList = useMemo(() => externalAircrafts ?? [], [externalAircrafts]);
+  const { data: externalAircrafts } =
+    useGetExternalAircraftSuggestions(company);
+  const externalAircraftsList = useMemo(
+    () => externalAircrafts ?? [],
+    [externalAircrafts],
+  );
 
   const {
     data: flights,
@@ -152,7 +158,10 @@ const CounterPage = () => {
                     <SelectGroup>
                       <SelectLabel>Aeronaves Externas</SelectLabel>
                       {externalAircraftsList.map((a: any) => (
-                        <SelectItem key={`ext-${a.acronym}`} value={`ext:${a.acronym}`}>
+                        <SelectItem
+                          key={`ext-${a.acronym}`}
+                          value={`ext:${a.acronym}`}
+                        >
                           {a.acronym} {a.model ? `- ${a.model}` : ""}
                         </SelectItem>
                       ))}
@@ -212,7 +221,12 @@ const CounterPage = () => {
             Error al consultar los manifiestos de vuelo.
           </p>
         ) : (
-          <DataTable columns={columns} data={flights || []} filterColumn="flight_code" filterPlaceholder="Filtrar por N° de vuelo" />
+          <DataTable
+            columns={columns}
+            data={flights || []}
+            filterColumn="flight_code"
+            filterPlaceholder="Filtrar por N° de vuelo"
+          />
         )}
 
         <WhatsAppImportModal

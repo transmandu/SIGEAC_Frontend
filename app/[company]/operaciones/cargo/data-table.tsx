@@ -68,13 +68,10 @@ export function DataTable<TData extends RowData>({
           data-tour="cargo-guia-tabla-search"
           placeholder={filterPlaceholder}
           value={
-            (table.getColumn(filterColumn)?.getFilterValue() as string) ??
-            ""
+            (table.getColumn(filterColumn)?.getFilterValue() as string) ?? ""
           }
           onChange={(event) =>
-            table
-              .getColumn(filterColumn)
-              ?.setFilterValue(event.target.value)
+            table.getColumn(filterColumn)?.setFilterValue(event.target.value)
           }
           className="max-w-sm text-center"
         />
