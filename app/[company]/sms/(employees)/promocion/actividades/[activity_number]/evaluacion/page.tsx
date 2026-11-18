@@ -97,6 +97,9 @@ const DrillEvaluationPage = () => {
           <DrillEvaluationForm
             key={evaluation?.id ?? "new"}
             activityNumber={activity_number}
+            activityDrillType={
+              activity?.drill_type ?? activity?.drill_evaluation?.type ?? null
+            }
             initialData={evaluation ?? null}
             isEditing={!!evaluation}
             onSaved={() => router.push(backHref)}

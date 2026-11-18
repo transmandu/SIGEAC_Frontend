@@ -286,6 +286,8 @@ type FormSchemaType = z.infer<typeof FormSchema>;
 
 interface DrillEvaluationFormProps {
   activityNumber: string;
+  /** Tipo planificado en la actividad; NULL en actividades antiguas. */
+  activityDrillType?: DrillEvaluationType | null;
   initialData?: DrillEvaluation | null;
   isEditing?: boolean;
   onSaved?: (evaluation: DrillEvaluation) => void;
@@ -377,6 +379,7 @@ function stepForErrorPath(path: string): number {
 
 export default function DrillEvaluationForm({
   activityNumber,
+  activityDrillType,
   initialData,
   isEditing = false,
   onSaved,
@@ -391,7 +394,7 @@ export default function DrillEvaluationForm({
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      type: initialData?.type ?? "PARCIAL",
+      type: initialData?.type ?? activityDrillType ?? "PARCIAL",
       date: initialData?.date
         ? parseCalendarDate(initialData.date)
         : new Date(),
@@ -843,7 +846,7 @@ export default function DrillEvaluationForm({
                     <Select
                       value={field.value}
                       onValueChange={field.onChange}
-                      disabled={isEditing}
+                      disabled={isEditing || Boolean(activityDrillType)}
                     >
                       <FormControl>
                         <SelectTrigger>
@@ -857,12 +860,16 @@ export default function DrillEvaluationForm({
                         <SelectItem value="MESA">Simulacro de mesa</SelectItem>
                       </SelectContent>
                     </Select>
-                    {isEditing && (
+                    {isEditing ? (
                       <p className="text-[11px] text-muted-foreground">
                         El tipo no se puede cambiar una vez registrada la
                         evaluación.
                       </p>
-                    )}
+                    ) : activityDrillType ? (
+                      <p className="text-[11px] text-muted-foreground">
+                        Definido en la actividad.
+                      </p>
+                    ) : null}
                     <FormMessage />
                   </FormItem>
                 )}

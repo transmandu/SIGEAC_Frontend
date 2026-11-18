@@ -29,6 +29,7 @@ import type {
 interface DrillEvaluationSummaryProps {
   activityNumber: string;
   categories?: { name: string }[];
+  drillType?: "PARCIAL" | "MESA" | null;
 }
 
 const PARTICIPANT_SECTIONS: {
@@ -76,6 +77,7 @@ const TypeBadge = ({ type }: { type: DrillEvaluation["type"] }) => (
 export function DrillEvaluationSummary({
   activityNumber,
   categories,
+  drillType,
 }: DrillEvaluationSummaryProps) {
   const { selectedCompany } = useCompanyStore();
   const company = selectedCompany?.slug;
@@ -146,7 +148,11 @@ export function DrillEvaluationSummary({
               Esta actividad todavía no tiene una evaluación de simulacro.
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Puede registrar un simulacro parcial o uno de mesa.
+              {drillType
+                ? `La actividad requiere un simulacro ${
+                    drillType === "PARCIAL" ? "parcial" : "de mesa"
+                  }.`
+                : "El tipo de simulacro se define al registrar la evaluación."}
             </p>
           </div>
         ) : (

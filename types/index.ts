@@ -1901,6 +1901,13 @@ export type SMSActivity = {
   documentUrl?: string;
   status: string;
   categories: ActivityCategory[];
+  drill_type?: "PARCIAL" | "MESA" | null;
+  drill_evaluation?: {
+    id: number;
+    sms_activity_id: number;
+    type: "PARCIAL" | "MESA";
+    number: string;
+  } | null;
   is_pre?: boolean;
   library_folder_paths?: string[];
   library_document_id?: number | null;

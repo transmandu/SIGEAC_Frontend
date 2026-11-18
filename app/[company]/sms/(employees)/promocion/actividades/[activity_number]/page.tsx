@@ -298,6 +298,21 @@ const AirlineActivityDetail = () => {
                           Sin categorías registradas.
                         </p>
                       )}
+
+                      {hasDrillCategory && (
+                        <div className="mt-3 border-t border-border/60 pt-3">
+                          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                            Tipo de simulacro
+                          </p>
+                          <p className="mt-1 text-sm">
+                            {activity.drill_type === "PARCIAL"
+                              ? "Simulacro parcial"
+                              : activity.drill_type === "MESA"
+                                ? "Simulacro de mesa"
+                                : "Por definir al registrar la evaluación"}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </section>
                 </div>
@@ -739,6 +754,7 @@ const AirlineActivityDetail = () => {
                   <DrillEvaluationSummary
                     activityNumber={activity_number}
                     categories={activity.categories}
+                    drillType={activity.drill_type}
                   />
                 </TabsContent>
               )}
