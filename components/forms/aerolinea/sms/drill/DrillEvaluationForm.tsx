@@ -881,6 +881,11 @@ export default function DrillEvaluationForm({
                   }
                   className="font-mono"
                 />
+                <p className="text-[11px] text-muted-foreground">
+                  {isEditing
+                    ? "Asignado al registrar la evaluación."
+                    : "Vista previa: se asigna al guardar."}
+                </p>
               </FormItem>
 
               <FormField
