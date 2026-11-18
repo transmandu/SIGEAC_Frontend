@@ -52,6 +52,10 @@
   --animate-indeterminate: indeterminate 1.1s ease-in-out infinite;
   --animate-sheet-up: sheet-up 0.32s cubic-bezier(0.32, 0.72, 0, 1);
   --animate-sheet-down: sheet-down 0.2s ease-in forwards;
+  --animate-dialog-in: dialog-in 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+  --animate-dialog-out: dialog-out 0.14s cubic-bezier(0.4, 0, 1, 1) forwards;
+  --animate-overlay-in: overlay-in 0.2s ease-out;
+  --animate-overlay-out: overlay-out 0.14s ease-in forwards;
   --animate-card-in: card-in 0.32s cubic-bezier(0.22, 1, 0.36, 1) backwards;
   --animate-reveal: reveal 0.22s cubic-bezier(0.22, 1, 0.36, 1) backwards;
   --animate-item-in: item-in 0.2s cubic-bezier(0.22, 1, 0.36, 1) backwards;
@@ -107,6 +111,35 @@
     to {
       opacity: 0;
       transform: translateY(1.5rem) scale(0.98);
+    }
+  }
+  /* Diálogos centrados: solo opacity + transform (compositor). No usa `translate`
+     porque esa propiedad ya centra el diálogo; las clases slide-* de
+     tw-animate-css se SUMABAN al centrado y lo hacían barrer medio ancho. */
+  @keyframes dialog-in {
+    from {
+      opacity: 0;
+      transform: translateY(0.5rem) scale(0.97);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes dialog-out {
+    to {
+      opacity: 0;
+      transform: translateY(0.25rem) scale(0.98);
+    }
+  }
+  @keyframes overlay-in {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes overlay-out {
+    to {
+      opacity: 0;
     }
   }
   @keyframes card-in {
@@ -851,6 +884,49 @@ html[data-queue-open] [data-tour-menu] {
       background-color: hsl(38 92% 50% / 0.18);
       box-shadow: inset 3px 0 0 0 hsl(38 92% 60% / 0.9);
     }
+  }
+}
+
+/* Paneles laterales: entrada y salida con transiciones de transform/opacity,
+   que el navegador resuelve en el compositor sin tocar el hilo principal. Son
+   transiciones y no keyframes a propósito: se pueden interrumpir, así que abrir
+   y cerrar varias veces seguidas invierte el movimiento desde donde va, sin
+   saltos. Nada de resortes en JS, de `transition: all` ni de `backdrop-filter`
+   dentro de la capa en movimiento. El estado lo pone `usePanelPresence`. */
+.panel-slide-right {
+  transform: translate3d(100%, 0, 0);
+  transition: transform 0.24s cubic-bezier(0.4, 0, 1, 1);
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+.panel-slide-right[data-state="open"] {
+  transform: translate3d(0, 0, 0);
+  transition-duration: 0.3s;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.panel-slide-right[data-state="closed"] {
+  pointer-events: none;
+}
+
+.panel-scrim {
+  opacity: 0;
+  transition: opacity 0.24s ease;
+}
+
+.panel-scrim[data-state="open"] {
+  opacity: 1;
+}
+
+.panel-scrim[data-state="closed"] {
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel-slide-right,
+  .panel-scrim {
+    transition-duration: 0.01ms !important;
   }
 }
 

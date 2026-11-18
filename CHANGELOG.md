@@ -1,3 +1,29 @@
+## v4.114.0 — 2026-11-17
+
+- feat: add dialog and overlay animations for smoother transitions
+
+## v4.113.0 — 2026-11-17
+
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- feat: implement panel presence hook with CSS transitions for smoother animations
+
+## v4.112.0 — 2026-11-17
+
+- Merge pull request #418 from transmandu/feat/add-external-aircraft-counter
+- style: formato automatico (prettier)
+- fix(counter): apply WhatsApp prefill during render
+- fix(operation): declare the cargo table filter column explicitly
+- feat: add support for external aircraft selection in flight forms and counters
+
+## v4.111.1 — 2026-11-17
+
+- chore: update workflows and dependencies, add PR title validation (#409)
+
+## v4.111.0 — 2026-11-16
+
+- Merge pull request #408 from transmandu/feat/update-employee-role
+- feat: refine user role checks for WhatsApp import and manifest creation
+
 ## v4.110.0 — 2026-11-16
 
 - Merge pull request #407 from transmandu/feat/update-employee-role

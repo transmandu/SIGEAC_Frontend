@@ -30,3 +30,13 @@ minimumReleaseAge: 1440
 # pnpm añade la versión a minimumReleaseAgeExclude. Dependabot ya aplica su propia
 # espera (cooldown de 7 días en .github/dependabot.yml) a lo que propone.
 minimumReleaseAgeStrict: false
+
+# Skills de agentes (guías en SKILL.md) que traen los paquetes. Solo se aprueba
+# lo que se revisó; no ejecutan nada, pnpm únicamente los enlaza en `dirs`.
+permissions:
+  '@tanstack/react-table':
+    skills: true
+
+skills:
+  dirs:
+    - .claude/skills

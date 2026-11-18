@@ -1,0 +1,61 @@
+name: ClickUp
+
+# Cada push a main crea en ClickUp una tarea ya completada con el título del
+# commit. Usa el token de ClickUp (secrets), no el GITHUB_TOKEN: por eso no
+# necesita ningún permiso sobre el repositorio.
+
+on:
+  push:
+    branches:
+      - main
+
+# No toca el repo: sin permisos. El valor por defecto del repositorio es
+# escritura, y este job maneja un token de terceros.
+permissions: {}
+
+jobs:
+  registrar-tarea:
+    name: ClickUp · Registrar tarea
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Crear la tarea completada
+        env:
+          CLICKUP_API_TOKEN: ${{ secrets.CLICKUP_API_TOKEN }}
+          CLICKUP_LIST_ID: ${{ secrets.CLICKUP_LIST_ID }}
+          REPO_NAME: ${{ github.repository }}
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+          COMMIT_URL: ${{ github.event.head_commit.url }}
+          COMMIT_AUTHOR: ${{ github.event.head_commit.author.name }}
+          COMMIT_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          # Sin esto el job terminaba en verde con los secretos vacíos y la
+          # tarea nunca se creaba.
+          if [ -z "$CLICKUP_API_TOKEN" ] || [ -z "$CLICKUP_LIST_ID" ]; then
+            echo "::error::Faltan los secretos CLICKUP_API_TOKEN o CLICKUP_LIST_ID."
+            exit 1
+          fi
+
+          FIRST_LINE=$(head -n1 <<<"$COMMIT_MESSAGE")
+          CLEAN_TITLE=$(sed -E 's/^[a-zA-Z]+(\([^)]+\))?!?:[[:space:]]*//' <<<"$FIRST_LINE")
+
+          PAYLOAD=$(jq -n \
+            --arg name "$CLEAN_TITLE" \
+            --arg desc "Repo: $REPO_NAME
+          Commit: $COMMIT_URL
+          Autor: $COMMIT_AUTHOR
+          SHA: $COMMIT_SHA" \
+            --arg status "complete" \
+            '{name: $name, description: $desc, status: $status}')
+
+          # --fail-with-body: una respuesta 4xx/5xx (token vencido, lista
+          # borrada) pone el job en rojo en vez de perderse en silencio.
+          curl --silent --show-error --fail-with-body \
+            --max-time 30 --retry 3 --retry-all-errors \
+            -X POST "https://api.clickup.com/api/v2/list/$CLICKUP_LIST_ID/task" \
+            -H "Authorization: $CLICKUP_API_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "$PAYLOAD" \
+            --output /dev/null
