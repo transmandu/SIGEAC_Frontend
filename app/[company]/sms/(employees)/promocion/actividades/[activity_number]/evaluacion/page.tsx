@@ -21,23 +21,29 @@ const DrillEvaluationPage = () => {
 
   const {
     data: activity,
-    isLoading: isActivityLoading,
+    isPending: isActivityPending,
     isError: isActivityError,
   } = useGetSMSActivityByNumber({
     company,
     activityNumber: activity_number,
   });
 
-  const { data: evaluation, isLoading: isEvaluationLoading } =
-    useGetDrillEvaluation({
-      company,
-      activityNumber: activity_number,
-    });
+  // `isPending`, no `isLoading`: una query deshabilitada (empresa aún sin
+  // hidratar) tiene isLoading en false, y el formulario se montaba con el tipo
+  // por defecto antes de que llegara la evaluación guardada.
+  const {
+    data: evaluation,
+    isPending: isEvaluationPending,
+    isError: isEvaluationError,
+  } = useGetDrillEvaluation({
+    company,
+    activityNumber: activity_number,
+  });
 
   const backHref = `/${company}/sms/promocion/actividades/${activity_number}`;
   const hasDrillCategory = hasDrillActivityCategory(activity?.categories);
 
-  const isLoading = isActivityLoading || isEvaluationLoading;
+  const isLoading = !company || isActivityPending || isEvaluationPending;
 
   return (
     <ContentLayout title="Evaluación de simulacro">
@@ -72,11 +78,11 @@ const DrillEvaluationPage = () => {
           <div className="flex h-52 items-center justify-center">
             <Loader2 className="size-10 animate-spin text-muted-foreground" />
           </div>
-        ) : isActivityError ? (
+        ) : isActivityError || isEvaluationError ? (
           <div className="flex items-center gap-3 rounded-lg border border-red-200 bg-red-100 p-4 dark:border-red-800 dark:bg-red-950/20">
             <AlertCircle className="h-5 w-5 text-red-500" />
             <p className="text-sm text-red-700 dark:text-red-300">
-              No se pudo cargar la actividad.
+              No se pudo cargar la actividad o su evaluación.
             </p>
           </div>
         ) : !hasDrillCategory && !evaluation ? (
@@ -89,6 +95,7 @@ const DrillEvaluationPage = () => {
           </div>
         ) : (
           <DrillEvaluationForm
+            key={evaluation?.id ?? "new"}
             activityNumber={activity_number}
             initialData={evaluation ?? null}
             isEditing={!!evaluation}

@@ -81,7 +81,9 @@ export function DrillEvaluationSummary({
   const company = selectedCompany?.slug;
   const [openDelete, setOpenDelete] = useState(false);
 
-  const { data: evaluation, isLoading } = useGetDrillEvaluation({
+  // Mismo criterio que la página: `isLoading` es false en una query
+  // deshabilitada y el resumen mostraba "sin evaluación" antes de tiempo.
+  const { data: evaluation, isPending: isLoading } = useGetDrillEvaluation({
     company,
     activityNumber,
   });
@@ -118,6 +120,7 @@ export function DrillEvaluationSummary({
                 variant="destructive"
                 size="sm"
                 onClick={() => setOpenDelete(true)}
+                disabled={!evaluation?.id}
               >
                 <Trash2 className="mr-2 h-3.5 w-3.5" />
                 Eliminar
@@ -408,7 +411,7 @@ export function DrillEvaluationSummary({
         warning="Se eliminarán también sus participantes, eventos, matriz y acciones de mejora."
         isPending={deleteDrillEvaluation.isPending}
         onConfirm={async () => {
-          if (!company || !evaluation) return;
+          if (!company || !evaluation?.id) return;
 
           await deleteDrillEvaluation.mutateAsync({
             company,

@@ -102,6 +102,12 @@ export const useDeleteDrillEvaluation = () => {
       activityNumber: string;
       id: number;
     }) => {
+      // Un id inválido acababa como `/drill-evaluation/undefined` y el backend
+      // devolvía un 500 por el type hint del controlador.
+      if (!Number.isInteger(id)) {
+        throw new Error("La evaluación no tiene un identificador válido.");
+      }
+
       await axiosInstance.delete(
         `/${company}/sms/activities/${activityNumber}/drill-evaluation/${id}`,
       );

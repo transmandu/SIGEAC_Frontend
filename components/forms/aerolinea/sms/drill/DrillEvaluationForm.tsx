@@ -593,7 +593,13 @@ export default function DrillEvaluationForm({
     data: FormSchemaType,
   ): StoreDrillEvaluationPayload | UpdateDrillEvaluationPayload => {
     const coordinator = toPersonPayload(data.coordinator);
-    const isParcial = data.type === "PARCIAL";
+    // Al editar, el tipo manda desde el registro guardado: el backend lo
+    // ignora en el payload, y usarlo aquí evita que un estado desincronizado
+    // borre la matriz (MESA) o los eventos (PARCIAL) que ya existen.
+    const effectiveType = isEditing
+      ? (initialData?.type ?? data.type)
+      : data.type;
+    const isParcial = effectiveType === "PARCIAL";
 
     const participants = [
       ...(data.participants ?? [])
@@ -851,6 +857,12 @@ export default function DrillEvaluationForm({
                         <SelectItem value="MESA">Simulacro de mesa</SelectItem>
                       </SelectContent>
                     </Select>
+                    {isEditing && (
+                      <p className="text-[11px] text-muted-foreground">
+                        El tipo no se puede cambiar una vez registrada la
+                        evaluación.
+                      </p>
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}
