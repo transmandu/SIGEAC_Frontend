@@ -26,7 +26,12 @@ export const useGetDrillEvaluation = ({
         `/${company}/sms/activities/${activityNumber}/drill-evaluation`,
       );
 
-      return data;
+      // Defensa extra: versiones anteriores del endpoint devolvían `{}` en
+      // lugar de `null`, y ese objeto vacío se mostraba como una evaluación
+      // existente con botón "Editar".
+      return data && typeof data === "object" && "id" in data
+        ? (data as DrillEvaluation)
+        : null;
     },
     enabled: !!company && !!activityNumber,
     staleTime: 0,

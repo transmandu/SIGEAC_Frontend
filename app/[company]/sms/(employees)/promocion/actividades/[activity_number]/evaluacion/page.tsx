@@ -42,6 +42,7 @@ const DrillEvaluationPage = () => {
 
   const backHref = `/${company}/sms/promocion/actividades/${activity_number}`;
   const hasDrillCategory = hasDrillActivityCategory(activity?.categories);
+  const hasEvaluation = Boolean(evaluation?.id);
 
   const isLoading = !company || isActivityPending || isEvaluationPending;
 
@@ -56,11 +57,11 @@ const DrillEvaluationPage = () => {
           </div>
           <div>
             <h1 className="text-base font-semibold leading-tight">
-              {evaluation ? "Editar evaluación" : "Registrar evaluación"}
+              {hasEvaluation ? "Editar evaluación" : "Registrar evaluación"}
             </h1>
             <p className="mt-0.5 text-xs text-muted-foreground">
               Actividad {activity_number}
-              {evaluation ? ` · ${evaluation.number}` : ""}
+              {hasEvaluation && evaluation ? ` · ${evaluation.number}` : ""}
             </p>
           </div>
         </div>
@@ -85,7 +86,7 @@ const DrillEvaluationPage = () => {
               No se pudo cargar la actividad o su evaluación.
             </p>
           </div>
-        ) : !hasDrillCategory && !evaluation ? (
+        ) : !hasDrillCategory && !hasEvaluation ? (
           <div className="flex items-center gap-3 rounded-lg border border-amber-200 bg-amber-100 p-4 dark:border-amber-800 dark:bg-amber-950/20">
             <AlertCircle className="h-5 w-5 text-amber-600" />
             <p className="text-sm text-amber-800 dark:text-amber-300">
@@ -100,8 +101,8 @@ const DrillEvaluationPage = () => {
             activityDrillType={
               activity?.drill_type ?? activity?.drill_evaluation?.type ?? null
             }
-            initialData={evaluation ?? null}
-            isEditing={!!evaluation}
+            initialData={hasEvaluation ? evaluation : null}
+            isEditing={hasEvaluation}
             onSaved={() => router.push(backHref)}
             onCancel={() => router.push(backHref)}
           />

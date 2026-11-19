@@ -94,7 +94,7 @@ export function DrillEvaluationSummary({
   const hasDrillCategory = hasDrillActivityCategory(categories);
   const evaluationHref = `/${company}/sms/promocion/actividades/${activityNumber}/evaluacion`;
 
-  if (!hasDrillCategory && !evaluation && !isLoading) {
+  if (!hasDrillCategory && (!evaluation || !evaluation.id) && !isLoading) {
     return null;
   }
 
@@ -109,7 +109,7 @@ export function DrillEvaluationSummary({
             </h2>
           </div>
 
-          {evaluation ? (
+          {evaluation && evaluation.id ? (
             <div className="flex flex-wrap gap-2">
               <Button asChild variant="outline" size="sm">
                 <Link href={evaluationHref}>
@@ -142,7 +142,7 @@ export function DrillEvaluationSummary({
           <div className="flex justify-center py-8">
             <Loader2 className="size-8 animate-spin text-muted-foreground" />
           </div>
-        ) : !evaluation ? (
+        ) : !evaluation || !evaluation.id ? (
           <div className="rounded-lg border border-dashed border-border/60 px-4 py-8 text-center">
             <p className="text-sm text-muted-foreground">
               Esta actividad todavía no tiene una evaluación de simulacro.
