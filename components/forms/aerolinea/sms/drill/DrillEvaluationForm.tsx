@@ -2034,8 +2034,9 @@ export default function DrillEvaluationForm({
                   Acta de realización
                 </h3>
                 <p className="text-xs text-muted-foreground">
-                  Adjunte el acta o documento del simulacro (PDF). Se guardará
-                  en la Librería y quedará vinculado a esta evaluación.
+                  Adjunte el acta o documento del simulacro (PDF, hasta 20 MB).
+                  Se guardará en la Librería y quedará vinculado a esta
+                  evaluación.
                 </p>
               </div>
 
