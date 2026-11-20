@@ -160,10 +160,7 @@ export function DrillMatrixCriteriaManager() {
         </div>
 
         <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="space-y-4"
-          >
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
               name="criterion"
@@ -261,8 +258,7 @@ export function DrillMatrixCriteriaManager() {
                     size="icon"
                     className="h-8 w-8"
                     disabled={
-                      index === criteria.length - 1 ||
-                      reorderCriteria.isPending
+                      index === criteria.length - 1 || reorderCriteria.isPending
                     }
                     onClick={() => move(index, 1)}
                     title="Bajar"
@@ -309,8 +305,8 @@ export function DrillMatrixCriteriaManager() {
 
           {!isLoading && criteria.length === 0 && (
             <div className="rounded-lg border border-dashed border-border/60 p-4 text-center text-sm text-muted-foreground">
-              No hay criterios configurados. Sin criterios no se puede
-              registrar una evaluación de mesa.
+              No hay criterios configurados. Sin criterios no se puede registrar
+              una evaluación de mesa.
             </div>
           )}
         </div>

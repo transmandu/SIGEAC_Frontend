@@ -571,13 +571,11 @@ export default function DrillEvaluationForm({
     dateIso,
   );
 
-  const {
-    data: matrixCriteria = [],
-    isLoading: isLoadingMatrixCriteria,
-  } = useGetDrillMatrixCriteria({
-    company,
-    enabled: type === "MESA",
-  });
+  const { data: matrixCriteria = [], isLoading: isLoadingMatrixCriteria } =
+    useGetDrillMatrixCriteria({
+      company,
+      enabled: type === "MESA",
+    });
 
   // La matriz sale de la plantilla fija, no se captura. En una evaluación
   // nueva se cargan los criterios una sola vez y se conservan las respuestas
@@ -610,13 +608,11 @@ export default function DrillEvaluationForm({
     });
   }, [form, isEditing, matrixCriteria, type]);
 
-  const {
-    data: eventTemplates = [],
-    isLoading: isLoadingEventTemplates,
-  } = useGetDrillEventTemplates({
-    company,
-    enabled: type === "PARCIAL",
-  });
+  const { data: eventTemplates = [], isLoading: isLoadingEventTemplates } =
+    useGetDrillEventTemplates({
+      company,
+      enabled: type === "PARCIAL",
+    });
 
   const {
     data: questionTemplates = [],
@@ -661,7 +657,9 @@ export default function DrillEvaluationForm({
       return;
     }
 
-    const signature = questionTemplates.map((template) => template.id).join(",");
+    const signature = questionTemplates
+      .map((template) => template.id)
+      .join(",");
     if (appliedQuestionsTemplate.current === signature) return;
     appliedQuestionsTemplate.current = signature;
 
@@ -1617,66 +1615,68 @@ export default function DrillEvaluationForm({
                   const row = watchedMatrixRows?.[index];
 
                   return (
-                  <div
-                    key={field.id}
-                    className="space-y-3 rounded-md border border-border/40 p-3"
-                  >
-                    <div className="space-y-1">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                        Criterio {index + 1}
-                      </p>
-                      <p className="text-sm font-medium">
-                        {row?.criterion ?? field.criterion}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {row?.performance_indicator ??
-                          field.performance_indicator}
-                      </p>
-                    </div>
+                    <div
+                      key={field.id}
+                      className="space-y-3 rounded-md border border-border/40 p-3"
+                    >
+                      <div className="space-y-1">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                          Criterio {index + 1}
+                        </p>
+                        <p className="text-sm font-medium">
+                          {row?.criterion ?? field.criterion}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {row?.performance_indicator ??
+                            field.performance_indicator}
+                        </p>
+                      </div>
 
-                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-[180px_1fr]">
-                      <FormField
-                        control={form.control}
-                        name={`matrix_rows.${index}.compliance`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>
-                              Cumplimiento <RequiredIndicator />
-                            </FormLabel>
-                            <Select
-                              value={field.value}
-                              onValueChange={field.onChange}
-                            >
+                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-[180px_1fr]">
+                        <FormField
+                          control={form.control}
+                          name={`matrix_rows.${index}.compliance`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>
+                                Cumplimiento <RequiredIndicator />
+                              </FormLabel>
+                              <Select
+                                value={field.value}
+                                onValueChange={field.onChange}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="SI">Sí</SelectItem>
+                                  <SelectItem value="NO">No</SelectItem>
+                                  <SelectItem value="PARCIAL">
+                                    Parcial
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name={`matrix_rows.${index}.observations`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Observaciones</FormLabel>
                               <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue />
-                                </SelectTrigger>
+                                <Textarea {...field} rows={2} />
                               </FormControl>
-                              <SelectContent>
-                                <SelectItem value="SI">Sí</SelectItem>
-                                <SelectItem value="NO">No</SelectItem>
-                                <SelectItem value="PARCIAL">Parcial</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name={`matrix_rows.${index}.observations`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Observaciones</FormLabel>
-                            <FormControl>
-                              <Textarea {...field} rows={2} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
                     </div>
-                  </div>
                   );
                 })}
 
@@ -1918,8 +1918,8 @@ export default function DrillEvaluationForm({
                 />
 
                 <p className="text-xs text-muted-foreground">
-                  Puede elegir una o varias carpetas; use la estrella para
-                  fijar la carpeta principal. Las demás son réplicas.
+                  Puede elegir una o varias carpetas; use la estrella para fijar
+                  la carpeta principal. Las demás son réplicas.
                 </p>
               </div>
             )}
