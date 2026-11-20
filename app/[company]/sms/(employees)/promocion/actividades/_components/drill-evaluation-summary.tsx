@@ -99,12 +99,15 @@ export function DrillEvaluationSummary({
   const evaluationHref = `/${company}/sms/promocion/actividades/${activityNumber}/evaluacion`;
 
   const handleDownloadActa = async () => {
-    if (!company || !evaluation?.library_document_id) return;
+    if (!company || !evaluation?.document) return;
 
     setDownloadingActa(true);
     try {
+      // Se sirve por el endpoint de documentos SMS y no por el de la Librería:
+      // ese último exige rol de director, mientras que cualquier usuario que
+      // puede ver la evaluación debe poder bajar su acta.
       await downloadDocumentFile(
-        `/${company}/library/documents/${evaluation.library_document_id}/download`,
+        `/${company}/sms/document/${btoa(evaluation.document)}`,
         `acta-${evaluation.number}.pdf`,
       );
     } catch {
@@ -345,13 +348,32 @@ export function DrillEvaluationSummary({
                   </div>
                 </section>
 
-                {(evaluation.findings ?? []).length > 0 && (
+                {(evaluation.findings ?? []).some(
+                  (finding) => finding.kind !== "POSITIVE",
+                ) && (
                   <section>
-                    <SectionTitle>Fallas detectadas</SectionTitle>
+                    <SectionTitle>Aspectos por mejorar</SectionTitle>
                     <ul className="list-disc space-y-1 border-t border-border/60 pt-3 pl-5 text-sm">
-                      {(evaluation.findings ?? []).map((finding) => (
-                        <li key={finding.id}>{finding.description}</li>
-                      ))}
+                      {(evaluation.findings ?? [])
+                        .filter((finding) => finding.kind !== "POSITIVE")
+                        .map((finding) => (
+                          <li key={finding.id}>{finding.description}</li>
+                        ))}
+                    </ul>
+                  </section>
+                )}
+
+                {(evaluation.findings ?? []).some(
+                  (finding) => finding.kind === "POSITIVE",
+                ) && (
+                  <section>
+                    <SectionTitle>Aspectos positivos</SectionTitle>
+                    <ul className="list-disc space-y-1 border-t border-border/60 pt-3 pl-5 text-sm">
+                      {(evaluation.findings ?? [])
+                        .filter((finding) => finding.kind === "POSITIVE")
+                        .map((finding) => (
+                          <li key={finding.id}>{finding.description}</li>
+                        ))}
                     </ul>
                   </section>
                 )}
@@ -392,28 +414,28 @@ export function DrillEvaluationSummary({
                   label="Observaciones finales"
                   value={evaluation.observations}
                 />
-
-                {evaluation.library_document_id ? (
-                  <section className="space-y-2">
-                    <SectionTitle>Acta de realización</SectionTitle>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={handleDownloadActa}
-                      disabled={downloadingActa}
-                    >
-                      {downloadingActa ? (
-                        <Loader2 className="mr-2 size-3.5 animate-spin" />
-                      ) : (
-                        <FileDown className="mr-2 size-3.5" />
-                      )}
-                      Descargar acta
-                    </Button>
-                  </section>
-                ) : null}
               </>
             )}
+
+            {evaluation.document ? (
+              <section className="space-y-2">
+                <SectionTitle>Acta de realización</SectionTitle>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleDownloadActa}
+                  disabled={downloadingActa}
+                >
+                  {downloadingActa ? (
+                    <Loader2 className="mr-2 size-3.5 animate-spin" />
+                  ) : (
+                    <FileDown className="mr-2 size-3.5" />
+                  )}
+                  Descargar acta
+                </Button>
+              </section>
+            ) : null}
 
             {(evaluation.improvement_actions ?? []).length > 0 && (
               <section>
@@ -471,7 +493,7 @@ export function DrillEvaluationSummary({
         onOpenChange={setOpenDelete}
         title="Eliminar evaluación de simulacro"
         entityName={evaluation?.number}
-        warning="Se eliminarán también sus participantes, eventos, matriz y acciones de mejora."
+        warning="Se eliminarán también sus participantes, eventos, matriz, aspectos y acciones de mejora, junto con el acta de la Librería."
         isPending={deleteDrillEvaluation.isPending}
         onConfirm={async () => {
           if (!company || !evaluation?.id) return;

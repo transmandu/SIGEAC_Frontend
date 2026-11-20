@@ -34,6 +34,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Select,
   SelectContent,
@@ -73,6 +74,28 @@ import type {
 
 const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
 
+const DRILL_ANSWER_OPTIONS = [
+  { value: "SI", label: "Sí" },
+  { value: "NO", label: "No" },
+  { value: "PARCIAL", label: "Parcial" },
+  { value: "NA", label: "N/A" },
+] as const;
+
+const FINDING_GROUPS = [
+  {
+    kind: "POSITIVE",
+    title: "Aspectos positivos",
+    hint: "Lo que se observó bien durante el simulacro.",
+    placeholder: "Describa un aspecto positivo",
+  },
+  {
+    kind: "IMPROVEMENT",
+    title: "Aspectos por mejorar",
+    hint: "Fallas o puntos de mejora detectados.",
+    placeholder: "Describa la falla o el aspecto por mejorar",
+  },
+] as const;
+
 const requiredString = (message: string) => z.string().trim().min(1, message);
 
 const personSchema = z.object({
@@ -85,6 +108,8 @@ const personSchema = z.object({
 const FormSchema = z
   .object({
     type: z.enum(["PARCIAL", "MESA"]),
+    // Editable para cargar registros históricos. Vacío = se genera solo.
+    number: z.string().optional(),
     date: z.date({ error: "La fecha es obligatoria" }),
     start_time: requiredString("La hora de inicio es obligatoria").regex(
       TIME_PATTERN,
@@ -100,8 +125,8 @@ const FormSchema = z
     objective: z.string().optional(),
     observations: z.string().optional(),
 
-    // Acta de realización del simulacro de mesa. El archivo se sube aparte a
-    // la Librería, por eso el esquema no lo exige para guardar la evaluación.
+    // Acta de realización del simulacro. Se sube aparte a la Librería porque
+    // lleva archivo; aplica a los dos tipos de simulacro.
     document: z.any().optional(),
     library_folder_paths: z.array(z.string()).optional().default([]),
 
@@ -146,7 +171,13 @@ const FormSchema = z
           event_id: z.number().optional(),
           drill_event_template_id: z.number().nullable().optional(),
           name: z.string(),
-          registered_time: z.string().optional(),
+          registered_time: z
+            .string()
+            .optional()
+            .refine(
+              (value) => !value || TIME_PATTERN.test(value),
+              "Use el formato HH:mm.",
+            ),
           observations: z.string().optional(),
         }),
       )
@@ -168,7 +199,8 @@ const FormSchema = z
     findings: z
       .array(
         z.object({
-          description: requiredString("Describa la falla detectada"),
+          kind: z.enum(["POSITIVE", "IMPROVEMENT"]),
+          description: requiredString("Describa el aspecto"),
         }),
       )
       .optional()
@@ -330,8 +362,15 @@ interface DrillEvaluationFormProps {
   onCancel?: () => void;
 }
 
-const toTimeInput = (value?: string | null) =>
-  value ? String(value).slice(0, 5) : "";
+const toTimeInput = (value?: string | null) => {
+  if (!value) return "";
+
+  const match = String(value).match(/^(\d{1,2}):(\d{2})/);
+
+  if (!match) return "";
+
+  return `${match[1].padStart(2, "0")}:${match[2]}`;
+};
 
 const personFromServer = (
   employeeId: number | null,
@@ -436,6 +475,7 @@ export default function DrillEvaluationForm({
     resolver: zodResolver(FormSchema),
     defaultValues: {
       type: initialData?.type ?? activityDrillType ?? "PARCIAL",
+      number: initialData?.number ?? "",
       date: initialData?.date
         ? parseCalendarDate(initialData.date)
         : new Date(),
@@ -501,7 +541,7 @@ export default function DrillEvaluationForm({
           event_id: event.id,
           drill_event_template_id: event.drill_event_template_id,
           name: event.name,
-          registered_time: event.registered_time ?? "",
+          registered_time: toTimeInput(event.registered_time),
           observations: event.observations ?? "",
         })) ?? [],
       questions:
@@ -513,6 +553,7 @@ export default function DrillEvaluationForm({
         })) ?? [],
       findings:
         initialData?.findings?.map((finding) => ({
+          kind: finding.kind ?? "IMPROVEMENT",
           description: finding.description,
         })) ?? [],
       matrix_rows:
@@ -562,6 +603,10 @@ export default function DrillEvaluationForm({
   const watchedQuestions = useWatch({
     control: form.control,
     name: "questions",
+  });
+  const watchedFindings = useWatch({
+    control: form.control,
+    name: "findings",
   });
   const dateIso = toCalendarPayload(watchedDate ?? undefined);
 
@@ -689,6 +734,20 @@ export default function DrillEvaluationForm({
       enabled: !isEditing,
     });
 
+  // El correlativo sugerido se precarga para que pueda corregirse. Si el
+  // usuario ya escribió uno, no se pisa al cambiar fecha o tipo.
+  useEffect(() => {
+    if (isEditing) return;
+
+    const suggested = nextNumberData?.next_number;
+    if (!suggested || form.formState.dirtyFields.number) return;
+
+    form.setValue("number", suggested, {
+      shouldDirty: false,
+      shouldValidate: false,
+    });
+  }, [form, isEditing, nextNumberData]);
+
   const { createDrillEvaluation } = useCreateDrillEvaluation();
   const { updateDrillEvaluation } = useUpdateDrillEvaluation();
   const { uploadDrillEvaluationDocument } = useUploadDrillEvaluationDocument();
@@ -780,33 +839,34 @@ export default function DrillEvaluationForm({
       : data.type;
     const isParcial = effectiveType === "PARCIAL";
 
-    const participants = [
-      ...(data.participants ?? [])
-        .filter((participant) => participant.name.trim())
-        .map((participant) => ({
-          kind: "PARTICIPANT" as const,
-          name: participant.name.trim(),
-        })),
-      ...(data.extinguisher_personnel ?? [])
-        .filter((participant) => participant.name.trim())
-        .map((participant) => ({
-          kind: "EXTINGUISHER_EXPERIENCED" as const,
-          name: participant.name.trim(),
-        })),
-      ...(data.firefighters ?? [])
-        .filter((participant) => participant.name.trim())
-        .map((participant) => ({
-          kind: "AERONAUTICAL_FIREFIGHTER" as const,
-          name: participant.name.trim(),
-          job_title: participant.job_title?.trim() || null,
-        })),
-      ...(data.mandatory_participants ?? [])
-        .filter((participant) => participant.name.trim())
-        .map((participant) => ({
-          kind: "MANDATORY" as const,
-          name: participant.name.trim(),
-        })),
-    ];
+    const participants = isParcial
+      ? [
+          ...(data.participants ?? [])
+            .filter((participant) => participant.name.trim())
+            .map((participant) => ({
+              kind: "PARTICIPANT" as const,
+              name: participant.name.trim(),
+            })),
+          ...(data.extinguisher_personnel ?? [])
+            .filter((participant) => participant.name.trim())
+            .map((participant) => ({
+              kind: "EXTINGUISHER_EXPERIENCED" as const,
+              name: participant.name.trim(),
+            })),
+          ...(data.firefighters ?? [])
+            .filter((participant) => participant.name.trim())
+            .map((participant) => ({
+              kind: "AERONAUTICAL_FIREFIGHTER" as const,
+              name: participant.name.trim(),
+              job_title: participant.job_title?.trim() || null,
+            })),
+        ]
+      : (data.mandatory_participants ?? [])
+          .filter((participant) => participant.name.trim())
+          .map((participant) => ({
+            kind: "MANDATORY" as const,
+            name: participant.name.trim(),
+          }));
 
     const improvementActions = (data.improvement_actions ?? []).map(
       (action) => {
@@ -829,6 +889,11 @@ export default function DrillEvaluationForm({
     );
 
     const payload = {
+      // Solo se envía si el usuario lo editó; si no, el servidor genera el
+      // siguiente y se evita consumir por error el número de la vista previa.
+      number: form.formState.dirtyFields.number
+        ? data.number?.trim() || null
+        : null,
       date: toCalendarPayload(data.date) ?? "",
       start_time: data.start_time,
       end_time: data.end_time,
@@ -870,6 +935,7 @@ export default function DrillEvaluationForm({
         : [],
       findings: isParcial
         ? (data.findings ?? []).map((finding) => ({
+            kind: finding.kind ?? "IMPROVEMENT",
             description: finding.description.trim(),
           }))
         : [],
@@ -892,9 +958,6 @@ export default function DrillEvaluationForm({
 
     try {
       const payload = buildPayload(data);
-      const effectiveType = isEditing
-        ? (initialData?.type ?? data.type)
-        : data.type;
 
       let saved: DrillEvaluation;
 
@@ -914,27 +977,26 @@ export default function DrillEvaluationForm({
       }
 
       // El acta se sube después porque lleva un archivo. También permite
-      // cambiar las carpetas de la Librería sin volver a subir el PDF.
-      if (effectiveType === "MESA") {
-        const file = data.document instanceof File ? data.document : null;
-        const folderPaths = data.library_folder_paths ?? [];
-        const foldersChanged =
-          JSON.stringify(folderPaths) !==
-          JSON.stringify(initialData?.library_folder_paths ?? []);
+      // cambiar las carpetas de la Librería sin volver a subir el PDF. Aplica
+      // a los dos tipos de simulacro.
+      const file = data.document instanceof File ? data.document : null;
+      const folderPaths = data.library_folder_paths ?? [];
+      const foldersChanged =
+        JSON.stringify(folderPaths) !==
+        JSON.stringify(initialData?.library_folder_paths ?? []);
 
-        if (file || (saved?.library_document_id && foldersChanged)) {
-          try {
-            saved = await uploadDrillEvaluationDocument.mutateAsync({
-              company,
-              activityNumber,
-              id: saved.id,
-              file,
-              folderPaths,
-            });
-          } catch {
-            // La evaluación ya quedó guardada; el error del acta se notifica
-            // desde la acción y se puede reintentar desde la edición.
-          }
+      if (file || (saved?.library_document_id && foldersChanged)) {
+        try {
+          saved = await uploadDrillEvaluationDocument.mutateAsync({
+            company,
+            activityNumber,
+            id: saved.id,
+            file,
+            folderPaths,
+          });
+        } catch {
+          // La evaluación ya quedó guardada; el error del acta se notifica
+          // desde la acción y se puede reintentar desde la edición.
         }
       }
 
@@ -1088,25 +1150,40 @@ export default function DrillEvaluationForm({
                 )}
               />
 
-              <FormItem>
-                <FormLabel>Correlativo</FormLabel>
-                <Input
-                  readOnly
-                  value={
-                    isEditing
-                      ? (initialData?.number ?? "")
-                      : isLoadingNextNumber
-                        ? "Calculando..."
-                        : (nextNumberData?.next_number ?? "—")
-                  }
-                  className="font-mono"
-                />
-                <p className="text-[11px] text-muted-foreground">
-                  {isEditing
-                    ? "Asignado al registrar la evaluación."
-                    : "Vista previa: se asigna al guardar."}
-                </p>
-              </FormItem>
+              <FormField
+                control={form.control}
+                name="number"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Correlativo</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        value={field.value ?? ""}
+                        placeholder={
+                          isEditing
+                            ? (initialData?.number ?? "")
+                            : isLoadingNextNumber
+                              ? "Calculando..."
+                              : (nextNumberData?.next_number ??
+                                "Se generará al guardar")
+                        }
+                        className="font-mono"
+                      />
+                    </FormControl>
+                    <p className="text-[11px] text-muted-foreground">
+                      {isEditing
+                        ? "Puedes corregirlo para cargar registros históricos."
+                        : `Se genera solo al guardar${
+                            nextNumberData?.next_number
+                              ? ` (sugerido: ${nextNumberData.next_number})`
+                              : ""
+                          }.`}
+                    </p>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <FormField
                 control={form.control}
@@ -1486,9 +1563,9 @@ export default function DrillEvaluationForm({
                           name={`events.${index}.registered_time`}
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Hora registrada</FormLabel>
+                              <FormLabel>Hora del evento</FormLabel>
                               <FormControl>
-                                <Input {...field} placeholder="10:18 A.M." />
+                                <Input {...field} type="time" />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -1560,22 +1637,31 @@ export default function DrillEvaluationForm({
                             <FormLabel>
                               Respuesta <RequiredIndicator />
                             </FormLabel>
-                            <Select
-                              value={field.value}
-                              onValueChange={field.onChange}
-                            >
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="SI">Sí</SelectItem>
-                                <SelectItem value="NO">No</SelectItem>
-                                <SelectItem value="PARCIAL">Parcial</SelectItem>
-                                <SelectItem value="NA">N/A</SelectItem>
-                              </SelectContent>
-                            </Select>
+                            <FormControl>
+                              <RadioGroup
+                                value={field.value}
+                                onValueChange={field.onChange}
+                                className="flex flex-wrap gap-x-4 gap-y-2"
+                              >
+                                {DRILL_ANSWER_OPTIONS.map((option) => (
+                                  <div
+                                    key={option.value}
+                                    className="flex items-center gap-2"
+                                  >
+                                    <RadioGroupItem
+                                      id={`question-${index}-${option.value}`}
+                                      value={option.value}
+                                    />
+                                    <label
+                                      htmlFor={`question-${index}-${option.value}`}
+                                      className="cursor-pointer text-sm"
+                                    >
+                                      {option.label}
+                                    </label>
+                                  </div>
+                                ))}
+                              </RadioGroup>
+                            </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -1695,30 +1781,57 @@ export default function DrillEvaluationForm({
         {step === 4 && (
           <div className="space-y-5">
             {type === "PARCIAL" && (
-              <NameList
-                title="Aspectos de mejora / fallas detectadas"
-                fields={findingsArray.fields}
-                onAdd={() => findingsArray.append({ description: "" })}
-                onRemove={findingsArray.remove}
-                render={(index) => (
-                  <FormField
-                    control={form.control}
-                    name={`findings.${index}.description`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <Textarea
-                            {...field}
-                            rows={2}
-                            placeholder="Descripción de la falla"
+              <div className="space-y-4">
+                {FINDING_GROUPS.map((group) => {
+                  const items = findingsArray.fields
+                    .map((field, index) => ({ field, index }))
+                    .filter(
+                      ({ index }) =>
+                        (watchedFindings?.[index]?.kind ?? "IMPROVEMENT") ===
+                        group.kind,
+                    );
+
+                  return (
+                    <NameList
+                      key={group.kind}
+                      title={group.title}
+                      hint={group.hint}
+                      fields={items.map(({ field }) => field)}
+                      onAdd={() =>
+                        findingsArray.append({
+                          kind: group.kind,
+                          description: "",
+                        })
+                      }
+                      onRemove={(position) =>
+                        findingsArray.remove(items[position].index)
+                      }
+                      render={(position) => {
+                        const index = items[position].index;
+
+                        return (
+                          <FormField
+                            control={form.control}
+                            name={`findings.${index}.description`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormControl>
+                                  <Textarea
+                                    {...field}
+                                    rows={2}
+                                    placeholder={group.placeholder}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
                           />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
-              />
+                        );
+                      }}
+                    />
+                  );
+                })}
+              </div>
             )}
 
             <div className="space-y-3">
@@ -1853,76 +1966,74 @@ export default function DrillEvaluationForm({
               />
             )}
 
-            {type === "MESA" && (
-              <div className="space-y-3 rounded-md border border-border/40 p-3">
-                <div className="space-y-1">
-                  <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    Acta de realización
-                  </h3>
-                  <p className="text-xs text-muted-foreground">
-                    Adjunte el acta firmada (PDF). Se guardará una sola vez en
-                    la Librería y quedará vinculada a esta evaluación.
-                  </p>
-                </div>
-
-                <FormField
-                  control={form.control}
-                  name="document"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Documento PDF</FormLabel>
-                      <div className="flex flex-col gap-2">
-                        {field.value instanceof File && (
-                          <p className="text-sm font-medium">
-                            Archivo seleccionado: {field.value.name}
-                          </p>
-                        )}
-                        {!(field.value instanceof File) &&
-                          initialData?.document && (
-                            <p className="text-sm text-muted-foreground">
-                              ✓ Acta existente cargada en la Librería
-                            </p>
-                          )}
-                        <FormControl>
-                          <Input
-                            type="file"
-                            accept="application/pdf"
-                            onChange={(event) => {
-                              const file = event.target.files?.[0];
-                              if (file) field.onChange(file);
-                            }}
-                          />
-                        </FormControl>
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="library_folder_paths"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>Carpetas en la Librería</FormLabel>
-                      <FormControl>
-                        <FolderSelect
-                          company={company}
-                          value={field.value ?? []}
-                          onChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
+            <div className="space-y-3 rounded-md border border-border/40 p-3">
+              <div className="space-y-1">
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Acta de realización
+                </h3>
                 <p className="text-xs text-muted-foreground">
-                  Puede elegir una o varias carpetas; use la estrella para fijar
-                  la carpeta principal. Las demás son réplicas.
+                  Adjunte el acta o documento del simulacro (PDF). Se guardará
+                  en la Librería y quedará vinculado a esta evaluación.
                 </p>
               </div>
-            )}
+
+              <FormField
+                control={form.control}
+                name="document"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Documento PDF</FormLabel>
+                    <div className="flex flex-col gap-2">
+                      {field.value instanceof File && (
+                        <p className="text-sm font-medium">
+                          Archivo seleccionado: {field.value.name}
+                        </p>
+                      )}
+                      {!(field.value instanceof File) &&
+                        initialData?.document && (
+                          <p className="text-sm text-muted-foreground">
+                            ✓ Acta existente cargada en la Librería
+                          </p>
+                        )}
+                      <FormControl>
+                        <Input
+                          type="file"
+                          accept="application/pdf"
+                          onChange={(event) => {
+                            const file = event.target.files?.[0];
+                            if (file) field.onChange(file);
+                          }}
+                        />
+                      </FormControl>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="library_folder_paths"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Carpetas en la Librería</FormLabel>
+                    <FormControl>
+                      <FolderSelect
+                        company={company}
+                        value={field.value ?? []}
+                        onChange={field.onChange}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <p className="text-xs text-muted-foreground">
+                Puede elegir una o varias carpetas; use la estrella para fijar
+                la carpeta principal. Las demás son réplicas.
+              </p>
+            </div>
 
             <Button type="submit" disabled={isPending} className="h-10 w-full">
               {isPending ? (

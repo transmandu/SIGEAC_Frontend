@@ -93,9 +93,13 @@ export interface DrillQuestionTemplate {
 export interface DrillFinding {
   id: number;
   drill_evaluation_id: number;
+  /** Positivo observado o aspecto por mejorar. Puede faltar en respuestas antiguas. */
+  kind?: DrillFindingKind;
   description: string;
   sort: number;
 }
+
+export type DrillFindingKind = "POSITIVE" | "IMPROVEMENT";
 
 /**
  * Criterio de la plantilla fija de la matriz de evaluación. Se siembra una
@@ -219,6 +223,7 @@ export interface DrillQuestionPayload {
 }
 
 export interface DrillFindingPayload {
+  kind?: DrillFindingKind;
   description: string;
 }
 
@@ -248,6 +253,8 @@ export interface DrillImprovementActionPayload {
 
 export interface StoreDrillEvaluationPayload {
   type: DrillEvaluationType;
+  /** Correlativo editable; si se omite, el servidor genera el siguiente. */
+  number?: string | null;
   date: string;
   start_time: string;
   end_time: string;

@@ -173,27 +173,30 @@ export function PersonSelect<T extends FieldValues>({
   );
 }
 
-/** Convierte el valor del formulario al payload plano del backend. */
+/** Convierte el valor del formulario al payload plano del backend.
+ *
+ * Se decide por el valor realmente presente y no solo por `mode`: si el
+ * selector de origen y el valor elegido quedan desincronizados, el backend
+ * debe recibir exactamente una de las tres opciones.
+ */
 export function toPersonPayload(person: DrillPersonFormValue | undefined) {
   if (!person) {
     return { employee_id: null, authorized_employee_id: null, name: null };
   }
 
-  if (person.mode === "AUTORIZADO") {
+  if (person.authorized_employee_id) {
     return {
       employee_id: null,
-      authorized_employee_id: person.authorized_employee_id
-        ? Number(person.authorized_employee_id)
-        : null,
+      authorized_employee_id: Number(person.authorized_employee_id),
       name: null,
     };
   }
 
-  if (person.mode === "EXTERNO") {
+  if (person.name?.trim()) {
     return {
       employee_id: null,
       authorized_employee_id: null,
-      name: person.name?.trim() || null,
+      name: person.name.trim(),
     };
   }
 
@@ -204,12 +207,17 @@ export function toPersonPayload(person: DrillPersonFormValue | undefined) {
   };
 }
 
+/**
+ * Hay persona cuando cualquiera de las tres opciones tiene valor. Antes se
+ * miraba primero `mode`, y un `mode` desincronizado hacía fallar la validación
+ * aunque el empleado ya estuviera elegido.
+ */
 export const hasDrillPerson = (
   person: DrillPersonFormValue | undefined,
 ): boolean => {
   if (!person) return false;
-  if (person.mode === "AUTORIZADO") return !!person.authorized_employee_id;
-  if (person.mode === "EXTERNO") return !!person.name?.trim();
 
-  return !!person.employee_id;
+  return Boolean(
+    person.employee_id || person.authorized_employee_id || person.name?.trim(),
+  );
 };
