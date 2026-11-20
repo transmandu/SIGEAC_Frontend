@@ -963,6 +963,23 @@ export default function DrillEvaluationForm({
     try {
       const payload = buildPayload(data);
 
+      if (
+        !payload.coordinator_employee_id &&
+        !payload.coordinator_authorized_employee_id &&
+        !payload.coordinator_name
+      ) {
+        setStep(1);
+        form.setError("coordinator", {
+          type: "manual",
+          message: "Vuelva a seleccionar el coordinador del ejercicio.",
+        });
+        toast.error("Falta el coordinador", {
+          description:
+            "El coordinador seleccionado no llegó al formulario. Vuelva a elegirlo en el paso 1.",
+        });
+        return;
+      }
+
       let saved: DrillEvaluation;
 
       if (isEditing && initialData) {
@@ -1046,7 +1063,37 @@ export default function DrillEvaluationForm({
       3: ["events", "questions", "matrix_rows"],
     };
 
-    const valid = await form.trigger(fieldsByStep[step] ?? [], {
+    const stepFields = fieldsByStep[step] ?? [];
+    form.clearErrors(stepFields);
+
+    // `trigger` con un resolver a veces devuelve válido un paso cuyos errores
+    // vienen de `superRefine` (coordinador, evaluadores, conteos, matriz...).
+    // Se valida el esquema completo y se bloquea si hay un error del paso.
+    const parsed = FormSchema.safeParse(form.getValues());
+
+    if (!parsed.success) {
+      const blockingIssue = parsed.error.issues.find(
+        (issue) => stepForErrorPath(String(issue.path[0] ?? "")) === step,
+      );
+
+      if (blockingIssue) {
+        const path = blockingIssue.path.join(".");
+
+        if (path) {
+          form.setError(path as FieldPath<FormSchemaType>, {
+            type: "manual",
+            message: blockingIssue.message,
+          });
+        }
+
+        toast.error("Completa los campos obligatorios del paso actual.", {
+          description: blockingIssue.message,
+        });
+        return;
+      }
+    }
+
+    const valid = await form.trigger(stepFields, {
       shouldFocus: true,
     });
 
