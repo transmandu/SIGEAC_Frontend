@@ -830,7 +830,11 @@ export default function DrillEvaluationForm({
   const buildPayload = (
     data: FormSchemaType,
   ): StoreDrillEvaluationPayload | UpdateDrillEvaluationPayload => {
-    const coordinator = toPersonPayload(data.coordinator);
+    // Se lee del estado actual del formulario: si el paso 1 ya se desmontó,
+    // este es el valor que realmente quedó registrado en el selector.
+    const coordinator = toPersonPayload(
+      form.getValues("coordinator") ?? data.coordinator,
+    );
     // Al editar, el tipo manda desde el registro guardado: el backend lo
     // ignora en el payload, y usarlo aquí evita que un estado desincronizado
     // borre la matriz (MESA) o los eventos (PARCIAL) que ya existen.

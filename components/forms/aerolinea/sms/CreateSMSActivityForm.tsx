@@ -15,7 +15,7 @@ import {
   useUpdateSMSActivity,
 } from "@/actions/sms/sms_actividades/actions";
 import { useGetNextActivityNumber } from "@/hooks/sms/useGetNextActivityNumber";
-import { Calendar } from "@/components/ui/calendar";
+import { DatePickerField } from "@/components/ui/DatePickerField";
 import {
   Command,
   CommandEmpty,
@@ -46,16 +46,7 @@ import { cn, parseServerDate } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { SMSActivity } from "@/types";
 import { zodResolver } from "@/lib/zod-resolver";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
-import {
-  CalendarIcon,
-  Check,
-  ChevronsUpDown,
-  Loader2,
-  Plus,
-  X,
-} from "lucide-react";
+import { Check, ChevronsUpDown, Loader2, Plus, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
@@ -453,45 +444,14 @@ export default function CreateSMSActivityForm({
             control={form.control}
             name="start_date"
             render={({ field }) => (
-              <FormItem className="flex flex-col mt-2.5 w-full">
-                <FormLabel>
-                  Fecha de Inicio <RequiredMark />
-                </FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant={"outline"}
-                        className={cn(
-                          "w-full pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground",
-                        )}
-                      >
-                        {field.value ? (
-                          format(field.value, "PPP", {
-                            locale: es,
-                          })
-                        ) : (
-                          <span>Seleccionar Fecha de Inicio</span>
-                        )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value}
-                      onSelect={field.onChange}
-                      disabled={false}
-                      autoFocus
-                      startMonth={new Date(1988, 0)}
-                      endMonth={new Date(new Date().getFullYear() + 5, 11)}
-                      captionLayout="dropdown"
-                    />
-                  </PopoverContent>
-                </Popover>
-                <FormMessage />
+              <FormItem className="mt-2.5 w-full">
+                <DatePickerField
+                  label="Fecha de Inicio"
+                  value={field.value}
+                  setValue={(date) => field.onChange(date)}
+                  required
+                />
+                <FormMessage className="text-xs" />
               </FormItem>
             )}
           />
@@ -500,45 +460,14 @@ export default function CreateSMSActivityForm({
             control={form.control}
             name="end_date"
             render={({ field }) => (
-              <FormItem className="flex flex-col mt-2.5 w-full">
-                <FormLabel>
-                  Fecha Final <RequiredMark />
-                </FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant={"outline"}
-                        className={cn(
-                          "w-full pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground",
-                        )}
-                      >
-                        {field.value ? (
-                          format(field.value, "PPP", {
-                            locale: es,
-                          })
-                        ) : (
-                          <span>Seleccionar Fecha Final</span>
-                        )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value}
-                      onSelect={field.onChange}
-                      disabled={false}
-                      autoFocus
-                      startMonth={new Date(1988, 0)}
-                      endMonth={new Date(new Date().getFullYear() + 5, 11)}
-                      captionLayout="dropdown"
-                    />
-                  </PopoverContent>
-                </Popover>
-                <FormMessage />
+              <FormItem className="mt-2.5 w-full">
+                <DatePickerField
+                  label="Fecha Final"
+                  value={field.value}
+                  setValue={(date) => field.onChange(date)}
+                  required
+                />
+                <FormMessage className="text-xs" />
               </FormItem>
             )}
           />
