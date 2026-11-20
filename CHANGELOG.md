@@ -1,3 +1,7 @@
+## v4.115.0 — 2026-11-20
+
+- feat(sms): add drill evaluation templates and drill minutes UI (#419)
+
 ## v4.114.0 — 2026-11-17
 
 - feat: add dialog and overlay animations for smoother transitions
