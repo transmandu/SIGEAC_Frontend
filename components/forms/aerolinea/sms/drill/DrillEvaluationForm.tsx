@@ -538,16 +538,22 @@ export default function DrillEvaluationForm({
           .map((participant) => ({ name: participant.name })) ?? [],
       events:
         initialData?.events?.map((event) => ({
-          event_id: event.id,
-          drill_event_template_id: event.drill_event_template_id,
+          event_id: Number(event.id),
+          drill_event_template_id:
+            event.drill_event_template_id != null
+              ? Number(event.drill_event_template_id)
+              : null,
           name: event.name,
           registered_time: toTimeInput(event.registered_time),
           observations: event.observations ?? "",
         })) ?? [],
       questions:
         initialData?.questions?.map((question) => ({
-          question_id: question.id,
-          drill_question_template_id: question.drill_question_template_id,
+          question_id: Number(question.id),
+          drill_question_template_id:
+            question.drill_question_template_id != null
+              ? Number(question.drill_question_template_id)
+              : null,
           description: question.description,
           answer: question.answer,
         })) ?? [],
@@ -558,8 +564,11 @@ export default function DrillEvaluationForm({
         })) ?? [],
       matrix_rows:
         initialData?.matrix_rows?.map((row) => ({
-          matrix_row_id: row.id,
-          drill_matrix_criterion_id: row.drill_matrix_criterion_id,
+          matrix_row_id: Number(row.id),
+          drill_matrix_criterion_id:
+            row.drill_matrix_criterion_id != null
+              ? Number(row.drill_matrix_criterion_id)
+              : null,
           criterion: row.criterion,
           performance_indicator: row.performance_indicator,
           compliance: row.compliance,
@@ -639,7 +648,7 @@ export default function DrillEvaluationForm({
 
       return {
         matrix_row_id: undefined,
-        drill_matrix_criterion_id: criterion.id,
+        drill_matrix_criterion_id: Number(criterion.id),
         criterion: criterion.criterion,
         performance_indicator: criterion.performance_indicator,
         compliance: current?.compliance ?? "SI",
@@ -686,7 +695,7 @@ export default function DrillEvaluationForm({
 
         return {
           event_id: undefined,
-          drill_event_template_id: template.id,
+          drill_event_template_id: Number(template.id),
           name: template.description,
           registered_time: current?.registered_time ?? "",
           observations: current?.observations ?? "",
@@ -716,7 +725,7 @@ export default function DrillEvaluationForm({
 
         return {
           question_id: undefined,
-          drill_question_template_id: template.id,
+          drill_question_template_id: Number(template.id),
           description: template.description,
           answer: current?.answer ?? "SI",
         };
