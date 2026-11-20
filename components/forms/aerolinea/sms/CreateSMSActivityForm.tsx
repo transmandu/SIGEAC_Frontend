@@ -41,6 +41,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useGetActivityCategories } from "@/hooks/sms/useGetActivityCategories";
 import { useGetEmployeesByDepartment } from "@/hooks/sistema/useGetEmployeesByDepartment";
+import { isDrillActivityCategory } from "@/lib/sms/activity-categories";
 import { cn, parseServerDate } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { SMSActivity } from "@/types";
@@ -57,7 +58,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import Image from "next/image";
 import { z } from "zod";
 import { ActivityCategoriesForm } from "./ActivityCategoriesForm";
@@ -117,6 +118,7 @@ const FormSchema = z
     categories: z
       .array(z.string())
       .min(1, "Seleccione al menos una categoría."),
+    drill_type: z.enum(["PARCIAL", "MESA"]).optional(),
     objetive: requiredString("El objetivo de la actividad es obligatorio.").max(
       500,
       "El objetivo no puede superar los 500 caracteres.",
@@ -219,6 +221,10 @@ export default function CreateSMSActivityForm({
       categories:
         initialData?.categories?.map((category) => category.id.toString()) ||
         [],
+      drill_type:
+        initialData?.drill_type ??
+        initialData?.drill_evaluation?.type ??
+        undefined,
       objetive: initialData?.objetive || "",
       description: initialData?.description || "",
       authorized_by: initialData?.authorized_by?.dni?.toString(),
@@ -228,6 +234,27 @@ export default function CreateSMSActivityForm({
       library_folder_paths: initialData?.library_folder_paths ?? [],
     },
   });
+
+  const selectedCategoryIds = useWatch({
+    control: form.control,
+    name: "categories",
+  });
+  const selectedCategories = (selectedCategoryIds ?? [])
+    .map(
+      (id) =>
+        categories?.find((category) => category.id.toString() === id) ??
+        initialData?.categories?.find(
+          (category) => category.id.toString() === id,
+        ),
+    )
+    .filter((category): category is { id: string; name: string } =>
+      Boolean(category),
+    );
+  const isDrillCategorySelected = selectedCategories.some((category) =>
+    isDrillActivityCategory(category.name),
+  );
+  // Si ya hay evaluación, el tipo y el correlativo están grabados juntos.
+  const drillTypeLocked = Boolean(initialData?.drill_evaluation);
 
   useEffect(() => {
     if (isEditing && initialData && employees) {
@@ -248,6 +275,10 @@ export default function CreateSMSActivityForm({
         categories:
           initialData.categories?.map((category) => category.id.toString()) ||
           [],
+        drill_type:
+          initialData.drill_type ??
+          initialData.drill_evaluation?.type ??
+          undefined,
         objetive: initialData.objetive || "",
         description: initialData.description || "",
         authorized_by: initialData.authorized_by?.dni?.toString(),
@@ -302,35 +333,41 @@ export default function CreateSMSActivityForm({
   };
 
   const onSubmit = async (data: FormSchemaType) => {
+    // El tipo solo tiene sentido cuando la actividad sigue siendo simulacro.
+    // No se envía para el resto de categorías.
+    const activityData = isDrillCategorySelected
+      ? data
+      : { ...data, drill_type: undefined };
+
     if (isEditing && initialData) {
       const value = {
         company: selectedCompany!.slug,
         id: initialData.id.toString(),
         data: {
-          ...data,
+          ...activityData,
           status: initialData.status,
         },
       };
       await updateSMSActivity.mutateAsync(value);
       onClose(true);
     } else if (onContinue) {
-      const selectedCategoryNames = data.categories
+      const selectedCategoryNames = activityData.categories
         .map(
           (id) => categories?.find((c) => c.id.toString() === id)?.name || "",
         )
         .filter(Boolean);
-      onContinue(data, selectedCategoryNames);
+      onContinue(activityData, selectedCategoryNames);
       return;
     } else {
       try {
         const result = await createSMSActivity.mutateAsync({
           company: selectedCompany!.slug,
-          data,
+          data: activityData,
         });
         const createdId = result?.data?.id;
 
         if (onSuccess && createdId) {
-          const selectedCategoryNames = data.categories
+          const selectedCategoryNames = activityData.categories
             .map(
               (id) =>
                 categories?.find((c) => c.id.toString() === id)?.name || "",
@@ -755,6 +792,39 @@ export default function CreateSMSActivityForm({
             </FormItem>
           )}
         />
+
+        {isDrillCategorySelected && (
+          <FormField
+            control={form.control}
+            name="drill_type"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel>Tipo de simulacro</FormLabel>
+                <Select
+                  value={field.value ?? ""}
+                  onValueChange={field.onChange}
+                  disabled={drillTypeLocked}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Definir al registrar la evaluación" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="PARCIAL">Simulacro parcial</SelectItem>
+                    <SelectItem value="MESA">Simulacro de mesa</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-[11px] text-muted-foreground">
+                  {drillTypeLocked
+                    ? "El tipo ya está grabado en la evaluación registrada y no se puede cambiar."
+                    : "Si lo deja vacío, se definirá al registrar la evaluación."}
+                </p>
+                <FormMessage className="text-xs" />
+              </FormItem>
+            )}
+          />
+        )}
 
         <FormField
           control={form.control}

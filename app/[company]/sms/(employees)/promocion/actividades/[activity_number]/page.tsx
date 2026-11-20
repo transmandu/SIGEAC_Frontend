@@ -1,11 +1,44 @@
 "use client";
 
-import BarChartCourseComponent from "@/components/charts/BarChartCourseComponent";
-import { PieChartComponent } from "@/components/charts/PieChartComponent";
+import { useMemo, useState } from "react";
+import Image from "next/image";
+import { useParams } from "next/navigation";
+import {
+  AlertCircle,
+  AreaChartIcon,
+  CalendarDays,
+  ClipboardCheck,
+  Clock,
+  Eye,
+  FileText,
+  ImageIcon,
+  Info,
+  Loader2,
+  MapPin,
+  Maximize2,
+  Percent,
+  Tags,
+  UserCheck,
+  UserRound,
+  Users,
+  UserX,
+} from "lucide-react";
+import { addDays, format } from "date-fns";
+import { es } from "date-fns/locale";
+
 import PdfEndpointPreviewDialog from "@/components/dialogs/shared/PdfEndpointPreviewDialog";
 import { ContentLayout } from "@/components/layout/ContentLayout";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -13,49 +46,41 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useGetActivityAttendanceList } from "@/hooks/sms/useGetActivityAttendanceList";
 import { useGetSMSActivityAttendanceStats } from "@/hooks/sms/useGetSMSActivityAttendanceStats";
 import { useGetSMSActivityByNumber } from "@/hooks/sms/useGetSMSActivityByNumber";
 import { useIsOmac } from "@/hooks/sistema/useIsOmac";
 import { AeronauticalActivityDetail } from "@/app/[company]/sms/(employees)/promocion/actividades/_components/aeronautical-activity-detail";
+import {
+  ActivityDetailHeader,
+  ActivityDetailSkeleton,
+  AttendanceSnapshot,
+  AttendanceStatsPanel,
+  InfoItem,
+  PersonRow,
+  RosterSection,
+  SectionLabel,
+  StatCard,
+  TabEmptyState,
+  filterAttendance,
+  initialsOf,
+} from "@/app/[company]/sms/(employees)/promocion/actividades/_components/activity-detail-parts";
+import { DrillEvaluationSummary } from "@/app/[company]/sms/(employees)/promocion/actividades/_components/drill-evaluation-summary";
+import { hasDrillActivityCategory } from "@/lib/sms/activity-categories";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { generateMinutaPDF } from "@/utils/generateMinutaPDF";
-import { addDays, format } from "date-fns";
-import { es } from "date-fns/locale";
-import {
-  AlertCircle,
-  AreaChartIcon,
-  BarChart3,
-  Check,
-  FileText,
-  Info,
-  Loader2,
-  UserCheck,
-  Users,
-  X,
-} from "lucide-react";
-import Image from "next/image";
-import { useParams } from "next/navigation";
-import { useState } from "react";
-import { PageHeader } from "@/components/layout/PageHeader";
-
-const statusClassName = {
-  ABIERTO:
-    "bg-green-100 text-green-700 border-green-200 dark:bg-green-950/40 dark:text-green-400 dark:border-green-800",
-  CERRADO:
-    "bg-red-100 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-400 dark:border-red-800",
-  PROCESO:
-    "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-800",
-  PENDIENTE:
-    "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-800",
-} as const;
 
 const AirlineActivityDetail = () => {
   const { selectedCompany } = useCompanyStore();
   const { activity_number } = useParams<{ activity_number: string }>();
 
   const [openPdf, setOpenPdf] = useState<boolean>(false);
+  const [participantsSearch, setParticipantsSearch] = useState("");
+  const [attendanceSearch, setAttendanceSearch] = useState("");
+
   const {
     data: activity,
     isLoading: isActivityLoading,
@@ -80,13 +105,6 @@ const AirlineActivityDetail = () => {
     isError: isAttendanceStatsError,
   } = useGetSMSActivityAttendanceStats(activity_number);
 
-  const pieChartData = attendanceStats
-    ? [
-        { name: "Asistentes", value: attendanceStats.attended },
-        { name: "Inasistentes", value: attendanceStats.not_attended },
-      ]
-    : [];
-
   const dateLabel = (date: Date) =>
     format(addDays(date, 1), "PPP", {
       locale: es,
@@ -99,663 +117,528 @@ const AirlineActivityDetail = () => {
         .filter(Boolean)
     : [];
 
+  const participants = useMemo(() => attendedList ?? [], [attendedList]);
+
+  const totalParticipants = attendanceStats?.total ?? participants.length;
+  const attendedCount =
+    attendanceStats?.attended ??
+    participants.filter((item) => item.attended).length;
+  const notAttendedCount =
+    attendanceStats?.not_attended ??
+    Math.max(totalParticipants - attendedCount, 0);
   const attendancePercentage =
-    attendanceStats && attendanceStats.total > 0
-      ? Math.round((attendanceStats.attended / attendanceStats.total) * 100)
+    totalParticipants > 0
+      ? Math.round((attendedCount / totalParticipants) * 100)
       : 0;
+
+  const displayTitle =
+    activity?.title || activity?.activity_name || "Actividad sin título";
+
+  const filteredParticipants = useMemo(
+    () => filterAttendance(participants, participantsSearch),
+    [participants, participantsSearch],
+  );
+  const filteredAttendance = useMemo(
+    () => filterAttendance(participants, attendanceSearch),
+    [participants, attendanceSearch],
+  );
+
+  const hasDrillCategory = hasDrillActivityCategory(activity?.categories);
+  const drillTypeLabel =
+    activity?.drill_type === "PARCIAL"
+      ? "Simulacro parcial"
+      : activity?.drill_type === "MESA"
+        ? "Simulacro de mesa"
+        : "Simulacro por definir";
+
+  const tabs = [
+    { value: "informacion", label: "Información", icon: Info },
+    { value: "participantes", label: "Participantes", icon: Users },
+    { value: "asistencia", label: "Asistencia", icon: UserCheck },
+    { value: "estadisticas", label: "Estadísticas", icon: AreaChartIcon },
+    ...(hasDrillCategory
+      ? [
+          {
+            value: "simulacro",
+            label: "Simulacro",
+            icon: ClipboardCheck,
+          },
+        ]
+      : []),
+  ];
 
   return (
     <>
       <ContentLayout title="Actividad de SMS">
-        <PageHeader className="mb-6" />
+        <PageHeader
+          className="mb-6"
+          currentLabel={activity?.activity_number}
+          backFallbackHref={
+            selectedCompany
+              ? `/${selectedCompany.slug}/sms/promocion/actividades`
+              : undefined
+          }
+        />
 
-        <div className="w-full rounded-lg border border-border/60 p-4 sm:p-6">
-          <div className="mb-5 border-b border-border/60 pb-3">
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex items-start gap-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-600 dark:bg-amber-950/60 dark:text-amber-500">
-                  <FileText className="h-4 w-4" />
-                </div>
-                <div>
-                  <h1 className="text-base font-semibold leading-tight">
-                    Detalle de Actividad SMS
-                  </h1>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    Referencia: {activity?.activity_number || "N/A"}
-                  </p>
-                </div>
-              </div>
+        {isActivityLoading && <ActivityDetailSkeleton />}
 
-              {activity?.status && (
-                <Badge
-                  className={`border text-xs font-medium ${
-                    statusClassName[
-                      activity.status as keyof typeof statusClassName
-                    ] || "bg-muted text-foreground border-border/40"
-                  }`}
-                >
-                  {activity.status.replace("_", " ")}
-                </Badge>
-              )}
-            </div>
-          </div>
+        {activityError && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertCircle className="size-4" />
+            <AlertTitle>No se pudo cargar la actividad</AlertTitle>
+            <AlertDescription>
+              Revisa tu conexión y vuelve a intentarlo. Si el problema persiste,
+              contacta al administrador del sistema.
+            </AlertDescription>
+          </Alert>
+        )}
 
-          {isActivityLoading && (
-            <div className="flex h-52 w-full items-center justify-center rounded-lg border border-border/60">
-              <Loader2 className="size-10 animate-spin" />
-            </div>
-          )}
-
-          {activity && (
-            <Tabs defaultValue="informacion" className="w-full">
-              <TabsList className="mb-5 grid w-full grid-cols-2 gap-2 border border-border/60 bg-transparent p-1 sm:grid-cols-4">
-                <TabsTrigger
-                  value="informacion"
-                  className="flex items-center gap-2 px-2 data-[state=active]:bg-muted"
-                >
-                  <Info className="h-4 w-4 shrink-0" />
-                  <span className="truncate text-xs sm:text-sm">
-                    Información
-                  </span>
-                </TabsTrigger>
-                <TabsTrigger
-                  value="participantes"
-                  className="flex items-center gap-2 px-2 data-[state=active]:bg-muted"
-                >
-                  <Users className="h-4 w-4 shrink-0" />
-                  <span className="truncate text-xs sm:text-sm">
-                    Participantes
-                  </span>
-                </TabsTrigger>
-                <TabsTrigger
-                  value="asistencia"
-                  className="flex items-center gap-2 px-2 data-[state=active]:bg-muted"
-                >
-                  <UserCheck className="h-4 w-4 shrink-0" />
-                  <span className="truncate text-xs sm:text-sm">
-                    Asistencia
-                  </span>
-                </TabsTrigger>
-                <TabsTrigger
-                  value="estadisticas"
-                  className="flex items-center gap-2 px-2 data-[state=active]:bg-muted"
-                >
-                  <BarChart3 className="h-4 w-4 shrink-0" />
-                  <span className="truncate text-xs sm:text-sm">
-                    Estadísticas
-                  </span>
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="informacion" className="space-y-5">
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                  <div className="rounded-lg border border-border/60 bg-muted/20 p-3">
-                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                      Título
-                    </p>
-                    <p className="mt-1 text-sm font-medium">
-                      {activity.title || "N/A"}
-                    </p>
-                  </div>
-                  <div className="rounded-lg border border-border/60 bg-muted/20 p-3">
-                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                      Nombre de Actividad
-                    </p>
-                    <p className="mt-1 text-sm">
-                      {activity.activity_name || "N/A"}
-                    </p>
-                  </div>
-                  <div className="rounded-lg border border-border/60 bg-muted/20 p-3">
-                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                      Número
-                    </p>
-                    <p className="mt-1 text-sm font-mono tracking-wide">
-                      {activity.activity_number || "N/A"}
-                    </p>
-                  </div>
-                  <div className="rounded-lg border border-border/60 bg-muted/20 p-3">
-                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                      Lugar
-                    </p>
-                    <p className="mt-1 text-sm">{activity.place || "N/A"}</p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
-                  <section className="rounded-lg border border-border/60 p-4 lg:col-span-2">
-                    <h2 className="pb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                      Meta de Actividad
-                    </h2>
-                    <div className="grid grid-cols-1 gap-3 border-t border-border/60 pt-3 sm:grid-cols-2 lg:grid-cols-3">
-                      <div className="space-y-1 border border-border/40 px-3 py-3">
-                        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                          Fecha Inicio
-                        </p>
-                        <p className="text-sm">
-                          {dateLabel(activity.start_date)}
-                        </p>
-                      </div>
-                      <div className="space-y-1 border border-border/40 px-3 py-3">
-                        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                          Fecha Final
-                        </p>
-                        <p className="text-sm">
-                          {dateLabel(activity.end_date)}
-                        </p>
-                      </div>
-                      <div className="space-y-1 border border-border/40 px-3 py-3">
-                        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                          Horario
-                        </p>
-                        <p className="text-sm font-mono">
-                          {activity.start_time || "N/A"} -{" "}
-                          {activity.end_time || "N/A"}
-                        </p>
-                      </div>
-                    </div>
-                  </section>
-
-                  <section className="rounded-lg border border-border/60 p-4">
-                    <h2 className="pb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                      Categorías
-                    </h2>
-                    <div className="border-t border-border/60 pt-3">
-                      {activity.categories && activity.categories.length > 0 ? (
-                        <div className="flex flex-wrap gap-1.5">
+        {activity && (
+          <div className="space-y-6">
+            <ActivityDetailHeader
+              activityNumber={activity.activity_number}
+              title={displayTitle}
+              status={activity.status}
+              subtitle={
+                [
+                  activity.activity_name &&
+                  activity.activity_name !== displayTitle
+                    ? activity.activity_name
+                    : null,
+                  activity.place || "Lugar no definido",
+                ]
+                  .filter(Boolean)
+                  .join(" · ") ||
+                "Actividad de promoción de la seguridad operacional"
+              }
+              badges={
+                hasDrillCategory ? (
+                  <Badge variant="secondary" className="font-medium">
+                    {drillTypeLabel}
+                  </Badge>
+                ) : null
+              }
+              actions={
+                <>
+                  {activity.document && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full sm:w-auto"
+                      onClick={() => setOpenPdf(true)}
+                    >
+                      <Eye className="mr-2 size-4" />
+                      Vista previa
+                    </Button>
+                  )}
+                  <Button
+                    type="button"
+                    className="w-full sm:w-auto"
+                    onClick={() =>
+                      generateMinutaPDF(activity, attendedList?.length || 0)
+                    }
+                  >
+                    <FileText className="mr-2 size-4" />
+                    Descargar minuta
+                  </Button>
+                </>
+              }
+              meta={
+                <>
+                  <InfoItem
+                    icon={CalendarDays}
+                    label="Fechas"
+                    value={`${dateLabel(activity.start_date)} — ${dateLabel(
+                      activity.end_date,
+                    )}`}
+                  />
+                  <InfoItem
+                    icon={Clock}
+                    label="Horario"
+                    value={
+                      <span className="font-mono tabular-nums">
+                        {activity.start_time || "N/A"} -{" "}
+                        {activity.end_time || "N/A"}
+                      </span>
+                    }
+                  />
+                  <InfoItem
+                    icon={MapPin}
+                    label="Lugar"
+                    value={activity.place || "N/A"}
+                  />
+                  <InfoItem
+                    icon={Tags}
+                    label="Categorías"
+                    value={
+                      activity.categories?.length ? (
+                        <div className="flex flex-wrap gap-1">
                           {activity.categories.map((category) => (
-                            <span
+                            <Badge
                               key={category.id}
-                              className="rounded border border-border/40 bg-muted/20 px-2 py-0.5 text-xs"
+                              variant="outline"
+                              className="text-[10px] font-normal"
                             >
                               {category.name}
+                            </Badge>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-sm font-normal text-muted-foreground">
+                          Sin categorías
+                        </span>
+                      )
+                    }
+                  />
+                </>
+              }
+            />
+
+            {isAttendanceStatsLoading && isAttendedListLoading ? (
+              <div className="grid grid-cols-2 gap-3 md:gap-4 xl:grid-cols-4">
+                {Array.from({ length: 4 }).map((_, index) => (
+                  <Skeleton key={index} className="h-28 rounded-xl" />
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3 md:gap-4 xl:grid-cols-4">
+                <StatCard
+                  icon={Users}
+                  label="Inscritos"
+                  value={totalParticipants}
+                  hint="Total registrado"
+                />
+                <StatCard
+                  icon={UserCheck}
+                  label="Asistentes"
+                  value={attendedCount}
+                  hint={
+                    totalParticipants > 0
+                      ? `${attendancePercentage}% del total`
+                      : "Sin registros"
+                  }
+                  iconClassName="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                />
+                <StatCard
+                  icon={UserX}
+                  label="Inasistentes"
+                  value={notAttendedCount}
+                  hint={
+                    totalParticipants > 0
+                      ? `${100 - attendancePercentage}% del total`
+                      : "Sin registros"
+                  }
+                  iconClassName="bg-rose-500/10 text-rose-600 dark:text-rose-400"
+                />
+                <StatCard
+                  icon={Percent}
+                  label="Asistencia"
+                  value={`${attendancePercentage}%`}
+                  hint="Sobre el total inscrito"
+                >
+                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                    <div
+                      className="h-full rounded-full bg-primary transition-all duration-500"
+                      style={{ width: `${attendancePercentage}%` }}
+                    />
+                  </div>
+                </StatCard>
+              </div>
+            )}
+
+            <Tabs defaultValue="informacion" className="w-full">
+              <TabsList className="h-auto w-full justify-start gap-1 overflow-x-auto rounded-none border-b border-border/60 bg-transparent p-0">
+                {tabs.map((tab) => (
+                  <TabsTrigger
+                    key={tab.value}
+                    value={tab.value}
+                    className="-mb-px group shrink-0 gap-2 rounded-none border-b-2 border-transparent px-3 pb-3 pt-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none"
+                  >
+                    <tab.icon className="size-4 text-muted-foreground transition-colors group-data-[state=active]:text-foreground" />
+                    <span>{tab.label}</span>
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+
+              <TabsContent value="informacion" className="mt-6">
+                <div className="grid gap-6 xl:grid-cols-3">
+                  <div className="space-y-6 xl:col-span-2">
+                    <Card>
+                      <CardHeader className="pb-4">
+                        <div className="flex items-start gap-3">
+                          <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                            <FileText className="size-4" />
+                          </span>
+                          <div className="space-y-0.5">
+                            <CardTitle className="text-base">
+                              Contenido de la actividad
+                            </CardTitle>
+                            <CardDescription>
+                              Temas abordados, objetivo y descripción
+                              registrados
+                            </CardDescription>
+                          </div>
+                        </div>
+                      </CardHeader>
+
+                      <CardContent className="space-y-5">
+                        <section>
+                          <SectionLabel>Temas abordados</SectionLabel>
+                          {topics.length > 0 ? (
+                            <ol className="mt-2 divide-y divide-border/30 overflow-hidden rounded-lg border border-border/60">
+                              {topics.map((topic, index) => (
+                                <li
+                                  key={`${topic}-${index}`}
+                                  className="flex items-start gap-3 px-3 py-2.5"
+                                >
+                                  <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded bg-muted font-mono text-[10px] tabular-nums text-muted-foreground">
+                                    {index + 1}
+                                  </span>
+                                  <span className="text-sm leading-relaxed text-foreground">
+                                    {topic}
+                                  </span>
+                                </li>
+                              ))}
+                            </ol>
+                          ) : (
+                            <p className="mt-1.5 text-sm text-muted-foreground">
+                              No hay temas registrados.
+                            </p>
+                          )}
+                        </section>
+
+                        <Separator />
+
+                        <section>
+                          <SectionLabel>Objetivo y observaciones</SectionLabel>
+                          <p className="mt-1.5 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
+                            {activity.objetive ||
+                              "No hay observaciones registradas."}
+                          </p>
+                        </section>
+
+                        <Separator />
+
+                        <section>
+                          <SectionLabel>Descripción</SectionLabel>
+                          <p className="mt-1.5 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
+                            {activity.description ||
+                              "No hay descripción registrada."}
+                          </p>
+                        </section>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  <div className="space-y-6">
+                    <Card>
+                      <CardHeader className="pb-4">
+                        <div className="flex items-start gap-3">
+                          <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                            <UserRound className="size-4" />
+                          </span>
+                          <div className="space-y-0.5">
+                            <CardTitle className="text-base">
+                              Responsables
+                            </CardTitle>
+                            <CardDescription>
+                              Autorización, elaboración y ejecución
+                            </CardDescription>
+                          </div>
+                        </div>
+                      </CardHeader>
+
+                      <CardContent className="space-y-4">
+                        <PersonRow
+                          role="Autorizado por"
+                          name={`${activity.authorized_by.first_name || ""} ${
+                            activity.authorized_by.last_name || ""
+                          }`.trim()}
+                          dni={activity.authorized_by.dni}
+                          initials={initialsOf(
+                            activity.authorized_by.first_name,
+                            activity.authorized_by.last_name,
+                          )}
+                        />
+                        <Separator />
+                        <PersonRow
+                          role="Elaborado por"
+                          name={`${activity.planned_by.first_name || ""} ${
+                            activity.planned_by.last_name || ""
+                          }`.trim()}
+                          dni={activity.planned_by.dni}
+                          initials={initialsOf(
+                            activity.planned_by.first_name,
+                            activity.planned_by.last_name,
+                          )}
+                        />
+                        <Separator />
+                        <PersonRow
+                          role="Realizado por"
+                          name={activity.executed_by || "N/A"}
+                        />
+                      </CardContent>
+                    </Card>
+
+                    {activity.imageUrl && (
+                      <Card>
+                        <CardHeader className="pb-4">
+                          <div className="flex items-start gap-3">
+                            <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                              <ImageIcon className="size-4" />
                             </span>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="text-sm text-muted-foreground">
-                          Sin categorías registradas.
-                        </p>
-                      )}
-                    </div>
-                  </section>
-                </div>
-
-                <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
-                  <section className="rounded-lg border border-border/60 p-4">
-                    <h2 className="pb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                      Responsables
-                    </h2>
-                    <div className="space-y-3 border-t border-border/60 pt-3 text-sm">
-                      <div className="border border-border/40 px-3 py-3">
-                        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                          Autorizado por
-                        </p>
-                        <p className="mt-1 font-medium">
-                          {activity.authorized_by.first_name || "N/A"}{" "}
-                          {activity.authorized_by.last_name || ""}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          DNI: {activity.authorized_by.dni || "N/A"}
-                        </p>
-                      </div>
-                      <div className="border border-border/40 px-3 py-3">
-                        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                          Elaborado por
-                        </p>
-                        <p className="mt-1 font-medium">
-                          {activity.planned_by.first_name || "N/A"}{" "}
-                          {activity.planned_by.last_name || ""}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          DNI: {activity.planned_by.dni || "N/A"}
-                        </p>
-                      </div>
-                      <div className="border border-border/40 px-3 py-3">
-                        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                          Realizado por
-                        </p>
-                        <p className="mt-1 font-medium">
-                          {activity.executed_by || "N/A"}
-                        </p>
-                      </div>
-                    </div>
-                  </section>
-
-                  <section className="rounded-lg border border-border/60 p-4 lg:col-span-2">
-                    <h2 className="pb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                      Temas Abordados
-                    </h2>
-                    <div className="border-t border-border/60 pt-2">
-                      {topics.length > 0 ? (
-                        <div className="divide-y divide-border/30 border border-border/40">
-                          {topics.map((topic, index) => (
-                            <div
-                              key={`${topic}-${index}`}
-                              className="flex items-center gap-3 px-3 py-3 text-sm transition-colors hover:bg-muted/20"
-                            >
-                              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-muted/40 text-[10px] font-medium text-muted-foreground">
-                                {index + 1}
-                              </span>
-                              {topic}
+                            <div className="space-y-0.5">
+                              <CardTitle className="text-base">
+                                Evidencia fotográfica
+                              </CardTitle>
+                              <CardDescription>
+                                Imagen adjunta a la actividad
+                              </CardDescription>
                             </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="text-sm text-muted-foreground">
-                          No hay temas registrados.
-                        </p>
-                      )}
-                    </div>
-                  </section>
-                </div>
+                          </div>
+                        </CardHeader>
 
-                <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-                  <section className="rounded-lg border border-border/60 p-4">
-                    <h2 className="pb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                      Objetivo y Observaciones
-                    </h2>
-                    <div className="border-t border-border/60 pt-3">
-                      <p className="whitespace-pre-line text-sm text-muted-foreground">
-                        {activity.objetive ||
-                          "No hay observaciones registradas."}
-                      </p>
-                    </div>
-                  </section>
-
-                  <section className="rounded-lg border border-border/60 p-4">
-                    <h2 className="pb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                      Descripción
-                    </h2>
-                    <div className="border-t border-border/60 pt-3">
-                      <p className="whitespace-pre-line text-sm text-muted-foreground">
-                        {activity.description ||
-                          "No hay descripción registrada."}
-                      </p>
-                    </div>
-                  </section>
-                </div>
-
-                {(activity?.imageUrl || activity?.documentUrl) && (
-                  <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-                    {activity?.imageUrl && (
-                      <section className="rounded-lg border border-border/60 p-4">
-                        <h2 className="pb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                          Imagen Adjunta
-                        </h2>
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <div className="group relative mt-3 h-64 w-full cursor-pointer overflow-hidden rounded border border-border/40 bg-muted/20">
-                              <Image
-                                src={activity.imageUrl}
-                                alt="Imagen de la actividad"
-                                fill
-                                className="object-contain"
-                              />
-                              <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 transition-opacity group-hover:opacity-100">
-                                <span className="rounded border border-white/40 bg-black/50 px-3 py-1 text-xs text-white">
-                                  Ampliar
+                        <CardContent>
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <button
+                                type="button"
+                                className="group relative block h-44 w-full overflow-hidden rounded-lg border border-border/60 bg-muted/20"
+                              >
+                                <Image
+                                  src={activity.imageUrl}
+                                  alt="Imagen de la actividad"
+                                  fill
+                                  sizes="(min-width: 1280px) 33vw, 100vw"
+                                  className="object-cover transition-transform duration-300 group-hover:scale-105"
+                                />
+                                <span className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors group-hover:bg-black/25">
+                                  <span className="flex items-center gap-1.5 rounded border border-white/40 bg-black/60 px-2 py-1 text-[11px] text-white opacity-0 transition-opacity group-hover:opacity-100">
+                                    <Maximize2 className="size-3" />
+                                    Ampliar
+                                  </span>
                                 </span>
+                              </button>
+                            </DialogTrigger>
+                            <DialogContent className="max-h-[90vh] w-[95vw] max-w-4xl">
+                              <DialogHeader>
+                                <DialogTitle>
+                                  Imagen de la actividad
+                                </DialogTitle>
+                              </DialogHeader>
+                              <div className="relative flex h-[60vh] justify-center">
+                                <Image
+                                  src={activity.imageUrl}
+                                  fill
+                                  alt="Imagen completa de la actividad"
+                                  className="rounded-lg border object-contain"
+                                />
                               </div>
-                            </div>
-                          </DialogTrigger>
-                          <DialogContent className="max-h-[90vh] w-[95vw] max-w-4xl">
-                            <DialogHeader>
-                              <DialogTitle>Imagen de la Actividad</DialogTitle>
-                            </DialogHeader>
-                            <div className="relative flex h-[60vh] justify-center">
-                              <Image
-                                src={activity.imageUrl}
-                                fill
-                                alt="Imagen completa de la actividad"
-                                className="max-h-full max-w-full rounded-lg border object-contain"
-                              />
-                            </div>
-                          </DialogContent>
-                        </Dialog>
-                      </section>
+                            </DialogContent>
+                          </Dialog>
+                        </CardContent>
+                      </Card>
                     )}
                   </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="participantes" className="mt-6">
+                <RosterSection
+                  icon={Users}
+                  title="Empleados inscritos"
+                  description="Participantes registrados en esta actividad"
+                  total={participants.length}
+                  rows={filteredParticipants}
+                  isLoading={isAttendedListLoading}
+                  isError={attendedListError}
+                  errorMessage="No fue posible obtener los empleados inscritos. Vuelve a intentarlo en unos minutos."
+                  searchValue={participantsSearch}
+                  onSearchChange={setParticipantsSearch}
+                  emptyTitle="Sin participantes"
+                  emptyDescription="Esta actividad todavía no tiene empleados inscritos."
+                />
+              </TabsContent>
+
+              <TabsContent value="asistencia" className="mt-6 space-y-6">
+                <AttendanceSnapshot
+                  attended={attendedCount}
+                  notAttended={notAttendedCount}
+                  total={totalParticipants}
+                  rate={attendancePercentage}
+                />
+
+                <RosterSection
+                  icon={UserCheck}
+                  title="Registro de asistencia"
+                  description="Estado de asistencia de cada participante"
+                  total={participants.length}
+                  rows={filteredAttendance}
+                  showAttendance
+                  isLoading={isAttendedListLoading}
+                  isError={attendedListError}
+                  errorMessage="No fue posible obtener el registro de asistencia. Vuelve a intentarlo en unos minutos."
+                  searchValue={attendanceSearch}
+                  onSearchChange={setAttendanceSearch}
+                  emptyTitle="Sin registros de asistencia"
+                  emptyDescription="Esta actividad todavía no tiene registros de asistencia."
+                />
+              </TabsContent>
+
+              <TabsContent value="estadisticas" className="mt-6">
+                {isAttendanceStatsLoading ? (
+                  <div className="grid gap-6 lg:grid-cols-2">
+                    <Skeleton className="h-80 rounded-xl" />
+                    <Skeleton className="h-80 rounded-xl" />
+                  </div>
+                ) : isAttendanceStatsError ? (
+                  <Alert variant="destructive">
+                    <AlertCircle className="size-4" />
+                    <AlertTitle>
+                      No se pudieron calcular las estadísticas
+                    </AlertTitle>
+                    <AlertDescription>
+                      La asistencia se puede revisar en la pestaña de registro.
+                      Vuelve a intentarlo en unos minutos.
+                    </AlertDescription>
+                  </Alert>
+                ) : totalParticipants > 0 ? (
+                  <AttendanceStatsPanel
+                    attended={attendedCount}
+                    notAttended={notAttendedCount}
+                    total={totalParticipants}
+                    rate={attendancePercentage}
+                  />
+                ) : (
+                  <TabEmptyState
+                    icon={AreaChartIcon}
+                    title="Sin datos estadísticos"
+                    description="Esta actividad todavía no tiene inscritos para calcular la asistencia."
+                  />
                 )}
               </TabsContent>
 
-              <TabsContent value="participantes">
-                <div className="rounded-lg border border-border/60 p-4 sm:p-5">
-                  <div className="mb-4 flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
-                    <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide">
-                      <Users className="h-4 w-4" />
-                      Empleados Inscritos
-                    </h2>
-                    <Badge className="border border-border/40 bg-muted text-foreground">
-                      {attendedList?.length || 0} participantes
-                    </Badge>
-                  </div>
-
-                  {isAttendedListLoading ? (
-                    <div className="flex justify-center py-8">
-                      <Loader2 className="size-8 animate-spin" />
-                    </div>
-                  ) : attendedListError ? (
-                    <div className="flex items-center gap-3 rounded-lg border border-red-200 bg-red-100 p-4 dark:border-red-800 dark:bg-red-950/20">
-                      <AlertCircle className="h-5 w-5 text-red-500" />
-                      <p className="text-sm text-red-700 dark:text-red-300">
-                        Error al cargar la lista de empleados.
-                      </p>
-                    </div>
-                  ) : attendedList && attendedList.length > 0 ? (
-                    <div className="overflow-x-auto rounded border border-border/40">
-                      <table className="min-w-full divide-y divide-border/40">
-                        <thead className="bg-muted/30">
-                          <tr>
-                            <th className="px-3 py-3 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
-                              #
-                            </th>
-                            <th className="px-3 py-3 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
-                              Nombre Completo
-                            </th>
-                            <th className="px-3 py-3 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
-                              DNI
-                            </th>
-                            <th className="px-3 py-3 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
-                              Origen
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-border/30">
-                          {attendedList.map((attended, index) => (
-                            <tr
-                              key={attended.id}
-                              className="transition-colors hover:bg-muted/20"
-                            >
-                              <td className="whitespace-nowrap px-3 py-3 text-sm text-muted-foreground">
-                                {index + 1}
-                              </td>
-                              <td className="whitespace-nowrap px-3 py-3 text-sm font-medium">
-                                {attended.employee?.first_name}{" "}
-                                {attended.employee?.last_name}
-                              </td>
-                              <td className="whitespace-nowrap px-3 py-3 text-sm text-muted-foreground font-mono">
-                                {attended.employee?.dni ||
-                                  attended.employee_dni ||
-                                  "N/A"}
-                              </td>
-                              <td className="whitespace-nowrap px-3 py-3 text-sm">
-                                {attended.employee_type === "authorized" ? (
-                                  <Badge
-                                    variant="outline"
-                                    className="text-[10px]"
-                                  >
-                                    Externo
-                                  </Badge>
-                                ) : (
-                                  <span className="text-muted-foreground">
-                                    Interno
-                                  </span>
-                                )}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  ) : (
-                    <div className="py-8 text-center">
-                      <p className="text-sm text-muted-foreground">
-                        No hay empleados inscritos en esta actividad.
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </TabsContent>
-
-              <TabsContent value="asistencia">
-                <div className="rounded-lg border border-border/60 p-4 sm:p-5">
-                  <div className="mb-4 flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
-                    <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide">
-                      <UserCheck className="h-4 w-4" />
-                      Registro de Asistencia
-                    </h2>
-                    <div className="flex flex-wrap gap-2">
-                      <Badge className="border border-green-200 bg-green-100 text-green-700 dark:border-green-800 dark:bg-green-950/40 dark:text-green-400">
-                        Asistentes: {attendanceStats?.attended || 0}
-                      </Badge>
-                      <Badge className="border border-red-200 bg-red-100 text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-400">
-                        Inasistentes: {attendanceStats?.not_attended || 0}
-                      </Badge>
-                    </div>
-                  </div>
-
-                  {isAttendedListLoading ? (
-                    <div className="flex justify-center py-8">
-                      <Loader2 className="size-8 animate-spin" />
-                    </div>
-                  ) : attendedListError ? (
-                    <div className="flex items-center gap-3 rounded-lg border border-red-200 bg-red-100 p-4 dark:border-red-800 dark:bg-red-950/20">
-                      <AlertCircle className="h-5 w-5 text-red-500" />
-                      <p className="text-sm text-red-700 dark:text-red-300">
-                        Error al cargar la lista de asistencia.
-                      </p>
-                    </div>
-                  ) : attendedList && attendedList.length > 0 ? (
-                    <div className="overflow-x-auto rounded border border-border/40">
-                      <table className="min-w-full divide-y divide-border/40">
-                        <thead className="bg-muted/30">
-                          <tr>
-                            <th className="px-3 py-3 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
-                              #
-                            </th>
-                            <th className="px-3 py-3 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
-                              Nombre Completo
-                            </th>
-                            <th className="hidden px-3 py-3 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70 sm:table-cell">
-                              DNI
-                            </th>
-                            <th className="px-3 py-3 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
-                              Origen
-                            </th>
-                            <th className="px-3 py-3 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
-                              Estado
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-border/30">
-                          {attendedList.map((attended, index) => (
-                            <tr
-                              key={attended.id}
-                              className="transition-colors hover:bg-muted/20"
-                            >
-                              <td className="whitespace-nowrap px-3 py-3 text-sm text-muted-foreground">
-                                {index + 1}
-                              </td>
-                              <td className="whitespace-nowrap px-3 py-3 text-sm font-medium">
-                                {attended.employee?.first_name}{" "}
-                                {attended.employee?.last_name}
-                              </td>
-                              <td className="hidden whitespace-nowrap px-3 py-3 text-sm text-muted-foreground font-mono sm:table-cell">
-                                {attended.employee?.dni ||
-                                  attended.employee_dni ||
-                                  "N/A"}
-                              </td>
-                              <td className="whitespace-nowrap px-3 py-3 text-sm">
-                                {attended.employee_type === "authorized" ? (
-                                  <Badge
-                                    variant="outline"
-                                    className="text-[10px]"
-                                  >
-                                    Externo
-                                  </Badge>
-                                ) : (
-                                  <span className="text-muted-foreground">
-                                    Interno
-                                  </span>
-                                )}
-                              </td>
-                              <td className="whitespace-nowrap px-3 py-3">
-                                <Badge
-                                  className={
-                                    attended.attended
-                                      ? "border border-green-200 bg-green-100 text-green-700 dark:border-green-800 dark:bg-green-950/40 dark:text-green-400"
-                                      : "border border-red-200 bg-red-100 text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-400"
-                                  }
-                                >
-                                  {attended.attended ? "Asistió" : "No Asistió"}
-                                </Badge>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  ) : (
-                    <div className="py-8 text-center">
-                      <p className="text-sm text-muted-foreground">
-                        No hay registros de asistencia para esta actividad.
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </TabsContent>
-
-              <TabsContent value="estadisticas">
-                <div className="rounded-lg border border-border/60 p-4 sm:p-5">
-                  <div className="mb-4 flex items-center gap-2">
-                    <AreaChartIcon className="size-5 text-muted-foreground" />
-                    <h2 className="text-sm font-semibold uppercase tracking-wide">
-                      Estadísticas de la Actividad
-                    </h2>
-                  </div>
-
-                  {isAttendanceStatsLoading ? (
-                    <div className="flex h-56 items-center justify-center rounded-lg border border-border/60">
-                      <Loader2 className="size-10 animate-spin" />
-                      <span className="ml-3 text-sm text-muted-foreground">
-                        Cargando estadísticas...
-                      </span>
-                    </div>
-                  ) : isAttendanceStatsError ? (
-                    <div className="flex items-center gap-3 rounded-lg border border-red-200 bg-red-100 p-6 dark:border-red-800 dark:bg-red-950/20">
-                      <AlertCircle className="h-6 w-6 text-red-500" />
-                      <p className="text-sm text-red-700 dark:text-red-300">
-                        Error al cargar las estadísticas de asistencia.
-                      </p>
-                    </div>
-                  ) : attendanceStats && attendanceStats.total !== 0 ? (
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                        <div className="rounded border border-border/40 px-3 py-3">
-                          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                            Total
-                          </p>
-                          <div className="mt-1 flex items-baseline gap-2">
-                            <p className="font-mono text-xl font-bold tabular-nums">
-                              {attendanceStats.total}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="rounded border border-green-200 px-3 py-3 dark:border-green-800">
-                          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                            Asistentes
-                          </p>
-                          <div className="mt-1 flex items-baseline gap-2">
-                            <p className="font-mono text-xl font-bold tabular-nums text-green-700 dark:text-green-400">
-                              {attendanceStats.attended}
-                            </p>
-                            <span className="text-xs text-green-600 dark:text-green-500">
-                              {attendancePercentage}%
-                            </span>
-                          </div>
-                        </div>
-                        <div className="rounded border border-red-200 px-3 py-3 dark:border-red-800">
-                          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                            Inasistentes
-                          </p>
-                          <div className="mt-1 flex items-baseline gap-2">
-                            <p className="font-mono text-xl font-bold tabular-nums text-red-700 dark:text-red-400">
-                              {attendanceStats.not_attended}
-                            </p>
-                            <span className="text-xs text-red-600 dark:text-red-500">
-                              {100 - attendancePercentage}%
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-col items-center justify-center gap-6 rounded-lg border border-border/60 p-4 md:flex-row">
-                        <div className="w-full md:w-1/2">
-                          <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                            Asistencia
-                          </h3>
-                          <BarChartCourseComponent
-                            height="100%"
-                            width="100%"
-                            title=""
-                            data={attendanceStats}
-                            bar_first_name="Asistente"
-                            bar_second_name="Inasistente"
-                          />
-                        </div>
-                        <div className="h-75 w-full md:w-1/2">
-                          <PieChartComponent
-                            data={pieChartData}
-                            title="Porcentaje de Asistencia"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="rounded-lg border border-border/60 p-6 text-center">
-                      <p className="text-sm text-muted-foreground">
-                        No hay datos estadísticos disponibles para esta
-                        actividad.
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </TabsContent>
-            </Tabs>
-          )}
-
-          {activity && (
-            <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-end">
-              {activity.document && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="h-10 w-full sm:w-auto"
-                  onClick={() => setOpenPdf(true)}
-                >
-                  <FileText className="mr-2 h-4 w-4" />
-                  Vista Previa
-                </Button>
+              {hasDrillCategory && (
+                <TabsContent value="simulacro" className="mt-6">
+                  <DrillEvaluationSummary
+                    activityNumber={activity_number}
+                    categories={activity.categories}
+                    drillType={activity.drill_type}
+                  />
+                </TabsContent>
               )}
-              <Button
-                type="button"
-                className="h-10 w-full sm:w-auto"
-                onClick={() =>
-                  generateMinutaPDF(activity, attendedList?.length || 0)
-                }
-              >
-                <FileText className="mr-2 h-4 w-4" />
-                Descargar Minuta PDF
-              </Button>
-            </div>
-          )}
-
-          {activityError && (
-            <div className="mt-6 flex items-center gap-3 rounded-lg border border-red-200 bg-red-100 p-4 dark:border-red-800 dark:bg-red-950/20">
-              <AlertCircle className="h-5 w-5 text-red-500" />
-              <p className="text-sm text-red-700 dark:text-red-300">
-                Error al cargar la actividad.
-              </p>
-            </div>
-          )}
-        </div>
+            </Tabs>
+          </div>
+        )}
       </ContentLayout>
 
       {activity?.document && (
         <PdfEndpointPreviewDialog
           open={openPdf}
           onOpenChange={setOpenPdf}
-          endpoint={`/${selectedCompany?.slug}/sms/document/${btoa(activity.document as string)}`}
+          endpoint={`/${selectedCompany?.slug}/sms/document/${btoa(
+            activity.document as string,
+          )}`}
           fileName={`ACTIVIDAD_${activity.activity_number}`}
           title="Vista Previa del Documento"
           description="Revisa el documento adjunto antes de descargarlo."
