@@ -1,3 +1,7 @@
+## v4.115.1 — 2026-11-20
+
+- fix(sms): repair drill evaluation form and standardize date inputs (#420)
+
 ## v4.115.0 — 2026-11-20
 
 - feat(sms): add drill evaluation templates and drill minutes UI (#419)
