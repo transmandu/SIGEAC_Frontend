@@ -63,6 +63,29 @@ function CalendarWithPicker({
 
   const [inner, setInner] = React.useState(initial);
   const [view, setViewState] = React.useState<PickerView>("days");
+
+  // Si el valor del formulario cambia a otro mes (por ejemplo, al cargar una
+  // evaluación guardada) el calendario debe abrirse en ese mes y no quedarse
+  // en el que tenía al montarse.
+  const lastSelectedMonth = React.useRef(monthIndex(initial));
+  const selectedDate = props.mode === "single" ? props.selected : undefined;
+  React.useEffect(() => {
+    if (props.month) return;
+
+    if (
+      !(selectedDate instanceof Date) ||
+      Number.isNaN(selectedDate.getTime())
+    ) {
+      return;
+    }
+
+    const selectedMonth = startOfMonth(selectedDate);
+    const nextIndex = monthIndex(selectedMonth);
+
+    if (nextIndex === lastSelectedMonth.current) return;
+    lastSelectedMonth.current = nextIndex;
+    setInner(selectedMonth);
+  }, [props.month, selectedDate]);
   // La primera vista no se anima (el popover ya entra con su propia
   // animación); solo los cambios que hace el usuario.
   const [animated, setAnimated] = React.useState(false);
@@ -131,8 +154,9 @@ function CalendarWithPicker({
     const list = yearsRef.current;
     const active = list?.querySelector<HTMLElement>("[data-current=true]");
     if (list && active) {
-      list.scrollTop =
-        active.offsetTop - list.clientHeight / 2 + active.clientHeight / 2;
+      // El año seleccionado queda arriba, visible de inmediato. Centrarlo
+      // dejaba la lista abierta varios años antes del año actual.
+      list.scrollTop = Math.max(0, active.offsetTop - 8);
     }
   }, [view]);
 
@@ -171,7 +195,10 @@ function CalendarWithPicker({
             type="button"
             className={captionButton}
             aria-label="Elegir el año"
-            onClick={() => setView("years")}
+            onClick={() => {
+              setBrowsingYear(current.getFullYear());
+              setView("years");
+            }}
           >
             {current.getFullYear()}
             <ChevronDown className="size-3.5 opacity-50" />

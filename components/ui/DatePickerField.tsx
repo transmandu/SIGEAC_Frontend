@@ -113,6 +113,7 @@ export function DatePickerField({
   const isInvalid = required && value === undefined && touched;
   const displayError =
     error ||
+    validationError ||
     (isInvalid
       ? "Este campo es obligatorio. Debe seleccionar una fecha o marcar 'No aplica'."
       : undefined);
@@ -191,9 +192,11 @@ export function DatePickerField({
       setValue(parsedDate);
       setInputValue(format(parsedDate, "dd/MM/yyyy"));
     } else {
-      const defaultDate = new Date(2001, 0, 1);
-      setValue(defaultDate);
-      setInputValue(format(defaultDate, "dd/MM/yyyy"));
+      // Antes se rellenaba con 01/01/2001, una fecha que el usuario nunca
+      // eligió y que acababa guardada. Mejor vaciar y avisar.
+      setValue(undefined);
+      setInputValue("");
+      setValidationError("Fecha inválida. Use el formato dd/mm/aaaa.");
     }
   };
 
@@ -312,6 +315,7 @@ export function DatePickerField({
                 locale={es}
                 mode="single"
                 selected={value || undefined}
+                defaultMonth={value || undefined}
                 onSelect={handleCalendarSelect}
                 autoFocus
                 startMonth={new Date(minDate ? minDate.getFullYear() : 1900, 0)}
