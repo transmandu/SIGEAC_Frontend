@@ -1948,12 +1948,14 @@ export default function DrillEvaluationForm({
                       name={`improvement_actions.${index}.deadline`}
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>
-                            Fecha límite <RequiredIndicator />
-                          </FormLabel>
-                          <FormControl>
-                            <Input type="date" {...field} />
-                          </FormControl>
+                          <DatePickerField
+                            label="Fecha límite"
+                            value={parseCalendarDate(field.value)}
+                            setValue={(date) =>
+                              field.onChange(toCalendarPayload(date) ?? "")
+                            }
+                            required
+                          />
                           <FormMessage />
                         </FormItem>
                       )}
