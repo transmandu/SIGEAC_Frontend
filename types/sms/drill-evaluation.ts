@@ -49,14 +49,44 @@ export interface DrillParticipant {
   sort: number;
 }
 
+/**
+ * Evento de un simulacro PARCIAL. La descripción (`name`) es una copia de la
+ * plantilla; aquí solo se capturan hora registrada y observaciones.
+ */
 export interface DrillEvent {
   id: number;
   drill_evaluation_id: number;
+  drill_event_template_id: number | null;
   name: string;
   registered_time: string | null;
   observations: string | null;
-  question: string;
+  sort: number;
+}
+
+/**
+ * Pregunta respondida en un simulacro PARCIAL. Independiente de los eventos.
+ * La descripción es una copia de la plantilla; aquí solo se captura la respuesta.
+ */
+export interface DrillQuestion {
+  id: number;
+  drill_evaluation_id: number;
+  drill_question_template_id: number | null;
+  description: string;
   answer: DrillAnswer;
+  sort: number;
+}
+
+/** Evento predeterminado del simulacro PARCIAL (plantilla). */
+export interface DrillEventTemplate {
+  id: number;
+  description: string;
+  sort: number;
+}
+
+/** Pregunta predeterminada del simulacro PARCIAL (plantilla). */
+export interface DrillQuestionTemplate {
+  id: number;
+  description: string;
   sort: number;
 }
 
@@ -67,9 +97,22 @@ export interface DrillFinding {
   sort: number;
 }
 
+/**
+ * Criterio de la plantilla fija de la matriz de evaluación. Se siembra una
+ * sola vez por tenant y es común a todas las evaluaciones de mesa.
+ */
+export interface DrillMatrixCriterion {
+  id: number;
+  criterion: string;
+  performance_indicator: string;
+  sort: number;
+}
+
 export interface DrillMatrixRow {
   id: number;
   drill_evaluation_id: number;
+  /** Criterio de la plantilla que originó la fila. Puede ser null en filas antiguas. */
+  drill_matrix_criterion_id: number | null;
   criterion: string;
   performance_indicator: string;
   compliance: DrillCompliance;
@@ -114,6 +157,12 @@ export interface DrillEvaluation {
   foreign_people_count: number | null;
   evacuated_count: number | null;
   observations: string | null;
+  /** Ruta del acta dentro de la Librería (solo simulacros de mesa). */
+  document: string | null;
+  /** Referencia al documento de la Librería donde vive el acta. */
+  library_document_id: number | null;
+  /** Carpetas donde está el acta; la primera es la principal. */
+  library_folder_paths?: string[];
   registered_by?: string;
   updated_by?: string | null;
   coordinator_employee?: DrillEmployeeRef | null;
@@ -121,6 +170,7 @@ export interface DrillEvaluation {
   evaluators: DrillEvaluator[];
   participants: DrillParticipant[];
   events: DrillEvent[];
+  questions: DrillQuestion[];
   findings: DrillFinding[];
   matrix_rows: DrillMatrixRow[];
   improvement_actions: DrillImprovementAction[];
@@ -143,11 +193,28 @@ export interface DrillParticipantPayload {
   job_title?: string | null;
 }
 
+/**
+ * Datos de un evento PARCIAL. La descripción no se envía: la copia el
+ * servidor desde la plantilla. Solo hora y observaciones (opcionales).
+ */
 export interface DrillEventPayload {
-  name: string;
+  /** Id del evento existente, solo al editar. */
+  event_id?: number;
+  /** Id del evento de la plantilla que se está registrando. */
+  drill_event_template_id?: number | null;
   registered_time?: string | null;
   observations?: string | null;
-  question: string;
+}
+
+/**
+ * Respuesta de una pregunta PARCIAL. La descripción no se envía: la copia el
+ * servidor desde la plantilla.
+ */
+export interface DrillQuestionPayload {
+  /** Id de la pregunta existente, solo al editar. */
+  question_id?: number;
+  /** Id de la pregunta de la plantilla que se está respondiendo. */
+  drill_question_template_id?: number | null;
   answer: DrillAnswer;
 }
 
@@ -155,9 +222,15 @@ export interface DrillFindingPayload {
   description: string;
 }
 
+/**
+ * Respuesta de una fila de la matriz. Los textos del criterio y del
+ * indicador no se envían: los copia el servidor desde la plantilla.
+ */
 export interface DrillMatrixRowPayload {
-  criterion: string;
-  performance_indicator: string;
+  /** Id de la fila existente, solo al editar. */
+  matrix_row_id?: number;
+  /** Id del criterio de la plantilla que se está respondiendo. */
+  drill_matrix_criterion_id?: number | null;
   compliance: DrillCompliance;
   observations?: string | null;
 }
@@ -192,6 +265,7 @@ export interface StoreDrillEvaluationPayload {
   evaluators: DrillEvaluatorPayload[];
   participants: DrillParticipantPayload[];
   events?: DrillEventPayload[];
+  questions?: DrillQuestionPayload[];
   findings?: DrillFindingPayload[];
   matrix_rows?: DrillMatrixRowPayload[];
   improvement_actions?: DrillImprovementActionPayload[];

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   useFieldArray,
   useForm,
@@ -54,9 +54,14 @@ import {
 import {
   useCreateDrillEvaluation,
   useUpdateDrillEvaluation,
+  useUploadDrillEvaluationDocument,
 } from "@/actions/sms/drill_evaluations/actions";
+import FolderSelect from "@/components/library/FolderSelect";
 import { useGetAllEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetAllEmployees";
 import { useGetExternalEmployees } from "@/hooks/ajustes/convenios/useGetExternalEmployees";
+import { useGetDrillEventTemplates } from "@/hooks/sms/drill_evaluations/useGetDrillEventTemplates";
+import { useGetDrillMatrixCriteria } from "@/hooks/sms/drill_evaluations/useGetDrillMatrixCriteria";
+import { useGetDrillQuestionTemplates } from "@/hooks/sms/drill_evaluations/useGetDrillQuestionTemplates";
 import { useGetNextDrillNumber } from "@/hooks/sms/drill_evaluations/useGetNextDrillNumber";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import type {
@@ -95,6 +100,11 @@ const FormSchema = z
     objective: z.string().optional(),
     observations: z.string().optional(),
 
+    // Acta de realización del simulacro de mesa. El archivo se sube aparte a
+    // la Librería, por eso el esquema no lo exige para guardar la evaluación.
+    document: z.any().optional(),
+    library_folder_paths: z.array(z.string()).optional().default([]),
+
     coordinator: personSchema,
 
     employee_participants_count: z.string().optional(),
@@ -127,13 +137,28 @@ const FormSchema = z
       .optional()
       .default([]),
 
+    // Eventos y preguntas del PARCIAL son listas independientes. La
+    // descripción de cada una viene de la plantilla; aquí solo se capturan
+    // hora/observaciones (eventos) y respuesta (preguntas).
     events: z
       .array(
         z.object({
-          name: requiredString("El nombre del evento es obligatorio"),
+          event_id: z.number().optional(),
+          drill_event_template_id: z.number().nullable().optional(),
+          name: z.string(),
           registered_time: z.string().optional(),
           observations: z.string().optional(),
-          question: requiredString("La pregunta de evaluación es obligatoria"),
+        }),
+      )
+      .optional()
+      .default([]),
+
+    questions: z
+      .array(
+        z.object({
+          question_id: z.number().optional(),
+          drill_question_template_id: z.number().nullable().optional(),
+          description: z.string(),
           answer: z.enum(["SI", "NO", "PARCIAL", "NA"]),
         }),
       )
@@ -152,10 +177,10 @@ const FormSchema = z
     matrix_rows: z
       .array(
         z.object({
-          criterion: requiredString("El criterio evaluado es obligatorio"),
-          performance_indicator: requiredString(
-            "El indicador de desempeño es obligatorio",
-          ),
+          matrix_row_id: z.number().optional(),
+          drill_matrix_criterion_id: z.number().nullable().optional(),
+          criterion: z.string(),
+          performance_indicator: z.string(),
           compliance: z.enum(["SI", "NO", "PARCIAL"]),
           observations: z.string().optional(),
         }),
@@ -232,7 +257,17 @@ const FormSchema = z
         ctx.addIssue({
           code: "custom",
           path: ["events"],
-          message: "Agregue al menos un evento del simulacro.",
+          message:
+            "No hay eventos configurados para el simulacro parcial. Contacte al administrador del sistema.",
+        });
+      }
+
+      if (data.questions.length === 0) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["questions"],
+          message:
+            "No hay preguntas configuradas para el simulacro parcial. Contacte al administrador del sistema.",
         });
       }
 
@@ -258,7 +293,8 @@ const FormSchema = z
         ctx.addIssue({
           code: "custom",
           path: ["matrix_rows"],
-          message: "Agregue al menos una fila a la matriz de evaluación.",
+          message:
+            "La matriz de evaluación no tiene criterios configurados. Contacte al administrador del sistema.",
         });
       }
     }
@@ -362,14 +398,19 @@ function stepForErrorPath(path: string): number {
     return 2;
   }
 
-  if (path.startsWith("events") || path.startsWith("matrix_rows")) {
+  if (
+    path.startsWith("events") ||
+    path.startsWith("questions") ||
+    path.startsWith("matrix_rows")
+  ) {
     return 3;
   }
 
   if (
     path.startsWith("findings") ||
     path.startsWith("improvement_actions") ||
-    path === "observations"
+    path === "observations" ||
+    path === "document"
   ) {
     return 4;
   }
@@ -405,6 +446,8 @@ export default function DrillEvaluationForm({
       hypothesis: initialData?.hypothesis ?? "",
       objective: initialData?.objective ?? "",
       observations: initialData?.observations ?? "",
+      document: undefined,
+      library_folder_paths: initialData?.library_folder_paths ?? [],
       coordinator: personFromServer(
         initialData?.coordinator_employee_id ?? null,
         initialData?.coordinator_authorized_employee_id ?? null,
@@ -455,11 +498,18 @@ export default function DrillEvaluationForm({
           .map((participant) => ({ name: participant.name })) ?? [],
       events:
         initialData?.events?.map((event) => ({
+          event_id: event.id,
+          drill_event_template_id: event.drill_event_template_id,
           name: event.name,
           registered_time: event.registered_time ?? "",
           observations: event.observations ?? "",
-          question: event.question,
-          answer: event.answer,
+        })) ?? [],
+      questions:
+        initialData?.questions?.map((question) => ({
+          question_id: question.id,
+          drill_question_template_id: question.drill_question_template_id,
+          description: question.description,
+          answer: question.answer,
         })) ?? [],
       findings:
         initialData?.findings?.map((finding) => ({
@@ -467,6 +517,8 @@ export default function DrillEvaluationForm({
         })) ?? [],
       matrix_rows:
         initialData?.matrix_rows?.map((row) => ({
+          matrix_row_id: row.id,
+          drill_matrix_criterion_id: row.drill_matrix_criterion_id,
           criterion: row.criterion,
           performance_indicator: row.performance_indicator,
           compliance: row.compliance,
@@ -499,6 +551,18 @@ export default function DrillEvaluationForm({
     control: form.control,
     name: "evaluators",
   });
+  const watchedMatrixRows = useWatch({
+    control: form.control,
+    name: "matrix_rows",
+  });
+  const watchedEvents = useWatch({
+    control: form.control,
+    name: "events",
+  });
+  const watchedQuestions = useWatch({
+    control: form.control,
+    name: "questions",
+  });
   const dateIso = toCalendarPayload(watchedDate ?? undefined);
 
   const { data: authorizedEmployees = [] } = useGetExternalEmployees(
@@ -506,6 +570,117 @@ export default function DrillEvaluationForm({
     "sms.activities",
     dateIso,
   );
+
+  const {
+    data: matrixCriteria = [],
+    isLoading: isLoadingMatrixCriteria,
+  } = useGetDrillMatrixCriteria({
+    company,
+    enabled: type === "MESA",
+  });
+
+  // La matriz sale de la plantilla fija, no se captura. En una evaluación
+  // nueva se cargan los criterios una sola vez y se conservan las respuestas
+  // si el formulario se revalida o se cambia de paso.
+  const appliedTemplate = useRef<string | null>(null);
+  useEffect(() => {
+    if (isEditing || type !== "MESA" || matrixCriteria.length === 0) return;
+
+    const signature = matrixCriteria.map((criterion) => criterion.id).join(",");
+    if (appliedTemplate.current === signature) return;
+    appliedTemplate.current = signature;
+
+    const currentRows = form.getValues("matrix_rows") ?? [];
+    const templateRows = matrixCriteria.map((criterion, index) => {
+      const current = currentRows[index];
+
+      return {
+        matrix_row_id: undefined,
+        drill_matrix_criterion_id: criterion.id,
+        criterion: criterion.criterion,
+        performance_indicator: criterion.performance_indicator,
+        compliance: current?.compliance ?? "SI",
+        observations: current?.observations ?? "",
+      };
+    });
+
+    form.setValue("matrix_rows", templateRows, {
+      shouldDirty: false,
+      shouldValidate: false,
+    });
+  }, [form, isEditing, matrixCriteria, type]);
+
+  const {
+    data: eventTemplates = [],
+    isLoading: isLoadingEventTemplates,
+  } = useGetDrillEventTemplates({
+    company,
+    enabled: type === "PARCIAL",
+  });
+
+  const {
+    data: questionTemplates = [],
+    isLoading: isLoadingQuestionTemplates,
+  } = useGetDrillQuestionTemplates({
+    company,
+    enabled: type === "PARCIAL",
+  });
+
+  // Eventos y preguntas salen de sus plantillas, no se capturan. Se cargan
+  // una sola vez y se conservan los datos ya escritos si el formulario se
+  // revalida o se cambia de paso.
+  const appliedEventsTemplate = useRef<string | null>(null);
+  useEffect(() => {
+    if (isEditing || type !== "PARCIAL" || eventTemplates.length === 0) return;
+
+    const signature = eventTemplates.map((template) => template.id).join(",");
+    if (appliedEventsTemplate.current === signature) return;
+    appliedEventsTemplate.current = signature;
+
+    const currentRows = form.getValues("events") ?? [];
+    form.setValue(
+      "events",
+      eventTemplates.map((template, index) => {
+        const current = currentRows[index];
+
+        return {
+          event_id: undefined,
+          drill_event_template_id: template.id,
+          name: template.description,
+          registered_time: current?.registered_time ?? "",
+          observations: current?.observations ?? "",
+        };
+      }),
+      { shouldDirty: false, shouldValidate: false },
+    );
+  }, [eventTemplates, form, isEditing, type]);
+
+  const appliedQuestionsTemplate = useRef<string | null>(null);
+  useEffect(() => {
+    if (isEditing || type !== "PARCIAL" || questionTemplates.length === 0) {
+      return;
+    }
+
+    const signature = questionTemplates.map((template) => template.id).join(",");
+    if (appliedQuestionsTemplate.current === signature) return;
+    appliedQuestionsTemplate.current = signature;
+
+    const currentRows = form.getValues("questions") ?? [];
+    form.setValue(
+      "questions",
+      questionTemplates.map((template, index) => {
+        const current = currentRows[index];
+
+        return {
+          question_id: undefined,
+          drill_question_template_id: template.id,
+          description: template.description,
+          answer: current?.answer ?? "SI",
+        };
+      }),
+      { shouldDirty: false, shouldValidate: false },
+    );
+  }, [form, isEditing, questionTemplates, type]);
 
   const { data: nextNumberData, isLoading: isLoadingNextNumber } =
     useGetNextDrillNumber({
@@ -518,8 +693,11 @@ export default function DrillEvaluationForm({
 
   const { createDrillEvaluation } = useCreateDrillEvaluation();
   const { updateDrillEvaluation } = useUpdateDrillEvaluation();
+  const { uploadDrillEvaluationDocument } = useUploadDrillEvaluationDocument();
   const isPending =
-    createDrillEvaluation.isPending || updateDrillEvaluation.isPending;
+    createDrillEvaluation.isPending ||
+    updateDrillEvaluation.isPending ||
+    uploadDrillEvaluationDocument.isPending;
 
   const evaluatorsArray = useFieldArray({
     control: form.control,
@@ -541,7 +719,7 @@ export default function DrillEvaluationForm({
     control: form.control,
     name: "mandatory_participants",
   });
-  const eventsArray = useFieldArray({ control: form.control, name: "events" });
+
   const findingsArray = useFieldArray({
     control: form.control,
     name: "findings",
@@ -678,11 +856,18 @@ export default function DrillEvaluationForm({
       participants,
       events: isParcial
         ? (data.events ?? []).map((event) => ({
-            name: event.name.trim(),
+            event_id: event.event_id,
+            drill_event_template_id: event.drill_event_template_id ?? null,
             registered_time: event.registered_time?.trim() || null,
             observations: event.observations?.trim() || null,
-            question: event.question.trim(),
-            answer: event.answer,
+          }))
+        : [],
+      questions: isParcial
+        ? (data.questions ?? []).map((question) => ({
+            question_id: question.question_id,
+            drill_question_template_id:
+              question.drill_question_template_id ?? null,
+            answer: question.answer,
           }))
         : [],
       findings: isParcial
@@ -693,8 +878,8 @@ export default function DrillEvaluationForm({
       matrix_rows: isParcial
         ? []
         : (data.matrix_rows ?? []).map((row) => ({
-            criterion: row.criterion.trim(),
-            performance_indicator: row.performance_indicator.trim(),
+            matrix_row_id: row.matrix_row_id,
+            drill_matrix_criterion_id: row.drill_matrix_criterion_id ?? null,
             compliance: row.compliance,
             observations: row.observations?.trim() || null,
           })),
@@ -709,23 +894,53 @@ export default function DrillEvaluationForm({
 
     try {
       const payload = buildPayload(data);
+      const effectiveType = isEditing
+        ? (initialData?.type ?? data.type)
+        : data.type;
+
+      let saved: DrillEvaluation;
 
       if (isEditing && initialData) {
-        const response = await updateDrillEvaluation.mutateAsync({
+        saved = await updateDrillEvaluation.mutateAsync({
           company,
           activityNumber,
           id: initialData.id,
           data: payload as UpdateDrillEvaluationPayload,
         });
-        onSaved?.(response);
       } else {
-        const response = await createDrillEvaluation.mutateAsync({
+        saved = await createDrillEvaluation.mutateAsync({
           company,
           activityNumber,
           data: payload as StoreDrillEvaluationPayload,
         });
-        onSaved?.(response);
       }
+
+      // El acta se sube después porque lleva un archivo. También permite
+      // cambiar las carpetas de la Librería sin volver a subir el PDF.
+      if (effectiveType === "MESA") {
+        const file = data.document instanceof File ? data.document : null;
+        const folderPaths = data.library_folder_paths ?? [];
+        const foldersChanged =
+          JSON.stringify(folderPaths) !==
+          JSON.stringify(initialData?.library_folder_paths ?? []);
+
+        if (file || (saved?.library_document_id && foldersChanged)) {
+          try {
+            saved = await uploadDrillEvaluationDocument.mutateAsync({
+              company,
+              activityNumber,
+              id: saved.id,
+              file,
+              folderPaths,
+            });
+          } catch {
+            // La evaluación ya quedó guardada; el error del acta se notifica
+            // desde la acción y se puede reintentar desde la edición.
+          }
+        }
+      }
+
+      onSaved?.(saved);
     } catch (error) {
       console.error("Error al guardar la evaluación del simulacro", error);
     }
@@ -764,7 +979,7 @@ export default function DrillEvaluationForm({
         "firefighters",
         "mandatory_participants",
       ],
-      3: ["events", "matrix_rows"],
+      3: ["events", "questions", "matrix_rows"],
     };
 
     const valid = await form.trigger(fieldsByStep[step] ?? [], {
@@ -1240,118 +1455,108 @@ export default function DrillEvaluationForm({
           <div className="space-y-4">
             {type === "PARCIAL" ? (
               <>
-                <div className="flex items-center justify-between">
+                <div className="space-y-1">
                   <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                     Eventos del simulacro
                   </h3>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() =>
-                      eventsArray.append({
-                        name: "",
-                        registered_time: "",
-                        observations: "",
-                        question: "",
-                        answer: "SI",
-                      })
-                    }
-                  >
-                    <Plus className="mr-1 size-3.5" /> Agregar evento
-                  </Button>
+                  <p className="text-xs text-muted-foreground">
+                    Los eventos provienen de la plantilla del sistema. Registre
+                    la hora y, si aplica, una observación.
+                  </p>
                 </div>
 
-                {eventsArray.fields.map((field, index) => (
-                  <div
-                    key={field.id}
-                    className="space-y-3 rounded-md border border-border/40 p-3"
-                  >
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                        Evento {index + 1}
+                {isLoadingEventTemplates &&
+                  (watchedEvents ?? []).length === 0 && (
+                    <p className="text-sm text-muted-foreground">
+                      Cargando eventos...
+                    </p>
+                  )}
+
+                {(watchedEvents ?? []).map((event, index) => {
+                  return (
+                    <div
+                      key={
+                        event.drill_event_template_id ?? event.event_id ?? index
+                      }
+                      className="space-y-3 rounded-md border border-border/40 p-3"
+                    >
+                      <p className="text-sm font-medium">{event.name}</p>
+
+                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_180px]">
+                        <FormField
+                          control={form.control}
+                          name={`events.${index}.registered_time`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Hora registrada</FormLabel>
+                              <FormControl>
+                                <Input {...field} placeholder="10:18 A.M." />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <FormField
+                        control={form.control}
+                        name={`events.${index}.observations`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Observaciones</FormLabel>
+                            <FormControl>
+                              <Textarea {...field} rows={2} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  );
+                })}
+
+                {form.formState.errors.events?.message ||
+                form.formState.errors.events?.root?.message ? (
+                  <p className="text-[0.8rem] font-medium text-destructive">
+                    {form.formState.errors.events?.message ??
+                      form.formState.errors.events?.root?.message}
+                  </p>
+                ) : null}
+
+                <div className="space-y-1 pt-2">
+                  <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Evaluación del simulacro
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    Las preguntas provienen de la plantilla. Seleccione la
+                    respuesta de cada una.
+                  </p>
+                </div>
+
+                {isLoadingQuestionTemplates &&
+                  (watchedQuestions ?? []).length === 0 && (
+                    <p className="text-sm text-muted-foreground">
+                      Cargando preguntas...
+                    </p>
+                  )}
+
+                {(watchedQuestions ?? []).map((question, index) => {
+                  return (
+                    <div
+                      key={
+                        question.drill_question_template_id ??
+                        question.question_id ??
+                        index
+                      }
+                      className="grid grid-cols-1 gap-3 rounded-md border border-border/40 p-3 sm:grid-cols-[1fr_180px] sm:items-start"
+                    >
+                      <p className="text-sm">
+                        <span className="mr-1 font-medium">{index + 1}.</span>
+                        {question.description}
                       </p>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => eventsArray.remove(index)}
-                      >
-                        <Trash2 className="size-4 text-destructive" />
-                      </Button>
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_180px]">
                       <FormField
                         control={form.control}
-                        name={`events.${index}.name`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>
-                              Evento <RequiredIndicator />
-                            </FormLabel>
-                            <FormControl>
-                              <Input
-                                {...field}
-                                placeholder="Ej. Activación de alarma / aviso"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name={`events.${index}.registered_time`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Hora registrada</FormLabel>
-                            <FormControl>
-                              <Input {...field} placeholder="10:18 A.M." />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    <FormField
-                      control={form.control}
-                      name={`events.${index}.observations`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Observaciones</FormLabel>
-                          <FormControl>
-                            <Textarea {...field} rows={2} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_180px]">
-                      <FormField
-                        control={form.control}
-                        name={`events.${index}.question`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>
-                              Pregunta de evaluación <RequiredIndicator />
-                            </FormLabel>
-                            <FormControl>
-                              <Textarea
-                                {...field}
-                                rows={2}
-                                placeholder="Ej. ¿Se escuchó la alarma en toda el área afectada?"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name={`events.${index}.answer`}
+                        name={`questions.${index}.answer`}
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>
@@ -1378,91 +1583,56 @@ export default function DrillEvaluationForm({
                         )}
                       />
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
 
-                {form.formState.errors.events?.message ||
-                form.formState.errors.events?.root?.message ? (
+                {form.formState.errors.questions?.message ||
+                form.formState.errors.questions?.root?.message ? (
                   <p className="text-[0.8rem] font-medium text-destructive">
-                    {form.formState.errors.events?.message ??
-                      form.formState.errors.events?.root?.message}
+                    {form.formState.errors.questions?.message ??
+                      form.formState.errors.questions?.root?.message}
                   </p>
                 ) : null}
               </>
             ) : (
               <>
-                <div className="flex items-center justify-between">
+                <div className="space-y-1">
                   <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    Matriz de evaluación
+                    Matriz de evaluación: simulacro de sismo de mesa
                   </h3>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() =>
-                      matrixArray.append({
-                        criterion: "",
-                        performance_indicator: "",
-                        compliance: "SI",
-                        observations: "",
-                      })
-                    }
-                  >
-                    <Plus className="mr-1 size-3.5" /> Agregar criterio
-                  </Button>
+                  <p className="text-xs text-muted-foreground">
+                    Los criterios y sus indicadores provienen de la plantilla
+                    del sistema. Registre el cumplimiento y, si aplica, una
+                    observación.
+                  </p>
                 </div>
 
-                {matrixArray.fields.map((field, index) => (
+                {isLoadingMatrixCriteria && matrixArray.fields.length === 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    Cargando la matriz de evaluación...
+                  </p>
+                )}
+
+                {matrixArray.fields.map((field, index) => {
+                  const row = watchedMatrixRows?.[index];
+
+                  return (
                   <div
                     key={field.id}
                     className="space-y-3 rounded-md border border-border/40 p-3"
                   >
-                    <div className="flex items-center justify-between">
+                    <div className="space-y-1">
                       <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                         Criterio {index + 1}
                       </p>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => matrixArray.remove(index)}
-                      >
-                        <Trash2 className="size-4 text-destructive" />
-                      </Button>
+                      <p className="text-sm font-medium">
+                        {row?.criterion ?? field.criterion}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {row?.performance_indicator ??
+                          field.performance_indicator}
+                      </p>
                     </div>
-
-                    <FormField
-                      control={form.control}
-                      name={`matrix_rows.${index}.criterion`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>
-                            Criterio evaluado <RequiredIndicator />
-                          </FormLabel>
-                          <FormControl>
-                            <Textarea {...field} rows={2} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name={`matrix_rows.${index}.performance_indicator`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>
-                            Indicador de desempeño / técnica{" "}
-                            <RequiredIndicator />
-                          </FormLabel>
-                          <FormControl>
-                            <Textarea {...field} rows={2} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
 
                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-[180px_1fr]">
                       <FormField
@@ -1507,7 +1677,8 @@ export default function DrillEvaluationForm({
                       />
                     </div>
                   </div>
-                ))}
+                  );
+                })}
 
                 {form.formState.errors.matrix_rows?.message ||
                 form.formState.errors.matrix_rows?.root?.message ? (
@@ -1680,6 +1851,77 @@ export default function DrillEvaluationForm({
                   </FormItem>
                 )}
               />
+            )}
+
+            {type === "MESA" && (
+              <div className="space-y-3 rounded-md border border-border/40 p-3">
+                <div className="space-y-1">
+                  <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Acta de realización
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    Adjunte el acta firmada (PDF). Se guardará una sola vez en
+                    la Librería y quedará vinculada a esta evaluación.
+                  </p>
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name="document"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Documento PDF</FormLabel>
+                      <div className="flex flex-col gap-2">
+                        {field.value instanceof File && (
+                          <p className="text-sm font-medium">
+                            Archivo seleccionado: {field.value.name}
+                          </p>
+                        )}
+                        {!(field.value instanceof File) &&
+                          initialData?.document && (
+                            <p className="text-sm text-muted-foreground">
+                              ✓ Acta existente cargada en la Librería
+                            </p>
+                          )}
+                        <FormControl>
+                          <Input
+                            type="file"
+                            accept="application/pdf"
+                            onChange={(event) => {
+                              const file = event.target.files?.[0];
+                              if (file) field.onChange(file);
+                            }}
+                          />
+                        </FormControl>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="library_folder_paths"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Carpetas en la Librería</FormLabel>
+                      <FormControl>
+                        <FolderSelect
+                          company={company}
+                          value={field.value ?? []}
+                          onChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <p className="text-xs text-muted-foreground">
+                  Puede elegir una o varias carpetas; use la estrella para
+                  fijar la carpeta principal. Las demás son réplicas.
+                </p>
+              </div>
             )}
 
             <Button type="submit" disabled={isPending} className="h-10 w-full">

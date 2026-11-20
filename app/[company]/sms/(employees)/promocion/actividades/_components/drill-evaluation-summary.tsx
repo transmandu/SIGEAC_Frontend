@@ -5,11 +5,13 @@ import Link from "next/link";
 import {
   AlertCircle,
   ClipboardCheck,
+  FileDown,
   Loader2,
   Pencil,
   Plus,
   Trash2,
 } from "lucide-react";
+import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,6 +20,7 @@ import { useDeleteDrillEvaluation } from "@/actions/sms/drill_evaluations/action
 import { useGetDrillEvaluation } from "@/hooks/sms/drill_evaluations/useGetDrillEvaluation";
 import { hasDrillActivityCategory } from "@/lib/sms/activity-categories";
 import { formatCalendarDate } from "@/lib/date";
+import { downloadDocumentFile } from "@/lib/Library/download-helper";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import type {
   DrillAuthorizedEmployeeRef,
@@ -82,6 +85,7 @@ export function DrillEvaluationSummary({
   const { selectedCompany } = useCompanyStore();
   const company = selectedCompany?.slug;
   const [openDelete, setOpenDelete] = useState(false);
+  const [downloadingActa, setDownloadingActa] = useState(false);
 
   // Mismo criterio que la página: `isLoading` es false en una query
   // deshabilitada y el resumen mostraba "sin evaluación" antes de tiempo.
@@ -93,6 +97,22 @@ export function DrillEvaluationSummary({
 
   const hasDrillCategory = hasDrillActivityCategory(categories);
   const evaluationHref = `/${company}/sms/promocion/actividades/${activityNumber}/evaluacion`;
+
+  const handleDownloadActa = async () => {
+    if (!company || !evaluation?.library_document_id) return;
+
+    setDownloadingActa(true);
+    try {
+      await downloadDocumentFile(
+        `/${company}/library/documents/${evaluation.library_document_id}/download`,
+        `acta-${evaluation.number}.pdf`,
+      );
+    } catch {
+      toast.error("No se pudo descargar el acta de realización.");
+    } finally {
+      setDownloadingActa(false);
+    }
+  };
 
   if (!hasDrillCategory && (!evaluation || !evaluation.id) && !isLoading) {
     return null;
@@ -276,15 +296,14 @@ export function DrillEvaluationSummary({
             {evaluation.type === "PARCIAL" ? (
               <>
                 <section>
-                  <SectionTitle>Eventos y evaluación</SectionTitle>
+                  <SectionTitle>Eventos</SectionTitle>
                   <div className="overflow-x-auto rounded border border-border/40">
                     <table className="min-w-full divide-y divide-border/40 text-sm">
                       <thead className="bg-muted/30">
                         <tr>
                           <Th>Evento</Th>
                           <Th>Hora</Th>
-                          <Th>Pregunta</Th>
-                          <Th>Respuesta</Th>
+                          <Th>Observaciones</Th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-border/30">
@@ -292,16 +311,32 @@ export function DrillEvaluationSummary({
                           <tr key={event.id}>
                             <Td>
                               <p className="font-medium">{event.name}</p>
-                              {event.observations ? (
-                                <p className="text-xs text-muted-foreground">
-                                  {event.observations}
-                                </p>
-                              ) : null}
                             </Td>
                             <Td>{event.registered_time || "—"}</Td>
-                            <Td>{event.question}</Td>
+                            <Td>{event.observations || "—"}</Td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </section>
+
+                <section>
+                  <SectionTitle>Evaluación</SectionTitle>
+                  <div className="overflow-x-auto rounded border border-border/40">
+                    <table className="min-w-full divide-y divide-border/40 text-sm">
+                      <thead className="bg-muted/30">
+                        <tr>
+                          <Th>Pregunta</Th>
+                          <Th>Respuesta</Th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border/30">
+                        {(evaluation.questions ?? []).map((question) => (
+                          <tr key={question.id}>
+                            <Td>{question.description}</Td>
                             <Td>
-                              <AnswerBadge value={event.answer} />
+                              <AnswerBadge value={question.answer} />
                             </Td>
                           </tr>
                         ))}
@@ -324,7 +359,9 @@ export function DrillEvaluationSummary({
             ) : (
               <>
                 <section>
-                  <SectionTitle>Matriz de evaluación</SectionTitle>
+                  <SectionTitle>
+                    Matriz de evaluación: simulacro de sismo de mesa
+                  </SectionTitle>
                   <div className="overflow-x-auto rounded border border-border/40">
                     <table className="min-w-full divide-y divide-border/40 text-sm">
                       <thead className="bg-muted/30">
@@ -355,6 +392,26 @@ export function DrillEvaluationSummary({
                   label="Observaciones finales"
                   value={evaluation.observations}
                 />
+
+                {evaluation.library_document_id ? (
+                  <section className="space-y-2">
+                    <SectionTitle>Acta de realización</SectionTitle>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleDownloadActa}
+                      disabled={downloadingActa}
+                    >
+                      {downloadingActa ? (
+                        <Loader2 className="mr-2 size-3.5 animate-spin" />
+                      ) : (
+                        <FileDown className="mr-2 size-3.5" />
+                      )}
+                      Descargar acta
+                    </Button>
+                  </section>
+                ) : null}
               </>
             )}
 

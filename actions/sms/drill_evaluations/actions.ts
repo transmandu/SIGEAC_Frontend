@@ -1,6 +1,7 @@
 import axiosInstance from "@/lib/axios";
 import { notifyError } from "@/lib/notify-error";
 import type {
+  DrillEvaluation,
   StoreDrillEvaluationPayload,
   UpdateDrillEvaluationPayload,
 } from "@/types/sms/drill-evaluation";
@@ -87,6 +88,64 @@ export const useUpdateDrillEvaluation = () => {
   });
 
   return { updateDrillEvaluation: mutation };
+};
+
+/**
+ * Adjunta o reemplaza el acta de realización del simulacro de mesa.
+ *
+ * Va aparte del guardado de la evaluación porque lleva un archivo: la
+ * evaluación se crea/actualiza con JSON y el acta se sube después por
+ * multipart. El backend la guarda en la Librería.
+ */
+export const useUploadDrillEvaluationDocument = () => {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: async ({
+      company,
+      activityNumber,
+      id,
+      file,
+      folderPaths,
+    }: {
+      company: string;
+      activityNumber: string;
+      id: number;
+      file?: File | null;
+      folderPaths?: string[];
+    }): Promise<DrillEvaluation> => {
+      const formData = new FormData();
+
+      if (file) {
+        formData.append("document", file);
+      }
+
+      (folderPaths ?? []).forEach((path) =>
+        formData.append("library_folder_paths[]", path),
+      );
+
+      const response = await axiosInstance.post(
+        `/${company}/sms/activities/${activityNumber}/drill-evaluation/${id}/document`,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        },
+      );
+
+      return response.data;
+    },
+    onSuccess: (_data, variables) => {
+      invalidate(queryClient, variables.activityNumber);
+      toast.success("Acta guardada", {
+        description: "El acta se guardó en la Librería.",
+      });
+    },
+    onError: (error) => {
+      notifyError(error, { action: "guardar el acta del simulacro" });
+    },
+  });
+
+  return { uploadDrillEvaluationDocument: mutation };
 };
 
 export const useDeleteDrillEvaluation = () => {
