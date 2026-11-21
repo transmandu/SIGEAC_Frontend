@@ -419,7 +419,7 @@ export function BatchArticlesSection({
                                   : "sm:grid-cols-[minmax(0,1fr)_7rem_9rem]",
                               )}
                             >
-                              <div className="flex min-w-0 flex-col gap-1 max-sm:col-span-2 sm:col-start-1 sm:row-start-1">
+                              <div className="flex min-w-0 flex-col gap-1 max-sm:order-1 max-sm:col-span-2 sm:col-start-1 sm:row-start-1">
                                 <label
                                   className={cn(
                                     "flex items-center gap-1 font-medium select-none",
@@ -450,7 +450,7 @@ export function BatchArticlesSection({
                                 />
                               </div>
 
-                              <div className="flex min-w-0 flex-col gap-1 sm:col-start-2 sm:row-start-1">
+                              <div className="flex min-w-0 flex-col gap-1 max-sm:order-2 sm:col-start-2 sm:row-start-1">
                                 <label
                                   className={cn(
                                     "flex items-center gap-1 font-medium select-none",
@@ -483,7 +483,7 @@ export function BatchArticlesSection({
                               </div>
 
                               {!isUnitary && (
-                                <div className="flex min-w-0 flex-col gap-1 sm:col-start-3 sm:row-start-1">
+                                <div className="flex min-w-0 flex-col gap-1 max-sm:order-3 sm:col-start-3 sm:row-start-1">
                                   <label
                                     className={cn(
                                       "flex items-center gap-1 font-medium select-none",
@@ -523,7 +523,7 @@ export function BatchArticlesSection({
                                 </div>
                               )}
 
-                              <div className="flex min-w-0 flex-col gap-1 max-sm:col-span-2 sm:col-start-1 sm:row-start-2">
+                              <div className="flex min-w-0 flex-col gap-1 max-sm:order-4 max-sm:col-span-2 sm:col-start-1 sm:row-start-2">
                                 <label
                                   className={cn(
                                     "flex items-center gap-1 font-medium select-none",
@@ -547,7 +547,13 @@ export function BatchArticlesSection({
                                 />
                               </div>
 
-                              <div className="flex min-w-0 flex-col gap-1 sm:col-start-2 sm:row-start-2">
+                              <div
+                                className={cn(
+                                  "flex min-w-0 flex-col gap-1 max-sm:order-5 sm:col-start-2 sm:row-start-2",
+                                  // Sin unidad no hay con quién compartir la fila en móvil.
+                                  isUnitary && "max-sm:col-span-2",
+                                )}
+                              >
                                 <label
                                   className={cn(
                                     "flex items-center gap-1 font-medium select-none",
@@ -576,8 +582,8 @@ export function BatchArticlesSection({
                                 className={cn(
                                   "flex min-w-0 flex-col gap-1",
                                   isUnitary
-                                    ? "sm:col-start-3 sm:row-start-1"
-                                    : "sm:col-start-3 sm:row-start-2",
+                                    ? "max-sm:order-3 sm:col-start-3 sm:row-start-1"
+                                    : "max-sm:order-6 sm:col-start-3 sm:row-start-2",
                                 )}
                               >
                                 <label

@@ -631,10 +631,13 @@ export const useUpdateArticleStatus = () => {
       id,
       ids,
       status,
+      received_quantity,
     }: {
       id?: number;
       ids?: number[];
       status?: string;
+      /** Solo al pasar un consumible a RECEPTION: lo que llegó realmente. */
+      received_quantity?: number;
     }) => {
       if (ids && ids.length > 0) {
         await axiosInstance.put(
@@ -650,7 +653,9 @@ export const useUpdateArticleStatus = () => {
 
       await axiosInstance.put(
         `/${selectedCompany?.slug}/update-article-status/${id}`,
-        { status },
+        received_quantity !== undefined
+          ? { status, received_quantity }
+          : { status },
       );
     },
     onSuccess: () => {

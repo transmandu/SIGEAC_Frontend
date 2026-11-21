@@ -1,3 +1,4 @@
+import { isConsumableCategory } from "@/lib/purchases/requisition-measure";
 import type { ArticleDocumentRequirementSummary } from "@/types";
 import type {
   IncomingBlockingReason,
@@ -73,6 +74,18 @@ export const reasonAction = (
 
   return INCOMING_REASON_ACTIONS[reason]?.[audience].replace("{article}", noun);
 };
+
+/**
+ * ¿Hay que confirmar la cantidad al pasar el artículo a recepción? Solo en un
+ * consumible: una compra suya puede llegar en varias cajas. Los demás
+ * artículos son uno a uno y se reciben tal cual.
+ */
+export const needsReceivedQuantity = (article: {
+  batch?: { category?: string | null } | null;
+  quantity?: number | null;
+}): boolean =>
+  isConsumableCategory(article.batch?.category) &&
+  Number(article.quantity ?? 0) > 0;
 
 /** Los motivos ya traducidos, en el orden en que llegan del backend. */
 export const readinessLabels = (readiness?: IncomingReadiness): string[] =>

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { useFieldArray, useFormState, useWatch } from "react-hook-form";
 import { FormField } from "@/components/ui/form";
@@ -72,6 +73,45 @@ function normalizeQuantity(value: string, fallback: string): string {
   const num = Number(value);
   if (Number.isNaN(num)) return fallback;
   return num.toFixed(2);
+}
+
+/**
+ * Unidad de un artículo único (componente, parte, herramienta): solo lectura,
+ * para que quien cotiza piense en unidades sin poder elegir una que no existe.
+ *
+ * Es un botón y no un input: un input, aunque sea `readOnly`, se enfoca con
+ * anillo azul y cursor de texto, y parece editable. El tooltip es controlado:
+ * en el táctil no hay "apuntar", así que se abre al tocar y se queda hasta que
+ * se toca en otro sitio.
+ */
+function UnitaryUnitField() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <TooltipProvider>
+      <Tooltip open={open} onOpenChange={setOpen}>
+        <TooltipTrigger asChild>
+          <button
+            type="button"
+            aria-label={`Unidad: ${UNITARY_UNIT_LABEL}`}
+            onClick={() => setOpen(true)}
+            className={cn(
+              quoteInputClass,
+              "flex cursor-not-allowed items-center justify-between gap-1 bg-muted/40 text-left opacity-60",
+              "hover:border-slate-400/60 hover:shadow-xs dark:hover:border-slate-600/60",
+              "focus-visible:ring-0 focus-visible:outline-hidden",
+            )}
+          >
+            <span className="truncate">{UNITARY_UNIT_LABEL}</span>
+            <Info aria-hidden className="size-3.5 shrink-0" />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side="top" className="text-xs">
+          Este artículo se cotiza por unidades.
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
 }
 
 export function QuoteBatchArticlesSection({
@@ -251,7 +291,7 @@ export function QuoteBatchArticlesSection({
                           </div>
                         </div>
 
-                        <div className="space-y-0.5 max-sm:order-2">
+                        <div className="space-y-0.5 max-sm:order-3">
                           <span className={LABEL_CLS}>
                             Cantidad
                             <RequiredIndicator />
@@ -318,7 +358,7 @@ export function QuoteBatchArticlesSection({
                           )}
                         </div>
 
-                        <div className="space-y-0.5 max-sm:order-4 max-sm:col-span-2 min-w-0">
+                        <div className="space-y-0.5 max-sm:order-5 max-sm:col-span-2 min-w-0">
                           <span className={LABEL_CLS}>
                             Proveedor
                             <RequiredIndicator />
@@ -338,7 +378,7 @@ export function QuoteBatchArticlesSection({
                           />
                         </div>
 
-                        <div className="space-y-0.5 max-sm:order-6">
+                        <div className="space-y-0.5 max-sm:order-9">
                           <span className={LABEL_CLS}>Lead time</span>
                           <Popover>
                             <PopoverTrigger asChild>
@@ -429,7 +469,7 @@ export function QuoteBatchArticlesSection({
                           </Popover>
                         </div>
 
-                        <div className="space-y-0.5 max-sm:order-5">
+                        <div className="space-y-0.5 max-sm:order-10 max-sm:col-span-2">
                           <span className={LABEL_CLS}>
                             Precio unitario
                             <RequiredIndicator />
@@ -457,7 +497,7 @@ export function QuoteBatchArticlesSection({
                         </div>
 
                         {/* Fila 2: ALT P/N · Unidad · Condición · Referencia · Ubicación */}
-                        <div className="space-y-0.5 max-sm:order-10">
+                        <div className="space-y-0.5 max-sm:order-2 max-sm:col-span-2">
                           <span className={LABEL_CLS}>
                             Número de parte alterno
                           </span>
@@ -483,36 +523,15 @@ export function QuoteBatchArticlesSection({
                           </div>
                         </div>
 
-                        <div className="space-y-0.5 max-sm:order-3 min-w-0">
-                          <span className={LABEL_CLS}>Unidad</span>
+                        <div className="space-y-0.5 max-sm:order-4 min-w-0">
+                          <span className={LABEL_CLS}>
+                            Unidad
+                            {!isUnitaryCategory(article.batch.category) && (
+                              <RequiredIndicator />
+                            )}
+                          </span>
                           {isUnitaryCategory(article.batch.category) ? (
-                            // Campo de solo lectura: mantiene la columna y le
-                            // recuerda a quien cotiza que piense en unidades, sin
-                            // dejarle elegir una unidad que no existe.
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <div
-                                    tabIndex={0}
-                                    role="note"
-                                    aria-label={`Unidad: ${UNITARY_UNIT_LABEL}`}
-                                    className={cn(
-                                      quoteInputClass,
-                                      "flex cursor-not-allowed items-center justify-between gap-1 bg-muted/40 text-muted-foreground",
-                                      isNotQuoted && "opacity-50",
-                                    )}
-                                  >
-                                    <span className="truncate">
-                                      {UNITARY_UNIT_LABEL}
-                                    </span>
-                                    <Info className="size-3.5 shrink-0 opacity-60" />
-                                  </div>
-                                </TooltipTrigger>
-                                <TooltipContent side="top" className="text-xs">
-                                  Este artículo se cotiza por unidades.
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
+                            <UnitaryUnitField />
                           ) : (
                             <UnitCombobox
                               value={article.unit?.toString() ?? ""}
@@ -530,7 +549,7 @@ export function QuoteBatchArticlesSection({
                           )}
                         </div>
 
-                        <div className="space-y-0.5 max-sm:order-7 min-w-0">
+                        <div className="space-y-0.5 max-sm:order-6 min-w-0">
                           <span className={LABEL_CLS}>
                             Condición
                             <RequiredIndicator />
@@ -553,7 +572,7 @@ export function QuoteBatchArticlesSection({
                           />
                         </div>
 
-                        <div className="space-y-0.5 max-sm:order-9">
+                        <div className="space-y-0.5 max-sm:order-8">
                           <span className={LABEL_CLS}>Referencia</span>
                           <FormField
                             control={control}
@@ -569,7 +588,7 @@ export function QuoteBatchArticlesSection({
                           />
                         </div>
 
-                        <div className="space-y-0.5 max-sm:order-8">
+                        <div className="space-y-0.5 max-sm:order-7">
                           <span className={LABEL_CLS}>
                             Destino
                             <RequiredIndicator />
