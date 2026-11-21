@@ -765,7 +765,7 @@ export const columns: AppColumnDef<TransitArticle>[] = [
     size: 100,
 
     header: () => (
-      <div className="flex justify-center w-full text-xs font-medium text-muted-foreground">
+      <div className="flex w-full justify-center text-center text-xs font-medium text-muted-foreground">
         Editar y bitácora
       </div>
     ),

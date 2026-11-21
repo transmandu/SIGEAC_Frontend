@@ -47,6 +47,8 @@ export interface IncomingReadiness {
   /** Lo que falta de documentación en un consumible: no retiene, solo advierte. */
   warnings?: IncomingBlockingReason[];
   has_purchase_order: boolean;
+  /** La orden de compra tiene factura adjunta. */
+  has_invoice?: boolean;
   pending_documents: {
     id: number;
     document_type: {

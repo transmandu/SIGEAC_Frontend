@@ -347,10 +347,17 @@ export const useAssignArticleDocumentRequirements = () => {
       articleId: number;
       documentTypeIds: number[];
     }) => {
-      await axiosInstance.post(
+      const { data } = await axiosInstance.post(
         `/${company}/articles/${articleId}/document-requirements`,
         { document_type_ids: documentTypeIds },
       );
+
+      // Los requerimientos creados, para poder consignarles el soporte que se
+      // indicó al declararlos.
+      return data.Requirements as {
+        id: number;
+        article_document_type_id: number;
+      }[];
     },
     onSuccess: (_data, variables) => {
       invalidateArticleDocuments(queryClient);
