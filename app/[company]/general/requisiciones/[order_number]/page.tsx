@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  isUnitaryCategory,
+  UNITARY_UNIT_LABEL,
+} from "@/lib/purchases/requisition-measure";
 import { useState } from "react";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
@@ -269,9 +273,11 @@ const ArticleJustificationStrip = ({
 const BatchArticleCard = ({
   article,
   requisitionId,
+  category,
 }: {
   article: any;
   requisitionId?: number;
+  category?: string;
 }) => {
   const isPending = article.status === "PENDING";
   const showExtra = !isPending;
@@ -357,9 +363,14 @@ const BatchArticleCard = ({
               showApproved={showExtra}
             />
 
+            {/* Solo el consumible se mide en una unidad; en los demás es "UND". */}
             <div>
               <p className="text-muted-foreground text-xs">Unidad</p>
-              <p className="font-medium">{article.unit?.label ?? "-"}</p>
+              <p className="font-medium">
+                {isUnitaryCategory(category)
+                  ? UNITARY_UNIT_LABEL
+                  : (article.unit?.label ?? "-")}
+              </p>
             </div>
           </div>
         </div>
@@ -811,6 +822,7 @@ const RequisitionPage = () => {
                         <BatchArticleCard
                           article={article}
                           requisitionId={data.id}
+                          category={batch.category}
                         />
 
                         {index < batch.batch_articles.length - 1 && (

@@ -16,7 +16,7 @@ import { FileWarning, Loader2, PackageCheck } from "lucide-react";
  * Pase de un artículo en tránsito a recepción, hecho por quien lo recibe en el
  * almacén. Es el mismo cambio de estado que compras puede hacer desde su
  * pantalla; el servidor lo rechaza mientras haya documentación requerida sin
- * consignar (salvo en consumibles), así que aquí no se ofrece hasta que compras la consigne.
+ * consignar, así que aquí no se ofrece hasta que compras la consigne.
  */
 export function MoveToReceptionButton({
   article,

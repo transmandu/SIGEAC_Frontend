@@ -36,9 +36,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { formatCountdown, useCountdown } from "@/hooks/useCountdown";
 import { useTransitQueue } from "@/hooks/mantenimiento/almacen/inventario/useArticleQueues";
 import {
-  INCOMING_REASON_ACTIONS,
+  reasonAction,
   INCOMING_REASON_LABELS,
   isReadyForIncoming,
+  readinessWarnings,
 } from "@/lib/incoming-readiness";
 import { cn, toAltPartNumbers } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
@@ -100,6 +101,8 @@ const ArticleRow = memo(function ArticleRow({
   const readiness = article.incoming_readiness;
   const canPassToIncoming = isReadyForIncoming(readiness);
   const blockingReasons = readiness?.reasons ?? [];
+  const warnings = readinessWarnings(readiness);
+  const [warnDialogOpen, setWarnDialogOpen] = useState(false);
 
   // De todos los motivos, este es el que almacén puede resolver sin esperar a
   // nadie, y por eso se destaca: mientras nadie declare qué documentos exige el
@@ -330,7 +333,90 @@ const ArticleRow = memo(function ArticleRow({
             {isReception && (
               <>
                 <EngineeringCheckButton article={article} />
-                {canPassToIncoming ? (
+                {canPassToIncoming && warnings.length > 0 ? (
+                  // Consumible sin documentación completa: el pase se permite
+                  // —la factura suele ser su respaldo—, pero se advierte antes
+                  // de hacerlo. Solo la falta de orden de compra lo detiene.
+                  <AlertDialog
+                    open={warnDialogOpen}
+                    onOpenChange={(next) => {
+                      if (!next && pending) return;
+                      setWarnDialogOpen(next);
+                    }}
+                  >
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 w-24 justify-center gap-1 border-amber-300 px-2 text-xs text-amber-700 hover:bg-amber-50 dark:border-amber-800/60 dark:text-amber-400 dark:hover:bg-amber-950/40"
+                        disabled={pending || awaitingEngineeringCheck}
+                      >
+                        {pending ? (
+                          <Loader2 className="size-3 animate-spin" />
+                        ) : (
+                          <>
+                            <CircleAlert className="size-3" />
+                            Incoming
+                          </>
+                        )}
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle className="flex items-center gap-2">
+                          <CircleAlert className="size-5 text-amber-500" />
+                          Pasar a incoming con documentación incompleta
+                        </AlertDialogTitle>
+                        <AlertDialogDescription asChild>
+                          <div className="space-y-3">
+                            <p>
+                              Se permite el pase a incoming porque el artículo{" "}
+                              <span className="font-mono font-semibold text-foreground">
+                                {article.part_number || article.batch?.name}
+                              </span>{" "}
+                              es un <strong>consumible</strong>: no se retiene
+                              por falta de documentos, pero sí requiere número
+                              de orden de compra, que ya tiene.
+                            </p>
+                            <div className="rounded-md border border-border/60 bg-muted/40 px-3 py-2">
+                              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                Documentación faltante
+                              </p>
+                              <ul className="mt-1 space-y-0.5">
+                                {warnings.map((reason) => (
+                                  <li key={reason} className="text-xs">
+                                    • {INCOMING_REASON_LABELS[reason] ?? reason}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          </div>
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel disabled={pending}>
+                          Cancelar
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                          disabled={pending}
+                          onClick={async (e) => {
+                            e.preventDefault();
+                            await handleMoveToIncoming();
+                            setWarnDialogOpen(false);
+                          }}
+                          className="gap-1.5"
+                        >
+                          {pending ? (
+                            <Loader2 className="size-3.5 animate-spin" />
+                          ) : (
+                            <ArrowRight className="size-3.5" />
+                          )}
+                          Pasar a incoming
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                ) : canPassToIncoming ? (
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -522,7 +608,11 @@ const ArticleRow = memo(function ArticleRow({
                             <li key={reason}>
                               • {INCOMING_REASON_LABELS[reason] ?? reason}
                               <span className="block pl-3 text-muted-foreground">
-                                {INCOMING_REASON_ACTIONS[reason]?.warehouse}
+                                {reasonAction(
+                                  reason,
+                                  "warehouse",
+                                  article.batch?.category,
+                                )}
                               </span>
                             </li>
                           ))}
@@ -622,7 +712,12 @@ const ArticleRow = memo(function ArticleRow({
                           {INCOMING_REASON_LABELS[reason] ?? reason}
                         </span>
                         <span className="ml-1 text-muted-foreground">
-                          — {INCOMING_REASON_ACTIONS[reason]?.warehouse}
+                          —{" "}
+                          {reasonAction(
+                            reason,
+                            "warehouse",
+                            article.batch?.category,
+                          )}
                         </span>
                       </li>
                     ))}

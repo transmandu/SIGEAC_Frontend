@@ -37,12 +37,15 @@ export interface QueueArticleBase {
 export type IncomingBlockingReason =
   | "MISSING_PURCHASE_ORDER"
   | "MISSING_DOCUMENT_REQUIREMENTS"
-  | "PENDING_DOCUMENTS";
+  | "PENDING_DOCUMENTS"
+  | "MISSING_IDENTITY";
 
 /** Lo que le falta al artículo para poder inspeccionarse. */
 export interface IncomingReadiness {
   ready: boolean;
   reasons: IncomingBlockingReason[];
+  /** Lo que falta de documentación en un consumible: no retiene, solo advierte. */
+  warnings?: IncomingBlockingReason[];
   has_purchase_order: boolean;
   pending_documents: {
     id: number;

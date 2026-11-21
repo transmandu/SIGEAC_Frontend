@@ -1,4 +1,8 @@
 "use client";
+import {
+  isUnitaryCategory,
+  UNITARY_UNIT_LABEL,
+} from "@/lib/purchases/requisition-measure";
 import { locationName } from "@/lib/locations";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,7 +33,7 @@ import {
 } from "@/components/ui/tooltip";
 import { quoteInputClass, quoteTriggerClass } from "./quote-field";
 import { AmountInput } from "@/components/misc/AmountInput";
-import { Ban, ArrowRight, Clock } from "lucide-react";
+import { Ban, ArrowRight, Clock, Info } from "lucide-react";
 import type { Condition, Unit, Vendor } from "@/types";
 import {
   LEAD_TIME_UNITS,
@@ -272,6 +276,12 @@ export function QuoteBatchArticlesSection({
                                   let value = e.target.value;
                                   value = value.replace(/[^0-9.,]/g, "");
                                   value = value.replace(",", ".");
+                                  // Entidades únicas: la cantidad cuenta artículos enteros.
+                                  if (
+                                    isUnitaryCategory(article.batch.category)
+                                  ) {
+                                    value = value.split(".")[0];
+                                  }
                                   const parts = value.split(".");
                                   if (parts.length > 2) {
                                     value =
@@ -474,21 +484,50 @@ export function QuoteBatchArticlesSection({
                         </div>
 
                         <div className="space-y-0.5 max-sm:order-3 min-w-0">
-                          <span className={LABEL_CLS}>
-                            Unidad
-                            <RequiredIndicator />
-                          </span>
-                          <UnitCombobox
-                            value={article.unit?.toString() ?? ""}
-                            onChange={(val) =>
-                              form.setValue(`articles.${index}.unit`, val)
-                            }
-                            units={units}
-                            disabled={isNotQuoted}
-                            invalid={invalidCls(!isNotQuoted && !article.unit)}
-                            triggerClassName={quoteTriggerClass}
-                            placeholder="Sin unidad"
-                          />
+                          <span className={LABEL_CLS}>Unidad</span>
+                          {isUnitaryCategory(article.batch.category) ? (
+                            // Campo de solo lectura: mantiene la columna y le
+                            // recuerda a quien cotiza que piense en unidades, sin
+                            // dejarle elegir una unidad que no existe.
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <div
+                                    tabIndex={0}
+                                    role="note"
+                                    aria-label={`Unidad: ${UNITARY_UNIT_LABEL}`}
+                                    className={cn(
+                                      quoteInputClass,
+                                      "flex cursor-not-allowed items-center justify-between gap-1 bg-muted/40 text-muted-foreground",
+                                      isNotQuoted && "opacity-50",
+                                    )}
+                                  >
+                                    <span className="truncate">
+                                      {UNITARY_UNIT_LABEL}
+                                    </span>
+                                    <Info className="size-3.5 shrink-0 opacity-60" />
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent side="top" className="text-xs">
+                                  Este artículo se cotiza por unidades.
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          ) : (
+                            <UnitCombobox
+                              value={article.unit?.toString() ?? ""}
+                              onChange={(val) =>
+                                form.setValue(`articles.${index}.unit`, val)
+                              }
+                              units={units}
+                              disabled={isNotQuoted}
+                              invalid={invalidCls(
+                                !isNotQuoted && !article.unit,
+                              )}
+                              triggerClassName={quoteTriggerClass}
+                              placeholder="Sin unidad"
+                            />
+                          )}
                         </div>
 
                         <div className="space-y-0.5 max-sm:order-7 min-w-0">

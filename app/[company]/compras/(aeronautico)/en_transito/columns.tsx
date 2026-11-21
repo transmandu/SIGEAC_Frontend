@@ -25,7 +25,7 @@ import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import CopyPartNumberButton from "@/components/misc/CopyPartNumberButton";
 import {
   blockingPendingRequirements,
-  INCOMING_REASON_ACTIONS,
+  reasonAction,
   INCOMING_REASON_LABELS,
   isReadyForIncoming,
 } from "@/lib/incoming-readiness";
@@ -127,7 +127,11 @@ function TransitActionButton({ article }: { article: TransitArticle }) {
                     <li key={reason}>
                       • {INCOMING_REASON_LABELS[reason] ?? reason}
                       <span className="block pl-3 text-muted-foreground">
-                        {INCOMING_REASON_ACTIONS[reason]?.purchasing}
+                        {reasonAction(
+                          reason,
+                          "purchasing",
+                          article.batch?.category,
+                        )}
                       </span>
                     </li>
                   ))}
@@ -264,7 +268,11 @@ function EditTransitArticleAction({ article }: { article: TransitArticle }) {
                     <li key={reason}>
                       • {INCOMING_REASON_LABELS[reason] ?? reason}
                       <span className="block pl-3 text-muted-foreground">
-                        {INCOMING_REASON_ACTIONS[reason]?.purchasing}
+                        {reasonAction(
+                          reason,
+                          "purchasing",
+                          article.batch?.category,
+                        )}
                       </span>
                     </li>
                   ))}

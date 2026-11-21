@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  isUnitaryCategory,
+  UNITARY_UNIT_LABEL,
+} from "@/lib/purchases/requisition-measure";
 import { HelpCircle, Layers, Package, Plane } from "lucide-react";
 
 import {
@@ -184,7 +188,11 @@ export default function RequisitionArticlesPopover({ requisition }: Props) {
                     subtitle={batch.category}
                     fields={fields}
                     quantity={article.quantity ?? "-"}
-                    unit={article.unit?.label ?? "N/A"}
+                    unit={
+                      isUnitaryCategory(batch.category)
+                        ? UNITARY_UNIT_LABEL
+                        : (article.unit?.label ?? "N/A")
+                    }
                     lifecycleStage={article.lifecycle_stage}
                     transitArticleId={article.transit_article_id}
                     transitUpdatesCount={article.transit_updates_count}

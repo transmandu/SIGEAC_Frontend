@@ -17,6 +17,10 @@ import { Button } from "@/components/ui/button";
 import CopyPartNumberButton from "@/components/misc/CopyPartNumberButton";
 import RequisitionDropdownActions from "@/components/dropdowns/mantenimiento/compras/RequisitionDropdownActions";
 import { cn, formatRequestedDate } from "@/lib/utils";
+import {
+  isUnitaryCategory,
+  UNITARY_UNIT_LABEL,
+} from "@/lib/purchases/requisition-measure";
 import type { Requisition } from "@/types/purchase";
 
 interface Props {
@@ -397,7 +401,11 @@ export default function RequisitionPreviewPanel({
                       details={details}
                       destinations={destinations}
                       quantity={article.quantity ?? "-"}
-                      unit={article.unit?.label ?? "N/A"}
+                      unit={
+                        isUnitaryCategory(batch.category)
+                          ? UNITARY_UNIT_LABEL
+                          : (article.unit?.label ?? "N/A")
+                      }
                     />
                   );
                 },
