@@ -1,6 +1,13 @@
 "use client";
 
-import { Check, ChevronDown, Minus, Pause, RefreshCw, X } from "lucide-react";
+import {
+  Check,
+  ChevronDown,
+  CornerUpLeft,
+  Minus,
+  RefreshCw,
+  X,
+} from "lucide-react";
 import { useId, useState, type CSSProperties } from "react";
 
 import { TagBadge, type TagTone } from "@/components/misc/TagBadge";
@@ -57,12 +64,14 @@ const NODE: Record<RequisitionCycleStageState, string> = {
   pending: "border-slate-300 bg-background dark:border-slate-600",
   skipped:
     "border-dashed border-slate-300 bg-background text-slate-400 dark:border-slate-600",
-  halted:
-    "border-2 border-amber-500 bg-amber-500/10 text-amber-600 dark:text-amber-400",
   rejected: "border-red-600 bg-red-600 text-white",
 };
 
 const NODE_COMPLETED = "border-emerald-600 bg-emerald-600 text-white";
+
+/** La visita que terminó porque la solicitud volvió a una etapa anterior. */
+const NODE_REVERTED =
+  "border-2 border-amber-500 bg-amber-500/10 text-amber-600 dark:text-amber-400";
 
 const STATE_TEXT: Record<RequisitionCycleStageState, string> = {
   done: "superada",
@@ -70,7 +79,6 @@ const STATE_TEXT: Record<RequisitionCycleStageState, string> = {
   partial: "en curso, con parte de los artículos",
   pending: "pendiente",
   skipped: "omitida",
-  halted: "donde se detuvo",
   rejected: "rechazada",
 };
 
@@ -80,7 +88,6 @@ const STATE_TONE: Record<RequisitionCycleStageState, TagTone> = {
   partial: "sky",
   pending: "slate",
   skipped: "slate",
-  halted: "amber",
   rejected: "rose",
 };
 
@@ -90,7 +97,6 @@ const STATE_TAG: Record<RequisitionCycleStageState, string> = {
   partial: "En curso",
   pending: "Pendiente",
   skipped: "Omitida",
-  halted: "Se detuvo aquí",
   rejected: "Rechazada",
 };
 
@@ -186,8 +192,12 @@ function LoadedCycle({
         : cycle.elapsed_seconds;
 
   const currentStage = cycle.stages.find(
-    (stage) => stage.key === cycle.current_stage,
+    (stage) => stage.id === cycle.current_stage,
   );
+
+  // La línea se reescribe con lo que ocurrió y puede pasar de diez etapas: a
+  // partir de ahí cada una conserva su ancho mínimo y la fila se desplaza.
+  const crowded = cycle.stages.length > 10;
 
   const listId = useId();
   const [expanded, setExpanded] = useState(false);
@@ -212,12 +222,14 @@ function LoadedCycle({
           aria-label="Etapas de la solicitud"
           className={cn(
             "mt-4 flex-col @min-[700px]:mt-0 @min-[700px]:grid @min-[700px]:auto-cols-fr @min-[700px]:grid-flow-col",
+            crowded &&
+              "@min-[700px]:auto-cols-[minmax(4rem,1fr)] @min-[700px]:overflow-x-auto @min-[700px]:py-2",
             expanded ? "flex motion-safe:animate-reveal" : "hidden",
           )}
         >
           {cycle.stages.map((stage, index) => (
             <StageItem
-              key={stage.key}
+              key={stage.id}
               stage={stage}
               index={index}
               next={cycle.stages[index + 1]}
@@ -260,7 +272,6 @@ const SEGMENT: Partial<Record<RequisitionCycleStageState, string>> = {
   current: "bg-primary",
   partial: "bg-primary/50",
   skipped: "bg-primary/25",
-  halted: "bg-amber-500",
   rejected: "bg-red-500",
 };
 
@@ -274,9 +285,10 @@ function SegmentBar({ stages }: { stages: RequisitionCycleStage[] }) {
     <div role="img" aria-label="Avance del ciclo" className="flex gap-1">
       {stages.map((stage, index) => (
         <span
-          key={stage.key}
+          key={stage.id}
           className={cn(
             "relative h-1.5 flex-1 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700",
+            stage.reverted && "bg-amber-200 dark:bg-amber-900/50",
             stage.state === "current" && "motion-safe:animate-pulse",
           )}
         >
@@ -516,7 +528,12 @@ function StageItem({
           )}
         >
           {stage.label}
-          <span className="sr-only">, {STATE_TEXT[stage.state]}</span>
+          <span className="sr-only">
+            ,{" "}
+            {stage.reverted
+              ? "se interrumpió, volvió atrás"
+              : STATE_TEXT[stage.state]}
+          </span>
         </p>
 
         <Caption
@@ -581,16 +598,17 @@ function Node({
   completed: boolean;
   style: CSSProperties;
 }) {
-  const Icon =
-    stage.state === "done"
+  const reverted = stage.reverted && stage.state === "done";
+
+  const Icon = reverted
+    ? CornerUpLeft
+    : stage.state === "done"
       ? Check
       : stage.state === "skipped"
         ? Minus
-        : stage.state === "halted"
-          ? Pause
-          : stage.state === "rejected"
-            ? X
-            : null;
+        : stage.state === "rejected"
+          ? X
+          : null;
 
   const dot = stage.state === "current" || stage.state === "partial";
 
@@ -606,9 +624,11 @@ function Node({
       <span
         className={cn(
           "relative grid size-6 place-items-center rounded-full border @min-[700px]:size-8",
-          completed && stage.state === "done"
-            ? NODE_COMPLETED
-            : NODE[stage.state],
+          reverted
+            ? NODE_REVERTED
+            : completed && stage.state === "done"
+              ? NODE_COMPLETED
+              : NODE[stage.state],
         )}
       >
         {Icon && <Icon aria-hidden className="size-3.5 @min-[700px]:size-4" />}
@@ -772,9 +792,11 @@ function StageDetail({
         : formatDuration(stage.since_start_seconds),
     ],
     ["Registró", stage.by],
+    ["Motivo", stage.reason],
+    ["Visita", stage.visits > 1 ? `${stage.visits}.ª vez en esta etapa` : null],
     [
-      "Veces en esta etapa",
-      stage.visits > 1 ? `${stage.visits} (volvió atrás)` : null,
+      "Cómo terminó",
+      stage.reverted ? "La solicitud volvió a una etapa anterior" : null,
     ],
     [
       "Artículos",
