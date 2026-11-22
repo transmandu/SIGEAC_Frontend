@@ -85,8 +85,6 @@ export interface EditingArticle extends Article {
     next_calibration?: string | number;
     article_id: number;
     model?: string;
-    /** Lo que distingue la unidad cuando no tiene número de parte ni serial. */
-    specification?: string | null;
   };
   partComponent?: {
     id: number;

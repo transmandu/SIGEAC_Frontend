@@ -299,9 +299,7 @@ export function CreateQuoteForm({
 
       return {
         article_requisition_order_id: article.id as number | undefined,
-        // Una herramienta pedida sin número de parte se muestra por el nombre
-        // de su renglón. El campo es de solo lectura y no viaja en la cotización.
-        part_number: article.article_part_number || batch.name,
+        part_number: article.article_part_number,
         alt_part_number:
           saved?.deferred_alt_part_number ??
           article.article_alt_part_number ??

@@ -59,9 +59,6 @@ import {
   isUnitaryCategory,
 } from "@/lib/purchases/requisition-measure";
 
-/** Solo la herramienta puede pedirse sin número de parte. */
-const isToolBatch = (category?: string) => category?.toUpperCase() === "TOOL";
-
 interface BatchArticlesSectionProps {
   form: UseFormReturn<any>;
   batches?: Batch[];
@@ -427,16 +424,10 @@ export function BatchArticlesSection({
                                   )}
                                 >
                                   P/N
-                                  <RequiredIndicator
-                                    show={!isToolBatch(batch.batch_category)}
-                                  />
+                                  <RequiredIndicator />
                                 </label>
                                 <Input
-                                  placeholder={
-                                    isToolBatch(batch.batch_category)
-                                      ? "Opcional: se pide por el nombre del renglón"
-                                      : "Ej: 123-456-789"
-                                  }
+                                  placeholder="Ej: 123-456-789"
                                   className={rowFieldClass}
                                   value={article.part_number}
                                   onChange={(e) =>

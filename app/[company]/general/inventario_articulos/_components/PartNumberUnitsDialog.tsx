@@ -29,10 +29,6 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   partNumber: string;
-  /** Renglón del grupo cuando este no tiene número de parte. */
-  batchId?: number;
-  /** Encabezado del diálogo: el número de parte o, sin él, el nombre del renglón. */
-  title: string;
   /** Filtros de la tabla: el detalle muestra lo mismo que cuenta la fila. */
   filters: CompanyInventoryFilters;
 }
@@ -41,20 +37,12 @@ export function PartNumberUnitsDialog({
   open,
   onOpenChange,
   partNumber,
-  batchId,
-  title,
   filters,
 }: Props) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
-        <UnitsBody
-          partNumber={partNumber}
-          batchId={batchId}
-          title={title}
-          filters={filters}
-          open={open}
-        />
+        <UnitsBody partNumber={partNumber} filters={filters} open={open} />
       </DialogContent>
     </Dialog>
   );
@@ -64,14 +52,10 @@ export function PartNumberUnitsDialog({
 // se olvida sola.
 function UnitsBody({
   partNumber,
-  batchId,
-  title,
   filters,
   open,
 }: {
   partNumber: string;
-  batchId?: number;
-  title: string;
   filters: CompanyInventoryFilters;
   open: boolean;
 }) {
@@ -79,7 +63,6 @@ function UnitsBody({
     partNumber,
     filters,
     open,
-    batchId,
   );
   const units = useMemo(() => data?.rows ?? [], [data]);
   const total = data?.total ?? 0;
@@ -89,9 +72,7 @@ function UnitsBody({
     const q = query.trim().toLowerCase();
     if (!q) return units;
     return units.filter((a) =>
-      `${a.identifier ?? a.serial ?? ""} ${a.lot_number ?? ""}`
-        .toLowerCase()
-        .includes(q),
+      `${a.serial ?? ""} ${a.lot_number ?? ""}`.toLowerCase().includes(q),
     );
   }, [units, query]);
 
@@ -101,7 +82,7 @@ function UnitsBody({
     <>
       <DialogHeader>
         <DialogTitle className="flex flex-wrap items-center gap-2">
-          {title}
+          {partNumber}
           {first && (
             <Badge variant="outline">
               {batchCategoryLabelEsUpper(first.category)}
@@ -123,7 +104,7 @@ function UnitsBody({
       <div className="relative">
         <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input
-          placeholder="Buscar por serial, lote o especificación"
+          placeholder="Buscar por serial o lote"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           className="pl-9"
@@ -139,9 +120,7 @@ function UnitsBody({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="text-center">
-                  Serial / Lote / Espec.
-                </TableHead>
+                <TableHead className="text-center">Serial / Lote</TableHead>
                 <TableHead className="text-center">Condición</TableHead>
                 <TableHead className="text-center">Disponibilidad</TableHead>
               </TableRow>
@@ -156,8 +135,7 @@ function UnitsBody({
               )}
               {filtered.map((article) => {
                 const condition = formatCondition(article.condition);
-                const serialOrLot =
-                  article.identifier || article.serial || article.lot_number;
+                const serialOrLot = article.serial || article.lot_number;
 
                 return (
                   <TableRow key={article.id}>

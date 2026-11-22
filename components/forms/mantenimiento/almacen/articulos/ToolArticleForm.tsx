@@ -54,7 +54,6 @@ import {
   type PreviewGroup,
 } from "./ArticlePreviewDialog";
 import { IdentificationSection } from "./sections/IdentificationSection";
-import { MultiSerialInput } from "./sections/MultiSerialInput";
 import { DestinationChecks } from "./sections/DestinationChecks";
 import { WarehouseDetailsSection } from "./sections/WarehouseDetailsSection";
 import {
@@ -68,8 +67,9 @@ import { useArticleForm, useReportFormState } from "./useArticleForm";
 
 const formSchema = z
   .object({
-    part_number: z.string().optional(),
-    without_part_number: z.boolean().optional(),
+    part_number: z
+      .string()
+      .min(2, "El número de parte debe tener al menos 2 caracteres."),
     alternative_part_number: z
       .array(
         z
@@ -77,25 +77,11 @@ const formSchema = z
           .min(2, "Cada número alterno debe tener al menos 2 caracteres."),
       )
       .optional(),
-    serial: z
-      .array(z.string().min(1, "Un serial no puede estar vacío."))
-      .optional(),
-    specifications: z
-      .array(
-        z
-          .string()
-          .min(1, "Una especificación no puede estar vacía.")
-          .max(100, "Cada especificación admite hasta 100 caracteres."),
-      )
-      .optional(),
-    specification: z
-      .string()
-      .max(100, "La especificación admite hasta 100 caracteres.")
-      .optional(),
+    serial: z.string().optional(),
     model: z.string().optional(),
     description: z.string().optional(),
     zone: z.string().optional(),
-    manufacturer_id: z.string().optional(),
+    manufacturer_id: z.string().min(1, "Seleccione un fabricante"),
     batch_id: z.string().min(1, "Seleccione una descripción"),
 
     needs_calibration: z.boolean().optional(),
@@ -115,44 +101,6 @@ const formSchema = z
     justification: z.string().optional(),
   })
   .superRefine(requireSourceJustification)
-  .superRefine((values, ctx) => {
-    if (!values.without_part_number) {
-      if ((values.part_number?.trim().length ?? 0) < 2) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "El número de parte debe tener al menos 2 caracteres.",
-          path: ["part_number"],
-        });
-      }
-
-      return;
-    }
-
-    if (!values.model?.trim()) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message:
-          "El modelo es obligatorio en una herramienta sin número de parte.",
-        path: ["model"],
-      });
-    }
-
-    const hasSpecification =
-      (values.specifications?.length ?? 0) > 0 ||
-      !!values.specification?.trim();
-
-    if (!hasSpecification) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Indique al menos una especificación.",
-        path: [
-          values.specifications !== undefined
-            ? "specifications"
-            : "specification",
-        ],
-      });
-    }
-  })
   .superRefine((values, ctx) => {
     if (!values.needs_calibration) return;
 
@@ -177,10 +125,6 @@ type FormValues = z.infer<typeof formSchema>;
 const FIELD_LABELS = articleFieldLabels("Descripción de herramienta", {
   calibration_date: "Última calibración",
   next_calibration: "Periodo de calibración",
-  model: "Modelo",
-  specifications: "Especificaciones",
-  specification: "Especificación",
-  without_part_number: "Sin número de parte",
 });
 
 /** El almacén marca "no aplica" con esta fecha centinela. */
@@ -253,16 +197,8 @@ export default function ToolArticleForm({
   const defaults = useMemo<FormValues>(
     () => ({
       part_number: initialData?.part_number ?? "",
-      // Al editar solo se declara sin número de parte lo que nació sin él:
-      // una herramienta con número no puede perderlo.
-      without_part_number: !!initialData && !initialData.part_number,
       alternative_part_number: initialData?.alternative_part_number ?? [],
-      serial: initialData?.serial ? [initialData.serial] : [],
-      // Al registrar se acumulan varias; al editar existe una sola.
-      specifications: initialData ? undefined : [],
-      specification: initialData
-        ? (initialData.tool?.specification ?? "")
-        : undefined,
+      serial: initialData?.serial ?? "",
       model: initialData?.tool?.model ?? "",
       description: initialData?.description ?? "",
       zone: initialData?.zone ?? "",
@@ -350,33 +286,18 @@ export default function ToolArticleForm({
     name: "has_documentation",
   });
   const partNumber = useWatch({ control: form.control, name: "part_number" });
-  const withoutPartNumber = useWatch({
-    control: form.control,
-    name: "without_part_number",
-  });
-  const model = useWatch({ control: form.control, name: "model" });
-  const specificationList = useWatch({
-    control: form.control,
-    name: "specifications",
-  });
-  const specificationText = useWatch({
-    control: form.control,
-    name: "specification",
-  });
   const batchId = useWatch({ control: form.control, name: "batch_id" });
+  const manufacturerId = useWatch({
+    control: form.control,
+    name: "manufacturer_id",
+  });
   const imageFile = useWatch({ control: form.control, name: "image" });
   const source = useWatch({ control: form.control, name: "source" });
 
-  // Una herramienta con número de parte no puede perderlo; solo se declara
-  // «sin número» al registrar o al completar la que nació sin él.
-  const canDeclareWithoutPartNumber = !isEditing || !initialData?.part_number;
-
-  const identified = withoutPartNumber
-    ? !!model?.trim() &&
-      ((specificationList?.length ?? 0) > 0 || !!specificationText?.trim())
-    : !!partNumber?.trim();
-
-  const canSave = canSaveWith(form.formState.isDirty, identified && !!batchId);
+  const canSave = canSaveWith(
+    form.formState.isDirty,
+    !!partNumber && !!batchId && !!manufacturerId,
+  );
   useReportFormState(reportState, canSave);
 
   const save = async (values: FormValues) => {
@@ -384,14 +305,8 @@ export default function ToolArticleForm({
       destination_unknown,
       goes_to_inventory,
       purchase_order_number,
-      without_part_number,
-      serial,
-      specifications,
-      specification,
       ...rest
     } = values;
-
-    const withoutNumber = !!without_part_number;
 
     // El número lo define la orden del sistema: no se reenvía para que no
     // pueda pisar el de la orden por otra vía que no sea el formulario.
@@ -405,23 +320,6 @@ export default function ToolArticleForm({
       payload: {
         ...rest,
         ...manualOrderNumber,
-        part_number: withoutNumber ? undefined : values.part_number,
-        alternative_part_number: withoutNumber
-          ? undefined
-          : values.alternative_part_number,
-        manufacturer_id: values.manufacturer_id || undefined,
-        // Un solo serial viaja plano; varios, como lista (una herramienta
-        // por cada uno).
-        serial:
-          withoutNumber || !serial?.length
-            ? undefined
-            : serial.length === 1
-              ? serial[0]
-              : serial,
-        without_part_number: withoutNumber && !isEditing ? true : undefined,
-        specifications:
-          withoutNumber && !isEditing ? specifications : undefined,
-        specification: withoutNumber && isEditing ? specification : undefined,
         calibration_date: apiDate(values.calibration_date),
         reception_date: receptionApiDate(receptionDate),
       },
@@ -449,26 +347,13 @@ export default function ToolArticleForm({
       {
         title: "Identificación",
         fields: [
-          {
-            label: "Nro. de parte",
-            value: values.without_part_number
-              ? "Sin número de parte"
-              : values.part_number,
-          },
+          { label: "Nro. de parte", value: values.part_number },
           {
             label: "Nros. alternos",
             value: previewList(values.alternative_part_number),
           },
           { label: "Descripción", value: batchName },
-          values.without_part_number
-            ? {
-                label: "Especificaciones",
-                value: previewList(
-                  values.specifications ??
-                    (values.specification ? [values.specification] : []),
-                ),
-              }
-            : { label: "Seriales", value: previewList(values.serial) },
+          { label: "Serial", value: values.serial },
           { label: "Modelo", value: values.model },
           { label: "Fabricante", value: manufacturerName },
           { label: "Ubicación interna", value: values.zone },
@@ -555,7 +440,7 @@ export default function ToolArticleForm({
           batchLabel="Descripción de herramienta"
           batchCategory="TOOL"
           purchaseOrderLocked={!!initialData?.purchase_order_id}
-          withoutPartNumber={!!withoutPartNumber}
+          manufacturerRequired
           disabled={busy}
           onBatchCreated={async (batchName) => {
             const { data: updated } = await refetchBatches();
@@ -567,135 +452,40 @@ export default function ToolArticleForm({
               });
             }
           }}
-          leading={
-            canDeclareWithoutPartNumber && (
-              <CheckboxCard
-                id="without-part-number"
-                checked={!!withoutPartNumber}
-                onCheckedChange={(checked) => {
-                  form.setValue("without_part_number", checked, {
-                    shouldDirty: true,
-                    shouldValidate: true,
-                  });
-
-                  if (checked) {
-                    form.setValue("part_number", "");
-                    form.setValue("alternative_part_number", []);
-                    form.setValue("serial", []);
-                    form.clearErrors("part_number");
-                  }
-                }}
-                label="Sin número de parte"
-                description="Para herramientas que no lo traen, como destornilladores o las llaves de un kit. Se reconocen por su descripción, modelo y especificación."
-                disabled={busy}
-                className="mb-4"
-              />
-            )
-          }
           identifiers={
-            withoutPartNumber ? (
-              isEditing ? (
-                <FormField
-                  control={form.control}
-                  name="specification"
-                  render={({ field }) => (
-                    <FormItem className="w-full">
-                      <FieldLabelRow>
-                        <FormLabel className={labelClass}>
-                          Especificación
-                          <RequiredIndicator />
-                        </FormLabel>
-                      </FieldLabelRow>
-                      <FormControl>
-                        <Input
-                          placeholder="Ej: CRUZ 1/4"
-                          {...field}
-                          value={field.value ?? ""}
-                          disabled={busy}
-                          className={fieldClass}
-                          onBlur={(e) =>
-                            field.onChange(e.target.value.trim().toUpperCase())
-                          }
-                        />
-                      </FormControl>
-                      <FormDescription className={hintClass}>
-                        Medida o tipo que distingue esta herramienta de las
-                        demás del mismo modelo.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              ) : (
-                <FormField
-                  control={form.control}
-                  name="specifications"
-                  render={({ field }) => (
-                    <FormItem className="w-full">
-                      <FieldLabelRow>
-                        <FormLabel className={labelClass}>
-                          Especificaciones a registrar
-                          <RequiredIndicator />
-                        </FormLabel>
-                      </FieldLabelRow>
-                      <FormControl>
-                        <MultiSerialInput
-                          kind="specification"
-                          placeholder="Ej: CRUZ 1/4"
-                          values={field.value ?? []}
-                          onChange={field.onChange}
-                          disabled={busy}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )
-            ) : (
-              <FormField
-                control={form.control}
-                name="serial"
-                render={({ field }) => (
-                  <FormItem className="w-full">
-                    <FieldLabelRow>
-                      <FormLabel className={labelClass}>
-                        {isEditing ? "Serial" : "Seriales a registrar"}
-                      </FormLabel>
-                    </FieldLabelRow>
-                    <FormControl>
-                      <MultiSerialInput
-                        values={field.value ?? []}
-                        onChange={field.onChange}
-                        disabled={busy}
-                        single={isEditing}
-                      />
-                    </FormControl>
-                    <FormDescription className={hintClass}>
-                      {isEditing
-                        ? "Serial de la herramienta."
-                        : "Un serial por cada herramienta que ingresa."}
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )
+            <FormField
+              control={form.control}
+              name="serial"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FieldLabelRow>
+                    <FormLabel className={labelClass}>Serial</FormLabel>
+                  </FieldLabelRow>
+                  <FormControl>
+                    <Input
+                      placeholder="Ej: S-000123"
+                      {...field}
+                      value={field.value ?? ""}
+                      disabled={busy}
+                      className={fieldClass}
+                    />
+                  </FormControl>
+                  <FormDescription className={hintClass}>
+                    Serial de la herramienta.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           }
         >
           <FormField
             control={form.control}
             name="model"
-            render={({ field, fieldState }) => (
+            render={({ field }) => (
               <FormItem className="w-full">
                 <FieldLabelRow>
-                  <FormLabel className={labelClass}>
-                    Modelo
-                    <RequiredIndicator
-                      show={!!withoutPartNumber}
-                      invalid={!!fieldState.error}
-                    />
-                  </FormLabel>
+                  <FormLabel className={labelClass}>Modelo</FormLabel>
                 </FieldLabelRow>
                 <FormControl>
                   <Input

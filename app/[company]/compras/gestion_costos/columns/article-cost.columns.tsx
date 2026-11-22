@@ -99,7 +99,7 @@ const buildArticleCostColumns = (
       cell: ({ row }) => (
         <div className="flex justify-center w-full">
           <span className="block max-w-50 wrap-break-word text-sm text-slate-500 dark:text-slate-400 text-center">
-            {row.original.identifier ?? row.original.serial ?? "—"}
+            {row.original.serial ?? "—"}
           </span>
         </div>
       ),

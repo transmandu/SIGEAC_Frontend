@@ -118,9 +118,8 @@ const translateType = (value?: string | null) =>
 /* -------------------- DOCUMENTOS REQUERIDOS (POPOVER) -------------------- */
 interface RequiredDocumentsPopoverProps {
   batches: {
-    name?: string;
     batch_articles: {
-      article_part_number: string | null;
+      article_part_number: string;
       document_types?: {
         id: number;
         name: string;
@@ -134,14 +133,9 @@ const RequiredDocumentsPopover = ({
   batches,
 }: RequiredDocumentsPopoverProps) => {
   const items = batches
-    .flatMap((batch) =>
-      (batch.batch_articles ?? []).map((article) => ({
-        ...article,
-        label: article.article_part_number || batch.name || "N/A",
-      })),
-    )
+    .flatMap((batch) => batch.batch_articles ?? [])
     .filter((article) => (article.document_types?.length ?? 0) > 0)
-    .sort((a, b) => a.label.localeCompare(b.label));
+    .sort((a, b) => a.article_part_number.localeCompare(b.article_part_number));
 
   const hasItems = items.length > 0;
 
@@ -183,13 +177,11 @@ const RequiredDocumentsPopover = ({
           <ul className="flex flex-col gap-2">
             {items.map((article, idx) => (
               <li
-                key={`${article.label}-${idx}`}
+                key={`${article.article_part_number}-${idx}`}
                 className="rounded-md border bg-background/60 px-2.5 py-1.5 shadow-xs"
               >
                 <span className="block text-xs font-semibold text-foreground/90 truncate">
-                  {article.article_part_number
-                    ? `P/N: ${article.article_part_number}`
-                    : article.label}
+                  P/N: {article.article_part_number}
                 </span>
                 <ul className="mt-1 space-y-0.5 border-l border-border/50 pl-2">
                   {article.document_types!.map((type) => (

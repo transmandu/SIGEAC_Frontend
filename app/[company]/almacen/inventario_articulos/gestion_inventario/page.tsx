@@ -295,7 +295,7 @@ const InventarioArticulosPage = () => {
 
   const openGroup = (row: any) => {
     if (!row?.__isGroup || !row?.subRows?.length) return;
-    setGroupPn(row.part_number ?? row.batch_name ?? "");
+    setGroupPn(row.part_number);
     setGroupRows(row.subRows);
     setGroupOpen(true);
   };

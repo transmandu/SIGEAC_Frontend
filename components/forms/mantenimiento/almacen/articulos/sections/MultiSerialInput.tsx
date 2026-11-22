@@ -9,25 +9,6 @@ import { cn } from "@/lib/utils";
 import { TokenList } from "@/components/forms/mantenimiento/almacen/_components/TokenList";
 import { fieldClass, hintClass } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
 
-/** Qué identifica a cada unidad: el serial, o la especificación si no hay número de parte. */
-export type IdentifierKind = "serial" | "specification";
-
-const COPY: Record<
-    IdentifierKind,
-    { prompt: string; replace: string; empty: string }
-> = {
-    serial: {
-        prompt: "Escriba el serial y presione Enter.",
-        replace: "Quite el serial para reemplazarlo.",
-        empty: "Escriba y presione Enter. Se registra un artículo por serial.",
-    },
-    specification: {
-        prompt: "Escriba la especificación y presione Enter.",
-        replace: "Quite la especificación para reemplazarla.",
-        empty: "Escriba y presione Enter. Se registra una herramienta por especificación.",
-    },
-};
-
 interface MultiSerialInputProps {
     values: string[];
     onChange: (values: string[]) => void;
@@ -35,7 +16,6 @@ interface MultiSerialInputProps {
     placeholder?: string;
     /** Al editar sólo existe un artículo: no se acumulan seriales. */
     single?: boolean;
-    kind?: IdentifierKind;
 }
 
 /**
@@ -51,9 +31,7 @@ export function MultiSerialInput({
     disabled = false,
     placeholder = "Ej: 05458E1",
     single = false,
-    kind = "serial",
 }: MultiSerialInputProps) {
-    const copy = COPY[kind];
     const [inputValue, setInputValue] = useState("");
     const inputRef = useRef<HTMLInputElement | null>(null);
 
@@ -148,10 +126,10 @@ export function MultiSerialInput({
             <p className={hintClass}>
                 {single
                     ? values.length === 0
-                        ? copy.prompt
-                        : copy.replace
+                        ? "Escriba el serial y presione Enter."
+                        : "Quite el serial para reemplazarlo."
                     : values.length === 0
-                      ? copy.empty
+                      ? "Escriba y presione Enter. Se registra un artículo por serial."
                       : `${values.length} unidad${values.length === 1 ? "" : "es"} a registrar.`}
             </p>
         </div>

@@ -10,8 +10,6 @@ import type { CursorPaginationState } from "@/hooks/helpers/useCursorListing";
 type GroupableRow = {
   id: number;
   group_key?: string;
-  /** Título legible del grupo; si falta se usa la clave. */
-  group_label?: string;
   _groupIndex?: number;
   _groupRows?: GroupableRow[];
 };
@@ -27,7 +25,6 @@ type Props<T extends GroupableRow> = {
 
 type Group<T> = {
   key: string;
-  label: string;
   rows: T[];
 };
 
@@ -63,7 +60,7 @@ const GroupedCostTable = <T extends GroupableRow>({
       if (last && last.key.toUpperCase() === key.toUpperCase()) {
         last.rows.push(item);
       } else {
-        result.push({ key, label: item.group_label ?? key, rows: [item] });
+        result.push({ key, rows: [item] });
       }
     }
 
@@ -132,7 +129,7 @@ const GroupedCostTable = <T extends GroupableRow>({
               "
             >
               <GroupRow
-                title={formatGroupLabel(group.label)}
+                title={formatGroupLabel(group.key)}
                 count={group.rows.length}
                 expanded={isOpen}
                 onToggle={() => toggleGroup(group.key)}

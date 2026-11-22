@@ -34,16 +34,8 @@ export const TransferLineDetail = memo(function TransferLineDetail({
     const general = line.general_article
     const batch = article?.batch
 
-    const identifier =
-        article?.serial
-        ?? article?.consumable?.lot_number
-        ?? article?.tool?.specification
-        ?? null
-    const identifierLabel = article?.serial
-        ? 'Serial'
-        : article?.consumable?.lot_number
-          ? 'Lote'
-          : 'Especificación'
+    const identifier = article?.serial ?? article?.consumable?.lot_number ?? null
+    const identifierLabel = article?.serial ? 'Serial' : 'Lote'
 
     const quantity = line.dispatch_quantity ?? line.quantity
     const unit =

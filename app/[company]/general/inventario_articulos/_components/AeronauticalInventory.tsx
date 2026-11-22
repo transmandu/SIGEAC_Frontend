@@ -31,12 +31,7 @@ export function AeronauticalInventory({ search, active }: Props) {
   const [hazardousOnly, setHazardousOnly] = useState(false);
   // El número de parte se conserva al cerrar para que el diálogo no se vacíe
   // durante su animación de salida.
-  const [units, setUnits] = useState<{
-    open: boolean;
-    partNumber: string;
-    batchId?: number;
-    title: string;
-  }>({ open: false, partNumber: "", title: "" });
+  const [units, setUnits] = useState({ open: false, partNumber: "" });
 
   const filters = {
     category,
@@ -66,20 +61,8 @@ export function AeronauticalInventory({ search, active }: Props) {
     groupedBy === "part_number" && row.serial_count > 1;
 
   const onRowClick = (row: CompanyInventoryArticle) => {
-    if (!isGroupedRow(row)) return;
-
-    // Un grupo sin número de parte es todo un renglón: sus unidades se piden
-    // por el renglón y se titulan con su nombre.
-    setUnits(
-      row.part_number
-        ? { open: true, partNumber: row.part_number, title: row.part_number }
-        : {
-            open: true,
-            partNumber: "",
-            batchId: row.batch_id,
-            title: row.description || "Sin descripción",
-          },
-    );
+    if (isGroupedRow(row))
+      setUnits({ open: true, partNumber: row.part_number });
   };
 
   const unit =
@@ -159,8 +142,6 @@ export function AeronauticalInventory({ search, active }: Props) {
         open={units.open}
         onOpenChange={(open) => setUnits((prev) => ({ ...prev, open }))}
         partNumber={units.partNumber}
-        batchId={units.batchId}
-        title={units.title}
         filters={filters}
       />
     </div>

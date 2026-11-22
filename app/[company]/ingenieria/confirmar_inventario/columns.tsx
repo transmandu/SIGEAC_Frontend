@@ -26,11 +26,7 @@ const baseCols: AppColumnDef<IArticleSimple>[] = [
     ),
     cell: ({ row }) => (
       <div className="font-bold text-center text-base">
-        {row.original.part_number ?? (
-          <span className="text-sm font-medium text-muted-foreground italic">
-            Sin P/N
-          </span>
-        )}
+        {row.original.part_number}
       </div>
     ),
   },
@@ -48,15 +44,13 @@ const baseCols: AppColumnDef<IArticleSimple>[] = [
   {
     accessorKey: "serial",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Serial / Lote / Espec." />
+      <DataTableColumnHeader column={column} title="Serial / Lote" />
     ),
     cell: ({ row }) => (
       <div className="text-center text-sm font-medium">
-        {row.original.identifier ||
-        row.original.serial ||
-        row.original.lot_number ? (
-          row.original.identifier ||
-          row.original.serial ||
+        {row.original.serial ? (
+          row.original.serial
+        ) : row.original.lot_number ? (
           row.original.lot_number
         ) : (
           <span className="text-muted-foreground italic">N/A</span>
@@ -182,7 +176,7 @@ const componenteCols: AppColumnDef<IArticleSimple>[] = [
       return (
         <CheckingArticleDropdownActions
           id={item.id}
-          partNumber={item.part_number ?? item.batch_name ?? ""}
+          partNumber={item.part_number}
           canApprove={canApprove(item)}
           scope={
             item.status?.toUpperCase() === "CHECKING" ? "checking" : "reception"
@@ -219,7 +213,7 @@ export const consumibleCols: AppColumnDef<IArticleSimple>[] = [
       return (
         <CheckingArticleDropdownActions
           id={item.id}
-          partNumber={item.part_number ?? item.batch_name ?? ""}
+          partNumber={item.part_number}
           canApprove={canApprove(item)}
           scope={
             item.status?.toUpperCase() === "CHECKING" ? "checking" : "reception"
@@ -292,7 +286,7 @@ export const herramientaCols: AppColumnDef<IArticleSimple>[] = [
       return (
         <CheckingArticleDropdownActions
           id={item.id}
-          partNumber={item.part_number ?? item.batch_name ?? ""}
+          partNumber={item.part_number}
           canApprove={canApprove(item)}
           scope={
             item.status?.toUpperCase() === "CHECKING" ? "checking" : "reception"

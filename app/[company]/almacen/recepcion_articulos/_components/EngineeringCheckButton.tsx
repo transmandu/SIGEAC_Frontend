@@ -126,9 +126,7 @@ export function EngineeringCheckButton({
                 <p>
                   Ingeniería revisará la información del artículo{" "}
                   <span className="font-mono font-semibold text-foreground">
-                    {article.part_number
-                      ? `P/N: ${article.part_number}`
-                      : "Sin P/N"}
+                    P/N: {article.part_number}
                   </span>{" "}
                   y le dará su visto bueno.
                 </p>

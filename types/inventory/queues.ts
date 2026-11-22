@@ -7,10 +7,9 @@ import type { ArticleDocumentRequirementSummary } from "@/types";
  */
 export interface QueueArticleBase {
   id: number;
-  part_number: string | null;
+  part_number: string;
   alternative_part_number: string[];
   serial: string | null;
-  identifier: string | null;
   ata_code: string | null;
   status: string;
   batch: {

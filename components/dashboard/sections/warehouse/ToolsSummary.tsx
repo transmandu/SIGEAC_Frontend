@@ -161,7 +161,7 @@ export default function ToolsSummary({ data, isLoading, isError }: Props) {
                             {tool.batch_name}
                           </TableCell>
                           <TableCell className="text-center">
-                            {tool.part_number || tool.specification || "N/A"}
+                            {tool.part_number}
                           </TableCell>
                           <TableCell className="text-center">
                             {tool.next_calibration}
@@ -223,7 +223,7 @@ export default function ToolsSummary({ data, isLoading, isError }: Props) {
                             {tool.batch_name}
                           </TableCell>
                           <TableCell className="text-center">
-                            {tool.part_number || tool.specification || "N/A"}
+                            {tool.part_number}
                           </TableCell>
                           <TableCell className="text-center">
                             {tool.next_calibration}

@@ -135,7 +135,7 @@ export function PendingDocumentsDialog({
             El artículo{" "}
             <span className="inline-flex items-center gap-1 align-middle">
               <span className="font-mono font-medium">
-                {article.part_number || "Sin P/N"}
+                {article.part_number}
               </span>
               <CopyPartNumberButton value={article.part_number} />
             </span>{" "}

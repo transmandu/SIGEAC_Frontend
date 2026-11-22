@@ -88,7 +88,9 @@ const FormSchema = z
           batch_category: z.string().optional(),
           batch_articles: z.array(
             z.object({
-              part_number: z.string(),
+              part_number: z
+                .string()
+                .min(1, "El número de parte es obligatorio"),
               alt_part_number: z.string().optional(),
               quantity: z.number().min(1, "Debe ingresar una cantidad válida"),
               unit: z.string().optional(),
@@ -140,8 +142,6 @@ const FormSchema = z
     },
   )
   .superRefine((data, ctx) => {
-    // Solo la herramienta puede pedirse sin número de parte: se identifica por
-    // el nombre de su renglón. El resto lo necesita para cotizarse y recibirse.
     data.articles?.forEach((group, groupIndex) => {
       // Un consumible se mide en una unidad; componente, parte y herramienta
       // son entidades únicas y su cantidad cuenta artículos enteros.
@@ -189,24 +189,6 @@ const FormSchema = z
             ],
           });
         }
-      });
-
-      if (group.batch_category?.toUpperCase() === "TOOL") return;
-
-      group.batch_articles.forEach((line, lineIndex) => {
-        if (line.part_number.trim()) return;
-
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "El número de parte es obligatorio",
-          path: [
-            "articles",
-            groupIndex,
-            "batch_articles",
-            lineIndex,
-            "part_number",
-          ],
-        });
       });
     });
   });

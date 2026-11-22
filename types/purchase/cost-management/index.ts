@@ -43,8 +43,6 @@ export interface ArticleCostRow {
   part_number: string | null;
   /** Serial, o el lote en un consumible: lo que muestra la celda. */
   serial: string | null;
-  /** Lo que distingue la unidad: serial, lote o, en una herramienta, su especificación. */
-  identifier?: string | null;
   batch_name: string | null;
   category: string;
   condition: string | null;
@@ -52,8 +50,6 @@ export interface ArticleCostRow {
   cost: number;
   /** Clave del grupo cuando la vista agrupa. */
   group_key?: string;
-  /** Título del grupo cuando la vista agrupa (la clave de uno sin número de parte es interna). */
-  group_label?: string;
 }
 
 /** Conversión unidad-a-unidad de un artículo general (ej: 1 CAJA = 20 UNID). */

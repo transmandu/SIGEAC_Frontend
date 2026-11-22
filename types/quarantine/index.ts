@@ -46,8 +46,6 @@ export type QuarantineArticleRef = {
     } | null;
   } | null;
   condition?: { id: number; name: string | null } | null;
-  /** Solo en herramientas: su especificación distingue la unidad sin serial. */
-  tool?: { specification: string | null } | null;
   purchase_order?: { id: number; order_number: string | null } | null;
   document_requirements?: ArticleDocumentRequirementSummary[];
 };

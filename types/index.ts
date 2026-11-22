@@ -79,16 +79,10 @@ export type ArticleDocumentRequirementSummary = {
 export type Article = {
   id: number;
   article_type?: string;
-  /** `null` en una herramienta registrada sin número de parte. */
   part_number: string;
   alternative_part_number?: string[];
   status?: string;
   serial?: string;
-  /**
-   * Con qué se distingue la unidad: el serial, el lote o, en una herramienta
-   * sin serial, su especificación. Lo calcula el servidor.
-   */
-  identifier?: string | null;
   description?: string;
   zone?: string;
   manufacturer?: Manufacturer;
@@ -128,10 +122,6 @@ export type Article = {
   next_calibration?: string;
   tool_status?:
     "CALIBRATED" | "IN_CALIBRATION" | "EXPIRED" | "NOT_APPLICABLE" | string;
-  /** Modelo de la herramienta (selector de despacho). */
-  tool_model?: string | null;
-  /** Especificación de la herramienta (selector de despacho). */
-  tool_specification?: string | null;
 };
 
 export type Bank = {
@@ -1555,7 +1545,6 @@ export type ToolBox = {
   employee: Employee | null;
   tool: {
     serial: string;
-    specification?: string | null;
     article: ToolArticle;
   }[];
 };
@@ -2143,8 +2132,6 @@ export interface WarehouseDashboard {
     batch_name: string;
     article_id: number;
     part_number: string;
-    /** Distingue la herramienta cuando no tiene número de parte. */
-    specification?: string | null;
     next_calibration: string;
     status: string;
   }[];
@@ -2154,8 +2141,6 @@ export interface WarehouseDashboard {
     description: string;
     part_number: string;
     serial: string | null;
-    /** Serial, lote o, en una herramienta, su especificación. */
-    identifier?: string | null;
     category: string;
     condition: string;
     zone: string;
@@ -2166,7 +2151,6 @@ export interface WarehouseDashboard {
     article_id: number;
     batch_name: string;
     part_number: string;
-    specification?: string | null;
     next_calibration: string;
     status: string;
   }[];

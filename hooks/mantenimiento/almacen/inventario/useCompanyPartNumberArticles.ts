@@ -15,8 +15,6 @@ export const useCompanyPartNumberArticles = (
   partNumber: string,
   filters: CompanyInventoryFilters,
   enabled: boolean,
-  /** Un grupo sin número de parte se pide por su renglón. */
-  batchId?: number,
 ) => {
   const { selectedCompany, selectedStation } = useCompanyStore();
 
@@ -27,7 +25,6 @@ export const useCompanyPartNumberArticles = (
       selectedStation,
       "company-inventory-part-number",
       partNumber,
-      batchId,
       filters,
     ],
     queryFn: async () => {
@@ -37,19 +34,14 @@ export const useCompanyPartNumberArticles = (
           params: {
             ...filters,
             is_hazardous: filters.is_hazardous ? 1 : undefined,
-            part_number: batchId ? undefined : partNumber,
-            batch_id: batchId,
+            part_number: partNumber,
             per_page: PAGE_SIZE,
           },
         },
       );
       return { rows: data.data, total: data.total ?? data.data.length };
     },
-    enabled:
-      enabled &&
-      (!!partNumber || !!batchId) &&
-      !!selectedCompany &&
-      !!selectedStation,
+    enabled: enabled && !!partNumber && !!selectedCompany && !!selectedStation,
     staleTime: 30_000,
     refetchOnWindowFocus: false,
   });
