@@ -200,6 +200,27 @@ export function buildSettingsGroup({
             active: pathname === `/${slug}/ajustes/empresa/parametros`,
             roles: ["SUPERUSER"],
           },
+          {
+            href: `/${slug}/ajustes/empresa/alertas`,
+            label: "Alertas Críticas",
+            requiresTables: ["critical_alert_settings"],
+            active: pathname === `/${slug}/ajustes/empresa/alertas`,
+            roles: ["SUPERUSER"],
+          },
+          {
+            href: `/${slug}/ajustes/empresa/notificaciones`,
+            label: "Notificaciones In-App",
+            requiresTables: ["notification_audience_rules"],
+            active: pathname === `/${slug}/ajustes/empresa/notificaciones`,
+            roles: ["SUPERUSER"],
+          },
+          {
+            href: `/${slug}/ajustes/empresa/correos`,
+            label: "Destinatarios de Correos",
+            requiresTables: ["mail_recipient_rules"],
+            active: pathname === `/${slug}/ajustes/empresa/correos`,
+            roles: ["SUPERUSER"],
+          },
         ],
       },
       {

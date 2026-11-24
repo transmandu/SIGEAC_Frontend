@@ -14,7 +14,8 @@ export type CriticalAlertSourceKey =
   | "maintenance_control"
   | "component_control"
   | "avionics_control"
-  | "directive_control";
+  | "directive_control"
+  | "maintenance_remaining_report";
 
 const fetchCriticalAlertSources = async (
   company: string,
@@ -33,9 +34,10 @@ const fetchCriticalAlertSources = async (
  * Espeja el enfoque del Calendario de Eventos, donde una fuente que no existe
  * en la empresa simplemente no se publica.
  *
- * Qué módulos tiene una empresa casi nunca cambia —hace falta correr una
- * migración—, así que se cachea largo: es una petición por sesión y empresa
- * que ahorra las de todas las alertas que no aplican.
+ * La respuesta ya no depende solo de qué módulos tiene la empresa: también de
+ * qué alertas tiene activas la compañía y de si este usuario está en su
+ * audiencia, que se editan desde Ajustes. Por eso se cachea unos minutos y no
+ * toda la sesión.
  */
 export const useCriticalAlertSources = () => {
   const { selectedCompany } = useCompanyStore();
@@ -45,7 +47,7 @@ export const useCriticalAlertSources = () => {
     queryKey: ["critical-alert-sources", companySlug],
     queryFn: () => fetchCriticalAlertSources(companySlug!),
     enabled: !!companySlug,
-    staleTime: 1000 * 60 * 30,
+    staleTime: 1000 * 60 * 5,
   });
 
   /**

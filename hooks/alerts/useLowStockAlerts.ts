@@ -1,5 +1,4 @@
 import { useMemo } from "react";
-import { useAuth } from "@/contexts/AuthContext";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import {
   useGetLowStockGeneralArticles,
@@ -10,12 +9,6 @@ import { useLowStockAlertsRealtime } from "./useLowStockAlertsRealtime";
 import { useCriticalAlertSources } from "./useCriticalAlertSources";
 import { CriticalAlert } from "./types";
 import { InTransitDetail } from "@/types";
-
-const ROLES_WITH_LOW_STOCK_ALERT_ACCESS = [
-  "ANALISTA_ALMACEN",
-  "JEFE_ALMACEN",
-  "SUPERUSER",
-];
 
 /**
  * Ocultas temporalmente para el lanzamiento a produccion: solo se probaran
@@ -67,28 +60,19 @@ const describeInTransit = (details: InTransitDetail[]) =>
  * requiere tocar el botón, solo un hook como este.
  */
 export const useLowStockAlerts = () => {
-  const { user } = useAuth();
   const { selectedStation, selectedCompany } = useCompanyStore();
   const { createRequisitionFromLowStockAlert } =
     useCreateRequisitionFromLowStockAlert();
 
   const { hasSource } = useCriticalAlertSources();
 
-  const hasRoleAccess = useMemo(
-    () =>
-      (user?.roles ?? []).some((r) =>
-        ROLES_WITH_LOW_STOCK_ALERT_ACCESS.includes(r.name),
-      ),
-    [user?.roles],
-  );
-
-  // El rol autoriza; la fuente dice si hay de dónde sacar la alerta. Las dos
-  // se preguntan por separado porque el almacén general y el de consumibles
-  // son módulos distintos: hay empresas con uno y sin el otro, y pedir el
-  // que falta era un 500 contra una tabla inexistente.
-  const canSeeGeneralAlerts = hasRoleAccess && hasSource("low_stock_general");
-  const canSeeConsumableAlerts =
-    hasRoleAccess && hasSource("low_stock_consumable");
+  // Quién ve la alerta lo decide la configuración de la compañía: el backend
+  // solo publica la fuente si está activa y el usuario está en su audiencia. Se
+  // pregunta por cada una porque el almacén general y el de consumibles son
+  // módulos distintos: hay empresas con uno y sin el otro, y pedir el que
+  // falta era un 500 contra una tabla inexistente.
+  const canSeeGeneralAlerts = hasSource("low_stock_general");
+  const canSeeConsumableAlerts = hasSource("low_stock_consumable");
 
   const { data: lowStockGeneralArticles, isLoading: isLoadingGeneral } =
     useGetLowStockGeneralArticles(canSeeGeneralAlerts);

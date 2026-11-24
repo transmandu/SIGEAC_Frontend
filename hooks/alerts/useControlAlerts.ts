@@ -1,5 +1,4 @@
 import { useMemo } from "react";
-import { useAuth } from "@/contexts/AuthContext";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import {
   CriticalAlertSourceKey,
@@ -32,42 +31,22 @@ const STATUS_SEVERITY: Record<string, number> = {
 };
 
 /**
- * Mismo acceso que el ítem de menú de cada control (ver
- * lib/menus/planification.ts). Las listas tienen que moverse juntas — si el
- * menú abre el módulo a un rol que acá falta, ese usuario ve los vencimientos
- * en la pantalla pero nunca recibe la alerta crítica, que es de lo que vive
- * el módulo.
+ * Quién ve cada alerta lo decide la configuración de la compañía (Ajustes →
+ * Organización → Alertas críticas): el backend publica la fuente solo si está
+ * activa y el usuario está en su audiencia. Ver la fuente no abre el módulo:
+ * los listados siguen exigiendo el rol de cada control.
  */
-const PLANIFICATION_ROLES = [
-  "ANALISTA_PLANIFICACION",
-  "JEFE_PLANIFICACION",
-  "SUPERUSER",
-];
-
 const CONTROL_CONFIG: Record<
   ControlAlertType,
-  { source: CriticalAlertSourceKey; route: string; roles: string[] }
+  { source: CriticalAlertSourceKey; route: string }
 > = {
   maintenance: {
     source: "maintenance_control",
     route: "control_mantenimiento",
-    roles: PLANIFICATION_ROLES,
   },
-  component: {
-    source: "component_control",
-    route: "control_componentes",
-    roles: PLANIFICATION_ROLES,
-  },
-  avionics: {
-    source: "avionics_control",
-    route: "control_avionica",
-    roles: PLANIFICATION_ROLES,
-  },
-  directive: {
-    source: "directive_control",
-    route: "control_directivas",
-    roles: ["SUPERUSER"],
-  },
+  component: { source: "component_control", route: "control_componentes" },
+  avionics: { source: "avionics_control", route: "control_avionica" },
+  directive: { source: "directive_control", route: "control_directivas" },
 };
 
 const HREF_LABEL: Record<ControlAlertType, string> = {
@@ -202,27 +181,25 @@ function toAlert(
  * control viene cada ítem.
  */
 export const useControlAlerts = () => {
-  const { user } = useAuth();
   const { selectedCompany } = useCompanyStore();
   const companySlug = selectedCompany?.slug;
 
   const { hasSource } = useCriticalAlertSources();
 
-  // `hasSource` pregunta si el módulo está montado de verdad; `isOMAC` solo
-  // dice qué TIPO de empresa es, y hay empresas OMAC sin estos módulos.
-  const canSee = useMemo(() => {
-    const roles = (user?.roles ?? []).map((r) => r.name);
-    return (Object.keys(CONTROL_CONFIG) as ControlAlertType[]).reduce(
-      (acc, control) => {
-        const config = CONTROL_CONFIG[control];
-        acc[control] =
-          hasSource(config.source) &&
-          roles.some((role) => config.roles.includes(role));
-        return acc;
-      },
-      {} as Record<ControlAlertType, boolean>,
-    );
-  }, [hasSource, user?.roles]);
+  // `hasSource` dice que el módulo está montado, la compañía tiene la alerta
+  // activa y este usuario está en su audiencia; `isOMAC` solo dice qué TIPO de
+  // empresa es, y hay empresas OMAC sin estos módulos.
+  const canSee = useMemo(
+    () =>
+      (Object.keys(CONTROL_CONFIG) as ControlAlertType[]).reduce(
+        (acc, control) => {
+          acc[control] = hasSource(CONTROL_CONFIG[control].source);
+          return acc;
+        },
+        {} as Record<ControlAlertType, boolean>,
+      ),
+    [hasSource],
+  );
 
   // Los listados omiten la fecha estimada salvo que se pida (cuesta una
   // consulta de vuelos por control), y la tarjeta la muestra.
