@@ -119,6 +119,8 @@ export const useLowStockAlerts = () => {
 
     const generalAlerts: CriticalAlert[] = generalArticles.map((article) => {
       const unitValue = article.general_primary_unit?.value ?? "";
+      // Sin los artículos individuales: ellos no generan alerta de bajo stock.
+      const remaining = Number(article.alert_quantity ?? article.quantity ?? 0);
 
       // Espejo de createFromLowStockAlert(): solo para anticipar la
       // cantidad en el texto, la cifra real la calcula el backend.
@@ -127,7 +129,7 @@ export const useLowStockAlerts = () => {
           ? Number(article.maximum_quantity)
           : Number(article.minimum_quantity ?? 0);
       const restockQuantity = Math.ceil(
-        Math.max(target - Number(article.quantity ?? 0), 1),
+        Math.max(target - remaining, 1),
       );
 
       // Misma identidad visible que en el resto de compras: dos artículos
@@ -142,7 +144,7 @@ export const useLowStockAlerts = () => {
         .join(" - ");
 
       const inTransit = article.in_transit ?? [];
-      const stockLine = `Mínimo: ${article.minimum_quantity} ${unitValue} · Cantidad restante: ${article.quantity} ${unitValue}`;
+      const stockLine = `Mínimo: ${article.minimum_quantity} ${unitValue} · Cantidad restante: ${remaining} ${unitValue}`;
 
       return {
         id: `low-stock-general-article-${article.id}`,
@@ -153,7 +155,7 @@ export const useLowStockAlerts = () => {
         weight:
           inTransit.length > 0
             ? 0
-            : Number(article.quantity ?? 0) <= 0
+            : remaining <= 0
               ? 20
               : 10,
         // Ya está comprado: informa, pero no cuenta como pendiente.
@@ -172,7 +174,7 @@ export const useLowStockAlerts = () => {
         severity:
           inTransit.length > 0
             ? "in-transit"
-            : Number(article.quantity ?? 0) <= 0
+            : remaining <= 0
               ? "critical"
               : "warning",
         // Lleva a la solicitud que ya pidió el artículo, para revisar en

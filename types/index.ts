@@ -2242,6 +2242,8 @@ export type GeneralArticle = {
   cost_history?: GeneralArticleCostHistoryEntry[];
   /** Solo lo carga el endpoint de low-stock. */
   in_transit?: InTransitDetail[];
+  /** Existencia sin los artículos individuales: lo que cuenta para el stock mínimo. Solo en low-stock. */
+  alert_quantity?: number;
   /**
    * Presente solo si el artículo se mide por dimensiones: su stock vive
    * repartido en piezas individuales y `quantity` es su equivalente en piezas.
