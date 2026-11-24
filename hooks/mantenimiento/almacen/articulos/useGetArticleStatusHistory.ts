@@ -9,6 +9,10 @@ export interface ArticleStatusTimelineEntry {
   until: string | null;
   seconds: number;
   registered_by?: string | null;
+  /** La caja de la herramienta o el cambio de condición. */
+  note?: string | null;
+  /** A quién se entregó, si el tramo nació de una salida o de su devolución. */
+  dispatch?: import("@/types/general-article-individual").ToolHolder | null;
   /** Solo en transiciones excepcionales: quién ordenó el pase. */
   authorized_by?: string | null;
   authorization_reason?: string | null;

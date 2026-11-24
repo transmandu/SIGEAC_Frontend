@@ -130,6 +130,8 @@ export type MergePreview = {
     cost_history: SupervisorCostHistoryEntry[];
     cost_summary: MergeCostSummary;
     child_rows: Record<string, number>;
+    /** Lo que los artículos individuales impiden de esta fusión; vacío si nada. */
+    individual_conflicts?: string[];
     can_merge: boolean;
 };
 

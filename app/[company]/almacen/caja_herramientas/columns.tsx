@@ -6,6 +6,7 @@ import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 
 import PendingDispatchRequestDropdownActions from "@/components/dropdowns/mantenimiento/almacen/DispatchRequestDropdownActions"
 import { ToolBox } from "@/types"
+import { ToolBoxHistoryButton } from "@/components/dialogs/almacen/ToolBoxHistoryButton"
 import ToolBoxToolsDialog from "@/components/dialogs/mantenimiento/almacen/ToolBoxToolsDialog"
 import ToolBoxDropdownActions from "@/components/dropdowns/mantenimiento/ordenes_trabajo/ToolBoxDropdownActions"
 
@@ -73,7 +74,7 @@ export const columns: AppColumnDef<ToolBox>[] = [
     ),
     cell: ({ row }) => {
       return (
-        <p className="font-medium text-center">{row.original.tool.length}</p>
+        <p className="font-medium text-center">{row.original.tool.length + (row.original.individuals?.length ?? 0)}</p>
       )
     }
   },
@@ -84,9 +85,23 @@ export const columns: AppColumnDef<ToolBox>[] = [
     ),
     cell: ({ row }) => (
       <div className="flex justify-center">
-        <ToolBoxToolsDialog tools={row.original.tool} name={row.original.name} />
+        <ToolBoxToolsDialog
+          tools={row.original.tool}
+          individuals={row.original.individuals}
+          name={row.original.name}
+        />
       </div>
     )
+  },
+  {
+    id: "history",
+    header: () => <p className="text-center text-sm font-medium">Historial</p>,
+    cell: ({ row }) => (
+      <div className="flex justify-center">
+        <ToolBoxHistoryButton toolBoxId={row.original.id} name={row.original.name} />
+      </div>
+    ),
+    enableSorting: false,
   },
   {
     id: "actions",

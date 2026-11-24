@@ -16,6 +16,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useGetBatchesWithInWarehouseArticles } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesWithInWarehouseArticles";
 import { useGetEmployeesForBox } from "@/hooks/mantenimiento/almacen/caja_herramientas/useGetEmployeeForBox";
 import { cn } from "@/lib/utils";
+import { ToolBoxIndividualsField } from "@/components/forms/mantenimiento/almacen/_components/ToolBoxIndividualsField";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Article, Batch, ToolBox } from "@/types";
 import { zodResolver } from "@/lib/zod-resolver";
@@ -91,6 +92,10 @@ export function CreateToolBoxForm({ onClose, initialData }: FormProps) {
 
   const [openArticles, setOpenArticles] = useState(false);
 
+  const [individualIds, setIndividualIds] = useState<number[]>(
+    () => initialData?.individuals?.map((piece) => piece.id) ?? [],
+  );
+
   const [openEmployee, setOpenEmployee] = useState(false);
 
   const { selectedStation, selectedCompany } = useCompanyStore();
@@ -152,6 +157,7 @@ export function CreateToolBoxForm({ onClose, initialData }: FormProps) {
     const formattedData = {
       ...data,
       location_id: selectedStation ? Number(selectedStation) : undefined,
+      individual_ids: individualIds,
       created_by: `${user?.first_name} ${user?.last_name}`,
       delivered_by: `${user?.first_name} ${user?.last_name}`,
     };
@@ -419,6 +425,13 @@ export function CreateToolBoxForm({ onClose, initialData }: FormProps) {
               <FormMessage />
             </FormItem>
           )}
+        />
+        <ToolBoxIndividualsField
+          location={selectedStation ?? null}
+          company={selectedCompany?.slug}
+          value={individualIds}
+          onChange={setIndividualIds}
+          current={initialData?.individuals}
         />
         <div className="flex justify-end gap-2 pt-2">
           <Button type="button" variant="outline" onClick={onClose}>

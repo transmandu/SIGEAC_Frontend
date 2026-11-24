@@ -120,7 +120,7 @@ function HistoryEventCard({ event }: { event: ArticleHistoryEvent }) {
       {event.text && <p className="mt-0.5 opacity-90">{event.text}</p>}
       <p className="mt-1 opacity-80">
         {formatMoment(event.at)}
-        {event.registered_by ? ` · ${event.registered_by}` : ""}
+        {event.registered_by ? ` · Registrado por: ${event.registered_by}` : ""}
       </p>
     </div>
   );
@@ -313,8 +313,41 @@ export default function ArticleStatusHistoryDialog({
                       <span className="font-semibold">
                         {formatDuration(entry.seconds)}
                       </span>
-                      {entry.registered_by ? ` · ${entry.registered_by}` : ""}
                     </p>
+
+                    {entry.registered_by && (
+                      <p className="text-xs text-muted-foreground">
+                        Pasó a este estado por:{" "}
+                        <span className="font-medium text-foreground">
+                          {entry.registered_by}
+                        </span>
+                      </p>
+                    )}
+
+                    {entry.dispatch && (
+                      <p className="text-xs text-muted-foreground">
+                        {entry.dispatch.returned
+                          ? "Lo había recibido: "
+                          : "Entregado a: "}
+                        <span className="font-medium text-foreground">
+                          {[
+                            entry.dispatch.who ?? "sin receptor",
+                            entry.dispatch.destination,
+                            entry.dispatch.request_number
+                              ? `Salida ${entry.dispatch.request_number}`
+                              : null,
+                          ]
+                            .filter(Boolean)
+                            .join(" · ")}
+                        </span>
+                      </p>
+                    )}
+
+                    {entry.note && (
+                      <p className="text-xs text-muted-foreground">
+                        {entry.note}
+                      </p>
+                    )}
 
                     {entry.authorized_by && (
                       <div className="mt-2 rounded-md border border-amber-200 bg-amber-50 px-2.5 py-1.5 dark:border-amber-800/60 dark:bg-amber-950/40">

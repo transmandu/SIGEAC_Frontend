@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import {
     Select,
     SelectContent,
@@ -12,14 +11,40 @@ import {
 } from "@/components/ui/select"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
-import { Plus, Ruler, Scale, X } from "lucide-react"
+import { Plus, Ruler, Scale, ScanBarcode, X, type LucideIcon } from "lucide-react"
+import {
+    IndividualIdentifiersField,
+    type IndividualIdentifiersDraft,
+} from "@/components/forms/mantenimiento/almacen/_components/IndividualIdentifiersField"
+import type { IndividualizationPreview } from "@/types/general-article-individual"
 
-const fieldClass = cn(
-    "h-9 rounded-lg text-sm tabular-nums",
-    "bg-linear-to-br from-background/70 to-background/40 backdrop-blur-md",
-    "border border-slate-400/60 dark:border-slate-600/60 shadow-xs",
-    "hover:border-blue-400/30 transition-all duration-200",
-)
+// Mismo aspecto que el selector de fecha y hora del diálogo: borde por
+// defecto, 36 px y fondo suave.
+const fieldClass = "h-9 bg-background/70 text-sm tabular-nums"
+
+/** Etiqueta de sección del diálogo: texto pequeño y una línea tenue. */
+function SectionLabel({
+    icon: Icon,
+    title,
+    hint,
+}: {
+    icon: LucideIcon
+    title: string
+    hint?: string
+}) {
+    return (
+        <div className="space-y-1">
+            <div className="flex items-center gap-2">
+                <Icon className="h-3.5 w-3.5 text-muted-foreground" />
+                <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                    {title}
+                </span>
+                <div className="h-px flex-1 bg-border/60" />
+            </div>
+            {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
+        </div>
+    )
+}
 
 export type UnitOption = { id: number; label: string; value: string }
 
@@ -98,7 +123,7 @@ export function intakeDimensionPayload(
 }
 
 /** Qué bloque está desplegado; null mientras no se pida ninguno. */
-export type IntakeExtra = "conversions" | "dimension" | null
+export type IntakeExtra = "conversions" | "dimension" | "individuals" | null
 
 interface Props {
     /** Catálogo completo, para declarar equivalencias hacia cualquier unidad. */
@@ -116,6 +141,12 @@ interface Props {
     onConversionsChange: (rows: ExtraConversionDraft[]) => void
     dimension: IntakeDimensionDraft
     onDimensionChange: (next: IntakeDimensionDraft) => void
+    /** Si los artículos que entran pueden identificarse una por una. */
+    individualization?: IndividualizationPreview
+    individuals?: IndividualIdentifiersDraft
+    onIndividualsChange?: (next: IndividualIdentifiersDraft) => void
+    /** Error del servidor sobre los identificadores, ya traducido. */
+    individualsError?: string | null
     disabled?: boolean
 }
 
@@ -142,6 +173,10 @@ export function IntakeExtrasPanel({
     onConversionsChange,
     dimension,
     onDimensionChange,
+    individualization,
+    individuals,
+    onIndividualsChange,
+    individualsError,
     disabled,
 }: Props) {
     const availableUnits = units.filter(
@@ -171,7 +206,7 @@ export function IntakeExtrasPanel({
         <div className="space-y-2">
             {/* Accesos discretos: el diálogo de confirmación es corto y estos
                 bloques son la excepción, no el caso normal. */}
-            <div className="flex justify-end gap-1.5">
+            <div className="flex justify-center gap-1.5">
                 <Button
                     type="button"
                     variant={active === "conversions" ? "secondary" : "ghost"}
@@ -210,22 +245,39 @@ export function IntakeExtrasPanel({
                     <Ruler className="h-3.5 w-3.5" />
                     Medidas
                 </Button>
+                {individualization && individuals && onIndividualsChange && (
+                    <Button
+                        type="button"
+                        variant={active === "individuals" ? "secondary" : "ghost"}
+                        size="sm"
+                        disabled={disabled}
+                        className="h-7 gap-1.5 px-2 text-xs"
+                        onClick={() =>
+                            onActiveChange(active === "individuals" ? null : "individuals")
+                        }
+                    >
+                        <Plus
+                            className={cn(
+                                "h-3.5 w-3.5 transition-transform",
+                                active === "individuals" && "rotate-45",
+                            )}
+                        />
+                        <ScanBarcode className="h-3.5 w-3.5" />
+                        Artículos individuales
+                    </Button>
+                )}
             </div>
 
             {active !== null && (
-        <div className="space-y-3 rounded-lg border border-slate-400/50 bg-muted/20 p-3 dark:border-slate-600/50">
+        <div className="space-y-3">
             {/* ── Equivalencias de unidad ── */}
             {active === "conversions" && (
             <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                    <Scale className="h-3.5 w-3.5 text-muted-foreground" />
-                    <Label className="text-[13px] font-medium">
-                        Equivalencias de unidad
-                    </Label>
-                    <span className="text-xs text-muted-foreground">
-                        cuántas unidades base hay en otra presentación
-                    </span>
-                </div>
+                <SectionLabel
+                    icon={Scale}
+                    title="Equivalencias de unidad"
+                    hint="Cuántas unidades base hay en otra presentación."
+                />
 
                 {conversions.map((row, index) => {
                     const unitLabel = units.find((u) => u.id === row.unit_id)?.label
@@ -244,7 +296,7 @@ export function IntakeExtrasPanel({
                     }
 
                     return (
-                        <div key={row.unit_id} className="space-y-1.5 rounded-md border border-slate-400/40 p-2 dark:border-slate-600/40">
+                        <div key={row.unit_id} className="space-y-1.5 rounded-md border border-border/60 p-2">
                             {/* Cómo se lee la equivalencia: el almacenista la
                                 declara en el sentido que tenga a mano. */}
                             <Select
@@ -335,18 +387,40 @@ export function IntakeExtrasPanel({
             </div>
             )}
 
+            {/* ── Artículos individuales ── */}
+            {active === "individuals" && individualization && individuals && onIndividualsChange && (
+            <div className="space-y-2">
+                <SectionLabel icon={ScanBarcode} title="Artículos individuales" />
+
+                {individualization.status === "UNAVAILABLE" ? (
+                    <p className="text-xs text-muted-foreground">
+                        {individualization.reason}
+                    </p>
+                ) : (
+                    <>
+                        <IndividualIdentifiersField
+                            draft={individuals}
+                            onChange={onIndividualsChange}
+                            types={individualization.types}
+                            lockedType={individualization.locked_type}
+                            max={individualization.max}
+                            disabled={disabled}
+                            serverError={individualsError}
+                            fieldClassName={fieldClass}
+                        />
+                    </>
+                )}
+            </div>
+            )}
+
             {/* ── Medición por dimensiones ── */}
             {active === "dimension" && (
             <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                    <Ruler className="h-3.5 w-3.5 text-muted-foreground" />
-                    <Label className="text-[13px] font-medium">
-                        Medición por dimensiones
-                    </Label>
-                    <span className="text-xs text-muted-foreground">
-                        se despacha en trazos
-                    </span>
-                </div>
+                <SectionLabel
+                    icon={Ruler}
+                    title="Medición por dimensiones"
+                    hint="Se despacha en trazos."
+                />
 
                 {alreadyDimensional ? (
                     <p className="text-xs text-muted-foreground">

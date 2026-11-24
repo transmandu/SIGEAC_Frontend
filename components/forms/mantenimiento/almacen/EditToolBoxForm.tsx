@@ -16,6 +16,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useGetEmployeesForBox } from "@/hooks/mantenimiento/almacen/caja_herramientas/useGetEmployeeForBox";
 import { useGetEditToolBoxTools } from "@/hooks/mantenimiento/almacen/caja_herramientas/useGetToolBoxTools";
 import { cn } from "@/lib/utils";
+import { ToolBoxIndividualsField } from "@/components/forms/mantenimiento/almacen/_components/ToolBoxIndividualsField";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { ToolBox } from "@/types";
 import { zodResolver } from "@/lib/zod-resolver";
@@ -90,6 +91,10 @@ export function EditToolBoxForm({ onClose, initialData }: FormProps) {
 
   const [openArticles, setOpenArticles] = useState(false);
 
+  const [individualIds, setIndividualIds] = useState<number[]>(
+    () => initialData?.individuals?.map((piece) => piece.id) ?? [],
+  );
+
   const [openEmployee, setOpenEmployee] = useState(false);
 
   const { selectedStation, selectedCompany } = useCompanyStore();
@@ -142,6 +147,7 @@ export function EditToolBoxForm({ onClose, initialData }: FormProps) {
       created_by: `${user?.first_name} ${user?.last_name}`,
       delivered_by: `${user?.first_name} ${user?.last_name}`,
       id: initialData.id,
+      individual_ids: individualIds,
     };
     await updateToolBox.mutateAsync({
       data: formattedData,
@@ -412,6 +418,13 @@ export function EditToolBoxForm({ onClose, initialData }: FormProps) {
               <FormMessage />
             </FormItem>
           )}
+        />
+        <ToolBoxIndividualsField
+          location={selectedStation ?? null}
+          company={selectedCompany?.slug}
+          value={individualIds}
+          onChange={setIndividualIds}
+          current={initialData?.individuals}
         />
         <div className="flex justify-end gap-2 pt-2">
           <Button type="button" variant="outline" onClick={onClose}>

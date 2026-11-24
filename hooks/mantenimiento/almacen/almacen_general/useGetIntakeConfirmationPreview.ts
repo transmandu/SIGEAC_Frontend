@@ -2,6 +2,7 @@ import axios from '@/lib/axios';
 import { useCompanyStore } from '@/stores/CompanyStore';
 import { useQuery } from '@tanstack/react-query';
 import type { NeedsUnitConversionCandidate } from '@/types/purchase';
+import type { IndividualizationPreview } from '@/types/general-article-individual';
 
 /** Conversión ya registrada: lo que se sumará al stock si se confirma. */
 export interface AppliedConversionPreview {
@@ -19,7 +20,7 @@ export interface AppliedConversionPreview {
 export interface DimensionPreview {
   status: 'AVAILABLE' | 'ALREADY_DIMENSIONAL' | 'UNAVAILABLE' | 'NO_UNITS';
   reason?: string;
-  /** Piezas que se crearían; ausente si la cantidad no es entera. */
+  /** Artículos individuales que se crearían; ausente si la cantidad no es entera. */
   pieces_to_add?: number | null;
   /** Unidades habilitadas para declarar medidas. */
   measure_units?: { id: number; label: string; value: string }[];
@@ -38,6 +39,8 @@ interface ConfirmationPreviewResponse {
   applied_conversion?: AppliedConversionPreview;
   misoriented_conversion?: boolean;
   dimension?: DimensionPreview;
+  /** Si los artículos que entran pueden identificarse una por una. */
+  individualization?: IndividualizationPreview;
   /** Catálogo completo, para declarar equivalencias hacia cualquier unidad. */
   units?: { id: number; label: string; value: string }[];
 }

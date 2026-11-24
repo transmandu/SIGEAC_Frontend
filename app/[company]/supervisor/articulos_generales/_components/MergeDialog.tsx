@@ -750,6 +750,25 @@ function MergePreviewPanel({
         <div className="h-px flex-1 bg-border/50" />
       </div>
 
+      {(preview.individual_conflicts?.length ?? 0) > 0 && (
+        <div
+          role="alert"
+          className="mb-3 flex items-start gap-2.5 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5 text-sm text-destructive"
+        >
+          <AlertTriangle className="mt-0.5 size-4 shrink-0" />
+          <div className="space-y-1">
+            <p className="font-medium">
+              Los artículos individuales impiden esta fusión
+            </p>
+            <ul className="list-disc space-y-0.5 pl-4 text-[13px]">
+              {preview.individual_conflicts!.map((message) => (
+                <li key={message}>{message}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+
       {/* Desglose de cantidades */}
       <div className="flex flex-col gap-1.5">
         {preview.quantity_breakdown.map((row) => {

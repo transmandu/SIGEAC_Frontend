@@ -1,5 +1,11 @@
 "use client";
 
+import { ToolBoxRowCard } from "@/components/forms/mantenimiento/almacen/_components/ToolBoxRowCard";
+import {
+  toolBoxAvailability,
+  toolBoxMembers,
+} from "@/components/forms/mantenimiento/almacen/_hooks/useDispatchForm";
+import { GeneralCatalogOptions } from "@/components/forms/mantenimiento/almacen/_components/GeneralCatalogOptions";
 import {
   DispatchRequestSection,
   DispatchResponsibleSection,
@@ -55,6 +61,19 @@ interface FormProps {
   onClose: () => void;
 }
 
+/** Qué sale con la caja, en una línea. */
+const toolBoxSummary = (box: { tool?: unknown[]; individuals?: unknown[] }) => {
+  const tools = box.tool?.length ?? 0;
+  const hardware = box.individuals?.length ?? 0;
+
+  return [
+    `${tools} herramienta${tools === 1 ? "" : "s"}`,
+    hardware > 0 ? `${hardware} de ferretería` : null,
+  ]
+    .filter(Boolean)
+    .join(" + ");
+};
+
 export function ToolDispatchForm({ onClose }: FormProps) {
   const ctx = useDispatchForm(onClose, "tool");
 
@@ -76,6 +95,7 @@ export function ToolDispatchForm({ onClose }: FormProps) {
     watchedGen,
     aeroSelectedSet,
     genSelectedSet,
+    genIndividualSet,
     aeroById,
     genById,
     aeroBatchNameById,
@@ -91,6 +111,7 @@ export function ToolDispatchForm({ onClose }: FormProps) {
     commitGenQty,
     setToMaxGen,
     setQuantityGen,
+    setIndividualsGen,
     convState,
     setConvState,
     activeConversions,
@@ -101,6 +122,13 @@ export function ToolDispatchForm({ onClose }: FormProps) {
     applyConversion,
     handleAddAeronautical,
     handleAddGeneral,
+    handleToggleGeneralIndividual,
+    toolBoxes,
+    isToolBoxesLoading,
+    toolBoxSelectedSet,
+    selectedToolBoxes,
+    handleToggleToolBox,
+    removeToolBox,
     removeAeroRow,
     removeGenRow,
     hasBlockingQtyError,
@@ -161,7 +189,7 @@ export function ToolDispatchForm({ onClose }: FormProps) {
               Agregar artículo
               <span className="text-xs text-muted-foreground">
                 Herramientas: {aeronauticalCount} · General/Ferretería:{" "}
-                {generalCount}
+                {generalCount} · Cajas: {selectedToolBoxes.length}
               </span>
             </label>
 
@@ -220,6 +248,17 @@ export function ToolDispatchForm({ onClose }: FormProps) {
                         ({generalCount})
                       </span>
                     </Button>
+                    <Button
+                      type="button"
+                      variant={addTab === "boxes" ? "default" : "outline"}
+                      className="h-8"
+                      onClick={() => setAddTab("boxes")}
+                    >
+                      Cajas{" "}
+                      <span className="ml-2 text-xs opacity-80">
+                        ({selectedToolBoxes.length})
+                      </span>
+                    </Button>
                   </div>
                   <Button
                     type="button"
@@ -239,7 +278,9 @@ export function ToolDispatchForm({ onClose }: FormProps) {
                     placeholder={
                       addTab === "aero"
                         ? "Buscar por lote, parte, serial o descripción..."
-                        : "Buscar por descripción, modelo o tipo..."
+                        : addTab === "boxes"
+                          ? "Buscar por caja o responsable..."
+                          : "Buscar por descripción, modelo o tipo..."
                     }
                   />
                   <CommandList>
@@ -266,12 +307,17 @@ export function ToolDispatchForm({ onClose }: FormProps) {
                               // elegir: por ahora no se bloquea la salida.
                               const isExpired =
                                 article.tool_status === "EXPIRED";
+                              // Si su caja ya sale completa, sale con ella.
+                              const withBox =
+                                !!article.tool_box &&
+                                toolBoxSelectedSet.has(article.tool_box.id);
 
                               return (
                                 <CommandItem
                                   key={`t-${article.id}-${batch.batch_id}`}
                                   value={`${batch.name} ${article.part_number} ${article.serial ?? ""} ${article.description ?? ""}`}
                                   className="max-w-full"
+                                  disabled={withBox}
                                   onSelect={() =>
                                     handleAddAeronautical(
                                       article,
@@ -282,7 +328,9 @@ export function ToolDispatchForm({ onClose }: FormProps) {
                                   <Check
                                     className={cn(
                                       "mr-2 h-4 w-4",
-                                      already ? "opacity-100" : "opacity-0",
+                                      already || withBox
+                                        ? "opacity-100"
+                                        : "opacity-0",
                                     )}
                                   />
                                   <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
@@ -297,6 +345,11 @@ export function ToolDispatchForm({ onClose }: FormProps) {
                                         "Sin nota"}
                                     </span>
                                   </div>
+                                  {article.tool_box && (
+                                    <TagBadge tone="blue" className="ml-2 shrink-0">
+                                      En caja: {article.tool_box.name}
+                                    </TagBadge>
+                                  )}
                                   {isExpired && (
                                     <TagBadge tone="rose" className="ml-2">
                                       Calibración vencida
@@ -308,42 +361,73 @@ export function ToolDispatchForm({ onClose }: FormProps) {
                           </SearchAwareGroup>
                         ))
                       )
+                    ) : addTab === "boxes" ? (
+                      isToolBoxesLoading ? (
+                        <div className="flex items-center justify-center py-6">
+                          <Loader2 className="size-4 animate-spin" />
+                        </div>
+                      ) : (
+                        <CommandGroup heading="Cajas de herramientas">
+                          {toolBoxes.map((box) => {
+                            const { inside, outside } = toolBoxAvailability(box);
+                            const already = toolBoxSelectedSet.has(box.id);
+                            const responsible = box.employee
+                              ? `${box.employee.first_name} ${box.employee.last_name}`
+                              : null;
+
+                            return (
+                              <CommandItem
+                                key={`box-${box.id}`}
+                                value={`${box.name} ${responsible ?? ""}`}
+                                className="max-w-full"
+                                disabled={inside === 0 && !already}
+                                onSelect={() => handleToggleToolBox(box)}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    already ? "opacity-100" : "opacity-0",
+                                  )}
+                                />
+                                <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+                                  <span className="truncate font-medium">
+                                    {box.name}
+                                  </span>
+                                  <span className="truncate text-xs text-muted-foreground">
+                                    {toolBoxSummary(box)}
+                                    {responsible && ` · ${responsible}`}
+                                  </span>
+                                </div>
+                                {inside === 0 ? (
+                                  <TagBadge tone="amber" className="ml-2 shrink-0">
+                                    Todo fuera
+                                  </TagBadge>
+                                ) : (
+                                  outside > 0 && (
+                                    <TagBadge tone="slate" className="ml-2 shrink-0">
+                                      {outside} fuera
+                                    </TagBadge>
+                                  )
+                                )}
+                              </CommandItem>
+                            );
+                          })}
+                        </CommandGroup>
+                      )
                     ) : isHardwareLoading ? (
                       <div className="flex items-center justify-center py-6">
                         <Loader2 className="size-4 animate-spin" />
                       </div>
                     ) : (
                       <CommandGroup heading="Inventario general">
-                        {hardwareArticles.map((ga) => {
-                          const already = genSelectedSet.has(Number(ga.id));
-
-                          return (
-                            <CommandItem
-                              key={`g-${ga.id}`}
-                              value={`${ga.description ?? ""} ${ga.brand_model ?? ""} ${ga.variant_type ?? ""}`}
-                              className="max-w-full"
-                              onSelect={() => handleAddGeneral(ga)}
-                            >
-                              <Check
-                                className={cn(
-                                  "mr-2 h-4 w-4",
-                                  already ? "opacity-100" : "opacity-0",
-                                )}
-                              />
-                              <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-                                <span className="truncate font-medium">
-                                  {truncateText(ga.description) || "N/A"}
-                                </span>
-                                <span className="truncate text-xs text-muted-foreground">
-                                  {ga.brand_model ?? "N/A"} ·{" "}
-                                  {ga.variant_type ?? "N/A"} · Disp:{" "}
-                                  {ga.quantity ?? 0}{" "}
-                                  {ga.general_primary_unit?.label ?? ""}
-                                </span>
-                              </div>
-                            </CommandItem>
-                          );
-                        })}
+                        <GeneralCatalogOptions
+                          articles={hardwareArticles}
+                          selectedIds={genSelectedSet}
+                          pickedIndividualIds={genIndividualSet}
+                          lockedToolBoxIds={toolBoxSelectedSet}
+                          onAdd={handleAddGeneral}
+                          onToggleIndividual={handleToggleGeneralIndividual}
+                        />
                       </CommandGroup>
                     )}
                   </CommandList>
@@ -352,13 +436,37 @@ export function ToolDispatchForm({ onClose }: FormProps) {
             </Popover>
           </div>
 
-          {aeronauticalCount === 0 && generalCount === 0 && (
+          {aeronauticalCount === 0 &&
+            generalCount === 0 &&
+            selectedToolBoxes.length === 0 && (
             <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed py-8 text-center text-muted-foreground">
               <Wrench className="h-8 w-8 opacity-40" />
               <p className="text-sm">Ningún artículo seleccionado.</p>
               <p className="text-xs opacity-70">
                 Use el selector de arriba para agregar herramientas.
               </p>
+            </div>
+          )}
+
+          {selectedToolBoxes.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Cajas de herramientas
+              </p>
+              {selectedToolBoxes.map((box) => (
+                <ToolBoxRowCard
+                  key={box.id}
+                  name={box.name}
+                  summary={toolBoxSummary(box)}
+                  members={toolBoxMembers(box)}
+                  responsible={
+                    box.employee
+                      ? `${box.employee.first_name} ${box.employee.last_name}`
+                      : null
+                  }
+                  onRemove={() => removeToolBox(box.id)}
+                />
+              ))}
             </div>
           )}
 
@@ -417,7 +525,12 @@ export function ToolDispatchForm({ onClose }: FormProps) {
                     key={field.id}
                     article={ga}
                     generalId={generalId}
-                    qty={qtyByKey[key] ?? ""}
+                    qty={
+                      qtyByKey[key] ??
+                      (watchedGen[index]?.quantity
+                        ? String(watchedGen[index].quantity)
+                        : "")
+                    }
                     max={generalId ? getGenMax(generalId) : 0}
                     rowMsg={msgByKey[key]}
                     conversion={convByKey[key]}
@@ -442,6 +555,10 @@ export function ToolDispatchForm({ onClose }: FormProps) {
                     onSetMax={() => setToMaxGen(index, field.id)}
                     onSetQuantity={(value) =>
                       setQuantityGen(index, field.id, value)
+                    }
+                    individualIds={watchedGen[index]?.individual_ids}
+                    onIndividualsChange={(ids) =>
+                      setIndividualsGen(index, field.id, ids)
                     }
                     onOpenConversion={() =>
                       openConversionForGeneral(index, field.id, generalId)

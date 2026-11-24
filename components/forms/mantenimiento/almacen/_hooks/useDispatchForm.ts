@@ -6,6 +6,7 @@ import { useCreateDispatchRequest } from "@/actions/mantenimiento/almacen/solici
 import { useGetConversionByConsmable } from "@/hooks/mantenimiento/almacen/articulos/useGetConvertionsByConsumableId";
 import { useGetConversionByGeneralArticle } from "@/hooks/mantenimiento/almacen/articulos/useGetConvertionsByGeneralArticleId";
 import { useGetGeneralArticles } from "@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticles";
+import { useGetToolBoxes } from "@/hooks/mantenimiento/almacen/caja_herramientas/useGetToolBoxes";
 import { useGetBatchesWithInWarehouseArticles } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesWithInWarehouseArticles";
 import { useGetExternalEmployees } from "@/hooks/ajustes/convenios/useGetExternalEmployees";
 import { useGetDestinationCompanies } from "@/hooks/ajustes/convenios/useGetDestinationCompanies";
@@ -20,6 +21,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { zodResolver } from "@/lib/zod-resolver";
 import { format } from "date-fns";
 import { useCallback, useMemo, useState } from "react";
+import { statusOptionLabel } from "@/lib/warehouse/statuses";
 import { toast } from "sonner";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
@@ -28,6 +30,7 @@ import type {
   Batch,
   Department,
   GeneralArticle,
+  ToolBox,
   ThirdParty,
 } from "@/types";
 import {
@@ -119,6 +122,8 @@ const AeronauticalItemSchema = z.object({
 const GeneralItemSchema = z.object({
   general_article_id: z.coerce.number(),
   quantity: z.coerce.number(),
+  // Identificados que salen; cuentan dentro de la cantidad.
+  individual_ids: z.array(z.coerce.number()).optional(),
   // Ver nota en AeronauticalItemSchema.unit_id.
   unit_id: z.coerce.number().nullable().optional(),
   cut: CutSchema.optional(),
@@ -141,6 +146,7 @@ const SERVER_ERROR_FIELDS = new Set([
   "third_party_requested_by",
   "third_party_receiver",
   "third_party_authorizer",
+  "tool_box_ids",
 ]);
 
 export const FormSchema = z
@@ -179,11 +185,15 @@ export const FormSchema = z
     destination_location_id: z.string().optional(),
     aeronautical_articles: z.array(AeronauticalItemSchema).default([]),
     general_articles: z.array(GeneralItemSchema).default([]),
+    // Cajas de herramientas que salen completas: el servidor las expande en
+    // las líneas de sus miembros.
+    tool_box_ids: z.array(z.number()).default([]),
   })
   .superRefine((data, ctx) => {
     const total =
       (data.aeronautical_articles?.length ?? 0) +
-      (data.general_articles?.length ?? 0);
+      (data.general_articles?.length ?? 0) +
+      (data.tool_box_ids?.length ?? 0);
     if (total <= 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -267,6 +277,73 @@ export const FormSchema = z
 
 export type FormSchemaType = z.infer<typeof FormSchema>;
 
+/** Qué hay de una caja en el almacén y qué está fuera, con quien lo tenga. */
+export interface ToolBoxMember {
+  key: string;
+  label: string;
+  detail: string | null;
+  /** true si está en el almacén y sale con la caja. */
+  inside: boolean;
+  /** Quién lo tiene y por qué, si está fuera. */
+  holder: string | null;
+}
+
+export function toolBoxMembers(box: ToolBox): ToolBoxMember[] {
+  // Fuera de la caja por una salida (con quién la tiene) o por otro motivo —en
+  // inspección, en cuarentena—, que se dice con su estado.
+  const holderText = (
+    holder:
+      | { who: string | null; request_number: string | null; with_box?: boolean }
+      | null
+      | undefined,
+    status: string,
+  ) => {
+    if (!holder) return statusOptionLabel(status);
+
+    return [
+      holder.with_box ? "Salió con la caja" : "Pedida para un trabajo",
+      holder.who,
+      holder.request_number ? `Salida ${holder.request_number}` : null,
+    ]
+      .filter(Boolean)
+      .join(" · ");
+  };
+
+  const tools = (box.tool ?? []).map((tool) => {
+    const inside =
+      String(tool.article?.status ?? "").toUpperCase() === "INTOOLBOX";
+
+    return {
+      key: `t-${tool.article?.id ?? tool.serial}`,
+      label: tool.article?.part_number ?? "Herramienta",
+      detail: tool.article?.serial ? `SN: ${tool.article.serial}` : null,
+      inside,
+      holder: inside
+        ? null
+        : holderText(tool.holder, String(tool.article?.status ?? "")),
+    };
+  });
+
+  const individuals = (box.individuals ?? []).map((item) => ({
+    key: `i-${item.id}`,
+    label: item.general_article?.description ?? "Herramienta de ferretería",
+    detail: item.identifier,
+    inside: item.status === "INTOOLBOX",
+    holder:
+      item.status === "INTOOLBOX" ? null : holderText(item.holder, item.status),
+  }));
+
+  return [...tools, ...individuals];
+}
+
+/** Cuántos miembros de la caja están en el almacén y cuántos fuera. */
+export function toolBoxAvailability(box: ToolBox) {
+  const members = toolBoxMembers(box);
+  const inside = members.filter((member) => member.inside).length;
+
+  return { total: members.length, inside, outside: members.length - inside };
+}
+
 // ── Key helpers (pure, module-level) ───────────────────────────────────────────
 
 export const aeroKey = (id: string) => `A:${id}`;
@@ -296,7 +373,7 @@ export function useDispatchForm(
   const { selectedStation, selectedCompany } = useCompanyStore();
 
   const [openAdd, setOpenAdd] = useState(false);
-  const [addTab, setAddTab] = useState<"aero" | "general">("aero");
+  const [addTab, setAddTab] = useState<"aero" | "general" | "boxes">("aero");
   const [openEmployee, setOpenEmployee] = useState(false);
   const [openThirdParty, setOpenThirdParty] = useState(false);
   const [selectedDepartment, setSelectedDepartment] =
@@ -354,6 +431,8 @@ export function useDispatchForm(
       location_id: Number(selectedStation!),
       company: selectedCompany!.slug,
       category: itemCategory,
+      // Solo la salida de herramientas ofrece las que están dentro de una caja.
+      includeBoxed: itemCategory === "tool",
     });
 
   const isTool = itemCategory === "tool";
@@ -362,6 +441,11 @@ export function useDispatchForm(
     useGetEmployeesByCompany(selectedCompany?.slug);
   const { data: hardwareRes, isLoading: isHardwareLoading } =
     useGetGeneralArticles();
+  const { data: toolBoxesRes, isLoading: isToolBoxesLoading } = useGetToolBoxes(
+    itemCategory === "tool" && selectedStation ? String(selectedStation) : null,
+    selectedCompany?.slug,
+  );
+  const toolBoxes = useMemo<ToolBox[]>(() => toolBoxesRes ?? [], [toolBoxesRes]);
   const hardwareArticles = useMemo<GeneralArticle[]>(
     () => hardwareRes ?? [],
     [hardwareRes],
@@ -382,6 +466,7 @@ export function useDispatchForm(
       is_backdated: false,
       aeronautical_articles: [],
       general_articles: [],
+      tool_box_ids: [],
     },
   });
 
@@ -439,6 +524,12 @@ export function useDispatchForm(
   );
   const genSelectedSet = useMemo(
     () => new Set(watchedGen.map((x) => Number(x.general_article_id))),
+    [watchedGen],
+  );
+
+  // Artículos individuales ya elegidos, sea cual sea la fila.
+  const genIndividualSet = useMemo(
+    () => new Set(watchedGen.flatMap((x) => x.individual_ids ?? [])),
     [watchedGen],
   );
 
@@ -770,6 +861,35 @@ export function useDispatchForm(
     [watchedGen, getGenMax, validateAndClamp, setValue],
   );
 
+  // Los identificados elegidos cuentan dentro de la cantidad: si esta no las cubre se
+  // sube hasta ellas. Un individual no se convierte, así que se vuelve a la unidad base.
+  const setIndividualsGen = useCallback(
+    (index: number, fieldId: string, ids: number[]) => {
+      const key = genKey(fieldId);
+      setValue(`general_articles.${index}.individual_ids`, ids);
+
+      if (ids.length === 0) return;
+
+      const max = watchedGen[index]?.general_article_id
+        ? getGenMax(Number(watchedGen[index].general_article_id))
+        : 0;
+      const conv = convByKey[key];
+      const current = (parseFloat(qtyByKey[key] ?? "") || 0) * (conv?.factor ?? 1);
+      const next = validateAndClamp(key, String(Math.max(current, ids.length)), max);
+
+      setQtyByKey((p) => ({ ...p, [key]: next }));
+      setConvByKey((p) => {
+        const n = { ...p };
+        delete n[key];
+        return n;
+      });
+      setRowMsg(key, undefined);
+      setValue(`general_articles.${index}.quantity`, parseFloat(next) || 0);
+      setValue(`general_articles.${index}.unit_id`, null);
+    },
+    [watchedGen, getGenMax, convByKey, qtyByKey, validateAndClamp, setRowMsg, setValue],
+  );
+
   // ── Conversion (7 states → 1) ─────────────────────────────────────────────
 
   // 2. Desactivamos la petición de conversiones para aeronáuticos si no es consumible
@@ -970,6 +1090,98 @@ export function useDispatchForm(
     [genSelectedSet, watchedGen, genFA, removeGenRow],
   );
 
+  // Elegir un artículo individual desde el selector: crea la fila del artículo
+  // si no existe y lo suma a ella, o lo quita si ya estaba. El selector sigue
+  // abierto para poder elegir varios.
+  const handleToggleGeneralIndividual = useCallback(
+    (ga: GeneralArticle, individualId: number) => {
+      if (!ga?.id) return;
+      const id = Number(ga.id);
+      const idx = watchedGen.findIndex(
+        (x) => Number(x.general_article_id) === id,
+      );
+
+      if (idx < 0) {
+        genFA.append({
+          general_article_id: id,
+          quantity: 1,
+          individual_ids: [individualId],
+        });
+        return;
+      }
+
+      const current = watchedGen[idx].individual_ids ?? [];
+      const next = current.includes(individualId)
+        ? current.filter((value) => value !== individualId)
+        : [...current, individualId];
+
+      if (genFA.fields[idx]) setIndividualsGen(idx, genFA.fields[idx].id, next);
+    },
+    [watchedGen, genFA, setIndividualsGen],
+  );
+
+  // ── Cajas de herramientas ─────────────────────────────────────────────────
+
+  const toolBoxIdsRaw = useWatch({ control, name: "tool_box_ids" });
+  const toolBoxIds = useMemo(() => toolBoxIdsRaw ?? [], [toolBoxIdsRaw]);
+  const toolBoxSelectedSet = useMemo(() => new Set(toolBoxIds), [toolBoxIds]);
+  const selectedToolBoxes = useMemo(
+    () => toolBoxes.filter((box) => toolBoxSelectedSet.has(box.id)),
+    [toolBoxes, toolBoxSelectedSet],
+  );
+
+  const handleToggleToolBox = useCallback(
+    (box: ToolBox) => {
+      if (toolBoxSelectedSet.has(box.id)) {
+        setValue(
+          "tool_box_ids",
+          toolBoxIds.filter((id) => id !== box.id),
+        );
+        return;
+      }
+
+      // Una caja con miembros fuera igual puede salir: sale lo que está y lo
+      // demás sigue con quien lo tiene. Solo no hay nada que sacar si no queda
+      // ninguno dentro.
+      if (toolBoxAvailability(box).inside === 0) {
+        toast.error("No hay nada que sacar", {
+          description: `Todo lo de ${box.name} ya está fuera del almacén.`,
+        });
+        return;
+      }
+
+      // Lo que sale con la caja no puede pedirse también por su cuenta.
+      const memberIndividuals = new Set((box.individuals ?? []).map((i) => i.id));
+      const memberTools = new Set(
+        (box.tool ?? []).map((t) => Number(t.article?.id)),
+      );
+      const clash =
+        watchedGen.some((row) =>
+          (row.individual_ids ?? []).some((id) => memberIndividuals.has(id)),
+        ) ||
+        watchedAero.some((row) => memberTools.has(Number(row.article_id)));
+      if (clash) {
+        toast.error("Ya eligió parte de esa caja", {
+          description: `Quite de la lista lo que ya eligió de ${box.name}: sale con la caja.`,
+        });
+        return;
+      }
+
+      setValue("tool_box_ids", [...toolBoxIds, box.id]);
+      setOpenAdd(false);
+    },
+    [toolBoxSelectedSet, toolBoxIds, watchedGen, watchedAero, setValue],
+  );
+
+  const removeToolBox = useCallback(
+    (id: number) =>
+      setValue(
+        "tool_box_ids",
+        toolBoxIds.filter((value) => value !== id),
+      ),
+    [toolBoxIds, setValue],
+  );
+
   // ── rerender-move-effect-to-event: dispatch type reset ────────────────────
 
   const handleDispatchTypeChange = useCallback(
@@ -1116,6 +1328,17 @@ export function useDispatchForm(
 
       const max = getGenMax(item.general_article_id);
       const conv = key ? convByKey[key] : undefined;
+      const pickedCount = item.individual_ids?.length ?? 0;
+      if (pickedCount > 0 && (conv || item.quantity < pickedCount)) {
+        if (key)
+          setRowMsg(key, {
+            msg: conv
+              ? "Con identificados la salida va en la unidad base"
+              : `La cantidad no cubre los ${pickedCount} identificados elegidos`,
+            level: "error",
+          });
+        return;
+      }
       const inBase = Number(
         (item.quantity * (conv?.factor ?? 1)).toFixed(CONVERSION_PRECISION),
       );
@@ -1305,6 +1528,7 @@ export function useDispatchForm(
     watchedGen,
     aeroSelectedSet,
     genSelectedSet,
+    genIndividualSet,
     aeroById,
     genById,
     aeroBatchNameById,
@@ -1329,6 +1553,7 @@ export function useDispatchForm(
     setToMaxGen,
     setQuantityAero,
     setQuantityGen,
+    setIndividualsGen,
     // conversion
     convState,
     setConvState,
@@ -1342,6 +1567,13 @@ export function useDispatchForm(
     // article handlers
     handleAddAeronautical,
     handleAddGeneral,
+    handleToggleGeneralIndividual,
+    toolBoxes,
+    isToolBoxesLoading,
+    toolBoxSelectedSet,
+    selectedToolBoxes,
+    handleToggleToolBox,
+    removeToolBox,
     removeAeroRow,
     removeGenRow,
     handleDispatchTypeChange,

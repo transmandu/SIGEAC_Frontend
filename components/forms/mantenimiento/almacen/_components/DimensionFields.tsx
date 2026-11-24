@@ -10,11 +10,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, Plus, Ruler, X } from "lucide-react";
+import { AlertCircle, Info, Plus, Ruler, X } from "lucide-react";
 import type { ArticleDimension, Unit } from "@/types";
 import { cn } from "@/lib/utils";
 import {
@@ -318,20 +324,45 @@ export function DimensionFields({
           }
           className="mt-0.5"
         />
-        <div className="space-y-1 leading-none">
-          <Label className={`${labelClass} cursor-pointer`}>Se despacha en trazos</Label>
+        <div className="min-w-0 space-y-1 leading-none">
+          <div className="flex items-center gap-1.5">
+            <Label className={`${labelClass} cursor-pointer`}>
+              Se despacha en trazos
+            </Label>
+            <TooltipProvider delayDuration={150}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    aria-label="Cómo funciona el despacho en trazos"
+                    className="rounded-full text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary/40"
+                  >
+                    <Info className="size-3.5" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent
+                  align="start"
+                  className="max-w-72 space-y-1.5 text-xs leading-snug"
+                >
+                  <p>
+                    La salida descuenta el área cortada de una pieza concreta,
+                    no unidades enteras.
+                  </p>
+                  <p>
+                    La cantidad es{" "}
+                    <span className="font-semibold">cuántas piezas hay</span>,
+                    no cuánto miden.
+                  </p>
+                  <p>
+                    Las medidas de cada pieza se declaran en la unidad de medida
+                    que elija.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
           <p className={hintClass}>
-            Para material que se corta a la medida (láminas, telas, rollos): la
-            salida descuenta el área cortada de una pieza concreta, no unidades
-            enteras.
-          </p>
-          {/* La confusión más común: creer que la unidad base debe ser METRO.
-              La base cuenta piezas; las medidas van en otra unidad. */}
-          <p className={hintClass}>
-            La <span className="font-medium">unidad base</span> del artículo
-            debe contar piezas (LÁMINA, ROLLO, PLANCHA) y la cantidad es{" "}
-            <span className="font-medium">cuántas hay</span>. Las medidas de
-            cada pieza se declaran aquí abajo, en la unidad que elija.
+            Material que se corta a la medida: láminas, telas, rollos.
           </p>
         </div>
       </div>

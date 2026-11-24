@@ -122,6 +122,8 @@ export type Article = {
   next_calibration?: string;
   tool_status?:
     "CALIBRATED" | "IN_CALIBRATION" | "EXPIRED" | "NOT_APPLICABLE" | string;
+  /** Caja de herramientas en la que está la herramienta, si está en una. */
+  tool_box?: { id: number; name: string | null } | null;
 };
 
 export type Bank = {
@@ -1546,7 +1548,11 @@ export type ToolBox = {
   tool: {
     serial: string;
     article: ToolArticle;
+    /** Quién la tiene si está fuera de la caja. */
+    holder?: import("@/types/general-article-individual").ToolHolder | null;
   }[];
+  /** Piezas de ferretería con identidad propia que guarda la caja. */
+  individuals?: import("@/types/general-article-individual").ToolBoxIndividual[];
 };
 
 export type Unit = {
@@ -2241,6 +2247,15 @@ export type GeneralArticle = {
    * repartido en piezas individuales y `quantity` es su equivalente en piezas.
    */
   dimension?: ArticleDimension | null;
+  /** Artículos individuales vigentes y los que siguen en el almacén. */
+  individuals?: { total: number; stocked: number };
+  /** Solo el catálogo de formularios: los individuales disponibles para sacar. */
+  stocked_individuals?: {
+    id: number;
+    identifier: string;
+    status: string;
+    tool_box?: { id: number; name: string } | null;
+  }[];
 };
 
 /**

@@ -440,6 +440,8 @@ export interface ConfirmGeneralArticleIntakeResponse {
     description: string;
     resulting_quantity: number;
   };
+  /** Artículos individuales que se identificaron al confirmar; null si no se identificó ninguna. */
+  individuals?: { count: number; type: string } | null;
 }
 
 // Respuesta 422 de confirm() cuando el intake coincide en todo con un

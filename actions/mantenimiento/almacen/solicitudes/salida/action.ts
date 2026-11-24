@@ -28,6 +28,8 @@ interface IDispatchRequestAction {
     general_article_id: number;
     quantity: number;
     unit_id?: number | null;
+    /** Identificados que salen; cuentan dentro de quantity. */
+    individual_ids?: number[];
   }[];
   user_id: number;
   aircraft_id?: string;
@@ -141,6 +143,8 @@ export const useCreateDispatchRequest = () => {
         queryClient.invalidateQueries({ queryKey: ["batches-in-warehouse"] });
         queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
         queryClient.invalidateQueries({ queryKey: ["general-articles"] });
+        queryClient.invalidateQueries({ queryKey: ["tool-boxes"] });
+        queryClient.invalidateQueries({ queryKey: ["tool-box-individuals"] });
       }
 
       notifyError(error, { action: "crear la solicitud" });
@@ -193,6 +197,8 @@ export const useUpdateStatusDispatchRequest = () => {
         queryClient.invalidateQueries({ queryKey: ["batches-in-warehouse"] });
         queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
         queryClient.invalidateQueries({ queryKey: ["general-articles"] });
+        queryClient.invalidateQueries({ queryKey: ["tool-boxes"] });
+        queryClient.invalidateQueries({ queryKey: ["tool-box-individuals"] });
       }
 
       notifyError(error, { action: "actualizar la solicitud" });
@@ -328,6 +334,8 @@ export const useCreateDispatchReturn = () => {
       // La devolución repone stock, así que el inventario en pantalla quedó viejo.
       queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
       queryClient.invalidateQueries({ queryKey: ["general-articles"] });
+      queryClient.invalidateQueries({ queryKey: ["tool-boxes"] });
+      queryClient.invalidateQueries({ queryKey: ["tool-box-individuals"] });
       queryClient.invalidateQueries({ queryKey: ["batches-in-warehouse"] });
 
       toast.success("¡Devolución registrada!", {

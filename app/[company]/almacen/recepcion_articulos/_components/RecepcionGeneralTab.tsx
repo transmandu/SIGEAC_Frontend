@@ -82,6 +82,12 @@ import { memo, useMemo, useState } from "react";
 import { PAGE_SIZES, TablePagination } from "@/components/misc/TablePagination";
 import { DownloadReportDialog } from "./DownloadReportDialog";
 import {
+  EMPTY_INDIVIDUALS_DRAFT,
+  individualsDraftError,
+  individualsPayload,
+  type IndividualIdentifiersDraft,
+} from "@/components/forms/mantenimiento/almacen/_components/IndividualIdentifiersField";
+import {
   ENTRY_TYPE_OPTIONS,
   ENTRY_TYPE_ROW_LABEL,
 } from "@/lib/intake-entry-type";
@@ -349,10 +355,30 @@ function ConfirmIntakeAction({ intake }: { intake: GeneralArticleIntake }) {
     EMPTY_INTAKE_DIMENSION,
   );
 
+  const [individualsDraft, setIndividualsDraft] =
+    useState<IndividualIdentifiersDraft>(EMPTY_INDIVIDUALS_DRAFT);
+  const [individualsError, setIndividualsError] = useState<string | null>(null);
+
+  const individualization = preview?.individualization;
+  const individualsAvailable = individualization?.status === "AVAILABLE";
+  const individualsEffective: IndividualIdentifiersDraft = {
+    ...individualsDraft,
+    type:
+      (individualization?.status === "AVAILABLE"
+        ? individualization.locked_type
+        : null) ?? individualsDraft.type,
+  };
+  const individualsInvalid =
+    activeExtra === "individuals" &&
+    individualsAvailable &&
+    individualsDraftError(individualsEffective, individualization.max) !== null;
+
   const handleActiveExtraChange = (next: IntakeExtra) => {
     setActiveExtra(next);
     setExtraConversions([]);
     setDimensionDraft(EMPTY_INTAKE_DIMENSION);
+    setIndividualsDraft(EMPTY_INDIVIDUALS_DRAFT);
+    setIndividualsError(null);
   };
 
   const canEditDate = useMemo(
@@ -379,6 +405,8 @@ function ConfirmIntakeAction({ intake }: { intake: GeneralArticleIntake }) {
       setConfirmedAt(new Date());
       setFallbackCandidate(null);
       setEquivalence("");
+      setIndividualsDraft(EMPTY_INDIVIDUALS_DRAFT);
+      setIndividualsError(null);
     }
     setOpen(next);
   };
@@ -397,11 +425,23 @@ function ConfirmIntakeAction({ intake }: { intake: GeneralArticleIntake }) {
         ),
         dimension:
           intakeDimensionPayload(dimensionDraft, activeExtra) ?? undefined,
+        individuals:
+          activeExtra === "individuals" && individualsAvailable
+            ? (individualsPayload(individualsEffective) ?? undefined)
+            : undefined,
       },
       {
         onSuccess: () => setOpen(false),
         onError: (error: any) => {
           const responseData = error?.response?.data;
+          const fieldErrors = responseData?.errors ?? {};
+          const individualsMessage = [
+            fieldErrors["individuals.identifiers"],
+            fieldErrors["individuals.type"],
+          ]
+            .flat()
+            .find(Boolean);
+          setIndividualsError(individualsMessage ?? null);
           if (isNeedsUnitConversionResponse(responseData)) {
             setFallbackCandidate(responseData.candidate);
           }
@@ -561,6 +601,13 @@ function ConfirmIntakeAction({ intake }: { intake: GeneralArticleIntake }) {
             onConversionsChange={setExtraConversions}
             dimension={dimensionDraft}
             onDimensionChange={setDimensionDraft}
+            individualization={individualization}
+            individuals={individualsDraft}
+            onIndividualsChange={(next) => {
+              setIndividualsDraft(next);
+              setIndividualsError(null);
+            }}
+            individualsError={individualsError}
             disabled={confirmGeneralArticleIntake.isPending}
           />
         )}
@@ -574,7 +621,8 @@ function ConfirmIntakeAction({ intake }: { intake: GeneralArticleIntake }) {
               confirmGeneralArticleIntake.isPending ||
               previewLoading ||
               (canEditDate && isBeforeArrival) ||
-              needsValidEquivalence
+              needsValidEquivalence ||
+              individualsInvalid
             }
             onClick={(e) => {
               // Radix cierra el diálogo al hacer click en Action; lo evitamos

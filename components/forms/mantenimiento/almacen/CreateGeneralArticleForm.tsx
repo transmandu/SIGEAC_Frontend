@@ -10,6 +10,7 @@ import {
   Image as ImageIcon,
   Package,
   Ruler,
+  ScanBarcode,
   Scale,
   Tag,
   X,
@@ -46,6 +47,7 @@ import {
 import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits";
 import { useGetGeneralArticles } from "@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticles";
 import { GeneralArticle } from "@/types";
+import { parseIdentifiers } from "@/types/general-article-individual";
 import {
   BaseUnitChangeNotice,
   EMPTY_BASE_UNIT_CHANGE,
@@ -57,6 +59,7 @@ import {
   ConsumableConversionsField,
   type ConsumableConversionInput,
 } from "@/components/forms/mantenimiento/almacen/ConsumableConversionsField";
+import { useGetGeneralArticleIndividuals } from "@/hooks/mantenimiento/almacen/almacen_general/useGeneralArticleIndividuals";
 import { useGetConversionByGeneralArticle } from "@/hooks/mantenimiento/almacen/articulos/useGetConvertionsByGeneralArticleId";
 import {
   DimensionFields,
@@ -64,6 +67,13 @@ import {
   dimensionPayload,
   type DimensionDraft,
 } from "./_components/DimensionFields";
+import { FormIndividualsSection } from "./_components/FormIndividualsSection";
+import {
+  EMPTY_INDIVIDUALS_DRAFT,
+  individualsDraftError,
+  individualsPayload,
+  type IndividualIdentifiersDraft,
+} from "./_components/IndividualIdentifiersField";
 import { NumericInput } from "./_components/NumericInput";
 import {
   applyServerFieldErrors,
@@ -335,6 +345,69 @@ const CreateGeneralArticleForm = ({
   // decisión que acompaña al payload.
   const [dimension, setDimension] = useState<DimensionDraft>(EMPTY_DIMENSION);
 
+  // Artículos de la existencia que se identifican al guardar. Tampoco es un
+  // campo del formulario; el error del servidor se borra al tocar el borrador.
+  const [individuals, setIndividuals] = useState<IndividualIdentifiersDraft>(
+    EMPTY_INDIVIDUALS_DRAFT,
+  );
+  const [individualsError, setIndividualsError] = useState<string | null>(null);
+
+  const { data: individualsData, isLoading: individualsLoading } =
+    useGetGeneralArticleIndividuals(isEditing ? (initialData?.id ?? null) : null);
+  const individualsSummary = individualsData?.summary;
+
+  // Dimensiones e identificación no se combinan: un artículo medido por
+  // dimensiones no se individualiza y uno con artículos individuales no pasa a
+  // dimensiones. Cada tarjeta dice por qué no está disponible cuando la otra
+  // ya está en uso.
+  const hasProfile = !!initialData?.dimension;
+  const hasIndividuals = !!individualsSummary?.type;
+  const selectedUnit = units?.find((u) => String(u.id) === String(watchedUnitId));
+
+  // Se están escribiendo identificadores: es lo que impide medir por dimensiones.
+  const identifying = parseIdentifiers(individuals.text).length > 0;
+
+  // Lo que hace falta para dimensionar: una unidad base habilitada para
+  // medidas y piezas enteras que hoy no se identifican una por una. Un
+  // artículo ya dimensionado no vuelve a pasar por aquí. Al editar cuenta la
+  // existencia guardada: la cantidad del formulario no se envía.
+  const quantityNow = Number(isEditing ? initialData?.quantity : watchedQuantity) || 0;
+  const dimensionBlocked = hasProfile
+    ? null
+    : hasIndividuals
+      ? "Tiene artículos individuales: deles de baja o devuélvalos antes."
+      : identifying
+        ? "Se están identificando artículos uno por uno: no se mide por dimensiones."
+        : !selectedUnit
+          ? "Seleccione primero la unidad base."
+          : !selectedUnit.is_dimensional
+            ? `${selectedUnit.label} no está habilitada para medidas: elija una unidad que sí lo esté o márquela en Ajustes › Unidades.`
+            : quantityNow < 1 || !Number.isInteger(quantityNow)
+              ? "Indique primero la cantidad de piezas: un número entero, mínimo 1."
+              : null;
+
+  const dimensionActive = (hasProfile || dimension.enabled) && !dimensionBlocked;
+
+  // Se mide por dimensiones solo si de verdad está activo: con la casilla
+  // marcada pero bloqueada (sin cantidad, por ejemplo) no puede impedir
+  // identificar, o ninguna de las dos tarjetas se podría usar.
+  const individualsBlocked = onlyDescription
+    ? "No disponible en esta edición."
+    : dimensionActive
+      ? "Se mide por dimensiones: no se individualiza."
+      : isEditing && individualsSummary && !individualsSummary.individualizable
+        ? individualsSummary.blocker
+        : null;
+  const individualsActive = !individualsBlocked;
+
+  const individualsInvalid =
+    individualsActive &&
+    individualsDraftError(
+      individuals,
+      // Al editar el tope lo fija el servidor (lo que queda sin identificar).
+      isEditing ? Infinity : Math.floor(watchedQuantity || 0),
+    ) !== null;
+
   const { data: existingConversions } = useGetConversionByGeneralArticle(
     isEditing ? (initialData?.id ?? null) : null,
     selectedCompany?.slug,
@@ -405,6 +478,11 @@ const CreateGeneralArticleForm = ({
 
   const onSubmit = async (values: FormValues) => {
     if (!selectedCompany?.slug) return;
+
+    // Solo viaja lo del modo elegido: lo escrito en otro quedó sin efecto.
+    const dimensionDraft = { ...dimension, enabled: dimensionActive };
+    const identified = individualsActive ? individualsPayload(individuals) : null;
+
     try {
       if (values.mode === "add") {
         if (!selectedArticle) return;
@@ -434,11 +512,14 @@ const CreateGeneralArticleForm = ({
           // Con cambio de base el backend reorienta las equivalencias; las
           // que viajan aquí siguen escritas contra la unidad anterior.
           conversions:
-            unitChanged && !unitChange.relabel ? undefined : conversions,
+            (unitChanged && !unitChange.relabel) || dimensionActive
+              ? undefined
+              : conversions,
           // Con perfil ya creado solo viajan las escalas de medida:
           // las medidas de la pieza no se pueden cambiar.
           dimension:
-            dimensionPayload(dimension, !!initialData?.dimension) ?? undefined,
+            dimensionPayload(dimensionDraft, hasProfile) ?? undefined,
+          individuals: identified ?? undefined,
         });
       } else {
         await createGeneralArticle.mutateAsync({
@@ -459,14 +540,18 @@ const CreateGeneralArticleForm = ({
                 ? parseFloat(values.maximum_quantity.toFixed(2))
                 : undefined,
             image: imageFile,
-            conversions,
-            dimension: dimensionPayload(dimension) ?? undefined,
+            conversions: dimensionActive ? undefined : conversions,
+            dimension: dimensionPayload(dimensionDraft) ?? undefined,
+            individuals: identified ?? undefined,
           },
         });
       }
       if (onClose) onClose();
       else {
         form.reset();
+        setIndividuals(EMPTY_INDIVIDUALS_DRAFT);
+        setDimension(EMPTY_DIMENSION);
+        setConversions([]);
         setImageFile(null);
         setImageError(null);
         // El input nativo conserva el archivo aunque se limpie el estado.
@@ -478,6 +563,12 @@ const CreateGeneralArticleForm = ({
       const fieldErrors = serverFieldErrors(error);
       if (fieldErrors) {
         applyServerFieldErrors(form.setError, fieldErrors, FIELD_LABELS);
+
+        // Laravel nombra el error `individuals.identifiers`, `individuals.type`…
+        const individualsMessage = Object.entries(fieldErrors).find(
+          ([field]) => field.split(".")[0] === "individuals",
+        )?.[1]?.[0];
+        if (individualsMessage) setIndividualsError(individualsMessage);
       }
     }
   };
@@ -934,42 +1025,90 @@ const CreateGeneralArticleForm = ({
             </section>
           </div>
 
-          {/* Los dos ejes de medición, uno al lado del otro: cuántas hay
-                    (equivalencias) y cuánto mide cada una (dimensiones). */}
-          {/* items-start: sin él las celdas de una fila comparten altura,
-                    y al desplegarse dimensiones dejaba a conversiones estirada
-                    con un hueco vacío del mismo alto. */}
+          {/* 40/60: los artículos individuales a la izquierda; a la derecha,
+                apiladas, equivalencias y medición. Con medidas no hay
+                equivalencias (la cantidad son piezas y se despacha en trazos),
+                así que esa tarjeta desaparece al activarlas. */}
           {currentMode !== "add" && (
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 items-start">
-              <section className={sectionClass}>
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-10">
+              {/* Sin items-start: la tarjeta toma la altura de la columna de
+                    al lado y su contenido se centra en lo que sobra. */}
+              <section className={cn(sectionClass, "flex flex-col lg:col-span-4")}>
                 <SectionTitle
-                  icon={Scale}
-                  title="Equivalencias de unidad"
-                  hint="Opcional. Cuántas unidades base hay en otra presentación: 1 CAJA = 50 UNIDADES."
+                  icon={ScanBarcode}
+                  title="Identificar artículos"
+                  hint={
+                    isEditing
+                      ? "Identifique, uno por uno, los que aún no lo están."
+                      : "Identifique, uno por uno, los que entran."
+                  }
                 />
-                <ConsumableConversionsField
-                  units={units ?? []}
-                  baseUnitId={watchedUnitId ? Number(watchedUnitId) : undefined}
-                  value={conversions}
-                  onChange={setConversions}
-                  disabled={busy || (unitChanged && !unitChange.relabel)}
-                />
+                <div className="flex flex-1 flex-col justify-center">
+                  {individualsBlocked ? (
+                    <p className="text-center text-xs text-muted-foreground">
+                      {individualsBlocked}
+                    </p>
+                  ) : (
+                    <FormIndividualsSection
+                      editing={!!isEditing}
+                      loading={individualsLoading}
+                      summary={individualsSummary}
+                      types={individualsData?.types}
+                      quantity={watchedQuantity || 0}
+                      draft={individuals}
+                      onChange={(next) => {
+                        setIndividuals(next);
+                        setIndividualsError(null);
+                      }}
+                      serverError={individualsError}
+                      disabled={busy}
+                      fieldClassName={fieldClass}
+                    />
+                  )}
+                </div>
               </section>
 
-              <section className={sectionClass}>
-                <SectionTitle
-                  icon={Ruler}
-                  title="Medición por dimensiones"
-                  hint="Opcional. Para material que se corta a la medida y se despacha en trazos."
-                />
-                <DimensionFields
-                  value={dimension}
-                  onChange={setDimension}
-                  quantity={watchedQuantity}
-                  existingProfile={initialData?.dimension}
-                  disabled={busy}
-                />
-              </section>
+              <div className="flex min-w-0 flex-col gap-4 lg:col-span-6">
+                {!dimensionActive && (
+                  <section className={sectionClass}>
+                    <SectionTitle
+                      icon={Scale}
+                      title="Equivalencias de unidad"
+                      hint="Opcional. Cuántas unidades base hay en otra presentación: 1 CAJA = 50 UNIDADES."
+                    />
+                    <ConsumableConversionsField
+                      units={units ?? []}
+                      baseUnitId={
+                        watchedUnitId ? Number(watchedUnitId) : undefined
+                      }
+                      value={conversions}
+                      onChange={setConversions}
+                      disabled={busy || (unitChanged && !unitChange.relabel)}
+                    />
+                  </section>
+                )}
+
+                <section className={sectionClass}>
+                  <SectionTitle
+                    icon={Ruler}
+                    title="Medición por dimensiones"
+                    hint="Opcional. Para material que se corta a la medida y se despacha en trazos."
+                  />
+                  {dimensionBlocked ? (
+                    <p className="text-xs text-muted-foreground">
+                      {dimensionBlocked}
+                    </p>
+                  ) : (
+                    <DimensionFields
+                      value={dimension}
+                      onChange={setDimension}
+                      quantity={watchedQuantity}
+                      existingProfile={initialData?.dimension}
+                      disabled={busy}
+                    />
+                  )}
+                </section>
+              </div>
             </div>
           )}
         </div>
@@ -994,6 +1133,7 @@ const CreateGeneralArticleForm = ({
             disabled={
               busy ||
               unitChangeBlocked ||
+              individualsInvalid ||
               (currentMode === "add" && !selectedArticle)
             }
             className="min-w-35"
