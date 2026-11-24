@@ -41,6 +41,9 @@ const RecepcionGeneralPage = () => {
           ?.toLowerCase()
           .includes(q) ||
         i.registered_by?.toLowerCase().includes(q) ||
+        `${i.handed_to_employee?.first_name ?? ""} ${i.handed_to_employee?.last_name ?? ""}`
+          .toLowerCase()
+          .includes(q) ||
         i.warehouse?.name?.toLowerCase().includes(q) ||
         i.department?.name?.toLowerCase().includes(q) ||
         i.third_party?.name?.toLowerCase().includes(q) ||

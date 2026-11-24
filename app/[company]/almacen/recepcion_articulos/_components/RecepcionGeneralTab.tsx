@@ -929,8 +929,21 @@ const IntakeRow = memo(function IntakeRow({
         </TableCell>
 
         <TableCell>
-          <span className="text-xs text-muted-foreground uppercase">
-            {intake.registered_by}
+          <span className="text-[11px] text-muted-foreground">
+            <strong>Por:</strong>
+            <br />
+            <span className="uppercase">{intake.registered_by}</span>
+            {intake.handed_to_employee && (
+              <>
+                <br />
+                <strong>A:</strong>
+                <br />
+                <span className="uppercase">
+                  {intake.handed_to_employee.first_name}{" "}
+                  {intake.handed_to_employee.last_name}
+                </span>
+              </>
+            )}
           </span>
         </TableCell>
 
@@ -1032,7 +1045,10 @@ export function RecepcionGeneralTab() {
         i.purchase_order?.quote_order?.requisition_order?.order_number
           ?.toLowerCase()
           .includes(q) ||
-        i.registered_by?.toLowerCase().includes(q),
+        i.registered_by?.toLowerCase().includes(q) ||
+        `${i.handed_to_employee?.first_name ?? ""} ${i.handed_to_employee?.last_name ?? ""}`
+          .toLowerCase()
+          .includes(q),
     );
   }, [intakes, statusFilter, entryTypeFilter, search]);
 
@@ -1174,7 +1190,7 @@ export function RecepcionGeneralTab() {
               <TableHead className="text-xs">Cantidad</TableHead>
               <TableHead className="text-xs">Solicitud de Compra</TableHead>
               <TableHead className="text-xs">Llegada</TableHead>
-              <TableHead className="text-xs">Entregado por</TableHead>
+              <TableHead className="text-xs">Entrega</TableHead>
               <TableHead className="text-xs">Estado</TableHead>
               <TableHead className="text-xs">Acciones</TableHead>
             </TableRow>
