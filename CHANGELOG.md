@@ -1,3 +1,7 @@
+## v4.116.0 — 2026-11-25
+
+- feat: new implements in everywhere (#421)
+
 ## v4.115.1 — 2026-11-20
 
 - fix(sms): repair drill evaluation form and standardize date inputs (#420)
