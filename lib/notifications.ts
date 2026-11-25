@@ -26,6 +26,7 @@ import {
   Truck,
   Undo2,
   Warehouse,
+  Wrench,
   BadgeDollarSign,
   type LucideIcon,
 } from "lucide-react";
@@ -129,17 +130,27 @@ export const NOTIFICATION_TONE_STYLES: Record<
 
 /**
  * Áreas por las que se puede filtrar la bandeja. Son las mismas que usa el
- * catálogo de Ajustes → Notificaciones in-app (Almacén, Compras, Operaciones,
- * SMS), más "Sistema" para los avisos técnicos que solo ve el superusuario.
+ * catálogo de Ajustes → Notificaciones in-app (Almacén, Calidad, Ingeniería,
+ * Compras, Operaciones, SMS), más "Sistema" para los avisos técnicos que solo
+ * ve el superusuario. El área es el módulo donde quien recibe el aviso lo
+ * resuelve, no el módulo donde ocurrió el hecho.
  */
 export type NotificationArea =
-  "warehouse" | "purchasing" | "operations" | "sms" | "system";
+  | "warehouse"
+  | "quality"
+  | "engineering"
+  | "purchasing"
+  | "operations"
+  | "sms"
+  | "system";
 
 export const NOTIFICATION_AREAS: Record<
   NotificationArea,
   { label: string; icon: LucideIcon }
 > = {
   warehouse: { label: "Almacén", icon: Warehouse },
+  quality: { label: "Calidad", icon: ShieldCheck },
+  engineering: { label: "Ingeniería", icon: Wrench },
   purchasing: { label: "Compras", icon: ShoppingCart },
   operations: { label: "Operaciones", icon: PackageOpen },
   sms: { label: "SMS", icon: ShieldAlert },
@@ -148,6 +159,8 @@ export const NOTIFICATION_AREAS: Record<
 
 const AREA_ORDER: NotificationArea[] = [
   "warehouse",
+  "quality",
+  "engineering",
   "purchasing",
   "operations",
   "sms",
@@ -163,9 +176,22 @@ const AREA_BY_CLASS: Record<string, NotificationArea> = {
   SafetyReportCreatedNotification: "sms",
 };
 
+/**
+ * El orden importa: gana la primera que coincide, así que lo específico va
+ * antes que su familia (`ARTICLE_QUARANTINED` antes de `ARTICLE_`).
+ */
 const AREA_BY_TYPE: [RegExp, NotificationArea][] = [
   [
-    /^(ARTICLE_|DISPATCH_RETURN|ENGINEERING_CHECK|GENERAL_ARTICLE_INTAKE|INCOMING_BLOCKED|LOCATION_TRANSFER|QUARANTINE_)/,
+    /^(ARTICLE_QUARANTINED|ARTICLE_TO_DETERMINATE|QUARANTINE_|INCOMING_BLOCKED_PURCHASING)/,
+    "purchasing",
+  ],
+  [
+    /^(ARTICLE_STATUS_CHANGED_INCOMING|ARTICLE_INCOMING_REMINDER|ARTICLE_READY_FOR_REINSPECTION)/,
+    "quality",
+  ],
+  [/^ENGINEERING_CHECK_REQUESTED/, "engineering"],
+  [
+    /^(ARTICLE_|DISPATCH_RETURN|ENGINEERING_CHECK|GENERAL_ARTICLE_INTAKE|INCOMING_BLOCKED|LOCATION_TRANSFER|REQUISITION_STATUS_CHANGED)/,
     "warehouse",
   ],
   [/^(REQUISITION_|QUOTE_)/, "purchasing"],
@@ -173,15 +199,28 @@ const AREA_BY_TYPE: [RegExp, NotificationArea][] = [
   [/^(MAIL_CHANNEL|REPLICA_|ERROR_REPORT)/, "system"],
 ];
 
+interface AreaSource {
+  type?: string;
+  data?: { type?: string; url?: string };
+}
+
 /**
  * `null` = un aviso que aún no se clasificó: no se inventa un área, solo
  * queda fuera de los filtros por área (sigue en "Todas").
  */
-export const notificationArea = (notification: {
-  type?: string;
-  data?: { type?: string };
-}): NotificationArea | null => {
+export const notificationArea = (
+  notification: AreaSource,
+): NotificationArea | null => {
   const dataType = (notification.data?.type ?? "").toUpperCase();
+
+  // El recordatorio de artículos retenidos es un solo tipo con dos audiencias;
+  // solo la URL (compras o recepción) dice a cuál pertenece.
+  if (dataType === "INCOMING_BLOCKED_REMINDER") {
+    return notification.data?.url?.includes("/compras/")
+      ? "purchasing"
+      : "warehouse";
+  }
+
   const byType = AREA_BY_TYPE.find(([pattern]) => pattern.test(dataType));
   if (byType) return byType[1];
 
@@ -209,10 +248,7 @@ export interface NotificationFacets {
  * esa audiencia) nunca aparece como filtro.
  */
 export const notificationFacets = (
-  notifications: {
-    type?: string;
-    data?: { type?: string };
-  }[],
+  notifications: AreaSource[],
 ): NotificationFacets => {
   const areas = new Map<NotificationArea, number>();
   const tones = new Map<NotificationTone, number>();
