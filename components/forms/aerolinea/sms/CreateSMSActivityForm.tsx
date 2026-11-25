@@ -1,5 +1,6 @@
 "use client";
 
+import { companyNow } from "@/lib/date";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -202,7 +203,7 @@ export default function CreateSMSActivityForm({
         ? parseServerDate(initialData.start_date)
         : selectedDate
           ? parseServerDate(selectedDate)
-          : new Date(),
+          : companyNow(),
       end_date: initialData?.end_date
         ? parseServerDate(initialData.end_date)
         : undefined,
@@ -256,7 +257,7 @@ export default function CreateSMSActivityForm({
         activity_number: initialData.activity_number || "",
         start_date: initialData.start_date
           ? parseServerDate(initialData.start_date)
-          : new Date(),
+          : companyNow(),
         end_date: initialData.end_date
           ? parseServerDate(initialData.end_date)
           : undefined,

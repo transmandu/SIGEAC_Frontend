@@ -21,7 +21,7 @@ import {
 
 import { zodResolver } from "@/lib/zod-resolver";
 import { cn } from "@/lib/utils";
-import { parseCalendarDate, toCalendarPayload } from "@/lib/date";
+import { companyNow, parseCalendarDate, toCalendarPayload } from "@/lib/date";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DatePickerField } from "@/components/ui/DatePickerField";
@@ -478,7 +478,7 @@ export default function DrillEvaluationForm({
       number: initialData?.number ?? "",
       date: initialData?.date
         ? parseCalendarDate(initialData.date)
-        : new Date(),
+        : companyNow(),
       start_time: toTimeInput(initialData?.start_time),
       end_time: toTimeInput(initialData?.end_time),
       emergency: initialData?.emergency ?? "",
