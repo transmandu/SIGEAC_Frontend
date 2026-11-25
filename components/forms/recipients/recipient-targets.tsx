@@ -1,5 +1,6 @@
 "use client";
 
+import { departmentLabel } from "@/lib/departments";
 import { useMemo } from "react";
 import {
   AtSign,
@@ -124,7 +125,7 @@ export function useRecipientTargetOptions() {
       })),
       DEPARTMENT: flattenDepartments(departments ?? []).map((department) => ({
         id: String(department.id),
-        label: department.name,
+        label: departmentLabel(department),
       })),
       EMAIL: [],
     }),
