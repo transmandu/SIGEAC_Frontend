@@ -169,8 +169,7 @@ export const PaxFlightForm = ({
     initialData?.cargo_manifest_id || null,
   );
 
-  const hasCargoType =
-    flightType === "CARGO_ONLY" || flightType === "HYBRID";
+  const hasCargoType = flightType === "CARGO_ONLY" || flightType === "HYBRID";
   const hasLinkedCargo = hasCargoType && !!cargoManifestId;
 
   // Pasajeros
@@ -290,9 +289,11 @@ export const PaxFlightForm = ({
     [availableManifests, initialData?.cargo_manifest_id],
   );
 
-  const cargoFlightData: (Partial<AvailableCargoManifestSummary> & {
-    cargo_manifest_number?: string | null;
-  }) | null = hasLinkedCargo
+  const cargoFlightData:
+    | (Partial<AvailableCargoManifestSummary> & {
+        cargo_manifest_number?: string | null;
+      })
+    | null = hasLinkedCargo
     ? (selectedCargoManifest ?? initialData ?? null)
     : null;
 
@@ -331,9 +332,10 @@ export const PaxFlightForm = ({
   const linkedFirstOfficerId = cargoFlightData?.first_officer_id
     ? Number(cargoFlightData.first_officer_id)
     : null;
-  const linkedExternalFirstOfficerId = cargoFlightData?.external_first_officer_id
-    ? Number(cargoFlightData.external_first_officer_id)
-    : null;
+  const linkedExternalFirstOfficerId =
+    cargoFlightData?.external_first_officer_id
+      ? Number(cargoFlightData.external_first_officer_id)
+      : null;
 
   // Al elegir un manifiesto también se actualiza el estado de los campos, para
   // que si el usuario vuelve a PAX los selects conserven esos mismos valores.
@@ -342,8 +344,7 @@ export const PaxFlightForm = ({
     const manifest =
       (availableManifests as AvailableCargoManifestSummary[] | undefined)?.find(
         (m) => m.id === id,
-      ) ??
-      (id === initialData?.cargo_manifest_id ? initialData : null);
+      ) ?? (id === initialData?.cargo_manifest_id ? initialData : null);
     if (!manifest) return;
 
     if (manifest.external_aircraft) {
@@ -875,7 +876,9 @@ export const PaxFlightForm = ({
               <Select
                 disabled={!!cargoFlightData}
                 value={
-                  displayExternalCaptainId ? String(displayExternalCaptainId) : ""
+                  displayExternalCaptainId
+                    ? String(displayExternalCaptainId)
+                    : ""
                 }
                 onValueChange={(val) =>
                   handleCaptainChange("external", Number(val))
@@ -1110,7 +1113,8 @@ export const PaxFlightForm = ({
                   <span>Ver Manifiesto</span>
                 </Button>
               </div>
-              {(fieldErrors.cargo_manifest_id || fieldErrors.manifest_updated_at) && (
+              {(fieldErrors.cargo_manifest_id ||
+                fieldErrors.manifest_updated_at) && (
                 <p className="text-xs text-destructive">
                   {fieldErrors.cargo_manifest_id ??
                     fieldErrors.manifest_updated_at}

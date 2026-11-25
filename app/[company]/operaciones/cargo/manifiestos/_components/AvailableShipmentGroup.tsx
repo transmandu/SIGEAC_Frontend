@@ -45,7 +45,8 @@ export function AvailableShipmentGroup({
   const someSelected = availItems.some((i: any) => newSelections.has(i.id));
   // El backend sirve el estado en mayúsculas; las claves del config son minúsculas.
   const status =
-    statusConfig[shipment.manifest_status?.toLowerCase()] ?? statusConfig.pending;
+    statusConfig[shipment.manifest_status?.toLowerCase()] ??
+    statusConfig.pending;
   const aircraftLabel =
     shipment.aircraft?.acronym ?? shipment.external_aircraft ?? "N/A";
 

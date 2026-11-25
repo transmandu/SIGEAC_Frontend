@@ -92,7 +92,9 @@ export default function CreateCargoShipmentForm({
   const isExternalMode =
     (searchParams.get("external") === "true" && !aircraftIdFromUrl) ||
     initialData?.aircraft?.is_external === true ||
-    (!!initialData && !initialData.aircraft_id && !!initialData.external_aircraft);
+    (!!initialData &&
+      !initialData.aircraft_id &&
+      !!initialData.external_aircraft);
 
   const { data: externalSuggestions, isLoading: loadingExternalSuggestions } =
     useGetExternalAircraftSuggestions(company);

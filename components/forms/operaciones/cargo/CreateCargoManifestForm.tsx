@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useMemo, useState } from "react";
@@ -325,9 +324,7 @@ export default function CreateCargoManifestForm({
         onError: (error) => {
           const fieldErrors = serverFieldErrors(error);
           if (fieldErrors) {
-            setServerErrors(
-              Object.values(fieldErrors).flat().filter(Boolean),
-            );
+            setServerErrors(Object.values(fieldErrors).flat().filter(Boolean));
           }
           // El toast lo muestra notifyError en la acción.
         },
@@ -409,7 +406,6 @@ export default function CreateCargoManifestForm({
                       </span>
                     )}
 
-
                     <Link
                       href={`/${company}/operaciones/cargo/guia/${shipment.id}`}
                       onClick={(e) => e.stopPropagation()}
@@ -417,7 +413,6 @@ export default function CreateCargoManifestForm({
                     >
                       {shipment.guide_number}
                     </Link>
-
 
                     <span className="text-sm text-muted-foreground">
                       {shipment.client?.name ?? "Sin cliente"}

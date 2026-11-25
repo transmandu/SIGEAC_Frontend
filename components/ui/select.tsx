@@ -111,8 +111,9 @@ const SelectLabel = React.forwardRef<
 ));
 SelectLabel.displayName = SelectPrimitive.Label.displayName;
 
-interface SelectItemProps
-  extends React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item> {
+interface SelectItemProps extends React.ComponentPropsWithoutRef<
+  typeof SelectPrimitive.Item
+> {
   /** Contenido extra a la derecha; no forma parte del texto del trigger. */
   endAdornment?: React.ReactNode;
   /** Dato a la derecha de la opción (p. ej. una cantidad); no se copia al botón del selector. */
