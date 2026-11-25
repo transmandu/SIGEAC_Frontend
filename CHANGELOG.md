@@ -1,3 +1,10 @@
+## v4.117.0 — 2026-11-25
+
+- Merge pull request #427 from transmandu/fox/operation-module
+- style: formato automatico (prettier)
+- fix(viewer): drop unsupported suspense prop from react-pdf Document
+- feat(operations): link cargo manifests into pax flight workflow
+
 ## v4.116.2 — 2026-11-25
 
 - chore(deps): update dependencies and adjust pdfjs-dist version (#426)
