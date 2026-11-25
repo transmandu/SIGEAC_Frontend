@@ -27,6 +27,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
+import { formatCalendarDate } from "@/lib/date";
 
 const STATUS_CONFIG: Record<
   string,
@@ -73,17 +74,8 @@ export const StatusBadge = ({ status }: { status?: string }) => {
  * getUTC* extrae el día en UTC, que es el día real del registro y evita el
  * corrimiento de un día al convertir a la zona horaria local.
  */
-const formatRegistrationDate = (dateStr?: string) => {
-  if (!dateStr) return "—";
-  const date = parseISO(dateStr);
-  if (!isValid(date)) return "—";
-  const localDate = new Date(
-    date.getUTCFullYear(),
-    date.getUTCMonth(),
-    date.getUTCDate(),
-  );
-  return format(localDate, "dd/MM/yyyy");
-};
+const formatRegistrationDate = (dateStr?: string) =>
+  formatCalendarDate(dateStr, "date", "—");
 
 const ActionsCell = ({ row, isCurrentMonth, company, canWrite }: any) => {
   const shipment = row.original;

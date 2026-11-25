@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  isUnitaryCategory,
+  UNITARY_UNIT_LABEL,
+} from "@/lib/purchases/requisition-measure";
 import { useState } from "react";
 import Link from "next/link";
 import {
@@ -122,7 +126,10 @@ const BatchArticleRow = ({ article }: { article: ArticleQuoteOrder }) => {
 
   const quantityChanged =
     req != null && Number(req.quantity) !== Number(article.quantity);
+  // Componente, parte y herramienta son entidades únicas: no llevan unidad.
+  const hasUnit = !isUnitaryCategory(req?.batch?.category);
   const unitChanged =
+    hasUnit &&
     req?.unit?.label != null &&
     article.unit?.label != null &&
     req.unit.label !== article.unit.label;
@@ -212,8 +219,8 @@ const BatchArticleRow = ({ article }: { article: ArticleQuoteOrder }) => {
             Cant.{" "}
             <span className="font-medium tabular-nums text-foreground/80">
               {article.quantity}
-            </span>{" "}
-            {article.unit?.label ?? ""}
+            </span>
+            {` ${hasUnit ? (article.unit?.label ?? "") : UNITARY_UNIT_LABEL}`}
           </span>
           <span className="text-muted-foreground">
             P/U{" "}
@@ -252,12 +259,14 @@ const BatchArticleRow = ({ article }: { article: ArticleQuoteOrder }) => {
             quoted={article.quantity}
             changed={quantityChanged}
           />
-          <CompareRow
-            label="Unidad"
-            requested={req?.unit?.label}
-            quoted={article.unit?.label}
-            changed={unitChanged}
-          />
+          {hasUnit && (
+            <CompareRow
+              label="Unidad"
+              requested={req?.unit?.label}
+              quoted={article.unit?.label}
+              changed={unitChanged}
+            />
+          )}
         </div>
       )}
     </div>

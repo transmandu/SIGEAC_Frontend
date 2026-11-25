@@ -38,6 +38,7 @@ import {
   useReprintCargoManifest,
   downloadManifestPdf,
 } from "@/actions/cargo/manifestActions";
+import FormattedInstant from "@/components/misc/FormattedInstant";
 
 const ActionsCell = ({
   row,
@@ -170,14 +171,11 @@ export const getManifestColumns = (
     cell: ({ row }) => {
       const dateStr = row.original.created_at;
       if (!dateStr) return <div className="text-center">-</div>;
-      const date = new Date(dateStr);
-      if (isNaN(date.getTime())) return <div className="text-center">-</div>;
-      const formattedDate = date.toLocaleDateString("es-ES", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      });
-      return <div className="text-center">{formattedDate}</div>;
+      return (
+        <div className="text-center">
+          <FormattedInstant value={dateStr} format="date" fallback="-" />
+        </div>
+      );
     },
   },
   {

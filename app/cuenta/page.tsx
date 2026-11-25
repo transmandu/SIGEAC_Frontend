@@ -24,6 +24,7 @@ import { cuentaSteps } from "@/components/tour/steps/cuenta";
 import ProfileCompanies from "./_components/ProfileCompanies";
 import ProfileCover from "./_components/ProfileCover";
 import { ProfileField, ProfileSection } from "./_components/ProfileSection";
+import { fullName } from "@/lib/person-name";
 
 // El diálogo sólo existe tras un clic: no entra en el bundle inicial del perfil.
 const RequestPasswordResetDialog = dynamic(
@@ -60,7 +61,7 @@ const AccountPage = () => {
   const employeeName = useMemo(() => {
     if (!employee) return null;
 
-    return [employee.first_name, employee.last_name].filter(Boolean).join(" ");
+    return fullName(employee);
   }, [employee]);
 
   if (loading) return <LoadingPage />;

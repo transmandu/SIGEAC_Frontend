@@ -9,6 +9,7 @@ import {
 import { setupCrossTabSync } from "@/lib/cross-tab-sync";
 import { describeApiError, type ApiErrorKind } from "@/lib/api-error";
 import { notifyError } from "@/lib/notify-error";
+import CompanyTimezoneSync from "@/components/misc/CompanyTimezoneSync";
 
 /**
  * Fallos de una consulta que la pantalla no puede explicar por su cuenta: la
@@ -86,6 +87,7 @@ const QueryClientProvider = ({ children }: Props) => {
 
   return (
     <RQQueryClientProvider client={queryClient}>
+      <CompanyTimezoneSync />
       {children}
     </RQQueryClientProvider>
   );

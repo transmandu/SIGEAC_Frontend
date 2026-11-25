@@ -18,6 +18,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits";
+import {
+  isConsumableCategory,
+  isUnitaryCategory,
+} from "@/lib/purchases/requisition-measure";
 import { useDebounce } from "@/lib/useDebounce";
 import type { RequisitionBatchForm } from "@/types/purchase";
 import { RequisitionHeader } from "./_components/RequisitionHeader";
@@ -26,50 +30,104 @@ import { AdditionalInfoSection } from "./_components/AdditionalInfoSection";
 import { isHigherPriority, type Priority } from "./_components/priorityUtils";
 import { canAddRequisitionArticle } from "@/lib/purchases/requisition-article-limit";
 import FormActions from "@/components/forms/mantenimiento/compras/_components/FormActions";
+import { fullName } from "@/lib/person-name";
 
-const FormSchema = z.object({
-  justification: z
-    .string({ message: "La justificación debe ser válida." })
-    .min(2, { message: "La justificación debe ser válida." }),
-  company: z.string(),
-  location_id: z.string(),
-  created_by: z.string(),
-  requested_by: z.string().min(1, "Debe ingresar quien lo solicita."),
-  priority: z.enum(["HIGH", "MEDIUM", "LOW"]).optional(),
-  work_order_id: z.string().optional(),
-  work_order: z.string().optional(),
-  aircraft_id: z.string().optional(),
-  image: z
-    .instanceof(File)
-    .refine((file) => file.size <= 5 * 1024 * 1024, "Max 5MB")
-    .refine(
-      (file) => ["image/jpeg", "image/png"].includes(file.type),
-      "Solo JPEG/PNG",
-    )
-    .optional(),
-  articles: z
-    .array(
-      z.object({
-        batch: z.string(),
-        batch_name: z.string(),
-        batch_articles: z.array(
-          z.object({
-            part_number: z.string().min(1, "El número de parte es obligatorio"),
-            alt_part_number: z.string().optional(),
-            quantity: z.number().min(1, "Debe ingresar una cantidad válida"),
-            unit: z.string().optional(),
-            aircraft_id: z.string().optional(),
-            priority: z.enum(["HIGH", "MEDIUM", "LOW"]).optional(),
-            image: z.any().optional(),
-            document_type_ids: z
-              .array(z.number())
-              .min(1, "Debe seleccionar al menos un tipo de documento"),
-          }),
-        ),
-      }),
-    )
-    .min(1, "Debe agregar al menos un artículo"),
-});
+const FormSchema = z
+  .object({
+    justification: z
+      .string({ message: "La justificación debe ser válida." })
+      .min(2, { message: "La justificación debe ser válida." }),
+    company: z.string(),
+    location_id: z.string(),
+    created_by: z.string(),
+    requested_by: z.string().min(1, "Debe ingresar quien lo solicita."),
+    priority: z.enum(["HIGH", "MEDIUM", "LOW"]).optional(),
+    work_order_id: z.string().optional(),
+    work_order: z.string().optional(),
+    aircraft_id: z.string().optional(),
+    image: z
+      .instanceof(File)
+      .refine((file) => file.size <= 5 * 1024 * 1024, "Max 5MB")
+      .refine(
+        (file) => ["image/jpeg", "image/png"].includes(file.type),
+        "Solo JPEG/PNG",
+      )
+      .optional(),
+    articles: z
+      .array(
+        z.object({
+          batch: z.string(),
+          batch_name: z.string(),
+          batch_category: z.string().optional(),
+          batch_articles: z.array(
+            z.object({
+              part_number: z
+                .string()
+                .min(1, "El número de parte es obligatorio"),
+              alt_part_number: z.string().optional(),
+              quantity: z.number().min(1, "Debe ingresar una cantidad válida"),
+              unit: z.string().optional(),
+              aircraft_id: z.string().optional(),
+              priority: z.enum(["HIGH", "MEDIUM", "LOW"]).optional(),
+              image: z.any().optional(),
+              document_type_ids: z.array(z.number()),
+            }),
+          ),
+        }),
+      )
+      .min(1, "Debe agregar al menos un artículo"),
+  })
+  .superRefine((values, ctx) => {
+    values.articles.forEach((group, groupIndex) => {
+      // Un consumible se mide en una unidad; componente, parte y herramienta
+      // son entidades únicas y su cantidad cuenta artículos enteros.
+      group.batch_articles.forEach((line, lineIndex) => {
+        if (isConsumableCategory(group.batch_category) && !line.unit) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Indique la unidad",
+            path: ["articles", groupIndex, "batch_articles", lineIndex, "unit"],
+          });
+        }
+
+        // La documentación es obligatoria salvo en el consumible, que puede
+        // pasar sin ella (lo que sí exige es la orden de compra).
+        if (
+          !isConsumableCategory(group.batch_category) &&
+          line.document_type_ids.length === 0
+        ) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Debe seleccionar al menos un tipo de documento",
+            path: [
+              "articles",
+              groupIndex,
+              "batch_articles",
+              lineIndex,
+              "document_type_ids",
+            ],
+          });
+        }
+
+        if (
+          isUnitaryCategory(group.batch_category) &&
+          !Number.isInteger(line.quantity)
+        ) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "La cantidad debe ser un número entero",
+            path: [
+              "articles",
+              groupIndex,
+              "batch_articles",
+              lineIndex,
+              "quantity",
+            ],
+          });
+        }
+      });
+    });
+  });
 
 type FormSchemaType = z.infer<typeof FormSchema>;
 
@@ -152,8 +210,7 @@ export function CreateAeronauticalRequisitionForm({ onClose }: FormProps) {
     const query = employeeSearch.toLowerCase().trim();
     if (!query) return employees;
     return employees.filter((emp) => {
-      const searchText =
-        `${emp.first_name} ${emp.last_name} ${emp.dni}`.toLowerCase();
+      const searchText = `${fullName(emp)} ${emp.dni}`.toLowerCase();
       return searchText.includes(query);
     });
   }, [employees, employeeSearch]);
@@ -197,18 +254,6 @@ export function CreateAeronauticalRequisitionForm({ onClose }: FormProps) {
       priority: "MEDIUM",
     },
   });
-
-  const getDefaultUnit = (category: string) => {
-    const unidadUnit = units?.find(
-      (u) =>
-        u.label.toUpperCase() === "UNIDAD" ||
-        u.value.toUpperCase() === "UNIDAD",
-    );
-    return (category === "componente" || category === "herramienta") &&
-      unidadUnit
-      ? unidadUnit.id.toString()
-      : undefined;
-  };
 
   useEffect(() => {
     if (user && selectedCompany && selectedStation) {
@@ -283,7 +328,6 @@ export function CreateAeronauticalRequisitionForm({ onClose }: FormProps) {
             {
               part_number: "",
               quantity: 1,
-              unit: getDefaultUnit(batch_category),
               priority: "MEDIUM",
               aircraft_id: headerAircraftId,
               document_type_ids: [],
@@ -302,7 +346,6 @@ export function CreateAeronauticalRequisitionForm({ onClose }: FormProps) {
   ) => {
     const batchId = batch.id.toString();
     const altPartNumber = article.alternative_part_number?.[0] ?? "";
-    const unit = getDefaultUnit(batch.category);
 
     // Pre-selección: los documentos que el inventario ya espera para este
     // artículo se marcan como documentación a solicitar al vendedor.
@@ -327,7 +370,6 @@ export function CreateAeronauticalRequisitionForm({ onClose }: FormProps) {
                 part_number: article.part_number,
                 alt_part_number: altPartNumber,
                 quantity: 1,
-                unit,
                 priority: "MEDIUM",
                 aircraft_id: headerAircraftId,
                 document_type_ids: documentTypeIds,
@@ -357,7 +399,6 @@ export function CreateAeronauticalRequisitionForm({ onClose }: FormProps) {
                 part_number: article.part_number,
                 alt_part_number: altPartNumber,
                 quantity: 1,
-                unit,
                 priority: "MEDIUM",
                 aircraft_id: headerAircraftId,
                 document_type_ids: documentTypeIds,
@@ -373,7 +414,6 @@ export function CreateAeronauticalRequisitionForm({ onClose }: FormProps) {
                   ...a,
                   part_number: article.part_number,
                   alt_part_number: altPartNumber,
-                  unit,
                   document_type_ids: documentTypeIds,
                 }
               : a,
@@ -418,7 +458,6 @@ export function CreateAeronauticalRequisitionForm({ onClose }: FormProps) {
             {
               part_number: "",
               quantity: 1,
-              unit: getDefaultUnit(batch.batch_category ?? ""),
               priority: "MEDIUM",
               aircraft_id: headerAircraftId,
               document_type_ids: [],

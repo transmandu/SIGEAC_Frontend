@@ -62,6 +62,7 @@ import {
 } from "./RequisitionSection";
 import { PriorityChoice } from "./PriorityChoice";
 import { labelClass } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
+import { fullName } from "@/lib/person-name";
 
 interface GeneralArticlesSectionProps {
   form: UseFormReturn<any>;
@@ -362,9 +363,7 @@ function DestinationFieldsRow({
               )}
             >
               <span className="truncate">
-                {selectedEmployee
-                  ? `${selectedEmployee.first_name} ${selectedEmployee.last_name}`
-                  : "Opcional"}
+                {selectedEmployee ? fullName(selectedEmployee) : "Opcional"}
               </span>
               <ChevronsUpDown className="ml-1 h-3 w-3 shrink-0 opacity-50" />
             </Button>
@@ -395,7 +394,7 @@ function DestinationFieldsRow({
                 <CommandGroup>
                   {destinationEmployees?.map((employee) => (
                     <CommandItem
-                      value={`${employee.id} ${employee.first_name} ${employee.last_name}`}
+                      value={`${employee.id} ${fullName(employee)}`}
                       key={employee.id}
                       onSelect={(currentValue: string) => {
                         const id = currentValue.split(" ")[0];
@@ -410,7 +409,7 @@ function DestinationFieldsRow({
                             : "opacity-0",
                         )}
                       />
-                      {employee.first_name} {employee.last_name}
+                      {fullName(employee)}
                     </CommandItem>
                   ))}
                 </CommandGroup>

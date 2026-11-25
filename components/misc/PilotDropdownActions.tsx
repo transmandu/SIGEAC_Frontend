@@ -13,6 +13,7 @@ import { UpdatePilotForm } from "@/components/forms/general/UpdatePilotForm";
 import { Dialog } from "@/components/ui/dialog";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Pilot } from "@/types";
+import { fullName as personName } from "@/lib/person-name";
 
 const PilotDropdownActions = ({ pilot }: { pilot: Pilot }) => {
   const [openEdit, setOpenEdit] = useState(false);
@@ -20,8 +21,7 @@ const PilotDropdownActions = ({ pilot }: { pilot: Pilot }) => {
   const { deletePilot } = useDeletePilot();
   const { selectedCompany } = useCompanyStore();
 
-  const fullName =
-    `${pilot.employee?.first_name ?? ""} ${pilot.employee?.last_name ?? ""}`.trim();
+  const fullName = personName(pilot.employee);
 
   const actions: RowAction[] = [
     {

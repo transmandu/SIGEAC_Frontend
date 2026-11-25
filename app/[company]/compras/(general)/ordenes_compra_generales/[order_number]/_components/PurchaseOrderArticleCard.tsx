@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  isUnitaryCategory,
+  UNITARY_UNIT_LABEL,
+} from "@/lib/purchases/requisition-measure";
 import { PurchaseLineTransitUpdates } from "@/app/[company]/compras/_components/PurchaseLineTransitUpdates";
 import { Badge } from "@/components/ui/badge";
 import type {
@@ -63,6 +67,8 @@ const PurchaseOrderArticleCard = ({
 
   const quoteArticle = article.article_quote_order;
   const req = quoteArticle?.article_requisition_order;
+  // Componente, parte y herramienta son entidades únicas: no llevan unidad.
+  const hasUnit = !isUnitaryCategory(req?.batch?.category);
   const unitLabel = quoteArticle?.unit?.label ?? req?.unit?.label;
   const conditionName = quoteArticle?.condition?.name;
   const vendorName = quoteArticle?.vendor?.name;
@@ -124,7 +130,11 @@ const PurchaseOrderArticleCard = ({
             value={quoteArticle?.quantity}
             completed={isCompleted}
           />
-          <Field label="Unidad" value={unitLabel} completed={isCompleted} />
+          <Field
+            label="Unidad"
+            value={hasUnit ? unitLabel : UNITARY_UNIT_LABEL}
+            completed={isCompleted}
+          />
           <Field
             label="P. Unitario"
             value={`$${Number(quoteArticle?.unit_price || 0).toFixed(2)}`}

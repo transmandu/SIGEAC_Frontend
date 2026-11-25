@@ -36,6 +36,7 @@ import { es } from "date-fns/locale";
 import { CalendarIcon, FileText, Loader2, X } from "lucide-react";
 import Image from "next/image";
 import { SafetyBulletin } from "@/types";
+import { parseCalendarDate } from "@/lib/date";
 interface FormProps {
   onClose: (open: boolean) => void;
   initialData?: SafetyBulletin;
@@ -98,7 +99,7 @@ export function CreateSafetyBulletinForm({
       title: initialData?.title,
       description: initialData?.description,
       date: initialData?.date
-        ? addDays(new Date(initialData.date), 1)
+        ? parseCalendarDate(initialData.date)
         : selectedDate
           ? new Date(selectedDate)
           : undefined,

@@ -58,6 +58,8 @@ import Image from "next/image";
 import { useParams } from "next/navigation";
 import { PhoneInput } from "@/components/ui/PhoneInput";
 import { phoneSchema } from "@/lib/phone";
+import { fullName } from "@/lib/person-name";
+import { parseCalendarDate } from "@/lib/date";
 interface FormProps {
   isEditing?: boolean;
   initialData?: ObligatoryReport;
@@ -223,10 +225,10 @@ export function CreateGeneralObligatoryReportForm({
         : [],
       other_incidents: initialData?.other_incidents ?? "",
       report_date: initialData?.report_date
-        ? new Date(initialData?.report_date)
+        ? parseCalendarDate(initialData?.report_date)
         : new Date(),
       incident_date: initialData?.incident_date
-        ? new Date(initialData?.incident_date)
+        ? parseCalendarDate(initialData?.incident_date)
         : new Date(),
       email: initialData?.email ?? null,
       phone_number: initialData?.phone_number ?? null,
@@ -493,7 +495,7 @@ export function CreateGeneralObligatoryReportForm({
                     <SelectContent>
                       {pilots?.map((pilot) => (
                         <SelectItem key={pilot.id} value={pilot.id.toString()}>
-                          {pilot.employee.first_name} {pilot.employee.last_name}
+                          {fullName(pilot.employee)}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -529,7 +531,7 @@ export function CreateGeneralObligatoryReportForm({
                     <SelectContent>
                       {pilots?.map((pilot) => (
                         <SelectItem key={pilot.id} value={pilot.id.toString()}>
-                          {pilot.employee.first_name} {pilot.employee.last_name}
+                          {fullName(pilot.employee)}
                         </SelectItem>
                       ))}
                     </SelectContent>

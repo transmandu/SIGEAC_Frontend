@@ -58,6 +58,12 @@ import { EventDetailDialog } from "./EventDetailDialog";
 import { EventPill } from "./EventPill";
 import { MonthGrid } from "./MonthGrid";
 import { LocalCalendarEvent } from "./types";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import {
+  formatInstant,
+  toZonedWallClock,
+  zonedWallClockToUtcIso,
+} from "@/lib/date";
 
 const MANUAL_SOURCE_KEY = "manual";
 
@@ -81,8 +87,10 @@ function parseIsoDateLocal(iso: string): Date {
  * como día calendario y cualquier reinterpretación por huso puede correrlo.
  * Se manda la pared Y-M-D sin huso, que es lo único que significa un all_day.
  */
-function toBackendDate(date: Date, allDay: boolean): string {
-  if (!allDay) return date.toISOString();
+function toBackendDate(date: Date, allDay: boolean, timeZone: string): string {
+  // `date` es la hora de pared en la zona de la compañía (ver toZonedWallClock):
+  // se convierte al instante UTC que guarda el backend.
+  if (!allDay) return zonedWallClockToUtcIso(date, timeZone);
 
   const pad = (n: number) => String(n).padStart(2, "0");
 
@@ -97,6 +105,7 @@ function formatSidebarTime(event: LocalCalendarEvent): string {
 
 export function EventCalendar() {
   const router = useRouter();
+  const timeZone = useCompanyTimezone();
   const { selectedCompany } = useCompanyStore();
   const companySlug = selectedCompany?.slug;
   // Hoy solo SUPERUSER crea eventos manuales, así que es el único que puede
@@ -105,7 +114,7 @@ export function EventCalendar() {
   const canEdit = useIsSuperuser();
 
   const [currentMonth, setCurrentMonth] = useState(() =>
-    startOfMonth(new Date()),
+    startOfMonth(toZonedWallClock(new Date(), timeZone) ?? new Date()),
   );
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<
@@ -158,8 +167,13 @@ export function EventCalendar() {
         id: dto.id,
         title: dto.title,
         description: dto.description ?? undefined,
-        start: dto.all_day ? parseIsoDateLocal(dto.start) : new Date(dto.start),
-        end: dto.all_day ? parseIsoDateLocal(dto.end) : new Date(dto.end),
+        // Con hora = instante UTC: se lee como hora de pared de la compañía.
+        start: dto.all_day
+          ? parseIsoDateLocal(dto.start)
+          : (toZonedWallClock(dto.start, timeZone) ?? new Date(dto.start)),
+        end: dto.all_day
+          ? parseIsoDateLocal(dto.end)
+          : (toZonedWallClock(dto.end, timeZone) ?? new Date(dto.end)),
         sourceKey: dto.source_key,
         editable: dto.editable,
         display: dto.display,
@@ -167,7 +181,7 @@ export function EventCalendar() {
         url: dto.url,
         allDay: dto.all_day,
       })),
-    [eventDtos],
+    [eventDtos, timeZone],
   );
 
   // Etiqueta legible por filtro: las fuentes de sistema traen la suya propia;
@@ -249,8 +263,8 @@ export function EventCalendar() {
       data: {
         title: event.title,
         description: event.description,
-        start_at: toBackendDate(event.start, event.allDay ?? false),
-        end_at: toBackendDate(event.end, event.allDay ?? false),
+        start_at: toBackendDate(event.start, event.allDay ?? false, timeZone),
+        end_at: toBackendDate(event.end, event.allDay ?? false, timeZone),
         all_day: event.allDay ?? false,
       },
     });
@@ -269,8 +283,8 @@ export function EventCalendar() {
       data: {
         title: event.title,
         description: event.description,
-        start_at: toBackendDate(start, event.allDay ?? false),
-        end_at: toBackendDate(end, event.allDay ?? false),
+        start_at: toBackendDate(start, event.allDay ?? false, timeZone),
+        end_at: toBackendDate(end, event.allDay ?? false, timeZone),
         all_day: event.allDay ?? false,
       },
     });
@@ -354,7 +368,7 @@ export function EventCalendar() {
                   función) — la fecha de hoy es información útil siempre,
                   sin importar en qué mes esté parado el usuario. */}
               <span className="text-xs text-muted-foreground">
-                {format(new Date(), "dd/MM/yyyy")}
+                {formatInstant(new Date(), timeZone, "date")}
               </span>
               <div className="flex items-center gap-1">
                 <Button

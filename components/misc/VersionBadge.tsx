@@ -14,16 +14,11 @@ import {
   type ApiVersion,
 } from "@/lib/version";
 import { useEffect, useState } from "react";
-
-const formatDate = (value: string | null) => {
-  if (!value) return null;
-
-  const parsed = new Date(value);
-
-  return Number.isNaN(parsed.getTime()) ? null : parsed.toLocaleString();
-};
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import { formatInstant } from "@/lib/date";
 
 const VersionBadge = () => {
+  const timeZone = useCompanyTimezone();
   const [api, setApi] = useState<ApiVersion | null>(null);
   const [unreachable, setUnreachable] = useState(false);
 
@@ -39,7 +34,7 @@ const VersionBadge = () => {
     };
   }, []);
 
-  const builtAt = formatDate(APP_BUILT_AT);
+  const builtAt = formatInstant(APP_BUILT_AT, timeZone, "dateTime", "");
 
   return (
     <TooltipProvider>

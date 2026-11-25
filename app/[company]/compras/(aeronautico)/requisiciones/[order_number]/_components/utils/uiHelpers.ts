@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { formatCalendarDate } from "@/lib/date";
+import { formatCalendarDate, formatInstant } from "@/lib/date";
 
 export const priorityLabel = (priority?: string) => {
   switch (priority) {
@@ -131,7 +131,8 @@ export const requisitionTypeLabel = (type?: string) => {
   }
 };
 
-// Fecha de calendario: se muestra tal cual, sin convertir de zona.
+// `submission_date` es un instante (datetime): se lee en la zona de la compañía.
 export const formatSolicitudDate = (
-  date?: string | Date | null,
-): string | undefined => formatCalendarDate(date, "dd MMM yyyy", "—");
+  date: string | Date | null | undefined,
+  timeZone: string,
+): string => formatInstant(date, timeZone, "dd MMM yyyy", "—");

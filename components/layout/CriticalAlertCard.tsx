@@ -178,7 +178,7 @@ function StockAlertCard({
               )}
               {/* En tránsito no se confirma una compra evidente: se insiste sobre
                   algo ya pedido, y la etiqueta debe decirlo. */}
-              {isInTransit ? "Pedir igual" : "Sí"}
+              {alert.confirmLabel ?? (isInTransit ? "Pedir igual" : "Sí")}
             </Button>
           )}
         </div>

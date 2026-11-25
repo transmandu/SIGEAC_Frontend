@@ -38,6 +38,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { AttendanceData } from "@/hooks/sms/useGetActivityAttendanceList";
+import { fullName } from "@/lib/person-name";
 import { cn } from "@/lib/utils";
 
 type IconComponent = ComponentType<{ className?: string }>;
@@ -86,9 +87,6 @@ export function StatusBadge({ status }: { status?: string | null }) {
     </Badge>
   );
 }
-
-export const initialsOf = (firstName?: string, lastName?: string) =>
-  `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase() || "?";
 
 export const initialsFromName = (name?: string | null) =>
   (name ?? "")
@@ -338,9 +336,7 @@ export const filterAttendance = (
   if (!term) return list;
 
   return list.filter((row) => {
-    const name = `${row.employee?.first_name ?? ""} ${
-      row.employee?.last_name ?? ""
-    }`.toLowerCase();
+    const name = fullName(row.employee).toLowerCase();
     const dni = (row.employee?.dni ?? row.employee_dni ?? "").toLowerCase();
 
     return name.includes(term) || dni.includes(term);
@@ -462,8 +458,7 @@ export function RosterSection({
                 {rows.map((row, index) => {
                   const firstName = row.employee?.first_name ?? "";
                   const lastName = row.employee?.last_name ?? "";
-                  const fullName =
-                    `${firstName} ${lastName}`.trim() || "Sin nombre";
+                  const displayName = fullName(row.employee, "Sin nombre");
                   const dni = row.employee?.dni || row.employee_dni || "";
                   const isExternal = row.employee_type === "authorized";
 
@@ -487,7 +482,7 @@ export function RosterSection({
                           />
                           <div className="min-w-0">
                             <p className="truncate text-sm font-medium text-foreground">
-                              {fullName}
+                              {displayName}
                             </p>
                             <p className="font-mono text-[11px] tracking-wide text-muted-foreground">
                               DNI {dni || "N/A"}

@@ -23,8 +23,10 @@ import {
 } from "./_components/utils/uiHelpers";
 import { isAeronauticalPurchaseOrder } from "@/lib/purchases/purchase-order-scope";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
 
 const PurchaseOrderPage = () => {
+  const timeZone = useCompanyTimezone();
   const { selectedCompany } = useCompanyStore();
   const { order_number } = useParams<{ order_number: string }>();
 
@@ -115,7 +117,7 @@ const PurchaseOrderPage = () => {
 
             <MetaItem
               label="Fecha de compra"
-              value={formatPurchaseDate(data?.purchase_date)}
+              value={formatPurchaseDate(data?.purchase_date, timeZone)}
               icon={CalendarDays}
             />
 

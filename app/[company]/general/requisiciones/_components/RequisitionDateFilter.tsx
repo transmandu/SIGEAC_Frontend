@@ -27,6 +27,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { companyNow } from "@/lib/date";
 
 /** yyyy-MM-dd en hora local: toISOString() correría la fecha un día. */
 export const toISODate = (date: Date) =>
@@ -126,8 +127,8 @@ export default function RequisitionDateFilter({ column, title }: Props) {
                 label: "7D",
                 tooltip: "Últimos 7 días",
                 fn: () => {
-                  const end = new Date();
-                  const start = new Date();
+                  const end = companyNow();
+                  const start = companyNow();
                   start.setDate(end.getDate() - 6);
                   applyPreset(start, end);
                 },
@@ -136,8 +137,8 @@ export default function RequisitionDateFilter({ column, title }: Props) {
                 label: "30D",
                 tooltip: "Últimos 30 días",
                 fn: () => {
-                  const end = new Date();
-                  const start = new Date();
+                  const end = companyNow();
+                  const start = companyNow();
                   start.setDate(end.getDate() - 29);
                   applyPreset(start, end);
                 },
@@ -146,7 +147,7 @@ export default function RequisitionDateFilter({ column, title }: Props) {
                 label: "MES",
                 tooltip: "Mes actual",
                 fn: () => {
-                  const today = new Date();
+                  const today = companyNow();
                   applyPreset(
                     new Date(today.getFullYear(), today.getMonth(), 1),
                     today,

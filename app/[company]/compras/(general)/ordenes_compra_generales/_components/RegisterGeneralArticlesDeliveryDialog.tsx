@@ -25,7 +25,11 @@ import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import { CheckboxCard } from "@/components/forms/mantenimiento/almacen/_components/CheckboxCard";
-import { selectTriggerClass } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
+import {
+  labelClass,
+  selectTriggerClass,
+} from "@/components/forms/mantenimiento/almacen/_components/form-theme";
+import { Label } from "@/components/ui/label";
 import { DateTimeField } from "@/components/misc/DateTimeField";
 import {
   SearchableSelect,
@@ -44,12 +48,14 @@ import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment
 import { useGetEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetEmployees";
 import { useGetExternalEmployees } from "@/hooks/ajustes/convenios/useGetExternalEmployees";
 import { useGetThirdParties } from "@/hooks/general/terceros/useGetThirdParties";
+import { useGetWarehousesEmployees } from "@/hooks/mantenimiento/almacen/empleados/useGetWarehousesEmployees";
 import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { toZonedWallClock, zonedWallClockToUtcIso } from "@/lib/date";
 import { cn } from "@/lib/utils";
 import { useResettingState } from "@/hooks/useResettingState";
 import type { PurchaseOrder } from "@/types/purchase";
+import { fullName } from "@/lib/person-name";
 
 // Destino de la entrega: el almacén (flujo normal, intake PENDING que el
 // almacén confirma) o una entrega directa afiliada a un departamento,
@@ -118,6 +124,7 @@ export default function RegisterGeneralArticlesDeliveryDialog({
   const [destinationType, setDestinationType] =
     useState<DestinationType>("WAREHOUSE");
   const [destinationId, setDestinationId] = useState<string>("");
+  const [handedToId, setHandedToId] = useState<string>("");
 
   const { data: warehouses, isLoading: isWarehousesLoading } =
     useGetWarehousesByLocation({
@@ -135,6 +142,21 @@ export default function RegisterGeneralArticlesDeliveryDialog({
     );
   const { data: thirdParties, isLoading: isThirdPartiesLoading } =
     useGetThirdParties();
+  const { data: warehouseStaff, isLoading: isWarehouseStaffLoading } =
+    useGetWarehousesEmployees(
+      open ? company : undefined,
+      selectedStation ? String(selectedStation) : null,
+    );
+
+  // Quién del almacén recibió la mercancía en mano. No es quien confirma el
+  // ingreso: sirve para rastrear la entrada si nadie la confirma.
+  const warehouseStaffOptions: SearchableOption[] = (warehouseStaff ?? []).map(
+    (employee) => ({
+      value: employee.id.toString(),
+      label: fullName(employee),
+      description: employee.dni || undefined,
+    }),
+  );
 
   // Solo los almacenes de tipo GENERAL de la estación activa son destinos
   // válidos para artículos generales.
@@ -191,7 +213,7 @@ export default function RegisterGeneralArticlesDeliveryDialog({
       case "EMPLOYEE":
         return (employees ?? []).map((employee) => ({
           value: employee.id.toString(),
-          label: `${employee.first_name} ${employee.last_name}`,
+          label: fullName(employee),
           description: employee.dni || undefined,
         }));
       case "AUTHORIZED":
@@ -228,9 +250,11 @@ export default function RegisterGeneralArticlesDeliveryDialog({
       ? "Marque al menos un artículo."
       : resolvedDestinationId === ""
         ? "Elija el destino de la entrega."
-        : !arrivedAt
-          ? "Indique la fecha de llegada."
-          : null;
+        : !isDirectDelivery && handedToId === ""
+          ? "Indique a quién del almacén le entregó la mercancía."
+          : !arrivedAt
+            ? "Indique la fecha de llegada."
+            : null;
 
   const canSubmit =
     blocker === null && !registerGeneralArticlesDelivery.isPending;
@@ -242,7 +266,9 @@ export default function RegisterGeneralArticlesDeliveryDialog({
 
     const destination: GeneralArticlesDeliveryDestination = {
       locationId: selectedStation ?? undefined,
-      ...(destinationType === "WAREHOUSE" ? { warehouseId: id } : {}),
+      ...(destinationType === "WAREHOUSE"
+        ? { warehouseId: id, handedToEmployeeId: Number(handedToId) }
+        : {}),
       ...(destinationType === "DEPARTMENT" ? { departmentId: id } : {}),
       ...(destinationType === "EMPLOYEE" ? { employeeId: id } : {}),
       ...(destinationType === "AUTHORIZED" ? { authorizedEmployeeId: id } : {}),
@@ -399,6 +425,28 @@ export default function RegisterGeneralArticlesDeliveryDialog({
                   triggerClassName={cn(pickerClass, "flex-1")}
                 />
               </div>
+
+              {!isDirectDelivery && (
+                <div className="space-y-1.5">
+                  <Label className={labelClass}>
+                    Entregado a (personal de almacén)
+                  </Label>
+                  <SearchableSelect
+                    value={handedToId}
+                    onChange={setHandedToId}
+                    loading={isWarehouseStaffLoading}
+                    options={warehouseStaffOptions}
+                    placeholder="Seleccione a quién del almacén se le entregó"
+                    searchPlaceholder="Buscar..."
+                    emptyText="No hay personal de almacén activo en esta estación."
+                    triggerClassName={pickerClass}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Quien recibe la mercancía en mano; puede ser distinto de
+                    quien confirme después el ingreso.
+                  </p>
+                </div>
+              )}
 
               {isDirectDelivery && (
                 <div className="flex items-start gap-2.5 rounded-xl border border-sky-300/70 bg-sky-50 p-3.5 text-[13px] leading-relaxed text-sky-900 motion-safe:animate-reveal dark:border-sky-800/60 dark:bg-sky-950/40 dark:text-sky-200">

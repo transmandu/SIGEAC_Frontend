@@ -10,8 +10,11 @@ import "react-pdf/dist/Page/TextLayer.css";
 // El worker sale del paquete instalado. Antes los tres visores lo bajaban de
 // unpkg, así que el visor "seguro" dependía de un tercero en tiempo de
 // ejecución y quedaba pegado a una versión escrita a mano en la URL.
+// Es el worker `legacy`: el estándar de pdfjs 6 usa Uint8Array.prototype.toHex
+// sin polyfill (Chrome 140, Firefox 133, Safari 18.2) y en un navegador más
+// viejo falla con cualquier PDF. La versión es la misma que la de la librería.
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  "pdfjs-dist/build/pdf.worker.min.mjs",
+  "pdfjs-dist/legacy/build/pdf.worker.min.mjs",
   import.meta.url,
 ).toString();
 
@@ -62,7 +65,9 @@ export function SecurePdfViewerContent({
     window.addEventListener("resize", measure);
 
     const observer =
-      typeof ResizeObserver === "undefined" ? null : new ResizeObserver(measure);
+      typeof ResizeObserver === "undefined"
+        ? null
+        : new ResizeObserver(measure);
     observer?.observe(element);
 
     return () => {
@@ -78,11 +83,13 @@ export function SecurePdfViewerContent({
     const element = scrollRef.current;
     if (!element) return;
 
-    const middle = element.getBoundingClientRect().top + element.clientHeight / 2;
+    const middle =
+      element.getBoundingClientRect().top + element.clientHeight / 2;
     let visible = 1;
 
     pageRefs.current.forEach((page, index) => {
-      if (page && page.getBoundingClientRect().top <= middle) visible = index + 1;
+      if (page && page.getBoundingClientRect().top <= middle)
+        visible = index + 1;
     });
 
     setCurrentPage(visible);
@@ -100,9 +107,7 @@ export function SecurePdfViewerContent({
       <div
         data-tour={toolbarTour}
         className={`flex items-center justify-between border-b px-4 py-2 ${
-          isDark
-            ? "border-gray-800 bg-[#1a1c1e]"
-            : "border-gray-200 bg-gray-50"
+          isDark ? "border-gray-800 bg-[#1a1c1e]" : "border-gray-200 bg-gray-50"
         }`}
       >
         <div className="flex items-center gap-2">
@@ -160,8 +165,11 @@ export function SecurePdfViewerContent({
         onScroll={handleScroll}
         className={`flex-1 overflow-auto ${isDark ? "bg-[#0b0c0d]" : "bg-gray-100"}`}
       >
+        {/* Desde react-pdf 11 Document suspende y manda los fallos al Error
+            Boundary; sin suspense={false} se ignoran loading y error. */}
         <Document
           file={fileUrl}
+          suspense={false}
           onLoadSuccess={({ numPages: total }) => {
             setNumPages(total);
             pageRefs.current = Array.from({ length: total }, () => null);

@@ -34,6 +34,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import type { Employee } from "@/types";
 import { EmployeeFormFields } from "./EmployeeFormFields";
 import { EmployeeUserPicker, type UserOption } from "./EmployeeUserPicker";
+import { fullName } from "@/lib/person-name";
 import {
   buildEmployeeSchema,
   diffEmployee,
@@ -97,7 +98,7 @@ export function UpdateEmployeeForm({
       .map((user) => ({
         id: String(user.id),
         label: user.username,
-        detail: `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim(),
+        detail: `${fullName(user)}`.trim(),
       }));
 
     // La lista de usuarios puede no incluir al vinculado: no se pierde.

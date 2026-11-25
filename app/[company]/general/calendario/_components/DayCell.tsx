@@ -12,6 +12,8 @@ import {
 import { cn } from "@/lib/utils";
 import { EventPill } from "./EventPill";
 import { LocalCalendarEvent } from "./types";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import { toZonedWallClock } from "@/lib/date";
 
 /** Más de esto y el resto se oculta detrás de "+N más" — evita que una celda con muchos eventos empuje el alto de toda la fila. */
 const MAX_VISIBLE_PILLS = 3;
@@ -36,8 +38,13 @@ export function DayCell({
   onSelectEvent,
 }: DayCellProps) {
   const { setNodeRef, isOver } = useDroppable({ id: dayKey });
+  const timeZone = useCompanyTimezone();
 
-  const isToday = isSameDay(day, new Date());
+  // "Hoy" es el día de la compañía, no el del navegador.
+  const isToday = isSameDay(
+    day,
+    toZonedWallClock(new Date(), timeZone) ?? new Date(),
+  );
   const inCurrentMonth =
     day.getMonth() === monthStart.getMonth() &&
     day.getFullYear() === monthStart.getFullYear();

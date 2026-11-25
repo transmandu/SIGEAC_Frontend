@@ -3,6 +3,7 @@ import { format, startOfYear } from "date-fns";
 import axiosInstance from "@/lib/axios";
 import { toast } from "sonner";
 import { notifyBlobError } from "@/lib/notify-error";
+import { companyNow } from "@/lib/date";
 
 /**
  * Hook para generar y descargar el reporte PDF de "Capacitación de empleados
@@ -14,7 +15,7 @@ export function useEmployeeTrainingReport(
   company?: string,
 ) {
   const [reportFrom, setReportFrom] = useState<Date | undefined>(
-    startOfYear(new Date()),
+    startOfYear(companyNow()),
   );
   const [reportTo, setReportTo] = useState<Date | undefined>(new Date());
   const [isGenerating, setIsGenerating] = useState(false);

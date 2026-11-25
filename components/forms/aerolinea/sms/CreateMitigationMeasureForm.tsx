@@ -36,6 +36,7 @@ import {
 import { MitigationMeasure } from "@/types";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Textarea } from "@/components/ui/textarea";
+import { parseCalendarDate } from "@/lib/date";
 
 const FormSchema = z.object({
   description: z.string().min(3),
@@ -71,12 +72,8 @@ interface FormProps {
   initialData?: MitigationMeasure;
 }
 
-const parseDateLocal = (dateValue: string | Date) => {
-  if (!dateValue) return new Date();
-  const date = new Date(dateValue);
-  // getTimezoneOffset() devuelve la diferencia en minutos, la convertimos a milisegundos y se la sumamos
-  return new Date(date.getTime() + date.getTimezoneOffset() * 60000);
-};
+const parseDateLocal = (dateValue: string | Date) =>
+  parseCalendarDate(dateValue) ?? new Date();
 
 export default function CreateMitigationMeasureForm({
   onClose,
@@ -199,7 +196,7 @@ export default function CreateMitigationMeasureForm({
                         variant={"outline"}
                         className={cn(
                           "w-full pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
+                          !field.value && "text-muted-foreground",
                         )}
                       >
                         {field.value ? (
@@ -243,7 +240,7 @@ export default function CreateMitigationMeasureForm({
                         variant={"outline"}
                         className={cn(
                           "w-full pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
+                          !field.value && "text-muted-foreground",
                         )}
                       >
                         {field.value ? (
@@ -282,7 +279,8 @@ export default function CreateMitigationMeasureForm({
         <Button
           type="submit"
           disabled={
-            createMitigationMeasure.isPending || updateMitigationMeasure.isPending
+            createMitigationMeasure.isPending ||
+            updateMitigationMeasure.isPending
           }
         >
           {isEditing ? "Actualizar" : "Crear"}

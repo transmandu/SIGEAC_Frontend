@@ -65,6 +65,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import FolderSelect from "@/components/library/FolderSelect";
 import { PhoneInput } from "@/components/ui/PhoneInput";
 import { phoneSchema } from "@/lib/phone";
+import { fullName } from "@/lib/person-name";
+import { parseCalendarDate, companyNow } from "@/lib/date";
 
 export function CreateObligatoryReportForm({
   onClose,
@@ -262,10 +264,10 @@ export function CreateObligatoryReportForm({
       email: initialData?.email ?? null,
       phone_number: initialData?.phone_number ?? null,
       report_date: initialData?.report_date
-        ? new Date(initialData?.report_date)
+        ? parseCalendarDate(initialData?.report_date)
         : new Date(),
       incident_date: initialData?.incident_date
-        ? new Date(initialData?.incident_date)
+        ? parseCalendarDate(initialData?.incident_date)
         : new Date(),
       flight_time: initialData?.flight_time
         ? initialData.flight_time.substring(0, 5) // Extraemos solo HH:mm
@@ -497,7 +499,7 @@ export function CreateObligatoryReportForm({
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
-                      disabled={(date) => date > new Date()} // Solo deshabilitar fechas futuras
+                      disabled={(date) => date > companyNow()} // Solo deshabilitar fechas futuras
                       autoFocus
                       startMonth={new Date(1980, 0)} // Año mínimo que se mostrará
                       endMonth={new Date(new Date().getFullYear(), 11)} // Año máximo (actual)
@@ -541,7 +543,7 @@ export function CreateObligatoryReportForm({
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
-                      disabled={(date) => date > new Date()} // Solo deshabilitar fechas futuras
+                      disabled={(date) => date > companyNow()} // Solo deshabilitar fechas futuras
                       autoFocus
                       startMonth={new Date(1980, 0)} // Año mínimo que se mostrará
                       endMonth={new Date(new Date().getFullYear(), 11)} // Año máximo (actual)
@@ -624,7 +626,7 @@ export function CreateObligatoryReportForm({
                     <SelectContent>
                       {pilots?.map((pilot) => (
                         <SelectItem key={pilot.id} value={pilot.id.toString()}>
-                          {pilot.employee.first_name} {pilot.employee.last_name}
+                          {fullName(pilot.employee)}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -660,7 +662,7 @@ export function CreateObligatoryReportForm({
                     <SelectContent>
                       {pilots?.map((pilot) => (
                         <SelectItem key={pilot.id} value={pilot.id.toString()}>
-                          {pilot.employee.first_name} {pilot.employee.last_name}
+                          {fullName(pilot.employee)}
                         </SelectItem>
                       ))}
                     </SelectContent>

@@ -1,24 +1,24 @@
-"use client"
+"use client";
 
 import { type AppColumnDef } from "@/lib/table";
 
-import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
+import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip"
+} from "@/components/ui/tooltip";
 
-import RolesDialog from "@/components/dialogs/general/RolesDialog"
-import UserDropdownActions from "@/components/dropdowns/ajustes/UserDropdownActions"
-import { Badge } from "@/components/ui/badge"
-import { User } from "@/types"
-import { useState } from "react"
-import UserStatusButton  from "@/components/misc/UserStatusButton"
-import { Info } from "lucide-react"
-import Link from "next/link"
-
+import RolesDialog from "@/components/dialogs/general/RolesDialog";
+import UserDropdownActions from "@/components/dropdowns/ajustes/UserDropdownActions";
+import { Badge } from "@/components/ui/badge";
+import { User } from "@/types";
+import { fullName } from "@/lib/person-name";
+import { useState } from "react";
+import UserStatusButton from "@/components/misc/UserStatusButton";
+import { Info } from "lucide-react";
+import Link from "next/link";
 
 export const columns: AppColumnDef<User>[] = [
   {
@@ -26,7 +26,7 @@ export const columns: AppColumnDef<User>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader filter column={column} title="Nombre" />
     ),
-    cell: ({ row }) =>
+    cell: ({ row }) => (
       <div className="flex items-center justify-center">
         <TooltipProvider>
           <Tooltip>
@@ -35,7 +35,7 @@ export const columns: AppColumnDef<User>[] = [
                 href={`/sistema/usuarios_permisos/usuarios/${row.original.id}`}
                 className="text-center font-medium hover:text-black hover:underline transition-colors"
               >
-                {row.original.first_name} {row.original.last_name}
+                {fullName(row.original)}
               </Link>
             </TooltipTrigger>
             <TooltipContent>
@@ -44,6 +44,7 @@ export const columns: AppColumnDef<User>[] = [
           </Tooltip>
         </TooltipProvider>
       </div>
+    ),
   },
   {
     accessorKey: "username",
@@ -51,13 +52,13 @@ export const columns: AppColumnDef<User>[] = [
       <DataTableColumnHeader filter column={column} title="Usuario" />
     ),
     cell: ({ row }) => {
-      const item = row.original
+      const item = row.original;
       return (
         <div className="flex items-center justify-center">
           <p className="font-bold">{item.username}</p>
         </div>
-      )
-    }
+      );
+    },
   },
   {
     accessorKey: "email",
@@ -65,13 +66,13 @@ export const columns: AppColumnDef<User>[] = [
       <DataTableColumnHeader filter column={column} title="Email" />
     ),
     cell: ({ row }) => {
-      const item = row.original
+      const item = row.original;
       return (
         <div className="flex items-center justify-center">
           <p className="text-muted-foreground">{item.email}</p>
         </div>
-      )
-    }
+      );
+    },
   },
   {
     accessorKey: "isActive",
@@ -91,19 +92,16 @@ export const columns: AppColumnDef<User>[] = [
       </div>
     ),
     cell: ({ row }) => {
-      const item = row.original
+      const item = row.original;
 
-      const isActive = Number(item.isActive) === 1
+      const isActive = Number(item.isActive) === 1;
 
       return (
         <div className="flex items-center justify-center">
-          <UserStatusButton
-            userId={Number(item.id)}
-            isActive={isActive}
-          />
+          <UserStatusButton userId={Number(item.id)} isActive={isActive} />
         </div>
-      )
-    }
+      );
+    },
   },
   {
     accessorKey: "roles",
@@ -111,7 +109,7 @@ export const columns: AppColumnDef<User>[] = [
       <DataTableColumnHeader column={column} title="Roles" />
     ),
     cell: ({ row }) => {
-      const item = row.original
+      const item = row.original;
 
       const CHART_DOTS = [
         "bg-[hsl(var(--chart-1))]",
@@ -119,60 +117,74 @@ export const columns: AppColumnDef<User>[] = [
         "bg-[hsl(var(--chart-3))]",
         "bg-[hsl(var(--chart-4))]",
         "bg-[hsl(var(--chart-5))]",
-      ]
+      ];
 
       if (!item.roles || item.roles.length === 0) {
         return (
           <div className="flex items-center justify-center">
-            <span className="text-xs italic text-muted-foreground/50">Sin roles asignados</span>
+            <span className="text-xs italic text-muted-foreground/50">
+              Sin roles asignados
+            </span>
           </div>
-        )
+        );
       }
 
       if (item.roles.length < 3) {
         return (
           <div className="flex flex-col gap-2 items-center">
             {item.roles.map((rol, idx) => {
-              const company = item.companies?.find((c) => String(c.id) === String(rol.company_id))
+              const company = item.companies?.find(
+                (c) => String(c.id) === String(rol.company_id),
+              );
               return (
                 <div key={rol.id} className="flex flex-col items-center gap-1">
                   {company && (
-                    <Badge variant="outline" className="text-[10px] gap-1 py-0 font-medium text-muted-foreground">
-                      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${CHART_DOTS[idx % CHART_DOTS.length]}`} />
+                    <Badge
+                      variant="outline"
+                      className="text-[10px] gap-1 py-0 font-medium text-muted-foreground"
+                    >
+                      <span
+                        className={`w-1.5 h-1.5 rounded-full shrink-0 ${CHART_DOTS[idx % CHART_DOTS.length]}`}
+                      />
                       {company.name}
                     </Badge>
                   )}
                   <Badge variant="secondary">{rol.label}</Badge>
                 </div>
-              )
+              );
             })}
           </div>
-        )
+        );
       }
 
       return (
         <div className="flex flex-col items-center gap-1.5">
           <div className="flex -space-x-1">
             {item.roles.slice(0, 3).map((rol, idx) => (
-              <span key={rol.id} className={`w-3 h-3 rounded-full border-2 border-background ${CHART_DOTS[idx % CHART_DOTS.length]}`} />
+              <span
+                key={rol.id}
+                className={`w-3 h-3 rounded-full border-2 border-background ${CHART_DOTS[idx % CHART_DOTS.length]}`}
+              />
             ))}
             {item.roles.length > 3 && (
               <span className="w-3 h-3 rounded-full border-2 border-background bg-muted-foreground/40" />
             )}
           </div>
-          <RolesDialog names={`${item.first_name} ${item.last_name}`} roles={item.roles} companies={item.companies} />
+          <RolesDialog
+            names={fullName(item)}
+            roles={item.roles}
+            companies={item.companies}
+          />
         </div>
-      )
+      );
     },
   },
   {
     id: "actions",
     cell: ({ row }) => {
-      const user = row.original
-      const companies = row.original.companies
-      return (
-        <UserDropdownActions user={user} companies={companies} />
-      )
+      const user = row.original;
+      const companies = row.original.companies;
+      return <UserDropdownActions user={user} companies={companies} />;
     },
   },
-]
+];

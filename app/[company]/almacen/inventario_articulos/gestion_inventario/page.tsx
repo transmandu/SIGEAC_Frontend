@@ -50,6 +50,8 @@ import {
   buildGeneralColumns,
   getUnitOptions,
 } from "@/app/[company]/almacen/inventario_articulos/_tables/general-columns";
+import type { GeneralArticle } from "@/types";
+import { GeneralArticleIndividualsDialog } from "@/components/dialogs/almacen/GeneralArticleIndividualsDialog";
 import { PartNumberGroupDialog } from "@/app/[company]/almacen/inventario_articulos/_components/PartNumberGroupDialog";
 import { parseToolStatusFilter } from "@/lib/warehouse/statuses";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -122,6 +124,10 @@ const InventarioArticulosPage = () => {
   const [groupOpen, setGroupOpen] = useState(false);
   const [groupPn, setGroupPn] = useState("");
   const [groupRows, setGroupRows] = useState<IArticleSimple[]>([]);
+
+  // Dialog (artículos individuales de un general agrupado)
+  const [individualsArticle, setIndividualsArticle] =
+    useState<GeneralArticle | null>(null);
 
   // El selector de Estado mezcla `articles.status` con los subestados de
   // calibración; el backend los recibe por parámetros distintos.
@@ -548,6 +554,12 @@ const InventarioArticulosPage = () => {
                   }}
                   serverColumnFilters={generalServerFilters}
                   isFetching={general.isFetching}
+                  onRowClick={(row: GeneralArticle) => {
+                    if (!row.dimension) setIndividualsArticle(row);
+                  }}
+                  rowClassName={(row: GeneralArticle) =>
+                    row.dimension ? "" : "cursor-pointer hover:bg-muted/30"
+                  }
                 />
               )}
             </TabsContent>
@@ -561,6 +573,16 @@ const InventarioArticulosPage = () => {
           partNumber={groupPn}
           rows={groupRows}
         />
+
+        {individualsArticle && (
+          <GeneralArticleIndividualsDialog
+            articleId={individualsArticle.id}
+            description={individualsArticle.description}
+            unit={individualsArticle.general_primary_unit?.label}
+            open
+            onOpenChange={(next) => !next && setIndividualsArticle(null)}
+          />
+        )}
 
         <SearchAcrossLocationsDialog
           open={searchAcrossOpen}

@@ -19,6 +19,8 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
+import { fullName } from "@/lib/person-name";
+import { formatCalendarDate } from "@/lib/date";
 
 const EmployeeDetail = ({
   employee,
@@ -35,7 +37,7 @@ const EmployeeDetail = ({
   return (
     <div className="mt-1">
       <p className={`text-sm ${bold ? "font-medium" : ""}`}>
-        {employee.first_name} {employee.last_name}
+        {fullName(employee)}
       </p>
       {employee.job_title && (
         <p className="text-xs text-muted-foreground">
@@ -62,7 +64,7 @@ const ShowMeetingMinute = () => {
 
   const dateLabel = (date: string) => {
     try {
-      return format(new Date(date), "PPP", { locale: es });
+      return formatCalendarDate(date, "PPP", date);
     } catch {
       return date;
     }
@@ -303,7 +305,7 @@ const ShowMeetingMinute = () => {
                         >
                           <td className="whitespace-nowrap px-3 py-3 text-sm font-medium">
                             {att.employee
-                              ? `${att.employee.first_name} ${att.employee.last_name}`
+                              ? fullName(att.employee)
                               : att.attendee_name || "N/A"}
                           </td>
                           <td className="whitespace-nowrap px-3 py-3 text-sm text-muted-foreground">
@@ -369,8 +371,7 @@ const ShowMeetingMinute = () => {
                         {agreement.responsible ? (
                           <div className="mt-0.5">
                             <p className="text-sm font-medium">
-                              {agreement.responsible.first_name}{" "}
-                              {agreement.responsible.last_name}
+                              {fullName(agreement.responsible)}
                             </p>
                             {agreement.responsible.job_title && (
                               <p className="text-xs text-muted-foreground">

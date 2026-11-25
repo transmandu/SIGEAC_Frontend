@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { FollowUpControl } from "@/types";
 import { es } from "date-fns/locale";
 import { format, parseISO } from "date-fns";
+import { parseCalendarDate } from "@/lib/date";
 
 export const columns: AppColumnDef<FollowUpControl>[] = [
   {
@@ -38,13 +39,7 @@ export const columns: AppColumnDef<FollowUpControl>[] = [
 
       const dateString = String(rawDate as unknown);
 
-      const parsedDate = parseISO(dateString);
-
-      const year = parsedDate.getUTCFullYear();
-      const month = parsedDate.getUTCMonth();
-      const day = parsedDate.getUTCDate();
-
-      const normalizedDate = new Date(year, month, day);
+      const normalizedDate = parseCalendarDate(dateString) ?? new Date();
 
       return (
         <p className="font-medium text-center">

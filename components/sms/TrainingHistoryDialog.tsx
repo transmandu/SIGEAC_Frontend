@@ -13,6 +13,8 @@ import { trainingEventLabelEs } from "@/lib/cursos/statuses";
 import { SMSTraining, SMSTrainingHistoryEntry } from "@/types";
 import { History } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { fullName } from "@/lib/person-name";
+import FormattedInstant from "@/components/misc/FormattedInstant";
 
 function EventBadge({ event }: { event: string }) {
   const tone =
@@ -50,8 +52,7 @@ export function TrainingHistoryDialog({ training }: { training: SMSTraining }) {
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>
-            Historial de capacitación — {training.employee?.first_name ?? ""}{" "}
-            {training.employee?.last_name ?? ""}
+            Historial de capacitación — {fullName(training.employee)}
           </DialogTitle>
         </DialogHeader>
 
@@ -65,13 +66,11 @@ export function TrainingHistoryDialog({ training }: { training: SMSTraining }) {
                 <div className="flex items-center justify-between">
                   <EventBadge event={h.event_type} />
                   <span className="text-xs text-muted-foreground">
-                    {h.created_at
-                      ? new Date(h.created_at).toLocaleDateString("es-VE", {
-                          day: "2-digit",
-                          month: "2-digit",
-                          year: "numeric",
-                        })
-                      : ""}
+                    <FormattedInstant
+                      value={h.created_at}
+                      format="date"
+                      fallback=""
+                    />
                   </span>
                 </div>
 

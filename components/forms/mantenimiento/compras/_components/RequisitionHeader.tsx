@@ -39,6 +39,7 @@ import {
   requisitionTriggerClass,
 } from "./RequisitionSection";
 import { PriorityChoice } from "./PriorityChoice";
+import { fullName } from "@/lib/person-name";
 
 // Los empleados propios y los autorizados de otra empresa viven en tablas
 // distintas con ids que pueden coincidir, así que el selector se parte en dos
@@ -194,7 +195,7 @@ export function RequisitionHeader({
                   <CommandGroup>
                     {filteredEmployees.map((employee) => (
                       <CommandItem
-                        value={`${employee.dni} ${employee.first_name} ${employee.last_name}`}
+                        value={`${employee.dni} ${fullName(employee)}`}
                         key={employee.id}
                         onSelect={() => selectEmployee(`${employee.dni}`)}
                       >
@@ -207,7 +208,7 @@ export function RequisitionHeader({
                               : "opacity-0",
                           )}
                         />
-                        {employee.first_name} {employee.last_name}
+                        {fullName(employee)}
                       </CommandItem>
                     ))}
                   </CommandGroup>
@@ -232,10 +233,7 @@ export function RequisitionHeader({
                       )}
                     >
                       {selectedEmployee ? (
-                        <span>
-                          {selectedEmployee.first_name}{" "}
-                          {selectedEmployee.last_name}
-                        </span>
+                        <span>{fullName(selectedEmployee)}</span>
                       ) : selectedAuthorizedEmployee ? (
                         <span>
                           {formatAuthorizedEmployeeLabel(

@@ -40,6 +40,7 @@ import { canAddRequisitionArticle } from "@/lib/purchases/requisition-article-li
 import { toCalendarPayload } from "@/lib/date";
 import { useResettingState } from "@/hooks/useResettingState";
 import FormActions from "@/components/forms/mantenimiento/compras/_components/FormActions";
+import { fullName } from "@/lib/person-name";
 
 /* -------------------------------------------------------------------------- */
 /*                                   SCHEMA                                   */
@@ -155,8 +156,7 @@ export function CreateGeneralRequisitionForm({
     const query = employeeSearch.toLowerCase().trim();
     if (!query) return employees;
     return employees.filter((emp) => {
-      const searchText =
-        `${emp.first_name} ${emp.last_name} ${emp.dni}`.toLowerCase();
+      const searchText = `${fullName(emp)} ${emp.dni}`.toLowerCase();
       return searchText.includes(query);
     });
   }, [employees, employeeSearch]);

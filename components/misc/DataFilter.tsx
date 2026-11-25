@@ -13,6 +13,7 @@ import { DateRange } from "react-day-picker";
 import { ChevronDown } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { PopoverClose } from "@radix-ui/react-popover";
+import { companyNow } from "@/lib/date";
 
 interface Period {
   from: Date;
@@ -35,8 +36,8 @@ const DateFilter = ({
   initialDate,
   buttonDataTour,
 }: DateFilterProps) => {
-  const defaultFrom = startOfMonth(new Date());
-  const defaultTo = endOfDay(new Date());
+  const defaultFrom = startOfMonth(companyNow());
+  const defaultTo = endOfDay(companyNow());
 
   const initialDateRange = initialDate
     ? {

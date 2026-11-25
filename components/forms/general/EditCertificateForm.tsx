@@ -37,6 +37,7 @@ import { cn } from "@/lib/utils";
 import { CertificateColumn } from "@/app/[company]/sms/(employees)/certificados/columns";
 import { formatCalendarDate } from "@/lib/date";
 import { notifyError } from "@/lib/notify-error";
+import { lastFirstName } from "@/lib/person-name";
 
 interface EditFormValues {
   course_id: string;
@@ -133,7 +134,9 @@ const EditCertificateForm = ({
                   ? "Cargando empleados..."
                   : selectedDni
                     ? employees?.find((e: any) => e.dni === selectedDni)
-                      ? `${employees.find((e: any) => e.dni === selectedDni).last_name}, ${employees.find((e: any) => e.dni === selectedDni).first_name}`
+                      ? lastFirstName(
+                          employees.find((e: any) => e.dni === selectedDni),
+                        )
                       : "Seleccionar empleado..."
                     : "Seleccionar empleado..."}
                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -148,7 +151,7 @@ const EditCertificateForm = ({
                     {employees?.map((emp: any) => (
                       <CommandItem
                         key={emp.dni}
-                        value={`${emp.first_name} ${emp.last_name} ${emp.dni}`}
+                        value={`${lastFirstName(emp)} ${emp.dni}`}
                         onSelect={() => {
                           setValue("employee_dni", emp.dni);
                           setOpenPopover(false);
@@ -163,9 +166,7 @@ const EditCertificateForm = ({
                           )}
                         />
                         <div className="flex flex-col">
-                          <span>
-                            {emp.last_name}, {emp.first_name}
-                          </span>
+                          <span>{lastFirstName(emp)}</span>
                           <span className="text-[10px] text-muted-foreground">
                             {emp.dni}
                           </span>

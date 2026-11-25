@@ -46,7 +46,8 @@ import {
 import type { AeronauticalMeetingMinute } from "@/types/sms/aeronautical/meeting-minute";
 import { useGetAllEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetAllEmployees";
 import { useGetExternalEmployees } from "@/hooks/ajustes/convenios/useGetExternalEmployees";
-import { toCalendarPayload } from "@/lib/date";
+import { toCalendarPayload, parseCalendarDate } from "@/lib/date";
+import { fullName } from "@/lib/person-name";
 
 interface FormProps {
   onClose: (open: boolean) => void;
@@ -302,7 +303,7 @@ export function CreateAeronauticalMeetingMinuteForm({
 
   const allEmployeeOptions = (allEmployees ?? []).map((e) => ({
     value: String(e.id),
-    label: `${e.first_name} ${e.last_name}`.trim(),
+    label: fullName(e),
   }));
 
   const authorizedEmployeeOptions = (authorizedEmployees ?? []).map((a) => ({
@@ -327,7 +328,7 @@ export function CreateAeronauticalMeetingMinuteForm({
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      date: initialData?.date ? new Date(initialData.date) : undefined,
+      date: initialData?.date ? parseCalendarDate(initialData.date) : undefined,
       place: initialData?.place ?? "",
       objective:
         typeof initialData?.objective === "string" ? initialData.objective : "",

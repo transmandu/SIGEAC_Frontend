@@ -1,7 +1,7 @@
+import { toCalendarPayload } from "@/lib/date";
 import axiosInstance from "@/lib/axios";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { format } from "date-fns";
 import { toast } from "sonner";
 import { notifyError } from "@/lib/notify-error";
 
@@ -98,14 +98,8 @@ export const useCreateSMSActivity = () => {
       formData.append("activity_name", data.activity_name);
       formData.append("title", data.title);
       formData.append("activity_number", data.activity_number);
-      formData.append(
-        "start_date",
-        format(new Date(data.start_date), "yyyy-MM-dd"),
-      );
-      formData.append(
-        "end_date",
-        format(new Date(data.end_date), "yyyy-MM-dd"),
-      );
+      formData.append("start_date", toCalendarPayload(data.start_date) ?? "");
+      formData.append("end_date", toCalendarPayload(data.end_date) ?? "");
       formData.append("start_time", data.start_time);
       formData.append("end_time", data.end_time);
       formData.append("place", data.place);
@@ -217,14 +211,8 @@ export const useUpdateSMSActivity = () => {
       formData.append("activity_name", data.activity_name);
       formData.append("title", data.title);
       formData.append("activity_number", data.activity_number);
-      formData.append(
-        "start_date",
-        format(new Date(data.start_date), "yyyy-MM-dd"),
-      );
-      formData.append(
-        "end_date",
-        format(new Date(data.end_date), "yyyy-MM-dd"),
-      );
+      formData.append("start_date", toCalendarPayload(data.start_date) ?? "");
+      formData.append("end_date", toCalendarPayload(data.end_date) ?? "");
       formData.append("start_time", data.start_time);
       formData.append("end_time", data.end_time);
       formData.append("place", data.place);

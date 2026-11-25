@@ -1,6 +1,10 @@
 "use client";
 
 import {
+  isUnitaryCategory,
+  UNITARY_UNIT_LABEL,
+} from "@/lib/purchases/requisition-measure";
+import {
   useCompletePurchase,
   useMarkPurchaseOrderAsPaid,
 } from "@/actions/mantenimiento/compras/ordenes_compras/actions";
@@ -162,7 +166,9 @@ export function PayPurchaseOrderForm({
           quotedTotal,
           total: article.total != null ? Number(article.total) : quotedTotal,
           totalJustification: article.total_justification ?? "",
-          unitLabel: article.unit?.label ?? null,
+          unitLabel: isUnitaryCategory(article.batch?.category)
+            ? UNITARY_UNIT_LABEL
+            : (article.unit?.label ?? null),
         };
       }),
       ...po.general_article_purchase_order.map((article) => {

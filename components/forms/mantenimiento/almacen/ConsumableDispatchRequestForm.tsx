@@ -1,5 +1,6 @@
 "use client";
 
+import { GeneralCatalogOptions } from "@/components/forms/mantenimiento/almacen/_components/GeneralCatalogOptions";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -69,6 +70,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
     watchedGen,
     aeroSelectedSet,
     genSelectedSet,
+    genIndividualSet,
     aeroById,
     genById,
     aeroBatchNameById,
@@ -89,6 +91,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
     setToMaxGen,
     setQuantityAero,
     setQuantityGen,
+    setIndividualsGen,
     convState,
     setConvState,
     activeConversions,
@@ -100,6 +103,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
     applyConversion,
     handleAddAeronautical,
     handleAddGeneral,
+    handleToggleGeneralIndividual,
     removeAeroRow,
     removeGenRow,
     hasBlockingQtyError,
@@ -339,35 +343,13 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                       </div>
                     ) : (
                       <CommandGroup heading="Inventario general">
-                        {hardwareArticles.map((ga) => {
-                          const already = genSelectedSet.has(Number(ga.id));
-                          return (
-                            <CommandItem
-                              key={`g-${ga.id}`}
-                              value={`${ga.description ?? ""} ${ga.brand_model ?? ""} ${ga.variant_type ?? ""}`}
-                              className="max-w-full"
-                              onSelect={() => handleAddGeneral(ga)}
-                            >
-                              <Check
-                                className={cn(
-                                  "mr-2 h-4 w-4",
-                                  already ? "opacity-100" : "opacity-0",
-                                )}
-                              />
-                              <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-                                <span className="font-medium truncate">
-                                  {truncateText(ga.description) || "N/A"}
-                                </span>
-                                <span className="text-xs text-muted-foreground truncate">
-                                  {ga.brand_model ?? "N/A"} ·{" "}
-                                  {ga.variant_type ?? "N/A"} · Disp:{" "}
-                                  {ga.quantity ?? 0}{" "}
-                                  {ga.general_primary_unit?.label ?? ""}
-                                </span>
-                              </div>
-                            </CommandItem>
-                          );
-                        })}
+                        <GeneralCatalogOptions
+                          articles={hardwareArticles}
+                          selectedIds={genSelectedSet}
+                          pickedIndividualIds={genIndividualSet}
+                          onAdd={handleAddGeneral}
+                          onToggleIndividual={handleToggleGeneralIndividual}
+                        />
                       </CommandGroup>
                     )}
                   </CommandList>
@@ -457,7 +439,10 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                     key={f.id}
                     article={ga}
                     generalId={generalId}
-                    qty={qtyByKey[key] ?? ""}
+                    qty={
+                      qtyByKey[key] ??
+                      (item?.quantity ? String(item.quantity) : "")
+                    }
                     max={max}
                     rowMsg={msgByKey[key]}
                     conversion={convByKey[key]}
@@ -482,6 +467,10 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                     onSetMax={() => setToMaxGen(index, f.id)}
                     onSetQuantity={(value) =>
                       setQuantityGen(index, f.id, value)
+                    }
+                    individualIds={watchedGen[index]?.individual_ids}
+                    onIndividualsChange={(ids) =>
+                      setIndividualsGen(index, f.id, ids)
                     }
                     onOpenConversion={() =>
                       openConversionForGeneral(index, f.id, generalId)

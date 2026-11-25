@@ -37,6 +37,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { formatPhone } from "@/lib/phone";
+import { fullName } from "@/lib/person-name";
 
 const ShowObligatoryReport = () => {
   const { obligatory_id } = useParams<{ obligatory_id: string }>();
@@ -435,8 +436,7 @@ const ShowObligatoryReport = () => {
                         Nombre
                       </span>
                       <p className="text-sm">
-                        {obligatoryReport.pilot.employee?.first_name}{" "}
-                        {obligatoryReport.pilot.employee?.last_name}
+                        {fullName(obligatoryReport.pilot.employee)}
                       </p>
                     </div>
                   </div>
@@ -473,8 +473,7 @@ const ShowObligatoryReport = () => {
                         Nombre
                       </span>
                       <p className="text-sm">
-                        {obligatoryReport.copilot.employee?.first_name}{" "}
-                        {obligatoryReport.copilot.employee?.last_name}
+                        {fullName(obligatoryReport.copilot.employee)}
                       </p>
                     </div>
                   </div>

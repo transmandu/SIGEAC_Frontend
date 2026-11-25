@@ -43,6 +43,7 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { MitigationPlan } from "@/types";
+import { parseCalendarDate } from "@/lib/date";
 
 const RESPONSIBLE_OPTIONS = [
   { value: "SMS", label: "DIRECCIÓN DE SMS" },
@@ -113,7 +114,7 @@ export default function CreateMitigationPlanForm({
       description: initialData?.description,
       responsible: toResponsibleValues(initialData?.responsible),
       start_date: initialData?.start_date
-        ? new Date(initialData?.start_date)
+        ? parseCalendarDate(initialData?.start_date)
         : new Date(),
     },
   });

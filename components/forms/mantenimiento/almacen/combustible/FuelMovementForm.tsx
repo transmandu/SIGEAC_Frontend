@@ -43,6 +43,7 @@ import { Loader2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
+import { companyNow } from "@/lib/date";
 
 const formSchema = z.object({
   operational_date: z.string().min(1, "La fecha es requerida"),
@@ -104,7 +105,7 @@ export function FuelMovementForm({
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      operational_date: format(new Date(), "yyyy-MM-dd"),
+      operational_date: format(companyNow(), "yyyy-MM-dd"),
       liters: 0,
       odometer_km: 0,
       vehicle_id: "",

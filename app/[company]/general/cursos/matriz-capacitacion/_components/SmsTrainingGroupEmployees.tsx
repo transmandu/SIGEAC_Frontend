@@ -4,6 +4,7 @@ import { Loader2 } from "lucide-react";
 import { useGetSmsTrainingGroupEmployees } from "@/hooks/curso/useGetSmsTrainingGroupEmployees";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { SmsTrainingGroup } from "@/types";
+import { fullName } from "@/lib/person-name";
 
 export function SmsTrainingGroupEmployees({
   group,
@@ -87,9 +88,7 @@ export function SmsTrainingGroupEmployees({
                   key={employee.dni}
                   className="grid grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_minmax(0,1.2fr)] gap-3 border-b px-3 py-2 text-sm last:border-b-0"
                 >
-                  <span className="font-medium">
-                    {employee.first_name} {employee.last_name}
-                  </span>
+                  <span className="font-medium">{fullName(employee)}</span>
                   <span className="text-muted-foreground">{employee.dni}</span>
                   <span className="text-muted-foreground">
                     {employee.job_title?.name ?? "—"}

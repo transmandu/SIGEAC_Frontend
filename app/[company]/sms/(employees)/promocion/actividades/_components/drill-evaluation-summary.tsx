@@ -20,6 +20,7 @@ import { useDeleteDrillEvaluation } from "@/actions/sms/drill_evaluations/action
 import { useGetDrillEvaluation } from "@/hooks/sms/drill_evaluations/useGetDrillEvaluation";
 import { hasDrillActivityCategory } from "@/lib/sms/activity-categories";
 import { formatCalendarDate } from "@/lib/date";
+import { fullName } from "@/lib/person-name";
 import { downloadDocumentFile } from "@/lib/Library/download-helper";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import type {
@@ -54,7 +55,7 @@ const PARTICIPANT_SECTIONS: {
 ];
 
 const employeeName = (employee?: DrillEmployeeRef | null) =>
-  employee ? `${employee.first_name} ${employee.last_name}`.trim() : null;
+  employee ? fullName(employee) : null;
 
 const authorizedName = (employee?: DrillAuthorizedEmployeeRef | null) =>
   employee?.full_name ?? null;

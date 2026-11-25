@@ -9,6 +9,7 @@ import type { CheckingArticle } from "@/types/inventory";
 import { addDays, format, parseISO } from "date-fns";
 import { BadgeCheck } from "lucide-react";
 import CheckingArticleDropdownActions from "./_components/CheckingArticleDropdownActionts";
+import { parseCalendarDate } from "@/lib/date";
 
 export type IArticleSimple = CheckingArticle;
 
@@ -225,15 +226,8 @@ export const consumibleCols: AppColumnDef<IArticleSimple>[] = [
 ];
 
 // Función helper para parsear fechas ISO como fechas locales
-const parseDateLocal = (dateString: string): Date => {
-  // Si la fecha viene como "YYYY-MM-DD" sin hora, parsearla como fecha local
-  if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
-    const [year, month, day] = dateString.split("-").map(Number);
-    return new Date(year, month - 1, day);
-  }
-  // Si tiene hora, usar parseISO
-  return parseISO(dateString);
-};
+const parseDateLocal = (dateString: string): Date =>
+  parseCalendarDate(dateString) ?? parseISO(dateString);
 
 // Columnas extra para HERRAMIENTA
 export const herramientaCols: AppColumnDef<IArticleSimple>[] = [

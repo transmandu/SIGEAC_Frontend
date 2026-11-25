@@ -6,12 +6,12 @@ import { useGetChangeRequests } from "@/hooks/sms/aeronautical/gestion_de_cambio
 import type { ChangeRequest } from "@/types/sms/aeronautical/change-request";
 import { columns } from "@/app/[company]/sms/(employees)/aseguramiento_calidad/gestion_de_cambio/columns-aeronautical";
 import { DataTable } from "@/app/[company]/sms/(employees)/aseguramiento_calidad/gestion_de_cambio/data-table";
+import { fullName } from "@/lib/person-name";
 
 function getSearchText(changeRequest: ChangeRequest) {
   return [
     changeRequest.request_number,
-    changeRequest.requested_by?.first_name,
-    changeRequest.requested_by?.last_name,
+    fullName(changeRequest.requested_by),
     changeRequest.change_type,
     changeRequest.description,
     changeRequest.status,

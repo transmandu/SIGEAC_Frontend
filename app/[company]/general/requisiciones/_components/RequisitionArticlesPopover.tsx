@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  isUnitaryCategory,
+  UNITARY_UNIT_LABEL,
+} from "@/lib/purchases/requisition-measure";
 import { HelpCircle, Layers, Package, Plane } from "lucide-react";
 
 import {
@@ -17,6 +21,7 @@ import { cn, formatRequestedDate } from "@/lib/utils";
 import ArticleLifecycleIcon from "@/components/misc/ArticleLifecycleIcon";
 import TransitUpdatesLink from "@/components/misc/TransitUpdatesLink";
 import type { ArticleLifecycleStage, MyRequisition } from "@/types/purchase";
+import { fullName } from "@/lib/person-name";
 
 interface Props {
   requisition: MyRequisition;
@@ -184,7 +189,11 @@ export default function RequisitionArticlesPopover({ requisition }: Props) {
                     subtitle={batch.category}
                     fields={fields}
                     quantity={article.quantity ?? "-"}
-                    unit={article.unit?.label ?? "N/A"}
+                    unit={
+                      isUnitaryCategory(batch.category)
+                        ? UNITARY_UNIT_LABEL
+                        : (article.unit?.label ?? "N/A")
+                    }
                     lifecycleStage={article.lifecycle_stage}
                     transitArticleId={article.transit_article_id}
                     transitUpdatesCount={article.transit_updates_count}
@@ -212,8 +221,7 @@ export default function RequisitionArticlesPopover({ requisition }: Props) {
             const destinations = [
               article.department?.name,
               article.third_party?.name,
-              article.employee &&
-                `${article.employee.first_name} ${article.employee.last_name}`,
+              article.employee && fullName(article.employee),
               article.authorized_employee?.full_name ||
                 article.authorized_employee?.dni_employee,
             ].filter(Boolean);

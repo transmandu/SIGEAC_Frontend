@@ -1,9 +1,14 @@
 "use client";
+import {
+  isUnitaryCategory,
+  UNITARY_UNIT_LABEL,
+} from "@/lib/purchases/requisition-measure";
 import { locationName } from "@/lib/locations";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { useFieldArray, useFormState, useWatch } from "react-hook-form";
 import { FormField } from "@/components/ui/form";
@@ -29,7 +34,7 @@ import {
 } from "@/components/ui/tooltip";
 import { quoteInputClass, quoteTriggerClass } from "./quote-field";
 import { AmountInput } from "@/components/misc/AmountInput";
-import { Ban, ArrowRight, Clock } from "lucide-react";
+import { Ban, ArrowRight, Clock, Info } from "lucide-react";
 import type { Condition, Unit, Vendor } from "@/types";
 import {
   LEAD_TIME_UNITS,
@@ -68,6 +73,45 @@ function normalizeQuantity(value: string, fallback: string): string {
   const num = Number(value);
   if (Number.isNaN(num)) return fallback;
   return num.toFixed(2);
+}
+
+/**
+ * Unidad de un artículo único (componente, parte, herramienta): solo lectura,
+ * para que quien cotiza piense en unidades sin poder elegir una que no existe.
+ *
+ * Es un botón y no un input: un input, aunque sea `readOnly`, se enfoca con
+ * anillo azul y cursor de texto, y parece editable. El tooltip es controlado:
+ * en el táctil no hay "apuntar", así que se abre al tocar y se queda hasta que
+ * se toca en otro sitio.
+ */
+function UnitaryUnitField() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <TooltipProvider>
+      <Tooltip open={open} onOpenChange={setOpen}>
+        <TooltipTrigger asChild>
+          <button
+            type="button"
+            aria-label={`Unidad: ${UNITARY_UNIT_LABEL}`}
+            onClick={() => setOpen(true)}
+            className={cn(
+              quoteInputClass,
+              "flex cursor-not-allowed items-center justify-between gap-1 bg-muted/40 text-left opacity-60",
+              "hover:border-slate-400/60 hover:shadow-xs dark:hover:border-slate-600/60",
+              "focus-visible:ring-0 focus-visible:outline-hidden",
+            )}
+          >
+            <span className="truncate">{UNITARY_UNIT_LABEL}</span>
+            <Info aria-hidden className="size-3.5 shrink-0" />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side="top" className="text-xs">
+          Este artículo se cotiza por unidades.
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
 }
 
 export function QuoteBatchArticlesSection({
@@ -247,7 +291,7 @@ export function QuoteBatchArticlesSection({
                           </div>
                         </div>
 
-                        <div className="space-y-0.5 max-sm:order-2">
+                        <div className="space-y-0.5 max-sm:order-3">
                           <span className={LABEL_CLS}>
                             Cantidad
                             <RequiredIndicator />
@@ -272,6 +316,12 @@ export function QuoteBatchArticlesSection({
                                   let value = e.target.value;
                                   value = value.replace(/[^0-9.,]/g, "");
                                   value = value.replace(",", ".");
+                                  // Entidades únicas: la cantidad cuenta artículos enteros.
+                                  if (
+                                    isUnitaryCategory(article.batch.category)
+                                  ) {
+                                    value = value.split(".")[0];
+                                  }
                                   const parts = value.split(".");
                                   if (parts.length > 2) {
                                     value =
@@ -308,7 +358,7 @@ export function QuoteBatchArticlesSection({
                           )}
                         </div>
 
-                        <div className="space-y-0.5 max-sm:order-4 max-sm:col-span-2 min-w-0">
+                        <div className="space-y-0.5 max-sm:order-5 max-sm:col-span-2 min-w-0">
                           <span className={LABEL_CLS}>
                             Proveedor
                             <RequiredIndicator />
@@ -328,7 +378,7 @@ export function QuoteBatchArticlesSection({
                           />
                         </div>
 
-                        <div className="space-y-0.5 max-sm:order-6">
+                        <div className="space-y-0.5 max-sm:order-9">
                           <span className={LABEL_CLS}>Lead time</span>
                           <Popover>
                             <PopoverTrigger asChild>
@@ -419,7 +469,7 @@ export function QuoteBatchArticlesSection({
                           </Popover>
                         </div>
 
-                        <div className="space-y-0.5 max-sm:order-5">
+                        <div className="space-y-0.5 max-sm:order-10 max-sm:col-span-2">
                           <span className={LABEL_CLS}>
                             Precio unitario
                             <RequiredIndicator />
@@ -447,7 +497,7 @@ export function QuoteBatchArticlesSection({
                         </div>
 
                         {/* Fila 2: ALT P/N · Unidad · Condición · Referencia · Ubicación */}
-                        <div className="space-y-0.5 max-sm:order-10">
+                        <div className="space-y-0.5 max-sm:order-2 max-sm:col-span-2">
                           <span className={LABEL_CLS}>
                             Número de parte alterno
                           </span>
@@ -473,25 +523,33 @@ export function QuoteBatchArticlesSection({
                           </div>
                         </div>
 
-                        <div className="space-y-0.5 max-sm:order-3 min-w-0">
+                        <div className="space-y-0.5 max-sm:order-4 min-w-0">
                           <span className={LABEL_CLS}>
                             Unidad
-                            <RequiredIndicator />
+                            {!isUnitaryCategory(article.batch.category) && (
+                              <RequiredIndicator />
+                            )}
                           </span>
-                          <UnitCombobox
-                            value={article.unit?.toString() ?? ""}
-                            onChange={(val) =>
-                              form.setValue(`articles.${index}.unit`, val)
-                            }
-                            units={units}
-                            disabled={isNotQuoted}
-                            invalid={invalidCls(!isNotQuoted && !article.unit)}
-                            triggerClassName={quoteTriggerClass}
-                            placeholder="Sin unidad"
-                          />
+                          {isUnitaryCategory(article.batch.category) ? (
+                            <UnitaryUnitField />
+                          ) : (
+                            <UnitCombobox
+                              value={article.unit?.toString() ?? ""}
+                              onChange={(val) =>
+                                form.setValue(`articles.${index}.unit`, val)
+                              }
+                              units={units}
+                              disabled={isNotQuoted}
+                              invalid={invalidCls(
+                                !isNotQuoted && !article.unit,
+                              )}
+                              triggerClassName={quoteTriggerClass}
+                              placeholder="Sin unidad"
+                            />
+                          )}
                         </div>
 
-                        <div className="space-y-0.5 max-sm:order-7 min-w-0">
+                        <div className="space-y-0.5 max-sm:order-6 min-w-0">
                           <span className={LABEL_CLS}>
                             Condición
                             <RequiredIndicator />
@@ -514,7 +572,7 @@ export function QuoteBatchArticlesSection({
                           />
                         </div>
 
-                        <div className="space-y-0.5 max-sm:order-9">
+                        <div className="space-y-0.5 max-sm:order-8">
                           <span className={LABEL_CLS}>Referencia</span>
                           <FormField
                             control={control}
@@ -530,7 +588,7 @@ export function QuoteBatchArticlesSection({
                           />
                         </div>
 
-                        <div className="space-y-0.5 max-sm:order-8">
+                        <div className="space-y-0.5 max-sm:order-7">
                           <span className={LABEL_CLS}>
                             Destino
                             <RequiredIndicator />

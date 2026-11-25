@@ -41,6 +41,7 @@ import {
   selectTriggerClass,
 } from "./_theme";
 import { WorkOrderField } from "./WorkOrderField";
+import { companyNow } from "@/lib/date";
 
 export const optionalNumber = z.preprocess(
   (value) =>
@@ -59,7 +60,7 @@ export const buildStartSchema = (units: MaintenanceCountingMethod[]) =>
     .object({
       applied_date: z
         .date({ error: "Seleccione una fecha" })
-        .refine((date) => startOfDay(date) <= startOfDay(new Date()), {
+        .refine((date) => startOfDay(date) <= startOfDay(companyNow()), {
           message: "No puede iniciarse con fecha futura",
         }),
       applied_hours: optionalNumber,

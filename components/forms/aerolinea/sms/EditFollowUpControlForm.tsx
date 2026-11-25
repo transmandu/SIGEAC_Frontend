@@ -22,17 +22,22 @@ import { useParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useGetImage } from "@/hooks/general/archivos/UseGetImage";
+import { parseCalendarDate } from "@/lib/date";
 const imageFileSchema = z
   .instanceof(File)
   .refine((file) => file.size <= 5 * 1024 * 1024, "Max 5MB")
   .refine(
     (file) => ["image/jpeg", "image/png"].includes(file.type),
-    "Solo JPEG/PNG"
+    "Solo JPEG/PNG",
   );
 
 const FormSchema = z.object({
@@ -49,7 +54,7 @@ const FormSchema = z.object({
     .refine((file) => file.size <= 10 * 1024 * 1024, "Máximo 10MB")
     .refine(
       (file) => file.type === "application/pdf",
-      "Solo se permiten archivos PDF"
+      "Solo se permiten archivos PDF",
     )
     .optional(),
 });
@@ -87,7 +92,11 @@ export function EditFollowUpControlForm({ onClose, initialData }: FormProps) {
 
   const existingImages = [
     ...(initialData.images ?? []),
-    ...(initialData.images?.length ? [] : initialData.image ? [initialData.image] : []),
+    ...(initialData.images?.length
+      ? []
+      : initialData.image
+        ? [initialData.image]
+        : []),
   ];
 
   const { plan_id, medida_id } = useParams<{
@@ -101,7 +110,7 @@ export function EditFollowUpControlForm({ onClose, initialData }: FormProps) {
       description: initialData.description || "",
       implementation_responsible: initialData.implementation_responsible || "",
       follow_up_responsible: initialData.follow_up_responsible || "",
-      date: initialData.date ? new Date(initialData.date) : new Date(),
+      date: initialData.date ? parseCalendarDate(initialData.date) : new Date(),
     },
   });
 
@@ -155,7 +164,7 @@ export function EditFollowUpControlForm({ onClose, initialData }: FormProps) {
                       variant={"outline"}
                       className={cn(
                         "w-full pl-3 text-left font-normal",
-                        !field.value && "text-muted-foreground"
+                        !field.value && "text-muted-foreground",
                       )}
                     >
                       {field.value ? (
@@ -222,12 +231,19 @@ export function EditFollowUpControlForm({ onClose, initialData }: FormProps) {
             name="images"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Imágenes ({existingImages.length + (field.value?.length ?? 0)}/10)</FormLabel>
+                <FormLabel>
+                  Imágenes ({existingImages.length + (field.value?.length ?? 0)}
+                  /10)
+                </FormLabel>
 
-                {(existingImages.length > 0 || (field.value && field.value.length > 0)) && (
+                {(existingImages.length > 0 ||
+                  (field.value && field.value.length > 0)) && (
                   <div className="flex flex-wrap items-center gap-2">
                     {existingImages.map((fileName, index) => (
-                      <ExistingImageThumbnail key={`${fileName}-${index}`} fileName={fileName} />
+                      <ExistingImageThumbnail
+                        key={`${fileName}-${index}`}
+                        fileName={fileName}
+                      />
                     ))}
                     {field.value?.map((file, index) => (
                       <div key={`${file.name}-${index}`} className="relative">
@@ -242,7 +258,7 @@ export function EditFollowUpControlForm({ onClose, initialData }: FormProps) {
                           type="button"
                           onClick={() =>
                             field.onChange(
-                              field.value?.filter((_, i) => i !== index)
+                              field.value?.filter((_, i) => i !== index),
                             )
                           }
                           className="absolute -top-1.5 -right-1.5 rounded-full bg-destructive text-destructive-foreground size-4 flex items-center justify-center text-[10px] leading-none"

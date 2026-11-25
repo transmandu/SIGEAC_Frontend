@@ -23,6 +23,7 @@ import { format } from "date-fns";
 import { Fuel } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useMemo } from "react";
+import { formatCalendarDate } from "@/lib/date";
 
 // Color por flujo: entrada / despacho / consumo / anulacion
 const MOVEMENT_DOT_CLASS: Record<FuelMovementType, string> = {
@@ -99,7 +100,7 @@ export function FuelMovementsTable({
                     )}
                   >
                     <TableCell className="font-medium">
-                      {format(movement.operational_date, "dd/MM/yyyy")}
+                      {formatCalendarDate(movement.operational_date, "date")}
                     </TableCell>
                     <TableCell>
                       <span className="inline-flex items-center gap-2">

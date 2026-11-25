@@ -274,20 +274,19 @@ export interface RequisitionPriorityChange {
 
 /**
  * done = superada · current = donde está · partial = llegó a una parte de las
- * líneas · pending = aún no · skipped = compras se la saltó · halted = donde
- * se detuvo una solicitud rechazada · rejected = el cierre por rechazo.
+ * líneas · pending = aún no · skipped = compras se la saltó · rejected = el cierre
+ * de una solicitud rechazada.
  */
 export type RequisitionCycleStageState =
-  | "done"
-  | "current"
-  | "partial"
-  | "pending"
-  | "skipped"
-  | "halted"
-  | "rejected";
+  "done" | "current" | "partial" | "pending" | "skipped" | "rejected";
 
 export interface RequisitionCycleStage {
   key: string;
+  /**
+   * Identifica la visita, no solo la etapa: cuando el flujo se sale de lo
+   * planeado una etapa puede repetirse (`IN_PROGRESS`, `IN_PROGRESS#2`).
+   */
+  id: string;
   label: string;
   state: RequisitionCycleStageState;
   /** ISO 8601; null si la etapa no se alcanzó o no dejó registro. */
@@ -305,6 +304,10 @@ export interface RequisitionCycleStage {
   /** La fecha es una cota (última modificación), no el instante exacto. */
   approximate: boolean;
   by: string | null;
+  /** Por qué se llegó a esta etapa (p. ej. el motivo de un rechazo o de una vuelta atrás). */
+  reason: string | null;
+  /** Esta visita terminó porque la solicitud volvió a una etapa anterior. */
+  reverted: boolean;
   /** Estados en que están hoy las líneas que se encuentran en esta etapa. */
   holding: Record<string, number> | never[];
 }
@@ -344,6 +347,7 @@ export interface RequisitionCycleLine {
 export interface RequisitionCycle {
   type: "AERONAUTICAL" | "GENERAL";
   status: string;
+  /** `id` de la etapa vigente. */
   current_stage: string | null;
   completed: boolean;
   rejected: boolean;

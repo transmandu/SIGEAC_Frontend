@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { fullName } from "@/lib/person-name";
 import {
   Copy,
   Eye,
@@ -103,11 +104,7 @@ export default function ResolvePasswordResetDialog({
 
   if (!request) return null;
 
-  const targetName = request.user
-    ? `${request.user.first_name ?? ""} ${request.user.last_name ?? ""}`.trim() ||
-      request.user.username ||
-      request.email
-    : request.email;
+  const targetName = fullName(request.user, request.email);
 
   const handleGenerate = () => {
     const generated = generatePassword();

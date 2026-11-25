@@ -53,6 +53,8 @@ interface ArticleRowCardProps {
   cutPanelNode?: React.ReactNode;
   /** Captura de evidencia fotográfica de la entrega. Opcional. */
   evidenceNode?: React.ReactNode;
+  /** Bloque propio de la fila, bajo la cantidad (artículos individuales). */
+  extraNode?: React.ReactNode;
   onQtyChange: (val: string) => void;
   onCommit: () => void;
   onSetMax: () => void;
@@ -80,6 +82,7 @@ export const ArticleRowCard = memo(function ArticleRowCard({
   conversion,
   cutPanelNode,
   evidenceNode,
+  extraNode,
   onQtyChange,
   onCommit,
   onSetMax,
@@ -302,6 +305,8 @@ export const ArticleRowCard = memo(function ArticleRowCard({
       )}
 
       {!cutPanelNode && showConversionPanel && conversionPanelNode}
+
+      {extraNode && <div className="mt-3">{extraNode}</div>}
     </div>
   );
 });

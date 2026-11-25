@@ -17,7 +17,14 @@ import { Button } from "@/components/ui/button";
 import CopyPartNumberButton from "@/components/misc/CopyPartNumberButton";
 import RequisitionDropdownActions from "@/components/dropdowns/mantenimiento/compras/RequisitionDropdownActions";
 import { cn, formatRequestedDate } from "@/lib/utils";
+import {
+  isUnitaryCategory,
+  UNITARY_UNIT_LABEL,
+} from "@/lib/purchases/requisition-measure";
 import type { Requisition } from "@/types/purchase";
+import { fullName } from "@/lib/person-name";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import { formatInstant } from "@/lib/date";
 
 interface Props {
   requisition: Requisition | null;
@@ -195,6 +202,7 @@ export default function RequisitionPreviewPanel({
   requisition,
   onClose,
 }: Props) {
+  const timeZone = useCompanyTimezone();
   if (!requisition) return null;
 
   const batches = requisition.batch ?? [];
@@ -264,7 +272,7 @@ export default function RequisitionPreviewPanel({
               label="Creado por"
               value={
                 requisition.created_by
-                  ? `${requisition.created_by.first_name} ${requisition.created_by.last_name}`
+                  ? fullName(requisition.created_by)
                   : "Sistema"
               }
               icon={UserCheck}
@@ -276,7 +284,12 @@ export default function RequisitionPreviewPanel({
             />
             <MetaItem
               label="Fecha de solicitud"
-              value={formatRequestedDate(requisition.submission_date)}
+              value={formatInstant(
+                requisition.submission_date,
+                timeZone,
+                "dd MMM yyyy",
+                "—",
+              )}
               icon={CalendarDays}
             />
             {requisition.aircraft?.acronym && (
@@ -397,7 +410,11 @@ export default function RequisitionPreviewPanel({
                       details={details}
                       destinations={destinations}
                       quantity={article.quantity ?? "-"}
-                      unit={article.unit?.label ?? "N/A"}
+                      unit={
+                        isUnitaryCategory(batch.category)
+                          ? UNITARY_UNIT_LABEL
+                          : (article.unit?.label ?? "N/A")
+                      }
                     />
                   );
                 },
@@ -435,8 +452,7 @@ export default function RequisitionPreviewPanel({
                 article.employee && {
                   key: "employee",
                   label: "Solicitante",
-                  value:
-                    `${article.employee.first_name} ${article.employee.last_name}`.trim(),
+                  value: fullName(article.employee),
                 },
                 article.authorized_employee && {
                   key: "authorized_employee",

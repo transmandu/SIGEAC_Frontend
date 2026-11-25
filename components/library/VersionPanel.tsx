@@ -6,6 +6,7 @@ import { bibliotecaVersionesSteps } from "@/components/tour/steps/general/biblio
 import { useEffect } from "react";
 import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
 import { formatInstant } from "@/lib/date";
+import { fullName } from "@/lib/person-name";
 
 interface Version {
   id: number;
@@ -139,7 +140,12 @@ export const HistoryPanel = ({
 
                       <div className="flex items-center gap-1 text-slate-500 dark:text-gray-500 text-[10px] font-bold uppercase tracking-tight">
                         <Clock className="h-3 w-3" />
-                        {formatInstant(v.created_at, timeZone, "date", "--/--/--")}
+                        {formatInstant(
+                          v.created_at,
+                          timeZone,
+                          "date",
+                          "--/--/--",
+                        )}
                       </div>
                     </div>
 
@@ -162,7 +168,7 @@ export const HistoryPanel = ({
                         </div>
                         <span className="text-[10px] text-slate-600 dark:text-gray-500 font-bold uppercase tracking-tight">
                           {v.employee?.first_name
-                            ? `${v.employee.first_name} ${v.employee.last_name || ""}`
+                            ? `${fullName(v.employee)}`
                             : "Admin Sistema"}
                         </span>
                       </div>

@@ -19,6 +19,7 @@ import {
 } from "@/hooks/mantenimiento/compras/useGetRequisitionPdfReceivers";
 import { notifyError } from "@/lib/notify-error";
 import { useResettingState } from "@/hooks/useResettingState";
+import { fullName } from "@/lib/person-name";
 
 /**
  * Personal de compras: recibe sus propias requisiciones, así que no elige a
@@ -191,7 +192,7 @@ export default function DownloadRequisitionPdfDialog({
                 ) : myEmployee ? (
                   <div className="rounded-xl border bg-muted/30 px-3.5 py-3">
                     <p className="text-sm font-medium wrap-anywhere">
-                      {myEmployee.first_name} {myEmployee.last_name}
+                      {fullName(myEmployee)}
                     </p>
                     {(myEmployee.job_title?.name ||
                       myEmployee.department?.name) && (
@@ -225,7 +226,7 @@ export default function DownloadRequisitionPdfDialog({
                   ([department, employees]) =>
                     employees.map((employee) => ({
                       value: String(employee.id),
-                      label: `${employee.first_name} ${employee.last_name}`,
+                      label: fullName(employee),
                       description: employee.job_title?.name,
                       group: department,
                     })),

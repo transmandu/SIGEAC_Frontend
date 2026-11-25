@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useLowStockAlerts } from "./useLowStockAlerts";
 import { useQuarantineAlerts } from "./useQuarantineAlerts";
 import { useControlAlerts } from "./useControlAlerts";
+import { useGeneratedAlerts } from "./useGeneratedAlerts";
 import { useDismissedAlertsStore } from "./useDismissedAlertsStore";
 import { useAlertFiltersStore } from "./useAlertFiltersStore";
 import {
@@ -25,12 +26,19 @@ export const useCriticalAlerts = () => {
     useQuarantineAlerts();
   const { alerts: controlAlerts, isLoading: isLoadingControls } =
     useControlAlerts();
+  const { alerts: generatedAlerts, isLoading: isLoadingGenerated } =
+    useGeneratedAlerts();
   const dismissedAt = useDismissedAlertsStore((state) => state.dismissedAt);
   const hideInTransit = useAlertFiltersStore((state) => state.hideInTransit);
 
   // Nuevas fuentes de alertas críticas se agregan aquí como entradas adicionales.
   const allAlerts = useMemo<CriticalAlert[]>(() => {
-    const merged = [...lowStockAlerts, ...quarantineAlerts, ...controlAlerts];
+    const merged = [
+      ...lowStockAlerts,
+      ...quarantineAlerts,
+      ...controlAlerts,
+      ...generatedAlerts,
+    ];
 
     // El id es la llave de React y del descarte: repetirlo haría que un
     // descarte oculte dos alertas distintas. Se avisa en desarrollo porque
@@ -50,7 +58,7 @@ export const useCriticalAlerts = () => {
     }
 
     return merged;
-  }, [lowStockAlerts, quarantineAlerts, controlAlerts]);
+  }, [lowStockAlerts, quarantineAlerts, controlAlerts, generatedAlerts]);
 
   const visibleAlerts = useMemo<CriticalAlert[]>(() => {
     const today = new Date().toDateString();
@@ -126,6 +134,10 @@ export const useCriticalAlerts = () => {
     toneCounts,
     actionableCount: pendingCount,
     inTransitCount,
-    isLoading: isLoadingLowStock || isLoadingQuarantine || isLoadingControls,
+    isLoading:
+      isLoadingLowStock ||
+      isLoadingQuarantine ||
+      isLoadingControls ||
+      isLoadingGenerated,
   };
 };

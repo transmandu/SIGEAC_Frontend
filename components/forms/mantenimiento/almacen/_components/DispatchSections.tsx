@@ -47,6 +47,7 @@ import { DispatchTypeHelp } from "./DispatchTypeHelp";
 import { OptionCombobox } from "./OptionCombobox";
 import { SectionHeader } from "./SectionHeader";
 import type { useDispatchForm } from "@/components/forms/mantenimiento/almacen/_hooks/useDispatchForm";
+import { fullName } from "@/lib/person-name";
 
 /** Lo que el hook de salidas le entrega a las secciones compartidas. */
 export type DispatchFormContext = ReturnType<typeof useDispatchForm>;
@@ -111,7 +112,7 @@ export function DispatchResponsibleSection({
             <Input
               className="h-10"
               disabled
-              value={`${user?.first_name ?? ""} ${user?.last_name ?? ""}`.trim()}
+              value={`${fullName(user)}`.trim()}
             />
             <p className="text-xs text-muted-foreground">
               Usuario actual que registra la entrega.
@@ -143,7 +144,7 @@ export function DispatchResponsibleSection({
                             )}
                           >
                             {selected
-                              ? `${selected.first_name} ${selected.last_name}`
+                              ? fullName(selected)
                               : "Seleccione el responsable..."}
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
@@ -169,7 +170,7 @@ export function DispatchResponsibleSection({
                                 {items.map((e) => (
                                   <CommandItem
                                     key={e.id}
-                                    value={`${e.first_name} ${e.last_name} ${[e.job_title?.name, e.department?.name].filter(Boolean).join(" - ")}`}
+                                    value={`${fullName(e)} ${[e.job_title?.name, e.department?.name].filter(Boolean).join(" - ")}`}
                                     onSelect={() => {
                                       field.onChange(`${e.dni}`);
                                       setOpenEmployee(false);
@@ -185,7 +186,7 @@ export function DispatchResponsibleSection({
                                     />
                                     <div className="flex flex-col min-w-0">
                                       <span className="font-medium truncate">
-                                        {e.first_name} {e.last_name}
+                                        {fullName(e)}
                                       </span>
                                       <span className="text-xs text-muted-foreground truncate">
                                         {[e.job_title?.name, e.department?.name]

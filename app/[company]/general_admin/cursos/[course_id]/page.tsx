@@ -17,6 +17,7 @@ import {
 import { useParams } from "next/navigation";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { courseStatusLabelEsUpper } from "@/lib/cursos/statuses";
+import { formatCalendarDate } from "@/lib/date";
 
 const ShowCourse = () => {
   const { course_id } = useParams<{ course_id: string }>();
@@ -76,8 +77,8 @@ const ShowCourse = () => {
                   <div className="flex items-center gap-2">
                     <Calendar className="w-5 h-5 text-gray-600 dark:text-gray-300" />
                     <p className="text-gray-700 dark:text-gray-300">
-                      {format(course.start_date, "PPP", { locale: es })} -{" "}
-                      {format(course.end_date, "PPP", { locale: es })}
+                      {formatCalendarDate(course.start_date, "PPP")} -{" "}
+                      {formatCalendarDate(course.end_date, "PPP")}
                     </p>
                   </div>
                 </div>

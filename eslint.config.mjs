@@ -1,6 +1,17 @@
 import nextCoreWebVitals from "eslint-config-next/core-web-vitals";
 
-import { contratoDeErrores } from "./eslint/contrato-de-errores.mjs";
+import {
+  archivosSinContratoDeErrores,
+  reglasDeErrores,
+} from "./eslint/contrato-de-errores.mjs";
+import {
+  archivosSinContratoDeFechas,
+  reglasDeFechas,
+} from "./eslint/contrato-de-fechas.mjs";
+import {
+  archivosSinContratoDeNombres,
+  reglasDeNombres,
+} from "./eslint/contrato-de-nombres.mjs";
 
 const config = [
   // Flat config solo ignora node_modules por su cuenta.
@@ -8,8 +19,28 @@ const config = [
     ignores: [".next/**", "next-env.d.ts", "public/**"],
   },
   ...nextCoreWebVitals,
-  // Cómo se avisa un fallo al usuario (docs/manejo-de-errores.md).
-  ...contratoDeErrores,
+  {
+    // Los contratos comparten una sola regla `no-restricted-syntax`: dos bloques
+    // sobre los mismos archivos se pisarían. Cada uno aporta sus selectores y los
+    // archivos que lo implementan (que no se vigilan a sí mismos).
+    //  - Errores: cómo se avisa un fallo al usuario (docs/manejo-de-errores.md).
+    //  - Nombres: cómo se escribe el nombre de una persona (lib/person-name.ts).
+    //  - Fechas: instantes en la zona de la compañía, días de calendario sin convertir (lib/date.ts).
+    files: ["**/*.{ts,tsx}"],
+    ignores: [
+      ...archivosSinContratoDeErrores,
+      ...archivosSinContratoDeNombres,
+      ...archivosSinContratoDeFechas,
+    ],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        ...reglasDeErrores,
+        ...reglasDeNombres,
+        ...reglasDeFechas,
+      ],
+    },
+  },
   {
     // eslint-plugin-react-hooks 7 sumó los diagnósticos del React Compiler, que
     // marcan 178 puntos de código que ya existía. Quedan en advertencia para no

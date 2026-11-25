@@ -20,6 +20,7 @@ import { Separator } from "@/components/ui/separator";
 import { ObligatoryReport } from "@/types";
 import { Loader2 } from "lucide-react";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { parseCalendarDate } from "@/lib/date";
 
 interface FormProps {
   onClose: () => void;
@@ -70,8 +71,8 @@ export function AcceptObligatoryReport({ onClose, initialData }: FormProps) {
             ? JSON.parse(initialData.incidents)
             : [],
           other_incidents: initialData.other_incidents ?? "",
-          report_date: new Date(initialData.report_date),
-          incident_date: new Date(initialData.incident_date),
+          report_date: parseCalendarDate(initialData.report_date)!,
+          incident_date: parseCalendarDate(initialData.incident_date)!,
           incident_time: initialData?.incident_time,
           flight_time: initialData?.flight_time,
         },

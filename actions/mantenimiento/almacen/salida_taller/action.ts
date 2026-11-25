@@ -30,6 +30,8 @@ interface IWorkshopDispatchAction {
     general_article_id: number;
     quantity: number;
     unit_id?: number | null;
+    /** Identificados que salen; cuentan dentro de quantity. */
+    individual_ids?: number[];
     cut?: ICutPayload;
   }[];
 }
@@ -58,6 +60,8 @@ export const useCreateWorkshopDispatch = () => {
       });
       queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
       queryClient.invalidateQueries({ queryKey: ["general-articles"] });
+      queryClient.invalidateQueries({ queryKey: ["tool-boxes"] });
+      queryClient.invalidateQueries({ queryKey: ["tool-box-individuals"] });
       queryClient.invalidateQueries({ queryKey: ["batches-in-warehouse"] });
 
       toast.success("¡Creada!", {
@@ -69,6 +73,8 @@ export const useCreateWorkshopDispatch = () => {
         queryClient.invalidateQueries({ queryKey: ["batches-in-warehouse"] });
         queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
         queryClient.invalidateQueries({ queryKey: ["general-articles"] });
+        queryClient.invalidateQueries({ queryKey: ["tool-boxes"] });
+        queryClient.invalidateQueries({ queryKey: ["tool-box-individuals"] });
       }
 
       notifyError(error, { action: "crear la salida a taller" });
@@ -263,6 +269,8 @@ export const useCloseWorkshopDispatch = () => {
       });
       queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
       queryClient.invalidateQueries({ queryKey: ["general-articles"] });
+      queryClient.invalidateQueries({ queryKey: ["tool-boxes"] });
+      queryClient.invalidateQueries({ queryKey: ["tool-box-individuals"] });
 
       toast.success("¡Salida cerrada!", {
         description: "El material reingresó a inventario.",

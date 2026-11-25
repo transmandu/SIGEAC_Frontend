@@ -23,10 +23,10 @@ import {
   Users,
   UserX,
 } from "lucide-react";
-import { addDays, format } from "date-fns";
-import { es } from "date-fns/locale";
 
 import PdfEndpointPreviewDialog from "@/components/dialogs/shared/PdfEndpointPreviewDialog";
+import { fullName, initialsOf } from "@/lib/person-name";
+import { formatCalendarDate } from "@/lib/date";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -66,7 +66,6 @@ import {
   StatCard,
   TabEmptyState,
   filterAttendance,
-  initialsOf,
 } from "@/app/[company]/sms/(employees)/promocion/actividades/_components/activity-detail-parts";
 import { DrillEvaluationSummary } from "@/app/[company]/sms/(employees)/promocion/actividades/_components/drill-evaluation-summary";
 import { hasDrillActivityCategory } from "@/lib/sms/activity-categories";
@@ -105,10 +104,7 @@ const AirlineActivityDetail = () => {
     isError: isAttendanceStatsError,
   } = useGetSMSActivityAttendanceStats(activity_number);
 
-  const dateLabel = (date: Date) =>
-    format(addDays(date, 1), "PPP", {
-      locale: es,
-    });
+  const dateLabel = (date: string | Date) => formatCalendarDate(date, "PPP");
 
   const topics = activity?.topics
     ? activity.topics
@@ -451,26 +447,16 @@ const AirlineActivityDetail = () => {
                       <CardContent className="space-y-4">
                         <PersonRow
                           role="Autorizado por"
-                          name={`${activity.authorized_by.first_name || ""} ${
-                            activity.authorized_by.last_name || ""
-                          }`.trim()}
+                          name={fullName(activity.authorized_by, "N/A")}
                           dni={activity.authorized_by.dni}
-                          initials={initialsOf(
-                            activity.authorized_by.first_name,
-                            activity.authorized_by.last_name,
-                          )}
+                          initials={initialsOf(activity.authorized_by)}
                         />
                         <Separator />
                         <PersonRow
                           role="Elaborado por"
-                          name={`${activity.planned_by.first_name || ""} ${
-                            activity.planned_by.last_name || ""
-                          }`.trim()}
+                          name={fullName(activity.planned_by, "N/A")}
                           dni={activity.planned_by.dni}
-                          initials={initialsOf(
-                            activity.planned_by.first_name,
-                            activity.planned_by.last_name,
-                          )}
+                          initials={initialsOf(activity.planned_by)}
                         />
                         <Separator />
                         <PersonRow

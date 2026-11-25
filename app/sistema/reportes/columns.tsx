@@ -19,6 +19,7 @@ import {
   httpStatusTone,
 } from "./_components/errorReportChips";
 import ErrorReportActionsDropdown from "./_components/ErrorReportActionsDropdown";
+import FormattedInstant from "@/components/misc/FormattedInstant";
 
 const STATUS_ICON: Record<ErrorReport["status"], typeof AlertTriangle> = {
   OPEN: AlertTriangle,
@@ -38,7 +39,7 @@ export function getColumns(
         const date = row.original.reported_at;
         return (
           <p className="whitespace-nowrap text-sm">
-            {date ? format(new Date(date), "dd/MM/yyyy HH:mm") : "—"}
+            <FormattedInstant value={date} format="dateTime" fallback="—" />
           </p>
         );
       },

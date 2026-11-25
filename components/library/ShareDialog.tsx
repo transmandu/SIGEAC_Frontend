@@ -30,6 +30,7 @@ import { notifyError } from "@/lib/notify-error";
 import { useOnChange } from "@/hooks/useOnChange";
 import { useResettingState } from "@/hooks/useResettingState";
 import { useGetDocumentVersions } from "@/hooks/general/archivos/useGetDocumentVersions";
+import FormattedInstant from "@/components/misc/FormattedInstant";
 
 interface ShareDialogProps {
   isOpen: boolean;
@@ -347,13 +348,11 @@ export default function ShareDialog({
                             </span>
                             <span className="flex items-center gap-1.5 text-[9px] text-slate-600 dark:text-gray-400 font-bold uppercase tracking-tight">
                               <Clock className="h-3.5 w-3.5 text-blue-500" />
-                              {share.expires_at
-                                ? format(
-                                    new Date(share.expires_at),
-                                    "dd/MM HH:mm",
-                                    { locale: es },
-                                  )
-                                : "--/--"}
+                              <FormattedInstant
+                                value={share.expires_at}
+                                format="dd/MM HH:mm"
+                                fallback="--/--"
+                              />
                             </span>
                           </div>
                         </div>

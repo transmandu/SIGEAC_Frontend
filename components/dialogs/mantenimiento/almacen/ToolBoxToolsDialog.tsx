@@ -17,6 +17,10 @@ import {
 } from "@/components/ui/tooltip";
 
 import { ToolArticle } from "@/types";
+import {
+  INDIVIDUAL_STATUS_LABEL,
+  type ToolBoxIndividual,
+} from "@/types/general-article-individual";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 
@@ -25,13 +29,15 @@ interface DialogProps {
     article: ToolArticle;
     serial: string;
   }[];
+  /** Herramientas de ferretería identificadas que guarda la caja. */
+  individuals?: ToolBoxIndividual[];
   name: string;
 }
 
-const ToolBoxToolsDialog = ({ tools, name }: DialogProps) => {
+const ToolBoxToolsDialog = ({ tools, individuals, name }: DialogProps) => {
   return (
     <Dialog>
-      <DialogTrigger>
+      <DialogTrigger asChild>
         <Button variant="outline">Ver Herramientas</Button>
       </DialogTrigger>
       <DialogContent>
@@ -56,8 +62,11 @@ const ToolBoxToolsDialog = ({ tools, name }: DialogProps) => {
             />
           </DialogHeader>
           <div className="flex flex-col gap-2">
-            {tools?.map((tool) => (
-              <div key={tool.serial} className="flex flex-col items-center">
+            {tools?.map((tool, index) => (
+              <div
+                key={tool.article.id ?? `${tool.serial}-${index}`}
+                className="flex flex-col items-center"
+              >
                 <h1 className="text-lg font-bold">
                   {tool.article.batches?.name}
                 </h1>
@@ -87,8 +96,27 @@ const ToolBoxToolsDialog = ({ tools, name }: DialogProps) => {
               </div>
             ))}
           </div>
+          {individuals && individuals.length > 0 && (
+            <div className="mt-3 flex flex-col gap-2 border-t pt-3">
+              <p className="text-center text-sm font-semibold">
+                Herramientas de ferretería
+              </p>
+              {individuals.map((piece) => (
+                <div key={piece.id} className="flex flex-col items-center">
+                  <p className="text-sm font-medium">
+                    {piece.general_article?.description}
+                  </p>
+                  <p className="text-muted-foreground italic">
+                    {piece.identifier}
+                    {piece.status !== "INTOOLBOX" &&
+                      ` · ${INDIVIDUAL_STATUS_LABEL[piece.status]}`}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
           <DialogFooter>
-            <DialogClose>
+            <DialogClose asChild>
               <Button variant="outline">Cerrar</Button>
             </DialogClose>
           </DialogFooter>

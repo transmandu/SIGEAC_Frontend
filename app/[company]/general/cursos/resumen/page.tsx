@@ -34,6 +34,8 @@ import {
 import { useTourContext } from "@/components/tour/TourProvider";
 import { resumenSteps } from "@/components/tour/steps/general/cursos/resumen";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { fullName as personName, initialsOf } from "@/lib/person-name";
+import { formatCalendarDate, parseCalendarDate } from "@/lib/date";
 
 type CourseSummary = {
   key: string;
@@ -57,12 +59,9 @@ const getFirstValue = (source: any, paths: string[]) => {
   return undefined;
 };
 
-const toValidDate = (value: any) => {
-  if (!value) return null;
-
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? null : date;
-};
+// Fechas de calendario (y, de respaldo, el día de un instante): se leen por sus
+// componentes, sin pasar por la zona del navegador.
+const toValidDate = (value: any) => parseCalendarDate(value) ?? null;
 
 const getCourseKey = (item: any, fallback: string) => {
   return String(
@@ -277,7 +276,7 @@ const CourseSummaryCard = ({
                         className="h-6 whitespace-nowrap"
                       >
                         Expira{" "}
-                        {format(new Date(cert.expiration_date), "dd/MM/yyyy")}
+                        {formatCalendarDate(cert.expiration_date, "date")}
                       </Badge>
                     )}
                     {certificateUrl && (
@@ -406,13 +405,12 @@ const EmployeeProfileExpanded = ({
               className="object-cover"
             />
             <AvatarFallback className="bg-blue-600 text-white font-bold text-2xl">
-              {employee.first_name?.charAt(0)}
-              {employee.last_name?.charAt(0)}
+              {initialsOf(employee)}
             </AvatarFallback>
           </Avatar>
           <div>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-              {employee.first_name} {employee.last_name}
+              {personName(employee)}
             </h2>
             <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400 mt-1">
               <span className="font-mono">C.I: {employee.dni}</span>
@@ -519,7 +517,7 @@ const ResumenCapacitacionPage = () => {
   const [expandedDni, setExpandedDni] = useState<string | null>(null);
 
   const filteredEmployees = employees?.filter((emp: any) => {
-    const fullName = `${emp.first_name} ${emp.last_name}`.toLowerCase();
+    const fullName = `${personName(emp)}`.toLowerCase();
     const dni = emp.dni?.toLowerCase() || "";
     const search = searchTerm.toLowerCase();
     return fullName.includes(search) || dni.includes(search);
@@ -616,13 +614,12 @@ const ResumenCapacitacionPage = () => {
                             className="object-cover"
                           />
                           <AvatarFallback className="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 font-semibold text-sm">
-                            {emp.first_name?.charAt(0)}
-                            {emp.last_name?.charAt(0)}
+                            {initialsOf(emp)}
                           </AvatarFallback>
                         </Avatar>
                         <div>
                           <div className="text-base font-semibold text-gray-900 dark:text-gray-100">
-                            {emp.first_name} {emp.last_name}
+                            {personName(emp)}
                           </div>
                           <div className="text-sm text-gray-500 dark:text-gray-400">
                             DNI: {emp.dni}

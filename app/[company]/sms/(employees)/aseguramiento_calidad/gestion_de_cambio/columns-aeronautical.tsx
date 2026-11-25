@@ -3,6 +3,7 @@
 import { Badge } from "@/components/ui/badge";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { type AppColumnDef } from "@/lib/table";
+import { fullName } from "@/lib/person-name";
 import type {
   ChangeRequest,
   ChangeStatus,
@@ -50,15 +51,6 @@ const CHANGE_TYPE_LABELS: Record<ChangeType, string> = {
   EXTERNO: "Externo",
 };
 
-function fullName(changeRequest: ChangeRequest) {
-  return [
-    changeRequest.requested_by?.first_name,
-    changeRequest.requested_by?.last_name,
-  ]
-    .filter(Boolean)
-    .join(" ");
-}
-
 export const columns: AppColumnDef<ChangeRequest>[] = [
   {
     accessorKey: "request_number",
@@ -79,7 +71,7 @@ export const columns: AppColumnDef<ChangeRequest>[] = [
     ),
     meta: { title: "Solicitante" },
     cell: ({ row }) => (
-      <div className="text-center">{fullName(row.original)}</div>
+      <div className="text-center">{fullName(row.original.requested_by)}</div>
     ),
   },
   {

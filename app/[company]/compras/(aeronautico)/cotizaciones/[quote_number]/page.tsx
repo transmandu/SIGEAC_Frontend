@@ -28,8 +28,10 @@ import {
 } from "./_components/utils/uiHelpers";
 import { isAeronauticalQuoteScope } from "@/lib/purchases/quote-scope";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
 
 const QuotePage = () => {
+  const timeZone = useCompanyTimezone();
   const { selectedCompany } = useCompanyStore();
   const { quote_number } = useParams<{ quote_number: string }>();
 
@@ -135,7 +137,7 @@ const QuotePage = () => {
 
             <MetaItem
               label="Fecha de cotización"
-              value={formatQuoteDate(data?.quote_date)}
+              value={formatQuoteDate(data?.quote_date, timeZone)}
               icon={CalendarDays}
             />
           </div>

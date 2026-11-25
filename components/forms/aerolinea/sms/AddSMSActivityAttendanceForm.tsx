@@ -40,6 +40,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Badge } from "@/components/ui/badge";
 import { useResettingState } from "@/hooks/useResettingState";
+import { fullName } from "@/lib/person-name";
 
 const normalizeAuthorizedEmployeeId = (value: unknown): number | null => {
   if (value === undefined || value === null || value === "") return null;
@@ -376,7 +377,7 @@ export function AddSMSActivityAttendanceForm({
                             return (
                               <CommandItem
                                 key={key}
-                                value={`${employee.first_name} ${employee.last_name} ${employee.dni} ${employee.job_title} ${employee.department}`}
+                                value={`${fullName(employee)} ${employee.dni} ${employee.job_title} ${employee.department}`}
                                 onSelect={() => toggleEmployeeSelection(key)}
                                 className="py-2.5"
                               >
@@ -391,7 +392,7 @@ export function AddSMSActivityAttendanceForm({
                                 <div className="flex flex-col gap-0.5 min-w-0 flex-1">
                                   <div className="flex items-center gap-2 flex-wrap">
                                     <span className="text-sm font-medium truncate">
-                                      {employee.first_name} {employee.last_name}
+                                      {fullName(employee)}
                                     </span>
                                     <span className="font-mono text-xs text-muted-foreground">
                                       {employee.dni}

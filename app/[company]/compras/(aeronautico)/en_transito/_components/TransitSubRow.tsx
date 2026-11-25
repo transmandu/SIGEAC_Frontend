@@ -2,7 +2,7 @@
 
 import { type AppRow } from "@/lib/table";
 import {
-  INCOMING_REASON_ACTIONS,
+  reasonAction,
   INCOMING_REASON_LABELS,
   isReadyForIncoming,
 } from "@/lib/incoming-readiness";
@@ -115,7 +115,8 @@ export default function TransitSubRow({ row }: Props) {
                   {INCOMING_REASON_LABELS[reason] ?? reason}
                 </span>
                 <span className="ml-1 text-muted-foreground">
-                  — {INCOMING_REASON_ACTIONS[reason]?.purchasing}
+                  —{" "}
+                  {reasonAction(reason, "purchasing", article.batch?.category)}
                 </span>
               </li>
             ))}

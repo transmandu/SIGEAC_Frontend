@@ -11,6 +11,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { fullName } from "@/lib/person-name";
 import {
   Select,
   SelectContent,
@@ -69,7 +70,7 @@ export function PersonSelect<T extends FieldValues>({
 
   const employeeOptions = employees.map((employee) => ({
     value: String(employee.id),
-    label: `${employee.first_name} ${employee.last_name}`.trim(),
+    label: fullName(employee),
   }));
 
   const authorizedOptions = authorizedEmployees.map((employee) => ({

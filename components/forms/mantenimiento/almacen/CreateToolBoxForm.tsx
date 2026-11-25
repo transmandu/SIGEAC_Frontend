@@ -16,6 +16,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useGetBatchesWithInWarehouseArticles } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesWithInWarehouseArticles";
 import { useGetEmployeesForBox } from "@/hooks/mantenimiento/almacen/caja_herramientas/useGetEmployeeForBox";
 import { cn } from "@/lib/utils";
+import { ToolBoxIndividualsField } from "@/components/forms/mantenimiento/almacen/_components/ToolBoxIndividualsField";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Article, Batch, ToolBox } from "@/types";
 import { zodResolver } from "@/lib/zod-resolver";
@@ -33,6 +34,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { fullName } from "@/lib/person-name";
 import {
   Command,
   CommandEmpty,
@@ -90,6 +92,10 @@ export function CreateToolBoxForm({ onClose, initialData }: FormProps) {
   const [selectedTools, setSelectedTools] = useState<string[]>([]);
 
   const [openArticles, setOpenArticles] = useState(false);
+
+  const [individualIds, setIndividualIds] = useState<number[]>(
+    () => initialData?.individuals?.map((piece) => piece.id) ?? [],
+  );
 
   const [openEmployee, setOpenEmployee] = useState(false);
 
@@ -152,8 +158,9 @@ export function CreateToolBoxForm({ onClose, initialData }: FormProps) {
     const formattedData = {
       ...data,
       location_id: selectedStation ? Number(selectedStation) : undefined,
-      created_by: `${user?.first_name} ${user?.last_name}`,
-      delivered_by: `${user?.first_name} ${user?.last_name}`,
+      individual_ids: individualIds,
+      created_by: `${fullName(user)}`,
+      delivered_by: `${fullName(user)}`,
     };
     await createToolBox.mutateAsync({
       data: formattedData,
@@ -228,8 +235,7 @@ export function CreateToolBoxForm({ onClose, initialData }: FormProps) {
                               </AvatarFallback>
                             </Avatar>
                             <span className="truncate">
-                              {selectedEmployee.first_name}{" "}
-                              {selectedEmployee.last_name}
+                              {fullName(selectedEmployee)}
                             </span>
                           </span>
                         ) : (
@@ -262,7 +268,7 @@ export function CreateToolBoxForm({ onClose, initialData }: FormProps) {
                             employees.map((employee) => (
                               <CommandItem
                                 key={employee.id}
-                                value={`${employee.first_name} ${employee.last_name} ${employee.job_title.name}`}
+                                value={`${fullName(employee)} ${employee.job_title.name}`}
                                 onSelect={() => {
                                   field.onChange(employee.dni);
                                   setOpenEmployee(false);
@@ -284,7 +290,7 @@ export function CreateToolBoxForm({ onClose, initialData }: FormProps) {
                                 </Avatar>
                                 <span className="flex-1 truncate">
                                   <span className="block font-medium">
-                                    {employee.first_name} {employee.last_name}
+                                    {fullName(employee)}
                                   </span>
                                   <span className="block text-xs text-muted-foreground">
                                     {employee.job_title.name}
@@ -419,6 +425,13 @@ export function CreateToolBoxForm({ onClose, initialData }: FormProps) {
               <FormMessage />
             </FormItem>
           )}
+        />
+        <ToolBoxIndividualsField
+          location={selectedStation ?? null}
+          company={selectedCompany?.slug}
+          value={individualIds}
+          onChange={setIndividualIds}
+          current={initialData?.individuals}
         />
         <div className="flex justify-end gap-2 pt-2">
           <Button type="button" variant="outline" onClick={onClose}>

@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { phoneSchema, toPhoneValue } from "@/lib/phone";
 import type { Employee } from "@/types";
+import { companyNow, toCalendarPayload } from "@/lib/date";
 
 export const BLOOD_TYPES = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 export const DNI_TYPES = ["V", "E", "J"] as const;
@@ -12,7 +13,8 @@ export type AccessMode = "none" | "existing" | "new";
 const same = (a: string | null | undefined, b: string | null | undefined) =>
   (a ?? "").trim().toLowerCase() === (b ?? "").trim().toLowerCase();
 
-const today = () => new Date().toLocaleDateString("en-CA");
+/** Hoy en la zona de la compañía, como yyyy-MM-dd. */
+const today = () => toCalendarPayload(companyNow()) ?? "";
 
 /** Lo mínimo de otro empleado para detectar cédula o correo repetidos antes de enviar. */
 export type KnownEmployee = Pick<Employee, "id" | "dni" | "email">;

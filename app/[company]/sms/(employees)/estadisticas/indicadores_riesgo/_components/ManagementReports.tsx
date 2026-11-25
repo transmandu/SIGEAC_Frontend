@@ -12,6 +12,7 @@ import { Loader2 } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo } from "react";
 import { GoalStatusCard } from "./GoldStatusCard";
+import { formatCalendarDate, companyNow } from "@/lib/date";
 
 interface ManagementReportsProps {
   companySlug?: string;
@@ -27,8 +28,8 @@ export const ManagementReports: React.FC<ManagementReportsProps> = ({
 
   // Obtener parámetros ACTUALES de la URL - SIN estado local
   const currentParams = useMemo(() => {
-    const defaultFrom = format(startOfMonth(new Date()), "yyyy-MM-dd");
-    const defaultTo = format(new Date(), "yyyy-MM-dd");
+    const defaultFrom = format(startOfMonth(companyNow()), "yyyy-MM-dd");
+    const defaultTo = format(companyNow(), "yyyy-MM-dd");
 
     const urlParams = new URLSearchParams(urlSearchParams.toString());
     return {
@@ -45,16 +46,13 @@ export const ManagementReports: React.FC<ManagementReportsProps> = ({
   } = useGetTotalReportsStatsByYear(
     currentParams.from,
     currentParams.to,
-    companySlug || selectedCompany?.slug!
+    companySlug || selectedCompany?.slug!,
   );
 
   // Preparar datos para el gráfico
   const formatDate = useMemo(
-    () => (date: string) => {
-      const newDate = new Date(date);
-      return format(newDate, "PPP", { locale: es });
-    },
-    []
+    () => (date: string) => formatCalendarDate(date, "PPP"),
+    [],
   );
 
   // Datos para el gráfico - CORREGIDO: useMemo en lugar de useEffect + useState
@@ -81,7 +79,7 @@ export const ManagementReports: React.FC<ManagementReportsProps> = ({
 
   // Manejar cambio de fechas desde DateFilter
   const handleDateChange = (
-    dateRange: { from: Date; to: Date } | undefined
+    dateRange: { from: Date; to: Date } | undefined,
   ) => {
     if (!dateRange?.from || !dateRange?.to) return;
 
@@ -94,8 +92,8 @@ export const ManagementReports: React.FC<ManagementReportsProps> = ({
 
   // Manejar reset
   const handleReset = () => {
-    const defaultFrom = format(startOfMonth(new Date()), "yyyy-MM-dd");
-    const defaultTo = format(new Date(), "yyyy-MM-dd");
+    const defaultFrom = format(startOfMonth(companyNow()), "yyyy-MM-dd");
+    const defaultTo = format(companyNow(), "yyyy-MM-dd");
 
     const newParams = new URLSearchParams();
     newParams.set("from", defaultFrom);

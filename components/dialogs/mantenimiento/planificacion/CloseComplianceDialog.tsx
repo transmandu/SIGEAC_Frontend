@@ -57,13 +57,14 @@ import { zodResolver } from "@/lib/zod-resolver";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { ComponentAction, MaintenanceCountingMethod } from "@/types";
+import { companyNow } from "@/lib/date";
 
 const buildCloseSchema = (units: MaintenanceCountingMethod[]) =>
   z
     .object({
       completed_date: z
         .date({ error: "Seleccione una fecha" })
-        .refine((date) => startOfDay(date) <= startOfDay(new Date()), {
+        .refine((date) => startOfDay(date) <= startOfDay(companyNow()), {
           message: "No puede cerrarse con fecha futura",
         }),
       completed_hours: optionalNumber,
@@ -150,7 +151,7 @@ export function CloseComplianceDialog({
   const { hours, cycles } = readingsFor(units);
 
   const closeDefaults = (): CloseFormValues => ({
-    completed_date: new Date(),
+    completed_date: companyNow(),
     completed_hours: defaultHours,
     completed_cycles: defaultCycles,
     maintenance_provider_id: currentProviderId ? String(currentProviderId) : "",

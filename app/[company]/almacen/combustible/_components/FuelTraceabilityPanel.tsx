@@ -15,6 +15,7 @@ import { FuelMovement, FuelVehicle } from "@/types";
 import { format } from "date-fns";
 import { ChevronLeft, ChevronRight, Route } from "lucide-react";
 import { useMemo, useState } from "react";
+import { formatCalendarDate } from "@/lib/date";
 
 const DISPATCHES_PER_PAGE = 15;
 
@@ -87,7 +88,7 @@ export function FuelTraceabilityPanel({
                 return (
                   <TableRow key={movement.id}>
                     <TableCell className="font-medium">
-                      {format(movement.operational_date, "dd/MM/yyyy")}
+                      {formatCalendarDate(movement.operational_date, "date")}
                     </TableCell>
                     <TableCell>{getFuelMovementLabel(movement.type)}</TableCell>
                     <TableCell>

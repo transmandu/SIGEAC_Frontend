@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { useIsSuperuser } from "@/hooks/helpers/useIsSuperuser";
 import { cn } from "@/lib/utils";
+import { initialsOf as personInitials, formalName } from "@/lib/person-name";
 
 export type AvatarEmployee = {
   id?: number | string | null;
@@ -31,21 +32,11 @@ export const employeeFullName = (
     AvatarEmployee,
     "first_name" | "middle_name" | "last_name" | "second_last_name"
   >,
-) =>
-  [
-    employee.first_name,
-    employee.middle_name,
-    employee.last_name,
-    employee.second_last_name,
-  ]
-    .filter(Boolean)
-    .join(" ");
+) => formalName(employee);
 
 const initialsOf = (
   employee: Pick<AvatarEmployee, "first_name" | "last_name">,
-) =>
-  `${employee.first_name?.[0] ?? ""}${employee.last_name?.[0] ?? ""}`.toUpperCase() ||
-  "?";
+) => personInitials(employee).toUpperCase() || "?";
 
 /**
  * Foto del empleado en la fila. Con foto, al pulsarla se abre ampliada (y

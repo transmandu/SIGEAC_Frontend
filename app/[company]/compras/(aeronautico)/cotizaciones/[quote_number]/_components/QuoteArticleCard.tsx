@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  isUnitaryCategory,
+  UNITARY_UNIT_LABEL,
+} from "@/lib/purchases/requisition-measure";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { ArticleQuoteOrder } from "@/types/purchase/quote";
@@ -20,7 +24,10 @@ const QuoteArticleCard = ({ article }: QuoteArticleCardProps) => {
 
   const quantityChanged =
     req != null && Number(req.quantity) !== Number(article.quantity);
+  // Componente, parte y herramienta son entidades únicas: no llevan unidad.
+  const hasUnit = !isUnitaryCategory(req?.batch?.category);
   const unitChanged =
+    hasUnit &&
     req?.unit?.label != null &&
     article.unit?.label != null &&
     req.unit.label !== article.unit.label;
@@ -140,7 +147,9 @@ const QuoteArticleCard = ({ article }: QuoteArticleCardProps) => {
                     Unidad
                   </span>
                   <span className="text-sm leading-none block">
-                    {article.unit?.label ?? "—"}
+                    {hasUnit
+                      ? (article.unit?.label ?? "—")
+                      : UNITARY_UNIT_LABEL}
                   </span>
                 </div>
 
@@ -198,12 +207,16 @@ const QuoteArticleCard = ({ article }: QuoteArticleCardProps) => {
             quoted: article.quantity,
             changed: quantityChanged,
           },
-          {
-            label: "Unidad",
-            requested: req?.unit?.label,
-            quoted: article.unit?.label,
-            changed: unitChanged,
-          },
+          ...(hasUnit
+            ? [
+                {
+                  label: "Unidad",
+                  requested: req?.unit?.label,
+                  quoted: article.unit?.label,
+                  changed: unitChanged,
+                },
+              ]
+            : []),
         ]}
         justification={article.justification}
       />

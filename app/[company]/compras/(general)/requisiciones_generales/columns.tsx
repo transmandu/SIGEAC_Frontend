@@ -31,6 +31,7 @@ import {
 } from "@/components/dialogs/mantenimiento/compras/AdvanceRequisitionStatusDialog";
 import { useState } from "react";
 import { formatInstant } from "@/lib/date";
+import { fullName } from "@/lib/person-name";
 
 const STATUS_LABELS: Record<string, string> = {
   CREATED: "Creada",
@@ -127,7 +128,7 @@ const StatusCell = ({ requisition }: { requisition: Requisition }) => {
           id: requisition.id,
           data: {
             status: target,
-            updated_by: `${user?.first_name} ${user?.last_name}`,
+            updated_by: `${fullName(user)}`,
           },
           company: selectedCompany.slug,
         });

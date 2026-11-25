@@ -46,6 +46,7 @@ import {
   PackageCheck,
 } from "lucide-react";
 import { useMemo, useState } from "react";
+import { fullName } from "@/lib/person-name";
 
 // Quien autoriza suele ser un empleado, pero puede ser alguien externo (un
 // inspector, un representante del cliente) que no está en la nómina.
@@ -91,7 +92,7 @@ export function StoreDirectlyDialog({
   const authorizers = useMemo<Authorizer[]>(() => {
     const own = (employees ?? []).map((emp) => ({
       key: `employee-${emp.id}`,
-      name: `${emp.first_name} ${emp.last_name}`,
+      name: fullName(emp),
       dni: emp.dni ?? "",
       employeeId: emp.id,
       authorizedId: null,

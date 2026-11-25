@@ -8,6 +8,27 @@ import { formatQuantity } from "@/lib/utils";
 import type { CompanyInventoryGeneralArticle } from "@/types/inventory";
 
 /**
+ * Un artículo con artículos individuales se muestra agrupado: su detalle (los
+ * identificados y los sin identificar) vive en un diálogo de consulta.
+ */
+export const groupedConsulta = (article: CompanyInventoryGeneralArticle) => {
+  const total = article.individuals?.total ?? 0;
+  if (total === 0) return null;
+
+  const stocked = article.individuals?.stocked ?? 0;
+  const unidentified = Math.max(
+    0,
+    Math.floor(Number(article.available_quantity ?? 0)) - stocked,
+  );
+
+  return {
+    total,
+    unidentified,
+    rows: total + (unidentified > 0 ? 1 : 0),
+  };
+};
+
+/**
  * Artículos generales vistos desde fuera del almacén.
  *
  * Tabla aparte de la del almacén: aquí se consulta qué hay y cuánto hay
@@ -93,12 +114,31 @@ export const generalConsultaColumns: AppColumnDef<CompanyInventoryGeneralArticle
           <DataTableColumnHeader column={column} title="Disponibilidad" />
         </div>
       ),
-      cell: ({ row }) => (
-        <AvailabilityBadge
-          quantity={row.original.available_quantity}
-          unit={row.original.unit?.value ?? row.original.unit?.label}
-        />
-      ),
+      cell: ({ row }) => {
+        const grouped = groupedConsulta(row.original);
+
+        if (grouped) {
+          return (
+            <div className="flex flex-col items-center gap-1">
+              <Badge variant="outline" className="px-3 py-1 text-xs font-bold">
+                AGRUPADO ({grouped.rows})
+              </Badge>
+              <span className="text-[11px] text-muted-foreground tabular-nums">
+                {grouped.total} identificado{grouped.total === 1 ? "" : "s"}
+                {grouped.unidentified > 0 &&
+                  ` · ${grouped.unidentified} sin identificar`}
+              </span>
+            </div>
+          );
+        }
+
+        return (
+          <AvailabilityBadge
+            quantity={row.original.available_quantity}
+            unit={row.original.unit?.value ?? row.original.unit?.label}
+          />
+        );
+      },
     },
   ];
 

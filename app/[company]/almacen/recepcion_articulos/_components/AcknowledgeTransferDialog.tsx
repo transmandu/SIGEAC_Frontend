@@ -1,7 +1,7 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Loader2 } from 'lucide-react'
+import { useState } from "react";
+import { Loader2 } from "lucide-react";
 
 import {
   Dialog,
@@ -10,16 +10,17 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
-import { useAcknowledgeTransfer } from '@/actions/mantenimiento/almacen/solicitudes/salida/action'
-import { useCompanyStore } from '@/stores/CompanyStore'
-import { useAuth } from '@/contexts/AuthContext'
-import type { IncomingTransfer } from '@/hooks/mantenimiento/almacen/solicitudes/useGetIncomingTransfers'
-import { TransferLineDetail } from './TransferLineDetail'
+import { useAcknowledgeTransfer } from "@/actions/mantenimiento/almacen/solicitudes/salida/action";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { useAuth } from "@/contexts/AuthContext";
+import type { IncomingTransfer } from "@/hooks/mantenimiento/almacen/solicitudes/useGetIncomingTransfers";
+import { TransferLineDetail } from "./TransferLineDetail";
+import { fullName } from "@/lib/person-name";
 
 /**
  * Confirma —o rechaza— que lo que llegó físicamente es lo que dice el
@@ -34,21 +35,21 @@ export function AcknowledgeTransferDialog({
   open,
   onOpenChange,
 }: {
-  transfer: IncomingTransfer
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  transfer: IncomingTransfer;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }) {
-  const { selectedCompany, selectedStation } = useCompanyStore()
-  const { user } = useAuth()
-  const { acknowledgeTransfer } = useAcknowledgeTransfer()
+  const { selectedCompany, selectedStation } = useCompanyStore();
+  const { user } = useAuth();
+  const { acknowledgeTransfer } = useAcknowledgeTransfer();
 
-  const [rejecting, setRejecting] = useState(false)
-  const [reason, setReason] = useState('')
+  const [rejecting, setRejecting] = useState(false);
+  const [reason, setReason] = useState("");
 
-  const pending = acknowledgeTransfer.isPending
-  const receivedBy = `${user?.first_name ?? ''} ${user?.last_name ?? ''}`.trim()
+  const pending = acknowledgeTransfer.isPending;
+  const receivedBy = fullName(user);
 
-  const submit = async (status: 'APPROVED' | 'REJECTED') => {
+  const submit = async (status: "APPROVED" | "REJECTED") => {
     await acknowledgeTransfer.mutateAsync({
       id: transfer.id,
       company: selectedCompany!.slug,
@@ -57,18 +58,20 @@ export function AcknowledgeTransferDialog({
       // Se acusa por la sede activa: el documento puede traer líneas para
       // otras sedes y esas no se tocan.
       location_id: selectedStation!,
-      rejection_reason: status === 'REJECTED' ? reason.trim() : undefined,
-    })
-    onOpenChange(false)
-  }
+      rejection_reason: status === "REJECTED" ? reason.trim() : undefined,
+    });
+    onOpenChange(false);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex max-h-[85vh] flex-col sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Recepción del traslado {transfer.request_number}</DialogTitle>
+          <DialogTitle>
+            Recepción del traslado {transfer.request_number}
+          </DialogTitle>
           <DialogDescription>
-            Enviado desde {transfer.location?.cod_iata ?? 'otra sede'}. Confirme
+            Enviado desde {transfer.location?.cod_iata ?? "otra sede"}. Confirme
             que recibió todo lo que aparece abajo.
           </DialogDescription>
         </DialogHeader>
@@ -87,7 +90,7 @@ export function AcknowledgeTransferDialog({
           <div className="space-y-2">
             <Label className="text-sm font-medium">Recibido por</Label>
             <p className="rounded-md border bg-muted/30 px-3 py-2 text-sm">
-              {receivedBy || 'Usuario actual'}
+              {receivedBy || "Usuario actual"}
             </p>
           </div>
 
@@ -116,7 +119,10 @@ export function AcknowledgeTransferDialog({
               <Button
                 type="button"
                 variant="ghost"
-                onClick={() => { setRejecting(false); setReason('') }}
+                onClick={() => {
+                  setRejecting(false);
+                  setReason("");
+                }}
               >
                 Volver
               </Button>
@@ -124,7 +130,7 @@ export function AcknowledgeTransferDialog({
                 <Button
                   type="button"
                   variant="destructive"
-                  onClick={() => submit('REJECTED')}
+                  onClick={() => submit("REJECTED")}
                 >
                   {pending && <Loader2 className="mr-2 size-4 animate-spin" />}
                   Confirmar rechazo
@@ -133,10 +139,14 @@ export function AcknowledgeTransferDialog({
             </>
           ) : (
             <>
-              <Button type="button" variant="ghost" onClick={() => setRejecting(true)}>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setRejecting(true)}
+              >
                 No recibí todo
               </Button>
-              <Button type="button" onClick={() => submit('APPROVED')}>
+              <Button type="button" onClick={() => submit("APPROVED")}>
                 {pending && <Loader2 className="mr-2 size-4 animate-spin" />}
                 Confirmar recepción
               </Button>
@@ -145,5 +155,5 @@ export function AcknowledgeTransferDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

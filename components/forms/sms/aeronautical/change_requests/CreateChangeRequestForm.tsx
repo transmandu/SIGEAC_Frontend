@@ -66,6 +66,9 @@ import { ComboboxField } from "@/components/ui/ComboboxField";
 import { MultiSelectCombobox } from "@/components/ui/MultiSelectCombobox";
 import { DatePickerField } from "@/components/ui/DatePickerField";
 import FolderSelect from "@/components/library/FolderSelect";
+import { fullName } from "@/lib/person-name";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import { instantToCalendarDay, toCalendarPayload } from "@/lib/date";
 
 const SEVERITIES = ["A", "B", "C", "D", "E"];
 
@@ -180,8 +183,8 @@ function firstErrorMessage(errors: unknown): string | undefined {
   return undefined;
 }
 
-function todayIso(): string {
-  return new Date().toISOString().slice(0, 10);
+function todayIso(timeZone: string): string {
+  return instantToCalendarDay(new Date(), timeZone) ?? "";
 }
 
 function sameType(left: unknown, right: unknown): boolean {
@@ -416,6 +419,7 @@ export function CreateChangeRequestForm({
 }: {
   initialData?: ChangeRequest;
 }) {
+  const timeZone = useCompanyTimezone();
   const router = useRouter();
   const params = useParams<{ company: string }>();
   const { selectedCompany } = useCompanyStore();
@@ -478,7 +482,8 @@ export function CreateChangeRequestForm({
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      request_date: initialData?.request_date?.split("T")[0] ?? todayIso(),
+      request_date:
+        initialData?.request_date?.split("T")[0] ?? todayIso(timeZone),
       department_id: initialData?.department?.id ?? 0,
       requested_by: initialData?.requested_by?.id ?? 0,
       approved_by: initialData?.approved_by?.id ?? null,
@@ -534,7 +539,7 @@ export function CreateChangeRequestForm({
 
   const employeeOptions = employees.map((employee) => ({
     value: employee.id,
-    label: `${employee.first_name} ${employee.last_name}`,
+    label: fullName(employee),
     badge: employee.dni,
   }));
 
@@ -690,9 +695,7 @@ export function CreateChangeRequestForm({
                             : undefined
                         }
                         setValue={(date) =>
-                          field.onChange(
-                            date ? date.toISOString().slice(0, 10) : "",
-                          )
+                          field.onChange(toCalendarPayload(date) ?? "")
                         }
                       />
                       <FormMessage />
@@ -1007,7 +1010,7 @@ export function CreateChangeRequestForm({
                               key={employee.id}
                               value={String(employee.id)}
                             >
-                              {employee.first_name} {employee.last_name}
+                              {fullName(employee)}
                             </SelectItem>
                           ))}
                         </SelectContent>

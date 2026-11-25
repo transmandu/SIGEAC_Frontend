@@ -21,6 +21,7 @@ import { ColumnFilter, type SortDirection } from "./ColumnFilter";
 import { formatPeriodRange, PeriodFilter, type Period } from "./PeriodFilter";
 import { ReceptionStats } from "./ReceptionStats";
 import { PAGE_SIZES, TablePagination } from "@/components/misc/TablePagination";
+import { formatCalendarDate } from "@/lib/date";
 
 const toApiDate = (date?: Date) =>
   date ? format(date, "yyyy-MM-dd") : undefined;
@@ -319,9 +320,7 @@ export const RecepcionesAeronauticasTab = () => {
                     </span>
                   </TableCell>
                   <TableCell className="text-center tabular-nums">
-                    {format(new Date(article.reception_date), "dd/MM/yyyy", {
-                      locale: es,
-                    })}
+                    {formatCalendarDate(article.reception_date, "date")}
                   </TableCell>
                   <TableCell className="text-center font-mono text-xs text-muted-foreground">
                     {article.order_number ?? "—"}
