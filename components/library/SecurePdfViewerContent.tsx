@@ -165,11 +165,10 @@ export function SecurePdfViewerContent({
         onScroll={handleScroll}
         className={`flex-1 overflow-auto ${isDark ? "bg-[#0b0c0d]" : "bg-gray-100"}`}
       >
-        {/* Desde react-pdf 11 Document suspende y manda los fallos al Error
-            Boundary; sin suspense={false} se ignoran loading y error. */}
+        {/* react-pdf 11 gestiona `loading` y `error` internamente; `Document`
+            no expone la prop `suspense`. */}
         <Document
           file={fileUrl}
-          suspense={false}
           onLoadSuccess={({ numPages: total }) => {
             setNumPages(total);
             pageRefs.current = Array.from({ length: total }, () => null);

@@ -1,9 +1,11 @@
 "use client";
 
 import { CargoManifestItem } from "@/types";
+import Link from "next/link";
 import { ExistingItemRow } from "./ExistingItemRow";
 
 interface Props {
+  company: string;
   shipmentId: number;
   group: {
     guide_number: string;
@@ -32,6 +34,7 @@ interface Props {
 }
 
 export function ExistingShipmentGroup({
+  company,
   shipmentId,
   group,
   itemStates,
@@ -44,9 +47,12 @@ export function ExistingShipmentGroup({
     <div className="border border-border rounded-lg overflow-hidden">
       {/* Cabecera de la guía */}
       <div className="flex items-center gap-3 px-4 py-2.5 bg-muted/30 border-b border-border/50">
-        <span className="font-semibold text-primary text-sm">
+        <Link
+          href={`/${company}/operaciones/cargo/guia/${shipmentId}`}
+          className="font-semibold text-primary text-sm hover:underline"
+        >
           {group.guide_number}
-        </span>
+        </Link>
         <span className="text-sm text-muted-foreground">
           {group.client?.name ?? "Sin cliente"}
         </span>

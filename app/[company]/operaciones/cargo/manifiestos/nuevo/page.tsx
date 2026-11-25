@@ -118,20 +118,6 @@ const NuevoManifiestoPage = () => {
         <PageHeader className="mb-2" />
 
         <div className="flex items-center gap-4">
-          <Button
-            asChild
-            variant="outline"
-            size="icon"
-            className="h-9 w-9"
-            data-tour="cargo-manifiestos-nuevo-btn-volver"
-          >
-            <Link
-              href={`/${company}/operaciones/cargo/manifiestos?month=${month}&year=${year}`}
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-          </Button>
-
           <div className="">
             <h1
               className="text-3xl font-bold tracking-tight flex items-center gap-2"

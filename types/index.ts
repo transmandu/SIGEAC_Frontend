@@ -2473,9 +2473,20 @@ export type CargoManifest = {
 
 export type AvailableCargoManifestSummary = {
   id: number;
+  updated_at?: string | null;
   manifest_number: string;
   total_weight: number;
   aircraft_label?: string | null;
+  aircraft_model?: string | null;
+  aircraft_id?: number | string | null;
+  external_aircraft?: string | null;
+  captain_id?: number | string | null;
+  external_captain_id?: number | string | null;
+  first_officer_id?: number | string | null;
+  external_first_officer_id?: number | string | null;
+  captain_label?: string;
+  first_officer_label?: string;
+  crew_conflict?: boolean;
   items_count?: number;
   client_breakdown?: Record<string, number>;
 };
@@ -3068,6 +3079,7 @@ export type CreatePaxFlightInput = {
   external_first_officer_id?: number | null;
   flight_type: FlightType;
   cargo_manifest_id?: number | null;
+  manifest_updated_at?: string | null;
   passengers?: Omit<PaxPassenger, "id">[];
 };
 

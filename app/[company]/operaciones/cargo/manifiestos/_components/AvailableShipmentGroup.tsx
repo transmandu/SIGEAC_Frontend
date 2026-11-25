@@ -2,9 +2,11 @@
 
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 import { AvailableItemRow } from "./AvailableItemRow";
 
 interface Props {
+  company: string;
   shipment: any;
   newSelections: Map<
     number,
@@ -30,6 +32,7 @@ interface Props {
 }
 
 export function AvailableShipmentGroup({
+  company,
   shipment,
   newSelections,
   newErrors,
@@ -42,7 +45,8 @@ export function AvailableShipmentGroup({
   const someSelected = availItems.some((i: any) => newSelections.has(i.id));
   // El backend sirve el estado en mayúsculas; las claves del config son minúsculas.
   const status =
-    statusConfig[shipment.manifest_status?.toLowerCase()] ?? statusConfig.pending;
+    statusConfig[shipment.manifest_status?.toLowerCase()] ??
+    statusConfig.pending;
   const aircraftLabel =
     shipment.aircraft?.acronym ?? shipment.external_aircraft ?? "N/A";
 
@@ -51,9 +55,12 @@ export function AvailableShipmentGroup({
       {/* Header de la guía */}
       <div className="flex items-center justify-between px-4 py-2 bg-muted/20 border-b border-border/50">
         <div className="flex items-center gap-3">
-          <span className="font-semibold text-primary text-sm">
+          <Link
+            href={`/${company}/operaciones/cargo/guia/${shipment.id}`}
+            className="font-semibold text-primary text-sm hover:underline"
+          >
             {shipment.guide_number}
-          </span>
+          </Link>
           <span className="text-sm text-muted-foreground">
             {shipment.client?.name ?? "Sin cliente"}
           </span>

@@ -234,10 +234,10 @@ export const getCounterColumns = (
   {
     accessorKey: "flight_code",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Vuelo" />
+      <DataTableColumnHeader column={column} title="Nº de Manifiesto" />
     ),
     cell: ({ row }) => (
-      <div className="font-bold text-primary flex items-center gap-1.5">
+      <div className="flex items-center justify-center gap-1.5 font-bold text-primary">
         <FileText className="h-4 w-4 text-muted-foreground" />
         {row.original.flight_code}
       </div>

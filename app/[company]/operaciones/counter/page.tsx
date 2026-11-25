@@ -93,7 +93,7 @@ const CounterPage = () => {
         <div className="flex flex-col gap-2 text-center">
           <div className="flex justify-center items-center gap-2">
             <Users className="h-8 w-8 text-primary" />
-            <h1 className="text-4xl font-bold">Counter y Despacho</h1>
+            <h1 className="text-4xl font-bold">Facilitación</h1>
           </div>
           <p className="text-sm text-muted-foreground italic">
             Gestión y emisión de manifiestos diarios de pasajeros y vuelos de

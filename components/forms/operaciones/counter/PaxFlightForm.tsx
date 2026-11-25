@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -55,6 +56,8 @@ import { PdfEndpointPreviewDialog } from "@/components/dialogs/shared/PdfEndpoin
 import { fullName } from "@/lib/person-name";
 import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
 import { instantToCalendarDay } from "@/lib/date";
+import { isCaptain, isFirstOfficer } from "@/lib/pilot-rank";
+import { serverFieldErrors } from "@/components/forms/mantenimiento/almacen/_components/form-feedback";
 
 interface PaxFlightFormProps {
   company: string;
@@ -75,6 +78,7 @@ export const PaxFlightForm = ({
 }: PaxFlightFormProps) => {
   const timeZone = useCompanyTimezone();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { user } = useAuth();
 
   // Determina si el usuario es personal del counter (ve columnas extra)
@@ -111,6 +115,8 @@ export const PaxFlightForm = ({
   }, [prefill]);
 
   // Form State
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
   const [flightDate, setFlightDate] = useState<string>(() => {
     if (initialData?.flight_date_raw) return initialData.flight_date_raw;
     // El día de hoy en la zona de la compañía (toISOString daría el día UTC).
@@ -163,6 +169,9 @@ export const PaxFlightForm = ({
     initialData?.cargo_manifest_id || null,
   );
 
+  const hasCargoType = flightType === "CARGO_ONLY" || flightType === "HYBRID";
+  const hasLinkedCargo = hasCargoType && !!cargoManifestId;
+
   // Pasajeros
   const [passengers, setPassengers] = useState<Omit<PaxPassenger, "id">[]>(
     () => {
@@ -202,12 +211,55 @@ export const PaxFlightForm = ({
     useGetExternalAircraftSuggestions(company);
   const { data: pilots } = useGetPilots(company);
   const { data: externalPilots } = useGetExternalPilots(company);
+
+  // Mismo criterio que el formulario de carga: el capitan solo ve capitanes y
+  // el primer oficial ve primer oficiales + capitanes, salvo el ya elegido.
+  const selectedCaptainId =
+    captainType === "internal" ? captainId : externalCaptainId;
+  const selectedFirstOfficerId =
+    firstOfficerType === "internal" ? firstOfficerId : externalFirstOfficerId;
+
+  // El seleccionado siempre debe seguir en la lista: Radix toma el texto del
+  // trigger del item seleccionado y, si lo filtramos, el input queda vacio.
+  const captainOptions = (pilots ?? []).filter((p: any) => isCaptain(p));
+  const externalCaptainOptions = (externalPilots ?? []).filter((p: any) =>
+    isCaptain(p),
+  );
+  const firstOfficerOptions = (pilots ?? []).filter(
+    (p: any) =>
+      (isFirstOfficer(p) || isCaptain(p)) &&
+      (p.id !== selectedCaptainId || p.id === selectedFirstOfficerId) &&
+      (p.id !== 6 || p.id === selectedFirstOfficerId),
+  );
+  const externalFirstOfficerOptions = (externalPilots ?? []).filter(
+    (p: any) =>
+      (isFirstOfficer(p) || isCaptain(p)) &&
+      (p.id !== selectedCaptainId || p.id === selectedFirstOfficerId),
+  );
+
+  const handleCaptainChange = (
+    type: "internal" | "external",
+    id: number | null,
+  ) => {
+    if (type === "internal") {
+      setCaptainId(id);
+      if (firstOfficerType === "internal" && firstOfficerId === id) {
+        setFirstOfficerId(null);
+      }
+    } else {
+      setExternalCaptainId(id);
+      if (firstOfficerType === "external" && externalFirstOfficerId === id) {
+        setExternalFirstOfficerId(null);
+      }
+    }
+  };
+
   const { data: nextCode } = useNextFlightCode(company, month, year);
   const { data: availableManifests } = useAvailableCargoManifests(
     company,
     month,
     year,
-    aircraftId,
+    hasLinkedCargo ? null : aircraftId,
     initialData?.id,
   );
 
@@ -225,6 +277,127 @@ export const PaxFlightForm = ({
       ).find((m) => m.id === cargoManifestId) || null
     );
   }, [cargoManifestId, availableManifests]);
+
+  // El manifiesto actual ya se muestra como opción "(Actual)", así que se
+  // excluye del listado para no repetir el mismo valor en el Select.
+  const selectableManifests = useMemo(
+    () =>
+      (availableManifests ?? []).filter(
+        (m: AvailableCargoManifestSummary) =>
+          m.id !== initialData?.cargo_manifest_id,
+      ),
+    [availableManifests, initialData?.cargo_manifest_id],
+  );
+
+  const cargoFlightData:
+    | (Partial<AvailableCargoManifestSummary> & {
+        cargo_manifest_number?: string | null;
+      })
+    | null = hasLinkedCargo
+    ? (selectedCargoManifest ?? initialData ?? null)
+    : null;
+
+  const linkedAircraftType: "internal" | "external" | null = cargoFlightData
+    ? cargoFlightData.external_aircraft
+      ? "external"
+      : cargoFlightData.aircraft_id
+        ? "internal"
+        : null
+    : null;
+  const linkedCaptainType: "internal" | "external" | null = cargoFlightData
+    ? cargoFlightData.external_captain_id
+      ? "external"
+      : cargoFlightData.captain_id
+        ? "internal"
+        : null
+    : null;
+  const linkedFirstOfficerType: "internal" | "external" | null = cargoFlightData
+    ? cargoFlightData.external_first_officer_id
+      ? "external"
+      : cargoFlightData.first_officer_id
+        ? "internal"
+        : null
+    : null;
+
+  const linkedAircraftId = cargoFlightData?.aircraft_id
+    ? Number(cargoFlightData.aircraft_id)
+    : null;
+  const linkedExternalAircraft = cargoFlightData?.external_aircraft ?? "";
+  const linkedCaptainId = cargoFlightData?.captain_id
+    ? Number(cargoFlightData.captain_id)
+    : null;
+  const linkedExternalCaptainId = cargoFlightData?.external_captain_id
+    ? Number(cargoFlightData.external_captain_id)
+    : null;
+  const linkedFirstOfficerId = cargoFlightData?.first_officer_id
+    ? Number(cargoFlightData.first_officer_id)
+    : null;
+  const linkedExternalFirstOfficerId =
+    cargoFlightData?.external_first_officer_id
+      ? Number(cargoFlightData.external_first_officer_id)
+      : null;
+
+  // Al elegir un manifiesto también se actualiza el estado de los campos, para
+  // que si el usuario vuelve a PAX los selects conserven esos mismos valores.
+  const handleCargoManifestChange = (id: number | null) => {
+    setCargoManifestId(id);
+    const manifest =
+      (availableManifests as AvailableCargoManifestSummary[] | undefined)?.find(
+        (m) => m.id === id,
+      ) ?? (id === initialData?.cargo_manifest_id ? initialData : null);
+    if (!manifest) return;
+
+    if (manifest.external_aircraft) {
+      setAircraftType("external");
+      setAircraftId(null);
+      setExternalAircraft(manifest.external_aircraft);
+    } else if (manifest.aircraft_id) {
+      setAircraftType("internal");
+      setAircraftId(Number(manifest.aircraft_id));
+      setExternalAircraft("");
+    }
+
+    if (manifest.external_captain_id) {
+      setCaptainType("external");
+      setCaptainId(null);
+      setExternalCaptainId(Number(manifest.external_captain_id));
+    } else if (manifest.captain_id) {
+      setCaptainType("internal");
+      setCaptainId(Number(manifest.captain_id));
+      setExternalCaptainId(null);
+    }
+
+    if (manifest.external_first_officer_id) {
+      setFirstOfficerType("external");
+      setFirstOfficerId(null);
+      setExternalFirstOfficerId(Number(manifest.external_first_officer_id));
+    } else if (manifest.first_officer_id) {
+      setFirstOfficerType("internal");
+      setFirstOfficerId(Number(manifest.first_officer_id));
+      setExternalFirstOfficerId(null);
+    } else {
+      setFirstOfficerId(null);
+      setExternalFirstOfficerId(null);
+    }
+  };
+
+  const displayAircraftType = linkedAircraftType ?? aircraftType;
+  const displayAircraftId = cargoFlightData ? linkedAircraftId : aircraftId;
+  const displayExternalAircraft = cargoFlightData
+    ? linkedExternalAircraft
+    : externalAircraft;
+  const displayCaptainType = linkedCaptainType ?? captainType;
+  const displayCaptainId = cargoFlightData ? linkedCaptainId : captainId;
+  const displayExternalCaptainId = cargoFlightData
+    ? linkedExternalCaptainId
+    : externalCaptainId;
+  const displayFirstOfficerType = linkedFirstOfficerType ?? firstOfficerType;
+  const displayFirstOfficerId = cargoFlightData
+    ? linkedFirstOfficerId
+    : firstOfficerId;
+  const displayExternalFirstOfficerId = cargoFlightData
+    ? linkedExternalFirstOfficerId
+    : externalFirstOfficerId;
 
   const manifestDetails = useMemo(() => {
     if (!cargoManifestId) return null;
@@ -293,38 +466,49 @@ export const PaxFlightForm = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFieldErrors({});
 
     if (!route.trim()) {
       toast.error("Por favor ingrese la ruta del vuelo.");
       return;
     }
 
-    if (aircraftType === "internal" && !aircraftId) {
-      toast.error("Debe seleccionar una aeronave registrada.");
-      return;
+    if (!hasLinkedCargo) {
+      if (aircraftType === "internal" && !aircraftId) {
+        toast.error("Debe seleccionar una aeronave registrada.");
+        return;
+      }
+
+      if (aircraftType === "external" && !externalAircraft.trim()) {
+        toast.error("Debe ingresar la matrícula de la aeronave externa.");
+        return;
+      }
+
+      if (captainType === "internal" && !captainId) {
+        toast.error("Debe seleccionar un capitán registrado.");
+        return;
+      }
+
+      if (captainType === "external" && !externalCaptainId) {
+        toast.error("Debe seleccionar un capitán externo.");
+        return;
+      }
     }
 
-    if (aircraftType === "external" && !externalAircraft.trim()) {
-      toast.error("Debe ingresar la matrícula de la aeronave externa.");
-      return;
-    }
-
-    if (captainType === "internal" && !captainId) {
-      toast.error("Debe seleccionar un capitán registrado.");
-      return;
-    }
-
-    if (captainType === "external" && !externalCaptainId) {
-      toast.error("Debe seleccionar un capitán externo.");
+    if (hasCargoType && !cargoManifestId) {
+      toast.error(
+        "Para vuelos Solo Carga o Híbridos debe vincular un Manifiesto de Carga.",
+      );
       return;
     }
 
     if (
-      (flightType === "CARGO_ONLY" || flightType === "HYBRID") &&
-      !cargoManifestId
+      hasLinkedCargo &&
+      (!cargoFlightData?.captain_label ||
+        cargoFlightData.captain_label === "N/A")
     ) {
       toast.error(
-        "Para vuelos Solo Carga o Híbridos debe vincular un Manifiesto de Carga.",
+        "El manifiesto vinculado no tiene capitán registrado en sus guías.",
       );
       return;
     }
@@ -360,24 +544,34 @@ export const PaxFlightForm = ({
       return;
     }
 
-    const payload = {
+    const basePayload = {
       flight_date: flightDate,
       route: route.trim().toUpperCase(),
-      aircraft_id: aircraftType === "internal" ? aircraftId : null,
-      external_aircraft:
-        aircraftType === "external"
-          ? externalAircraft.trim().toUpperCase()
-          : null,
-      captain_id: captainType === "internal" ? captainId : null,
-      external_captain_id:
-        captainType === "external" ? externalCaptainId : null,
-      first_officer_id: firstOfficerType === "internal" ? firstOfficerId : null,
-      external_first_officer_id:
-        firstOfficerType === "external" ? externalFirstOfficerId : null,
       flight_type: flightType,
-      cargo_manifest_id: flightType !== "PAX" ? cargoManifestId : null,
+      cargo_manifest_id: hasCargoType ? cargoManifestId : null,
+      manifest_updated_at: hasCargoType
+        ? (selectedCargoManifest?.updated_at ?? null)
+        : null,
       passengers: flightType === "CARGO_ONLY" ? [] : passengers,
     };
+
+    const payload = hasLinkedCargo
+      ? basePayload
+      : {
+          ...basePayload,
+          aircraft_id: aircraftType === "internal" ? aircraftId : null,
+          external_aircraft:
+            aircraftType === "external"
+              ? externalAircraft.trim().toUpperCase()
+              : null,
+          captain_id: captainType === "internal" ? captainId : null,
+          external_captain_id:
+            captainType === "external" ? externalCaptainId : null,
+          first_officer_id:
+            firstOfficerType === "internal" ? firstOfficerId : null,
+          external_first_officer_id:
+            firstOfficerType === "external" ? externalFirstOfficerId : null,
+        };
 
     try {
       if (isEditing && initialData) {
@@ -386,8 +580,38 @@ export const PaxFlightForm = ({
         await createMutation.mutateAsync(payload);
       }
       router.push(`/${company}/operaciones/counter`);
-    } catch {
-      // Notificado en las acciones
+    } catch (error) {
+      const response = (
+        error as {
+          response?: { status?: number; data?: { message?: string } };
+        }
+      )?.response;
+
+      if (response?.status === 409) {
+        // El manifiesto cambió o ya está tomado: recargar la lista sin sacar
+        // al usuario del formulario, para que elija otro o refresque.
+        await queryClient.invalidateQueries({
+          queryKey: ["available-cargo-manifests", company],
+        });
+        toast.error(
+          response.data?.message ??
+            "El manifiesto de carga cambió. Actualizá la lista e intentá de nuevo.",
+        );
+        return;
+      }
+
+      const errors = serverFieldErrors(error);
+      if (errors) {
+        setFieldErrors(
+          Object.fromEntries(
+            Object.entries(errors).map(([field, messages]) => [
+              field,
+              messages[0] ?? "",
+            ]),
+          ),
+        );
+      }
+      // El toast ya lo mostró notifyError en la acción.
     }
   };
 
@@ -457,6 +681,9 @@ export const PaxFlightForm = ({
               onChange={(e) => setRoute(e.target.value.toUpperCase())}
               required
             />
+            {fieldErrors.route && (
+              <p className="text-xs text-destructive">{fieldErrors.route}</p>
+            )}
           </div>
 
           {/* Tipo de Vuelo */}
@@ -496,23 +723,28 @@ export const PaxFlightForm = ({
           <div className="flex flex-col gap-2">
             <div className="flex justify-between items-center">
               <Label>Aeronave *</Label>
-              <button
-                type="button"
-                onClick={() =>
-                  setAircraftType(
-                    aircraftType === "internal" ? "external" : "internal",
-                  )
-                }
-                className="text-xs text-primary hover:underline"
-              >
-                {aircraftType === "internal"
-                  ? "Cambiar a Externa"
-                  : "Cambiar a Flota"}
-              </button>
+              {!cargoFlightData && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setAircraftType(
+                      displayAircraftType === "internal"
+                        ? "external"
+                        : "internal",
+                    )
+                  }
+                  className="text-xs text-primary hover:underline"
+                >
+                  {displayAircraftType === "internal"
+                    ? "Cambiar a Externa"
+                    : "Cambiar a Flota"}
+                </button>
+              )}
             </div>
-            {aircraftType === "internal" ? (
+            {displayAircraftType === "internal" ? (
               <Select
-                value={aircraftId ? String(aircraftId) : ""}
+                disabled={!!cargoFlightData}
+                value={displayAircraftId ? String(displayAircraftId) : ""}
                 onValueChange={(val) => {
                   if (val.startsWith("ext:")) {
                     // Seleccionó una aeronave externa → cambia modo y precarga la matrícula
@@ -551,15 +783,26 @@ export const PaxFlightForm = ({
                       ))}
                     </SelectGroup>
                   )}
+                  {cargoFlightData &&
+                    displayAircraftId &&
+                    !(aircrafts ?? []).some(
+                      (a: any) => Number(a.id) === displayAircraftId,
+                    ) && (
+                      <SelectItem value={String(displayAircraftId)}>
+                        {cargoFlightData.aircraft_label ??
+                          `Aeronave #${displayAircraftId}`}
+                      </SelectItem>
+                    )}
                 </SelectContent>
               </Select>
             ) : (
               <Input
                 placeholder="Matrícula externa (Ej. YV-3450)"
-                value={externalAircraft}
+                value={displayExternalAircraft}
                 onChange={(e) =>
                   setExternalAircraft(e.target.value.toUpperCase())
                 }
+                disabled={!!cargoFlightData}
                 list="external-aircraft-list"
               />
             )}
@@ -576,52 +819,94 @@ export const PaxFlightForm = ({
               <Label className="flex items-center gap-1">
                 <UserCheck className="h-3.5 w-3.5" /> Capitán (CAP) *
               </Label>
-              <button
-                type="button"
-                onClick={() =>
-                  setCaptainType(
-                    captainType === "internal" ? "external" : "internal",
-                  )
-                }
-                className="text-xs text-primary hover:underline"
-              >
-                {captainType === "internal"
-                  ? "Piloto Externo"
-                  : "Piloto Interno"}
-              </button>
+              {!cargoFlightData && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setCaptainType(
+                      displayCaptainType === "internal"
+                        ? "external"
+                        : "internal",
+                    )
+                  }
+                  className="text-xs text-primary hover:underline"
+                >
+                  {displayCaptainType === "internal"
+                    ? "Piloto Externo"
+                    : "Piloto Interno"}
+                </button>
+              )}
             </div>
-            {captainType === "internal" ? (
+            {displayCaptainType === "internal" ? (
               <Select
-                value={captainId ? String(captainId) : ""}
-                onValueChange={(val) => setCaptainId(Number(val))}
+                disabled={!!cargoFlightData}
+                value={displayCaptainId ? String(displayCaptainId) : ""}
+                onValueChange={(val) =>
+                  handleCaptainChange("internal", Number(val))
+                }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Seleccione capitán" />
                 </SelectTrigger>
                 <SelectContent>
-                  {pilots?.map((p: any) => (
-                    <SelectItem key={p.id} value={String(p.id)}>
+                  {captainOptions.map((p: any) => (
+                    <SelectItem
+                      key={p.id}
+                      value={String(p.id)}
+                      endAdornment={<Badge variant="outline">Capitán</Badge>}
+                    >
                       {p.employee
                         ? `${fullName(p.employee)} (${p.employee_dni})`
                         : p.employee_dni}
                     </SelectItem>
                   ))}
+                  {cargoFlightData &&
+                    displayCaptainId &&
+                    !captainOptions.some(
+                      (p: any) => Number(p.id) === displayCaptainId,
+                    ) && (
+                      <SelectItem value={String(displayCaptainId)}>
+                        {cargoFlightData.captain_label ??
+                          `Piloto #${displayCaptainId}`}
+                      </SelectItem>
+                    )}
                 </SelectContent>
               </Select>
             ) : (
               <Select
-                value={externalCaptainId ? String(externalCaptainId) : ""}
-                onValueChange={(val) => setExternalCaptainId(Number(val))}
+                disabled={!!cargoFlightData}
+                value={
+                  displayExternalCaptainId
+                    ? String(displayExternalCaptainId)
+                    : ""
+                }
+                onValueChange={(val) =>
+                  handleCaptainChange("external", Number(val))
+                }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Seleccione capitán externo" />
                 </SelectTrigger>
                 <SelectContent>
-                  {externalPilots?.map((ep: any) => (
-                    <SelectItem key={ep.id} value={String(ep.id)}>
+                  {externalCaptainOptions.map((ep: any) => (
+                    <SelectItem
+                      key={ep.id}
+                      value={String(ep.id)}
+                      endAdornment={<Badge variant="outline">Capitán</Badge>}
+                    >
                       {fullName(ep)} ({ep.dni})
                     </SelectItem>
                   ))}
+                  {cargoFlightData &&
+                    displayExternalCaptainId &&
+                    !externalCaptainOptions.some(
+                      (ep: any) => Number(ep.id) === displayExternalCaptainId,
+                    ) && (
+                      <SelectItem value={String(displayExternalCaptainId)}>
+                        {cargoFlightData.captain_label ??
+                          `Piloto externo #${displayExternalCaptainId}`}
+                      </SelectItem>
+                    )}
                 </SelectContent>
               </Select>
             )}
@@ -633,23 +918,30 @@ export const PaxFlightForm = ({
               <Label className="flex items-center gap-1">
                 <UserCheck className="h-3.5 w-3.5" /> Primer Oficial (F/O)
               </Label>
-              <button
-                type="button"
-                onClick={() =>
-                  setFirstOfficerType(
-                    firstOfficerType === "internal" ? "external" : "internal",
-                  )
-                }
-                className="text-xs text-primary hover:underline"
-              >
-                {firstOfficerType === "internal"
-                  ? "Piloto Externo"
-                  : "Piloto Interno"}
-              </button>
+              {!cargoFlightData && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setFirstOfficerType(
+                      displayFirstOfficerType === "internal"
+                        ? "external"
+                        : "internal",
+                    )
+                  }
+                  className="text-xs text-primary hover:underline"
+                >
+                  {displayFirstOfficerType === "internal"
+                    ? "Piloto Externo"
+                    : "Piloto Interno"}
+                </button>
+              )}
             </div>
-            {firstOfficerType === "internal" ? (
+            {displayFirstOfficerType === "internal" ? (
               <Select
-                value={firstOfficerId ? String(firstOfficerId) : "none"}
+                disabled={!!cargoFlightData}
+                value={
+                  displayFirstOfficerId ? String(displayFirstOfficerId) : "none"
+                }
                 onValueChange={(val) =>
                   setFirstOfficerId(val === "none" ? null : Number(val))
                 }
@@ -659,20 +951,39 @@ export const PaxFlightForm = ({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">Sin primer oficial</SelectItem>
-                  {pilots?.map((p: any) => (
-                    <SelectItem key={p.id} value={String(p.id)}>
+                  {firstOfficerOptions.map((p: any) => (
+                    <SelectItem
+                      key={p.id}
+                      value={String(p.id)}
+                      endAdornment={
+                        <Badge variant="outline">
+                          {isCaptain(p) ? "Capitán" : "Primer oficial"}
+                        </Badge>
+                      }
+                    >
                       {p.employee
                         ? `${fullName(p.employee)} (${p.employee_dni})`
                         : p.employee_dni}
                     </SelectItem>
                   ))}
+                  {cargoFlightData &&
+                    displayFirstOfficerId &&
+                    !firstOfficerOptions.some(
+                      (p: any) => Number(p.id) === displayFirstOfficerId,
+                    ) && (
+                      <SelectItem value={String(displayFirstOfficerId)}>
+                        {cargoFlightData.first_officer_label ??
+                          `Piloto #${displayFirstOfficerId}`}
+                      </SelectItem>
+                    )}
                 </SelectContent>
               </Select>
             ) : (
               <Select
+                disabled={!!cargoFlightData}
                 value={
-                  externalFirstOfficerId
-                    ? String(externalFirstOfficerId)
+                  displayExternalFirstOfficerId
+                    ? String(displayExternalFirstOfficerId)
                     : "none"
                 }
                 onValueChange={(val) =>
@@ -684,15 +995,55 @@ export const PaxFlightForm = ({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">Sin primer oficial</SelectItem>
-                  {externalPilots?.map((ep: any) => (
-                    <SelectItem key={ep.id} value={String(ep.id)}>
+                  {externalFirstOfficerOptions.map((ep: any) => (
+                    <SelectItem
+                      key={ep.id}
+                      value={String(ep.id)}
+                      endAdornment={
+                        <Badge variant="outline">
+                          {isCaptain(ep) ? "Capitán" : "Primer oficial"}
+                        </Badge>
+                      }
+                    >
                       {fullName(ep)} ({ep.dni})
                     </SelectItem>
                   ))}
+                  {cargoFlightData &&
+                    displayExternalFirstOfficerId &&
+                    !externalFirstOfficerOptions.some(
+                      (ep: any) =>
+                        Number(ep.id) === displayExternalFirstOfficerId,
+                    ) && (
+                      <SelectItem value={String(displayExternalFirstOfficerId)}>
+                        {cargoFlightData.first_officer_label ??
+                          `Piloto externo #${displayExternalFirstOfficerId}`}
+                      </SelectItem>
+                    )}
                 </SelectContent>
               </Select>
             )}
           </div>
+
+          {cargoFlightData && (
+            <div className="md:col-span-3 flex flex-col gap-1">
+              <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <FileText className="h-3.5 w-3.5" />
+                Datos cargados desde la información del manifiesto de carga
+                vinculado
+                {cargoFlightData.manifest_number
+                  ? ` N° ${cargoFlightData.manifest_number}`
+                  : cargoFlightData.cargo_manifest_number
+                    ? ` N° ${cargoFlightData.cargo_manifest_number}`
+                    : ""}
+                . Para modificarlos, editá la guía de carga.
+              </p>
+              {cargoFlightData.crew_conflict && (
+                <p className="text-xs text-amber-600 dark:text-amber-400">
+                  Las guías no coinciden en tripulación; se usa la primera.
+                </p>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -714,7 +1065,9 @@ export const PaxFlightForm = ({
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                 <Select
                   value={cargoManifestId ? String(cargoManifestId) : ""}
-                  onValueChange={(val) => setCargoManifestId(Number(val))}
+                  onValueChange={(val) =>
+                    handleCargoManifestChange(Number(val))
+                  }
                 >
                   <SelectTrigger id="cargo_manifest" className="flex-1">
                     <SelectValue placeholder="Seleccione un manifiesto de carga" />
@@ -727,13 +1080,12 @@ export const PaxFlightForm = ({
                         (Actual)
                       </SelectItem>
                     )}
-                    {availableManifests && availableManifests.length > 0 ? (
+                    {selectableManifests.length > 0 ? (
                       <SelectGroup>
                         <SelectLabel>Disponibles para este mes</SelectLabel>
-                        {availableManifests.map((m: any) => (
+                        {selectableManifests.map((m: any) => (
                           <SelectItem key={m.id} value={String(m.id)}>
-                            {m.manifest_number} — Total: {m.total_weight} kg (
-                            {m.items?.length || 0} ítems)
+                            {m.manifest_number} — Total: {m.total_weight} kg
                           </SelectItem>
                         ))}
                       </SelectGroup>
@@ -761,6 +1113,13 @@ export const PaxFlightForm = ({
                   <span>Ver Manifiesto</span>
                 </Button>
               </div>
+              {(fieldErrors.cargo_manifest_id ||
+                fieldErrors.manifest_updated_at) && (
+                <p className="text-xs text-destructive">
+                  {fieldErrors.cargo_manifest_id ??
+                    fieldErrors.manifest_updated_at}
+                </p>
+              )}
             </div>
 
             {/* Vista previa y cotejo del Manifiesto de Carga seleccionado contra hoja física */}

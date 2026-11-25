@@ -18,11 +18,6 @@ import {
   TableFooter,
 } from "@/components/ui/table";
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import {
   FileText,
   Loader2,
   ArrowLeft,
@@ -314,97 +309,91 @@ function ShipmentGroupRow({ group }: { group: any }) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <Collapsible
-      asChild
-      open={isOpen}
-      onOpenChange={setIsOpen}
-      data-tour="cargo-manifiestos-detalle-guia-row"
-    >
-      <>
+    <>
+      <TableRow
+        data-tour="cargo-manifiestos-detalle-guia-row"
+        className="cursor-pointer hover:bg-muted/10 transition-colors"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <TableCell>
+          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+            {isOpen ? (
+              <ChevronUp className="h-4 w-4" />
+            ) : (
+              <ChevronDown className="h-4 w-4" />
+            )}
+          </Button>
+        </TableCell>
+        <TableCell className="text-center font-semibold text-primary text-base">
+          {group.shipment?.guide_number || "N/A"}
+        </TableCell>
+        <TableCell className="text-center">
+          {group.shipment?.client?.name || "N/A"}
+        </TableCell>
+        <TableCell className="text-center">
+          <span className="text-xs border rounded px-2 py-1 bg-muted/20">
+            {group.shipment?.aircraft?.acronym ||
+              group.shipment?.external_aircraft ||
+              "N/A"}
+          </span>
+        </TableCell>
+        <TableCell className="text-center font-medium">
+          {group.total_weight.toFixed(2)} kg
+        </TableCell>
+        <TableCell className="text-center font-medium">
+          {group.total_units}
+        </TableCell>
+      </TableRow>
+      {isOpen && (
         <TableRow
-          className="cursor-pointer hover:bg-muted/10 transition-colors"
-          onClick={() => setIsOpen(!isOpen)}
+          data-tour="cargo-manifiestos-detalle-productos"
+          className="bg-muted/5 border-b hover:bg-muted/5"
         >
-          <TableCell>
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-              {isOpen ? (
-                <ChevronUp className="h-4 w-4" />
-              ) : (
-                <ChevronDown className="h-4 w-4" />
-              )}
-            </Button>
-          </TableCell>
-          <TableCell className="text-center font-semibold text-primary text-base">
-            {group.shipment?.guide_number || "N/A"}
-          </TableCell>
-          <TableCell className="text-center">
-            {group.shipment?.client?.name || "N/A"}
-          </TableCell>
-          <TableCell className="text-center">
-            <span className="text-xs border rounded px-2 py-1 bg-muted/20">
-              {group.shipment?.aircraft?.acronym ||
-                group.shipment?.external_aircraft ||
-                "N/A"}
-            </span>
-          </TableCell>
-          <TableCell className="text-center font-medium">
-            {group.total_weight.toFixed(2)} kg
-          </TableCell>
-          <TableCell className="text-center font-medium">
-            {group.total_units}
+          <TableCell colSpan={6} className="p-0">
+            <div className="px-14 py-4">
+              <div className="rounded-lg border bg-background shadow-xs overflow-hidden">
+                <div className="bg-muted/40 px-4 py-2 border-b flex items-center justify-between">
+                  <span className="text-sm font-semibold text-primary">
+                    Detalle de Productos
+                  </span>
+                </div>
+                <Table>
+                  <TableHeader>
+                    <TableRow className="hover:bg-transparent">
+                      <TableHead className="h-8 text-xs font-semibold">
+                        Producto
+                      </TableHead>
+                      <TableHead className="h-8 text-center text-xs font-semibold w-32">
+                        Peso
+                      </TableHead>
+                      <TableHead className="h-8 text-center text-xs font-semibold w-32">
+                        Unidades
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {group.items.map((item: any) => (
+                      <TableRow key={item.id} className="hover:bg-muted/20">
+                        <TableCell className="py-2 text-sm">
+                          {item.shipment_item?.product_description ||
+                            item.shipmentItem?.product_description ||
+                            `Ítem #${item.cargo_shipment_item_id}`}
+                        </TableCell>
+                        <TableCell className="py-2 text-center text-sm font-medium">
+                          {Number(item.weight_in_manifest).toFixed(2)} kg
+                        </TableCell>
+                        <TableCell className="py-2 text-center text-sm">
+                          {item.units_in_manifest}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
           </TableCell>
         </TableRow>
-        <CollapsibleContent
-          asChild
-          data-tour="cargo-manifiestos-detalle-productos"
-        >
-          <TableRow className="bg-muted/5 border-b hover:bg-muted/5">
-            <TableCell colSpan={6} className="p-0">
-              <div className="px-14 py-4">
-                <div className="rounded-lg border bg-background shadow-xs overflow-hidden">
-                  <div className="bg-muted/40 px-4 py-2 border-b flex items-center justify-between">
-                    <span className="text-sm font-semibold text-primary">
-                      Detalle de Productos
-                    </span>
-                  </div>
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="hover:bg-transparent">
-                        <TableHead className="h-8 text-xs font-semibold">
-                          Producto
-                        </TableHead>
-                        <TableHead className="h-8 text-center text-xs font-semibold w-32">
-                          Peso
-                        </TableHead>
-                        <TableHead className="h-8 text-center text-xs font-semibold w-32">
-                          Unidades
-                        </TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {group.items.map((item: any) => (
-                        <TableRow key={item.id} className="hover:bg-muted/20">
-                          <TableCell className="py-2 text-sm">
-                            {item.shipment_item?.product_description ||
-                              item.shipmentItem?.product_description ||
-                              `Ítem #${item.cargo_shipment_item_id}`}
-                          </TableCell>
-                          <TableCell className="py-2 text-center text-sm font-medium">
-                            {Number(item.weight_in_manifest).toFixed(2)} kg
-                          </TableCell>
-                          <TableCell className="py-2 text-center text-sm">
-                            {item.units_in_manifest}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </div>
-            </TableCell>
-          </TableRow>
-        </CollapsibleContent>
-      </>
-    </Collapsible>
+      )}
+    </>
   );
 }

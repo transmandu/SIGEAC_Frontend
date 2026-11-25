@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { format, parseISO, isValid } from "date-fns";
+import { formatCalendarDate } from "@/lib/date";
 import { useGetAvailableShipments } from "@/hooks/operaciones/cargo/useGetAvailableShipments";
 import {
   useCreateCargoManifest,
@@ -13,7 +13,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, AlertCircle, ChevronDown, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { formatCalendarDate } from "@/lib/date";
+import { serverFieldErrors } from "@/components/forms/mantenimiento/almacen/_components/form-feedback";
+import Link from "next/link";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -71,6 +72,8 @@ const statusConfig: Record<string, { label: string; className: string }> = {
     className: "bg-green-100 text-green-800",
   },
 };
+// Límite de peso por manifiesto de carga (mismo valor que usa counter).
+const MAX_MANIFEST_WEIGHT_KG = 1800;
 
 // ─── Componente ───────────────────────────────────────────────────────────────
 
@@ -94,6 +97,9 @@ export default function CreateCargoManifestForm({
 
   // Map<shipment_item_id, ItemErrors>
   const [errors, setErrors] = useState<Map<number, ItemErrors>>(new Map());
+
+  // Errores que el servidor devolvió por el conjunto de guías (422).
+  const [serverErrors, setServerErrors] = useState<string[]>([]);
 
   // Guías colapsadas
   const [collapsed, setCollapsed] = useState<Set<number>>(new Set());
@@ -282,9 +288,19 @@ export default function CreateCargoManifestForm({
     };
   }, [selections]);
 
+  // Redondeamos antes de comparar: la acumulación de floats puede dar
+  // 1800.0000000001 y disparar un falso "excedido" (mismo criterio que counter).
+  const totalWeightRounded = Math.round(totals.totalWeight * 100) / 100;
+  const availableWeight =
+    Math.round((MAX_MANIFEST_WEIGHT_KG - totalWeightRounded) * 100) / 100;
+  const excessWeight =
+    Math.round((totalWeightRounded - MAX_MANIFEST_WEIGHT_KG) * 100) / 100;
+  const isOverweight = totalWeightRounded > MAX_MANIFEST_WEIGHT_KG;
+
   // ── Submit ────────────────────────────────────────────────────────────────
 
   const handleSubmit = () => {
+    setServerErrors([]);
     if (selections.size === 0 || hasErrors) return;
 
     const items: ManifestItemPayload[] = Array.from(selections.entries()).map(
@@ -303,7 +319,16 @@ export default function CreateCargoManifestForm({
         aircraft_id: selectedAircraftId,
         items,
       },
-      { onSuccess },
+      {
+        onSuccess,
+        onError: (error) => {
+          const fieldErrors = serverFieldErrors(error);
+          if (fieldErrors) {
+            setServerErrors(Object.values(fieldErrors).flat().filter(Boolean));
+          }
+          // El toast lo muestra notifyError en la acción.
+        },
+      },
     );
   };
 
@@ -381,9 +406,13 @@ export default function CreateCargoManifestForm({
                       </span>
                     )}
 
-                    <span className="font-semibold text-primary text-sm">
+                    <Link
+                      href={`/${company}/operaciones/cargo/guia/${shipment.id}`}
+                      onClick={(e) => e.stopPropagation()}
+                      className="font-semibold text-primary text-sm hover:underline"
+                    >
                       {shipment.guide_number}
-                    </span>
+                    </Link>
 
                     <span className="text-sm text-muted-foreground">
                       {shipment.client?.name ?? "Sin cliente"}
@@ -610,31 +639,47 @@ export default function CreateCargoManifestForm({
         </div>
       )}
 
+      {/* Indicador de capacidad de peso: solo tiene sentido si hay guías para agregar */}
+      {selectedAircraftId &&
+        !!availableShipments &&
+        availableShipments.length > 0 && (
+          <div
+            className={cn(
+              "rounded-md border p-3 flex flex-wrap items-center justify-between text-sm gap-2",
+              isOverweight
+                ? "bg-destructive/10 border-destructive/30 text-destructive"
+                : availableWeight < 200
+                  ? "bg-yellow-500/10 border-yellow-300 text-yellow-700 dark:text-yellow-400"
+                  : "bg-muted/50 border-border",
+            )}
+            data-tour="cargo-manifiestos-nuevo-peso"
+          >
+            <span className="font-bold">
+              Total: {totalWeightRounded} / {MAX_MANIFEST_WEIGHT_KG} kg
+            </span>
+            <span
+              className={cn(
+                "font-semibold",
+                isOverweight && "text-destructive font-bold",
+              )}
+            >
+              {isOverweight
+                ? `⚠ Exceso: ${excessWeight} kg`
+                : `Disponible: ${availableWeight} kg`}
+            </span>
+          </div>
+        )}
+
+      {serverErrors.length > 0 && (
+        <div className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+          {serverErrors.map((message, index) => (
+            <p key={`${message}-${index}`}>{message}</p>
+          ))}
+        </div>
+      )}
+
       {/* Footer */}
       <div className="flex items-center justify-between border-t pt-3">
-        <div
-          className="text-sm text-muted-foreground"
-          data-tour="cargo-manifiestos-nuevo-totales"
-        >
-          {totals.count > 0 ? (
-            <span>
-              <span className="font-semibold text-foreground">
-                {totals.count}
-              </span>{" "}
-              ítem(s) —{" "}
-              <span className="font-semibold text-primary">
-                {totals.totalWeight.toFixed(2)} kg
-              </span>{" "}
-              —{" "}
-              <span className="font-semibold text-primary">
-                {totals.totalUnits} und
-              </span>
-            </span>
-          ) : (
-            "Ningún ítem seleccionado"
-          )}
-        </div>
-
         {hasErrors && (
           <p className="text-sm text-destructive flex items-center gap-1">
             <AlertCircle className="h-4 w-4" />
@@ -644,8 +689,11 @@ export default function CreateCargoManifestForm({
 
         <Button
           data-tour="cargo-manifiestos-nuevo-generar"
+          className="ml-auto"
           onClick={handleSubmit}
-          disabled={createCargoManifest.isPending || !selectedAircraftId}
+          disabled={
+            createCargoManifest.isPending || !selectedAircraftId || isOverweight
+          }
         >
           {createCargoManifest.isPending ? (
             <>

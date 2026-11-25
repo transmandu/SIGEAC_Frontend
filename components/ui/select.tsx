@@ -111,13 +111,19 @@ const SelectLabel = React.forwardRef<
 ));
 SelectLabel.displayName = SelectPrimitive.Label.displayName;
 
+interface SelectItemProps extends React.ComponentPropsWithoutRef<
+  typeof SelectPrimitive.Item
+> {
+  /** Contenido extra a la derecha; no forma parte del texto del trigger. */
+  endAdornment?: React.ReactNode;
+  /** Dato a la derecha de la opción (p. ej. una cantidad); no se copia al botón del selector. */
+  suffix?: React.ReactNode;
+}
+
 const SelectItem = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Item>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item> & {
-    /** Dato a la derecha de la opción (p. ej. una cantidad); no se copia al botón del selector. */
-    suffix?: React.ReactNode;
-  }
->(({ className, children, suffix, ...props }, ref) => (
+  SelectItemProps
+>(({ className, children, suffix, endAdornment, ...props }, ref) => (
   <SelectPrimitive.Item
     ref={ref}
     className={cn(
@@ -139,6 +145,9 @@ const SelectItem = React.forwardRef<
         {suffix}
       </span>
     )}
+    {endAdornment ? (
+      <span className="ml-auto shrink-0 pl-2">{endAdornment}</span>
+    ) : null}
   </SelectPrimitive.Item>
 ));
 SelectItem.displayName = SelectPrimitive.Item.displayName;
