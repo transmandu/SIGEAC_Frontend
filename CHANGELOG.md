@@ -1,3 +1,7 @@
+## v4.116.1 — 2026-11-25
+
+- refactor(notifications): add quality and engineering areas with correspon… (#425)
+
 ## v4.116.0 — 2026-11-25
 
 - feat: new implements in everywhere (#421)
