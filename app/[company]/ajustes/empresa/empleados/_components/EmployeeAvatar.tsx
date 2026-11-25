@@ -13,31 +13,30 @@ import {
 } from "@/components/ui/dialog";
 import { useIsSuperuser } from "@/hooks/helpers/useIsSuperuser";
 import { cn } from "@/lib/utils";
-import type { Employee } from "@/types";
 import { initialsOf as personInitials, formalName } from "@/lib/person-name";
+
+export type AvatarEmployee = {
+  id?: number | string | null;
+  first_name?: string | null;
+  middle_name?: string | null;
+  last_name?: string | null;
+  second_last_name?: string | null;
+  dni?: string | null;
+  dni_type?: string | null;
+  photo_url?: string | null;
+  photo_url_lg?: string | null;
+};
 
 export const employeeFullName = (
   employee: Pick<
-    Employee,
+    AvatarEmployee,
     "first_name" | "middle_name" | "last_name" | "second_last_name"
   >,
 ) => formalName(employee);
 
-const initialsOf = (employee: Pick<Employee, "first_name" | "last_name">) =>
-  `${personInitials(employee)}`.toUpperCase();
-
-type AvatarEmployee = Pick<
-  Employee,
-  | "id"
-  | "first_name"
-  | "middle_name"
-  | "last_name"
-  | "second_last_name"
-  | "dni"
-  | "dni_type"
-  | "photo_url"
-  | "photo_url_lg"
->;
+const initialsOf = (
+  employee: Pick<AvatarEmployee, "first_name" | "last_name">,
+) => personInitials(employee).toUpperCase() || "?";
 
 /**
  * Foto del empleado en la fila. Con foto, al pulsarla se abre ampliada (y
@@ -52,6 +51,7 @@ export function EmployeeAvatar({
   className?: string;
 }) {
   const [open, setOpen] = useState(false);
+  const [failed, setFailed] = useState(false);
   const isSuperuser = useIsSuperuser();
   const name = employeeFullName(employee);
 
@@ -60,7 +60,7 @@ export function EmployeeAvatar({
     className,
   );
 
-  if (!employee.photo_url) {
+  if (!employee.photo_url || failed) {
     return (
       <span className={base} aria-hidden="true">
         {initialsOf(employee)}
@@ -78,7 +78,7 @@ export function EmployeeAvatar({
 
       const link = document.createElement("a");
       link.href = url;
-      link.download = `carnet-${employee.dni}.webp`;
+      link.download = `carnet-${employee.dni ?? employee.id ?? "empleado"}.webp`;
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -107,6 +107,7 @@ export function EmployeeAvatar({
           src={employee.photo_url}
           alt=""
           loading="lazy"
+          onError={() => setFailed(true)}
           className="size-full object-cover"
         />
       </button>
@@ -119,7 +120,11 @@ export function EmployeeAvatar({
           <DialogHeader>
             <DialogTitle>{name}</DialogTitle>
             <DialogDescription>
-              {employee.dni_type}-{employee.dni}
+              {employee.dni
+                ? employee.dni_type
+                  ? `${employee.dni_type}-${employee.dni}`
+                  : `DNI ${employee.dni}`
+                : "Sin cédula registrada"}
             </DialogDescription>
           </DialogHeader>
 

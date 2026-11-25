@@ -28,6 +28,18 @@ export const isActivityContentCategory = (
   normalizeActivityCategoryName(name).includes(CONTENT_KEYWORDS[kind]);
 
 /**
+ * Las actividades con categoría SIMULACRO llevan una evaluación aparte
+ * (parcial o de mesa). El nombre es texto libre, por eso se normaliza.
+ */
+export const isDrillActivityCategory = (name: string): boolean =>
+  normalizeActivityCategoryName(name).includes("SIMULACRO");
+
+export const hasDrillActivityCategory = (
+  categories: { name: string }[] | undefined | null,
+): boolean =>
+  (categories ?? []).some((category) => isDrillActivityCategory(category.name));
+
+/**
  * Contenidos a crear para las categorias seleccionadas, en el orden en que se
  * deben resolver (boletin primero, luego encuesta). Devuelve [] cuando la
  * actividad no necesita paso extra.

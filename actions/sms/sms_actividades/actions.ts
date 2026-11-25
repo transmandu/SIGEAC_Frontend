@@ -42,6 +42,7 @@ interface SMSActivityData {
   objetive: string;
   description: string;
   categories: string[];
+  drill_type?: "PARCIAL" | "MESA";
   authorized_by: string;
   planned_by: string;
   executed_by?: string;
@@ -68,6 +69,7 @@ interface updateSMSActivityData {
     objetive: string;
     description: string;
     categories: string[];
+    drill_type?: "PARCIAL" | "MESA";
     authorized_by: string;
     planned_by: string;
     executed_by?: string;
@@ -113,6 +115,9 @@ export const useCreateSMSActivity = () => {
       data.categories.forEach((categoryId) => {
         formData.append("categories[]", categoryId);
       });
+      if (data.drill_type) {
+        formData.append("drill_type", data.drill_type);
+      }
       formData.append("authorized_by", data.authorized_by);
       formData.append("planned_by", data.planned_by);
       if (data.executed_by) formData.append("executed_by", data.executed_by);
@@ -229,6 +234,9 @@ export const useUpdateSMSActivity = () => {
       data.categories.forEach((categoryId) => {
         formData.append("categories[]", categoryId);
       });
+      if (data.drill_type) {
+        formData.append("drill_type", data.drill_type);
+      }
       formData.append("authorized_by", data.authorized_by);
       formData.append("planned_by", data.planned_by);
       formData.append("status", data.status);
