@@ -102,7 +102,7 @@
     "eslint": "^10.15.0",
     "eslint-config-next": "^16.4.6",
     "jiti": "^2.7.0",
-    "postcss": "^8.5.32",
+    "postcss": "^8.5.33",
     "prettier": "^3.9.10",
     "tailwindcss": "^4.3.5",
     "typescript": "^6.0.3"
