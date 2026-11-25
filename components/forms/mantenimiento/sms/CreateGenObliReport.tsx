@@ -52,6 +52,7 @@ import { PhoneInput } from "@/components/ui/PhoneInput";
 import { phoneSchema } from "@/lib/phone";
 import { useAuth } from "@/contexts/AuthContext";
 import FolderSelect from "@/components/library/FolderSelect";
+import { parseCalendarDate, companyNow } from "@/lib/date";
 
 interface FormProps {
   isEditing?: boolean;
@@ -183,13 +184,13 @@ export function CreateGenObliReport({ onClose, initialData }: FormProps) {
     resolver: zodResolver(FormSchema),
     defaultValues: {
       report_date: initialData?.report_date
-        ? new Date(initialData?.report_date)
+        ? parseCalendarDate(initialData?.report_date)
         : new Date(),
       report_time: initialData?.report_time
         ? initialData.report_time.substring(0, 5)
         : "00:00",
       incident_date: initialData?.incident_date
-        ? new Date(initialData?.incident_date)
+        ? parseCalendarDate(initialData?.incident_date)
         : new Date(),
       incident_time: initialData?.incident_time
         ? initialData.incident_time.substring(0, 5)
@@ -245,9 +246,9 @@ export function CreateGenObliReport({ onClose, initialData }: FormProps) {
     }
 
     form.reset({
-      report_date: new Date(),
+      report_date: companyNow(),
       report_time: "00:00",
-      incident_date: new Date(),
+      incident_date: companyNow(),
       incident_time: "00:00",
       incident_location_id: "",
       report_location_id: "",

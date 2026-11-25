@@ -37,6 +37,7 @@ import { useGetEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetEmploy
 import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import type { DestinationArticle } from "@/types/purchase";
+import { fullName } from "@/lib/person-name";
 
 interface Props {
   article: DestinationArticle;
@@ -476,7 +477,7 @@ export function DetermineDestinationDialog({
                                 triggerClassName={pickerClass}
                                 options={locationEmployees.map((employee) => ({
                                   value: employee.dni,
-                                  label: `${employee.first_name} ${employee.last_name}`,
+                                  label: fullName(employee),
                                   description: employee.job_title?.name,
                                 }))}
                               />

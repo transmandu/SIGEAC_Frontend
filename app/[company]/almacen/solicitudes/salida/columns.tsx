@@ -2,8 +2,6 @@ import DispatchArticlesDialog from "@/components/dialogs/mantenimiento/almacen/D
 import DispatchRequestDropdownActions from "@/components/dropdowns/mantenimiento/almacen/DispatchRequestDropdownActions";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { type AppColumnDef } from "@/lib/table";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
 import {
   Calendar,
   FileText,
@@ -15,14 +13,7 @@ import {
   Wrench,
 } from "lucide-react";
 import { DispatchGroupRow } from "./page";
-
-function safeDateLabel(raw?: string | null) {
-  if (!raw) return null;
-  const d = new Date(raw);
-  if (Number.isNaN(d.getTime())) return null;
-  // Más compacto para tabla; si quieres PPP, cambia la línea de abajo.
-  return format(d, "dd MMM yyyy", { locale: es });
-}
+import FormattedInstant from "@/components/misc/FormattedInstant";
 
 export const columns: AppColumnDef<DispatchGroupRow>[] = [
   // {
@@ -243,12 +234,13 @@ export const columns: AppColumnDef<DispatchGroupRow>[] = [
       />
     ),
     cell: ({ row }) => {
-      const label = safeDateLabel(row.original.submission_date);
-      if (!label) return <p className="text-center text-muted-foreground">—</p>;
-
       return (
         <p className="text-center text-muted-foreground tabular-nums">
-          {label}
+          <FormattedInstant
+            value={row.original.submission_date}
+            format="dd MMM yyyy"
+            fallback="—"
+          />
         </p>
       );
     },

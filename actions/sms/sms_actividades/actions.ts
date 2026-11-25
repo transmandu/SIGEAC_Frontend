@@ -1,7 +1,7 @@
+import { toCalendarPayload } from "@/lib/date";
 import axiosInstance from "@/lib/axios";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { format } from "date-fns";
 import { toast } from "sonner";
 import { notifyError } from "@/lib/notify-error";
 
@@ -42,6 +42,7 @@ interface SMSActivityData {
   objetive: string;
   description: string;
   categories: string[];
+  drill_type?: "PARCIAL" | "MESA";
   authorized_by: string;
   planned_by: string;
   executed_by?: string;
@@ -68,6 +69,7 @@ interface updateSMSActivityData {
     objetive: string;
     description: string;
     categories: string[];
+    drill_type?: "PARCIAL" | "MESA";
     authorized_by: string;
     planned_by: string;
     executed_by?: string;
@@ -96,14 +98,8 @@ export const useCreateSMSActivity = () => {
       formData.append("activity_name", data.activity_name);
       formData.append("title", data.title);
       formData.append("activity_number", data.activity_number);
-      formData.append(
-        "start_date",
-        format(new Date(data.start_date), "yyyy-MM-dd"),
-      );
-      formData.append(
-        "end_date",
-        format(new Date(data.end_date), "yyyy-MM-dd"),
-      );
+      formData.append("start_date", toCalendarPayload(data.start_date) ?? "");
+      formData.append("end_date", toCalendarPayload(data.end_date) ?? "");
       formData.append("start_time", data.start_time);
       formData.append("end_time", data.end_time);
       formData.append("place", data.place);
@@ -113,6 +109,9 @@ export const useCreateSMSActivity = () => {
       data.categories.forEach((categoryId) => {
         formData.append("categories[]", categoryId);
       });
+      if (data.drill_type) {
+        formData.append("drill_type", data.drill_type);
+      }
       formData.append("authorized_by", data.authorized_by);
       formData.append("planned_by", data.planned_by);
       if (data.executed_by) formData.append("executed_by", data.executed_by);
@@ -212,14 +211,8 @@ export const useUpdateSMSActivity = () => {
       formData.append("activity_name", data.activity_name);
       formData.append("title", data.title);
       formData.append("activity_number", data.activity_number);
-      formData.append(
-        "start_date",
-        format(new Date(data.start_date), "yyyy-MM-dd"),
-      );
-      formData.append(
-        "end_date",
-        format(new Date(data.end_date), "yyyy-MM-dd"),
-      );
+      formData.append("start_date", toCalendarPayload(data.start_date) ?? "");
+      formData.append("end_date", toCalendarPayload(data.end_date) ?? "");
       formData.append("start_time", data.start_time);
       formData.append("end_time", data.end_time);
       formData.append("place", data.place);
@@ -229,6 +222,9 @@ export const useUpdateSMSActivity = () => {
       data.categories.forEach((categoryId) => {
         formData.append("categories[]", categoryId);
       });
+      if (data.drill_type) {
+        formData.append("drill_type", data.drill_type);
+      }
       formData.append("authorized_by", data.authorized_by);
       formData.append("planned_by", data.planned_by);
       formData.append("status", data.status);

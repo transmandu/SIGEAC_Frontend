@@ -137,7 +137,7 @@ const shiftToTimeZone = (date: Date, timeZone: string): Date => {
  */
 export const formatInstant = (
   value: string | Date | null | undefined,
-  timeZone: string = DEFAULT_TIMEZONE,
+  timeZone: string,
   spec: FormatSpec = "dateTime",
   fallback = "N/A",
 ): string => {
@@ -221,7 +221,7 @@ export const formatLongUpperDate = (
  */
 export const instantToCalendarDay = (
   value: string | Date | null | undefined,
-  timeZone: string = DEFAULT_TIMEZONE,
+  timeZone: string,
 ): string | null => {
   if (!value) return null;
 
@@ -273,7 +273,7 @@ export const relativeDayLabel = (day: string, today: string): string => {
  */
 export const toZonedWallClock = (
   value: string | Date | null | undefined,
-  timeZone: string = DEFAULT_TIMEZONE,
+  timeZone: string,
 ): Date | null => {
   if (!value) return null;
 
@@ -282,6 +282,21 @@ export const toZonedWallClock = (
   return date ? shiftToTimeZone(date, timeZone) : null;
 };
 
+let activeTimeZone = DEFAULT_TIMEZONE;
+
+/** Lo llama `CompanyTimezoneSync` (una sola vez, en el proveedor raíz). */
+export const setActiveTimeZone = (timeZone: string) => {
+  activeTimeZone = timeZone;
+};
+
+/**
+ * "Ahora" como hora de pared de la zona de la compañía, para lo que NO puede
+ * leer el hook: rangos por defecto ("este mes"), límites de un selector ("no
+ * antes de hoy"), validaciones. Es una hora de pared, no un instante: no sirve
+ * para mandar al backend (para eso `new Date()` o `zonedWallClockToUtcIso`).
+ */
+export const companyNow = (): Date =>
+  toZonedWallClock(new Date(), activeTimeZone) ?? new Date();
 /** Desfase (ms) de una zona respecto de UTC en un instante dado. */
 const offsetAt = (instantMs: number, timeZone: string): number => {
   const parts = formatterFor(timeZone).formatToParts(new Date(instantMs));
@@ -308,7 +323,7 @@ const offsetAt = (instantMs: number, timeZone: string): number => {
 export const zonedDayToUtcIso = (
   day: string | null | undefined,
   edge: "start" | "end",
-  timeZone: string = DEFAULT_TIMEZONE,
+  timeZone: string,
 ): string | undefined => {
   const match = day?.match(/^(\d{4})-(\d{2})-(\d{2})/);
   if (!match) return undefined;
@@ -333,7 +348,7 @@ export const zonedDayToUtcIso = (
  */
 export const zonedWallClockToUtcIso = (
   wall: Date,
-  timeZone: string = DEFAULT_TIMEZONE,
+  timeZone: string,
 ): string => {
   const asUtc = Date.UTC(
     wall.getFullYear(),

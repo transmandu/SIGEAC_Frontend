@@ -48,6 +48,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { DownloadOptionDialog } from "@/components/dialogs/shared/DownloadOptionDialog";
+import { fullName } from "@/lib/person-name";
 
 const ChangeManagementActions = ({
   changeManagement,
@@ -304,7 +305,7 @@ const ChangeManagementActions = ({
                         key={employee.id}
                         value={employee.id.toString()}
                       >
-                        {employee.first_name} {employee.last_name}
+                        {fullName(employee)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -330,7 +331,7 @@ const ChangeManagementActions = ({
                         key={employee.id}
                         value={employee.id.toString()}
                       >
-                        {employee.first_name} {employee.last_name}
+                        {fullName(employee)}
                       </SelectItem>
                     ))}
                   </SelectContent>

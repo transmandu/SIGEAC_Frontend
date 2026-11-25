@@ -54,6 +54,10 @@ import {
 } from "./RequisitionSection";
 import { PriorityChoice } from "./PriorityChoice";
 import { labelClass } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
+import {
+  isConsumableCategory,
+  isUnitaryCategory,
+} from "@/lib/purchases/requisition-measure";
 
 interface BatchArticlesSectionProps {
   form: UseFormReturn<any>;
@@ -133,15 +137,29 @@ export function BatchArticlesSection({
   const canCreateBatch = useCanManageCatalog("batches") && enableCreateBatch;
   const isLg = size === "lg";
   const labelTextClass = cn(labelClass, "whitespace-nowrap");
-  const priorityColClass = isLg ? "sm:w-40" : "sm:w-28";
 
   // Refleja la regla de zod: cada artículo necesita al menos un tipo de
   // documento. El rojo aparece solo tras intentar enviar, para que una fila
   // recién agregada no se vea como error antes de que la llenen.
   const isSubmitted = form.formState.isSubmitted;
-  const isDocumentTypesInvalid = (article: { document_type_ids?: number[] }) =>
+  const isDocumentTypesInvalid = (
+    article: { document_type_ids?: number[] },
+    category?: string,
+  ) =>
     isSubmitted &&
+    !isConsumableCategory(category) &&
     !(article.document_type_ids && article.document_type_ids.length > 0);
+
+  // Misma regla que zod: el consumible necesita su unidad.
+  const unitError = (batchId: string, index: number) => {
+    if (!isSubmitted) return null;
+    const batch = selectedBatches.find((b) => b.batch === batchId);
+
+    return isConsumableCategory(batch?.batch_category) &&
+      !batch?.batch_articles[index]?.unit
+      ? "Indique la unidad"
+      : null;
+  };
 
   return (
     <FormField
@@ -375,6 +393,9 @@ export function BatchArticlesSection({
                       )}
                     >
                       {batch.batch_articles.map((article, index) => {
+                        const isUnitary = isUnitaryCategory(
+                          batch.batch_category,
+                        );
                         const selectedAircraft = aircrafts?.find(
                           (a) => a.id.toString() === article.aircraft_id,
                         );
@@ -383,62 +404,77 @@ export function BatchArticlesSection({
                             key={index}
                             className="mt-1.5 flex flex-col gap-2 rounded-md border bg-background/60 p-2 sm:flex-row sm:items-center"
                           >
-                            <div className="min-w-0 flex-1 space-y-2">
-                              {/* Row 1: Part Number, Quantity, Unit */}
-                              <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
-                                <div className="flex min-w-0 flex-col gap-1 max-sm:col-span-2 sm:flex-1">
-                                  <label
-                                    className={cn(
-                                      "flex items-center gap-1 font-medium select-none",
-                                      labelTextClass,
-                                    )}
-                                  >
-                                    P/N
-                                    <RequiredIndicator />
-                                  </label>
-                                  <Input
-                                    placeholder="Ej: 123-456-789"
-                                    className={rowFieldClass}
-                                    value={article.part_number}
-                                    onChange={(e) =>
-                                      handleBatchArticleChange(
-                                        batch.batch,
-                                        index,
-                                        "part_number",
-                                        e.target.value,
-                                      )
-                                    }
-                                  />
-                                </div>
+                            {/* Una sola rejilla: P/N y P/N alterno comparten la primera columna
+                                  (mismo ancho). Consumible: Cant. + Unidad / Prioridad +
+                                  Aeronave. Parte, componente, herramienta (sin unidad):
+                                  Cant. + Aeronave / Prioridad bajo Cant. */}
+                            <div
+                              className={cn(
+                                "grid min-w-0 flex-1 grid-cols-2 gap-2 sm:items-end",
+                                isLg
+                                  ? "sm:grid-cols-[minmax(0,1fr)_10rem_9rem]"
+                                  : "sm:grid-cols-[minmax(0,1fr)_7rem_9rem]",
+                              )}
+                            >
+                              <div className="flex min-w-0 flex-col gap-1 max-sm:order-1 max-sm:col-span-2 sm:col-start-1 sm:row-start-1">
+                                <label
+                                  className={cn(
+                                    "flex items-center gap-1 font-medium select-none",
+                                    labelTextClass,
+                                  )}
+                                >
+                                  P/N
+                                  <RequiredIndicator />
+                                </label>
+                                <Input
+                                  placeholder="Ej: 123-456-789"
+                                  className={rowFieldClass}
+                                  value={article.part_number}
+                                  onChange={(e) =>
+                                    handleBatchArticleChange(
+                                      batch.batch,
+                                      index,
+                                      "part_number",
+                                      e.target.value,
+                                    )
+                                  }
+                                />
+                              </div>
 
-                                <div className="flex min-w-0 flex-col gap-1 sm:w-28 sm:shrink-0">
-                                  <label
-                                    className={cn(
-                                      "flex items-center gap-1 font-medium select-none",
-                                      labelTextClass,
-                                    )}
-                                  >
-                                    Cant.
-                                    <RequiredIndicator />
-                                  </label>
-                                  <Input
-                                    placeholder="Ej: 4"
-                                    min="0"
-                                    step="0.1"
-                                    inputMode="decimal"
-                                    className={rowFieldClass}
-                                    onChange={(e) =>
-                                      handleBatchArticleChange(
-                                        batch.batch,
-                                        index,
-                                        "quantity",
-                                        Number(e.target.value),
-                                      )
-                                    }
-                                  />
-                                </div>
+                              <div className="flex min-w-0 flex-col gap-1 max-sm:order-2 sm:col-start-2 sm:row-start-1">
+                                <label
+                                  className={cn(
+                                    "flex items-center gap-1 font-medium select-none",
+                                    labelTextClass,
+                                  )}
+                                >
+                                  Cant.
+                                  <RequiredIndicator />
+                                </label>
+                                {/* Componente, parte o herramienta: la cantidad
+                                      es cuántos artículos se piden (enteros, sin
+                                      unidad). Solo el consumible mide en unidades. */}
+                                <Input
+                                  placeholder="Ej: 4"
+                                  min={isUnitary ? "1" : "0"}
+                                  step={isUnitary ? "1" : "0.1"}
+                                  inputMode={isUnitary ? "numeric" : "decimal"}
+                                  className={rowFieldClass}
+                                  value={article.quantity || ""}
+                                  onChange={(e) => {
+                                    const parsed = Number(e.target.value);
+                                    handleBatchArticleChange(
+                                      batch.batch,
+                                      index,
+                                      "quantity",
+                                      isUnitary ? Math.trunc(parsed) : parsed,
+                                    );
+                                  }}
+                                />
+                              </div>
 
-                                <div className="flex min-w-0 flex-col gap-1 sm:w-36 sm:shrink-0">
+                              {!isUnitary && (
+                                <div className="flex min-w-0 flex-col gap-1 max-sm:order-3 sm:col-start-3 sm:row-start-1">
                                   <label
                                     className={cn(
                                       "flex items-center gap-1 font-medium select-none",
@@ -470,168 +506,174 @@ export function BatchArticlesSection({
                                       label: unit.label,
                                     }))}
                                   />
+                                  {unitError(batch.batch, index) && (
+                                    <p className="text-xs text-destructive">
+                                      {unitError(batch.batch, index)}
+                                    </p>
+                                  )}
                                 </div>
-                              </div>
+                              )}
 
-                              {/* Row 2: Alternative Part Number, AeronauticalAircraft, Priority */}
-                              <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
-                                <div className="flex min-w-0 flex-col gap-1 max-sm:col-span-2 sm:flex-1">
-                                  <label
-                                    className={cn(
-                                      "flex items-center gap-1 font-medium select-none",
-                                      labelTextClass,
-                                    )}
-                                  >
-                                    P/N alterno
-                                  </label>
-                                  <Input
-                                    placeholder="Ej: ABC-123-X Opcional..."
-                                    className={rowFieldClass}
-                                    value={article.alt_part_number || ""}
-                                    onChange={(e) =>
-                                      handleBatchArticleChange(
-                                        batch.batch,
-                                        index,
-                                        "alt_part_number",
-                                        e.target.value,
-                                      )
-                                    }
-                                  />
-                                </div>
-
-                                <div
+                              <div className="flex min-w-0 flex-col gap-1 max-sm:order-4 max-sm:col-span-2 sm:col-start-1 sm:row-start-2">
+                                <label
                                   className={cn(
-                                    "flex min-w-0 flex-col gap-1 sm:shrink-0",
-                                    priorityColClass,
+                                    "flex items-center gap-1 font-medium select-none",
+                                    labelTextClass,
                                   )}
                                 >
-                                  <label
-                                    className={cn(
-                                      "flex items-center gap-1 font-medium select-none",
-                                      labelTextClass,
-                                    )}
-                                  >
-                                    Prioridad
-                                    <RequiredIndicator />
-                                  </label>
-                                  <PriorityChoice
-                                    size="sm"
-                                    label="Prioridad del artículo"
-                                    value={article.priority || "MEDIUM"}
-                                    onChange={(value) =>
-                                      handleBatchArticleChange(
-                                        batch.batch,
-                                        index,
-                                        "priority",
-                                        value,
-                                      )
-                                    }
-                                  />
-                                </div>
+                                  P/N alterno
+                                </label>
+                                <Input
+                                  placeholder="Ej: ABC-123-X Opcional..."
+                                  className={rowFieldClass}
+                                  value={article.alt_part_number || ""}
+                                  onChange={(e) =>
+                                    handleBatchArticleChange(
+                                      batch.batch,
+                                      index,
+                                      "alt_part_number",
+                                      e.target.value,
+                                    )
+                                  }
+                                />
+                              </div>
 
-                                <div className="flex min-w-0 flex-col gap-1 sm:w-36 sm:shrink-0">
-                                  <label
-                                    className={cn(
-                                      "flex items-center gap-1 font-medium select-none",
-                                      labelTextClass,
-                                    )}
-                                  >
-                                    Aeronave
-                                  </label>
-                                  <Popover>
-                                    <PopoverTrigger asChild>
-                                      <Button
-                                        type="button"
-                                        disabled={isAircraftsLoading}
-                                        variant="outline"
-                                        role="combobox"
-                                        className={cn(
-                                          rowTriggerClass,
-                                          "text-muted-foreground",
-                                          selectedAircraft && "text-foreground",
-                                        )}
-                                      >
-                                        <span className="truncate">
-                                          {selectedAircraft
-                                            ? selectedAircraft.acronym
-                                            : "Opcional"}
-                                        </span>
-                                        <ChevronsUpDown className="ml-1 h-3 w-3 shrink-0 opacity-50" />
-                                      </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent
-                                      className="p-0"
-                                      matchTriggerWidth
+                              <div
+                                className={cn(
+                                  "flex min-w-0 flex-col gap-1 max-sm:order-5 sm:col-start-2 sm:row-start-2",
+                                  // Sin unidad no hay con quién compartir la fila en móvil.
+                                  isUnitary && "max-sm:col-span-2",
+                                )}
+                              >
+                                <label
+                                  className={cn(
+                                    "flex items-center gap-1 font-medium select-none",
+                                    labelTextClass,
+                                  )}
+                                >
+                                  Prioridad
+                                  <RequiredIndicator />
+                                </label>
+                                <PriorityChoice
+                                  size="sm"
+                                  label="Prioridad del artículo"
+                                  value={article.priority || "MEDIUM"}
+                                  onChange={(value) =>
+                                    handleBatchArticleChange(
+                                      batch.batch,
+                                      index,
+                                      "priority",
+                                      value,
+                                    )
+                                  }
+                                />
+                              </div>
+
+                              <div
+                                className={cn(
+                                  "flex min-w-0 flex-col gap-1",
+                                  isUnitary
+                                    ? "max-sm:order-3 sm:col-start-3 sm:row-start-1"
+                                    : "max-sm:order-6 sm:col-start-3 sm:row-start-2",
+                                )}
+                              >
+                                <label
+                                  className={cn(
+                                    "flex items-center gap-1 font-medium select-none",
+                                    labelTextClass,
+                                  )}
+                                >
+                                  Aeronave
+                                </label>
+                                <Popover>
+                                  <PopoverTrigger asChild>
+                                    <Button
+                                      type="button"
+                                      disabled={isAircraftsLoading}
+                                      variant="outline"
+                                      role="combobox"
+                                      className={cn(
+                                        rowTriggerClass,
+                                        "text-muted-foreground",
+                                        selectedAircraft && "text-foreground",
+                                      )}
                                     >
-                                      <Command shouldFilter={false}>
-                                        <CommandInput
-                                          placeholder="Busque una aeronave..."
-                                          value={aircraftSearch}
-                                          onValueChange={setAircraftSearch}
-                                        />
-                                        <CommandList>
-                                          <CommandEmpty className="text-sm p-2 text-center text-muted-foreground">
-                                            {aircraftSearch
-                                              ? "No se ha encontrado ninguna aeronave."
-                                              : "Escriba para buscar..."}
-                                          </CommandEmpty>
-                                          {article.aircraft_id && (
-                                            <CommandGroup>
-                                              <CommandItem
-                                                value="clear"
-                                                onSelect={() =>
-                                                  handleBatchArticleChange(
-                                                    batch.batch,
-                                                    index,
-                                                    "aircraft_id",
-                                                    undefined,
-                                                  )
-                                                }
-                                              >
-                                                Sin aeronave
-                                              </CommandItem>
-                                            </CommandGroup>
-                                          )}
+                                      <span className="truncate">
+                                        {selectedAircraft
+                                          ? selectedAircraft.acronym
+                                          : "Opcional"}
+                                      </span>
+                                      <ChevronsUpDown className="ml-1 h-3 w-3 shrink-0 opacity-50" />
+                                    </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent
+                                    className="p-0"
+                                    matchTriggerWidth
+                                  >
+                                    <Command shouldFilter={false}>
+                                      <CommandInput
+                                        placeholder="Busque una aeronave..."
+                                        value={aircraftSearch}
+                                        onValueChange={setAircraftSearch}
+                                      />
+                                      <CommandList>
+                                        <CommandEmpty className="text-sm p-2 text-center text-muted-foreground">
+                                          {aircraftSearch
+                                            ? "No se ha encontrado ninguna aeronave."
+                                            : "Escriba para buscar..."}
+                                        </CommandEmpty>
+                                        {article.aircraft_id && (
                                           <CommandGroup>
-                                            {filteredAircrafts.map(
-                                              (aircraft) => (
-                                                <CommandItem
-                                                  value={`${aircraft.id} ${aircraft.acronym}`}
-                                                  key={aircraft.id}
-                                                  onSelect={(
-                                                    currentValue: string,
-                                                  ) => {
-                                                    const id =
-                                                      currentValue.split(
-                                                        " ",
-                                                      )[0];
-                                                    handleBatchArticleChange(
-                                                      batch.batch,
-                                                      index,
-                                                      "aircraft_id",
-                                                      id,
-                                                    );
-                                                  }}
-                                                >
-                                                  <Check
-                                                    className={cn(
-                                                      "mr-2 h-4 w-4",
-                                                      aircraft.id.toString() ===
-                                                        article.aircraft_id
-                                                        ? "opacity-100"
-                                                        : "opacity-0",
-                                                    )}
-                                                  />
-                                                  {aircraft.acronym}
-                                                </CommandItem>
-                                              ),
-                                            )}
+                                            <CommandItem
+                                              value="clear"
+                                              onSelect={() =>
+                                                handleBatchArticleChange(
+                                                  batch.batch,
+                                                  index,
+                                                  "aircraft_id",
+                                                  undefined,
+                                                )
+                                              }
+                                            >
+                                              Sin aeronave
+                                            </CommandItem>
                                           </CommandGroup>
-                                        </CommandList>
-                                      </Command>
-                                    </PopoverContent>
-                                  </Popover>
-                                </div>
+                                        )}
+                                        <CommandGroup>
+                                          {filteredAircrafts.map((aircraft) => (
+                                            <CommandItem
+                                              value={`${aircraft.id} ${aircraft.acronym}`}
+                                              key={aircraft.id}
+                                              onSelect={(
+                                                currentValue: string,
+                                              ) => {
+                                                const id =
+                                                  currentValue.split(" ")[0];
+                                                handleBatchArticleChange(
+                                                  batch.batch,
+                                                  index,
+                                                  "aircraft_id",
+                                                  id,
+                                                );
+                                              }}
+                                            >
+                                              <Check
+                                                className={cn(
+                                                  "mr-2 h-4 w-4",
+                                                  aircraft.id.toString() ===
+                                                    article.aircraft_id
+                                                    ? "opacity-100"
+                                                    : "opacity-0",
+                                                )}
+                                              />
+                                              {aircraft.acronym}
+                                            </CommandItem>
+                                          ))}
+                                        </CommandGroup>
+                                      </CommandList>
+                                    </Command>
+                                  </PopoverContent>
+                                </Popover>
                               </div>
                             </div>
 
@@ -646,7 +688,10 @@ export function BatchArticlesSection({
                                     ids,
                                   )
                                 }
-                                invalid={isDocumentTypesInvalid(article)}
+                                invalid={isDocumentTypesInvalid(
+                                  article,
+                                  batch.batch_category,
+                                )}
                               />
 
                               <ArticleImageAttachment

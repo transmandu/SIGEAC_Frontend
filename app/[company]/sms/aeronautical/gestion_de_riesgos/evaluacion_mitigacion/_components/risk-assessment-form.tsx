@@ -42,6 +42,8 @@ import {
 
 import { FormSection } from "@/components/forms/mantenimiento/sms/_components/form-parts";
 import { useResettingState } from "@/hooks/useResettingState";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import { formatInstant } from "@/lib/date";
 
 const FORM_SCHEMA = z.object({
   hazard_notification_id: z.coerce
@@ -464,6 +466,7 @@ export function RiskAssessmentForm({
   >({}, [currentAssessment, selectedNotification.id]);
 
   const router = useRouter();
+  const timeZone = useCompanyTimezone();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(FORM_SCHEMA),
@@ -856,7 +859,11 @@ export function RiskAssessmentForm({
 
                   <p className="text-xs text-muted-foreground">
                     {entry.updated_at || entry.created_at
-                      ? formatDate(entry.updated_at || entry.created_at || "")
+                      ? formatInstant(
+                          entry.updated_at || entry.created_at,
+                          timeZone,
+                          "date",
+                        )
                       : "Sin fecha registrada"}
                   </p>
                 </div>

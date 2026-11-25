@@ -8,6 +8,7 @@ import {
   Text,
   View,
 } from "@react-pdf/renderer";
+import { formatInstant } from "@/lib/date";
 
 export interface PieLegendRow {
   name: string;
@@ -36,6 +37,8 @@ interface StatisticsReportPdfProps {
   from: string;
   to: string;
   charts: PdfStatisticsChart[];
+  /** Zona de la compañía: este PDF se renderiza fuera de React, no puede leerla. */
+  timeZone: string;
 }
 
 const LETTER_WIDTH = 612; // pt (tamaño LETTER)
@@ -260,6 +263,7 @@ const StatisticsReportPdf = ({
   from,
   to,
   charts,
+  timeZone,
 }: StatisticsReportPdfProps) => {
   return (
     <Document>
@@ -289,7 +293,7 @@ const StatisticsReportPdf = ({
 
             <View style={styles.footer} fixed>
               <Text style={styles.subtitle}>
-                Generado el {format(new Date(), "dd/MM/yyyy HH:mm")}
+                Generado el {formatInstant(new Date(), timeZone, "dateTime")}
               </Text>
               <Text style={styles.subtitle}>
                 Página {index + 1} de {charts.length}

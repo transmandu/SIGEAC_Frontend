@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  isUnitaryCategory,
+  UNITARY_UNIT_LABEL,
+} from "@/lib/purchases/requisition-measure";
 import { useState } from "react";
 import Link from "next/link";
 import {
@@ -31,6 +35,7 @@ import type {
 } from "@/types/purchase/purchase-order";
 import { formatInstant } from "@/lib/date";
 import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import { fullName } from "@/lib/person-name";
 
 // Destino del intake, derivado de cuál referencia venga poblada (excluyentes
 // entre sí): almacén para el flujo normal, o la entidad de una entrega directa.
@@ -49,7 +54,7 @@ const getIntakeDestination = (
   }
   if (intake.employee) {
     return {
-      label: `${intake.employee.first_name} ${intake.employee.last_name}`,
+      label: fullName(intake.employee),
       type: "Empleado",
       Icon: User,
     };
@@ -162,7 +167,10 @@ const BatchArticleRow = ({
   const req = quoteArticle?.article_requisition_order;
   const batchName = req?.batch?.name ?? "Sin lote";
   const batchCategory = req?.batch?.category;
-  const unitLabel = quoteArticle?.unit?.label ?? req?.unit?.label;
+  // Componente, parte y herramienta son entidades únicas: no llevan unidad.
+  const unitLabel = isUnitaryCategory(batchCategory)
+    ? UNITARY_UNIT_LABEL
+    : (quoteArticle?.unit?.label ?? req?.unit?.label);
   const conditionName = quoteArticle?.condition?.name;
   const vendorName = quoteArticle?.vendor?.name;
 
@@ -232,8 +240,8 @@ const BatchArticleRow = ({
             Cant.{" "}
             <span className="font-medium tabular-nums text-foreground/80">
               {quoteArticle?.quantity ?? "—"}
-            </span>{" "}
-            {unitLabel ?? ""}
+            </span>
+            {unitLabel ? ` ${unitLabel}` : ""}
           </span>
           <span className="text-muted-foreground">
             P/U{" "}

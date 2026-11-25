@@ -20,6 +20,7 @@ import { buildSupervisorGroup } from "@/lib/menus/supervisor";
 import type { Group } from "@/lib/menus/types";
 import { buildWarehouseGroup } from "@/lib/menus/warehouse";
 import type { Company } from "@/types";
+import { companyNow } from "@/lib/date";
 
 /**
  * Todos los grupos sin filtrar por roles ni módulos. El sidebar siempre debe
@@ -34,7 +35,7 @@ export function buildMenuGroups(
   const context = {
     pathname,
     currentCompany,
-    date: format(new Date(), "yyyy-MM-dd"),
+    date: format(companyNow(), "yyyy-MM-dd"),
     userRoles,
   };
 

@@ -1,4 +1,8 @@
-import type { GeneralArticle, GeneralArticleCostHistoryEntry, Unit } from "@/types";
+import type {
+  GeneralArticle,
+  GeneralArticleCostHistoryEntry,
+  Unit,
+} from "@/types";
 
 /**
  * Tipos del módulo SUPERVISOR (exclusivo de SUPERUSER).
@@ -12,13 +16,13 @@ import type { GeneralArticle, GeneralArticleCostHistoryEntry, Unit } from "@/typ
  * muestre qué arrastra consigo cada artículo antes de fusionarlo.
  */
 export type SupervisorGeneralArticle = GeneralArticle & {
-    primary_unit_id: number;
-    warehouse_id: number;
-    intakes_count: number;
-    cost_changes_count: number;
-    conversions_count: number;
-    dispatches_count: number;
-    conversions?: ArticleConversion[];
+  primary_unit_id: number;
+  warehouse_id: number;
+  intakes_count: number;
+  cost_changes_count: number;
+  conversions_count: number;
+  dispatches_count: number;
+  conversions?: ArticleConversion[];
 };
 
 /**
@@ -29,42 +33,42 @@ export type SupervisorGeneralArticle = GeneralArticle & {
 export type DuplicateReason = "BRAND_MODEL" | "UNIT";
 
 export type DuplicateCandidateGroup = {
-    reason: DuplicateReason;
-    label: string;
-    articles: SupervisorGeneralArticle[];
+  reason: DuplicateReason;
+  label: string;
+  articles: SupervisorGeneralArticle[];
 };
 
 /** Cómo se llegó a la cantidad final de cada artículo de la fusión. */
 export type MergeQuantityBreakdown = {
-    article_id: number;
-    is_survivor: boolean;
-    description: string;
-    brand_model: string | null;
-    original_quantity: number;
-    original_unit_id: number;
-    converted_quantity: number;
-    /** Cuántas unidades base equivalen a 1 unidad de origen. */
-    base_per_unit: number | null;
-    source?: string;
+  article_id: number;
+  is_survivor: boolean;
+  description: string;
+  brand_model: string | null;
+  original_quantity: number;
+  original_unit_id: number;
+  converted_quantity: number;
+  /** Cuántas unidades base equivalen a 1 unidad de origen. */
+  base_per_unit: number | null;
+  source?: string;
 };
 
 /** Unidad sin Conversion disponible hacia la unidad final: bloquea la fusión. */
 export type MissingConversion = {
-    article_id: number;
-    from_unit_id: number;
-    from_unit: string | null;
-    to_unit_id: number;
+  article_id: number;
+  from_unit_id: number;
+  from_unit: string | null;
+  to_unit_id: number;
 };
 
 /** Valores finales que tendrá el artículo superviviente tras la fusión. */
 export type MergeFinalValues = {
-    description: string;
-    brand_model: string | null;
-    variant_type: string | null;
-    minimum_quantity: number | null;
-    maximum_quantity: number | null;
-    primary_unit_id: number;
-    quantity: number;
+  description: string;
+  brand_model: string | null;
+  variant_type: string | null;
+  minimum_quantity: number | null;
+  maximum_quantity: number | null;
+  primary_unit_id: number;
+  quantity: number;
 };
 
 /**
@@ -79,9 +83,9 @@ export type MergeFinalValues = {
  * supervisor. Solo los MANUAL/SEED admiten edición.
  */
 export type SupervisorCostHistoryEntry = GeneralArticleCostHistoryEntry & {
-    entry_id: string;
-    editable: boolean;
-    general_article_id: number | null;
+  entry_id: string;
+  editable: boolean;
+  general_article_id: number | null;
 };
 
 /**
@@ -90,12 +94,17 @@ export type SupervisorCostHistoryEntry = GeneralArticleCostHistoryEntry & {
  * misma transacción). Solo pueden referirse a registros editables.
  */
 export type CostChangeEdits = {
-    // unit_id ancla en qué unidad está expresado el costo. Si difiere de la
-    // unidad base final de la fusión, el backend reexpresa el precio con la
-    // conversión (ej: un $9 capturado en CAJA se vuelve $0.09 en UNIDADES).
-    created?: { cost: number; unit_id?: number | null; changed_at?: string }[];
-    updated?: { id: number; cost: number; unit_id?: number | null; changed_at?: string }[];
-    deleted?: number[];
+  // unit_id ancla en qué unidad está expresado el costo. Si difiere de la
+  // unidad base final de la fusión, el backend reexpresa el precio con la
+  // conversión (ej: un $9 capturado en CAJA se vuelve $0.09 en UNIDADES).
+  created?: { cost: number; unit_id?: number | null; changed_at?: string }[];
+  updated?: {
+    id: number;
+    cost: number;
+    unit_id?: number | null;
+    changed_at?: string;
+  }[];
+  deleted?: number[];
 };
 
 /**
@@ -111,9 +120,9 @@ export type IntakeUnitEdits = { id: number; unit_id: number }[];
  * posterior pasa a mandar.
  */
 export type MergeCostSummary = {
-    current: number;
-    resulting: number;
-    resulting_from_article_id: number | null;
+  current: number;
+  resulting: number;
+  resulting_from_article_id: number | null;
 };
 
 /**
@@ -121,42 +130,44 @@ export type MergeCostSummary = {
  * mientras missing_conversions tenga elementos.
  */
 export type MergePreview = {
-    survivor: SupervisorGeneralArticle;
-    absorbed: SupervisorGeneralArticle[];
-    final: MergeFinalValues;
-    quantity_breakdown: MergeQuantityBreakdown[];
-    missing_conversions: MissingConversion[];
-    /** Ya incluye las ediciones pendientes enviadas en la petición. */
-    cost_history: SupervisorCostHistoryEntry[];
-    cost_summary: MergeCostSummary;
-    child_rows: Record<string, number>;
-    can_merge: boolean;
+  survivor: SupervisorGeneralArticle;
+  absorbed: SupervisorGeneralArticle[];
+  final: MergeFinalValues;
+  quantity_breakdown: MergeQuantityBreakdown[];
+  missing_conversions: MissingConversion[];
+  /** Ya incluye las ediciones pendientes enviadas en la petición. */
+  cost_history: SupervisorCostHistoryEntry[];
+  cost_summary: MergeCostSummary;
+  child_rows: Record<string, number>;
+  /** Lo que los artículos individuales impiden de esta fusión; vacío si nada. */
+  individual_conflicts?: string[];
+  can_merge: boolean;
 };
 
 /** Payload compartido por merge-preview y merge. */
 export type MergeRequest = {
-    survivor_id: number;
-    absorbed_ids: number[];
-    final?: Partial<{
-        description: string;
-        brand_model: string;
-        variant_type: string;
-        minimum_quantity: number;
-        maximum_quantity: number;
-        primary_unit_id: number;
-    }>;
-    /**
-     * Equivalencias declaradas al vuelo para unidades sin Conversion
-     * registrada: { [unit_id]: equivalencia hacia la unidad final }.
-     */
-    conversions?: Record<number, number>;
-    /** Ediciones del historial de costo a aplicar junto con la fusión. */
-    cost_changes?: CostChangeEdits;
-    intake_units?: IntakeUnitEdits;
-    /** Al cambiar la unidad base: unidades nuevas por 1 de la anterior. */
-    unit_change?: { direction: ConversionDirection; value: number };
-    /** El cambio de unidad solo corrige una etiqueta: no convierte el historial. */
-    relabel_unit?: boolean;
+  survivor_id: number;
+  absorbed_ids: number[];
+  final?: Partial<{
+    description: string;
+    brand_model: string;
+    variant_type: string;
+    minimum_quantity: number;
+    maximum_quantity: number;
+    primary_unit_id: number;
+  }>;
+  /**
+   * Equivalencias declaradas al vuelo para unidades sin Conversion
+   * registrada: { [unit_id]: equivalencia hacia la unidad final }.
+   */
+  conversions?: Record<number, number>;
+  /** Ediciones del historial de costo a aplicar junto con la fusión. */
+  cost_changes?: CostChangeEdits;
+  intake_units?: IntakeUnitEdits;
+  /** Al cambiar la unidad base: unidades nuevas por 1 de la anterior. */
+  unit_change?: { direction: ConversionDirection; value: number };
+  /** El cambio de unidad solo corrige una etiqueta: no convierte el historial. */
+  relabel_unit?: boolean;
 };
 
 // ── Edición ──────────────────────────────────────────────────────────────────
@@ -172,22 +183,22 @@ export type BulkTextField = "description" | "brand_model" | "variant_type";
  * mismo para el backend.
  */
 export type BulkEditRow = {
-    id: number;
-    description: string;
-    brand_model?: string | null;
-    variant_type?: string | null;
-    minimum_quantity?: number | null;
-    maximum_quantity?: number | null;
-    quantity?: number;
-    primary_unit_id?: number;
-    /** Equivalencia anterior↔nueva; obligatoria si cambia primary_unit_id. */
-    unit_change?: { direction: ConversionDirection; value: number };
-    /** El cambio de unidad solo corrige una etiqueta. */
-    relabel_unit?: boolean;
+  id: number;
+  description: string;
+  brand_model?: string | null;
+  variant_type?: string | null;
+  minimum_quantity?: number | null;
+  maximum_quantity?: number | null;
+  quantity?: number;
+  primary_unit_id?: number;
+  /** Equivalencia anterior↔nueva; obligatoria si cambia primary_unit_id. */
+  unit_change?: { direction: ConversionDirection; value: number };
+  /** El cambio de unidad solo corrige una etiqueta. */
+  relabel_unit?: boolean;
 };
 
 export type BulkEditRequest = {
-    articles: BulkEditRow[];
+  articles: BulkEditRow[];
 };
 
 // ── Detalle editable de un artículo ──────────────────────────────────────────
@@ -199,32 +210,31 @@ export type BulkEditRequest = {
  * este artículo y a ningún otro: editarla no afecta a nadie más.
  */
 export type ArticleConversion = {
-    id: number;
-    unit_id: number;
-    unit_label: string | null;
-    base_per_unit: number;
-    lectura: string;
-    preview: string;
+  id: number;
+  unit_id: number;
+  unit_label: string | null;
+  base_per_unit: number;
+  lectura: string;
+  preview: string;
 };
 
 /** Todo lo editable de un artículo, en una sola respuesta. */
 export type ArticleDetail = {
-    article: SupervisorGeneralArticle;
-    conversions: ArticleConversion[];
-    cost_history: SupervisorCostHistoryEntry[];
-    current_cost: number;
+  article: SupervisorGeneralArticle;
+  conversions: ArticleConversion[];
+  cost_history: SupervisorCostHistoryEntry[];
+  current_cost: number;
 };
-
 
 /** Campos del artículo que pueden viajar en el diff de una edición. */
 export type ArticleFieldEdits = Partial<{
-    description: string;
-    brand_model: string | null;
-    variant_type: string | null;
-    minimum_quantity: number | null;
-    maximum_quantity: number | null;
-    quantity: number;
-    primary_unit_id: number;
+  description: string;
+  brand_model: string | null;
+  variant_type: string | null;
+  minimum_quantity: number | null;
+  maximum_quantity: number | null;
+  quantity: number;
+  primary_unit_id: number;
 }>;
 
 /**
@@ -238,9 +248,13 @@ export type ConversionDirection = "base_per_unit" | "units_per_base";
 
 /** Altas, cambios de equivalencia y bajas pendientes. */
 export type ConversionEdits = {
-    created?: { unit_id: number; direction: ConversionDirection; value: number }[];
-    updated?: { id: number; direction: ConversionDirection; value: number }[];
-    deleted?: number[];
+  created?: {
+    unit_id: number;
+    direction: ConversionDirection;
+    value: number;
+  }[];
+  updated?: { id: number; direction: ConversionDirection; value: number }[];
+  deleted?: number[];
 };
 
 /**
@@ -249,44 +263,45 @@ export type ConversionEdits = {
  * envía lo que realmente cambió.
  */
 export type UpdateArticleRequest = {
-    article?: ArticleFieldEdits;
-    conversions?: ConversionEdits;
-    cost_changes?: CostChangeEdits;
-    intake_units?: IntakeUnitEdits;
+  article?: ArticleFieldEdits;
+  conversions?: ConversionEdits;
+  cost_changes?: CostChangeEdits;
+  intake_units?: IntakeUnitEdits;
 };
 
 // ── Recorrido del artículo ───────────────────────────────────────────────────
 
 /** Fuente de cada evento del timeline. */
-export type TimelineEventType = "AUDIT" | "INTAKE" | "COST" | "DISPATCH" | "MERGE";
+export type TimelineEventType =
+  "AUDIT" | "INTAKE" | "COST" | "DISPATCH" | "MERGE";
 
 export type TimelineEvent = {
-    type: TimelineEventType;
-    /** Subtipo según la fuente: UPDATED/MERGED, CONFIRMED, MANUAL, SURVIVOR… */
-    event: string;
-    date: string | null;
-    by: string | null;
-    context: string | null;
-    detail: Record<string, unknown> | null;
+  type: TimelineEventType;
+  /** Subtipo según la fuente: UPDATED/MERGED, CONFIRMED, MANUAL, SURVIVOR… */
+  event: string;
+  date: string | null;
+  by: string | null;
+  context: string | null;
+  detail: Record<string, unknown> | null;
 };
 
 export type ArticleTimeline = {
-    article: SupervisorGeneralArticle;
-    events: TimelineEvent[];
+  article: SupervisorGeneralArticle;
+  events: TimelineEvent[];
 };
 
 /** Registro auditado de una fusión ejecutada; permite deshacerla. */
 export type GeneralArticleMerge = {
-    id: number;
-    survivor_id: number;
-    absorbed_ids: number[];
-    resolution: {
-        final: MergeFinalValues;
-        breakdown: MergeQuantityBreakdown[];
-    };
-    merged_by: string;
-    merged_at: string;
-    undone_by: string | null;
-    undone_at: string | null;
-    survivor?: SupervisorGeneralArticle;
+  id: number;
+  survivor_id: number;
+  absorbed_ids: number[];
+  resolution: {
+    final: MergeFinalValues;
+    breakdown: MergeQuantityBreakdown[];
+  };
+  merged_by: string;
+  merged_at: string;
+  undone_by: string | null;
+  undone_at: string | null;
+  survivor?: SupervisorGeneralArticle;
 };

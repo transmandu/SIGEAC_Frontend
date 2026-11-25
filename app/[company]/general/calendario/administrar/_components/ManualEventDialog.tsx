@@ -42,6 +42,8 @@ import {
   ManualCalendarEventData,
 } from "@/actions/general/calendario/actions";
 import { ManualCalendarEvent } from "@/types";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import { formatInstant, zonedWallClockToUtcIso } from "@/lib/date";
 
 const formSchema = z
   .object({
@@ -64,10 +66,15 @@ const formSchema = z
 
 type FormValues = z.infer<typeof formSchema>;
 
-const toDateTimeInputValue = (isoDate: string) =>
-  format(new Date(isoDate), "yyyy-MM-dd'T'HH:mm");
-const toDateInputValue = (isoDate: string) =>
-  format(new Date(isoDate), "yyyy-MM-dd");
+// Con hora = instante UTC: el input muestra la hora de pared de la compañía.
+const toDateTimeInputValue = (isoDate: string, timeZone: string) =>
+  formatInstant(isoDate, timeZone, "yyyy-MM-dd'T'HH:mm", "");
+// Todo el día = día de calendario: se toma tal cual, sin pasar por ninguna zona.
+const toDateInputValue = (isoDate: string) => isoDate.slice(0, 10);
+
+// El input datetime-local da la hora de pared sin zona; el backend guarda UTC.
+const toUtcPayload = (value: string, allDay: boolean, timeZone: string) =>
+  allDay ? value : zonedWallClockToUtcIso(new Date(value), timeZone);
 
 interface ManualEventDialogProps {
   open: boolean;
@@ -82,6 +89,7 @@ export function ManualEventDialog({
   company,
   event,
 }: ManualEventDialogProps) {
+  const timeZone = useCompanyTimezone();
   const { data: eventTypes = [] } = useGetCalendarEventTypes(company);
   const { createCalendarEvent } = useCreateCalendarEvent();
   const { updateCalendarEvent } = useUpdateCalendarEvent();
@@ -103,7 +111,8 @@ export function ManualEventDialog({
   useEffect(() => {
     if (!open) return;
     const isAllDay = event?.all_day ?? false;
-    const formatValue = isAllDay ? toDateInputValue : toDateTimeInputValue;
+    const formatValue = (iso: string) =>
+      isAllDay ? toDateInputValue(iso) : toDateTimeInputValue(iso, timeZone);
     form.reset({
       calendar_event_type_id: event?.calendar_event_type_id
         ? String(event.calendar_event_type_id)
@@ -114,7 +123,7 @@ export function ManualEventDialog({
       start_at: event ? formatValue(event.start_at) : "",
       end_at: event ? formatValue(event.end_at) : "",
     });
-  }, [open, event, form]);
+  }, [open, event, form, timeZone]);
 
   // Al cambiar el tipo de campo (fecha vs fecha+hora), el valor que ya
   // estaba escrito queda con el formato viejo y el input lo rechaza en
@@ -144,8 +153,8 @@ export function ManualEventDialog({
         : null,
       title: values.title,
       description: values.description || undefined,
-      start_at: values.start_at,
-      end_at: values.end_at,
+      start_at: toUtcPayload(values.start_at, values.all_day, timeZone),
+      end_at: toUtcPayload(values.end_at, values.all_day, timeZone),
       all_day: values.all_day,
     };
 
@@ -233,7 +242,7 @@ export function ManualEventDialog({
                       onCheckedChange={handleAllDayChange}
                     />
                   </FormControl>
-                  <FormLabel className="!mt-0 font-normal">
+                  <FormLabel className="mt-0! font-normal">
                     Todo el día
                   </FormLabel>
                 </FormItem>

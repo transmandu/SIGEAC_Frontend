@@ -28,6 +28,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 
 import { Separator } from "@radix-ui/react-select";
+import { companyNow } from "@/lib/date";
 
 const FormSchema = z.object({
   description: z.string().min(5),
@@ -49,7 +50,7 @@ export default function RedirectionForm({ onClose }: FormProps) {
     resolver: zodResolver(FormSchema),
     defaultValues: {
       description: "",
-      date: new Date(),
+      date: companyNow(),
     },
   });
 
@@ -114,7 +115,7 @@ export default function RedirectionForm({ onClose }: FormProps) {
                     selected={field.value}
                     onSelect={field.onChange}
                     disabled={(date) =>
-                      date > new Date() || date < new Date("1900-01-01")
+                      date > companyNow() || date < new Date("1900-01-01")
                     }
                     autoFocus
                     locale={es}

@@ -152,6 +152,7 @@ export interface WarehouseInventoryGeneralArticle {
   warehouse_id: number;
   image: string | null;
   dimension: ArticleDimension | null;
+  individuals: { total: number; stocked: number };
 }
 
 /** Fila del inventario de consulta de generales. */
@@ -163,6 +164,8 @@ export interface CompanyInventoryGeneralArticle {
   /** Existencia: cero significa "No disponible". */
   available_quantity: number;
   unit: InventoryUnit | null;
+  /** Artículos individuales vigentes y los que siguen en el almacén. */
+  individuals?: { total: number; stocked: number };
 }
 
 /** Artículo general del catálogo ligero de los formularios. */
@@ -178,6 +181,13 @@ export interface GeneralArticleCatalogItem {
   general_primary_unit: GeneralArticleUnit;
   warehouse_id: number;
   image: string | null;
+  /** Artículos individuales que siguen en el almacén (selector de salidas). */
+  stocked_individuals?: {
+    id: number;
+    identifier: string;
+    status: string;
+    tool_box?: { id: number; name: string } | null;
+  }[];
 }
 
 /** Catálogo de compras: el ligero más el último costo registrado. */

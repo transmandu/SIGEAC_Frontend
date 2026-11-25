@@ -13,6 +13,7 @@ import { useEffect, useMemo } from "react";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { estadisticasSteps } from "@/components/tour/steps/general/cursos/estadisticas";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { companyNow } from "@/lib/date";
 
 const CourseStatsPage = () => {
   const { selectedCompany, selectedStation } = useCompanyStore();
@@ -37,8 +38,8 @@ const CourseStatsPage = () => {
     () => ({
       from:
         searchParams.get("from") ||
-        format(startOfYear(new Date()), "yyyy-MM-dd"),
-      to: searchParams.get("to") || format(new Date(), "yyyy-MM-dd"),
+        format(startOfYear(companyNow()), "yyyy-MM-dd"),
+      to: searchParams.get("to") || format(companyNow(), "yyyy-MM-dd"),
     }),
     [searchParams],
   );
@@ -58,8 +59,8 @@ const CourseStatsPage = () => {
 
   // Manejar reset de fechas
   const handleReset = () => {
-    const defaultFrom = format(startOfYear(new Date()), "yyyy-MM-dd");
-    const defaultTo = format(new Date(), "yyyy-MM-dd");
+    const defaultFrom = format(startOfYear(companyNow()), "yyyy-MM-dd");
+    const defaultTo = format(companyNow(), "yyyy-MM-dd");
 
     const newParams = new URLSearchParams();
     newParams.set("from", defaultFrom);
@@ -74,8 +75,8 @@ const CourseStatsPage = () => {
     isLoading: isLoadingBarChart,
     isError: isErrorBarChart,
   } = useGetCourseStats(
-    params.from || format(startOfYear(new Date()), "yyyy-MM-dd"),
-    params.to || format(new Date(), "yyyy-MM-dd"),
+    params.from || format(startOfYear(companyNow()), "yyyy-MM-dd"),
+    params.to || format(companyNow(), "yyyy-MM-dd"),
     selectedStation ?? null,
     selectedCompany?.slug,
   );
@@ -114,8 +115,9 @@ const CourseStatsPage = () => {
               buttonDataTour="estadisticas-filtro"
               initialDate={{
                 from:
-                  params.from || format(startOfYear(new Date()), "yyyy-MM-dd"),
-                to: params.to || format(new Date(), "yyyy-MM-dd"),
+                  params.from ||
+                  format(startOfYear(companyNow()), "yyyy-MM-dd"),
+                to: params.to || format(companyNow(), "yyyy-MM-dd"),
               }}
             />
           </div>

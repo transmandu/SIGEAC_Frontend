@@ -25,10 +25,12 @@ import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import CopyPartNumberButton from "@/components/misc/CopyPartNumberButton";
 import {
   blockingPendingRequirements,
-  INCOMING_REASON_ACTIONS,
+  reasonAction,
   INCOMING_REASON_LABELS,
   isReadyForIncoming,
+  needsReceivedQuantity,
 } from "@/lib/incoming-readiness";
+import { ReceiveQuantityDialog } from "@/components/dialogs/mantenimiento/almacen/ReceiveQuantityDialog";
 import { cn, toAltPartNumbers } from "@/lib/utils";
 import { useUpdateArticleStatus } from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
 import type { TransitArticle } from "@/types/purchase";
@@ -42,6 +44,7 @@ const getPendingRequirements = blockingPendingRequirements;
 function TransitActionButton({ article }: { article: TransitArticle }) {
   const { updateArticleStatus } = useUpdateArticleStatus();
   const [docsDialogOpen, setDocsDialogOpen] = useState(false);
+  const [quantityDialogOpen, setQuantityDialogOpen] = useState(false);
 
   const pending = updateArticleStatus.isPending;
   const status = article.status?.toUpperCase();
@@ -49,12 +52,17 @@ function TransitActionButton({ article }: { article: TransitArticle }) {
 
   const pendingDocs = getPendingRequirements(article);
 
-  const moveToReception = async () => {
+  const moveToReception = async (received?: number) => {
     try {
       await updateArticleStatus.mutateAsync({
         id: article.id,
         status: "RECEPTION",
+        // Solo viaja si llegó menos de lo esperado: igual al total es el pase normal.
+        ...(received !== undefined && received < article.quantity
+          ? { received_quantity: received }
+          : {}),
       });
+      setQuantityDialogOpen(false);
     } catch (error) {
       // Respaldo del servidor: si el backend reporta documentación pendiente
       // (datos locales desactualizados), abrimos el bloque de consignación.
@@ -127,7 +135,11 @@ function TransitActionButton({ article }: { article: TransitArticle }) {
                     <li key={reason}>
                       • {INCOMING_REASON_LABELS[reason] ?? reason}
                       <span className="block pl-3 text-muted-foreground">
-                        {INCOMING_REASON_ACTIONS[reason]?.purchasing}
+                        {reasonAction(
+                          reason,
+                          "purchasing",
+                          article.batch?.category,
+                        )}
                       </span>
                     </li>
                   ))}
@@ -145,6 +157,17 @@ function TransitActionButton({ article }: { article: TransitArticle }) {
     );
   }
 
+  // Un consumible pide antes confirmar cuántas unidades llegaron; el resto
+  // de artículos pasa directo.
+  const proceedToReception = async () => {
+    if (needsReceivedQuantity(article)) {
+      setQuantityDialogOpen(true);
+      return;
+    }
+
+    await moveToReception();
+  };
+
   const handleAction = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (pending) return;
@@ -155,7 +178,7 @@ function TransitActionButton({ article }: { article: TransitArticle }) {
       return;
     }
 
-    await moveToReception();
+    await proceedToReception();
   };
 
   return (
@@ -192,8 +215,20 @@ function TransitActionButton({ article }: { article: TransitArticle }) {
         article={article}
         open={docsDialogOpen}
         onOpenChange={setDocsDialogOpen}
-        onCompleted={moveToReception}
+        onCompleted={proceedToReception}
       />
+
+      {needsReceivedQuantity(article) && (
+        <ReceiveQuantityDialog
+          expected={article.quantity}
+          unit={article.unit}
+          articleLabel={article.part_number || article.batch?.name || ""}
+          open={quantityDialogOpen}
+          onOpenChange={setQuantityDialogOpen}
+          pending={pending}
+          onConfirm={moveToReception}
+        />
+      )}
     </>
   );
 }
@@ -264,7 +299,11 @@ function EditTransitArticleAction({ article }: { article: TransitArticle }) {
                     <li key={reason}>
                       • {INCOMING_REASON_LABELS[reason] ?? reason}
                       <span className="block pl-3 text-muted-foreground">
-                        {INCOMING_REASON_ACTIONS[reason]?.purchasing}
+                        {reasonAction(
+                          reason,
+                          "purchasing",
+                          article.batch?.category,
+                        )}
                       </span>
                     </li>
                   ))}
@@ -726,7 +765,7 @@ export const columns: AppColumnDef<TransitArticle>[] = [
     size: 100,
 
     header: () => (
-      <div className="flex justify-center w-full text-xs font-medium text-muted-foreground">
+      <div className="flex w-full justify-center text-center text-xs font-medium text-muted-foreground">
         Editar y bitácora
       </div>
     ),

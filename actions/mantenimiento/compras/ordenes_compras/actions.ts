@@ -246,6 +246,9 @@ export type GeneralArticlesDeliveryDestination = {
   employeeId?: number;
   authorizedEmployeeId?: number;
   thirdPartyId?: number;
+  // Personal de almacén a quien se le entregó la mercancía. Obligatorio cuando
+  // el destino es el almacén; independiente de quien confirma el ingreso.
+  handedToEmployeeId?: number;
 };
 
 // Lo llama quien trae la mercancía cuando los artículos generales llegan.
@@ -296,6 +299,9 @@ export const useRegisterGeneralArticlesDelivery = () => {
               : {}),
             ...(destination?.thirdPartyId
               ? { third_party_id: destination.thirdPartyId }
+              : {}),
+            ...(destination?.handedToEmployeeId
+              ? { handed_to_employee_id: destination.handedToEmployeeId }
               : {}),
           },
         );

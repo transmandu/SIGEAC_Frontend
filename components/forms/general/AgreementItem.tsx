@@ -17,6 +17,7 @@ import { Trash2 } from "lucide-react";
 import { UseFormReturn, useWatch } from "react-hook-form";
 import { Employee } from "@/types";
 import type { ExternalEmployee } from "@/hooks/ajustes/convenios/types";
+import { fullName } from "@/lib/person-name";
 
 interface AgreementItemProps {
   form: UseFormReturn<any>;
@@ -49,7 +50,7 @@ export function AgreementItem({
 
   const employeeOptions = employees.map((e) => ({
     value: String(e.id),
-    label: `${e.first_name} ${e.last_name}`.trim(),
+    label: fullName(e),
   }));
 
   const authorizedEmployeeOptions = authorizedEmployees.map((a) => ({

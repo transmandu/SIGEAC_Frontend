@@ -56,6 +56,7 @@ import {
   uniformMovementTypeLabel,
 } from "@/lib/sms/uniforms";
 import { toCalendarPayload } from "@/lib/date";
+import { formalName } from "@/lib/person-name";
 
 const ISSUANCE = "ISSUANCE";
 const ADJUSTMENT = "ADJUSTMENT";
@@ -163,11 +164,6 @@ export const RegisterUniformMovementForm = ({ onClose, itemId }: Props) => {
   const selectedEmployee = employees?.find(
     (e) => String(e.id) === selectedEmployeeId,
   );
-
-  const employeeFullName = (e: Employee) =>
-    [e.first_name, e.middle_name, e.last_name, e.second_last_name]
-      .filter(Boolean)
-      .join(" ");
 
   const onSubmit = (data: z.infer<typeof formSchema>) => {
     createMovement.mutate(
@@ -382,7 +378,7 @@ export const RegisterUniformMovementForm = ({ onClose, itemId }: Props) => {
                           >
                             <span className="min-w-0 truncate">
                               {selectedEmployee
-                                ? employeeFullName(selectedEmployee)
+                                ? formalName(selectedEmployee)
                                 : "Buscar empleado..."}
                             </span>
                             <ChevronsUpDown className="ml-1 size-3.5 shrink-0 opacity-50" />
@@ -414,7 +410,7 @@ export const RegisterUniformMovementForm = ({ onClose, itemId }: Props) => {
                                 .map((emp) => (
                                   <CommandItem
                                     key={emp.id}
-                                    value={`${emp.first_name} ${emp.middle_name ?? ""} ${emp.last_name} ${emp.second_last_name ?? ""} ${emp.dni}`}
+                                    value={`${formalName(emp)} ${emp.dni}`}
                                     onSelect={() => {
                                       field.onChange(String(emp.id));
                                       setEmployeePopoverOpen(false);
@@ -430,7 +426,7 @@ export const RegisterUniformMovementForm = ({ onClose, itemId }: Props) => {
                                     />
                                     <div className="flex flex-col">
                                       <span className="text-sm">
-                                        {employeeFullName(emp)}
+                                        {formalName(emp)}
                                       </span>
                                       <span className="text-xs text-muted-foreground">
                                         DNI: {emp.dni}

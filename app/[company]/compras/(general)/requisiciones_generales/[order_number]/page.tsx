@@ -45,11 +45,13 @@ import {
 import { PageHeader } from "@/components/layout/PageHeader";
 import PriorityChangeNotice from "@/components/misc/PriorityChangeNotice";
 import RequisitionOverview from "@/app/[company]/compras/_components/RequisitionOverview";
+import { fullName } from "@/lib/person-name";
 import {
   AdvanceRequisitionStatusDialog,
   ADVANCE_REQUISITION_TOOLTIP,
   NEXT_REQUISITION_STATUS,
 } from "@/components/dialogs/mantenimiento/compras/AdvanceRequisitionStatusDialog";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
 
 function StatusBadge({
   status,
@@ -105,7 +107,7 @@ function StatusBadge({
           id,
           data: {
             status: target,
-            updated_by: `${user?.first_name} ${user?.last_name}`,
+            updated_by: `${fullName(user)}`,
           },
           company: selectedCompany.slug,
         });
@@ -144,6 +146,7 @@ function StatusBadge({
 
 // ── Página ────────────────────────────────────────────────────────────
 const RequisitionPage = () => {
+  const timeZone = useCompanyTimezone();
   const [openImage, setOpenImage] = useState<string | null>(null);
   const { selectedCompany } = useCompanyStore();
   const { order_number } = useParams<{ order_number: string }>();
@@ -270,9 +273,7 @@ const RequisitionPage = () => {
           items={[
             {
               label: "Creado por",
-              value: data?.created_by
-                ? `${data.created_by.first_name} ${data.created_by.last_name}`
-                : "Sistema",
+              value: data?.created_by ? fullName(data.created_by) : "Sistema",
               icon: UserCheck,
             },
             {
@@ -282,7 +283,7 @@ const RequisitionPage = () => {
             },
             {
               label: "Fecha de solicitud",
-              value: formatSolicitudDate(data?.submission_date),
+              value: formatSolicitudDate(data?.submission_date, timeZone),
               icon: CalendarDays,
             },
             ...(aircraftList.length > 0

@@ -20,6 +20,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
 import { useWatch, type UseFormReturn } from "react-hook-form";
+import { companyNow } from "@/lib/date";
 
 interface Props {
   // El formulario de herramientas tiene su propio schema, así que el genérico
@@ -88,7 +89,7 @@ export function BackdatedDispatchField({ form, canBackdate }: Props) {
                   selected={field.value}
                   onSelect={field.onChange}
                   disabled={(date) =>
-                    date > new Date() || date < new Date("1900-01-01")
+                    date > companyNow() || date < new Date("1900-01-01")
                   }
                   autoFocus
                   locale={es}

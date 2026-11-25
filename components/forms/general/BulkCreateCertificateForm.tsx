@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/select";
 import { CertificateImportProgress } from "./certificados/_components/CertificateImportProgress";
 import type { CertificateImportPhase } from "./certificados/_components/types";
+import { lastFirstName } from "@/lib/person-name";
 
 // PHP descarta en silencio los archivos que superan `max_file_uploads`, que
 // por defecto es 20. Nos quedamos en ese límite y además acotamos el tamaño
@@ -563,7 +564,7 @@ export const BulkCreateCertificateForm = ({
                             ? `DNI ${item.dni}`
                             : "Sin DNI en el nombre"}
                           {employee
-                            ? ` · ${employee.last_name}, ${employee.first_name}`
+                            ? ` · ${lastFirstName(employee)}`
                             : " · No se encontró el empleado"}
                         </p>
                       </div>

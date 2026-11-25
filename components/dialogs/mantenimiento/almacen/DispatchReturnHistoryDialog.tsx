@@ -22,6 +22,8 @@ import {
   ShieldAlert,
   User,
 } from "lucide-react";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import { formatInstant } from "@/lib/date";
 
 interface DispatchReturnHistoryDialogProps {
   open: boolean;
@@ -36,18 +38,13 @@ function formatQty(value: number): string {
   });
 }
 
-function safeDate(raw: string) {
-  const parsed = new Date(raw);
-  if (Number.isNaN(parsed.getTime())) return "Fecha no disponible";
-  return format(parsed, "dd MMM yyyy 'a las' HH:mm", { locale: es });
-}
-
 const DispatchReturnHistoryDialog = ({
   open,
   onOpenChange,
   dispatchId,
   requestNumber,
 }: DispatchReturnHistoryDialogProps) => {
+  const timeZone = useCompanyTimezone();
   const {
     data: returns,
     isLoading,
@@ -126,7 +123,12 @@ const DispatchReturnHistoryDialog = ({
                         </Badge>
                       </div>
                       <p className="text-xs text-muted-foreground tabular-nums">
-                        {safeDate(entry.returned_at)}
+                        {formatInstant(
+                          entry.returned_at,
+                          timeZone,
+                          "dd MMM yyyy 'a las' HH:mm",
+                          "Fecha no disponible",
+                        )}
                       </p>
                     </div>
 

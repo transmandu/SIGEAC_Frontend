@@ -48,6 +48,7 @@ import {
 import { useGetLocationsByCompany } from "@/hooks/sistema/useGetLocationsByCompany";
 import { InformationSource } from "@/types";
 import { useResettingState } from "@/hooks/useResettingState";
+import { parseCalendarDate } from "@/lib/date";
 
 const FormSchema = z.object({
   reception_date: z.date({
@@ -132,7 +133,7 @@ export default function CreateHazardNotification({
     resolver: zodResolver(FormSchema),
     defaultValues: {
       reception_date: initialData?.reception_date
-        ? new Date(initialData.reception_date)
+        ? parseCalendarDate(initialData.reception_date)
         : new Date(),
       identification_area: initialData?.identification_area || "",
       danger_type: initialData?.danger_type || "",

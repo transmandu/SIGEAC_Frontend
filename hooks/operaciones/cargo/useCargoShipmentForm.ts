@@ -20,6 +20,7 @@ import { useGetNextGuide } from "@/hooks/operaciones/cargo/useGetNextGuide";
 import { useGetPilots } from "@/hooks/sms/useGetPilots";
 import { useGetExternalAircraftSuggestions } from "@/hooks/operaciones/cargo/useGetExternalAircraftSuggestions";
 import { useGetCarriers } from "@/hooks/operaciones/cargo/useGetCarriers";
+import { companyNow } from "@/lib/date";
 
 const itemSchema = z.object({
   item_id: z.coerce.number().optional(),
@@ -102,14 +103,14 @@ export function useCargoShipmentForm(initialData?: any) {
   const { data: guideData, isLoading: loadingGuide } = useGetNextGuide(
     company,
     (() => {
-      if (!registrationDate) return format(new Date(), "yyyy-MM-dd");
+      if (!registrationDate) return format(companyNow(), "yyyy-MM-dd");
       const d =
         registrationDate instanceof Date
           ? registrationDate
           : parseISO(registrationDate);
       return isValid(d)
         ? format(d, "yyyy-MM-dd")
-        : format(new Date(), "yyyy-MM-dd");
+        : format(companyNow(), "yyyy-MM-dd");
     })(),
     watchedAircraftId ?? null,
     null,
@@ -281,7 +282,7 @@ function buildDefaultValues(initialData?: any): CargoShipmentFormValues {
 
   if (!initialData) {
     return {
-      registration_date: new Date(),
+      registration_date: companyNow(),
       carrier_id: 0,
       issuer: 0,
       pilot_id: "",

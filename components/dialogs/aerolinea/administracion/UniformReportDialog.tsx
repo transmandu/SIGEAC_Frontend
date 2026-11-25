@@ -34,6 +34,7 @@ import { useGetEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetEmploy
 import axiosInstance from "@/lib/axios";
 import { DatePickerField } from "@/components/ui/DatePickerField";
 import type { Employee } from "@/types";
+import { formalName } from "@/lib/person-name";
 
 export function UniformReportDialog() {
   const { selectedCompany } = useCompanyStore();
@@ -48,14 +49,7 @@ export function UniformReportDialog() {
   const [downloading, setDownloading] = useState(false);
   const [employeePopoverOpen, setEmployeePopoverOpen] = useState(false);
 
-  const selectedEmployee = employees?.find(
-    (e) => String(e.id) === employeeId,
-  );
-
-  const employeeFullName = (e: Employee) =>
-    [e.first_name, e.middle_name, e.last_name, e.second_last_name]
-      .filter(Boolean)
-      .join(" ");
+  const selectedEmployee = employees?.find((e) => String(e.id) === employeeId);
 
   const canDownload =
     searchType === "employee" ? !!employeeId : !!recipientDni.trim();
@@ -117,9 +111,7 @@ export function UniformReportDialog() {
       }}
     >
       <DialogTrigger asChild>
-        <ActionTriggerButton>
-          Generar Reporte
-        </ActionTriggerButton>
+        <ActionTriggerButton>Generar Reporte</ActionTriggerButton>
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-[500px]">
@@ -171,7 +163,7 @@ export function UniformReportDialog() {
                   >
                     <span className="min-w-0 truncate">
                       {selectedEmployee
-                        ? employeeFullName(selectedEmployee)
+                        ? formalName(selectedEmployee)
                         : "Buscar empleado..."}
                     </span>
                     <ChevronsUpDown className="ml-1 size-3.5 shrink-0 opacity-50" />
@@ -200,7 +192,7 @@ export function UniformReportDialog() {
                           .map((emp) => (
                             <CommandItem
                               key={emp.id}
-                              value={`${emp.first_name} ${emp.middle_name ?? ""} ${emp.last_name} ${emp.second_last_name ?? ""} ${emp.dni}`}
+                              value={`${formalName(emp)} ${emp.dni}`}
                               onSelect={() => {
                                 setEmployeeId(String(emp.id));
                                 setEmployeePopoverOpen(false);
@@ -216,7 +208,7 @@ export function UniformReportDialog() {
                               />
                               <div className="flex flex-col">
                                 <span className="text-sm">
-                                  {employeeFullName(emp)}
+                                  {formalName(emp)}
                                 </span>
                                 <span className="text-xs text-muted-foreground">
                                   DNI: {emp.dni}

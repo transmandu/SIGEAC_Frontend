@@ -11,6 +11,7 @@ import { Loader2 } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo } from "react";
 import { IncidentAlertCard } from "./RiskIndicatorMessages";
+import { formatCalendarDate } from "@/lib/date";
 
 interface AverageReportIndicatorProps {
   companySlug?: string;
@@ -33,7 +34,7 @@ export const AverageReportIndicator: React.FC<AverageReportIndicatorProps> = ({
       from: format(startOfMonth(currentDate), "yyyy-MM-dd"),
       to: format(currentDate, "yyyy-MM-dd"),
     }),
-    [currentDate]
+    [currentDate],
   );
 
   const defaultSecondRange = useMemo(
@@ -41,7 +42,7 @@ export const AverageReportIndicator: React.FC<AverageReportIndicatorProps> = ({
       from: format(startOfMonth(previousMonth), "yyyy-MM-dd"),
       to: format(endOfMonth(previousMonth), "yyyy-MM-dd"),
     }),
-    [previousMonth]
+    [previousMonth],
   );
 
   // Obtener parámetros ACTUALES de la URL - SIN estado local
@@ -65,16 +66,13 @@ export const AverageReportIndicator: React.FC<AverageReportIndicatorProps> = ({
     currentParams.from_first,
     currentParams.to_first,
     currentParams.from_second,
-    currentParams.to_second
+    currentParams.to_second,
   );
 
   // Preparar datos para el gráfico
   const formatDate = useMemo(
-    () => (date: string) => {
-      const newDate = addDays(new Date(date), 1);
-      return format(newDate, "PPP", { locale: es });
-    },
-    []
+    () => (date: string) => formatCalendarDate(date, "PPP"),
+    [],
   );
 
   // Datos para el gráfico

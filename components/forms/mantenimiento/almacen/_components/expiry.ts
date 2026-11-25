@@ -1,8 +1,9 @@
 import { format, parseISO } from "date-fns";
+import { companyNow } from "@/lib/date";
 
 const day = (value: string) => value.slice(0, 10);
 
-const today = () => format(new Date(), "yyyy-MM-dd");
+const today = () => format(companyNow(), "yyyy-MM-dd");
 
 /** Vencido: su fecha es anterior a hoy. El día de vencimiento aún sirve. */
 export function isExpired(expiration?: string | null) {

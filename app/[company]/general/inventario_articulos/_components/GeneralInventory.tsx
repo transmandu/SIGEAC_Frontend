@@ -1,8 +1,14 @@
 "use client";
 
-import { generalConsultaColumns } from "@/components/tables/GeneralArticleConsultaColumns";
+import {
+  generalConsultaColumns,
+  groupedConsulta,
+} from "@/components/tables/GeneralArticleConsultaColumns";
 import { useCompanyInventoryGeneralArticles } from "@/hooks/mantenimiento/almacen/inventario/useCompanyInventoryGeneralArticles";
 import { Loader2 } from "lucide-react";
+import { useState } from "react";
+import type { CompanyInventoryGeneralArticle } from "@/types/inventory";
+import { GeneralArticleIndividualsViewDialog } from "@/app/[company]/general/inventario_articulos/_components/GeneralArticleIndividualsViewDialog";
 import { DataTable } from "@/app/[company]/general/inventario_articulos/_tables/data-table";
 
 interface Props {
@@ -16,6 +22,9 @@ interface Props {
 export function GeneralInventory({ search, active }: Props) {
   const { rows, total, isLoading, isFetching, pagination } =
     useCompanyInventoryGeneralArticles(search, active);
+  const [selected, setSelected] =
+    useState<CompanyInventoryGeneralArticle | null>(null);
+  const [open, setOpen] = useState(false);
 
   if (isLoading) {
     return (
@@ -25,18 +34,37 @@ export function GeneralInventory({ search, active }: Props) {
     );
   }
 
+  // Solo la fila agrupada tiene detalle que abrir; las demás no tienen nada
+  // más que mostrar y las funciones de edición viven en el almacén.
   return (
-    <DataTable
-      columns={generalConsultaColumns}
-      data={rows}
-      isFetching={isFetching}
-      pagination={{
-        ...pagination,
-        summary:
-          total !== undefined
-            ? `${total.toLocaleString("es-VE")} artículo(s)`
-            : undefined,
-      }}
-    />
+    <>
+      <DataTable
+        columns={generalConsultaColumns}
+        data={rows}
+        isFetching={isFetching}
+        onRowClick={(row) => {
+          if (!groupedConsulta(row)) return;
+          setSelected(row);
+          setOpen(true);
+        }}
+        rowClassName={(row) =>
+          groupedConsulta(row) ? "cursor-pointer hover:bg-muted/30" : ""
+        }
+        pagination={{
+          ...pagination,
+          summary:
+            total !== undefined
+              ? `${total.toLocaleString("es-VE")} artículo(s)`
+              : undefined,
+        }}
+      />
+      <GeneralArticleIndividualsViewDialog
+        open={open}
+        onOpenChange={setOpen}
+        articleId={selected?.id ?? null}
+        description={selected?.description ?? ""}
+        unit={selected?.unit?.value ?? selected?.unit?.label}
+      />
+    </>
   );
 }

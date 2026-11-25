@@ -52,6 +52,9 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { PdfEndpointPreviewDialog } from "@/components/dialogs/shared/PdfEndpointPreviewDialog";
+import { fullName } from "@/lib/person-name";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import { instantToCalendarDay } from "@/lib/date";
 
 interface PaxFlightFormProps {
   company: string;
@@ -70,6 +73,7 @@ export const PaxFlightForm = ({
   initialData,
   isEditing = false,
 }: PaxFlightFormProps) => {
+  const timeZone = useCompanyTimezone();
   const router = useRouter();
   const { user } = useAuth();
 
@@ -109,8 +113,8 @@ export const PaxFlightForm = ({
   // Form State
   const [flightDate, setFlightDate] = useState<string>(() => {
     if (initialData?.flight_date_raw) return initialData.flight_date_raw;
-    const now = new Date();
-    return now.toISOString().split("T")[0];
+    // El día de hoy en la zona de la compañía (toISOString daría el día UTC).
+    return instantToCalendarDay(new Date(), timeZone) ?? "";
   });
 
   const parsedDate = new Date(flightDate + "T12:00:00Z");
@@ -598,7 +602,7 @@ export const PaxFlightForm = ({
                   {pilots?.map((p: any) => (
                     <SelectItem key={p.id} value={String(p.id)}>
                       {p.employee
-                        ? `${p.employee.first_name} ${p.employee.last_name} (${p.employee_dni})`
+                        ? `${fullName(p.employee)} (${p.employee_dni})`
                         : p.employee_dni}
                     </SelectItem>
                   ))}
@@ -615,7 +619,7 @@ export const PaxFlightForm = ({
                 <SelectContent>
                   {externalPilots?.map((ep: any) => (
                     <SelectItem key={ep.id} value={String(ep.id)}>
-                      {ep.first_name} {ep.last_name} ({ep.dni})
+                      {fullName(ep)} ({ep.dni})
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -658,7 +662,7 @@ export const PaxFlightForm = ({
                   {pilots?.map((p: any) => (
                     <SelectItem key={p.id} value={String(p.id)}>
                       {p.employee
-                        ? `${p.employee.first_name} ${p.employee.last_name} (${p.employee_dni})`
+                        ? `${fullName(p.employee)} (${p.employee_dni})`
                         : p.employee_dni}
                     </SelectItem>
                   ))}
@@ -682,7 +686,7 @@ export const PaxFlightForm = ({
                   <SelectItem value="none">Sin primer oficial</SelectItem>
                   {externalPilots?.map((ep: any) => (
                     <SelectItem key={ep.id} value={String(ep.id)}>
-                      {ep.first_name} {ep.last_name} ({ep.dni})
+                      {fullName(ep)} ({ep.dni})
                     </SelectItem>
                   ))}
                 </SelectContent>

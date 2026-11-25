@@ -1,9 +1,14 @@
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
+import { fullName } from "@/lib/person-name";
+import { formatCalendarDate } from "@/lib/date";
 
-export const generateMinutaPDF = async (activity: any, attendeesCount: number) => {
+export const generateMinutaPDF = async (
+  activity: any,
+  attendeesCount: number,
+) => {
   try {
-    const existingPdfBytes = await fetch("/minuta_template.pdf").then(res =>
-      res.arrayBuffer()
+    const existingPdfBytes = await fetch("/minuta_template.pdf").then((res) =>
+      res.arrayBuffer(),
     );
 
     const pdfDoc = await PDFDocument.load(existingPdfBytes);
@@ -16,7 +21,7 @@ export const generateMinutaPDF = async (activity: any, attendeesCount: number) =
       y: number,
       size = 9,
       maxWidth = 350,
-      lineHeight = 12
+      lineHeight = 12,
     ) => {
       if (!text) return;
 
@@ -24,12 +29,18 @@ export const generateMinutaPDF = async (activity: any, attendeesCount: number) =
       let line = "";
       let offsetY = 0;
 
-      words.forEach(word => {
+      words.forEach((word) => {
         const testLine = line + word + " ";
         const width = font.widthOfTextAtSize(testLine, size);
 
         if (width > maxWidth) {
-          page.drawText(line, { x, y: y - offsetY, size, font, color: rgb(0, 0, 0) });
+          page.drawText(line, {
+            x,
+            y: y - offsetY,
+            size,
+            font,
+            color: rgb(0, 0, 0),
+          });
           line = word + " ";
           offsetY += lineHeight;
         } else {
@@ -37,42 +48,53 @@ export const generateMinutaPDF = async (activity: any, attendeesCount: number) =
         }
       });
 
-      page.drawText(line, { x, y: y - offsetY, size, font, color: rgb(0, 0, 0) });
+      page.drawText(line, {
+        x,
+        y: y - offsetY,
+        size,
+        font,
+        color: rgb(0, 0, 0),
+      });
     };
 
     // ================== CABECERA ==================
-    write(activity.activity_name || "", 127, 650,11); // ACTIVIDAD
+    write(activity.activity_name || "", 127, 650, 11); // ACTIVIDAD
     write(activity.activity_number || "", 476, 650, 11, 120); // NUMERO ACTIVIDAD
 
-    write(activity.title || "", 127, 629,11, 425); // TITULO
+    write(activity.title || "", 127, 629, 11, 425); // TITULO
     write(
       activity.start_date
-        ? new Date(activity.start_date).toLocaleDateString()
+        ? formatCalendarDate(activity.start_date, "date")
         : "",
       127,
       607,
-      11
+      11,
     ); // FECHA
 
-    write(`${activity.start_time || ""} - ${activity.end_time || ""}`, 275, 607,11); // HORA
-    write(activity.place || "", 127, 586,11); // LUGAR
+    write(
+      `${activity.start_time || ""} - ${activity.end_time || ""}`,
+      275,
+      607,
+      11,
+    ); // HORA
+    write(activity.place || "", 127, 586, 11); // LUGAR
     write(String(attendeesCount || 0), 485, 586, 11, 120); // NUMERO ASISTENTES
 
     // ================== OBJETIVO ==================
     write(activity.objetive || "", 127, 566, 10, 430); // OBJETIVO
 
     // ================== TEMAS ==================
-   const topics = activity.topics?.split(",") || [];
+    const topics = activity.topics?.split(",") || [];
 
     // 📍 Coordenadas individuales para cada línea de temas
     const topicPositions = [
-      { x: 80, y: 518, size: 11 },  // Tema 1
-      { x: 80, y: 499, size: 11 },  // Tema 2
-      { x: 80, y: 481, size: 11 },  // Tema 3
-      { x: 80, y: 463, size: 11 },  // Tema 4
-      { x: 80, y: 444, size: 11 },  // Tema 5
-      { x: 80, y: 425, size: 11 },  // Tema 6
-    ]; 
+      { x: 80, y: 518, size: 11 }, // Tema 1
+      { x: 80, y: 499, size: 11 }, // Tema 2
+      { x: 80, y: 481, size: 11 }, // Tema 3
+      { x: 80, y: 463, size: 11 }, // Tema 4
+      { x: 80, y: 444, size: 11 }, // Tema 5
+      { x: 80, y: 425, size: 11 }, // Tema 6
+    ];
 
     topics.forEach((t: string, i: number) => {
       const pos = topicPositions[i];
@@ -85,22 +107,10 @@ export const generateMinutaPDF = async (activity: any, attendeesCount: number) =
     write(activity.description || "", 60, 388, 11, 490, 19); // OBSERVACIONES
 
     // ================== RESPONSABLES ==================
-    write(
-      `${activity.authorized_by?.first_name || ""} ${activity.authorized_by?.last_name || ""}`,
-      182,
-      257,
-      10,
-      200
-    ); // AUTORIZADO POR
+    write(`${fullName(activity.authorized_by)}`, 182, 257, 10, 200); // AUTORIZADO POR
 
     // CARGO
-    write(
-      activity.authorized_by?.job_title?.name || "",
-      305,
-      262,
-      8,
-      200
-    );
+    write(activity.authorized_by?.job_title?.name || "", 305, 262, 8, 200);
 
     // DEPARTAMENTO
     write(
@@ -112,22 +122,10 @@ export const generateMinutaPDF = async (activity: any, attendeesCount: number) =
       8
     );
 
-    write(
-      `${activity.planned_by?.first_name || ""} ${activity.planned_by?.last_name || ""}`,
-      182,
-      238,
-      10,
-      200,
-    ); // ELABORADO POR
+    write(`${fullName(activity.planned_by)}`, 182, 238, 10, 200); // ELABORADO POR
 
     // CARGO
-    write(
-      activity.planned_by?.job_title?.name || "",
-      305,
-      243,
-      8,
-      200
-    );
+    write(activity.planned_by?.job_title?.name || "", 305, 243, 8, 200);
 
     // DEPARTAMENTO
     write(
@@ -139,7 +137,7 @@ export const generateMinutaPDF = async (activity: any, attendeesCount: number) =
       8
     );
 
-    write(activity.executed_by || "", 182, 220, 10, 200); // REALIZADO POR 
+    write(activity.executed_by || "", 182, 220, 10, 200); // REALIZADO POR
     // 💾 Guardar PDF
     const pdfBytes = await pdfDoc.save();
 
@@ -147,7 +145,6 @@ export const generateMinutaPDF = async (activity: any, attendeesCount: number) =
     const blob = new Blob([uint8Array], { type: "application/pdf" });
 
     const url = URL.createObjectURL(blob);
-
 
     // PREVIEW (para ajustar posiciones)
     //window.open(url, "_blank");

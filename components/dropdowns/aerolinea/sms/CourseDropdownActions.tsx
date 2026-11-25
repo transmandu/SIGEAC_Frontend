@@ -45,6 +45,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { companyNow } from "@/lib/date";
 
 const CourseDropdownActions = ({ course }: { course: Course }) => {
   const [open, setOpen] = useState<boolean>(false);
@@ -90,7 +91,7 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
     setOpenReopen(false);
   };
 
-  const realnow = startOfDay(new Date());
+  const realnow = startOfDay(companyNow());
   const CourseDate = startOfDay(course.end_date);
   const isClosed = course.status === "CERRADO";
 

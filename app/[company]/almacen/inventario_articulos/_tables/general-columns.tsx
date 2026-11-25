@@ -10,6 +10,23 @@ import { numericSortingFn, textSortingFn } from "@/lib/warehouse/sorting";
 import { formatQuantity } from "@/lib/utils";
 import { Ruler } from "lucide-react";
 
+/**
+ * Un artículo con artículos individuales se muestra agrupado: su detalle
+ * (los identificados y los sin identificar) vive en el diálogo de la fila.
+ */
+export const groupedIndividuals = (article: GeneralArticle) => {
+  const total = article.individuals?.total ?? 0;
+  if (total === 0 || article.dimension) return null;
+
+  const stocked = article.individuals?.stocked ?? 0;
+  const anonymous = Math.max(
+    0,
+    Math.floor(Number(article.quantity ?? 0)) - stocked,
+  );
+
+  return { total, anonymous, rows: total + (anonymous > 0 ? 1 : 0) };
+};
+
 export const buildGeneralColumns = (
   unitOptions: { value: string; label: string }[] = [],
 ): AppColumnDef<GeneralArticle>[] => [
@@ -133,6 +150,22 @@ export const buildGeneralColumns = (
       const qty = Number(row.original.quantity ?? 0);
       const isAvailable = qty > 0;
       const dim = row.original.dimension;
+      const grouped = groupedIndividuals(row.original);
+
+      if (grouped) {
+        return (
+          <div className="flex flex-col items-center gap-1">
+            <Badge variant="outline" className="px-3 py-1 text-xs font-bold">
+              AGRUPADO ({grouped.rows})
+            </Badge>
+            <span className="text-[11px] text-muted-foreground tabular-nums">
+              {grouped.total} identificado{grouped.total === 1 ? "" : "s"}
+              {grouped.anonymous > 0 &&
+                ` · ${grouped.anonymous} sin identificar`}
+            </span>
+          </div>
+        );
+      }
 
       // En un artículo dimensionado la cantidad son piezas equivalentes:
       // "4.5" no se entiende sin decir que son 4 hojas y media, ni sin el
@@ -233,7 +266,11 @@ export const buildGeneralColumns = (
       </div>
     ),
     cell: ({ row }) => (
-      <div className="flex justify-center">
+      // Las acciones y sus diálogos no deben abrir el detalle de la fila.
+      <div
+        className="flex justify-center"
+        onClick={(event) => event.stopPropagation()}
+      >
         <GeneralArticleDropDownActions article={row.original} />
       </div>
     ),

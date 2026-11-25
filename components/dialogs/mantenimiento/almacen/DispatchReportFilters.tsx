@@ -26,6 +26,7 @@ import {
 import { cn } from "@/lib/utils";
 import type { Condition } from "@/types";
 import type { DispatchReportArticleOptions } from "@/types/inventory/queues";
+import { companyNow } from "@/lib/date";
 
 /* ---------------- TYPES ---------------- */
 
@@ -133,7 +134,7 @@ export function DispatchReportFilters({
   articleFilters,
   setArticleFilters,
 }: Props) {
-  const today = new Date();
+  const today = companyNow();
   const [openGeneral, setOpenGeneral] = useState(false);
   const [openItems, setOpenItems] = useState(false);
   const [partNumberSearch, setPartNumberSearch] = useState("");

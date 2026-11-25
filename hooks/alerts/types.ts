@@ -112,6 +112,8 @@ export type CriticalAlert = {
    */
   onConfirm?: () => void;
   isConfirming?: boolean;
+  /** Texto del botón de confirmar cuando "Sí" no dice qué se hace (ej. "Enviar informe"). */
+  confirmLabel?: string;
   /**
    * Compras ya en curso para este artículo. Cuando trae algo, la tarjeta
    * muestra qué viene en camino y pide confirmación extra antes de volver a

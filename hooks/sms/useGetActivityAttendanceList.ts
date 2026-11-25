@@ -1,20 +1,23 @@
 import axiosInstance from "@/lib/axios";
 import { useQuery } from "@tanstack/react-query";
 
-interface EmployeeData {
+export interface ActivityAttendanceEmployee {
   id?: string;
   first_name: string;
   last_name: string;
   dni: string;
+  /** Foto firmada del servidor de archivos; el endpoint de la actividad la incluye. */
+  photo_url?: string | null;
+  photo_url_lg?: string | null;
 }
 
-interface AttendanceData {
+export interface AttendanceData {
   id: string;
-  attended: Boolean;
+  attended: boolean;
   employee_dni: string | null;
   authorized_employee_id: number | null;
   employee_type: "local" | "authorized";
-  employee: EmployeeData | null;
+  employee: ActivityAttendanceEmployee | null;
 }
 
 export const fetchAttendanceList = async ({

@@ -51,6 +51,9 @@ const STATUS_ES: Record<string, string> = {
   SAFEKEEPING: "Resguardo",
   SHELTERED: "Resguardado",
   MAINTENANCE: "Mantenimiento",
+  // Un consumible que se unió a otro de su misma compra: ya no es existencia,
+  // solo conserva su historial. No es filtro de inventario.
+  MERGED: "Unido",
 };
 
 /** Solo el español; para las vistas que no muestran el valor en inglés. */

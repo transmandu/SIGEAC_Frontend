@@ -28,6 +28,7 @@ import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
 import { FileInput, FormActions } from "./_components/form-parts";
+import { companyNow } from "@/lib/date";
 
 const FORM_SCHEMA = z.object({
   close_date: z.date({
@@ -46,7 +47,7 @@ const FORM_SCHEMA = z.object({
 type FormValues = z.infer<typeof FORM_SCHEMA>;
 
 const DEFAULT_VALUES: Partial<FormValues> = {
-  close_date: new Date(),
+  close_date: companyNow(),
   management_doc: undefined,
 };
 

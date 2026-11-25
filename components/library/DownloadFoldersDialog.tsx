@@ -22,17 +22,16 @@ import type { Document, FolderNode } from "@/lib/libraryService";
 import axiosInstance from "@/lib/axios";
 import { toast } from "sonner";
 import { notifyBlobError } from "@/lib/notify-error";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import { formatInstant } from "@/lib/date";
 
 /**
  * Nombre con el que se guarda el ZIP. Lo pone el cliente porque la respuesta
  * llega cross-origin y `Content-Disposition` no está en la lista de cabeceras
  * expuestas, así que el navegador no puede leer el nombre que envía el servidor.
  */
-const buildArchiveFileName = (company: string) =>
-  `${company}_biblioteca_${new Date()
-    .toISOString()
-    .slice(0, 16)
-    .replace(/[-:T]/g, "")}.zip`;
+const buildArchiveFileName = (company: string, timeZone: string) =>
+  `${company}_biblioteca_${formatInstant(new Date(), timeZone, "yyyyMMddHHmm")}.zip`;
 
 /** Dispara la descarga de un blob y libera la URL temporal. */
 const downloadBlob = (blob: Blob, fileName: string) => {
@@ -196,6 +195,7 @@ export default function DownloadFoldersDialog({
   onLoadFolders,
   loadingDepartmentIds = [],
 }: DownloadFoldersDialogProps) {
+  const timeZone = useCompanyTimezone();
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [phase, setPhase] = useState<
@@ -465,7 +465,7 @@ export default function DownloadFoldersDialog({
       );
 
       setPhase("saving");
-      downloadBlob(response.data, buildArchiveFileName(company));
+      downloadBlob(response.data, buildArchiveFileName(company, timeZone));
 
       // El servidor cuenta lo que metió y lo que dejó fuera por permisos. Sin
       // estas cabeceras el toast affirmaría que se descargó todo cuando en

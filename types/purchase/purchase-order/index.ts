@@ -414,6 +414,8 @@ export interface GeneralArticleIntake {
   department?: GeneralArticleIntakeDepartmentRef | null;
   third_party?: GeneralArticleIntakeThirdPartyRef | null;
   employee?: GeneralArticleIntakeEmployeeRef | null;
+  /** Personal de almacén a quien se le entregó la mercancía (no necesariamente quien confirma). */
+  handed_to_employee?: GeneralArticleIntakeEmployeeRef | null;
   authorized_employee?: GeneralArticleIntakeAuthorizedEmployeeRef | null;
   purchase_order?: GeneralArticleIntakePurchaseOrderRef | null;
   /** Comercio donde se compró: las compras generales usan retailer, no vendor. */
@@ -441,6 +443,8 @@ export interface ConfirmGeneralArticleIntakeResponse {
     description: string;
     resulting_quantity: number;
   };
+  /** Artículos individuales que se identificaron al confirmar; null si no se identificó ninguna. */
+  individuals?: { count: number; type: string } | null;
 }
 
 // Respuesta 422 de confirm() cuando el intake coincide en todo con un
@@ -479,6 +483,7 @@ export interface UpdateGeneralArticleIntakePayload {
   quantity?: number;
   unit_id?: number;
   warehouse_id?: number | null;
+  handed_to_employee_id?: number | null;
   arrived_at?: string;
   confirmed_at?: string | null;
   rejected_at?: string | null;

@@ -25,6 +25,7 @@ import {
 import { AnimatePresence, motion } from "motion/react";
 import ArticleJourney from "@/components/misc/ArticleJourney";
 import { articleStatusUI, priorityCardBadgeCls } from "./utils/uiHelpers";
+import { fullName } from "@/lib/person-name";
 
 interface GeneralArticleCardProps {
   article: any;
@@ -156,10 +157,8 @@ const GeneralArticleCard = ({
       key: "employee",
       icon: User,
       label: "Solicitante",
-      value:
-        `${article.employee.first_name} ${article.employee.last_name}`.trim(),
-      tooltip:
-        `Solicitante: ${article.employee.first_name} ${article.employee.last_name}`.trim(),
+      value: fullName(article.employee),
+      tooltip: `Solicitante: ${fullName(article.employee)}`,
     },
     article.authorized_employee && {
       key: "authorized_employee",

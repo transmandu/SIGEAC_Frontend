@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import CertificatesDropDownActions from "@/components/dropdowns/aerolinea/sms/CertificatesDropDownActions";
 import { formatCalendarDate } from "@/lib/date";
+import { lastFirstName } from "@/lib/person-name";
 
 export type CertificateColumn = {
   id: number;
@@ -56,7 +57,7 @@ const IdentityCell = ({
     </Avatar>
     <div className="flex flex-col">
       <span className="font-bold text-sm uppercase text-foreground leading-tight">
-        {`${emp.last_name}, ${emp.first_name}`}
+        {lastFirstName(emp)}
       </span>
       <span className="select-none text-[10px] font-mono text-blue-600 dark:text-blue-400 font-bold bg-blue-50 dark:bg-blue-950/40 px-1.5 py-0.5 rounded-sm w-fit mt-1 border border-blue-200 dark:border-blue-900/30">
         {emp.dni}
@@ -72,9 +73,9 @@ export const getColumns = (
     id: "employee",
     accessorFn: (row) => {
       if (isGroup(row)) {
-        return `${row.employee.last_name} ${row.employee.first_name} ${row.employee.dni}`;
+        return `${lastFirstName(row.employee)} ${row.employee.dni}`;
       }
-      return `${row.employee?.first_name} ${row.employee?.last_name} ${row.employee?.dni}`;
+      return `${lastFirstName(row.employee)} ${row.employee?.dni}`;
     },
     header: "Empleado / DNI",
     cell: ({ row }) => {

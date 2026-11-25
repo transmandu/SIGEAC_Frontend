@@ -60,6 +60,7 @@ import { z } from "zod";
 import CreateNoRutineDialog from "./CreateNoRutineDialog";
 import { useParams } from "next/navigation";
 import { workOrderStatusLabelEsUpper } from "@/lib/planificacion/statuses";
+import { fullName } from "@/lib/person-name";
 
 const assignmentFormSchema = z.object({
   technician_responsable: z.string().min(1, "Debe seleccionar un técnico"),
@@ -335,7 +336,7 @@ export const TaskDetailsDialog = ({
                                 ) : (
                                   technicians?.map((tech) => (
                                     <SelectItem key={tech.dni} value={tech.dni}>
-                                      {tech.first_name} {tech.last_name}
+                                      {fullName(tech)}
                                     </SelectItem>
                                   ))
                                 )}

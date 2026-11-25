@@ -36,9 +36,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { formatCountdown, useCountdown } from "@/hooks/useCountdown";
 import { useTransitQueue } from "@/hooks/mantenimiento/almacen/inventario/useArticleQueues";
 import {
-  INCOMING_REASON_ACTIONS,
+  reasonAction,
   INCOMING_REASON_LABELS,
   isReadyForIncoming,
+  readinessWarnings,
 } from "@/lib/incoming-readiness";
 import { cn, toAltPartNumbers } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
@@ -62,6 +63,7 @@ import { EngineeringCheckButton } from "./EngineeringCheckButton";
 import { MoveToReceptionButton } from "./MoveToReceptionButton";
 import { StoreDirectlyDialog } from "./StoreDirectlyDialog";
 import { TransitUpdatesButton } from "./TransitUpdatesButton";
+import { fullName } from "@/lib/person-name";
 
 type StatusFilter = "ALL" | "TRANSIT" | "RECEPTION";
 
@@ -100,6 +102,8 @@ const ArticleRow = memo(function ArticleRow({
   const readiness = article.incoming_readiness;
   const canPassToIncoming = isReadyForIncoming(readiness);
   const blockingReasons = readiness?.reasons ?? [];
+  const warnings = readinessWarnings(readiness);
+  const [warnDialogOpen, setWarnDialogOpen] = useState(false);
 
   // De todos los motivos, este es el que almacén puede resolver sin esperar a
   // nadie, y por eso se destaca: mientras nadie declare qué documentos exige el
@@ -125,10 +129,7 @@ const ArticleRow = memo(function ArticleRow({
   };
 
   const handleReportBlocked = async () => {
-    const reportedBy =
-      [user?.first_name, user?.last_name].filter(Boolean).join(" ").trim() ||
-      user?.username ||
-      null;
+    const reportedBy = fullName(user).trim() || user?.username || null;
 
     try {
       await reportIncomingBlocked.mutateAsync({
@@ -314,232 +315,336 @@ const ArticleRow = memo(function ArticleRow({
 
         {/* Acciones */}
         <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
-          <div className="flex items-center justify-center gap-1">
-            {/* La bitácora se ofrece mientras el artículo viaja; ya en
-                recepción, solo si dejó novedades que consultar. */}
-            {(!isReception || (article.transit_updates_count ?? 0) > 0) && (
-              <TransitUpdatesButton article={article} />
-            )}
+          {/* El eje es el botón principal (recepción / incoming): queda siempre
+              en el mismo sitio, centrado. Los demás se acomodan a sus lados en
+              columnas simétricas, así que no se mueve según cuántos haya. */}
+          <div className="mx-auto grid w-fit grid-cols-[4rem_6rem_4rem] items-center gap-1">
+            <div className="flex items-center justify-end gap-1">
+              {/* La bitácora se ofrece mientras el artículo viaja; ya en
+                  recepción, solo si dejó novedades que consultar. */}
+              {(!isReception || (article.transit_updates_count ?? 0) > 0) && (
+                <TransitUpdatesButton article={article} />
+              )}
+              {isReception && <EngineeringCheckButton article={article} />}
+            </div>
 
-            {!isReception && <MoveToReceptionButton article={article} />}
+            <div className="flex justify-center">
+              {!isReception && <MoveToReceptionButton article={article} />}
 
-            {isReception && (
-              <>
-                <EngineeringCheckButton article={article} />
-                {canPassToIncoming ? (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        {/* El span recibe el puntero cuando el botón está
-                          deshabilitado, para que el tooltip explique por qué. */}
-                        <span>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-7 w-24 justify-center px-2 text-xs gap-1"
-                            disabled={pending || awaitingEngineeringCheck}
-                            onClick={handleMoveToIncoming}
+              {isReception && (
+                <>
+                  {canPassToIncoming && warnings.length > 0 ? (
+                    // Consumible sin documentación completa: el pase se permite
+                    // —la factura suele ser su respaldo—, pero se advierte antes
+                    // de hacerlo. Solo la falta de orden de compra lo detiene.
+                    <AlertDialog
+                      open={warnDialogOpen}
+                      onOpenChange={(next) => {
+                        if (!next && pending) return;
+                        setWarnDialogOpen(next);
+                      }}
+                    >
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7 w-24 justify-center gap-1 border-amber-300 px-2 text-xs text-amber-700 hover:bg-amber-50 dark:border-amber-800/60 dark:text-amber-400 dark:hover:bg-amber-950/40"
+                          disabled={pending || awaitingEngineeringCheck}
+                        >
+                          {pending ? (
+                            <Loader2 className="size-3 animate-spin" />
+                          ) : (
+                            <>
+                              <CircleAlert className="size-3" />
+                              Incoming
+                            </>
+                          )}
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle className="flex items-center gap-2">
+                            <CircleAlert className="size-5 text-amber-500" />
+                            Pasar a incoming con documentación incompleta
+                          </AlertDialogTitle>
+                          <AlertDialogDescription asChild>
+                            <div className="space-y-3">
+                              <p>
+                                Se permite el pase a incoming porque el artículo{" "}
+                                <span className="font-mono font-semibold text-foreground">
+                                  {article.part_number}
+                                </span>{" "}
+                                es un <strong>consumible</strong>: no se retiene
+                                por falta de documentos, pero sí requiere número
+                                de orden de compra, que ya tiene.
+                              </p>
+                              <div className="rounded-md border border-border/60 bg-muted/40 px-3 py-2">
+                                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                  Documentación faltante
+                                </p>
+                                <ul className="mt-1 space-y-0.5">
+                                  {warnings.map((reason) => (
+                                    <li key={reason} className="text-xs">
+                                      •{" "}
+                                      {INCOMING_REASON_LABELS[reason] ?? reason}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            </div>
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel disabled={pending}>
+                            Cancelar
+                          </AlertDialogCancel>
+                          <AlertDialogAction
+                            disabled={pending}
+                            onClick={async (e) => {
+                              e.preventDefault();
+                              await handleMoveToIncoming();
+                              setWarnDialogOpen(false);
+                            }}
+                            className="gap-1.5"
                           >
                             {pending ? (
-                              <Loader2 className="size-3 animate-spin" />
+                              <Loader2 className="size-3.5 animate-spin" />
                             ) : (
-                              <>
-                                <ArrowRight className="size-3" />
-                                Incoming
-                              </>
+                              <ArrowRight className="size-3.5" />
                             )}
-                          </Button>
-                        </span>
-                      </TooltipTrigger>
-                      {awaitingEngineeringCheck && (
-                        <TooltipContent>
-                          Ingeniería debe aprobar el artículo antes del incoming
-                        </TooltipContent>
-                      )}
-                    </Tooltip>
-                  </TooltipProvider>
-                ) : (
-                  // No va deshabilitado de verdad: sigue siendo pulsable para que
-                  // el clic sirva de reclamo a compras. Lo que no hace es pasar el
-                  // artículo, que es lo que la ley impide sin orden ni documentos.
-                  //
-                  // El aviso pasa por confirmación porque llega a diez o quince
-                  // personas por correo: un doble clic distraído sobre un botón
-                  // que parece deshabilitado llenaría sus bandejas.
-                  <TooltipProvider>
-                    <Tooltip>
-                      <AlertDialog
-                        open={reportDialogOpen}
-                        // Mientras el aviso sale no se cierra por Escape ni por el
-                        // fondo: el botón ya está bloqueado, y cerrarlo a medias
-                        // dejaba la fila sin señal de que el envío sigue en curso.
-                        onOpenChange={(next) => {
-                          if (!next && reportIncomingBlocked.isPending) return;
-                          setReportDialogOpen(next);
-                        }}
-                      >
+                            Pasar a incoming
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  ) : canPassToIncoming ? (
+                    <TooltipProvider>
+                      <Tooltip>
                         <TooltipTrigger asChild>
-                          {/* El span recibe el puntero cuando el botón está en
-                            cuenta atrás y deshabilitado, para que el tooltip
-                            siga explicando cuánto falta. */}
+                          {/* El span recibe el puntero cuando el botón está
+                          deshabilitado, para que el tooltip explique por qué. */}
                           <span>
-                            <AlertDialogTrigger asChild>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className={cn(
-                                  "h-7 w-24 justify-center px-2 text-xs gap-1 tabular-nums",
-                                  needsDocumentsDeclared
-                                    ? "border-orange-400 font-semibold text-orange-800 hover:bg-orange-50 dark:border-orange-600/70 dark:text-orange-300 dark:hover:bg-orange-950/40"
-                                    : "border-amber-300 text-amber-700 hover:bg-amber-50 dark:border-amber-800/60 dark:text-amber-400 dark:hover:bg-amber-950/40",
-                                )}
-                                disabled={
-                                  reportIncomingBlocked.isPending ||
-                                  reportCooldown > 0
-                                }
-                              >
-                                {reportIncomingBlocked.isPending ? (
-                                  <Loader2 className="size-3 animate-spin" />
-                                ) : reportCooldown > 0 ? (
-                                  <>
-                                    <BellRing className="size-3" />
-                                    {formatCountdown(reportCooldown)}
-                                  </>
-                                ) : needsDocumentsDeclared ? (
-                                  <>
-                                    <CircleAlert className="size-3" />
-                                    Incoming
-                                  </>
-                                ) : (
-                                  <>
-                                    <FileWarning className="size-3" />
-                                    Incoming
-                                  </>
-                                )}
-                              </Button>
-                            </AlertDialogTrigger>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-7 w-24 justify-center px-2 text-xs gap-1"
+                              disabled={pending || awaitingEngineeringCheck}
+                              onClick={handleMoveToIncoming}
+                            >
+                              {pending ? (
+                                <Loader2 className="size-3 animate-spin" />
+                              ) : (
+                                <>
+                                  <ArrowRight className="size-3" />
+                                  Incoming
+                                </>
+                              )}
+                            </Button>
                           </span>
                         </TooltipTrigger>
-
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle className="flex items-center gap-2">
-                              <BellRing className="size-5 text-amber-500" />
-                              Notificar que el artículo está detenido
-                            </AlertDialogTitle>
-                            <AlertDialogDescription asChild>
-                              <div className="space-y-3">
-                                <p>
-                                  Se enviará una notificación y un correo sobre
-                                  el artículo{" "}
-                                  <span className="font-mono font-semibold text-foreground">
-                                    {article.part_number}
-                                  </span>{" "}
-                                  a <strong>compras</strong> —para que aporten
-                                  lo que falta— y al personal de{" "}
-                                  <strong>
-                                    almacén, mantenimiento y control de calidad
-                                  </strong>
-                                  , explicando por qué queda retenido.
-                                </p>
-
-                                <div className="rounded-md border border-border/60 bg-muted/40 px-3 py-2">
-                                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                                    Información faltante
-                                  </p>
-                                  <ul className="mt-1 space-y-0.5">
-                                    {blockingReasons.map((reason) => (
-                                      <li key={reason} className="text-xs">
-                                        •{" "}
-                                        {INCOMING_REASON_LABELS[reason] ??
-                                          reason}
-                                      </li>
-                                    ))}
-                                  </ul>
-                                </div>
-
-                                {needsDocumentsDeclared && (
-                                  <p className="text-xs">
-                                    Si ya sabes qué documentos exige, indicarlos
-                                    tú desde el detalle del artículo desatasca
-                                    el flujo sin esperar respuesta.
-                                  </p>
-                                )}
-                              </div>
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-
-                          <AlertDialogFooter>
-                            <AlertDialogCancel
-                              disabled={reportIncomingBlocked.isPending}
-                            >
-                              Cancelar
-                            </AlertDialogCancel>
-                            <AlertDialogAction
-                              disabled={reportIncomingBlocked.isPending}
-                              onClick={(e) => {
-                                // Radix cierra el diálogo con el clic de la acción:
-                                // se frena para que el cierre lo haga la mutación
-                                // al terminar, y el botón pueda mostrar su estado.
-                                e.preventDefault();
-                                handleReportBlocked();
-                              }}
-                              className="gap-1.5"
-                            >
-                              {reportIncomingBlocked.isPending ? (
-                                <Loader2 className="size-3.5 animate-spin" />
-                              ) : (
-                                <BellRing className="size-3.5" />
-                              )}
-                              Enviar notificación
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                      <TooltipContent side="top" className="max-w-xs text-xs">
-                        <p className="font-semibold">
-                          No puede pasar a incoming todavía
-                        </p>
-
-                        {needsDocumentsDeclared && (
-                          <p className="mt-1.5 flex gap-1.5 rounded border border-orange-300/70 bg-orange-100/70 px-2 py-1.5 font-semibold text-orange-900 dark:border-orange-700/60 dark:bg-orange-950/50 dark:text-orange-200">
-                            <CircleAlert className="mt-px size-3.5 shrink-0" />
-                            <span>
-                              Indica qué documentos exige este artículo para que
-                              compras pueda conseguirlos. Por conocimiento
-                              técnico ustedes son quienes mejor saben cuáles
-                              corresponden.
-                            </span>
-                          </p>
+                        {awaitingEngineeringCheck && (
+                          <TooltipContent>
+                            Ingeniería debe aprobar el artículo antes del
+                            incoming
+                          </TooltipContent>
                         )}
+                      </Tooltip>
+                    </TooltipProvider>
+                  ) : (
+                    // No va deshabilitado de verdad: sigue siendo pulsable para que
+                    // el clic sirva de reclamo a compras. Lo que no hace es pasar el
+                    // artículo, que es lo que la ley impide sin orden ni documentos.
+                    //
+                    // El aviso pasa por confirmación porque llega a diez o quince
+                    // personas por correo: un doble clic distraído sobre un botón
+                    // que parece deshabilitado llenaría sus bandejas.
+                    <TooltipProvider>
+                      <Tooltip>
+                        <AlertDialog
+                          open={reportDialogOpen}
+                          // Mientras el aviso sale no se cierra por Escape ni por el
+                          // fondo: el botón ya está bloqueado, y cerrarlo a medias
+                          // dejaba la fila sin señal de que el envío sigue en curso.
+                          onOpenChange={(next) => {
+                            if (!next && reportIncomingBlocked.isPending)
+                              return;
+                            setReportDialogOpen(next);
+                          }}
+                        >
+                          <TooltipTrigger asChild>
+                            {/* El span recibe el puntero cuando el botón está en
+                            cuenta atrás y deshabilitado, para que el tooltip
+                            siga explicando cuánto falta. */}
+                            <span>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className={cn(
+                                    "h-7 w-24 justify-center px-2 text-xs gap-1 tabular-nums",
+                                    needsDocumentsDeclared
+                                      ? "border-orange-400 font-semibold text-orange-800 hover:bg-orange-50 dark:border-orange-600/70 dark:text-orange-300 dark:hover:bg-orange-950/40"
+                                      : "border-amber-300 text-amber-700 hover:bg-amber-50 dark:border-amber-800/60 dark:text-amber-400 dark:hover:bg-amber-950/40",
+                                  )}
+                                  disabled={
+                                    reportIncomingBlocked.isPending ||
+                                    reportCooldown > 0
+                                  }
+                                >
+                                  {reportIncomingBlocked.isPending ? (
+                                    <Loader2 className="size-3 animate-spin" />
+                                  ) : reportCooldown > 0 ? (
+                                    <>
+                                      <BellRing className="size-3" />
+                                      {formatCountdown(reportCooldown)}
+                                    </>
+                                  ) : needsDocumentsDeclared ? (
+                                    <>
+                                      <CircleAlert className="size-3" />
+                                      Incoming
+                                    </>
+                                  ) : (
+                                    <>
+                                      <FileWarning className="size-3" />
+                                      Incoming
+                                    </>
+                                  )}
+                                </Button>
+                              </AlertDialogTrigger>
+                            </span>
+                          </TooltipTrigger>
 
-                        <ul className="mt-1.5 space-y-0.5">
-                          {blockingReasons.map((reason) => (
-                            <li key={reason}>
-                              • {INCOMING_REASON_LABELS[reason] ?? reason}
-                              <span className="block pl-3 text-muted-foreground">
-                                {INCOMING_REASON_ACTIONS[reason]?.warehouse}
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle className="flex items-center gap-2">
+                                <BellRing className="size-5 text-amber-500" />
+                                Notificar que el artículo está detenido
+                              </AlertDialogTitle>
+                              <AlertDialogDescription asChild>
+                                <div className="space-y-3">
+                                  <p>
+                                    Se enviará una notificación y un correo
+                                    sobre el artículo{" "}
+                                    <span className="font-mono font-semibold text-foreground">
+                                      {article.part_number}
+                                    </span>{" "}
+                                    a <strong>compras</strong> —para que aporten
+                                    lo que falta— y al personal de{" "}
+                                    <strong>
+                                      almacén, mantenimiento y control de
+                                      calidad
+                                    </strong>
+                                    , explicando por qué queda retenido.
+                                  </p>
+
+                                  <div className="rounded-md border border-border/60 bg-muted/40 px-3 py-2">
+                                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                      Información faltante
+                                    </p>
+                                    <ul className="mt-1 space-y-0.5">
+                                      {blockingReasons.map((reason) => (
+                                        <li key={reason} className="text-xs">
+                                          •{" "}
+                                          {INCOMING_REASON_LABELS[reason] ??
+                                            reason}
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+
+                                  {needsDocumentsDeclared && (
+                                    <p className="text-xs">
+                                      Si ya sabes qué documentos exige,
+                                      indicarlos tú desde el detalle del
+                                      artículo desatasca el flujo sin esperar
+                                      respuesta.
+                                    </p>
+                                  )}
+                                </div>
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+
+                            <AlertDialogFooter>
+                              <AlertDialogCancel
+                                disabled={reportIncomingBlocked.isPending}
+                              >
+                                Cancelar
+                              </AlertDialogCancel>
+                              <AlertDialogAction
+                                disabled={reportIncomingBlocked.isPending}
+                                onClick={(e) => {
+                                  // Radix cierra el diálogo con el clic de la acción:
+                                  // se frena para que el cierre lo haga la mutación
+                                  // al terminar, y el botón pueda mostrar su estado.
+                                  e.preventDefault();
+                                  handleReportBlocked();
+                                }}
+                                className="gap-1.5"
+                              >
+                                {reportIncomingBlocked.isPending ? (
+                                  <Loader2 className="size-3.5 animate-spin" />
+                                ) : (
+                                  <BellRing className="size-3.5" />
+                                )}
+                                Enviar notificación
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                        <TooltipContent side="top" className="max-w-xs text-xs">
+                          <p className="font-semibold">
+                            No puede pasar a incoming todavía
+                          </p>
+
+                          {needsDocumentsDeclared && (
+                            <p className="mt-1.5 flex gap-1.5 rounded border border-orange-300/70 bg-orange-100/70 px-2 py-1.5 font-semibold text-orange-900 dark:border-orange-700/60 dark:bg-orange-950/50 dark:text-orange-200">
+                              <CircleAlert className="mt-px size-3.5 shrink-0" />
+                              <span>
+                                Indica qué documentos exige este artículo para
+                                que compras pueda conseguirlos. Por conocimiento
+                                técnico ustedes son quienes mejor saben cuáles
+                                corresponden.
                               </span>
-                            </li>
-                          ))}
-                        </ul>
+                            </p>
+                          )}
 
-                        <p className="mt-2 flex items-center gap-1 font-medium">
-                          <BellRing className="size-3" />
-                          {reportCooldown > 0
-                            ? `Ya se avisó hace poco. Podrá avisar de nuevo en ${formatCountdown(reportCooldown)}.`
-                            : "Presiona para avisar a compras y al personal competente. Se pedirá confirmación."}
-                        </p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                )}
+                          <ul className="mt-1.5 space-y-0.5">
+                            {blockingReasons.map((reason) => (
+                              <li key={reason}>
+                                • {INCOMING_REASON_LABELS[reason] ?? reason}
+                                <span className="block pl-3 text-muted-foreground">
+                                  {reasonAction(
+                                    reason,
+                                    "warehouse",
+                                    article.batch?.category,
+                                  )}
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+
+                          <p className="mt-2 flex items-center gap-1 font-medium">
+                            <BellRing className="size-3" />
+                            {reportCooldown > 0
+                              ? `Ya se avisó hace poco. Podrá avisar de nuevo en ${formatCountdown(reportCooldown)}.`
+                              : "Presiona para avisar a compras y al personal competente. Se pedirá confirmación."}
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  )}
+                </>
+              )}
+            </div>
+
+            <div className="flex items-center justify-start gap-1">
+              {isReception && (
                 <StoreDirectlyDialog
                   article={article}
                   disabled={awaitingEngineeringCheck}
                 />
-              </>
-            )}
+              )}
+            </div>
           </div>
         </TableCell>
       </TableRow>
@@ -618,7 +723,12 @@ const ArticleRow = memo(function ArticleRow({
                           {INCOMING_REASON_LABELS[reason] ?? reason}
                         </span>
                         <span className="ml-1 text-muted-foreground">
-                          — {INCOMING_REASON_ACTIONS[reason]?.warehouse}
+                          —{" "}
+                          {reasonAction(
+                            reason,
+                            "warehouse",
+                            article.batch?.category,
+                          )}
                         </span>
                       </li>
                     ))}

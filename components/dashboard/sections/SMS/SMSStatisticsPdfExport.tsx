@@ -37,6 +37,8 @@ import { pdf } from "@react-pdf/renderer";
 import { format, parseISO, startOfYear } from "date-fns";
 import { FileBarChart2, FileDown, Loader2 } from "lucide-react";
 import { type ReactNode, useRef, useState } from "react";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import { companyNow } from "@/lib/date";
 
 const FIXED_STATISTICS: { id: string; label: string }[] = [
   {
@@ -86,8 +88,8 @@ interface ChartCardConfig {
 }
 
 const defaultRange = () => ({
-  from: format(startOfYear(new Date()), "yyyy-MM-dd"),
-  to: format(new Date(), "yyyy-MM-dd"),
+  from: format(startOfYear(companyNow()), "yyyy-MM-dd"),
+  to: format(companyNow(), "yyyy-MM-dd"),
 });
 
 const PIE_STAT_IDS = new Set([
@@ -129,6 +131,7 @@ export default function SMSStatisticsPdfExport({
   companySlug,
   locationId,
 }: SMSStatisticsPdfExportProps) {
+  const timeZone = useCompanyTimezone();
   const [range, setRange] = useState(defaultRange);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -531,6 +534,7 @@ export default function SMSStatisticsPdfExport({
           from={range.from}
           to={range.to}
           charts={charts}
+          timeZone={timeZone}
         />,
       ).toBlob();
       downloadBlob(

@@ -1,4 +1,5 @@
 "use client";
+import { isUnitaryCategory } from "@/lib/purchases/requisition-measure";
 import {
   useCreateQuote,
   useIssueQuoteDraft,
@@ -35,6 +36,8 @@ import {
 } from "./_components/IssueQuoteDraftDialog";
 import FormActions from "@/components/forms/mantenimiento/compras/_components/FormActions";
 import DiscardDraftButton from "@/components/forms/mantenimiento/compras/_components/DiscardDraftButton";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import { toZonedWallClock, zonedWallClockToUtcIso } from "@/lib/date";
 
 export const LEAD_TIME_UNITS = [
   { value: "día", label: "Día(s)" },
@@ -116,7 +119,10 @@ const FormSchema = z
 
       const requiredFields: { key: keyof typeof article; message: string }[] = [
         { key: "quantity", message: "La cantidad es obligatoria." },
-        { key: "unit", message: "La unidad es obligatoria." },
+        // Componente, parte y herramienta son entidades únicas: no llevan unidad.
+        ...(isUnitaryCategory(article.batch.category)
+          ? []
+          : [{ key: "unit" as const, message: "La unidad es obligatoria." }]),
         { key: "part_number", message: "El número de parte es obligatorio." },
         { key: "vendor_id", message: "El proveedor es obligatorio." },
         { key: "condition_id", message: "La condición es obligatoria." },
@@ -132,6 +138,17 @@ const FormSchema = z
           });
         }
       });
+
+      if (
+        isUnitaryCategory(article.batch.category) &&
+        !Number.isInteger(Number(article.quantity))
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "La cantidad debe ser un número entero.",
+          path: ["articles", index, "quantity"],
+        });
+      }
 
       if (!(Number(article.unit_price) > 0)) {
         ctx.addIssue({
@@ -217,6 +234,7 @@ export function CreateQuoteForm({
   draft?: Quote | null;
   initialData?: unknown;
 }) {
+  const timeZone = useCompanyTimezone();
   const { selectedCompany } = useCompanyStore();
   const { data: units } = useGetUnits(selectedCompany?.slug);
   const { data: conditions } = useGetConditions();
@@ -295,12 +313,19 @@ export function CreateQuoteForm({
             ? String(Number(saved.quantity))
             : article.quantity,
         original_quantity: article.quantity,
-        unit: saved?.unit?.id
-          ? String(saved.unit.id)
-          : article.unit
-            ? article.unit.id.toString()
-            : undefined,
-        original_unit: article.unit ? article.unit.id.toString() : undefined,
+        // Sin unidad en componente/parte/herramienta, aunque la solicitud o la
+        // cotización guardada (datos viejos) la traigan.
+        unit: isUnitaryCategory(batch.category)
+          ? undefined
+          : saved?.unit?.id
+            ? String(saved.unit.id)
+            : article.unit
+              ? article.unit.id.toString()
+              : undefined,
+        original_unit:
+          isUnitaryCategory(batch.category) || !article.unit
+            ? undefined
+            : article.unit.id.toString(),
         // Vacío y no "0": un precio sin responder todavía no es un precio de
         // cero. Confundirlos es lo que lleva a emitir una cotización con huecos
         // creyendo que está completa.
@@ -373,7 +398,13 @@ export function CreateQuoteForm({
       // a volver a elegir sede y proveedor, y la fecha guardada se perdía.
       ...(draft?.location_id ? { location_id: String(draft.location_id) } : {}),
       ...(draft?.vendor_id ? { vendor_id: String(draft.vendor_id) } : {}),
-      ...(draft?.quote_date ? { quote_date: new Date(draft.quote_date) } : {}),
+      ...(draft?.quote_date
+        ? {
+            quote_date:
+              toZonedWallClock(draft.quote_date, timeZone) ??
+              new Date(draft.quote_date),
+          }
+        : {}),
     },
   });
 
@@ -533,7 +564,10 @@ export function CreateQuoteForm({
             total: a.unit_price
               ? (Number(a.quantity) || 0) * Number(a.unit_price)
               : null,
-            unit_id: a.unit ? Number(a.unit) : null,
+            unit_id:
+              a.unit && !isUnitaryCategory(a.batch.category)
+                ? Number(a.unit)
+                : null,
             vendor_id: a.vendor_id ? Number(a.vendor_id) : null,
             location_id: a.location_id ? Number(a.location_id) : null,
             condition_id: a.condition_id ? Number(a.condition_id) : null,
@@ -588,7 +622,7 @@ export function CreateQuoteForm({
       return {
         quote_date:
           data.quote_date instanceof Date
-            ? data.quote_date.toISOString()
+            ? zonedWallClockToUtcIso(data.quote_date, timeZone)
             : undefined,
         // La cabecera viaja también: al reabrir el borrador el proveedor y la
         // observación tienen que estar donde el comprador los dejó.
@@ -598,7 +632,7 @@ export function CreateQuoteForm({
         general_articles: generalPayload,
       };
     },
-    [draft],
+    [draft, timeZone],
   );
 
   /**
@@ -614,7 +648,7 @@ export function CreateQuoteForm({
     // sobre undefined reventaría el guardado.
     const quoteDate =
       data.quote_date instanceof Date
-        ? data.quote_date.toISOString()
+        ? zonedWallClockToUtcIso(data.quote_date, timeZone)
         : undefined;
 
     // Solo al abrirlo: un borrador ya existente sí puede guardarse vacío (el
@@ -742,7 +776,7 @@ export function CreateQuoteForm({
     }
 
     const formattedData = {
-      quote_date: data.quote_date.toISOString(),
+      quote_date: zonedWallClockToUtcIso(data.quote_date, timeZone),
       total,
       location_id: Number(data.location_id),
       requisition_order_id: req.id,
@@ -756,7 +790,10 @@ export function CreateQuoteForm({
         total: a.not_quoted
           ? 0
           : (Number(a.quantity) || 0) * (Number(a.unit_price) || 0),
-        unit_id: a.unit ? Number(a.unit) : undefined,
+        unit_id:
+          a.unit && !isUnitaryCategory(a.batch.category)
+            ? Number(a.unit)
+            : undefined,
         vendor_id: a.vendor_id ? Number(a.vendor_id) : undefined,
         location_id: a.location_id ? Number(a.location_id) : undefined,
         condition_id: a.condition_id ? Number(a.condition_id) : undefined,

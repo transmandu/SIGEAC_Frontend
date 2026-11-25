@@ -40,7 +40,25 @@ interface ArticleData {
   image?: File | null;
   conversions?: ArticleConversionInput[];
   dimension?: ArticleDimensionInput;
+  individuals?: ArticleIndividualsInput;
 }
+
+/** Artículos de la existencia que se identifican uno por uno al guardar. */
+export interface ArticleIndividualsInput {
+  type: string;
+  identifiers: string[];
+}
+
+/** multipart no anida: tipo e identificadores viajan con su índice. */
+const appendIndividuals = (
+  formData: FormData,
+  individuals: ArticleIndividualsInput,
+) => {
+  formData.append("individuals[type]", individuals.type);
+  individuals.identifiers.forEach((identifier, index) => {
+    formData.append(`individuals[identifiers][${index}]`, identifier);
+  });
+};
 
 /**
  * Activa el modo dimensional o agrega escalas de medida a un perfil existente.
@@ -89,12 +107,15 @@ export const useUpdateGeneralArticle = () => {
       dimension,
       unit_change,
       relabel_unit,
+      individuals,
     }: {
       id: string | number;
       articleData: updateArticleData;
       image?: File | null;
       conversions?: ArticleConversionInput[];
       dimension?: ArticleDimensionInput;
+      /** Identifica artículos de la existencia que aún no tienen identidad. */
+      individuals?: ArticleIndividualsInput;
       /** Al cambiar la unidad base: equivalencia entre la anterior y la nueva. */
       unit_change?: { direction: string; value: number };
       /** Cambio de unidad que solo corrige una etiqueta mal puesta. */
@@ -109,6 +130,7 @@ export const useUpdateGeneralArticle = () => {
             ...(relabel_unit ? { relabel_unit } : {}),
             ...(conversions ? { conversions } : {}),
             ...(dimension ? { dimension } : {}),
+            ...(individuals ? { individuals } : {}),
           },
         );
         return data;
@@ -129,6 +151,7 @@ export const useUpdateGeneralArticle = () => {
         formData.append("unit_change[value]", String(unit_change.value));
       }
       if (relabel_unit) formData.append("relabel_unit", "1");
+      if (individuals) appendIndividuals(formData, individuals);
 
       // multipart no anida objetos: cada conversión viaja con índice.
       conversions?.forEach((row, index) => {
@@ -288,6 +311,7 @@ export const useConfirmGeneralArticleIntake = () => {
       newConversionEquivalence,
       extraConversions,
       dimension,
+      individuals,
     }: {
       id: number;
       confirmedAt?: Date;
@@ -300,6 +324,8 @@ export const useConfirmGeneralArticleIntake = () => {
       }[];
       /** Activa el modo dimensional al confirmar. */
       dimension?: ArticleDimensionInput;
+      /** Da identidad propia a artículos individuales de los que entran. */
+      individuals?: { type: string; identifiers: string[] };
     }) => {
       const { data } =
         await axiosInstance.patch<ConfirmGeneralArticleIntakeResponse>(
@@ -320,6 +346,7 @@ export const useConfirmGeneralArticleIntake = () => {
               ? { extra_conversions: extraConversions }
               : {}),
             ...(dimension ? { dimension } : {}),
+            ...(individuals ? { individuals } : {}),
           },
         );
       return data;
@@ -348,6 +375,14 @@ export const useConfirmGeneralArticleIntake = () => {
             )
           : "La entrada fue confirmada y el stock se actualizó correctamente.",
       });
+
+      if (data?.individuals?.count) {
+        toast.info(
+          data.individuals.count === 1
+            ? "Se identificó 1 artículo individual."
+            : `Se identificaron ${data.individuals.count} artículos individuales.`,
+        );
+      }
     },
     onError: (error: any) => {
       // No es un fallo: el caller abre el diálogo para pedir la equivalencia.
@@ -484,6 +519,11 @@ export const useCreateGeneralArticle = () => {
             formData.append(`conversions[${index}][direction]`, row.direction);
             formData.append(`conversions[${index}][value]`, String(row.value));
           });
+          return;
+        }
+
+        if (key === "individuals") {
+          appendIndividuals(formData, value as ArticleIndividualsInput);
           return;
         }
 

@@ -21,6 +21,8 @@ import { Loader2 } from "lucide-react";
 import { Department, Employee, ChangeType } from "@/types";
 import { departmentLabel } from "@/lib/departments";
 import { ChangeRequestFormValues } from "./CreateChangeRequestForm";
+import { fullName } from "@/lib/person-name";
+import { toCalendarPayload } from "@/lib/date";
 
 interface StepGeneralAndClassificationProps {
   form: UseFormReturn<ChangeRequestFormValues>;
@@ -57,7 +59,7 @@ export function StepGeneralAndClassification({
 
   const employeeOptions = employees.map((e) => ({
     value: e.id,
-    label: `${e.first_name} ${e.last_name}`,
+    label: fullName(e),
     badge: e.dni,
   }));
 
@@ -81,9 +83,7 @@ export function StepGeneralAndClassification({
                       ? new Date(field.value + "T00:00:00")
                       : undefined
                   }
-                  setValue={(d) =>
-                    field.onChange(d ? d.toISOString().slice(0, 10) : "")
-                  }
+                  setValue={(d) => field.onChange(toCalendarPayload(d) ?? "")}
                 />
                 <FormMessage />
               </FormItem>

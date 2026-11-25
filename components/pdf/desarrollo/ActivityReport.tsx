@@ -6,10 +6,12 @@ import {
   Page,
   StyleSheet,
   Text,
-  View
+  View,
 } from "@react-pdf/renderer";
 import { format } from "date-fns";
 import { es } from "date-fns/locale/es";
+import { fullName } from "@/lib/person-name";
+import { formatCalendarDate } from "@/lib/date";
 
 const styles = StyleSheet.create({
   page: {
@@ -103,11 +105,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const ActivitiesReportPdf = ({
-  report,
-}: {
-  report: ActivityReport;
-}) => (
+const ActivitiesReportPdf = ({ report }: { report: ActivityReport }) => (
   <Document>
     <Page size="LETTER" orientation="landscape" style={styles.page}>
       {/* HEADER CON LOGO Y TÍTULO */}
@@ -131,7 +129,7 @@ const ActivitiesReportPdf = ({
             }}
           >
             <Text style={[styles.name, { paddingHorizontal: 10 }]}>
-              {report.user?.first_name} {report.user?.last_name}
+              {fullName(report.user)}
             </Text>
           </View>
         </View>
@@ -141,7 +139,9 @@ const ActivitiesReportPdf = ({
         {/* FECHA con formato date-fns */}
         <View style={styles.dateContainer}>
           <Text style={styles.dateLabel}>FECHA:</Text>
-          <Text style={styles.dateText}>{format(report.date, "dd/MM/yyyy", { locale: es })}</Text>
+          <Text style={styles.dateText}>
+            {formatCalendarDate(report.date, "date")}
+          </Text>
           {/* <Text style={styles.dateText}>
             {report.date
               ? format(new Date(report.date), "dd/MM/yyyy", { locale: es })

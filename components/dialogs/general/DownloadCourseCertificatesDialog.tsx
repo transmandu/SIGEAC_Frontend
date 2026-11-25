@@ -20,6 +20,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useGetCourseUploadedCertificates } from "@/hooks/curso/useGetCourseUploadedCertificates";
 import { useResettingState } from "@/hooks/useResettingState";
 import { Course } from "@/types";
+import { fullName } from "@/lib/person-name";
 
 interface EmployeeOption {
   dni: string;
@@ -214,7 +215,7 @@ export function DownloadCourseCertificatesDialog({
                         }
                       />
                       <span className="min-w-0 flex-1 text-sm">
-                        {employee.first_name} {employee.last_name}
+                        {fullName(employee)}
                       </span>
                       <span className="text-xs text-muted-foreground">
                         {employee.dni}
@@ -277,7 +278,7 @@ export function DownloadCourseCertificatesDialog({
                       <span className="min-w-0 flex-1">
                         <span className="block text-sm">
                           {employee
-                            ? `${employee.first_name} ${employee.last_name}`
+                            ? fullName(employee)
                             : certificate.employee_dni}
                         </span>
                         <span className="block text-xs text-muted-foreground">

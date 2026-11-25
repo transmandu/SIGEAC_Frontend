@@ -10,6 +10,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
+import { fullName } from "@/lib/person-name";
 
 const ResponsibleResumeDialog = ({ id }: { id: string }) => {
   const { data: employee, isLoading } = useGetEmployeeById(id);
@@ -19,9 +20,7 @@ const ResponsibleResumeDialog = ({ id }: { id: string }) => {
   }
   return (
     <Dialog open={openEmployee} onOpenChange={setOpenEmployee}>
-      <DialogTrigger>
-        {employee?.first_name} {employee?.last_name}
-      </DialogTrigger>
+      <DialogTrigger>{fullName(employee)}</DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader className="text-center font-bold">
           Resumen de Responsable
@@ -31,9 +30,7 @@ const ResponsibleResumeDialog = ({ id }: { id: string }) => {
             <h3 className="text-sm font-medium text-muted-foreground">
               Cliente
             </h3>
-            <p className="text-lg font-semibold">
-              {employee?.first_name}-{employee?.last_name}
-            </p>
+            <p className="text-lg font-semibold">{fullName(employee)}</p>
             <Separator />
           </div>
 
@@ -77,7 +74,9 @@ const ResponsibleResumeDialog = ({ id }: { id: string }) => {
             <h3 className="text-sm font-medium text-muted-foreground">
               Dirección
             </h3>
-            <p className="text-lg font-semibold">{employee?.location ? employee?.location.name : "N/A"}</p>
+            <p className="text-lg font-semibold">
+              {employee?.location ? employee?.location.name : "N/A"}
+            </p>
             <Separator />
           </div>
         </div>

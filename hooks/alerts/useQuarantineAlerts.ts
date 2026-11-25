@@ -1,4 +1,3 @@
-import { useAuth } from "@/contexts/AuthContext";
 import { useGetQuarantineArticles } from "@/hooks/mantenimiento/control_calidad/useGetQuarantineArticles";
 import { quarantineHazard } from "@/lib/warehouse/quarantine";
 import { useCompanyStore } from "@/stores/CompanyStore";
@@ -8,41 +7,20 @@ import { useCriticalAlertSources } from "./useCriticalAlertSources";
 import { CriticalAlert } from "./types";
 
 /**
- * Corregir un artículo retenido es trabajo de compras aeronáuticas; el
- * SUPERUSER entra por supervisión. Espeja las de
- * QuarantineNotificationService: quien recibe el correo es quien ve la alerta.
- */
-const ROLES_WITH_QUARANTINE_ALERT_ACCESS = [
-  "JEFE_COMPRAS",
-  "ANALISTA_COMPRAS",
-  "SUPERUSER",
-];
-
-/**
  * Alerta por artículo retenido esperando corrección. Es de tipo `hazard`: no se
  * confirma ni se descarta, porque resolver exige editar el artículo o su
  * documentación —trabajo que no cabe en un popover— y el plazo legal sigue
  * corriendo aunque nadie quiera verla. Solo informa y enlaza al submódulo.
  */
 export const useQuarantineAlerts = () => {
-  const { user } = useAuth();
   const { selectedCompany } = useCompanyStore();
   const legalDays = useQuarantineLegalDays();
 
   const { hasSource } = useCriticalAlertSources();
 
-  // Antes esto miraba `isOMAC`, que responde otra pregunta: qué TIPO de
-  // empresa es, no si el módulo está montado. Una empresa OMAC sin las
-  // migraciones de cuarentena pasaba ese filtro y pedía contra tablas que no
-  // existen. Ahora el backend confirma que la fuente está de verdad.
-  const canSeeQuarantineAlerts = useMemo(
-    () =>
-      hasSource("quarantine_article") &&
-      (user?.roles ?? []).some((r) =>
-        ROLES_WITH_QUARANTINE_ALERT_ACCESS.includes(r.name),
-      ),
-    [hasSource, user?.roles],
-  );
+  // El backend publica la fuente solo si el módulo está montado, la compañía
+  // la tiene activa y este usuario está en su audiencia configurada.
+  const canSeeQuarantineAlerts = hasSource("quarantine_article");
 
   // Solo lo que espera corrección: un artículo ya enviado a re-inspección no
   // está en manos de compras y alertarlo sería ruido.

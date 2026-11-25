@@ -81,6 +81,7 @@ import { type ChecklistValue } from "@/app/[company]/control_calidad/incoming/In
 import { ReturnEvidenceSection } from "./ReturnEvidenceSection";
 import { StatusBadge } from "./StatusBadge";
 import { notifyError } from "@/lib/notify-error";
+import { formatCalendarDate, parseCalendarDate } from "@/lib/date";
 
 /* ─── Types ─── */
 
@@ -90,13 +91,13 @@ type ReviewDecision = "STORE" | "QUARANTINE";
 
 function isValidDate(d?: string | null) {
   if (!d) return false;
-  const year = new Date(d).getFullYear();
+  const year = parseCalendarDate(d)?.getFullYear() ?? 0;
   return year > 1900;
 }
 
 function formatDateSafe(d?: string | null) {
   if (!isValidDate(d)) return null;
-  return format(new Date(d!), "dd MMM yyyy", { locale: es });
+  return formatCalendarDate(d, "dd MMM yyyy");
 }
 
 /* ─── Segmented inspection strip ─── */

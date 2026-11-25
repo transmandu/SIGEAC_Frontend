@@ -2,6 +2,7 @@ import { cn } from "@/lib/utils";
 import type { EditReason } from "@/lib/planificacion/editReasons";
 import type { AuditAction } from "@/types/planification/audit";
 import { format, startOfYear, subDays, subMonths } from "date-fns";
+import { companyNow } from "@/lib/date";
 
 /**
  * Lenguaje visual de la auditoría: el mismo del módulo Supervisor (paneles
@@ -61,7 +62,7 @@ export const PERIODS: { key: PeriodKey; label: string }[] = [
 ];
 
 export const periodRange = (key: PeriodKey): { from: string; to: string } => {
-  const today = new Date();
+  const today = companyNow();
   const from = {
     "30d": subDays(today, 29),
     "90d": subDays(today, 89),

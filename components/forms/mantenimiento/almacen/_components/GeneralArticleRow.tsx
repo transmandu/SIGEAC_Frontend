@@ -5,6 +5,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import type { GeneralArticle } from "@/types";
 import { ArticleRowCard } from "./ArticleRowCard";
 import { CutCapturePanel, EMPTY_CUT, type CutDraft } from "./CutCapturePanel";
+import { IndividualsPicker } from "./IndividualsPicker";
 
 type RowMsg = { msg: string; level: "error" | "warn" } | undefined;
 type RowConversion = {
@@ -26,6 +27,9 @@ interface GeneralArticleRowProps {
   cut?: CutDraft;
   /** Captura de evidencia fotográfica de la entrega. Opcional. */
   evidenceNode?: React.ReactNode;
+  /** Identificados elegidos para esta salida. */
+  individualIds?: number[];
+  onIndividualsChange?: (ids: number[]) => void;
   onQtyChange: (val: string) => void;
   onCommit: () => void;
   onSetMax: () => void;
@@ -54,6 +58,8 @@ export function GeneralArticleRow({
   conversionPanelNode,
   cut,
   evidenceNode,
+  individualIds,
+  onIndividualsChange,
   onQtyChange,
   onCommit,
   onSetMax,
@@ -107,6 +113,16 @@ export function GeneralArticleRow({
         ) : undefined
       }
       evidenceNode={evidenceNode}
+      extraNode={
+        !isDimensional && generalId && onIndividualsChange ? (
+          <IndividualsPicker
+            articleId={generalId}
+            selected={individualIds ?? []}
+            onChange={onIndividualsChange}
+            disabled={!article}
+          />
+        ) : undefined
+      }
       onQtyChange={onQtyChange}
       onCommit={onCommit}
       onSetMax={onSetMax}

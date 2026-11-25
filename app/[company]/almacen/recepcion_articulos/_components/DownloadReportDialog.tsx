@@ -22,7 +22,7 @@ import axiosInstance from "@/lib/axios";
 import { notifyError } from "@/lib/notify-error";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { format, startOfMonth } from "date-fns";
 import { es } from "date-fns/locale";
 import {
   CalendarDays,
@@ -43,6 +43,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { companyNow } from "@/lib/date";
 
 type DateFieldOption = {
   value: string;
@@ -93,7 +94,7 @@ export function DownloadReportDialog({
   const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
   const [datePopoverOpen, setDatePopoverOpen] = useState(false);
   const [calendarMonth, setCalendarMonth] = useState<Date>(
-    new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+    startOfMonth(companyNow()),
   );
   const [dateField, setDateField] = useState<string | undefined>(
     dateFieldOptions?.[0]?.value,
@@ -290,8 +291,8 @@ export function DownloadReportDialog({
                       label: "7D",
                       tooltip: "Últimos 7 días",
                       fn: () => {
-                        const end = new Date();
-                        const start = new Date();
+                        const end = companyNow();
+                        const start = companyNow();
                         start.setDate(end.getDate() - 7);
 
                         setDateFrom(start);
@@ -303,8 +304,8 @@ export function DownloadReportDialog({
                       label: "30D",
                       tooltip: "Últimos 30 días",
                       fn: () => {
-                        const end = new Date();
-                        const start = new Date();
+                        const end = companyNow();
+                        const start = companyNow();
                         start.setDate(end.getDate() - 30);
 
                         setDateFrom(start);
@@ -322,7 +323,7 @@ export function DownloadReportDialog({
                             }).toUpperCase(),
                       tooltip: "Mes visible en el calendario",
                       fn: () => {
-                        const today = new Date();
+                        const today = companyNow();
 
                         const start = new Date(
                           calendarMonth.getFullYear(),
@@ -426,9 +427,9 @@ export function DownloadReportDialog({
                         : 1
                     }
                     showOutsideDays={false}
-                    endMonth={new Date()}
+                    endMonth={companyNow()}
                     locale={es}
-                    disabled={(d) => d > new Date()}
+                    disabled={(d) => d > companyNow()}
                     className={cn(
                       "rounded-xl",
                       "[&_.rdp-day_selected]:bg-slate-200",

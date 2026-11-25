@@ -55,6 +55,7 @@ import { locationLabel } from "@/lib/locations";
 import { cn } from "@/lib/utils";
 import { EmployeeUserPicker, type UserOption } from "./EmployeeUserPicker";
 import type { AccessMode, CreateEmployeeFormValues } from "./employeeSchema";
+import { fullName } from "@/lib/person-name";
 
 /** Lista de opciones que se marcan y desmarcan, en un popover con buscador. */
 function MultiPick({
@@ -189,7 +190,7 @@ export function EmployeeAccessPanel({
         .map((user) => ({
           id: String(user.id),
           label: user.username,
-          detail: `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim(),
+          detail: `${fullName(user)}`.trim(),
         })),
     [users],
   );

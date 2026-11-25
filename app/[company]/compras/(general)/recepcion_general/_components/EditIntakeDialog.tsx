@@ -39,6 +39,7 @@ import { SearchableSelect } from "@/components/misc/SearchableSelect";
 import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits";
 import { useGetWarehousesByLocation } from "@/hooks/administracion/useGetWarehousesByUser";
 import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import { useGetWarehousesEmployees } from "@/hooks/mantenimiento/almacen/empleados/useGetWarehousesEmployees";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { toZonedWallClock, zonedWallClockToUtcIso } from "@/lib/date";
 import { cn } from "@/lib/utils";
@@ -47,6 +48,7 @@ import type {
   UpdateGeneralArticleIntakePayload,
 } from "@/types/purchase";
 import { useResettingState } from "@/hooks/useResettingState";
+import { fullName } from "@/lib/person-name";
 
 // Estado editable del formulario. Las fechas viven como la hora de pared de la
 // zona de la compañía (un Date cuyos campos locales son los de esa zona) y el
@@ -59,6 +61,7 @@ type FormState = {
   quantity: string;
   unit_id: string;
   warehouse_id: string;
+  handed_to_employee_id: string;
   arrived_at: Date | null;
   confirmed_at: Date | null;
   rejected_at: Date | null;
@@ -77,6 +80,10 @@ const toFormState = (
   quantity: intake.quantity != null ? String(intake.quantity) : "",
   unit_id: intake.unit?.id != null ? String(intake.unit.id) : "",
   warehouse_id: intake.warehouse?.id != null ? String(intake.warehouse.id) : "",
+  handed_to_employee_id:
+    intake.handed_to_employee?.id != null
+      ? String(intake.handed_to_employee.id)
+      : "",
   arrived_at: toZonedWallClock(intake.arrived_at, timeZone),
   confirmed_at: toZonedWallClock(intake.confirmed_at, timeZone),
   rejected_at: toZonedWallClock(intake.rejected_at, timeZone),
@@ -128,6 +135,33 @@ export default function EditIntakeDialog({
       company: selectedCompany?.slug ?? "",
       location_id: selectedStation ?? null,
     });
+
+  const { data: warehouseStaff, isLoading: isWarehouseStaffLoading } =
+    useGetWarehousesEmployees(
+      open ? selectedCompany?.slug : undefined,
+      selectedStation ? String(selectedStation) : null,
+    );
+
+  // El receptor actual se conserva como opción aunque ya no figure como
+  // personal activo, para que el campo no aparezca vacío.
+  const warehouseStaffOptions = useMemo(() => {
+    const options = (warehouseStaff ?? []).map((employee) => ({
+      value: String(employee.id),
+      label: fullName(employee),
+      description: employee.dni || undefined,
+    }));
+    const current = intake.handed_to_employee;
+
+    if (current && !options.some((o) => o.value === String(current.id))) {
+      options.unshift({
+        value: String(current.id),
+        label: fullName(current),
+        description: current.dni || undefined,
+      });
+    }
+
+    return options;
+  }, [warehouseStaff, intake.handed_to_employee]);
 
   const generalWarehouses = useMemo(
     () =>
@@ -200,6 +234,12 @@ export default function EditIntakeDialog({
       form.warehouse_id !== ""
     ) {
       changes.warehouse_id = Number(form.warehouse_id);
+    }
+    if (
+      form.handed_to_employee_id !== original.handed_to_employee_id &&
+      form.handed_to_employee_id !== ""
+    ) {
+      changes.handed_to_employee_id = Number(form.handed_to_employee_id);
     }
 
     if (
@@ -419,6 +459,24 @@ export default function EditIntakeDialog({
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+              )}
+
+              {!isDirectDelivery && (
+                <div className="space-y-1.5">
+                  <Label className={labelClass}>
+                    Entregado a (personal de almacén)
+                  </Label>
+                  <SearchableSelect
+                    value={form.handed_to_employee_id}
+                    onChange={(value) => set("handed_to_employee_id", value)}
+                    loading={isWarehouseStaffLoading}
+                    options={warehouseStaffOptions}
+                    placeholder="Seleccione a quién se le entregó"
+                    searchPlaceholder="Buscar..."
+                    emptyText="No hay personal de almacén activo en esta estación."
+                    triggerClassName={pickerClass}
+                  />
                 </div>
               )}
             </div>

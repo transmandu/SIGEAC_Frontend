@@ -7,6 +7,10 @@ import { AtSign, Briefcase, Mail, ShieldCheck } from "lucide-react";
 import { TagBadge } from "@/components/misc/TagBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import {
+  fullName as fullNameOf,
+  initialsOf as personInitials,
+} from "@/lib/person-name";
 import { User } from "@/types";
 
 import { profileSurface } from "./ProfileSection";
@@ -23,8 +27,7 @@ interface ProfileCoverProps {
   gender?: string | null;
 }
 
-const initialsOf = (user: User) =>
-  `${user.first_name?.[0] ?? ""}${user.last_name?.[0] ?? ""}`.toUpperCase();
+const initialsOf = (user: User) => `${personInitials(user)}`.toUpperCase();
 
 const ProfileCover = ({
   user,
@@ -35,7 +38,7 @@ const ProfileCover = ({
   gender,
 }: ProfileCoverProps) => {
   const isFemale = gender === "FEMALE";
-  const fullName = `${user.first_name} ${user.last_name}`.trim();
+  const fullName = fullNameOf(user);
 
   return (
     <section className={`${profileSurface} overflow-hidden shadow-xs`}>

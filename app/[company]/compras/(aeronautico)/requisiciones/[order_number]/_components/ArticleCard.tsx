@@ -10,6 +10,10 @@ import {
 import ArticleJourney from "@/components/misc/ArticleJourney";
 import CopyPartNumberButton from "@/components/misc/CopyPartNumberButton";
 import { cn } from "@/lib/utils";
+import {
+  isUnitaryCategory,
+  UNITARY_UNIT_LABEL,
+} from "@/lib/purchases/requisition-measure";
 import { ImageIcon, Plane } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import PriorityIndicator from "./PriorityIndicator";
@@ -250,14 +254,17 @@ const ArticleCard = ({
                     )}
                   </div>
 
-                  {/* UNIDAD */}
+                  {/* UNIDAD: solo el consumible mide en una; en los demás la
+                      cantidad cuenta artículos y se rotula "UND". */}
                   <div className="flex flex-col items-center min-w-18.75">
                     <span className="h-4 w-full flex items-center justify-center text-xs text-muted-foreground mb-2 select-none">
                       Unidad
                     </span>
                     <div className="flex items-center justify-center w-full">
                       <span className="text-sm text-muted-foreground leading-none">
-                        {article.unit?.label ?? "—"}
+                        {isUnitaryCategory(batchCategory)
+                          ? UNITARY_UNIT_LABEL
+                          : (article.unit?.label ?? "—")}
                       </span>
                     </div>
                   </div>
@@ -387,7 +394,9 @@ const ArticleCard = ({
                     {article.quantity}
                   </span>
                   <span className="text-xs text-muted-foreground leading-none mt-0.5">
-                    {article.unit?.label ?? "—"}
+                    {isUnitaryCategory(batchCategory)
+                      ? UNITARY_UNIT_LABEL
+                      : (article.unit?.label ?? "—")}
                   </span>
                   {showQuantityApproval && (
                     <>

@@ -91,6 +91,8 @@ const AeronauticalItemSchema = z.object({
 const GeneralItemSchema = z.object({
   general_article_id: z.coerce.number(),
   quantity: z.coerce.number(),
+  // Identificados que salen; cuentan dentro de la cantidad.
+  individual_ids: z.array(z.coerce.number()).optional(),
   unit_id: z.coerce.number().nullable().optional(),
   cut: CutSchema.optional(),
 });
@@ -201,6 +203,12 @@ export function useWorkshopDispatchForm(onClose: () => void) {
   );
   const genSelectedSet = useMemo(
     () => new Set(watchedGen.map((x) => Number(x.general_article_id))),
+    [watchedGen],
+  );
+
+  // Artículos individuales ya elegidos, sea cual sea la fila.
+  const genIndividualSet = useMemo(
+    () => new Set(watchedGen.flatMap((x) => x.individual_ids ?? [])),
     [watchedGen],
   );
 
@@ -446,6 +454,48 @@ export function useWorkshopDispatchForm(onClose: () => void) {
       setValue(`general_articles.${index}.unit_id`, null);
     },
     [watchedGen, getGenMax, validateAndClamp, setValue],
+  );
+
+  // Los identificados elegidos cuentan dentro de la cantidad: si esta no las cubre se
+  // sube hasta ellas. Un individual no se convierte, así que se vuelve a la unidad base.
+  const setIndividualsGen = useCallback(
+    (index: number, fieldId: string, ids: number[]) => {
+      const key = genKey(fieldId);
+      setValue(`general_articles.${index}.individual_ids`, ids);
+
+      if (ids.length === 0) return;
+
+      const max = watchedGen[index]?.general_article_id
+        ? getGenMax(Number(watchedGen[index].general_article_id))
+        : 0;
+      const conv = convByKey[key];
+      const current =
+        (parseFloat(qtyByKey[key] ?? "") || 0) * (conv?.factor ?? 1);
+      const next = validateAndClamp(
+        key,
+        String(Math.max(current, ids.length)),
+        max,
+      );
+
+      setQtyByKey((p) => ({ ...p, [key]: next }));
+      setConvByKey((p) => {
+        const n = { ...p };
+        delete n[key];
+        return n;
+      });
+      setRowMsg(key, undefined);
+      setValue(`general_articles.${index}.quantity`, parseFloat(next) || 0);
+      setValue(`general_articles.${index}.unit_id`, null);
+    },
+    [
+      watchedGen,
+      getGenMax,
+      convByKey,
+      qtyByKey,
+      validateAndClamp,
+      setRowMsg,
+      setValue,
+    ],
   );
 
   const setToMaxAero = useCallback(
@@ -697,6 +747,36 @@ export function useWorkshopDispatchForm(onClose: () => void) {
     [genSelectedSet, watchedGen, genFA, removeGenRow],
   );
 
+  // Elegir un artículo individual desde el selector: crea la fila del artículo
+  // si no existe y lo suma a ella, o lo quita si ya estaba. El selector sigue
+  // abierto para poder elegir varios.
+  const handleToggleGeneralIndividual = useCallback(
+    (ga: GeneralArticle, individualId: number) => {
+      if (!ga?.id) return;
+      const id = Number(ga.id);
+      const idx = watchedGen.findIndex(
+        (x) => Number(x.general_article_id) === id,
+      );
+
+      if (idx < 0) {
+        genFA.append({
+          general_article_id: id,
+          quantity: 1,
+          individual_ids: [individualId],
+        });
+        return;
+      }
+
+      const current = watchedGen[idx].individual_ids ?? [];
+      const next = current.includes(individualId)
+        ? current.filter((value) => value !== individualId)
+        : [...current, individualId];
+
+      if (genFA.fields[idx]) setIndividualsGen(idx, genFA.fields[idx].id, next);
+    },
+    [watchedGen, genFA, setIndividualsGen],
+  );
+
   // ── Validation ────────────────────────────────────────────────────────
 
   const hasBlockingQtyError = useMemo(
@@ -778,6 +858,17 @@ export function useWorkshopDispatchForm(onClose: () => void) {
 
       const max = getGenMax(item.general_article_id);
       const conv = key ? convByKey[key] : undefined;
+      const pickedCount = item.individual_ids?.length ?? 0;
+      if (pickedCount > 0 && (conv || item.quantity < pickedCount)) {
+        if (key)
+          setRowMsg(key, {
+            msg: conv
+              ? "Con identificados la salida va en la unidad base"
+              : `La cantidad no cubre los ${pickedCount} identificados elegidos`,
+            level: "error",
+          });
+        return;
+      }
       const inBase = Number(
         (item.quantity * (conv?.factor ?? 1)).toFixed(CONVERSION_PRECISION),
       );
@@ -861,6 +952,7 @@ export function useWorkshopDispatchForm(onClose: () => void) {
     watchedGen,
     aeroSelectedSet,
     genSelectedSet,
+    genIndividualSet,
     aeroById,
     genById,
     aeroBatchNameById,
@@ -880,6 +972,7 @@ export function useWorkshopDispatchForm(onClose: () => void) {
     setToMaxGen,
     setQuantityAero,
     setQuantityGen,
+    setIndividualsGen,
     convState,
     setConvState,
     activeConversions,
@@ -891,6 +984,7 @@ export function useWorkshopDispatchForm(onClose: () => void) {
     applyConversion,
     handleAddAeronautical,
     handleAddGeneral,
+    handleToggleGeneralIndividual,
     removeAeroRow,
     removeGenRow,
     hasBlockingQtyError,

@@ -17,7 +17,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Download, History, PencilLine, Loader2 } from "lucide-react";
-import { format as formatDate } from "date-fns";
+import { format as formatDate, parse } from "date-fns";
 import { es } from "date-fns/locale";
 import {
   useGetIssuedIncomingFormats,
@@ -27,6 +27,8 @@ import {
 import { GenerateReceptionFormButton } from "./GenerateReceptionFormButton";
 import { IncomingArticle } from "@/app/[company]/control_calidad/incoming/IncomingTypes";
 import { notifyError } from "@/lib/notify-error";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import { formatInstant, instantToCalendarDay } from "@/lib/date";
 
 /**
  * Identifica al formato por su fecha de emisión, no por la OC: esa se teclea a
@@ -35,15 +37,20 @@ import { notifyError } from "@/lib/notify-error";
  *
  * Provisional hasta que el formato tenga su propio correlativo de recepción.
  */
-function formatoLabel(f: IssuedIncomingFormat, todos: IssuedIncomingFormat[]) {
-  const dia = f.inspection_date.slice(0, 10);
+function formatoLabel(
+  f: IssuedIncomingFormat,
+  todos: IssuedIncomingFormat[],
+  timeZone: string,
+) {
+  // El día en que se generó es el de la zona de la compañía, no el del navegador.
+  const diaDe = (x: IssuedIncomingFormat) =>
+    instantToCalendarDay(x.created_at, timeZone);
+  const dia = diaDe(f);
   const mismoDia = todos
-    .filter((o) => o.inspection_date.slice(0, 10) === dia)
+    .filter((o) => diaDe(o) === dia)
     .sort((a, b) => a.id - b.id);
 
-  const fecha = formatDate(new Date(f.inspection_date), "dd/MM/yyyy", {
-    locale: es,
-  });
+  const fecha = formatInstant(f.created_at, timeZone, "date");
 
   if (mismoDia.length < 2) return fecha;
 
@@ -51,6 +58,7 @@ function formatoLabel(f: IssuedIncomingFormat, todos: IssuedIncomingFormat[]) {
 }
 
 export function IssuedFormatsDialog() {
+  const timeZone = useCompanyTimezone();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [correcting, setCorrecting] = useState<IssuedIncomingFormat | null>(
@@ -129,7 +137,7 @@ export function IssuedFormatsDialog() {
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <span className="font-medium">
-                          H74-036 · {formatoLabel(f, formats)}
+                          H74-036 · {formatoLabel(f, formats, timeZone)}
                         </span>
                         {anulado ? (
                           <Badge variant="destructive">Anulado</Badge>
@@ -144,7 +152,19 @@ export function IssuedFormatsDialog() {
                       </p>
 
                       <p className="text-xs text-muted-foreground">
-                        Emitido por {f.verified_by}
+                        Inspección del{" "}
+                        <b>
+                          {formatDate(
+                            parse(
+                              f.inspection_date.slice(0, 10),
+                              "yyyy-MM-dd",
+                              new Date(),
+                            ),
+                            "dd/MM/yyyy",
+                            { locale: es },
+                          )}
+                        </b>{" "}
+                        · Emitido por {f.verified_by}
                       </p>
 
                       {anulado && f.void_reason ? (

@@ -26,6 +26,7 @@ import { useChangeRequestPhotoUrls } from "@/hooks/sms/aeronautical/gestion_de_c
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { dateFormat } from "@/lib/utils";
 import { ChangeStatus } from "@/types/sms/aeronautical/change-request";
+import { fullName } from "@/lib/person-name";
 
 const STATUS_LABELS: Record<ChangeStatus, string> = {
   BORRADOR: "Borrador",
@@ -185,16 +186,13 @@ export default function ChangeRequestDetailPage() {
             <CardContent className="space-y-3">
               <div>
                 <FieldLabel>Solicitante</FieldLabel>
-                <FieldValue>
-                  {changeRequest.requested_by?.first_name}{" "}
-                  {changeRequest.requested_by?.last_name}
-                </FieldValue>
+                <FieldValue>{fullName(changeRequest.requested_by)}</FieldValue>
               </div>
               <div>
                 <FieldLabel>Aprobado por</FieldLabel>
                 <FieldValue>
                   {changeRequest.approved_by
-                    ? `${changeRequest.approved_by.first_name} ${changeRequest.approved_by.last_name}`
+                    ? fullName(changeRequest.approved_by)
                     : "—"}
                 </FieldValue>
               </div>

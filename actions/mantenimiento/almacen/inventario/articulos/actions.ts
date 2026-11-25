@@ -347,10 +347,17 @@ export const useAssignArticleDocumentRequirements = () => {
       articleId: number;
       documentTypeIds: number[];
     }) => {
-      await axiosInstance.post(
+      const { data } = await axiosInstance.post(
         `/${company}/articles/${articleId}/document-requirements`,
         { document_type_ids: documentTypeIds },
       );
+
+      // Los requerimientos creados, para poder consignarles el soporte que se
+      // indicó al declararlos.
+      return data.Requirements as {
+        id: number;
+        article_document_type_id: number;
+      }[];
     },
     onSuccess: (_data, variables) => {
       invalidateArticleDocuments(queryClient);
@@ -631,10 +638,13 @@ export const useUpdateArticleStatus = () => {
       id,
       ids,
       status,
+      received_quantity,
     }: {
       id?: number;
       ids?: number[];
       status?: string;
+      /** Solo al pasar un consumible a RECEPTION: lo que llegó realmente. */
+      received_quantity?: number;
     }) => {
       if (ids && ids.length > 0) {
         await axiosInstance.put(
@@ -650,7 +660,9 @@ export const useUpdateArticleStatus = () => {
 
       await axiosInstance.put(
         `/${selectedCompany?.slug}/update-article-status/${id}`,
-        { status },
+        received_quantity !== undefined
+          ? { status, received_quantity }
+          : { status },
       );
     },
     onSuccess: () => {

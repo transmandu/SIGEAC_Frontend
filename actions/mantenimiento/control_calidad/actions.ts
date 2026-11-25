@@ -42,7 +42,10 @@ export type IncomingFormatCorrectionDraft = {
 export type IssuedIncomingFormat = {
   id: number;
   purchase_order_code: string | null;
+  /** Día de la inspección que imprime el formato. */
   inspection_date: string;
+  /** Momento en que se generó el formato en el sistema (ISO). */
+  created_at: string;
   verified_by: string;
   pdf_path: string | null;
   issuance_status: "ISSUED" | "VOIDED";

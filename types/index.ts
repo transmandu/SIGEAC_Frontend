@@ -122,6 +122,8 @@ export type Article = {
   next_calibration?: string;
   tool_status?:
     "CALIBRATED" | "IN_CALIBRATION" | "EXPIRED" | "NOT_APPLICABLE" | string;
+  /** Caja de herramientas en la que está la herramienta, si está en una. */
+  tool_box?: { id: number; name: string | null } | null;
 };
 
 export type Bank = {
@@ -1619,7 +1621,11 @@ export type ToolBox = {
   tool: {
     serial: string;
     article: ToolArticle;
+    /** Quién la tiene si está fuera de la caja. */
+    holder?: import("@/types/general-article-individual").ToolHolder | null;
   }[];
+  /** Piezas de ferretería con identidad propia que guarda la caja. */
+  individuals?: import("@/types/general-article-individual").ToolBoxIndividual[];
 };
 
 export type Unit = {
@@ -1974,6 +1980,13 @@ export type SMSActivity = {
   documentUrl?: string;
   status: string;
   categories: ActivityCategory[];
+  drill_type?: "PARCIAL" | "MESA" | null;
+  drill_evaluation?: {
+    id: number;
+    sms_activity_id: number;
+    type: "PARCIAL" | "MESA";
+    number: string;
+  } | null;
   is_pre?: boolean;
   library_folder_paths?: string[];
   library_document_id?: number | null;
@@ -2309,11 +2322,22 @@ export type GeneralArticle = {
   cost_history?: GeneralArticleCostHistoryEntry[];
   /** Solo lo carga el endpoint de low-stock. */
   in_transit?: InTransitDetail[];
+  /** Existencia sin los artículos individuales: lo que cuenta para el stock mínimo. Solo en low-stock. */
+  alert_quantity?: number;
   /**
    * Presente solo si el artículo se mide por dimensiones: su stock vive
    * repartido en piezas individuales y `quantity` es su equivalente en piezas.
    */
   dimension?: ArticleDimension | null;
+  /** Artículos individuales vigentes y los que siguen en el almacén. */
+  individuals?: { total: number; stocked: number };
+  /** Solo el catálogo de formularios: los individuales disponibles para sacar. */
+  stocked_individuals?: {
+    id: number;
+    identifier: string;
+    status: string;
+    tool_box?: { id: number; name: string } | null;
+  }[];
 };
 
 /**

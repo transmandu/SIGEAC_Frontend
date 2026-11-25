@@ -1,5 +1,4 @@
 import { useMemo } from "react";
-import { useAuth } from "@/contexts/AuthContext";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import {
   useGetLowStockGeneralArticles,
@@ -10,12 +9,6 @@ import { useLowStockAlertsRealtime } from "./useLowStockAlertsRealtime";
 import { useCriticalAlertSources } from "./useCriticalAlertSources";
 import { CriticalAlert } from "./types";
 import { InTransitDetail } from "@/types";
-
-const ROLES_WITH_LOW_STOCK_ALERT_ACCESS = [
-  "ANALISTA_ALMACEN",
-  "JEFE_ALMACEN",
-  "SUPERUSER",
-];
 
 /**
  * Ocultas temporalmente para el lanzamiento a produccion: solo se probaran
@@ -67,28 +60,19 @@ const describeInTransit = (details: InTransitDetail[]) =>
  * requiere tocar el botón, solo un hook como este.
  */
 export const useLowStockAlerts = () => {
-  const { user } = useAuth();
   const { selectedStation, selectedCompany } = useCompanyStore();
   const { createRequisitionFromLowStockAlert } =
     useCreateRequisitionFromLowStockAlert();
 
   const { hasSource } = useCriticalAlertSources();
 
-  const hasRoleAccess = useMemo(
-    () =>
-      (user?.roles ?? []).some((r) =>
-        ROLES_WITH_LOW_STOCK_ALERT_ACCESS.includes(r.name),
-      ),
-    [user?.roles],
-  );
-
-  // El rol autoriza; la fuente dice si hay de dónde sacar la alerta. Las dos
-  // se preguntan por separado porque el almacén general y el de consumibles
-  // son módulos distintos: hay empresas con uno y sin el otro, y pedir el
-  // que falta era un 500 contra una tabla inexistente.
-  const canSeeGeneralAlerts = hasRoleAccess && hasSource("low_stock_general");
-  const canSeeConsumableAlerts =
-    hasRoleAccess && hasSource("low_stock_consumable");
+  // Quién ve la alerta lo decide la configuración de la compañía: el backend
+  // solo publica la fuente si está activa y el usuario está en su audiencia. Se
+  // pregunta por cada una porque el almacén general y el de consumibles son
+  // módulos distintos: hay empresas con uno y sin el otro, y pedir el que
+  // falta era un 500 contra una tabla inexistente.
+  const canSeeGeneralAlerts = hasSource("low_stock_general");
+  const canSeeConsumableAlerts = hasSource("low_stock_consumable");
 
   const { data: lowStockGeneralArticles, isLoading: isLoadingGeneral } =
     useGetLowStockGeneralArticles(canSeeGeneralAlerts);
@@ -119,6 +103,8 @@ export const useLowStockAlerts = () => {
 
     const generalAlerts: CriticalAlert[] = generalArticles.map((article) => {
       const unitValue = article.general_primary_unit?.value ?? "";
+      // Sin los artículos individuales: ellos no generan alerta de bajo stock.
+      const remaining = Number(article.alert_quantity ?? article.quantity ?? 0);
 
       // Espejo de createFromLowStockAlert(): solo para anticipar la
       // cantidad en el texto, la cifra real la calcula el backend.
@@ -126,9 +112,7 @@ export const useLowStockAlerts = () => {
         Number(article.maximum_quantity ?? 0) > 0
           ? Number(article.maximum_quantity)
           : Number(article.minimum_quantity ?? 0);
-      const restockQuantity = Math.ceil(
-        Math.max(target - Number(article.quantity ?? 0), 1),
-      );
+      const restockQuantity = Math.ceil(Math.max(target - remaining, 1));
 
       // Misma identidad visible que en el resto de compras: dos artículos
       // pueden compartir descripción y variante y diferir solo por marca,
@@ -142,7 +126,7 @@ export const useLowStockAlerts = () => {
         .join(" - ");
 
       const inTransit = article.in_transit ?? [];
-      const stockLine = `Mínimo: ${article.minimum_quantity} ${unitValue} · Cantidad restante: ${article.quantity} ${unitValue}`;
+      const stockLine = `Mínimo: ${article.minimum_quantity} ${unitValue} · Cantidad restante: ${remaining} ${unitValue}`;
 
       return {
         id: `low-stock-general-article-${article.id}`,
@@ -150,12 +134,7 @@ export const useLowStockAlerts = () => {
         sourceId: article.id,
         // Lo agotado pesa más que lo que solo está bajo mínimo; lo que ya
         // viene en camino no compite por atención.
-        weight:
-          inTransit.length > 0
-            ? 0
-            : Number(article.quantity ?? 0) <= 0
-              ? 20
-              : 10,
+        weight: inTransit.length > 0 ? 0 : remaining <= 0 ? 20 : 10,
         // Ya está comprado: informa, pero no cuenta como pendiente.
         countsAsPending: inTransit.length === 0,
         title:
@@ -172,7 +151,7 @@ export const useLowStockAlerts = () => {
         severity:
           inTransit.length > 0
             ? "in-transit"
-            : Number(article.quantity ?? 0) <= 0
+            : remaining <= 0
               ? "critical"
               : "warning",
         // Lleva a la solicitud que ya pidió el artículo, para revisar en

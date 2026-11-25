@@ -38,7 +38,7 @@ type Props = {
   };
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  timeZone?: string;
+  timeZone: string;
 };
 
 /**
@@ -50,7 +50,7 @@ export default function SignedQuoteDocumentDialog({
   quote,
   open,
   onOpenChange,
-  timeZone = DEFAULT_TIMEZONE,
+  timeZone,
 }: Props) {
   const { selectedCompany } = useCompanyStore();
   const [file, setFile] = useState<File | null>(null);

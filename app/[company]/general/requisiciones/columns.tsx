@@ -31,8 +31,8 @@ import RequisitionDateFilter, {
 // }
 
 export const getColumns = (
-  selectedCompany?: { slug: string },
-  timeZone: string = DEFAULT_TIMEZONE,
+  selectedCompany: { slug: string } | undefined,
+  timeZone: string,
 ): AppColumnDef<MyRequisition>[] => [
   {
     accessorKey: "order_number",

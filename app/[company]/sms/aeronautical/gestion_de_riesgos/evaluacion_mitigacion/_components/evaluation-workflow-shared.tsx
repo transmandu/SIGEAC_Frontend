@@ -11,6 +11,8 @@ import {
 } from "@/types/sms/mantenimiento";
 
 import { getProbabilityLabel } from "./evaluation-workflow-helpers";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import { formatInstant } from "@/lib/date";
 
 export const StepBadge = ({
   step,
@@ -122,6 +124,8 @@ export function RiskAssessmentSummary({
 }: {
   assessment: RiskAssessment | null;
 }) {
+  const timeZone = useCompanyTimezone();
+
   if (!assessment) {
     return (
       <EmptyWorkflowState message="Todavía no hay una evaluación estimada guardada para esta notificación." />
@@ -146,7 +150,7 @@ export function RiskAssessmentSummary({
         label="Última actualización"
         value={
           assessment.updated_at
-            ? formatDate(assessment.updated_at)
+            ? formatInstant(assessment.updated_at, timeZone, "date")
             : "Sin registro"
         }
       />

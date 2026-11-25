@@ -142,7 +142,7 @@ export function ComboboxField<T extends FieldValues>({
                               key={option.value}
                               value={String(option.label)}
                               onSelect={() => {
-                                form.setValue(name, option.value as any);
+                                field.onChange(option.value);
                                 setOpen(false);
                               }}
                             >

@@ -53,7 +53,7 @@ import {
   editReasonErrorFrom,
 } from "@/components/forms/mantenimiento/planificacion/EditReasonFields";
 import { useState } from "react";
-import { parseCalendarDate, toCalendarPayload } from "@/lib/date";
+import { parseCalendarDate, toCalendarPayload, companyNow } from "@/lib/date";
 
 const airportCodeSchema = z
   .string()
@@ -239,7 +239,7 @@ function DateField({ control, name }: { control: any; name: string }) {
                 selected={field.value}
                 onSelect={field.onChange}
                 disabled={(date) =>
-                  date > new Date() || date < new Date("1900-01-01")
+                  date > companyNow() || date < new Date("1900-01-01")
                 }
                 autoFocus
               />
@@ -359,7 +359,7 @@ function EditForm({
                       selected={field.value}
                       onSelect={field.onChange}
                       disabled={(date) =>
-                        date > new Date() || date < new Date("1900-01-01")
+                        date > companyNow() || date < new Date("1900-01-01")
                       }
                       autoFocus
                     />

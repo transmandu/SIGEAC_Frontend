@@ -1,7 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { AlertTriangle, Biohazard, Eye, EyeOff, Truck } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  AlertTriangle,
+  Biohazard,
+  Eye,
+  EyeOff,
+  SearchX,
+  Truck,
+} from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 
 import { cn } from "@/lib/utils";
@@ -16,7 +23,15 @@ import { useCriticalAlerts } from "@/hooks/alerts/useCriticalAlerts";
 import { useDismissedAlertsStore } from "@/hooks/alerts/useDismissedAlertsStore";
 import { useAlertFiltersStore } from "@/hooks/alerts/useAlertFiltersStore";
 import { CriticalAlert } from "@/hooks/alerts/types";
+import {
+  NO_ALERT_FILTERS,
+  alertFacets,
+  applyAlertFilters,
+  resolveAlertFilters,
+  type AlertFilters,
+} from "@/hooks/alerts/filters";
 import { CriticalAlertCard } from "./CriticalAlertCard";
+import { CriticalAlertsFilterBar } from "./CriticalAlertsFilterBar";
 
 /**
  * Cómo se nombra lo pendiente según qué alertas tiene este usuario. Los roles
@@ -49,6 +64,13 @@ const TONE_COPY = {
     empty: "Nada pendiente",
   },
 } as const;
+
+/**
+ * Las listas de los selectores de filtro se montan fuera del panel (portal de
+ * Radix). Se reconocen por su envoltorio y no por `role="listbox"`, que
+ * también llevan listas siempre presentes de la página (cmdk).
+ */
+const SELECT_LIST = "[data-radix-popper-content-wrapper]";
 
 export default function CriticalAlertsButton() {
   const {
@@ -83,6 +105,21 @@ export default function CriticalAlertsButton() {
   const hasAlerts = count > 0;
   const [open, setOpen] = useState(false);
   const [tooltipOpen, setTooltipOpen] = useState(false);
+  const [filterChoice, setFilterChoice] =
+    useState<AlertFilters>(NO_ALERT_FILTERS);
+
+  // Los filtros solo afectan a lo que el panel lista: el botón, su contador y
+  // el resumen siguen contando todo lo pendiente, para que filtrar nunca
+  // esconda que hay algo por atender.
+  const facets = useMemo(() => alertFacets(alerts), [alerts]);
+  const filters = useMemo(
+    () => resolveAlertFilters(filterChoice, facets),
+    [filterChoice, facets],
+  );
+  const shownAlerts = useMemo(
+    () => applyAlertFilters(alerts, filters),
+    [alerts, filters],
+  );
 
   // Mientras el botón está a la vista, el del tour se apila encima: 56 px del
   // botón + 24 de margen + 12 de separación (ver TourProvider).
@@ -139,11 +176,16 @@ export default function CriticalAlertsButton() {
       // pointerdown, lo quitaba antes de que llegara el clic y este caía en lo
       // que hay detrás de él.
       if (scrimRef.current?.contains(target)) return;
+      // Tocar una opción de un filtro no es tocar fuera del panel.
+      if (target instanceof Element && target.closest(SELECT_LIST)) return;
       setOpen(false);
     };
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
+      if (event.key !== "Escape") return;
+      // Con una lista de filtro abierta, Escape solo la cierra a ella.
+      if (document.querySelector(`${SELECT_LIST} [role="listbox"]`)) return;
+      setOpen(false);
     };
 
     document.addEventListener("pointerdown", onPointerDown);
@@ -362,6 +404,13 @@ export default function CriticalAlertsButton() {
           )}
         </div>
 
+        <CriticalAlertsFilterBar
+          facets={facets}
+          filters={filters}
+          total={alerts.length}
+          onChange={setFilterChoice}
+        />
+
         {/* ScrollArea de Radix necesita una altura definida (su viewport usa h-full);
             con max-h + flex la altura es indefinida y nunca desborda. Scroll nativo. */}
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
@@ -378,9 +427,28 @@ export default function CriticalAlertsButton() {
                   {inTransitCount === 1 ? " está" : " están"} en camino.
                 </p>
               </div>
+            ) : shownAlerts.length === 0 ? (
+              <div className="flex flex-col items-center gap-2 px-4 py-8 text-center">
+                <SearchX className="h-6 w-6 text-muted-foreground" />
+                <p className="text-sm font-medium">
+                  Ninguna alerta coincide con los filtros
+                </p>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setFilterChoice((current) => ({
+                      ...NO_ALERT_FILTERS,
+                      category: current.category,
+                    }))
+                  }
+                  className="text-xs font-medium text-primary hover:underline"
+                >
+                  Quitar filtros
+                </button>
+              </div>
             ) : (
               <AnimatePresence initial={false}>
-                {alerts.map((alert) => (
+                {shownAlerts.map((alert) => (
                   <CriticalAlertCard
                     key={alert.id}
                     alert={alert}

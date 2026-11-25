@@ -1,3 +1,23 @@
+## v4.116.2 — 2026-11-25
+
+- chore(deps): update dependencies and adjust pdfjs-dist version (#426)
+
+## v4.116.1 — 2026-11-25
+
+- refactor(notifications): add quality and engineering areas with correspon… (#425)
+
+## v4.116.0 — 2026-11-25
+
+- feat: new implements in everywhere (#421)
+
+## v4.115.1 — 2026-11-20
+
+- fix(sms): repair drill evaluation form and standardize date inputs (#420)
+
+## v4.115.0 — 2026-11-20
+
+- feat(sms): add drill evaluation templates and drill minutes UI (#419)
+
 ## v4.114.0 — 2026-11-17
 
 - feat: add dialog and overlay animations for smoother transitions

@@ -48,18 +48,15 @@ import axiosInstance from "@/lib/axios";
 import { toast } from "sonner";
 import { formatNumber } from "@/lib/formatNumber";
 import { notifyError } from "@/lib/notify-error";
-import { parseCalendarDate } from "@/lib/date";
+import { parseCalendarDate, formatCalendarDate, companyNow } from "@/lib/date";
 import { partLabel } from "./partLabel";
 import { removalReadings } from "./removalReadings";
 
 const fmtNumber = (n: unknown) =>
   formatNumber(n, { maxDecimals: 3, fallback: "N/A" });
 
-const fmtDate = (d?: string | null | Date) => {
-  if (!d) return "—";
-  const date = typeof d === "string" ? parseISO(d) : d;
-  return format(date, "dd 'de' MMMM 'de' yyyy", { locale: es });
-};
+const fmtDate = (d?: string | null | Date) =>
+  formatCalendarDate(d, "dd 'de' MMMM 'de' yyyy", "—");
 
 // =========================
 // Sub-componentes Visuales
@@ -199,7 +196,7 @@ export function PlanificationAircraftTab({
       link.href = url;
       link.setAttribute(
         "download",
-        `Trazabilidad_${aircraft.acronym}_${format(new Date(), "dd-MM-yyyy")}.xlsx`,
+        `Trazabilidad_${aircraft.acronym}_${format(companyNow(), "dd-MM-yyyy")}.xlsx`,
       );
       document.body.appendChild(link);
       link.click();
@@ -781,7 +778,7 @@ export function PlanificationAircraftTab({
 }
 
 function MonthlyFlightStats({ aircraft }: { aircraft: AeronauticalAircraft }) {
-  const currentDate = new Date();
+  const currentDate = companyNow();
   const dateRange = {
     first_date: format(startOfMonth(currentDate), "yyyy-MM-dd"),
     second_date: format(endOfMonth(currentDate), "yyyy-MM-dd"),

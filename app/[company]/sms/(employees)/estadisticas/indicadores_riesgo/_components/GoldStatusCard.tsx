@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   XCircle,
 } from "lucide-react";
+import { formatCalendarDate } from "@/lib/date";
 
 interface GoalStatusCardProps {
   achieved: boolean;
@@ -23,13 +24,8 @@ export const GoalStatusCard: React.FC<GoalStatusCardProps> = ({
   params,
   className = "",
 }) => {
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("es-ES", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
+  const formatDate = (dateString: string) =>
+    formatCalendarDate(dateString, "d 'de' MMMM 'de' yyyy");
 
   const config = {
     achieved: {
@@ -71,7 +67,9 @@ export const GoalStatusCard: React.FC<GoalStatusCardProps> = ({
         {/* Header */}
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 bg-white rounded-full border border-gray-200">
-            <IconComponent className={`h-5 w-5 text-black ${currentConfig.textColor}`} />
+            <IconComponent
+              className={`h-5 w-5 text-black ${currentConfig.textColor}`}
+            />
           </div>
           <div>
             <h3
@@ -112,7 +110,9 @@ export const GoalStatusCard: React.FC<GoalStatusCardProps> = ({
           <div className="bg-white border border-purple-200 rounded-xl p-4 shadow-xs">
             <div className="flex items-center justify-center gap-2 mb-2">
               <Calendar className="h-4 w-4 text-black" />
-              <span className="font-medium text-sm text-black">PERÍODO EVALUADO</span>
+              <span className="font-medium text-sm text-black">
+                PERÍODO EVALUADO
+              </span>
             </div>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-2 ">
               <span className="font-semibold px-3 py-1 rounded-lg border border-purple-100 text-black">
@@ -149,7 +149,8 @@ export const GoalStatusCard: React.FC<GoalStatusCardProps> = ({
             >
               <span>0%</span>
               <span className="font-bold">
-                {displayPercentage.toFixed(2)}% {achieved ? "alcanzado" : "completado"}
+                {displayPercentage.toFixed(2)}%{" "}
+                {achieved ? "alcanzado" : "completado"}
               </span>
               <span>100%</span>
             </div>

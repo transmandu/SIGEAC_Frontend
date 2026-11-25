@@ -253,6 +253,15 @@ export function buildSmsGroup({
             roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
             active: pathname === `/${currentCompany?.slug}/sms/ajustes/boletin`,
           },
+          {
+            href: `/${currentCompany?.slug}/sms/ajustes/matriz_simulacro_mesa`,
+            label: "Matriz de simulacro de mesa",
+            requiresTables: ["drill_matrix_criteria"],
+            roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
+            active:
+              pathname ===
+              `/${currentCompany?.slug}/sms/ajustes/matriz_simulacro_mesa`,
+          },
         ],
       },
       {

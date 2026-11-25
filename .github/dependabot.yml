@@ -160,15 +160,41 @@ updates:
       # junto con @schedule-x/*, cuando estos pidan otra version.
       - dependency-name: 'temporal-polyfill'
 
-      # pdfjs-dist esta clavado sin ^ a proposito (5.4.296): react-pdf exige
-      # que la version del worker coincida exactamente con la de la libreria.
-      # Subirlo solo rompe el visor de PDF en tiempo de ejecucion, no en build.
-      # Se sube a mano, junto con react-pdf.
+      # La familia @schedule-x se queda en la 3.x a proposito. Desde la 4.0,
+      # @schedule-x/drag-and-drop y @schedule-x/resize pasaron a ser de pago
+      # (@sx-premium/*, con licencia): en npm quedaron congelados en 3.7.3 y no
+      # tendran 4.x. Subir calendar/event-modal/events-service a 4.x deja esos
+      # dos plugins sin una version que el fabricante haya probado con ellos, y
+      # los calendarios de cursos y de actividades SMS los usan para arrastrar y
+      # redimensionar. Ademas calendar 4 pide temporal-polyfill 0.3.2 exacto.
+      # Las mayores se suben a mano y todas juntas, solo si se compra la
+      # licencia o se deja de usar arrastrar/redimensionar.
+      # (@schedule-x/react 4.1.0 si se admite: su codigo es identico al de 3.7.0
+      # y su peer acepta calendar ^3.1.0 || ^4.0.0.)
+      - dependency-name: '@schedule-x/*'
+        update-types:
+          - version-update:semver-major
+
+      # pdfjs-dist esta clavado sin ^ a proposito (6.5.438, la que trae
+      # react-pdf 11.1.0): react-pdf exige que la version del worker coincida
+      # exactamente con la de la libreria. Subirlo solo rompe el visor de PDF
+      # en tiempo de ejecucion, no en build. Se sube a mano, junto con
+      # react-pdf: el PR de react-pdf llega solo, asi que al aceptarlo hay que
+      # poner aqui la pdfjs-dist que figure en sus dependencies.
       - dependency-name: 'pdfjs-dist'
 
       # Preact esta aqui como alias de compatibilidad junto a @preact/signals;
       # una mayor suya cambia el runtime de firmas. A mano.
       - dependency-name: 'preact'
+        update-types:
+          - version-update:semver-major
+
+      # @types/node sigue la version de Node del proyecto (.nvmrc y CI: 24), no
+      # la ultima publicada. Con tipos de una mayor posterior TypeScript deja
+      # usar APIs que el servidor no tiene y nada avisa. Las menores y parches
+      # de la serie 24 siguen entrando; la mayor se sube a mano, junto con
+      # .nvmrc, cuando se cambie de Node.
+      - dependency-name: '@types/node'
         update-types:
           - version-update:semver-major
 

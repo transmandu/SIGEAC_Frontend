@@ -12,6 +12,8 @@ interface ToolBoxProps {
   employee_id?: string;
   location_id?: number | string;
   tool_id: string[];
+  /** Herramientas de ferretería identificadas; en una edición es la lista completa. */
+  individual_ids?: number[];
 }
 
 export const useCreateToolBox = () => {
@@ -30,6 +32,8 @@ export const useCreateToolBox = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tool-boxes"] });
+      queryClient.invalidateQueries({ queryKey: ["tool-box-individuals"] });
+      queryClient.invalidateQueries({ queryKey: ["general-articles"] });
       toast.success("¡Creado!", {
         description: `La caja ha sido creada correctamente.`,
       });
@@ -60,6 +64,8 @@ export const useUpdateToolBox = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tool-boxes"] });
+      queryClient.invalidateQueries({ queryKey: ["tool-box-individuals"] });
+      queryClient.invalidateQueries({ queryKey: ["general-articles"] });
       toast.success("¡Actualizado!", {
         description: `La caja ha sido actualizada correctamente.`,
       });
@@ -89,6 +95,8 @@ export const useDeleteToolBox = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tool-boxes"] });
+      queryClient.invalidateQueries({ queryKey: ["tool-box-individuals"] });
+      queryClient.invalidateQueries({ queryKey: ["general-articles"] });
       toast.success("¡Eliminado!", {
         description: `¡La caja ha sido eliminada correctamente!`,
       });

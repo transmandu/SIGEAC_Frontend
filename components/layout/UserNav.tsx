@@ -2,26 +2,14 @@
 
 import Link from "next/link";
 
-import {
-  LayoutGrid,
-  Loader2,
-  LogOut,
-  Mail,
-  UserCircle2,
-} from "lucide-react";
+import { LayoutGrid, Loader2, LogOut, Mail, UserCircle2 } from "lucide-react";
 
-import {
-  AnimatePresence,
-  motion,
-} from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 
 import { cn } from "@/lib/utils";
+import { fullName as fullNameOf, initialsOf } from "@/lib/person-name";
 
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 import {
   DropdownMenu,
@@ -51,16 +39,11 @@ export function UserNav() {
 
   const { user, loading, logout } = useAuth();
 
-  const { data: employee, isLoading: employeeLoading } =
-    useMyEmployee();
+  const { data: employee, isLoading: employeeLoading } = useMyEmployee();
 
-  const initials =
-    `${user?.first_name?.[0] ?? ""}${user?.last_name?.[0] ?? ""}`;
+  const initials = `${initialsOf(user)}`;
 
-  const fullName =
-    `${user?.first_name ?? ""} ${user?.last_name ?? ""}`
-      .trim()
-      .toUpperCase();
+  const fullName = fullNameOf(user);
 
   return (
     <DropdownMenu>
@@ -84,7 +67,7 @@ export function UserNav() {
                   "relative flex items-center justify-center",
                   "h-9 w-9 p-0 rounded-full",
                   "border",
-                  "overflow-hidden"
+                  "overflow-hidden",
                 )}
               >
                 <Avatar
@@ -102,7 +85,7 @@ export function UserNav() {
                     className={cn(
                       "bg-transparent",
                       "text-[10px] font-medium",
-                      "text-foreground/80"
+                      "text-foreground/80",
                     )}
                   >
                     {loading || employeeLoading ? (
@@ -116,9 +99,7 @@ export function UserNav() {
             </DropdownMenuTrigger>
           </TooltipTrigger>
 
-          <TooltipContent side="bottom">
-            Cuenta
-          </TooltipContent>
+          <TooltipContent side="bottom">Cuenta</TooltipContent>
         </Tooltip>
       </TooltipProvider>
 
@@ -132,7 +113,7 @@ export function UserNav() {
             "bg-background/95",
             "backdrop-blur-xl",
             "shadow-2xl",
-            "p-1.5"
+            "p-1.5",
           )}
         >
           {/* HEADER */}
@@ -159,9 +140,7 @@ export function UserNav() {
                   sizes="40px"
                 />
 
-                <AvatarFallback className="text-xs">
-                  {initials}
-                </AvatarFallback>
+                <AvatarFallback className="text-xs">{initials}</AvatarFallback>
               </Avatar>
 
               <div className="flex flex-col min-w-0">
@@ -173,9 +152,7 @@ export function UserNav() {
                   <Mail className="w-3 h-3 shrink-0" />
 
                   <div className="min-w-0 flex-1">
-                    <MarqueeText
-                      text={user?.email?.trim() ?? ""}
-                    />
+                    <MarqueeText text={user?.email?.trim() ?? ""} />
                   </div>
                 </div>
               </div>
@@ -203,10 +180,7 @@ export function UserNav() {
               asChild
               className="rounded-xl px-2 py-2 cursor-pointer"
             >
-              <Link
-                href="/cuenta"
-                className="flex items-center gap-2"
-              >
+              <Link href="/cuenta" className="flex items-center gap-2">
                 <UserCircle2 className="w-4 h-4 text-muted-foreground" />
                 Mi cuenta
               </Link>
@@ -227,7 +201,7 @@ export function UserNav() {
               "rounded-xl px-2 py-2 cursor-pointer",
               "text-red-500",
               "focus:bg-red-500/10",
-              "focus:text-red-500"
+              "focus:text-red-500",
             )}
           >
             <LogOut className="w-4 h-4 mr-2" />

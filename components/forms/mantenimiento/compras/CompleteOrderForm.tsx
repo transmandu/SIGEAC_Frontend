@@ -1,6 +1,10 @@
 "use client";
 
 import {
+  isUnitaryCategory,
+  UNITARY_UNIT_LABEL,
+} from "@/lib/purchases/requisition-measure";
+import {
   useCompletePurchase,
   useMarkPurchaseOrderAsCompleted,
 } from "@/actions/mantenimiento/compras/ordenes_compras/actions";
@@ -155,7 +159,9 @@ export function CompleteOrderForm({
           quotedTotal,
           total: article.total != null ? Number(article.total) : quotedTotal,
           totalJustification: article.total_justification ?? "",
-          unitLabel: article.unit?.label ?? null,
+          unitLabel: isUnitaryCategory(article.batch?.category)
+            ? UNITARY_UNIT_LABEL
+            : (article.unit?.label ?? null),
           shipping_tracking: article.shipping_tracking ?? "",
           international_shipping_tracking:
             article.international_shipping_tracking ?? "",

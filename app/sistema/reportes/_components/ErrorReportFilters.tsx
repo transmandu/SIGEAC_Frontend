@@ -18,9 +18,17 @@ import {
 import DateRangePickerInput from "@/components/misc/DateRangePickerInput";
 import { ERROR_REPORT_MODULES } from "@/lib/errorReportModules";
 import { ERROR_REPORT_SEVERITIES } from "@/lib/errorReportSeverity";
-import { CalendarClock, CalendarCheck2, Search, X, XCircle } from "lucide-react";
+import {
+  CalendarClock,
+  CalendarCheck2,
+  Search,
+  X,
+  XCircle,
+} from "lucide-react";
 import { ErrorReportFilters as Filters } from "@/hooks/sistema/reportes/useGetErrorReports";
 import { cn } from "@/lib/utils";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import { toCalendarPayload, zonedDayToUtcIso } from "@/lib/date";
 
 const STATUS_OPTIONS = [
   { value: "OPEN", label: "ABIERTO" },
@@ -48,9 +56,11 @@ export default function ErrorReportFilters({
   searchValue,
   onSearchChange,
 }: ErrorReportFiltersProps) {
+  const timeZone = useCompanyTimezone();
   const activeFilterCount = useMemo(() => {
     const { page, per_page, ...rest } = filters;
-    return Object.values(rest).filter((v) => v !== undefined && v !== "").length;
+    return Object.values(rest).filter((v) => v !== undefined && v !== "")
+      .length;
   }, [filters]);
 
   return (
@@ -81,7 +91,10 @@ export default function ErrorReportFilters({
         <Select
           value={filters.status ?? ALL_VALUE}
           onValueChange={(value) =>
-            onChange({ status: value === ALL_VALUE ? undefined : (value as Filters["status"]) })
+            onChange({
+              status:
+                value === ALL_VALUE ? undefined : (value as Filters["status"]),
+            })
           }
         >
           <SelectTrigger className={SOFT_TRIGGER}>
@@ -99,7 +112,9 @@ export default function ErrorReportFilters({
 
         <Select
           value={filters.module ?? ALL_VALUE}
-          onValueChange={(value) => onChange({ module: value === ALL_VALUE ? undefined : value })}
+          onValueChange={(value) =>
+            onChange({ module: value === ALL_VALUE ? undefined : value })
+          }
         >
           <SelectTrigger className={SOFT_TRIGGER}>
             <SelectValue placeholder="Módulo" />
@@ -117,7 +132,12 @@ export default function ErrorReportFilters({
         <Select
           value={filters.severity ?? ALL_VALUE}
           onValueChange={(value) =>
-            onChange({ severity: value === ALL_VALUE ? undefined : (value as Filters["severity"]) })
+            onChange({
+              severity:
+                value === ALL_VALUE
+                  ? undefined
+                  : (value as Filters["severity"]),
+            })
           }
         >
           <SelectTrigger className={SOFT_TRIGGER}>
@@ -140,7 +160,9 @@ export default function ErrorReportFilters({
               size="sm"
               className={cn(
                 "h-9 gap-1.5 rounded-xl border-slate-200/80 bg-slate-50/60 font-normal shadow-none dark:border-slate-800/80 dark:bg-slate-900/30",
-                filters.from && filters.to && "border-indigo-300 text-indigo-700 dark:border-indigo-500/40 dark:text-indigo-300"
+                filters.from &&
+                  filters.to &&
+                  "border-indigo-300 text-indigo-700 dark:border-indigo-500/40 dark:text-indigo-300",
               )}
             >
               <CalendarClock className="h-3.5 w-3.5" />
@@ -149,11 +171,23 @@ export default function ErrorReportFilters({
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
             <DateRangePickerInput
-              initialDate={filters.from && filters.to ? { from: filters.from, to: filters.to } : undefined}
+              initialDate={
+                filters.from && filters.to
+                  ? { from: filters.from, to: filters.to }
+                  : undefined
+              }
               onDateChange={(range) =>
                 onChange({
-                  from: range?.from.toISOString(),
-                  to: range?.to.toISOString(),
+                  from: zonedDayToUtcIso(
+                    toCalendarPayload(range?.from),
+                    "start",
+                    timeZone,
+                  ),
+                  to: zonedDayToUtcIso(
+                    toCalendarPayload(range?.to),
+                    "end",
+                    timeZone,
+                  ),
                 })
               }
               onReset={() => onChange({ from: undefined, to: undefined })}
@@ -168,7 +202,9 @@ export default function ErrorReportFilters({
               size="sm"
               className={cn(
                 "h-9 gap-1.5 rounded-xl border-slate-200/80 bg-slate-50/60 font-normal shadow-none dark:border-slate-800/80 dark:bg-slate-900/30",
-                filters.resolved_from && filters.resolved_to && "border-indigo-300 text-indigo-700 dark:border-indigo-500/40 dark:text-indigo-300"
+                filters.resolved_from &&
+                  filters.resolved_to &&
+                  "border-indigo-300 text-indigo-700 dark:border-indigo-500/40 dark:text-indigo-300",
               )}
             >
               <CalendarCheck2 className="h-3.5 w-3.5" />
@@ -184,11 +220,21 @@ export default function ErrorReportFilters({
               }
               onDateChange={(range) =>
                 onChange({
-                  resolved_from: range?.from.toISOString(),
-                  resolved_to: range?.to.toISOString(),
+                  resolved_from: zonedDayToUtcIso(
+                    toCalendarPayload(range?.from),
+                    "start",
+                    timeZone,
+                  ),
+                  resolved_to: zonedDayToUtcIso(
+                    toCalendarPayload(range?.to),
+                    "end",
+                    timeZone,
+                  ),
                 })
               }
-              onReset={() => onChange({ resolved_from: undefined, resolved_to: undefined })}
+              onReset={() =>
+                onChange({ resolved_from: undefined, resolved_to: undefined })
+              }
             />
           </PopoverContent>
         </Popover>

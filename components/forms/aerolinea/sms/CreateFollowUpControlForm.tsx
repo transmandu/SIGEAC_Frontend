@@ -33,19 +33,22 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import Image from "next/image";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { companyNow } from "@/lib/date";
 const imageFileSchema = z
   .instanceof(File)
   .refine((file) => file.size <= 5 * 1024 * 1024, "Max 5MB")
   .refine(
     (file) => ["image/jpeg", "image/png"].includes(file.type),
-    "Solo JPEG/PNG"
+    "Solo JPEG/PNG",
   );
 
 const FormSchema = z.object({
   description: z
     .string()
     .min(3, { message: "La observacion debe tener al menos 3 caracteres" })
-    .max(255, { message: "La observacion no puede exceder los 255 caracteres" }),
+    .max(255, {
+      message: "La observacion no puede exceder los 255 caracteres",
+    }),
   implementation_responsible: z.string().optional(),
   follow_up_responsible: z.string().optional(),
 
@@ -60,7 +63,7 @@ const FormSchema = z.object({
     .refine((file) => file.size <= 10 * 1024 * 1024, "Máximo 10MB")
     .refine(
       (file) => file.type === "application/pdf",
-      "Solo se permiten archivos PDF"
+      "Solo se permiten archivos PDF",
     )
     .optional(),
 });
@@ -82,7 +85,7 @@ export default function CreateFollowUpControlForm({ onClose, id }: FormProps) {
   const { createFollowUpControl } = useCreateFollowUpControl();
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
-    defaultValues: { date: new Date() },
+    defaultValues: { date: companyNow() },
   });
 
   const onSubmit = async (data: FormSchemaType) => {
@@ -134,7 +137,7 @@ export default function CreateFollowUpControlForm({ onClose, id }: FormProps) {
                       variant={"outline"}
                       className={cn(
                         "w-full pl-3 text-left font-normal",
-                        !field.value && "text-muted-foreground"
+                        !field.value && "text-muted-foreground",
                       )}
                     >
                       {field.value ? (
@@ -153,7 +156,7 @@ export default function CreateFollowUpControlForm({ onClose, id }: FormProps) {
                     mode="single"
                     selected={field.value}
                     onSelect={field.onChange}
-                    disabled={(date) => date > new Date()} // Solo deshabilitar fechas futuras
+                    disabled={(date) => date > companyNow()} // Solo deshabilitar fechas futuras
                     autoFocus
                     startMonth={new Date(1980, 0)} // Año mínimo que se mostrará
                     endMonth={new Date(new Date().getFullYear(), 11)} // Año máximo (actual)
@@ -219,7 +222,7 @@ export default function CreateFollowUpControlForm({ onClose, id }: FormProps) {
                           type="button"
                           onClick={() =>
                             field.onChange(
-                              field.value?.filter((_, i) => i !== index)
+                              field.value?.filter((_, i) => i !== index),
                             )
                           }
                           className="absolute -top-1.5 -right-1.5 rounded-full bg-destructive text-destructive-foreground size-4 flex items-center justify-center text-[10px] leading-none"

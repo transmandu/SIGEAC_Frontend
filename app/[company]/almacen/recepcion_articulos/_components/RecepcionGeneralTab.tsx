@@ -58,7 +58,11 @@ import {
 import { cn, formatQuantity } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
-import { formatInstant } from "@/lib/date";
+import {
+  formatInstant,
+  toZonedWallClock,
+  zonedWallClockToUtcIso,
+} from "@/lib/date";
 import type {
   GeneralArticleIntake,
   GeneralArticleIntakeEntryType,
@@ -82,6 +86,12 @@ import { memo, useMemo, useState } from "react";
 import { PAGE_SIZES, TablePagination } from "@/components/misc/TablePagination";
 import { DownloadReportDialog } from "./DownloadReportDialog";
 import {
+  EMPTY_INDIVIDUALS_DRAFT,
+  individualsDraftError,
+  individualsPayload,
+  type IndividualIdentifiersDraft,
+} from "@/components/forms/mantenimiento/almacen/_components/IndividualIdentifiersField";
+import {
   ENTRY_TYPE_OPTIONS,
   ENTRY_TYPE_ROW_LABEL,
 } from "@/lib/intake-entry-type";
@@ -95,6 +105,7 @@ import {
   type IntakeExtra,
 } from "./IntakeExtrasPanel";
 import { useResettingState } from "@/hooks/useResettingState";
+import { fullName } from "@/lib/person-name";
 
 type StatusFilter = "ALL" | GeneralArticleIntakeStatus;
 type EntryTypeFilter = "ALL" | GeneralArticleIntakeEntryType;
@@ -314,7 +325,12 @@ function AppliedConversionNotice({
 // ── Acción de confirmar una entrada ─────────────────────────────────────
 function ConfirmIntakeAction({ intake }: { intake: GeneralArticleIntake }) {
   const [open, setOpen] = useState(false);
-  const [confirmedAt, setConfirmedAt] = useState<Date>(() => new Date());
+  const timeZone = useCompanyTimezone();
+  // Hora de pared en la zona de la compañía (no la del navegador): se envía
+  // al backend con zonedWallClockToUtcIso.
+  const [confirmedAt, setConfirmedAt] = useState<Date>(
+    () => toZonedWallClock(new Date(), timeZone) ?? new Date(),
+  );
   const [equivalence, setEquivalence] = useState("");
   const { confirmGeneralArticleIntake } = useConfirmGeneralArticleIntake();
   const { user } = useAuth();
@@ -349,10 +365,30 @@ function ConfirmIntakeAction({ intake }: { intake: GeneralArticleIntake }) {
     EMPTY_INTAKE_DIMENSION,
   );
 
+  const [individualsDraft, setIndividualsDraft] =
+    useState<IndividualIdentifiersDraft>(EMPTY_INDIVIDUALS_DRAFT);
+  const [individualsError, setIndividualsError] = useState<string | null>(null);
+
+  const individualization = preview?.individualization;
+  const individualsAvailable = individualization?.status === "AVAILABLE";
+  const individualsEffective: IndividualIdentifiersDraft = {
+    ...individualsDraft,
+    type:
+      (individualization?.status === "AVAILABLE"
+        ? individualization.locked_type
+        : null) ?? individualsDraft.type,
+  };
+  const individualsInvalid =
+    activeExtra === "individuals" &&
+    individualsAvailable &&
+    individualsDraftError(individualsEffective, individualization.max) !== null;
+
   const handleActiveExtraChange = (next: IntakeExtra) => {
     setActiveExtra(next);
     setExtraConversions([]);
     setDimensionDraft(EMPTY_INTAKE_DIMENSION);
+    setIndividualsDraft(EMPTY_INDIVIDUALS_DRAFT);
+    setIndividualsError(null);
   };
 
   const canEditDate = useMemo(
@@ -368,17 +404,19 @@ function ConfirmIntakeAction({ intake }: { intake: GeneralArticleIntake }) {
   );
 
   const arrivedAt = useMemo(
-    () => (intake.arrived_at ? new Date(intake.arrived_at) : null),
-    [intake.arrived_at],
+    () => toZonedWallClock(intake.arrived_at, timeZone),
+    [intake.arrived_at, timeZone],
   );
 
   const isBeforeArrival = !!arrivedAt && confirmedAt < arrivedAt;
 
   const handleOpenChange = (next: boolean) => {
     if (next) {
-      setConfirmedAt(new Date());
+      setConfirmedAt(toZonedWallClock(new Date(), timeZone) ?? new Date());
       setFallbackCandidate(null);
       setEquivalence("");
+      setIndividualsDraft(EMPTY_INDIVIDUALS_DRAFT);
+      setIndividualsError(null);
     }
     setOpen(next);
   };
@@ -387,7 +425,9 @@ function ConfirmIntakeAction({ intake }: { intake: GeneralArticleIntake }) {
     confirmGeneralArticleIntake.mutate(
       {
         id: intake.id,
-        confirmedAt: canEditDate ? confirmedAt : undefined,
+        confirmedAt: canEditDate
+          ? new Date(zonedWallClockToUtcIso(confirmedAt, timeZone))
+          : undefined,
         newConversionEquivalence: conversionCandidate
           ? parseFloat(equivalence)
           : undefined,
@@ -397,11 +437,23 @@ function ConfirmIntakeAction({ intake }: { intake: GeneralArticleIntake }) {
         ),
         dimension:
           intakeDimensionPayload(dimensionDraft, activeExtra) ?? undefined,
+        individuals:
+          activeExtra === "individuals" && individualsAvailable
+            ? (individualsPayload(individualsEffective) ?? undefined)
+            : undefined,
       },
       {
         onSuccess: () => setOpen(false),
         onError: (error: any) => {
           const responseData = error?.response?.data;
+          const fieldErrors = responseData?.errors ?? {};
+          const individualsMessage = [
+            fieldErrors["individuals.identifiers"],
+            fieldErrors["individuals.type"],
+          ]
+            .flat()
+            .find(Boolean);
+          setIndividualsError(individualsMessage ?? null);
           if (isNeedsUnitConversionResponse(responseData)) {
             setFallbackCandidate(responseData.candidate);
           }
@@ -561,6 +613,13 @@ function ConfirmIntakeAction({ intake }: { intake: GeneralArticleIntake }) {
             onConversionsChange={setExtraConversions}
             dimension={dimensionDraft}
             onDimensionChange={setDimensionDraft}
+            individualization={individualization}
+            individuals={individualsDraft}
+            onIndividualsChange={(next) => {
+              setIndividualsDraft(next);
+              setIndividualsError(null);
+            }}
+            individualsError={individualsError}
             disabled={confirmGeneralArticleIntake.isPending}
           />
         )}
@@ -574,7 +633,8 @@ function ConfirmIntakeAction({ intake }: { intake: GeneralArticleIntake }) {
               confirmGeneralArticleIntake.isPending ||
               previewLoading ||
               (canEditDate && isBeforeArrival) ||
-              needsValidEquivalence
+              needsValidEquivalence ||
+              individualsInvalid
             }
             onClick={(e) => {
               // Radix cierra el diálogo al hacer click en Action; lo evitamos
@@ -881,8 +941,20 @@ const IntakeRow = memo(function IntakeRow({
         </TableCell>
 
         <TableCell>
-          <span className="text-xs text-muted-foreground uppercase">
-            {intake.registered_by}
+          <span className="text-[11px] text-muted-foreground">
+            <strong>Por:</strong>
+            <br />
+            <span className="uppercase">{intake.registered_by}</span>
+            {intake.handed_to_employee && (
+              <>
+                <br />
+                <strong>A:</strong>
+                <br />
+                <span className="uppercase">
+                  {fullName(intake.handed_to_employee)}
+                </span>
+              </>
+            )}
           </span>
         </TableCell>
 
@@ -984,7 +1056,8 @@ export function RecepcionGeneralTab() {
         i.purchase_order?.quote_order?.requisition_order?.order_number
           ?.toLowerCase()
           .includes(q) ||
-        i.registered_by?.toLowerCase().includes(q),
+        i.registered_by?.toLowerCase().includes(q) ||
+        `${fullName(i.handed_to_employee)}`.toLowerCase().includes(q),
     );
   }, [intakes, statusFilter, entryTypeFilter, search]);
 
@@ -1126,7 +1199,7 @@ export function RecepcionGeneralTab() {
               <TableHead className="text-xs">Cantidad</TableHead>
               <TableHead className="text-xs">Solicitud de Compra</TableHead>
               <TableHead className="text-xs">Llegada</TableHead>
-              <TableHead className="text-xs">Entregado por</TableHead>
+              <TableHead className="text-xs">Entrega</TableHead>
               <TableHead className="text-xs">Estado</TableHead>
               <TableHead className="text-xs">Acciones</TableHead>
             </TableRow>

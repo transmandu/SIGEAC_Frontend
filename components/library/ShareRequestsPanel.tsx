@@ -30,6 +30,7 @@ import { useTourContext } from "@/components/tour/TourProvider";
 import { bibliotecaSolicitudesSteps } from "@/components/tour/steps/general/biblioteca/biblioteca-solicitudes";
 import { notifyError } from "@/lib/notify-error";
 import { useQuery } from "@tanstack/react-query";
+import FormattedInstant from "@/components/misc/FormattedInstant";
 
 const NO_REQUESTS: any[] = [];
 
@@ -609,11 +610,11 @@ export default function ShareRequestsPanel({
                         <CalendarDays className="h-3 w-3" /> Fecha Solicitud
                       </span>
                       <span className="font-bold text-slate-900 dark:text-white">
-                        {selectedDetails.created_at
-                          ? new Date(
-                              selectedDetails.created_at,
-                            ).toLocaleString()
-                          : "N/A"}
+                        <FormattedInstant
+                          value={selectedDetails.created_at}
+                          format="dateTime"
+                          fallback="N/A"
+                        />
                       </span>
                     </div>
                     <div>
@@ -621,11 +622,11 @@ export default function ShareRequestsPanel({
                         <Clock className="h-3 w-3" /> Válido Hasta
                       </span>
                       <span className="font-bold text-slate-900 dark:text-white">
-                        {selectedDetails.calculated_expires_at
-                          ? new Date(
-                              selectedDetails.calculated_expires_at,
-                            ).toLocaleString()
-                          : "Pendiente de aprobación"}
+                        <FormattedInstant
+                          value={selectedDetails.calculated_expires_at}
+                          format="dateTime"
+                          fallback="Pendiente de aprobación"
+                        />
                       </span>
                     </div>
                   </div>

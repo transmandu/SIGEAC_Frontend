@@ -33,6 +33,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { FollowUpControl } from "@/types/sms/mantenimiento";
 
 import { FileInput, FormActions, FormSection } from "./_components/form-parts";
+import { parseCalendarDate } from "@/lib/date";
 
 const FORM_SCHEMA = z.object({
   description: z.string().min(3, "Describa el control de seguimiento"),
@@ -56,7 +57,7 @@ const getDefaultValues = (
   initialData?: FollowUpControl | null,
 ): FormValues => ({
   description: initialData?.description || "",
-  date: initialData?.date ? new Date(initialData.date) : new Date(),
+  date: parseCalendarDate(initialData?.date) ?? new Date(),
   image: undefined,
   document: undefined,
 });

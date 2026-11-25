@@ -42,6 +42,7 @@ import { useGetCatalogManuals } from "@/hooks/mantenimiento/catalogo/useGetCatal
 import { MaintenanceAircraftPart } from "@/types";
 import { comparePartsByOrder, partTypeLabel } from "@/lib/maintenancePartTypes";
 import { SearchableSelect, fieldClass, hintClass, labelClass } from "./_theme";
+import { companyNow } from "@/lib/date";
 
 /**
  * Campos que comparten los formularios de Control de Mantenimiento y de
@@ -245,7 +246,7 @@ export function CompactDateField({
                 selected={field.value}
                 onSelect={field.onChange}
                 disabled={(date) =>
-                  date > new Date() || date < new Date("1900-01-01")
+                  date > companyNow() || date < new Date("1900-01-01")
                 }
                 captionLayout="dropdown"
                 startMonth={new Date(1900, 0)}

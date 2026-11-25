@@ -16,6 +16,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useGetEmployeesForBox } from "@/hooks/mantenimiento/almacen/caja_herramientas/useGetEmployeeForBox";
 import { useGetEditToolBoxTools } from "@/hooks/mantenimiento/almacen/caja_herramientas/useGetToolBoxTools";
 import { cn } from "@/lib/utils";
+import { ToolBoxIndividualsField } from "@/components/forms/mantenimiento/almacen/_components/ToolBoxIndividualsField";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { ToolBox } from "@/types";
 import { zodResolver } from "@/lib/zod-resolver";
@@ -47,6 +48,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useResettingState } from "@/hooks/useResettingState";
+import { fullName } from "@/lib/person-name";
 
 const FormSchema = z.object({
   name: z.string().min(3, {
@@ -89,6 +91,10 @@ export function EditToolBoxForm({ onClose, initialData }: FormProps) {
   );
 
   const [openArticles, setOpenArticles] = useState(false);
+
+  const [individualIds, setIndividualIds] = useState<number[]>(
+    () => initialData?.individuals?.map((piece) => piece.id) ?? [],
+  );
 
   const [openEmployee, setOpenEmployee] = useState(false);
 
@@ -139,9 +145,10 @@ export function EditToolBoxForm({ onClose, initialData }: FormProps) {
   const onSubmit = async (data: FormSchemaType) => {
     const formattedData = {
       ...data,
-      created_by: `${user?.first_name} ${user?.last_name}`,
-      delivered_by: `${user?.first_name} ${user?.last_name}`,
+      created_by: `${fullName(user)}`,
+      delivered_by: `${fullName(user)}`,
       id: initialData.id,
+      individual_ids: individualIds,
     };
     await updateToolBox.mutateAsync({
       data: formattedData,
@@ -216,8 +223,7 @@ export function EditToolBoxForm({ onClose, initialData }: FormProps) {
                               </AvatarFallback>
                             </Avatar>
                             <span className="truncate">
-                              {selectedEmployee.first_name}{" "}
-                              {selectedEmployee.last_name}
+                              {fullName(selectedEmployee)}
                             </span>
                           </span>
                         ) : (
@@ -250,7 +256,7 @@ export function EditToolBoxForm({ onClose, initialData }: FormProps) {
                             employees.map((employee) => (
                               <CommandItem
                                 key={employee.id}
-                                value={`${employee.first_name} ${employee.last_name} ${employee.job_title.name}`}
+                                value={`${fullName(employee)} ${employee.job_title.name}`}
                                 onSelect={() => {
                                   field.onChange(employee.id.toString());
                                   setOpenEmployee(false);
@@ -272,7 +278,7 @@ export function EditToolBoxForm({ onClose, initialData }: FormProps) {
                                 </Avatar>
                                 <span className="flex-1 truncate">
                                   <span className="block font-medium">
-                                    {employee.first_name} {employee.last_name}
+                                    {fullName(employee)}
                                   </span>
                                   <span className="block text-xs text-muted-foreground">
                                     {employee.job_title.name}
@@ -412,6 +418,13 @@ export function EditToolBoxForm({ onClose, initialData }: FormProps) {
               <FormMessage />
             </FormItem>
           )}
+        />
+        <ToolBoxIndividualsField
+          location={selectedStation ?? null}
+          company={selectedCompany?.slug}
+          value={individualIds}
+          onChange={setIndividualIds}
+          current={initialData?.individuals}
         />
         <div className="flex justify-end gap-2 pt-2">
           <Button type="button" variant="outline" onClick={onClose}>

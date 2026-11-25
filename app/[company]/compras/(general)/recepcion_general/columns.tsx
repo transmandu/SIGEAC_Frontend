@@ -32,6 +32,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import EditIntakeDialog from "./_components/EditIntakeDialog";
 import type { GeneralArticleIntake } from "@/types/purchase";
 import { notifyError } from "@/lib/notify-error";
+import { fullName } from "@/lib/person-name";
 
 // Destino del intake, derivado de cuál referencia venga poblada (excluyentes
 // entre sí): almacén para el flujo normal, o la entidad de una entrega directa.
@@ -48,7 +49,7 @@ const getDestination = (intake: GeneralArticleIntake) => {
   }
   if (intake.employee) {
     return {
-      label: `${intake.employee.first_name} ${intake.employee.last_name}`,
+      label: fullName(intake.employee),
       type: "Empleado",
       Icon: User,
     };
@@ -400,21 +401,38 @@ export const columns: AppColumnDef<GeneralArticleIntake>[] = [
   {
     accessorKey: "registered_by",
     size: 180,
-    meta: { title: "Entregado por" },
+    meta: { title: "Entrega" },
 
     header: ({ column }) => (
       <div className="flex justify-center w-full">
-        <DataTableColumnHeader column={column} title="Entregado por" />
+        <DataTableColumnHeader column={column} title="Entrega" />
       </div>
     ),
 
-    cell: ({ row }) => (
-      <div className="flex justify-center w-full">
-        <span className="text-[13px] text-slate-700 dark:text-slate-300">
-          {row.original.registered_by}
-        </span>
-      </div>
-    ),
+    cell: ({ row }) => {
+      const { registered_by, handed_to_employee } = row.original;
+
+      return (
+        <div className="flex w-full flex-col items-center text-center">
+          <span className="text-[11px] font-bold text-muted-foreground">
+            Por:
+          </span>
+          <span className="text-[13px] uppercase text-slate-700 dark:text-slate-300">
+            {registered_by}
+          </span>
+          {handed_to_employee && (
+            <>
+              <span className="mt-1 text-[11px] font-bold text-muted-foreground">
+                A:
+              </span>
+              <span className="text-[13px] uppercase text-slate-700 dark:text-slate-300">
+                {fullName(handed_to_employee)}
+              </span>
+            </>
+          )}
+        </div>
+      );
+    },
   },
 
   {

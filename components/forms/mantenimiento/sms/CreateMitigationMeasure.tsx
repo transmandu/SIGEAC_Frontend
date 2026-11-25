@@ -34,6 +34,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { MitigationMeasure } from "@/types/sms/mantenimiento";
 
 import { FormActions, FormSection } from "./_components/form-parts";
+import { parseCalendarDate } from "@/lib/date";
 
 const FORM_SCHEMA = z.object({
   description: z.string().min(3, "Describa la medida de mitigación"),
@@ -64,12 +65,8 @@ const getDefaultValues = (
   description: initialData?.description || "",
   implementation_responsible: initialData?.implementation_responsible || "",
   implementation_supervisor: initialData?.implementation_supervisor || "",
-  estimated_date: initialData?.estimated_date
-    ? new Date(initialData.estimated_date)
-    : new Date(),
-  execution_date: initialData?.execution_date
-    ? new Date(initialData.execution_date)
-    : null,
+  estimated_date: parseCalendarDate(initialData?.estimated_date) ?? new Date(),
+  execution_date: parseCalendarDate(initialData?.execution_date) ?? null,
 });
 
 export default function CreateMitigationMeasure({

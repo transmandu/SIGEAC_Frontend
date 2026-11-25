@@ -27,6 +27,7 @@ import ArticleStatusSincePopover, {
   tracksStatusSince,
 } from "@/components/misc/ArticleStatusSincePopover";
 import { AirlineAircraft, ArticleDimension } from "@/types";
+import { parseCalendarDate, companyNow } from "@/lib/date";
 export interface IArticleSimple {
   id: number;
   part_number: string;
@@ -192,13 +193,8 @@ const normalizeText = (value: string) =>
   value.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
 
 // Helper parse local date
-const parseDateLocal = (dateString: string): Date => {
-  if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
-    const [year, month, day] = dateString.split("-").map(Number);
-    return new Date(year, month - 1, day);
-  }
-  return parseISO(dateString);
-};
+const parseDateLocal = (dateString: string): Date =>
+  parseCalendarDate(dateString) ?? parseISO(dateString);
 
 const toDate = (value: string | Date | null | undefined): Date | null => {
   if (!value) return null;
@@ -684,7 +680,7 @@ export const buildConsumibleCols = (
         );
       }
 
-      const today = new Date();
+      const today = companyNow();
       today.setHours(0, 0, 0, 0);
       date.setHours(0, 0, 0, 0);
       const daysUntilExpiry = Math.ceil(
@@ -746,7 +742,7 @@ export const buildConsumibleCols = (
         );
       }
 
-      const today = new Date();
+      const today = companyNow();
       today.setHours(0, 0, 0, 0);
       date.setHours(0, 0, 0, 0);
       const daysUntilExpiry = Math.ceil(

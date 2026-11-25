@@ -31,10 +31,11 @@ import {
   Package,
   PencilLine,
   Plane,
+  ReceiptText,
   Wrench,
   type LucideIcon,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { EditTransitArticleDialog } from "@/app/[company]/compras/(aeronautico)/en_transito/_components/EditTransitArticleDialog";
@@ -80,6 +81,8 @@ type FieldSpec = {
   /** Resalta el valor: es el dato por el que se abre la ficha. */
   strong?: boolean;
   span?: 1 | 2;
+  /** Acompaña al valor, a su derecha (un icono con su explicación). */
+  adornment?: ReactNode;
 };
 
 const isBlank = (value: FieldSpec["value"]) =>
@@ -88,7 +91,7 @@ const isBlank = (value: FieldSpec["value"]) =>
   (typeof value === "string" && value.trim() === "");
 
 /** Dato suelto: rótulo arriba en versalitas, valor debajo. */
-function Field({ label, value, strong, span = 1 }: FieldSpec) {
+function Field({ label, value, strong, span = 1, adornment }: FieldSpec) {
   const empty = isBlank(value);
 
   return (
@@ -96,16 +99,61 @@ function Field({ label, value, strong, span = 1 }: FieldSpec) {
       <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">
         {label}
       </p>
-      <p
-        className={cn(
-          "mt-0.5 truncate text-[13px] leading-snug",
-          strong && !empty && "font-mono font-semibold",
-          empty && "text-muted-foreground/40",
-        )}
-        title={empty ? undefined : String(value)}
-      >
-        {empty ? "—" : value}
-      </p>
+      <div className="mt-0.5 flex min-w-0 items-center gap-1.5">
+        <p
+          className={cn(
+            "min-w-0 truncate text-[13px] leading-snug",
+            strong && !empty && "font-mono font-semibold",
+            empty && "text-muted-foreground/40",
+          )}
+          title={empty ? undefined : String(value)}
+        >
+          {empty ? "—" : value}
+        </p>
+        {adornment}
+      </div>
+    </div>
+  );
+}
+
+/** Marca de que la orden de compra tiene factura adjunta. */
+function InvoiceAttachedHint() {
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span
+            tabIndex={0}
+            role="img"
+            aria-label="Cuenta con factura adjunta"
+            className="inline-flex shrink-0 rounded-md text-emerald-600 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-hidden dark:text-emerald-400"
+          >
+            <ReceiptText className="size-4" />
+          </span>
+        </TooltipTrigger>
+        <TooltipContent side="top" className="max-w-64 text-xs">
+          Este artículo cuenta con factura adjunta. El inspector podrá revisarla
+          en su inspección.
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
+
+/** La factura de la orden de compra, como documento asociado al artículo. */
+function InvoiceDocumentRow({ className }: { className?: string }) {
+  return (
+    <div className={cn("flex items-center gap-3", className)}>
+      <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400">
+        <ReceiptText className="size-3.5" />
+      </span>
+
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-[13px] font-medium">Factura de la compra</p>
+        <p className="truncate text-[10px] text-muted-foreground">
+          Documento asociado a este artículo
+        </p>
+      </div>
     </div>
   );
 }
@@ -363,6 +411,9 @@ export function ArticleDetailDialog({
                     label: "N° de orden de compra",
                     value: article.order_number,
                     strong: true,
+                    adornment: article.incoming_readiness?.has_invoice ? (
+                      <InvoiceAttachedHint />
+                    ) : undefined,
                   },
                   {
                     label: "N° de requisición",
@@ -417,6 +468,13 @@ export function ArticleDetailDialog({
                     : undefined
               }
             >
+              {/* La factura de la compra es un documento ya asociado al artículo:
+                  se muestra aparte de lo que se exige, que es lo que se declara
+                  y se consigna. */}
+              {article.incoming_readiness?.has_invoice && (
+                <InvoiceDocumentRow className="mb-2.5 border-b border-border/50 pb-2.5" />
+              )}
+
               {requirements.length > 0 ? (
                 <ul className="divide-y divide-border/50">
                   {requirements.map((req) => {

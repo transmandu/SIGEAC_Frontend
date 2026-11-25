@@ -48,6 +48,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Department } from "@/types";
+import { companyNow } from "@/lib/date";
 
 type DispatchType = "aeronautical" | "general";
 type ArticleCategory = "CONSUMABLE" | "PART" | "COMPONENT" | "TOOL";
@@ -92,7 +93,7 @@ export function WarehouseDispatchReportDialog() {
     brand_model: "",
   });
 
-  const today = new Date();
+  const today = companyNow();
 
   const { mutateAsync: getDispatch } = useGetDispatchReport();
   const { mutateAsync: getBalance } = useGetBalanceAndTotalReport();

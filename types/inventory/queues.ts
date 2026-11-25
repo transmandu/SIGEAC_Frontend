@@ -36,13 +36,18 @@ export interface QueueArticleBase {
 export type IncomingBlockingReason =
   | "MISSING_PURCHASE_ORDER"
   | "MISSING_DOCUMENT_REQUIREMENTS"
-  | "PENDING_DOCUMENTS";
+  | "PENDING_DOCUMENTS"
+  | "MISSING_IDENTITY";
 
 /** Lo que le falta al artículo para poder inspeccionarse. */
 export interface IncomingReadiness {
   ready: boolean;
   reasons: IncomingBlockingReason[];
+  /** Lo que falta de documentación en un consumible: no retiene, solo advierte. */
+  warnings?: IncomingBlockingReason[];
   has_purchase_order: boolean;
+  /** La orden de compra tiene factura adjunta. */
+  has_invoice?: boolean;
   pending_documents: {
     id: number;
     document_type: {
@@ -121,6 +126,8 @@ export interface InspectionQueueArticle extends QueueArticleBase {
   order_number: string | null;
   quantity: number;
   unit: string;
+  /** Día de la inspección (yyyy-MM-dd); el formato imprime este, no el de emisión. */
+  inspection_date: string | null;
 }
 
 export type InspectionQueueStatus =
