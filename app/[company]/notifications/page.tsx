@@ -1,14 +1,17 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   CalendarDays,
   ChevronsDown,
   Inbox,
+  LayoutGrid,
   RefreshCw,
   SearchX,
   SlidersHorizontal,
+  Tag,
   TriangleAlert,
+  type LucideIcon,
 } from "lucide-react";
 
 import { PanelSection } from "@/components/forms/PanelSection";
@@ -33,11 +36,51 @@ import { useNotifications } from "@/hooks/notifications/useNotifications";
 import { useResettingState } from "@/hooks/useResettingState";
 import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
 import { instantToCalendarDay, relativeDayLabel } from "@/lib/date";
-import { canClearNotifications } from "@/lib/notifications";
+import {
+  ALL_FILTER,
+  useNotificationFilters,
+} from "@/hooks/notifications/useNotificationFilters";
+import {
+  NOTIFICATION_AREAS,
+  NOTIFICATION_TONE_LABELS,
+  canClearNotifications,
+} from "@/lib/notifications";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
 type ReadFilter = "ALL" | "READ" | "UNREAD";
+
+const filterTriggerClass =
+  "h-8 w-50 max-sm:h-10 max-sm:w-full pl-8 text-xs bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60 transition-colors focus:ring-1 focus:ring-primary/40";
+
+/** Un filtro de la barra: icono a la izquierda y la misma medida que los demás. */
+function FilterSelect({
+  icon: Icon,
+  label,
+  value,
+  onChange,
+  children,
+}: {
+  icon: LucideIcon;
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  children: ReactNode;
+}) {
+  return (
+    <div className="relative">
+      <Icon className="pointer-events-none absolute left-2.5 top-1/2 z-10 size-3.5 -translate-y-1/2 text-muted-foreground" />
+      <Select value={value} onValueChange={onChange}>
+        <SelectTrigger className={filterTriggerClass} aria-label={label}>
+          <SelectValue placeholder={label} />
+        </SelectTrigger>
+        <SelectContent className="border-slate-200/60 dark:border-slate-700/60">
+          {children}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+}
 
 /** Se muestran por tandas: arrancar con pocas mantiene ágil la bandeja aunque haya cientos. */
 const PAGE_SIZE = 15;
@@ -74,10 +117,26 @@ export default function NotificationsPage() {
     return () => unregisterTour("notificaciones");
   }, [registerTour, unregisterTour, hasNotifications]);
 
+  const {
+    total,
+    facets,
+    area,
+    tone,
+    isFiltered: isCategoryFiltered,
+    showAreaFilter,
+    showToneFilter,
+    setAreaChoice,
+    setToneChoice,
+    matches,
+    clear: clearCategoryFilters,
+  } = useNotificationFilters(notifications);
+
   const filteredNotifications = useMemo(() => {
     const q = search.trim().toLowerCase();
 
     return notifications.filter((n) => {
+      if (!matches(n)) return false;
+
       const matchesSearch =
         !q ||
         [
@@ -99,17 +158,26 @@ export default function NotificationsPage() {
 
       return matchesSearch && matchesRead;
     });
-  }, [notifications, search, readFilter]);
+  }, [notifications, search, readFilter, matches]);
 
   const [visibleCount, setVisibleCount] = useResettingState(PAGE_SIZE, [
     search,
     readFilter,
+    area,
+    tone,
   ]);
 
   const visible = filteredNotifications.slice(0, visibleCount);
   const showList = !isPending && !isError && visible.length > 0;
   const remaining = filteredNotifications.length - visible.length;
-  const isFiltered = !!search.trim() || readFilter !== "ALL";
+  const isFiltered =
+    !!search.trim() || readFilter !== "ALL" || isCategoryFiltered;
+
+  const clearFilters = () => {
+    setSearch("");
+    setReadFilter("ALL");
+    clearCategoryFilters();
+  };
 
   // La bandeja se lee por días, de lo más reciente a lo más antiguo: cada día
   // lleva su encabezado ("Hoy", "Ayer", la fecha) y las notificaciones de ese
@@ -154,22 +222,54 @@ export default function NotificationsPage() {
         placeholder: "Buscar notificaciones...",
       }}
       filters={
-        <div className="relative">
-          <SlidersHorizontal className="pointer-events-none absolute left-2.5 top-1/2 z-10 size-3.5 -translate-y-1/2 text-muted-foreground" />
-          <Select
+        <>
+          <FilterSelect
+            icon={SlidersHorizontal}
+            label="Estado"
             value={readFilter}
-            onValueChange={(value) => setReadFilter(value as ReadFilter)}
+            onChange={(value) => setReadFilter(value as ReadFilter)}
           >
-            <SelectTrigger className="h-8 w-50 max-sm:h-10 max-sm:w-full pl-8 text-xs bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60 transition-colors focus:ring-1 focus:ring-primary/40">
-              <SelectValue placeholder="Estado" />
-            </SelectTrigger>
-            <SelectContent className="border-slate-200/60 dark:border-slate-700/60">
-              <SelectItem value="ALL">Todas</SelectItem>
-              <SelectItem value="UNREAD">No leídas</SelectItem>
-              <SelectItem value="READ">Leídas</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+            <SelectItem value="ALL">Todas</SelectItem>
+            <SelectItem value="UNREAD">No leídas</SelectItem>
+            <SelectItem value="READ">Leídas</SelectItem>
+          </FilterSelect>
+
+          {showAreaFilter && (
+            <FilterSelect
+              icon={LayoutGrid}
+              label="Área"
+              value={area ?? ALL_FILTER}
+              onChange={setAreaChoice}
+            >
+              <SelectItem value={ALL_FILTER} suffix={total}>
+                Todas las áreas
+              </SelectItem>
+              {facets.areas.map(({ key, count }) => (
+                <SelectItem key={key} value={key} suffix={count}>
+                  {NOTIFICATION_AREAS[key].label}
+                </SelectItem>
+              ))}
+            </FilterSelect>
+          )}
+
+          {showToneFilter && (
+            <FilterSelect
+              icon={Tag}
+              label="Tipo"
+              value={tone ?? ALL_FILTER}
+              onChange={setToneChoice}
+            >
+              <SelectItem value={ALL_FILTER} suffix={total}>
+                Todos los tipos
+              </SelectItem>
+              {facets.tones.map(({ key, count }) => (
+                <SelectItem key={key} value={key} suffix={count}>
+                  {NOTIFICATION_TONE_LABELS[key]}
+                </SelectItem>
+              ))}
+            </FilterSelect>
+          )}
+        </>
       }
       count={{
         value: isPending ? undefined : filteredNotifications.length,
@@ -220,6 +320,18 @@ export default function NotificationsPage() {
                 isFiltered
                   ? "Ninguna notificación coincide con la búsqueda o el filtro."
                   : "No hay notificaciones por mostrar."
+              }
+              action={
+                isFiltered ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-1 h-8"
+                    onClick={clearFilters}
+                  >
+                    Limpiar filtros
+                  </Button>
+                ) : undefined
               }
             />
           ) : (

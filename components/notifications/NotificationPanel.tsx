@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -10,7 +10,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Inbox, CheckCheck, X } from "lucide-react";
+import { Inbox, CheckCheck, ListFilter, X } from "lucide-react";
 import { useNotifications } from "@/hooks/notifications/useNotifications";
 import {
   useClearAllNotifications,
@@ -22,12 +22,31 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { useAuth } from "@/contexts/AuthContext";
 import NotificationItem from "./NotificationItem";
 import Link from "next/link";
-import { canClearNotifications } from "@/lib/notifications";
+import {
+  ALL_FILTER,
+  useNotificationFilters,
+} from "@/hooks/notifications/useNotificationFilters";
+import {
+  NOTIFICATION_AREAS,
+  NOTIFICATION_TONE_LABELS,
+  NOTIFICATION_TONE_STYLES,
+  canClearNotifications,
+} from "@/lib/notifications";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { usePanelPresence } from "@/hooks/helpers/usePanelPresence";
 
 // Lo que se pinta mientras el panel aún está llegando; el resto entra al terminar.
 const FIRST_PAINT_ITEMS = 8;
+
+const filterTriggerClass =
+  "h-8 w-full min-w-0 px-2.5 text-xs max-sm:h-10 max-sm:text-base bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60";
 
 interface Props {
   open: boolean;
@@ -58,9 +77,33 @@ export default function NotificationPanel({ open, onClose }: Props) {
 
   const { hideRead, setHideRead } = useHideReadNotifications();
 
-  const visibleNotifications = hideRead
-    ? notifications.filter((notification) => !notification.read_at)
-    : notifications;
+  // Las opciones de filtro salen de lo que se ve, o sea sin las leídas ocultas.
+  const unhidden = useMemo(
+    () =>
+      hideRead
+        ? notifications.filter((notification) => !notification.read_at)
+        : notifications,
+    [hideRead, notifications],
+  );
+
+  const filters = useNotificationFilters(unhidden);
+  const {
+    total,
+    facets,
+    area,
+    tone,
+    isFiltered,
+    showAreaFilter,
+    showToneFilter,
+    setAreaChoice,
+    setToneChoice,
+    clear: clearFilters,
+  } = filters;
+
+  const visibleNotifications = useMemo(
+    () => unhidden.filter(filters.matches),
+    [unhidden, filters.matches],
+  );
 
   const { mutate: markAllAsRead } = useMarkAllNotificationsAsRead(
     selectedCompany?.slug!,
@@ -191,9 +234,84 @@ export default function NotificationPanel({ open, onClose }: Props) {
           </div>
         </div>
 
+        {(showAreaFilter || showToneFilter) && (
+          <div
+            className={cn(
+              "grid shrink-0 gap-2 border-b bg-muted/30 px-3 py-2",
+              showAreaFilter && showToneFilter
+                ? "grid-cols-2 max-sm:grid-cols-1"
+                : "grid-cols-1",
+            )}
+          >
+            {/* El panel flota en z-1000: las listas (portal) van por encima, como sus tooltips. */}
+            {showAreaFilter && (
+              <Select value={area ?? ALL_FILTER} onValueChange={setAreaChoice}>
+                <SelectTrigger
+                  className={filterTriggerClass}
+                  aria-label="Filtrar por área"
+                >
+                  <SelectValue placeholder="Área" />
+                </SelectTrigger>
+                <SelectContent className="z-1002">
+                  <SelectItem value={ALL_FILTER} suffix={total}>
+                    <span className="inline-flex items-center gap-2">
+                      <ListFilter className="size-3.5 text-muted-foreground" />
+                      Todas las áreas
+                    </span>
+                  </SelectItem>
+                  {facets.areas.map(({ key, count }) => {
+                    const { label, icon: Icon } = NOTIFICATION_AREAS[key];
+
+                    return (
+                      <SelectItem key={key} value={key} suffix={count}>
+                        <span className="inline-flex items-center gap-2">
+                          <Icon className="size-3.5 text-muted-foreground" />
+                          {label}
+                        </span>
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            )}
+
+            {showToneFilter && (
+              <Select value={tone ?? ALL_FILTER} onValueChange={setToneChoice}>
+                <SelectTrigger
+                  className={filterTriggerClass}
+                  aria-label="Filtrar por tipo"
+                >
+                  <SelectValue placeholder="Tipo" />
+                </SelectTrigger>
+                <SelectContent className="z-1002">
+                  <SelectItem value={ALL_FILTER} suffix={total}>
+                    <span className="inline-flex items-center gap-2">
+                      <ListFilter className="size-3.5 text-muted-foreground" />
+                      Todos los tipos
+                    </span>
+                  </SelectItem>
+                  {facets.tones.map(({ key, count }) => (
+                    <SelectItem key={key} value={key} suffix={count}>
+                      <span className="inline-flex items-center gap-2">
+                        <span
+                          className={cn(
+                            "size-2 rounded-full",
+                            NOTIFICATION_TONE_STYLES[key].stripe,
+                          )}
+                        />
+                        {NOTIFICATION_TONE_LABELS[key]}
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+        )}
+
         {/* CONTENT */}
 
-        <div className="flex-1 overflow-y-auto scrollbar-modern [scrollbar-gutter:stable]">
+        <div className="flex-1 overflow-y-auto scrollbar-modern scrollbar-gutter-stable">
           {visibleNotifications.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center px-8 text-center">
               <Inbox className="mb-4 h-12 w-12 text-muted-foreground/50" />
@@ -201,10 +319,22 @@ export default function NotificationPanel({ open, onClose }: Props) {
               <h3 className="text-sm font-medium">Sin notificaciones</h3>
 
               <p className="mt-1 text-xs text-muted-foreground">
-                {hideRead && notifications.length > 0
-                  ? "No hay notificaciones sin leer."
-                  : "Todo está al día."}
+                {isFiltered
+                  ? "Ninguna coincide con los filtros."
+                  : hideRead && notifications.length > 0
+                    ? "No hay notificaciones sin leer."
+                    : "Todo está al día."}
               </p>
+
+              {isFiltered && (
+                <button
+                  type="button"
+                  onClick={clearFilters}
+                  className="mt-3 text-xs font-medium text-primary hover:underline"
+                >
+                  Quitar filtros
+                </button>
+              )}
             </div>
           ) : (
             <div className="p-2 gap-2 flex flex-col">
