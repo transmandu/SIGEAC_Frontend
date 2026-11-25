@@ -27,6 +27,7 @@ import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useGetImage } from "@/hooks/general/archivos/UseGetImage";
+import { parseCalendarDate } from "@/lib/date";
 const imageFileSchema = z
   .instanceof(File)
   .refine((file) => file.size <= 5 * 1024 * 1024, "Max 5MB")
@@ -101,7 +102,7 @@ export function EditFollowUpControlForm({ onClose, initialData }: FormProps) {
       description: initialData.description || "",
       implementation_responsible: initialData.implementation_responsible || "",
       follow_up_responsible: initialData.follow_up_responsible || "",
-      date: initialData.date ? new Date(initialData.date) : new Date(),
+      date: initialData.date ? parseCalendarDate(initialData.date) : new Date(),
     },
   });
 

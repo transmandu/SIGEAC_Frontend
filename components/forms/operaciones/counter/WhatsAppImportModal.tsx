@@ -39,6 +39,8 @@ import type {
   PaxPassenger,
 } from "@/types";
 import { toast } from "sonner";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import { instantToCalendarDay } from "@/lib/date";
 
 const TYPE_LABELS: Record<string, { label: string; color: string }> = {
   pax: {
@@ -60,6 +62,7 @@ interface Props {
 }
 
 export default function WhatsAppImportModal({ open, onClose, company }: Props) {
+  const timeZone = useCompanyTimezone();
   const router = useRouter();
   const { user } = useAuth();
 
@@ -75,7 +78,7 @@ export default function WhatsAppImportModal({ open, onClose, company }: Props) {
 
   // Parámetros comunes para guardar en borrador
   const [flightDate, setFlightDate] = useState<string>(() => {
-    return new Date().toISOString().split("T")[0];
+    return instantToCalendarDay(new Date(), timeZone) ?? "";
   });
   const [route, setRoute] = useState<string>("PZO-CAJ");
   const [selectedFlightsIndices, setSelectedFlightsIndices] = useState<

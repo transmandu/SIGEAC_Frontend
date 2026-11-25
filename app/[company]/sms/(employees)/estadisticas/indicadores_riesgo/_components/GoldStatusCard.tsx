@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   XCircle,
 } from "lucide-react";
+import { formatCalendarDate } from "@/lib/date";
 
 interface GoalStatusCardProps {
   achieved: boolean;
@@ -23,13 +24,8 @@ export const GoalStatusCard: React.FC<GoalStatusCardProps> = ({
   params,
   className = "",
 }) => {
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("es-ES", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
+  const formatDate = (dateString: string) =>
+    formatCalendarDate(dateString, "d 'de' MMMM 'de' yyyy");
 
   const config = {
     achieved: {

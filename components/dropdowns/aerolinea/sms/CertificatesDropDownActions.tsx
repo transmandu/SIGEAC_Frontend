@@ -33,6 +33,7 @@ import { PdfEndpointPreviewDialog } from "@/components/dialogs/shared/PdfEndpoin
 import EditCertificateForm from "@/components/forms/general/EditCertificateForm";
 import { cn } from "@/lib/utils";
 import { formatCalendarDate } from "@/lib/date";
+import { lastFirstName } from "@/lib/person-name";
 
 interface CertificatesDropDownActionsProps {
   certificate: CertificateColumn;
@@ -184,8 +185,7 @@ const CertificatesDropDownActions = ({
                   </div>
                   de
                   <span className="font-bold text-foreground block mt-1">
-                    {certificate.employee?.last_name},{" "}
-                    {certificate.employee?.first_name}
+                    {lastFirstName(certificate.employee)}
                   </span>
                   <span className="block mt-4 text-red-500 font-semibold bg-red-50 dark:bg-red-950/20 py-1 rounded-md">
                     Esta acción es irreversible.

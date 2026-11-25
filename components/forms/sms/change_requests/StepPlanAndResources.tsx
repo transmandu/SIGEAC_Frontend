@@ -36,6 +36,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { fullName } from "@/lib/person-name";
 
 interface StepPlanAndResourcesProps {
   form: UseFormReturn<ChangeRequestFormValues>;
@@ -88,7 +89,7 @@ function ResponsibleSelect({
 
   const searchLower = search.toLowerCase();
   const filteredLocal = localEmployees.filter((e) =>
-    `${e.first_name} ${e.last_name} ${e.dni} ${e.department?.name ?? ""}`
+    `${fullName(e)} ${e.dni} ${e.department?.name ?? ""}`
       .toLowerCase()
       .includes(searchLower),
   );
@@ -143,7 +144,7 @@ function ResponsibleSelect({
               {selectedLocal ? (
                 <span className="flex items-center gap-2 overflow-hidden flex-1">
                   <span className="truncate">
-                    {selectedLocal.first_name} {selectedLocal.last_name}
+                    {fullName(selectedLocal)}
                   </span>
                   <span className="font-mono text-xs text-muted-foreground shrink-0">
                     {selectedLocal.dni}
@@ -187,7 +188,7 @@ function ResponsibleSelect({
                 {filteredLocal.map((e) => (
                   <CommandItem
                     key={e.id}
-                    value={`${e.first_name} ${e.last_name} ${e.dni}`}
+                    value={`${fullName(e)} ${e.dni}`}
                     onSelect={() => chooseLocal(e.id)}
                     className="py-2"
                   >
@@ -202,7 +203,7 @@ function ResponsibleSelect({
                     />
                     <div className="flex flex-col min-w-0 flex-1">
                       <span className="text-sm font-medium truncate">
-                        {e.first_name} {e.last_name}
+                        {fullName(e)}
                       </span>
                       <span className="text-xs text-muted-foreground truncate">
                         {e.job_title?.name} · {e.department?.name}

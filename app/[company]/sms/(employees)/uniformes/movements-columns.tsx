@@ -15,13 +15,9 @@ import {
   MOVEMENT_TYPE_META,
 } from "@/components/sms/uniform-meta";
 import { formatCalendarDate } from "@/lib/date";
+import { formalName } from "@/lib/person-name";
 
 const formatDate = (value?: string) => formatCalendarDate(value, "date", "---");
-
-const employeeFullName = (emp: NonNullable<UniformMovement["employee"]>) =>
-  [emp.first_name, emp.middle_name, emp.last_name, emp.second_last_name]
-    .filter(Boolean)
-    .join(" ");
 
 export const movementsColumns: AppColumnDef<UniformMovement>[] = [
   {
@@ -104,7 +100,7 @@ export const movementsColumns: AppColumnDef<UniformMovement>[] = [
         return (
           <div className="flex flex-col">
             <span className="text-sm font-medium">
-              {employeeFullName(movement.employee)}
+              {formalName(movement.employee)}
             </span>
             <span className="text-xs text-muted-foreground">
               DNI: {movement.employee.dni}

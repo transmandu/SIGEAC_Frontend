@@ -27,6 +27,7 @@ import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { getCertificadosSteps } from "@/components/tour/steps/general/cursos/certificados/certificados";
 import { type CertificateGroup } from "./columns";
+import { lastFirstName } from "@/lib/person-name";
 
 interface DataTableProps<TData extends RowData> {
   columns: AppColumnDef<TData>[];
@@ -84,7 +85,7 @@ export function DataTableCertificates<TData extends RowData>({
       const emp = row.employee;
       if (!emp) return false;
       const identity =
-        `${emp.last_name} ${emp.first_name} ${emp.dni}`.toLowerCase();
+        `${lastFirstName(emp)} ${emp.dni}`.toLowerCase();
       if (identity.includes(q)) return true;
       return (row.certificates ?? []).some((cert: any) =>
         String(cert.course?.name ?? "")

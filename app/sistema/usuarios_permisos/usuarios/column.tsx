@@ -14,6 +14,7 @@ import RolesDialog from "@/components/dialogs/general/RolesDialog"
 import UserDropdownActions from "@/components/dropdowns/ajustes/UserDropdownActions"
 import { Badge } from "@/components/ui/badge"
 import { User } from "@/types"
+import { fullName } from "@/lib/person-name"
 import { useState } from "react"
 import UserStatusButton  from "@/components/misc/UserStatusButton"
 import { Info } from "lucide-react"
@@ -35,7 +36,7 @@ export const columns: AppColumnDef<User>[] = [
                 href={`/sistema/usuarios_permisos/usuarios/${row.original.id}`}
                 className="text-center font-medium hover:text-black hover:underline transition-colors"
               >
-                {row.original.first_name} {row.original.last_name}
+                {fullName(row.original)}
               </Link>
             </TooltipTrigger>
             <TooltipContent>
@@ -160,7 +161,7 @@ export const columns: AppColumnDef<User>[] = [
               <span className="w-3 h-3 rounded-full border-2 border-background bg-muted-foreground/40" />
             )}
           </div>
-          <RolesDialog names={`${item.first_name} ${item.last_name}`} roles={item.roles} companies={item.companies} />
+          <RolesDialog names={fullName(item)} roles={item.roles} companies={item.companies} />
         </div>
       )
     },

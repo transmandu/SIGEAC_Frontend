@@ -30,6 +30,8 @@ import {
   describeRisk,
 } from "@/lib/sms/change-risk";
 import { ChangeRequestFormValues } from "./CreateChangeRequestForm";
+import { fullName } from "@/lib/person-name";
+import { toCalendarPayload } from "@/lib/date";
 
 interface StepRisksAndDetailsProps {
   form: UseFormReturn<ChangeRequestFormValues>;
@@ -68,7 +70,7 @@ export function StepRisksAndDetails({
 
   const employeeOptions = employees.map((e) => ({
     value: e.id,
-    label: `${e.first_name} ${e.last_name}`,
+    label: fullName(e),
     badge: e.dni,
   }));
 
@@ -284,7 +286,7 @@ export function StepRisksAndDetails({
                     field.value ? new Date(field.value + "T00:00:00") : null
                   }
                   setValue={(d) =>
-                    field.onChange(d ? d.toISOString().slice(0, 10) : null)
+                    field.onChange(toCalendarPayload(d) ?? null)
                   }
                 />
                 <FormMessage />
@@ -303,7 +305,7 @@ export function StepRisksAndDetails({
                     field.value ? new Date(field.value + "T00:00:00") : null
                   }
                   setValue={(d) =>
-                    field.onChange(d ? d.toISOString().slice(0, 10) : null)
+                    field.onChange(toCalendarPayload(d) ?? null)
                   }
                 />
                 <FormMessage />

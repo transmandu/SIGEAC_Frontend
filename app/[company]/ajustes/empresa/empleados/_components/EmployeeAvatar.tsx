@@ -14,24 +14,17 @@ import {
 import { useIsSuperuser } from "@/hooks/helpers/useIsSuperuser";
 import { cn } from "@/lib/utils";
 import type { Employee } from "@/types";
+import { initialsOf as personInitials, formalName } from "@/lib/person-name";
 
 export const employeeFullName = (
   employee: Pick<
     Employee,
     "first_name" | "middle_name" | "last_name" | "second_last_name"
   >,
-) =>
-  [
-    employee.first_name,
-    employee.middle_name,
-    employee.last_name,
-    employee.second_last_name,
-  ]
-    .filter(Boolean)
-    .join(" ");
+) => formalName(employee);
 
 const initialsOf = (employee: Pick<Employee, "first_name" | "last_name">) =>
-  `${employee.first_name?.[0] ?? ""}${employee.last_name?.[0] ?? ""}`.toUpperCase();
+  `${personInitials(employee)}`.toUpperCase();
 
 type AvatarEmployee = Pick<
   Employee,

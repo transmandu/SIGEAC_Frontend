@@ -17,15 +17,13 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import type { Employee } from "@/types";
 import { EmployeeExpandedRow } from "./_components/EmployeeExpandedRow";
 import { activeEmployeeColumns, inactiveEmployeeColumns } from "./columns";
+import { formalName } from "@/lib/person-name";
 
 type Tab = "active" | "inactive";
 
 const matches = (employee: Employee, q: string) =>
   [
-    employee.first_name,
-    employee.middle_name,
-    employee.last_name,
-    employee.second_last_name,
+    formalName(employee),
     employee.dni,
     employee.email,
     employee.job_title?.name,

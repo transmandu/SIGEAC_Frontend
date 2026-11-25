@@ -22,6 +22,7 @@ import { cn } from '@/lib/utils'
 
 import { Mail, User as UserIcon } from 'lucide-react'
 import { PageHeader } from "@/components/layout/PageHeader";
+import { fullName } from "@/lib/person-name";
 
 const UserByIdPage = ({ params }: { params: Promise<{ id: string }> }) => {
   const { id } = use(params);
@@ -44,7 +45,7 @@ const UserByIdPage = ({ params }: { params: Promise<{ id: string }> }) => {
     (user.isActive as unknown) === 1
 
   return (
-    <ContentLayout title={`${user.first_name} ${user.last_name}`}>
+    <ContentLayout title={fullName(user)}>
       <div className="flex flex-col gap-y-4">
 
         {/* Breadcrumb */}
@@ -68,7 +69,7 @@ const UserByIdPage = ({ params }: { params: Promise<{ id: string }> }) => {
                   Nombre completo
                 </span>
                 <span className="text-sm font-medium">
-                  {user.first_name} {user.last_name}
+                  {fullName(user)}
                 </span>
               </div>
 

@@ -23,6 +23,7 @@ import {
   textareaClass,
 } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
 import { useState } from "react";
+import { fullName } from "@/lib/person-name";
 
 function transformApiData(apiData: any) {
   return {
@@ -122,7 +123,7 @@ const RequisitionDropdownDialogs = ({
       id: req.id,
       data: {
         status: "REJECTED",
-        updated_by: `${user?.first_name} ${user?.last_name}`,
+        updated_by: `${fullName(user)}`,
         observation: observation.trim() || null,
       },
       company: selectedCompany.slug,

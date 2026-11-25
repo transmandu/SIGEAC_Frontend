@@ -7,6 +7,7 @@ import { useGetTotalReportsStatsByYear } from "@/hooks/sms/useGetTotalReportsSta
 import { format, startOfYear } from "date-fns";
 import { Loader2, BarChart3, PieChart } from "lucide-react";
 import { useMemo } from "react";
+import { companyNow } from "@/lib/date";
 
 interface SMSReportIndicatorProps {
   companySlug: string;
@@ -49,8 +50,8 @@ export default function SMSReportIndicator({
     isLoading: isLoadingBarChart,
     isError: isErrorBarChart,
   } = useGetTotalReportsStatsByYear(
-    format(startOfYear(new Date()), "yyyy-MM-dd"),
-    format(new Date(), "yyyy-MM-dd"),
+    format(startOfYear(companyNow()), "yyyy-MM-dd"),
+    format(companyNow(), "yyyy-MM-dd"),
     companySlug
   );
 

@@ -58,7 +58,7 @@ import {
 import { cn, formatQuantity } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
-import { formatInstant } from "@/lib/date";
+import { formatInstant, toZonedWallClock, zonedWallClockToUtcIso } from "@/lib/date";
 import type {
   GeneralArticleIntake,
   GeneralArticleIntakeEntryType,
@@ -101,6 +101,7 @@ import {
   type IntakeExtra,
 } from "./IntakeExtrasPanel";
 import { useResettingState } from "@/hooks/useResettingState";
+import { fullName } from "@/lib/person-name";
 
 type StatusFilter = "ALL" | GeneralArticleIntakeStatus;
 type EntryTypeFilter = "ALL" | GeneralArticleIntakeEntryType;
@@ -320,7 +321,12 @@ function AppliedConversionNotice({
 // ── Acción de confirmar una entrada ─────────────────────────────────────
 function ConfirmIntakeAction({ intake }: { intake: GeneralArticleIntake }) {
   const [open, setOpen] = useState(false);
-  const [confirmedAt, setConfirmedAt] = useState<Date>(() => new Date());
+  const timeZone = useCompanyTimezone();
+  // Hora de pared en la zona de la compañía (no la del navegador): se envía
+  // al backend con zonedWallClockToUtcIso.
+  const [confirmedAt, setConfirmedAt] = useState<Date>(
+    () => toZonedWallClock(new Date(), timeZone) ?? new Date(),
+  );
   const [equivalence, setEquivalence] = useState("");
   const { confirmGeneralArticleIntake } = useConfirmGeneralArticleIntake();
   const { user } = useAuth();
@@ -394,15 +400,15 @@ function ConfirmIntakeAction({ intake }: { intake: GeneralArticleIntake }) {
   );
 
   const arrivedAt = useMemo(
-    () => (intake.arrived_at ? new Date(intake.arrived_at) : null),
-    [intake.arrived_at],
+    () => toZonedWallClock(intake.arrived_at, timeZone),
+    [intake.arrived_at, timeZone],
   );
 
   const isBeforeArrival = !!arrivedAt && confirmedAt < arrivedAt;
 
   const handleOpenChange = (next: boolean) => {
     if (next) {
-      setConfirmedAt(new Date());
+      setConfirmedAt(toZonedWallClock(new Date(), timeZone) ?? new Date());
       setFallbackCandidate(null);
       setEquivalence("");
       setIndividualsDraft(EMPTY_INDIVIDUALS_DRAFT);
@@ -415,7 +421,9 @@ function ConfirmIntakeAction({ intake }: { intake: GeneralArticleIntake }) {
     confirmGeneralArticleIntake.mutate(
       {
         id: intake.id,
-        confirmedAt: canEditDate ? confirmedAt : undefined,
+        confirmedAt: canEditDate
+          ? new Date(zonedWallClockToUtcIso(confirmedAt, timeZone))
+          : undefined,
         newConversionEquivalence: conversionCandidate
           ? parseFloat(equivalence)
           : undefined,
@@ -939,8 +947,7 @@ const IntakeRow = memo(function IntakeRow({
                 <strong>A:</strong>
                 <br />
                 <span className="uppercase">
-                  {intake.handed_to_employee.first_name}{" "}
-                  {intake.handed_to_employee.last_name}
+                  {fullName(intake.handed_to_employee)}
                 </span>
               </>
             )}
@@ -1046,7 +1053,7 @@ export function RecepcionGeneralTab() {
           ?.toLowerCase()
           .includes(q) ||
         i.registered_by?.toLowerCase().includes(q) ||
-        `${i.handed_to_employee?.first_name ?? ""} ${i.handed_to_employee?.last_name ?? ""}`
+        `${fullName(i.handed_to_employee)}`
           .toLowerCase()
           .includes(q),
     );

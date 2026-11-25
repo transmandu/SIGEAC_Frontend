@@ -6,16 +6,8 @@ import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { type AppColumnDef } from "@/lib/table";
 import type { WorkshopDispatch } from "@/hooks/mantenimiento/almacen/salida_taller/useGetWorkshopDispatches";
 import DispatchArticlesDialog from "@/components/dialogs/mantenimiento/almacen/DispatchArticlesDialog";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
 import { Calendar, FileText, ListTree, Users, Wrench } from "lucide-react";
-
-function safeDateLabel(raw?: string | null) {
-  if (!raw) return null;
-  const d = new Date(raw);
-  if (Number.isNaN(d.getTime())) return null;
-  return format(d, "dd MMM yyyy", { locale: es });
-}
+import FormattedInstant from "@/components/misc/FormattedInstant";
 
 export function buildColumns(
   onOpenTimeline: (id: number) => void,
@@ -91,10 +83,13 @@ export function buildColumns(
         />
       ),
       cell: ({ row }) => {
-        const label = safeDateLabel(row.original.submission_date);
         return (
           <p className="text-center text-muted-foreground tabular-nums">
-            {label ?? "—"}
+            <FormattedInstant
+              value={row.original.submission_date}
+              format="dd MMM yyyy"
+              fallback="—"
+            />
           </p>
         );
       },

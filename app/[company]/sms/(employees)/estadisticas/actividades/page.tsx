@@ -20,6 +20,7 @@ import { CalendarRange, ChevronDown, Loader2 } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { companyNow } from "@/lib/date";
 
 const AirlineActivityStatsView = () => {
   const { selectedCompany, selectedStation } = useCompanyStore();
@@ -40,8 +41,8 @@ const AirlineActivityStatsView = () => {
     () => ({
       from:
         searchParams.get("from") ||
-        format(startOfMonth(new Date()), "yyyy-MM-dd"),
-      to: searchParams.get("to") || format(new Date(), "yyyy-MM-dd"),
+        format(startOfMonth(companyNow()), "yyyy-MM-dd"),
+      to: searchParams.get("to") || format(companyNow(), "yyyy-MM-dd"),
     }),
     [searchParams],
   );
@@ -59,8 +60,8 @@ const AirlineActivityStatsView = () => {
   };
 
   const handleReset = () => {
-    const defaultFrom = format(startOfMonth(new Date()), "yyyy-MM-dd");
-    const defaultTo = format(new Date(), "yyyy-MM-dd");
+    const defaultFrom = format(startOfMonth(companyNow()), "yyyy-MM-dd");
+    const defaultTo = format(companyNow(), "yyyy-MM-dd");
 
     const newParams = new URLSearchParams();
     newParams.set("from", defaultFrom);
@@ -71,8 +72,8 @@ const AirlineActivityStatsView = () => {
 
   // Llamada a nuestro nuevo Hook simulado
   const { data: statsData, isLoading } = useGetSMSActivityStats(
-    params.from || format(startOfMonth(new Date()), "yyyy-MM-dd"),
-    params.to || format(new Date(), "yyyy-MM-dd"),
+    params.from || format(startOfMonth(companyNow()), "yyyy-MM-dd"),
+    params.to || format(companyNow(), "yyyy-MM-dd"),
     selectedStation ?? null,
     selectedCompany?.slug,
   );
@@ -96,8 +97,8 @@ const AirlineActivityStatsView = () => {
                   </Label>
                   <p className="truncate text-sm font-medium">
                     {params.from ||
-                      format(startOfMonth(new Date()), "yyyy-MM-dd")}{" "}
-                    a {params.to || format(new Date(), "yyyy-MM-dd")}
+                      format(startOfMonth(companyNow()), "yyyy-MM-dd")}{" "}
+                    a {params.to || format(companyNow(), "yyyy-MM-dd")}
                   </p>
                 </div>
               </div>
@@ -123,8 +124,8 @@ const AirlineActivityStatsView = () => {
                 initialDate={{
                   from:
                     params.from ||
-                    format(startOfMonth(new Date()), "yyyy-MM-dd"),
-                  to: params.to || format(new Date(), "yyyy-MM-dd"),
+                    format(startOfMonth(companyNow()), "yyyy-MM-dd"),
+                  to: params.to || format(companyNow(), "yyyy-MM-dd"),
                 }}
               />
             </CollapsibleContent>

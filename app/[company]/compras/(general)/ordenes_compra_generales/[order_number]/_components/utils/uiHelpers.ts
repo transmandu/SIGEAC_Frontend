@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { formatCalendarDate } from "@/lib/date";
+import { formatCalendarDate, formatInstant } from "@/lib/date";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -27,7 +27,8 @@ export const statusBadgeCls = (status?: string) => {
   );
 };
 
-// Fecha de calendario: se muestra tal cual, sin convertir de zona.
+// `purchase_date` es un instante (datetime): se lee en la zona de la compañía.
 export const formatPurchaseDate = (
-  date?: string | Date | null,
-): string | undefined => formatCalendarDate(date, "dd MMM yyyy", "—");
+  date: string | Date | null | undefined,
+  timeZone: string,
+): string => formatInstant(date, timeZone, "dd MMM yyyy", "—");

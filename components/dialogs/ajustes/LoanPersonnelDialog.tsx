@@ -9,6 +9,7 @@ import { TagBadge } from "@/components/misc/TagBadge";
 import { Dialog } from "@/components/ui/dialog";
 import type { CompanyLoanAgreement } from "@/hooks/ajustes/convenios/types";
 import { useGetLoanPersonnel } from "@/hooks/ajustes/convenios/useGetLoanPersonnel";
+import { fullName } from "@/lib/person-name";
 
 interface Props {
   agreement: CompanyLoanAgreement;
@@ -75,7 +76,7 @@ export function LoanPersonnelDialog({
                 <li key={person.dni} className="space-y-1.5 px-4 py-3.5">
                   <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
                     <p className="text-sm font-medium wrap-anywhere">
-                      {person.first_name} {person.last_name}
+                      {fullName(person)}
                     </p>
                     <p className="font-mono text-[13px] tabular-nums text-muted-foreground">
                       {person.dni}

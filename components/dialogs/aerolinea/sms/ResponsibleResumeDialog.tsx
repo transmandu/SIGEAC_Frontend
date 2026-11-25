@@ -10,6 +10,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
+import { fullName } from "@/lib/person-name";
 
 const ResponsibleResumeDialog = ({ id }: { id: string }) => {
   const { data: employee, isLoading } = useGetEmployeeById(id);
@@ -20,7 +21,7 @@ const ResponsibleResumeDialog = ({ id }: { id: string }) => {
   return (
     <Dialog open={openEmployee} onOpenChange={setOpenEmployee}>
       <DialogTrigger>
-        {employee?.first_name} {employee?.last_name}
+        {fullName(employee)}
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader className="text-center font-bold">
@@ -32,7 +33,7 @@ const ResponsibleResumeDialog = ({ id }: { id: string }) => {
               Cliente
             </h3>
             <p className="text-lg font-semibold">
-              {employee?.first_name}-{employee?.last_name}
+              {fullName(employee)}
             </p>
             <Separator />
           </div>

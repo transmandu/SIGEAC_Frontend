@@ -15,6 +15,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Button } from "@/components/ui/button";
+import { parseCalendarDate } from "@/lib/date";
 
 interface FollowUpControlDialogProps {
   followUpControls: FollowUpControl[];
@@ -35,15 +36,8 @@ const FollowUpControlDialog = ({
   const safeFollowUpControls = followUpControls ?? [];
 
   // Función auxiliar para no repetir la lógica de normalización
-  const getNormalizedDate = (dateInput: any) => {
-    const dateString = String(dateInput as unknown);
-    const parsedDate = parseISO(dateString);
-    return new Date(
-      parsedDate.getUTCFullYear(),
-      parsedDate.getUTCMonth(),
-      parsedDate.getUTCDate()
-    );
-  };
+  const getNormalizedDate = (dateInput: any) =>
+    parseCalendarDate(String(dateInput as unknown)) ?? new Date();
 
   if (!showTrigger) {
     return (

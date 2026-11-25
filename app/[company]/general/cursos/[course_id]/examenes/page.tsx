@@ -79,6 +79,7 @@ import { courseStatusLabelEsUpper } from "@/lib/cursos/statuses";
 import { formatCalendarDate } from "@/lib/date";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { fullName as personName } from "@/lib/person-name";
 
 const COURSE_TYPE_LABELS: Record<string, string> = {
   INICIAL: "Inicial",
@@ -592,7 +593,7 @@ const ManageExamsPage = () => {
     return attendanceRows.filter((attendance: any) => {
       const employee = attendance.employee ?? {};
       const fullName =
-        `${employee.first_name ?? ""} ${employee.last_name ?? ""}`.toLowerCase();
+        `${personName(employee)}`.toLowerCase();
       const dni = String(
         attendance.employee_dni ?? employee.dni ?? "",
       ).toLowerCase();

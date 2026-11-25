@@ -37,6 +37,7 @@ import {
   PackageOpen,
 } from "lucide-react";
 import { useState } from "react";
+import FormattedInstant from "@/components/misc/FormattedInstant";
 
 /**
  * "3 d 4 h", "45 min": la unidad mayor y la que le sigue bastan para leer la
@@ -61,12 +62,9 @@ const formatDuration = (seconds: number) => {
     .join(" ");
 };
 
-const formatMoment = (value: string) => {
-  const date = parseISO(value);
-  return isNaN(date.getTime())
-    ? "Fecha inválida"
-    : format(date, "dd/MM/yyyy HH:mm", { locale: es });
-};
+const Moment = ({ value }: { value: string }) => (
+  <FormattedInstant value={value} format="dateTime" fallback="Fecha inválida" />
+);
 
 type FeedItem =
   | { kind: "status"; at: string; entry: ArticleStatusTimelineEntry }
@@ -119,7 +117,7 @@ function HistoryEventCard({ event }: { event: ArticleHistoryEvent }) {
       </p>
       {event.text && <p className="mt-0.5 opacity-90">{event.text}</p>}
       <p className="mt-1 opacity-80">
-        {formatMoment(event.at)}
+        <Moment value={event.at} />
         {event.registered_by ? ` · Registrado por: ${event.registered_by}` : ""}
       </p>
     </div>
@@ -142,7 +140,7 @@ function MergedArrivalBlock({ arrival }: { arrival: MergedArrival }) {
           {amount && <span className="text-muted-foreground"> · {amount}</span>}
           {arrival.received_at && (
             <span className="block text-xs text-muted-foreground">
-              Recibida el {formatMoment(arrival.received_at)}
+              Recibida el <Moment value={arrival.received_at} />
             </span>
           )}
         </span>
@@ -165,8 +163,13 @@ function MergedArrivalBlock({ arrival }: { arrival: MergedArrival }) {
                 {timelineEntryLabel(item.entry.status)}
               </Badge>
               <span className="text-muted-foreground">
-                {formatMoment(item.entry.from)}
-                {item.entry.until ? ` → ${formatMoment(item.entry.until)}` : ""}
+                <Moment value={item.entry.from} />
+                {item.entry.until && (
+                  <>
+                    {" → "}
+                    <Moment value={item.entry.until} />
+                  </>
+                )}
               </span>
             </div>
           ),
@@ -304,8 +307,13 @@ export default function ArticleStatusHistoryDialog({
                     </div>
 
                     <p className="text-sm mt-1">
-                      {formatMoment(entry.from)}
-                      {entry.until ? ` → ${formatMoment(entry.until)}` : ""}
+                      <Moment value={entry.from} />
+                      {entry.until && (
+                        <>
+                          {" → "}
+                          <Moment value={entry.until} />
+                        </>
+                      )}
                     </p>
 
                     <p className="text-xs text-muted-foreground">

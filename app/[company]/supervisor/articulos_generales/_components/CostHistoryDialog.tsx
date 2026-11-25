@@ -46,6 +46,7 @@ import {
 } from "./utils/uiHelpers";
 import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
 import { useOnChange } from "@/hooks/useOnChange";
+import { instantToCalendarDay, parseCalendarDate, companyNow } from "@/lib/date";
 
 /**
  * Editor del historial de costo combinado del grupo en fusión.
@@ -616,8 +617,9 @@ function CostDateButton({
   disabled?: boolean;
   onChange: (iso: string | null) => void;
 }) {
-  const parsed = iso ? new Date(iso) : undefined;
-  const valid = parsed && !isNaN(parsed.getTime()) ? parsed : undefined;
+  const timeZone = useCompanyTimezone();
+  // El día del ajuste en la zona de la compañía (no el del navegador).
+  const valid = parseCalendarDate(instantToCalendarDay(iso, timeZone));
 
   return (
     <Popover>
@@ -647,7 +649,7 @@ function CostDateButton({
           startMonth={new Date(1900, 0)}
           endMonth={new Date(new Date().getFullYear() + 1, 11)}
           captionLayout="dropdown"
-          disabled={(date) => date > new Date()}
+          disabled={(date) => date > companyNow()}
         />
       </PopoverContent>
     </Popover>

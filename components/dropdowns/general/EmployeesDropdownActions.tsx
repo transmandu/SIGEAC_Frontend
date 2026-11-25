@@ -27,6 +27,7 @@ import { Dialog } from "@/components/ui/dialog";
 import { useIsSuperuser } from "@/hooks/helpers/useIsSuperuser";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Employee } from "@/types";
+import { fullName as personName } from "@/lib/person-name";
 
 const EmployeesDropdownActions = ({ employee }: { employee: Employee }) => {
   const [openUpdate, setOpenUpdate] = useState(false);
@@ -42,7 +43,7 @@ const EmployeesDropdownActions = ({ employee }: { employee: Employee }) => {
   const reactivateEmployee = useReactivateEmployee();
 
   const isActive = !!employee.isActive;
-  const fullName = `${employee.first_name} ${employee.last_name}`;
+  const fullName = personName(employee);
   const company = selectedCompany?.slug ?? "";
 
   const actions: RowAction[] = [

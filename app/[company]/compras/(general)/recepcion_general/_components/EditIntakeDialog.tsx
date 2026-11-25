@@ -48,6 +48,7 @@ import type {
   UpdateGeneralArticleIntakePayload,
 } from "@/types/purchase";
 import { useResettingState } from "@/hooks/useResettingState";
+import { fullName } from "@/lib/person-name";
 
 // Estado editable del formulario. Las fechas viven como la hora de pared de la
 // zona de la compañía (un Date cuyos campos locales son los de esa zona) y el
@@ -146,7 +147,7 @@ export default function EditIntakeDialog({
   const warehouseStaffOptions = useMemo(() => {
     const options = (warehouseStaff ?? []).map((employee) => ({
       value: String(employee.id),
-      label: `${employee.first_name} ${employee.last_name}`,
+      label: fullName(employee),
       description: employee.dni || undefined,
     }));
     const current = intake.handed_to_employee;
@@ -154,7 +155,7 @@ export default function EditIntakeDialog({
     if (current && !options.some((o) => o.value === String(current.id))) {
       options.unshift({
         value: String(current.id),
-        label: `${current.first_name} ${current.last_name}`,
+        label: fullName(current),
         description: current.dni || undefined,
       });
     }

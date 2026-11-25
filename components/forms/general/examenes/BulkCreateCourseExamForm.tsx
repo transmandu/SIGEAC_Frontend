@@ -32,6 +32,7 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { CertificateImportProgress } from "@/components/forms/general/certificados/_components/CertificateImportProgress";
 import type { CertificateImportPhase } from "@/components/forms/general/certificados/_components/types";
+import { lastFirstName } from "@/lib/person-name";
 
 // PHP descarta en silencio los archivos que superan `max_file_uploads` (20 por
 // defecto). Nos quedamos en ese límite y acotamos también el tamaño total para
@@ -511,7 +512,7 @@ export const BulkCreateCourseExamForm = ({
                             ? `DNI ${item.dni}`
                             : "Sin DNI en el nombre"}
                           {employee
-                            ? ` · ${employee.last_name}, ${employee.first_name}`
+                            ? ` · ${lastFirstName(employee)}`
                             : " · No se encontró un empleado con asistencia"}
                         </p>
                       </div>

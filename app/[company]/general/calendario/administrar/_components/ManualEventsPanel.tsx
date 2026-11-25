@@ -37,6 +37,8 @@ import { useDeleteCalendarEvent } from "@/actions/general/calendario/actions";
 import { ManualCalendarEvent } from "@/types";
 import { ManualEventDialog } from "./ManualEventDialog";
 import { VisibilityRulesEditor } from "./VisibilityRulesEditor";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import { formatCalendarDate, formatInstant } from "@/lib/date";
 
 // Mismo problema de especificidad que en SourceAccessPanel: AccordionItem
 // trae "border-b" de base, se fuerza con !important para el borde completo.
@@ -48,6 +50,7 @@ interface ManualEventsPanelProps {
 }
 
 export function ManualEventsPanel({ company }: ManualEventsPanelProps) {
+  const timeZone = useCompanyTimezone();
   const { data: events = [], isLoading } = useGetManualCalendarEvents(company);
   const { data: allRules = [], isLoading: isLoadingRules } =
     useGetAllCalendarVisibilityRules(company);
@@ -114,11 +117,13 @@ export function ManualEventsPanel({ company }: ManualEventsPanelProps) {
                       {event.title}
                     </span>
                     <span className="text-xs font-normal text-muted-foreground">
-                      {format(
-                        new Date(event.start_at),
-                        "d 'de' MMMM, yyyy — H:mm",
-                        { locale: es },
-                      )}
+                      {event.all_day
+                        ? formatCalendarDate(event.start_at, "d 'de' MMMM, yyyy")
+                        : formatInstant(
+                            event.start_at,
+                            timeZone,
+                            "d 'de' MMMM, yyyy — H:mm",
+                          )}
                     </span>
                   </div>
                 </AccordionTrigger>

@@ -7,6 +7,7 @@ import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { type AppColumnDef } from "@/lib/table";
 import { cn } from "@/lib/utils";
 import type { Pilot } from "@/types";
+import { fullName } from "@/lib/person-name";
 
 const center = "flex w-full justify-center";
 
@@ -51,7 +52,7 @@ export const columns: AppColumnDef<Pilot>[] = [
     id: "name",
     size: 280,
     accessorFn: (pilot) =>
-      `${pilot.employee?.first_name ?? ""} ${pilot.employee?.last_name ?? ""}`.trim(),
+      `${fullName(pilot.employee)}`.trim(),
     meta: { title: "Piloto", mobileTitle: true },
     header: ({ column }) => (
       <div className={center}>
@@ -61,7 +62,7 @@ export const columns: AppColumnDef<Pilot>[] = [
     cell: ({ row }) => (
       <div className={center}>
         <span className="text-center text-sm font-semibold text-slate-700 dark:text-slate-200">
-          {row.original.employee?.first_name} {row.original.employee?.last_name}
+          {fullName(row.original.employee)}
         </span>
       </div>
     ),

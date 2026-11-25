@@ -46,6 +46,7 @@ import {
   severityValueFor,
 } from "@/lib/sms/change-risk";
 import Image from "next/image";
+import { fullName } from "@/lib/person-name";
 
 const STATUS_STYLES: Record<
   ChangeStatus,
@@ -365,7 +366,7 @@ const ActivitiesSection = ({
                 </TableCell>
                 <TableCell className="text-sm">
                   {activity.assigned_employee
-                    ? `${activity.assigned_employee.first_name} ${activity.assigned_employee.last_name}`
+                    ? fullName(activity.assigned_employee)
                     : activity.authorized_employee
                       ? `${activity.authorized_employee.full_name ?? "Empleado externo"} (Externo)`
                       : "—"}
@@ -574,8 +575,7 @@ export default function GestionDeCambioDetailPage() {
               <div>
                 <SectionLabel>Solicitante</SectionLabel>
                 <FieldValue>
-                  {changeRequest.requested_by?.first_name}{" "}
-                  {changeRequest.requested_by?.last_name}
+                  {fullName(changeRequest.requested_by)}
                 </FieldValue>
               </div>
               <div>
@@ -606,7 +606,7 @@ export default function GestionDeCambioDetailPage() {
                 <SectionLabel>Líder del Proyecto</SectionLabel>
                 <FieldValue>
                   {changeRequest.project_lead_by
-                    ? `${changeRequest.project_lead_by.first_name} ${changeRequest.project_lead_by.last_name}`
+                    ? fullName(changeRequest.project_lead_by)
                     : "—"}
                 </FieldValue>
               </div>
@@ -614,7 +614,7 @@ export default function GestionDeCambioDetailPage() {
                 <SectionLabel>Revisado por</SectionLabel>
                 <FieldValue>
                   {changeRequest.reviewed_by
-                    ? `${changeRequest.reviewed_by.first_name} ${changeRequest.reviewed_by.last_name}`
+                    ? fullName(changeRequest.reviewed_by)
                     : "—"}
                 </FieldValue>
               </div>
@@ -622,7 +622,7 @@ export default function GestionDeCambioDetailPage() {
                 <SectionLabel>Aprobado por</SectionLabel>
                 <FieldValue>
                   {changeRequest.approved_by
-                    ? `${changeRequest.approved_by.first_name} ${changeRequest.approved_by.last_name}`
+                    ? fullName(changeRequest.approved_by)
                     : "—"}
                 </FieldValue>
               </div>

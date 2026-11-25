@@ -15,7 +15,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { parseCalendarDate, toCalendarPayload } from "@/lib/date";
+import { parseCalendarDate, toCalendarPayload, companyNow } from "@/lib/date";
 import { cn } from "@/lib/utils";
 
 const MIN_YEAR = 1900;
@@ -102,7 +102,7 @@ export const DateField = forwardRef<HTMLInputElement, DateFieldProps>(
     const selected = parseCalendarDate(value);
     const minDate = parseCalendarDate(min);
     const maxDate = parseCalendarDate(max);
-    const today = new Date();
+    const today = companyNow();
 
     const outOfRange = (iso: string) =>
       (!!min && iso < min) || (!!max && iso > max);

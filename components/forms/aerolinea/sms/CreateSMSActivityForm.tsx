@@ -63,6 +63,7 @@ import { z } from "zod";
 import { ActivityCategoriesForm } from "./ActivityCategoriesForm";
 import FolderSelect from "@/components/library/FolderSelect";
 import { useResettingState } from "@/hooks/useResettingState";
+import { fullName } from "@/lib/person-name";
 
 const MAX_TOPICS_LENGTH = 10000;
 const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
@@ -802,7 +803,7 @@ export default function CreateSMSActivityForm({
                           key={employee.dni}
                           value={employee.dni.toString()}
                         >
-                          {employee.first_name} {employee.last_name}
+                          {fullName(employee)}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -843,7 +844,7 @@ export default function CreateSMSActivityForm({
                           key={employee.id}
                           value={employee.dni.toString()}
                         >
-                          {employee.first_name} {employee.last_name}
+                          {fullName(employee)}
                         </SelectItem>
                       ))}
                     </SelectContent>

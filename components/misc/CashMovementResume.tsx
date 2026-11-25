@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import { fullName } from "@/lib/person-name";
 
 type MovementTypeBadgeProps = {
   type: string;
@@ -49,8 +50,7 @@ const CashMovementResume = ({ movement }: { movement: CashMovement }) => {
                 </AvatarFallback>
               </Avatar>
               <p className="text-sm text-muted-foreground mt-1 text-center">
-                {movement.employee_responsible.first_name} <br />
-                {movement.employee_responsible.last_name}</p>
+                {fullName(movement.employee_responsible)}</p>
             </div>
           </div>
         </CardTitle>

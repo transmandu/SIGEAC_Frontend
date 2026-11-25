@@ -39,6 +39,7 @@ import axiosInstance, { PDF_GENERATION_TIMEOUT } from "@/lib/axios";
 import { toast } from "sonner";
 import { workOrderStatusLabelEsUpper } from "@/lib/planificacion/statuses";
 import { notifyError } from "@/lib/notify-error";
+import { formatCalendarDate } from "@/lib/date";
 
 type HoursMode = "auto" | "manual";
 
@@ -238,7 +239,7 @@ const WorkOrderAircraftDetailsCards = ({
                 Fecha de Orden
               </p>
               <p className="font-medium">
-                {format(work_order.date, "PPP", { locale: es })}
+                {formatCalendarDate(work_order.date, "PPP")}
               </p>
             </div>
             <div>

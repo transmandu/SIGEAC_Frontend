@@ -33,6 +33,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import Image from "next/image";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { companyNow } from "@/lib/date";
 const imageFileSchema = z
   .instanceof(File)
   .refine((file) => file.size <= 5 * 1024 * 1024, "Max 5MB")
@@ -82,7 +83,7 @@ export default function CreateFollowUpControlForm({ onClose, id }: FormProps) {
   const { createFollowUpControl } = useCreateFollowUpControl();
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
-    defaultValues: { date: new Date() },
+    defaultValues: { date: companyNow() },
   });
 
   const onSubmit = async (data: FormSchemaType) => {
@@ -153,7 +154,7 @@ export default function CreateFollowUpControlForm({ onClose, id }: FormProps) {
                     mode="single"
                     selected={field.value}
                     onSelect={field.onChange}
-                    disabled={(date) => date > new Date()} // Solo deshabilitar fechas futuras
+                    disabled={(date) => date > companyNow()} // Solo deshabilitar fechas futuras
                     autoFocus
                     startMonth={new Date(1980, 0)} // Año mínimo que se mostrará
                     endMonth={new Date(new Date().getFullYear(), 11)} // Año máximo (actual)

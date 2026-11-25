@@ -1,6 +1,7 @@
 import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { formatInstant } from "@/lib/date";
 
 export interface WarehouseReport {
   name: string;
@@ -110,14 +111,21 @@ const styles = StyleSheet.create({
   }
 });
 
-const WarehouseReportPdf = ({ reports }: { reports: WarehouseReport[] }) => {
+const WarehouseReportPdf = ({
+  reports,
+  timeZone,
+}: {
+  reports: WarehouseReport[];
+  /** Zona de la compañía: este PDF se renderiza fuera de React, no puede leerla. */
+  timeZone: string;
+}) => {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.title}>Reporte de Inventario</Text>
-          <Text style={styles.subtitle}>{format(new Date(), "PPP", { locale: es })}</Text>
+          <Text style={styles.subtitle}>{formatInstant(new Date(), timeZone, "PPP")}</Text>
         </View>
 
         {/* Report Content */}

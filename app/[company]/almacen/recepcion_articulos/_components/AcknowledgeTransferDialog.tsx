@@ -20,6 +20,7 @@ import { useCompanyStore } from '@/stores/CompanyStore'
 import { useAuth } from '@/contexts/AuthContext'
 import type { IncomingTransfer } from '@/hooks/mantenimiento/almacen/solicitudes/useGetIncomingTransfers'
 import { TransferLineDetail } from './TransferLineDetail'
+import { fullName } from "@/lib/person-name";
 
 /**
  * Confirma —o rechaza— que lo que llegó físicamente es lo que dice el
@@ -46,7 +47,7 @@ export function AcknowledgeTransferDialog({
   const [reason, setReason] = useState('')
 
   const pending = acknowledgeTransfer.isPending
-  const receivedBy = `${user?.first_name ?? ''} ${user?.last_name ?? ''}`.trim()
+  const receivedBy = fullName(user)
 
   const submit = async (status: 'APPROVED' | 'REJECTED') => {
     await acknowledgeTransfer.mutateAsync({

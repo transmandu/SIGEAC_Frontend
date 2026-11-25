@@ -4,6 +4,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { formatDistanceToNow, format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { ReactNode } from "react";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import { formatInstant } from "@/lib/date";
 
 /**
  * El popover aplica a todo estado salvo los de reposo: en STORED e INTOOLBOX el
@@ -31,6 +33,7 @@ export default function ArticleStatusSincePopover({
     statusSince?: string | null;
     children: ReactNode;
 }) {
+    const timeZone = useCompanyTimezone();
     const date = statusSince ? parseDate(statusSince) : null;
 
     return (
@@ -54,8 +57,8 @@ export default function ArticleStatusSincePopover({
                     {date ? (
                         <>
                             <p className="text-sm">
-                                Desde el {format(date, "dd/MM/yyyy", { locale: es })} a las{" "}
-                                {format(date, "HH:mm", { locale: es })}
+                                Desde el {formatInstant(statusSince, timeZone, "date")} a las{" "}
+                                {formatInstant(statusSince, timeZone, "time")}
                             </p>
                             <p className="text-xs text-muted-foreground">
                                 {formatDistanceToNow(date, { locale: es, addSuffix: true })}

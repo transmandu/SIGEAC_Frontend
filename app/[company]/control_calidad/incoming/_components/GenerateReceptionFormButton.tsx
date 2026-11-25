@@ -17,8 +17,15 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { CalendarIcon, FileText, Loader2 } from "lucide-react";
-import { format } from "date-fns";
+import { format, parse } from "date-fns";
 import { es } from "date-fns/locale";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -97,6 +104,20 @@ export function GenerateReceptionFormButton({
   const suggestedOrderNumber =
     systemOrderNumbers.length === 1 ? systemOrderNumbers[0] : "";
 
+  /**
+   * El formato documenta una inspección ya hecha: sugiere el día en que se
+   * inspeccionó, no hoy (el papel puede llenarse días después). Con varios
+   * artículos de días distintos, el más reciente; el inspector puede cambiarlo.
+   */
+  const inspectionDays = useMemo(
+    () =>
+      Array.from(
+        new Set(selected.map((a) => a.inspection_date).filter(Boolean)),
+      ).sort() as string[],
+    [selected],
+  );
+  const suggestedDay = inspectionDays.at(-1) ?? "";
+
   const validation = useMemo(() => {
     if (!canGenerate)
       return { ok: false, reason: "Selecciona al menos un artículo." };
@@ -119,7 +140,7 @@ export function GenerateReceptionFormButton({
    * volvería a pisar lo que el usuario ya escribió.
    */
   const correctingId = correcting?.id;
-  useOnChange([open, correctingId, suggestedOrderNumber], () => {
+  useOnChange([open, correctingId, suggestedOrderNumber, suggestedDay], () => {
     if (!open) return;
     setPurchaseOrderCode(
       correcting?.purchase_order_code ?? suggestedOrderNumber,
@@ -127,8 +148,8 @@ export function GenerateReceptionFormButton({
     setClient(correcting?.printed_client ?? "");
     setOthers(correcting?.printed_others ?? "");
     setVoidReason("");
-    if (correcting?.inspection_date)
-      setInspectionDate(new Date(correcting.inspection_date));
+    const day = correcting?.inspection_date?.slice(0, 10) ?? suggestedDay;
+    if (day) setInspectionDate(parse(day, "yyyy-MM-dd", new Date()));
   });
 
   /** Lo que el formato decía al emitirse: se corrige sobre eso, no desde cero. */
@@ -249,24 +270,55 @@ export function GenerateReceptionFormButton({
           <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
             {/* Fecha */}
             <div className="space-y-2">
-              <Label>Fecha</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full justify-between">
-                    {format(inspectionDate, "PPP", { locale: es })}
-                    <CalendarIcon className="h-4 w-4 opacity-60" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={inspectionDate}
-                    onSelect={(d) => d && setInspectionDate(d)}
-                    disabled={{ after: new Date() }}
-                    locale={es}
-                  />
-                </PopoverContent>
-              </Popover>
+              <Label>Fecha de inspección</Label>
+              {inspectionDays.length > 1 && !isCorrection ? (
+                <>
+                  <Select
+                    value={format(inspectionDate, "yyyy-MM-dd")}
+                    onValueChange={(day) =>
+                      setInspectionDate(parse(day, "yyyy-MM-dd", new Date()))
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {inspectionDays.map((day) => (
+                        <SelectItem key={day} value={day}>
+                          {format(parse(day, "yyyy-MM-dd", new Date()), "PPP", {
+                            locale: es,
+                          })}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Los artículos se inspeccionaron en días distintos: elige el
+                    día que debe imprimir el formato.
+                  </p>
+                </>
+              ) : (
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-between"
+                    >
+                      {format(inspectionDate, "PPP", { locale: es })}
+                      <CalendarIcon className="h-4 w-4 opacity-60" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={inspectionDate}
+                      onSelect={(d) => d && setInspectionDate(d)}
+                      disabled={{ after: new Date() }}
+                      locale={es}
+                    />
+                  </PopoverContent>
+                </Popover>
+              )}
             </div>
 
             {/* OC */}

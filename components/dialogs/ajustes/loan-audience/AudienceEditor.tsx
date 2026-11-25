@@ -24,6 +24,8 @@ import { flattenDepartments } from "@/lib/departments";
 import { DateCell } from "./DateCell";
 import { PickTable, type PickRow } from "./PickTable";
 import { useAudienceDraft } from "./useAudienceDraft";
+import { fullName } from "@/lib/person-name";
+import { companyNow } from "@/lib/date";
 
 const dash = <span className="text-muted-foreground">—</span>;
 
@@ -47,7 +49,7 @@ export function AudienceEditor({
   const { data: departmentTree, isLoading: loadingDepartments } =
     useGetDepartments(companySlug);
 
-  const today = useMemo(() => format(new Date(), "yyyy-MM-dd"), []);
+  const today = useMemo(() => format(companyNow(), "yyyy-MM-dd"), []);
   const departments = useMemo(
     () => flattenDepartments(departmentTree ?? []),
     [departmentTree],
@@ -58,7 +60,7 @@ export function AudienceEditor({
   const employeeRows: PickRow[] = employees
     .filter((e) => e.isActive !== false)
     .map((e) => {
-      const name = `${e.first_name} ${e.last_name}`;
+      const name = fullName(e);
       const dni = `${e.dni_type ? `${e.dni_type}-` : ""}${e.dni}`;
       const department = e.department?.name ?? "";
       const jobTitle = e.job_title?.name ?? "";

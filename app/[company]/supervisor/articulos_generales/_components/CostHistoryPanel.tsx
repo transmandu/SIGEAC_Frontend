@@ -24,6 +24,7 @@ import { CalendarIcon, Lock, Plus, RotateCcw, Trash2 } from "lucide-react"
 import { DecimalInput } from "./DecimalInput"
 import { dependencyBadgeCls, formatSupervisorDateTime } from "./utils/uiHelpers"
 import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone"
+import { instantToCalendarDay, parseCalendarDate, companyNow } from "@/lib/date";
 
 /**
  * Historial de costo de un artículo, editable en sitio.
@@ -450,8 +451,9 @@ function CostDateButton({
     disabled?: boolean
     onChange: (iso: string | null) => void
 }) {
-    const parsed = iso ? new Date(iso) : undefined
-    const valid = parsed && !isNaN(parsed.getTime()) ? parsed : undefined
+    const timeZone = useCompanyTimezone()
+    // El día del ajuste en la zona de la compañía (no el del navegador).
+    const valid = parseCalendarDate(instantToCalendarDay(iso, timeZone))
 
     return (
         <Popover>
@@ -479,7 +481,7 @@ function CostDateButton({
                     startMonth={new Date(1900, 0)}
                     endMonth={new Date(new Date().getFullYear() + 1, 11)}
                     captionLayout="dropdown"
-                    disabled={(date) => date > new Date()}
+                    disabled={(date) => date > companyNow()}
                 />
             </PopoverContent>
         </Popover>

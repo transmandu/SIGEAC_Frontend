@@ -77,8 +77,8 @@ export const formatSupervisorDate = (date?: string | Date | null): string | unde
  * Por eso recibe la zona: este archivo no es un componente y no puede leerla.
  */
 export const formatSupervisorDateTime = (
-  date?: string | Date | null,
-  timeZone: string = DEFAULT_TIMEZONE,
+  date: string | Date | null | undefined,
+  timeZone: string,
 ): string => {
   if (!date) return '—';
 

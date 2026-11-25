@@ -36,6 +36,9 @@ import { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { Label } from "@/components/ui/label";
+import { fullName } from "@/lib/person-name";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import { formatInstant, toZonedWallClock, companyNow } from "@/lib/date";
 
 const FormSchema = z.object({
   description: z.string().min(1, "Requerido"),
@@ -57,6 +60,7 @@ export const DailyReportDialog = ({
   onClose,
 }: DailyReportDialogProps) => {
   const { user } = useAuth();
+  const timeZone = useCompanyTimezone();
   const { company } = useParams<{ company: string }>();
   const { registerActivity } = useRegisterActivity();
   const [manualTime, setManualTime] = useState(false);
@@ -67,8 +71,8 @@ export const DailyReportDialog = ({
     resolver: zodResolver(FormSchema),
     defaultValues: {
       description: "",
-      start_hour: `${new Date().getHours().toString().padStart(2, "0")}:${new Date().getMinutes().toString().padStart(2, "0")}`,
-      date: new Date(),
+      start_hour: formatInstant(new Date(), timeZone, "time"),
+      date: toZonedWallClock(new Date(), timeZone) ?? new Date(),
     },
   });
 
@@ -79,12 +83,9 @@ export const DailyReportDialog = ({
 
   useEffect(() => {
     if (!manualTime) {
-      form.setValue(
-        "start_hour",
-        `${new Date().getHours().toString().padStart(2, "0")}:${new Date().getMinutes().toString().padStart(2, "0")}`,
-      );
+      form.setValue("start_hour", formatInstant(new Date(), timeZone, "time"));
     }
-  }, [manualTime, form]);
+  }, [manualTime, form, timeZone]);
 
   const handleSubmit = async (data: z.infer<typeof FormSchema>) => {
     const submissionData = {
@@ -122,7 +123,7 @@ export const DailyReportDialog = ({
               <div className="flex flex-col space-y-3">
                 <Label>Analista</Label>
                 <Input
-                  value={`${user?.first_name || ""} ${user?.last_name || ""}`}
+                  value={`${fullName(user)}`}
                   disabled
                 />
               </div>
@@ -155,7 +156,7 @@ export const DailyReportDialog = ({
                           selected={field.value}
                           onSelect={field.onChange}
                           disabled={(date) =>
-                            date > new Date() || date < new Date("1900-01-01")
+                            date > companyNow() || date < new Date("1900-01-01")
                           }
                           autoFocus
                         />

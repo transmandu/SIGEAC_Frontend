@@ -1,6 +1,6 @@
 "use client";
 
-import { format } from "date-fns";
+import { format, startOfMonth } from "date-fns";
 import { es } from "date-fns/locale";
 import {
   AlertCircle,
@@ -23,6 +23,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { companyNow } from "@/lib/date";
 
 interface Props {
   startDate?: Date;
@@ -41,7 +42,7 @@ export function DispatchReportDateRange({
   isDateRangeInvalid,
 }: Props) {
   const [calendarMonth, setCalendarMonth] = useState<Date>(
-    new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+    startOfMonth(companyNow()),
   );
 
   return (
@@ -93,8 +94,8 @@ export function DispatchReportDateRange({
                 label: "7D",
                 tooltip: "Últimos 7 días",
                 fn: () => {
-                  const end = new Date();
-                  const start = new Date();
+                  const end = companyNow();
+                  const start = companyNow();
                   start.setDate(end.getDate() - 7);
 
                   setStartDate(start);
@@ -106,8 +107,8 @@ export function DispatchReportDateRange({
                 label: "30D",
                 tooltip: "Últimos 30 días",
                 fn: () => {
-                  const end = new Date();
-                  const start = new Date();
+                  const end = companyNow();
+                  const start = companyNow();
                   start.setDate(end.getDate() - 30);
 
                   setStartDate(start);
@@ -127,7 +128,7 @@ export function DispatchReportDateRange({
                 tooltip: "Mes visible en el calendario",
 
                 fn: () => {
-                  const today = new Date();
+                  const today = companyNow();
 
                   const start = new Date(
                     calendarMonth.getFullYear(),
@@ -232,9 +233,9 @@ export function DispatchReportDateRange({
                   : 1
               }
               showOutsideDays={false}
-              endMonth={new Date()}
+              endMonth={companyNow()}
               locale={es}
-              disabled={(d) => d > new Date()}
+              disabled={(d) => d > companyNow()}
               className={cn(
                 "rounded-xl",
                 "[&_.rdp-day_selected]:bg-slate-200",

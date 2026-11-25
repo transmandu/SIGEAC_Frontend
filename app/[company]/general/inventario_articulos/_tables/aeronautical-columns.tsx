@@ -10,16 +10,12 @@ import { toolStatusLabelEsUpper } from "@/lib/warehouse/statuses";
 import { formatCondition } from "@/lib/warehouse/conditions";
 import type { CompanyInventoryArticle } from "@/types/inventory";
 import type { InventoryCategory } from "@/hooks/mantenimiento/almacen/inventario/useWarehouseInventoryArticles";
+import { parseCalendarDate } from "@/lib/date";
 
 // "YYYY-MM-DD" sin hora se lee como fecha local: parseISO la tomaría en UTC y
 // podría mostrar el día anterior.
-const parseDateLocal = (dateString: string): Date => {
-  if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
-    const [year, month, day] = dateString.split("-").map(Number);
-    return new Date(year, month - 1, day);
-  }
-  return parseISO(dateString);
-};
+const parseDateLocal = (dateString: string): Date =>
+  parseCalendarDate(dateString) ?? parseISO(dateString);
 
 // Una fila con varias unidades resume seriales y condiciones distintos: ahí
 // esas celdas no dicen nada y se muestra un guion.

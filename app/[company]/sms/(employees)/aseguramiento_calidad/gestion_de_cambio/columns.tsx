@@ -5,6 +5,7 @@ import { ChangeRequest, ChangeStatus } from "@/types";
 import { type AppColumnDef } from "@/lib/table";
 import { Badge } from "@/components/ui/badge";
 import ChangeManagementActions from "@/components/dropdowns/aerolinea/sms/ChangeManagementActions";
+import { fullName } from "@/lib/person-name";
 
 const STATUS_STYLES: Record<
   ChangeStatus,
@@ -72,8 +73,7 @@ export const columns: AppColumnDef<ChangeRequest>[] = [
     meta: { title: "Solicitante" },
     cell: ({ row }) => (
       <div className="flex justify-center text-center">
-        {row.original.requested_by?.first_name}{" "}
-        {row.original.requested_by?.last_name}
+        {fullName(row.original.requested_by)}
       </div>
     ),
   },

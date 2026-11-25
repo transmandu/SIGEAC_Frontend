@@ -26,6 +26,8 @@ import { useGetUserActivity } from "@/hooks/aerolinea/desarrollo/useGetUserActiv
 import { useParams, useRouter } from "next/navigation";
 import { Activity } from "@/types";
 import { useOnChange } from "@/hooks/useOnChange";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import { formatInstant } from "@/lib/date";
 
 interface ActivityDropdownActionsProps {
   finished: boolean;
@@ -37,6 +39,7 @@ export const ActivityDropdownActions = ({
   finished,
 }: ActivityDropdownActionsProps) => {
   const router = useRouter();
+  const timeZone = useCompanyTimezone();
   const { company } = useParams<{ company: string }>();
 
   // Uso correcto de los hooks de mutación
@@ -63,8 +66,7 @@ export const ActivityDropdownActions = ({
   // Set default end time when dialog opens
   useOnChange([dialogOpen, manualEndTime], () => {
     if (!manualEndTime && dialogOpen) {
-      const now = new Date();
-      setEndTime(now.toTimeString().slice(0, 5));
+      setEndTime(formatInstant(new Date(), timeZone, "time"));
     }
   });
 

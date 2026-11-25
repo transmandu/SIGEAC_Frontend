@@ -33,6 +33,8 @@ import {
 } from "@/components/forms/mantenimiento/compras/_components/IssueQuoteDraftDialog";
 import FormActions from "@/components/forms/mantenimiento/compras/_components/FormActions";
 import DiscardDraftButton from "@/components/forms/mantenimiento/compras/_components/DiscardDraftButton";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import { toZonedWallClock, zonedWallClockToUtcIso } from "@/lib/date";
 
 const FormSchema = z
   .object({
@@ -127,6 +129,7 @@ export function CreateGeneralQuoteForm({
    */
   draft?: Quote | null;
 }) {
+  const timeZone = useCompanyTimezone();
   const { selectedCompany } = useCompanyStore();
   const { data: units } = useGetUnits(selectedCompany?.slug);
   const { data: retailers } = useGetRetailers(selectedCompany?.slug);
@@ -223,7 +226,13 @@ export function CreateGeneralQuoteForm({
       // a volver a elegir sede y comercio, y la fecha guardada se perdía.
       ...(draft?.location_id ? { location_id: String(draft.location_id) } : {}),
       ...(draft?.retailer_id ? { retailer_id: String(draft.retailer_id) } : {}),
-      ...(draft?.quote_date ? { quote_date: new Date(draft.quote_date) } : {}),
+      ...(draft?.quote_date
+        ? {
+            quote_date:
+              toZonedWallClock(draft.quote_date, timeZone) ??
+              new Date(draft.quote_date),
+          }
+        : {}),
     },
   });
 
@@ -369,7 +378,7 @@ export function CreateGeneralQuoteForm({
       return {
         quote_date:
           data.quote_date instanceof Date
-            ? data.quote_date.toISOString()
+            ? zonedWallClockToUtcIso(data.quote_date, timeZone)
             : undefined,
         // La cabecera viaja también: al reabrir el borrador el comercio y la
         // observación tienen que estar donde el comprador los dejó.
@@ -378,7 +387,7 @@ export function CreateGeneralQuoteForm({
         general_articles: generalPayload,
       };
     },
-    [draft],
+    [draft, timeZone],
   );
 
   const isSavingDraft = openQuoteDraft.isPending || saveQuoteDraft.isPending;
@@ -394,7 +403,7 @@ export function CreateGeneralQuoteForm({
     // La fecha puede no estar elegida todavía: guardar un borrador no la exige.
     const quoteDate =
       data.quote_date instanceof Date
-        ? data.quote_date.toISOString()
+        ? zonedWallClockToUtcIso(data.quote_date, timeZone)
         : undefined;
 
     // Solo al abrirlo: crear un borrador sin nada capturado deja una fila inútil
@@ -500,7 +509,7 @@ export function CreateGeneralQuoteForm({
     }
 
     const formattedData = {
-      quote_date: data.quote_date.toISOString(),
+      quote_date: zonedWallClockToUtcIso(data.quote_date, timeZone),
       total,
       location_id: Number(data.location_id),
       requisition_order_id: req.id,

@@ -21,6 +21,7 @@ import { format, startOfMonth } from "date-fns";
 import { Loader2 } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState, useEffect } from "react";
+import { companyNow } from "@/lib/date";
 
 const graphicsOptions = [
   { id: "Todos", label: "Todos los gráficos" },
@@ -45,8 +46,8 @@ const Statistics = () => {
 
   // Obtener parámetros ACTUALES de la URL - SIN estado local
   const currentParams = useMemo(() => {
-    const defaultFrom = format(startOfMonth(new Date()), "yyyy-MM-dd");
-    const defaultTo = format(new Date(), "yyyy-MM-dd");
+    const defaultFrom = format(startOfMonth(companyNow()), "yyyy-MM-dd");
+    const defaultTo = format(companyNow(), "yyyy-MM-dd");
 
     const urlParams = new URLSearchParams(urlSearchParams.toString());
     return {
@@ -136,8 +137,8 @@ const Statistics = () => {
 
   // Manejar reset
   const handleReset = () => {
-    const defaultFrom = format(startOfMonth(new Date()), "yyyy-MM-dd");
-    const defaultTo = format(new Date(), "yyyy-MM-dd");
+    const defaultFrom = format(startOfMonth(companyNow()), "yyyy-MM-dd");
+    const defaultTo = format(companyNow(), "yyyy-MM-dd");
 
     const newParams = new URLSearchParams();
     newParams.set("from", defaultFrom);

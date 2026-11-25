@@ -21,6 +21,8 @@ import {
   TableFooter,
 } from "@/components/ui/table";
 import { Calendar, User, Plane, Package } from "lucide-react";
+import { fullName } from "@/lib/person-name";
+import { formatCalendarDate } from "@/lib/date";
 
 /**
  * Cuerpo de solo lectura del detalle de una guía de carga.
@@ -34,9 +36,6 @@ export function CargoShipmentDetail({ shipment }: { shipment: CargoShipment }) {
     (acc, curr) => acc + Number(curr.units),
     0,
   );
-  const registrationDate = shipment.registration_date
-    ? parseISO(shipment.registration_date)
-    : null;
   const totalWeight = shipment.items.reduce(
     (acc, curr) => acc + Number(curr.weight),
     0,
@@ -60,11 +59,11 @@ export function CargoShipmentDetail({ shipment }: { shipment: CargoShipment }) {
                 Fecha de Registro
               </p>
               <p className="font-medium text-sm">
-                {registrationDate && isValid(registrationDate)
-                  ? format(registrationDate, "dd 'de' MMMM, yyyy", {
-                      locale: es,
-                    })
-                  : "—"}
+                {formatCalendarDate(
+                  shipment.registration_date,
+                  "dd 'de' MMMM, yyyy",
+                  "—",
+                )}
               </p>
             </div>
             <div className="grid grid-cols-2 gap-2">
@@ -74,7 +73,7 @@ export function CargoShipmentDetail({ shipment }: { shipment: CargoShipment }) {
                 </p>
                 <p className="font-medium text-sm uppercase">
                   {shipment.issuer_user
-                    ? `${shipment.issuer_user.first_name} ${shipment.issuer_user.last_name}`
+                    ? fullName(shipment.issuer_user)
                     : shipment.issuer}
                 </p>
               </div>
@@ -158,7 +157,7 @@ export function CargoShipmentDetail({ shipment }: { shipment: CargoShipment }) {
                 </p>
                 <p className="text-sm">
                   {shipment.pilot?.employee
-                    ? `${shipment.pilot.employee.first_name} ${shipment.pilot.employee.last_name}`
+                    ? fullName(shipment.pilot.employee)
                     : "No disponible"}
                 </p>
               </div>
@@ -168,7 +167,7 @@ export function CargoShipmentDetail({ shipment }: { shipment: CargoShipment }) {
                 </p>
                 <p className="text-sm">
                   {shipment.copilot?.employee
-                    ? `${shipment.copilot.employee.first_name} ${shipment.copilot.employee.last_name}`
+                    ? fullName(shipment.copilot.employee)
                     : "No aplica"}
                 </p>
               </div>

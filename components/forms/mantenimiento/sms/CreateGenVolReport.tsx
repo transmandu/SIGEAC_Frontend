@@ -50,6 +50,7 @@ import { phoneSchema } from "@/lib/phone";
 import { useResettingState } from "@/hooks/useResettingState";
 import { useAuth } from "@/contexts/AuthContext";
 import FolderSelect from "@/components/library/FolderSelect";
+import { parseCalendarDate, companyNow } from "@/lib/date";
 
 interface FormProps {
   onClose: () => void;
@@ -163,11 +164,11 @@ export function CreateGenVolReport({
       possible_consequences: initialData?.possible_consequences || "",
       location_id: initialData?.location?.id?.toString() || "",
       identification_date: initialData?.identification_date
-        ? addDays(new Date(initialData.identification_date), 1)
+        ? parseCalendarDate(initialData.identification_date)
         : new Date(),
 
       report_date: initialData?.report_date
-        ? addDays(new Date(initialData.report_date), 1)
+        ? parseCalendarDate(initialData.report_date)
         : new Date(),
 
       ...(initialData?.reporter_name && {
@@ -264,8 +265,8 @@ export function CreateGenVolReport({
       possible_consequences: "",
       location_id: "",
       identification_area: "",
-      identification_date: new Date(),
-      report_date: new Date(),
+      identification_date: companyNow(),
+      report_date: companyNow(),
       reporter_name: "",
       reporter_last_name: "",
       reporter_email: "",

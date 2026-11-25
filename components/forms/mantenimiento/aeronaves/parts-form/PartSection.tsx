@@ -46,6 +46,8 @@ import {
 import IdentificationFields from "./IdentificationFields";
 import { useResettingState } from "@/hooks/useResettingState";
 import { useState } from "react";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import { instantToCalendarDay } from "@/lib/date";
 
 function NumberInput({
   field,
@@ -118,6 +120,7 @@ export default function PartSection({
   onAddSubpart,
   expandedParts,
 }: any) {
+  const timeZone = useCompanyTimezone();
   const isRemoved = usePartValue<string | null>(
     form.control,
     `${path}.removed_date`,
@@ -491,7 +494,7 @@ export default function PartSection({
                     <FormControl>
                       <Input
                         type="date"
-                        max={new Date().toISOString().slice(0, 10)}
+                        max={instantToCalendarDay(new Date(), timeZone) ?? undefined}
                         {...field}
                         value={field.value ?? ""}
                       />

@@ -8,9 +8,10 @@ import { TrainingStatusBadge } from "@/components/sms/TrainingStatusBadge";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AlertTriangle } from "lucide-react";
+import { fullName } from "@/lib/person-name";
 
 function fullNameOf(row: SMSTrainingExpiring): string {
-  return `${row.employee?.first_name ?? ""} ${row.employee?.last_name ?? ""}`.trim();
+  return `${fullName(row.employee)}`.trim();
 }
 
 function daysLeftOf(row: SMSTrainingExpiring): number | null {

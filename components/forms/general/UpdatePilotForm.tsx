@@ -17,6 +17,7 @@ import { zodResolver } from "@/lib/zod-resolver";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Pilot } from "@/types";
 import { PilotFormFields } from "./PilotFormFields";
+import { fullName } from "@/lib/person-name";
 import {
   buildPilotSchema,
   diffPilot,
@@ -58,8 +59,8 @@ export function UpdatePilotForm({ pilot, onClose }: FormProps) {
       (e) => e.dni === pilot.employee_dni,
     );
     const name = employee
-      ? `${employee.first_name} ${employee.last_name} (${employee.dni_type}-${employee.dni})`
-      : `${pilot.employee?.first_name ?? ""} ${pilot.employee?.last_name ?? ""} (${pilot.employee_dni})`.trim();
+      ? `${fullName(employee)} (${employee.dni_type}-${employee.dni})`
+      : `${fullName(pilot.employee)} (${pilot.employee_dni})`.trim();
 
     return [{ id: pilot.employee_dni, name }];
   }, [employees, pilot]);

@@ -38,6 +38,7 @@ import ImageZoom from "@/components/ui/ImageZoom";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { formatPhone } from "@/lib/phone";
+import { formatCalendarDate } from "@/lib/date";
 
 const ShowVoluntaryReport = () => {
   const { report_id } = useParams<{ report_id: string }>();
@@ -194,11 +195,7 @@ const ShowVoluntaryReport = () => {
             <p className={sectionLabel}>Fecha del Reporte</p>
             <p className={fieldValue}>
               {reportData?.report_date
-                ? format(
-                    new Date(reportData.report_date.replace(/-/g, "/")),
-                    "PPP",
-                    { locale: es },
-                  )
+                ? formatCalendarDate(reportData.report_date, "PPP")
                 : "N/A"}
             </p>
           </div>

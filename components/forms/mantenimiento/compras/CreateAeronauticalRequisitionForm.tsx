@@ -30,6 +30,7 @@ import { AdditionalInfoSection } from "./_components/AdditionalInfoSection";
 import { isHigherPriority, type Priority } from "./_components/priorityUtils";
 import { canAddRequisitionArticle } from "@/lib/purchases/requisition-article-limit";
 import FormActions from "@/components/forms/mantenimiento/compras/_components/FormActions";
+import { fullName } from "@/lib/person-name";
 
 const FormSchema = z
   .object({
@@ -210,7 +211,7 @@ export function CreateAeronauticalRequisitionForm({ onClose }: FormProps) {
     if (!query) return employees;
     return employees.filter((emp) => {
       const searchText =
-        `${emp.first_name} ${emp.last_name} ${emp.dni}`.toLowerCase();
+        `${fullName(emp)} ${emp.dni}`.toLowerCase();
       return searchText.includes(query);
     });
   }, [employees, employeeSearch]);

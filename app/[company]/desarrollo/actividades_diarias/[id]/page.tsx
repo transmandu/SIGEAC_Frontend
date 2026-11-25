@@ -17,7 +17,8 @@ import { Printer, FileText } from "lucide-react";
 import { use, useState } from "react";
 import { DailyReportDialog } from "@/components/dialogs/aerolinea/desarollo/DailyReportDialog";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { toCalendarPayload } from "@/lib/date";
+import { toCalendarPayload, formatCalendarDate } from "@/lib/date";
+import { fullName } from "@/lib/person-name";
 
 const ActivityReportsByIdPage = ({ params }: { params: Promise<{ id: string }> }) => {
   const { id } = use(params);
@@ -35,9 +36,8 @@ const ActivityReportsByIdPage = ({ params }: { params: Promise<{ id: string }> }
       <div className="flex flex-col gap-y-2">
         <PageHeader className="mb-4" currentLabel={report?.user.username} />
         <h1 className="text-4xl font-bold text-center">
-          Actividades Diarias <br /> {report?.user.first_name}{" "}
-          {report?.user.last_name} -{" "}
-          {format(addDays(report!.date, 1), "dd-MM-yyyy", { locale: es })}
+          Actividades Diarias <br /> {fullName(report?.user)} -{" "}
+          {formatCalendarDate(report?.date, "dd-MM-yyyy")}
         </h1>
         <p className="text-sm text-muted-foreground text-center italic">
           Aquí puede observar todas las actividades realizadas el día de hoy por

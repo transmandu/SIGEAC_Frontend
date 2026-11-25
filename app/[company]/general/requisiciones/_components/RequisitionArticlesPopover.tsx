@@ -21,6 +21,7 @@ import { cn, formatRequestedDate } from "@/lib/utils";
 import ArticleLifecycleIcon from "@/components/misc/ArticleLifecycleIcon";
 import TransitUpdatesLink from "@/components/misc/TransitUpdatesLink";
 import type { ArticleLifecycleStage, MyRequisition } from "@/types/purchase";
+import { fullName } from "@/lib/person-name";
 
 interface Props {
   requisition: MyRequisition;
@@ -221,7 +222,7 @@ export default function RequisitionArticlesPopover({ requisition }: Props) {
               article.department?.name,
               article.third_party?.name,
               article.employee &&
-                `${article.employee.first_name} ${article.employee.last_name}`,
+                fullName(article.employee),
               article.authorized_employee?.full_name ||
                 article.authorized_employee?.dni_employee,
             ].filter(Boolean);

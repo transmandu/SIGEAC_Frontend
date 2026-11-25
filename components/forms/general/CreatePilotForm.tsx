@@ -16,6 +16,7 @@ import { useGetPilots } from "@/hooks/sms/useGetPilots";
 import { zodResolver } from "@/lib/zod-resolver";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { PilotFormFields } from "./PilotFormFields";
+import { fullName } from "@/lib/person-name";
 import {
   buildPilotSchema,
   PILOT_FIELD_LABELS,
@@ -50,7 +51,7 @@ export function CreatePilotForm({ onClose }: FormProps) {
       .filter((employee) => !taken.has(employee.dni))
       .map((employee) => ({
         id: employee.dni,
-        name: `${employee.first_name} ${employee.last_name} (${employee.dni_type}-${employee.dni})`,
+        name: `${fullName(employee)} (${employee.dni_type}-${employee.dni})`,
       }));
   }, [employees, pilots]);
 

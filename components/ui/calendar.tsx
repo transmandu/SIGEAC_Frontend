@@ -8,6 +8,7 @@ import { DayPicker, type ChevronProps } from "react-day-picker";
 
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { companyNow } from "@/lib/date";
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>;
 
@@ -48,7 +49,7 @@ function CalendarWithPicker({
   showOutsideDays = true,
   ...props
 }: CalendarProps) {
-  const today = new Date();
+  const today = companyNow();
   const startMonth =
     props.startMonth ?? new Date(today.getFullYear() - 100, 0, 1);
   const endMonth = props.endMonth ?? new Date(today.getFullYear() + 5, 11, 1);

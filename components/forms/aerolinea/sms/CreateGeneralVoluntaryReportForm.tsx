@@ -47,6 +47,7 @@ import { useState } from "react";
 import { PhoneInput } from "@/components/ui/PhoneInput";
 import { phoneSchema } from "@/lib/phone";
 import { useResettingState } from "@/hooks/useResettingState";
+import { parseCalendarDate } from "@/lib/date";
 
 interface FormProps {
   onClose: () => void;
@@ -158,11 +159,11 @@ export function CreateGeneralVoluntaryReportForm({
       airport_location: initialData?.airport_location || "",
 
       identification_date: initialData?.identification_date
-        ? addDays(new Date(initialData.identification_date), 1)
+        ? parseCalendarDate(initialData.identification_date)
         : new Date(),
 
       report_date: initialData?.report_date
-        ? addDays(new Date(initialData.report_date), 1)
+        ? parseCalendarDate(initialData.report_date)
         : new Date(),
 
       ...(initialData?.reporter_name && {

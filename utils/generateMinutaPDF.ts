@@ -1,4 +1,6 @@
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
+import { fullName } from "@/lib/person-name";
+import { formatCalendarDate } from "@/lib/date";
 
 export const generateMinutaPDF = async (activity: any, attendeesCount: number) => {
   try {
@@ -47,7 +49,7 @@ export const generateMinutaPDF = async (activity: any, attendeesCount: number) =
     write(activity.title || "", 127, 629,11, 425); // TITULO
     write(
       activity.start_date
-        ? new Date(activity.start_date).toLocaleDateString()
+        ? formatCalendarDate(activity.start_date, "date")
         : "",
       127,
       607,
@@ -86,7 +88,7 @@ export const generateMinutaPDF = async (activity: any, attendeesCount: number) =
 
     // ================== RESPONSABLES ==================
     write(
-      `${activity.authorized_by?.first_name || ""} ${activity.authorized_by?.last_name || ""}`,
+      `${fullName(activity.authorized_by)}`,
       182,
       257,
       10,
@@ -113,7 +115,7 @@ export const generateMinutaPDF = async (activity: any, attendeesCount: number) =
     );
 
     write(
-      `${activity.planned_by?.first_name || ""} ${activity.planned_by?.last_name || ""}`,
+      `${fullName(activity.planned_by)}`,
       182,
       238,
       10,

@@ -8,6 +8,7 @@ import ActivityReportsDropdownActions from "@/components/dropdowns/aerolinea/des
 import { ActivityReport } from "@/types"
 import { addDays, format } from "date-fns"
 import { es } from "date-fns/locale"
+import { fullName } from "@/lib/person-name";
 
 
 export const columns: AppColumnDef<ActivityReport>[] = [
@@ -49,7 +50,7 @@ export const columns: AppColumnDef<ActivityReport>[] = [
     ),
     cell: ({ row }) => {
       return (
-        <p className="font-medium text-center">{`${row.original.user.first_name} ${row.original.user.last_name}`}</p>
+        <p className="font-medium text-center">{fullName(row.original.user)}</p>
       )
     }
   },

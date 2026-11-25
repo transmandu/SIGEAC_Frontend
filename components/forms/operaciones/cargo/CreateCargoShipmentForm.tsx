@@ -42,6 +42,7 @@ import { useCargoShipmentForm } from "@/hooks/operaciones/cargo/useCargoShipment
 import { useState } from "react";
 import { useGetExternalPilots } from "@/hooks/operaciones/cargo/useGetExternalPilots";
 import type { ComboboxOption } from "@/components/ui/ComboboxField";
+import { fullName } from "@/lib/person-name";
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
@@ -149,7 +150,7 @@ export default function CreateCargoShipmentForm({
       .filter((p: any) => p.rank === "CAPITAN" && p.id !== selectedCopilotRawId)
       .map((p: any) => ({
         value: `int:${p.id}`,
-        label: `${p.employee?.first_name} ${p.employee?.last_name}`,
+        label: fullName(p.employee),
         badge: p.rank,
         group: "Pilotos internos",
       })),
@@ -161,7 +162,7 @@ export default function CreateCargoShipmentForm({
       )
       .map((p: any) => ({
         value: `ext:${p.id}`,
-        label: `${p.first_name} ${p.last_name}`,
+        label: fullName(p),
         badge: p.rank,
         group: "Pilotos externos",
       })),
@@ -177,7 +178,7 @@ export default function CreateCargoShipmentForm({
       )
       .map((p: any) => ({
         value: `int:${p.id}`,
-        label: `${p.employee?.first_name} ${p.employee?.last_name}`,
+        label: fullName(p.employee),
         badge: p.rank,
         group: "Copilotos internos",
       })),
@@ -189,7 +190,7 @@ export default function CreateCargoShipmentForm({
       )
       .map((p: any) => ({
         value: `ext:${p.id}`,
-        label: `${p.first_name} ${p.last_name}`,
+        label: fullName(p),
         badge: p.rank,
         group: "Copilotos externos",
       })),
@@ -368,7 +369,7 @@ export default function CreateCargoShipmentForm({
                     <Input
                       className="h-9 bg-muted/50 cursor-not-allowed uppercase"
                       readOnly
-                      value={user ? `${user.first_name} ${user.last_name}` : ""}
+                      value={user ? fullName(user) : ""}
                     />
                   </FormControl>
                   <FormMessage />

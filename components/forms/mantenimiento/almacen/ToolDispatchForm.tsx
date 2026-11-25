@@ -56,6 +56,7 @@ import {
   X,
 } from "lucide-react";
 import { useMemo } from "react";
+import { fullName } from "@/lib/person-name";
 
 interface FormProps {
   onClose: () => void;
@@ -372,7 +373,7 @@ export function ToolDispatchForm({ onClose }: FormProps) {
                             const { inside, outside } = toolBoxAvailability(box);
                             const already = toolBoxSelectedSet.has(box.id);
                             const responsible = box.employee
-                              ? `${box.employee.first_name} ${box.employee.last_name}`
+                              ? fullName(box.employee)
                               : null;
 
                             return (
@@ -461,7 +462,7 @@ export function ToolDispatchForm({ onClose }: FormProps) {
                   members={toolBoxMembers(box)}
                   responsible={
                     box.employee
-                      ? `${box.employee.first_name} ${box.employee.last_name}`
+                      ? fullName(box.employee)
                       : null
                   }
                   onRemove={() => removeToolBox(box.id)}

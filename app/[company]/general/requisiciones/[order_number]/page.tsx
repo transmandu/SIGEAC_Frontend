@@ -66,6 +66,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { fullName } from "@/lib/person-name";
 
 /* -------------------- TRADUCCIONES -------------------- */
 const STATUS_LABELS: Record<string, string> = {
@@ -517,7 +518,7 @@ const GeneralArticleCard = ({
               <div>
                 <p className="text-muted-foreground text-xs">Solicitante</p>
                 <p className="font-medium">
-                  {`${article.employee.first_name} ${article.employee.last_name}`.trim()}
+                  {fullName(article.employee)}
                 </p>
               </div>
             )}
@@ -713,7 +714,7 @@ const RequisitionPage = () => {
               <p className="font-medium flex items-center gap-2 justify-center">
                 <User className="w-4 h-4" />
                 {data?.created_by
-                  ? `${data.created_by.first_name} ${data.created_by.last_name}`
+                  ? fullName(data.created_by)
                       .trim()
                       .toUpperCase()
                   : "SISTEMA"}

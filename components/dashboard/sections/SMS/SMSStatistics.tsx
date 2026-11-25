@@ -8,6 +8,7 @@ import { useGetCourseStats } from "@/hooks/curso/useGetCourseStats";
 import { useGetTotalReportsStatsByYear } from "@/hooks/sms/useGetTotalReportsStatsByYear";
 import { format, startOfYear } from "date-fns";
 import { Loader2, GraduationCap, BarChart3, ShieldCheck } from "lucide-react";
+import { companyNow } from "@/lib/date";
 
 interface SMSStatisticsProps {
   companySlug: string;
@@ -79,8 +80,8 @@ export default function SMSStatistics({
     isLoading: isLoadingBarChart,
     isError: isErrorBarChart,
   } = useGetTotalReportsStatsByYear(
-    format(startOfYear(new Date()), "yyyy-MM-dd"),
-    format(new Date(), "yyyy-MM-dd"),
+    format(startOfYear(companyNow()), "yyyy-MM-dd"),
+    format(companyNow(), "yyyy-MM-dd"),
     companySlug,
   );
 
@@ -89,8 +90,8 @@ export default function SMSStatistics({
     isLoading: isLoadingCourseBarChart,
     isError: isErrorCourseBarChart,
   } = useGetCourseStats(
-    format(startOfYear(new Date()), "yyyy-MM-dd"),
-    format(new Date(), "yyyy-MM-dd"),
+    format(startOfYear(companyNow()), "yyyy-MM-dd"),
+    format(companyNow(), "yyyy-MM-dd"),
     location!,
     companySlug,
   );

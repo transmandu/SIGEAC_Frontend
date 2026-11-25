@@ -6,6 +6,7 @@ import { SMSTraining } from "@/types";
 import { type AppColumnDef } from "@/lib/table";
 import { TrainingStatusBadge } from "@/components/sms/TrainingStatusBadge";
 import { TrainingHistoryDialog } from "@/components/sms/TrainingHistoryDialog";
+import { fullName } from "@/lib/person-name";
 
 /**
  * Cuando el estado es PENDIENTE (el recurrente venció y hay que repetir el
@@ -33,8 +34,7 @@ export const columns: AppColumnDef<SMSTraining>[] = [
     meta: { title: "Empleado" },
     cell: ({ row }) => (
       <div className="flex justify-center text-center">
-        {row.original.employee?.first_name ?? "N/A"}{" "}
-        {row.original.employee?.last_name ?? "N/A"}
+        {fullName(row.original.employee, "N/A")}
       </div>
     ),
   },

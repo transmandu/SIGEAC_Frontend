@@ -17,6 +17,7 @@ import { useGetRoles } from "@/hooks/sistema/usuario/useGetRoles";
 import { useGetUsers } from "@/hooks/sistema/usuario/useGetUsers";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import type { Department } from "@/types";
+import { fullName } from "@/lib/person-name";
 
 /**
  * A qué puede apuntar una regla de destinatario. Lo comparten dos
@@ -113,11 +114,11 @@ export function useRecipientTargetOptions() {
         )
         .map((user) => ({
           id: String(user.id),
-          label: `${user.first_name} ${user.last_name} · ${user.email}`,
+          label: `${fullName(user)} · ${user.email}`,
         })),
       EMPLOYEE: (employees ?? []).map((employee) => ({
         id: String(employee.id),
-        label: `${employee.first_name} ${employee.last_name}${
+        label: `${fullName(employee)}${
           employee.email ? ` · ${employee.email}` : ""
         }`,
       })),

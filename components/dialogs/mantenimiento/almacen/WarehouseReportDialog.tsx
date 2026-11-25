@@ -24,8 +24,11 @@ import { format } from "date-fns";
 import { Drill, NotepadText } from "lucide-react";
 import { useState } from "react";
 import WarehouseReportPdf from "@/components/pdf/almacen/GeneralWarehouseReport";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import { formatInstant } from "@/lib/date";
 
 export function WarehouseReportDialog() {
+  const timeZone = useCompanyTimezone();
   const { selectedStation, selectedCompany } = useCompanyStore();
   const [open, setOpen] = useState(false);
   const [manufacturer, setManufacturer] = useState<string | null>(null);
@@ -66,8 +69,10 @@ export function WarehouseReportDialog() {
             </p>
             {data && (
               <PDFDownloadLink
-                fileName={`reporte_diario_${format(new Date(), "dd-MM-yyyy")}.pdf`}
-                document={<WarehouseReportPdf reports={data ?? []} />}
+                fileName={`reporte_diario_${formatInstant(new Date(), timeZone, "dd-MM-yyyy")}.pdf`}
+                document={
+                  <WarehouseReportPdf reports={data ?? []} timeZone={timeZone} />
+                }
               >
                 <Button disabled={reportLoading} className="mt-2">
                   Descargar Reporte

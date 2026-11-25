@@ -8,6 +8,7 @@ import IntakeToolBar from "./_components/IntakeToolBar";
 import { useGetGeneralArticleIntakes } from "@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticleIntakes";
 import type { GeneralArticleIntakeStatus } from "@/types/purchase";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { fullName } from "@/lib/person-name";
 import {
   PurchasesHeading,
   PurchasesToolbar,
@@ -41,14 +42,14 @@ const RecepcionGeneralPage = () => {
           ?.toLowerCase()
           .includes(q) ||
         i.registered_by?.toLowerCase().includes(q) ||
-        `${i.handed_to_employee?.first_name ?? ""} ${i.handed_to_employee?.last_name ?? ""}`
+        `${fullName(i.handed_to_employee)}`
           .toLowerCase()
           .includes(q) ||
         i.warehouse?.name?.toLowerCase().includes(q) ||
         i.department?.name?.toLowerCase().includes(q) ||
         i.third_party?.name?.toLowerCase().includes(q) ||
         i.authorized_employee?.full_name?.toLowerCase().includes(q) ||
-        `${i.employee?.first_name ?? ""} ${i.employee?.last_name ?? ""}`
+        `${fullName(i.employee)}`
           .toLowerCase()
           .includes(q),
     );

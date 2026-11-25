@@ -55,6 +55,7 @@ import { toZonedWallClock, zonedWallClockToUtcIso } from "@/lib/date";
 import { cn } from "@/lib/utils";
 import { useResettingState } from "@/hooks/useResettingState";
 import type { PurchaseOrder } from "@/types/purchase";
+import { fullName } from "@/lib/person-name";
 
 // Destino de la entrega: el almacén (flujo normal, intake PENDING que el
 // almacén confirma) o una entrega directa afiliada a un departamento,
@@ -152,7 +153,7 @@ export default function RegisterGeneralArticlesDeliveryDialog({
   const warehouseStaffOptions: SearchableOption[] = (warehouseStaff ?? []).map(
     (employee) => ({
       value: employee.id.toString(),
-      label: `${employee.first_name} ${employee.last_name}`,
+      label: fullName(employee),
       description: employee.dni || undefined,
     }),
   );
@@ -212,7 +213,7 @@ export default function RegisterGeneralArticlesDeliveryDialog({
       case "EMPLOYEE":
         return (employees ?? []).map((employee) => ({
           value: employee.id.toString(),
-          label: `${employee.first_name} ${employee.last_name}`,
+          label: fullName(employee),
           description: employee.dni || undefined,
         }));
       case "AUTHORIZED":

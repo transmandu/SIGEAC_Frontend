@@ -24,6 +24,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { formatCalendarDate } from "@/lib/date";
 import CertificatesDropDownActions from "@/components/dropdowns/aerolinea/sms/CertificatesDropDownActions";
+import { lastFirstName } from "@/lib/person-name";
 
 const CertificatesPage = () => {
   const { selectedCompany } = useCompanyStore();
@@ -112,8 +113,8 @@ const CertificatesPage = () => {
       group.subRows.push(cert);
     }
     return Array.from(groups.values()).sort((a, b) =>
-      `${a.employee.last_name} ${a.employee.first_name}`.localeCompare(
-        `${b.employee.last_name} ${b.employee.first_name}`,
+      lastFirstName(a.employee).localeCompare(
+        lastFirstName(b.employee),
       ),
     );
   }, [certificates]);
@@ -218,7 +219,7 @@ const CertificatesPage = () => {
                 <div>
                   <DialogTitle className="text-base font-semibold leading-tight">
                     {selectedEmployee
-                      ? `${selectedEmployee.employee.last_name}, ${selectedEmployee.employee.first_name}`
+                      ? lastFirstName(selectedEmployee.employee)
                       : ""}
                   </DialogTitle>
                   <p className="text-xs text-muted-foreground mt-0.5">

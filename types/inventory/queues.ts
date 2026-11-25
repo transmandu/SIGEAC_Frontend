@@ -126,6 +126,8 @@ export interface InspectionQueueArticle extends QueueArticleBase {
   order_number: string | null;
   quantity: number;
   unit: string;
+  /** Día de la inspección (yyyy-MM-dd); el formato imprime este, no el de emisión. */
+  inspection_date: string | null;
 }
 
 export type InspectionQueueStatus =

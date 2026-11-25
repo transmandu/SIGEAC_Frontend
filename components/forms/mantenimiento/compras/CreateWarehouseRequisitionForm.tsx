@@ -55,6 +55,7 @@ import { getStoragePathFromUrl } from "./_components/imageUtils";
 import { canAddRequisitionArticle } from "@/lib/purchases/requisition-article-limit";
 import { toCalendarPayload } from "@/lib/date";
 import FormActions from "@/components/forms/mantenimiento/compras/_components/FormActions";
+import { fullName } from "@/lib/person-name";
 
 type WarehouseRequisitionType = "AERONAUTICAL" | "GENERAL";
 
@@ -287,7 +288,7 @@ export function CreateWarehouseRequisitionForm({
     if (!query) return employees;
     return employees.filter((emp) => {
       const searchText =
-        `${emp.first_name} ${emp.last_name} ${emp.dni}`.toLowerCase();
+        `${fullName(emp)} ${emp.dni}`.toLowerCase();
       return searchText.includes(query);
     });
   }, [employees, employeeSearch]);

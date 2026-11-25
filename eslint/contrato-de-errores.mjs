@@ -18,14 +18,13 @@ const HOW =
 const TOAST_ERROR =
   "CallExpression[callee.object.name='toast'][callee.property.name='error']";
 
-export const contratoDeErrores = [
-  {
-    files: ["**/*.{ts,tsx}"],
-    // Las dos piezas que implementan el contrato sí hablan con toast directamente.
-    ignores: ["lib/notify-error.tsx", "lib/api-error.ts"],
-    rules: {
-      "no-restricted-syntax": [
-        "error",
+// Las dos piezas que implementan el contrato sí hablan con toast directamente.
+export const archivosSinContratoDeErrores = [
+  "lib/notify-error.tsx",
+  "lib/api-error.ts",
+];
+
+export const reglasDeErrores = [
         {
           selector: `${TOAST_ERROR}[arguments.0.type='Literal'][arguments.0.value=/^.?(oops|ops|error)!?$/i]`,
           message: `Un título genérico ("Oops!", "Error") no dice qué pasó. ${HOW}`,
@@ -50,7 +49,4 @@ export const contratoDeErrores = [
           selector: `CallExpression[callee.name='toast'] Property[key.name='variant'][value.value='destructive']`,
           message: `toast({ variant: "destructive" }) es la otra vía de avisar errores y no pasa por el contrato. ${HOW}`,
         },
-      ],
-    },
-  },
 ];

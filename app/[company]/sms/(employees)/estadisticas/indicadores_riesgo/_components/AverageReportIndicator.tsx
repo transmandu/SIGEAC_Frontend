@@ -11,6 +11,7 @@ import { Loader2 } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo } from "react";
 import { IncidentAlertCard } from "./RiskIndicatorMessages";
+import { formatCalendarDate } from "@/lib/date";
 
 interface AverageReportIndicatorProps {
   companySlug?: string;
@@ -70,10 +71,7 @@ export const AverageReportIndicator: React.FC<AverageReportIndicatorProps> = ({
 
   // Preparar datos para el gráfico
   const formatDate = useMemo(
-    () => (date: string) => {
-      const newDate = addDays(new Date(date), 1);
-      return format(newDate, "PPP", { locale: es });
-    },
+    () => (date: string) => formatCalendarDate(date, "PPP"),
     []
   );
 

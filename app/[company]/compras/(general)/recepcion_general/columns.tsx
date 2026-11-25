@@ -32,6 +32,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import EditIntakeDialog from "./_components/EditIntakeDialog";
 import type { GeneralArticleIntake } from "@/types/purchase";
 import { notifyError } from "@/lib/notify-error";
+import { fullName } from "@/lib/person-name";
 
 // Destino del intake, derivado de cuál referencia venga poblada (excluyentes
 // entre sí): almacén para el flujo normal, o la entidad de una entrega directa.
@@ -48,7 +49,7 @@ const getDestination = (intake: GeneralArticleIntake) => {
   }
   if (intake.employee) {
     return {
-      label: `${intake.employee.first_name} ${intake.employee.last_name}`,
+      label: fullName(intake.employee),
       type: "Empleado",
       Icon: User,
     };
@@ -425,7 +426,7 @@ export const columns: AppColumnDef<GeneralArticleIntake>[] = [
                 A:
               </span>
               <span className="text-[13px] uppercase text-slate-700 dark:text-slate-300">
-                {handed_to_employee.first_name} {handed_to_employee.last_name}
+                {fullName(handed_to_employee)}
               </span>
             </>
           )}

@@ -71,6 +71,7 @@ import { getExamDocumentUrl } from "@/lib/cursos/exam-documents";
 import { formatCalendarDate } from "@/lib/date";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { fullName as personName } from "@/lib/person-name";
 
 const COURSE_TYPE_LABELS: Record<string, string> = {
   INICIAL: "Inicial",
@@ -339,7 +340,7 @@ const ShowCourse = () => {
 
     return attendance.filter((item) => {
       const fullName =
-        `${item.employee.first_name} ${item.employee.last_name}`.toLowerCase();
+        `${personName(item.employee)}`.toLowerCase();
       return (
         fullName.includes(term) ||
         item.employee_dni.toLowerCase().includes(term)
@@ -846,8 +847,7 @@ const ShowCourse = () => {
                               </Avatar>
                               <div className="min-w-0">
                                 <p className="truncate text-sm font-medium text-foreground">
-                                  {item.employee.first_name}{" "}
-                                  {item.employee.last_name}
+                                  {personName(item.employee)}
                                 </p>
                                 <p className="font-mono text-[11px] text-muted-foreground">
                                   CI {item.employee_dni}
@@ -887,7 +887,7 @@ const ShowCourse = () => {
                               <ExamPreviewCell
                                 company={selectedCompany?.slug}
                                 docs={examDocuments?.[item.employee_dni]}
-                                employeeName={`${item.employee.first_name} ${item.employee.last_name}`}
+                                employeeName={personName(item.employee)}
                                 dni={item.employee_dni}
                               />
                             )}
@@ -910,8 +910,7 @@ const ShowCourse = () => {
                                   <Download className="size-4" />
                                   <span className="sr-only">
                                     Descargar certificado de{" "}
-                                    {item.employee.first_name}{" "}
-                                    {item.employee.last_name}
+                                    {personName(item.employee)}
                                   </span>
                                 </Button>
                               )}

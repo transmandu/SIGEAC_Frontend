@@ -12,6 +12,7 @@ import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { CompanyLink } from "@/components/misc/CompanyLink";
 import { workOrderStatusLabelEsUpper } from "@/lib/planificacion/statuses";
+import { formatCalendarDate } from "@/lib/date";
 
 export const columns: AppColumnDef<WorkOrder>[] = [
   {
@@ -133,9 +134,7 @@ export const columns: AppColumnDef<WorkOrder>[] = [
     ),
     cell: ({ row }) => (
       <p className="flex justify-center">
-        {row.original.date
-          ? format(parseISO(row.original.date), "PPP", { locale: es })
-          : "N/A"}
+        {formatCalendarDate(row.original.date, "PPP", "N/A")}
       </p>
     ),
   },

@@ -34,6 +34,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import MultipleBarChartComponent from "@/components/charts/MultipleBarChartComponent";
 import { PieChartComponent } from "@/components/charts/PieChartComponent";
 import { Message } from "@/components/misc/Message";
+import { companyNow } from "@/lib/date";
 
 const graphicsOptions = [
   {
@@ -101,8 +102,8 @@ const Statistics = () => {
 
   // Obtener parámetros ACTUALES de la URL - SIN estado local
   const currentParams = useMemo(() => {
-    const defaultFrom = format(startOfMonth(new Date()), "yyyy-MM-dd");
-    const defaultTo = format(new Date(), "yyyy-MM-dd");
+    const defaultFrom = format(startOfMonth(companyNow()), "yyyy-MM-dd");
+    const defaultTo = format(companyNow(), "yyyy-MM-dd");
 
     const urlParams = new URLSearchParams(urlSearchParams.toString());
     return {
@@ -183,8 +184,8 @@ const Statistics = () => {
 
   // Manejar reset
   const handleReset = () => {
-    const defaultFrom = format(startOfMonth(new Date()), "yyyy-MM-dd");
-    const defaultTo = format(new Date(), "yyyy-MM-dd");
+    const defaultFrom = format(startOfMonth(companyNow()), "yyyy-MM-dd");
+    const defaultTo = format(companyNow(), "yyyy-MM-dd");
 
     const newParams = new URLSearchParams();
     newParams.set("from", defaultFrom);

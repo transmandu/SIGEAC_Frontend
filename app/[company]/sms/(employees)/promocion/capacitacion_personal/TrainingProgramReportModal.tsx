@@ -28,16 +28,7 @@ import { useGetTrainingProgramReport } from "@/hooks/sms/useGetTrainingProgramRe
 import { cn } from "@/lib/utils";
 import { Check, ChevronsUpDown, FileDown, Loader2, X } from "lucide-react";
 import type { Employee } from "@/types";
-
-const fullName = (employee: Employee) =>
-  [
-    employee.first_name,
-    employee.middle_name,
-    employee.last_name,
-    employee.second_last_name,
-  ]
-    .filter(Boolean)
-    .join(" ");
+import { formalName } from "@/lib/person-name";
 
 interface EmployeeComboboxProps {
   label: string;
@@ -83,7 +74,7 @@ function EmployeeCombobox({
           >
             {selected ? (
               <span className="truncate">
-                {fullName(selected)}
+                {formalName(selected)}
                 <span className="text-muted-foreground"> · {selected.dni}</span>
               </span>
             ) : (
@@ -102,7 +93,7 @@ function EmployeeCombobox({
                 {employees.map((employee) => (
                   <CommandItem
                     key={employee.dni}
-                    value={`${fullName(employee)} ${employee.dni}`}
+                    value={`${formalName(employee)} ${employee.dni}`}
                     onSelect={() => {
                       onChange(employee.dni);
                       setOpen(false);
@@ -110,7 +101,7 @@ function EmployeeCombobox({
                   >
                     <div className="flex flex-1 items-center justify-between gap-2 overflow-hidden">
                       <span className="truncate font-medium">
-                        {fullName(employee)}
+                        {formalName(employee)}
                       </span>
                       <span className="shrink-0 text-xs text-muted-foreground">
                         {employee.dni}

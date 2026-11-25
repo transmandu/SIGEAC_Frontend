@@ -16,6 +16,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
+import { formatCalendarDate } from "@/lib/date";
 
 export const description = "An interactive bar chart"
 
@@ -189,26 +190,16 @@ export function TestChart() {
               axisLine={false}
               tickMargin={8}
               minTickGap={32}
-              tickFormatter={(value) => {
-                const date = new Date(value);
-                return date.toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                });
-              }}
+              tickFormatter={(value) => formatCalendarDate(value, "MMM d")}
             />
             <ChartTooltip
               content={
                 <ChartTooltipContent
                   className="w-37.5"
                   nameKey="views"
-                  labelFormatter={(value) => {
-                    return new Date(String(value)).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    });
-                  }}
+                  labelFormatter={(value) =>
+                    formatCalendarDate(String(value), "MMM d, yyyy")
+                  }
                 />
               }
             />

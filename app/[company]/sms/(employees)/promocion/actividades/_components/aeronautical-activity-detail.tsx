@@ -27,6 +27,7 @@ import {
   useOpenAeronauticalActivity,
 } from "@/actions/sms/aeronautical/activities/actions";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { fullName } from "@/lib/person-name";
 
 const statusClassName: Record<string, string> = {
   ABIERTO:
@@ -322,8 +323,7 @@ export function AeronauticalActivityDetail() {
                             {index + 1}
                           </td>
                           <td className="px-3 py-3 text-sm font-medium">
-                            {attendance.employee?.first_name}{" "}
-                            {attendance.employee?.last_name}
+                            {fullName(attendance.employee)}
                           </td>
                           <td className="px-3 py-3 font-mono text-sm text-muted-foreground">
                             {attendance.employee?.dni ||
@@ -390,8 +390,7 @@ export function AeronauticalActivityDetail() {
                       {attendanceList.map((attendance) => (
                         <tr key={attendance.id}>
                           <td className="px-3 py-3 text-sm font-medium">
-                            {attendance.employee?.first_name}{" "}
-                            {attendance.employee?.last_name}
+                            {fullName(attendance.employee)}
                           </td>
                           <td className="px-3 py-3">
                             <Badge

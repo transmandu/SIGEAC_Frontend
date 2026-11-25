@@ -21,6 +21,8 @@ import { ERROR_REPORT_SEVERITIES } from "@/lib/errorReportSeverity";
 import { CalendarClock, CalendarCheck2, Search, X, XCircle } from "lucide-react";
 import { ErrorReportFilters as Filters } from "@/hooks/sistema/reportes/useGetErrorReports";
 import { cn } from "@/lib/utils";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import { toCalendarPayload, zonedDayToUtcIso } from "@/lib/date";
 
 const STATUS_OPTIONS = [
   { value: "OPEN", label: "ABIERTO" },
@@ -48,6 +50,7 @@ export default function ErrorReportFilters({
   searchValue,
   onSearchChange,
 }: ErrorReportFiltersProps) {
+  const timeZone = useCompanyTimezone();
   const activeFilterCount = useMemo(() => {
     const { page, per_page, ...rest } = filters;
     return Object.values(rest).filter((v) => v !== undefined && v !== "").length;
@@ -152,8 +155,8 @@ export default function ErrorReportFilters({
               initialDate={filters.from && filters.to ? { from: filters.from, to: filters.to } : undefined}
               onDateChange={(range) =>
                 onChange({
-                  from: range?.from.toISOString(),
-                  to: range?.to.toISOString(),
+                  from: zonedDayToUtcIso(toCalendarPayload(range?.from), "start", timeZone),
+                  to: zonedDayToUtcIso(toCalendarPayload(range?.to), "end", timeZone),
                 })
               }
               onReset={() => onChange({ from: undefined, to: undefined })}
@@ -184,8 +187,8 @@ export default function ErrorReportFilters({
               }
               onDateChange={(range) =>
                 onChange({
-                  resolved_from: range?.from.toISOString(),
-                  resolved_to: range?.to.toISOString(),
+                  resolved_from: zonedDayToUtcIso(toCalendarPayload(range?.from), "start", timeZone),
+                  resolved_to: zonedDayToUtcIso(toCalendarPayload(range?.to), "end", timeZone),
                 })
               }
               onReset={() => onChange({ resolved_from: undefined, resolved_to: undefined })}

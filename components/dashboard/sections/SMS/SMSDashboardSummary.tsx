@@ -17,6 +17,8 @@ import { dateFormat } from "@/lib/utils";
 import { format, startOfYear } from "date-fns";
 import { BarChart3, Loader2, Users } from "lucide-react";
 import { TrainingStatusBadge } from "@/components/sms/TrainingStatusBadge";
+import { fullName } from "@/lib/person-name";
+import { companyNow } from "@/lib/date";
 
 interface DashboardSummaryProps {
   companySlug: string;
@@ -59,8 +61,8 @@ export default function DashboardSummary({
   const blueTone = "37,99,235";
 
   // Por defecto: año en curso (igual que el resto de estadísticas del dashboard)
-  const from = format(startOfYear(new Date()), "yyyy-MM-dd");
-  const to = format(new Date(), "yyyy-MM-dd");
+  const from = format(startOfYear(companyNow()), "yyyy-MM-dd");
+  const to = format(companyNow(), "yyyy-MM-dd");
 
   const {
     data: reportsNumberByMonth,
@@ -186,8 +188,7 @@ export default function DashboardSummary({
                   >
                     {/* EMPLEADO */}
                     <div className="font-medium text-sm leading-tight">
-                      {t.employee?.first_name ?? ""}{" "}
-                      {t.employee?.last_name ?? ""}
+                      {fullName(t.employee)}
                     </div>
 
                     {/* STATUS */}

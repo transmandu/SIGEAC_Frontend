@@ -9,6 +9,7 @@ import { ToolBox } from "@/types"
 import { ToolBoxHistoryButton } from "@/components/dialogs/almacen/ToolBoxHistoryButton"
 import ToolBoxToolsDialog from "@/components/dialogs/mantenimiento/almacen/ToolBoxToolsDialog"
 import ToolBoxDropdownActions from "@/components/dropdowns/mantenimiento/ordenes_trabajo/ToolBoxDropdownActions"
+import { fullName } from "@/lib/person-name";
 
 export const columns: AppColumnDef<ToolBox>[] = [
   // {
@@ -52,7 +53,7 @@ export const columns: AppColumnDef<ToolBox>[] = [
     cell: ({ row }) => {
       const employee = row.original.employee
       return (
-        <p className="font-medium text-center">{employee ? `${employee.first_name} ${employee.last_name}` : "N/A"}</p>
+        <p className="font-medium text-center">{employee ? fullName(employee) : "N/A"}</p>
       )
     }
   },

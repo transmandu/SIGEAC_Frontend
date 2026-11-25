@@ -35,6 +35,7 @@ import type {
 } from "@/types/purchase/purchase-order";
 import { formatInstant } from "@/lib/date";
 import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import { fullName } from "@/lib/person-name";
 
 // Destino del intake, derivado de cuál referencia venga poblada (excluyentes
 // entre sí): almacén para el flujo normal, o la entidad de una entrega directa.
@@ -53,7 +54,7 @@ const getIntakeDestination = (
   }
   if (intake.employee) {
     return {
-      label: `${intake.employee.first_name} ${intake.employee.last_name}`,
+      label: fullName(intake.employee),
       type: "Empleado",
       Icon: User,
     };

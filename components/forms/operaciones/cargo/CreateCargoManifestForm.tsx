@@ -13,6 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, AlertCircle, ChevronDown, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatCalendarDate } from "@/lib/date";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -353,20 +354,8 @@ export default function CreateCargoManifestForm({
               shipment.aircraft?.acronym ?? shipment.external_aircraft ?? "N/A";
 
             const displayDate = shipment.registration_date
-              ? (() => {
-                  try {
-                    const d = parseISO(shipment.registration_date);
-                    if (!isValid(d)) return null;
-                    const local = new Date(
-                      d.getUTCFullYear(),
-                      d.getUTCMonth(),
-                      d.getUTCDate(),
-                    );
-                    return format(local, "dd/MM/yyyy");
-                  } catch {
-                    return null;
-                  }
-                })()
+              ? formatCalendarDate(shipment.registration_date, "date", "") ||
+                null
               : null;
 
             return (

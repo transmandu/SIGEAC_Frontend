@@ -44,6 +44,7 @@ import {
 import { cn } from "@/lib/utils";
 import { formatCalendarDate, toCalendarPayload } from "@/lib/date";
 import { notifyError } from "@/lib/notify-error";
+import { lastFirstName } from "@/lib/person-name";
 
 interface CreateCertificateFormProps {
   onClose: () => void;
@@ -189,7 +190,7 @@ export const CreateCertificateForm = ({
                   ? "Cargando lista de empleados..."
                   : selectedDni
                     ? employees?.find((emp: any) => emp.dni === selectedDni)
-                      ? `${employees.find((emp: any) => emp.dni === selectedDni).last_name}, ${employees.find((emp: any) => emp.dni === selectedDni).first_name}`
+                      ? lastFirstName(employees.find((emp: any) => emp.dni === selectedDni))
                       : "Seleccionar empleado..."
                     : "Seleccionar empleado..."}
                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -208,7 +209,7 @@ export const CreateCertificateForm = ({
                     {employees?.map((emp: any) => (
                       <CommandItem
                         key={emp.dni}
-                        value={`${emp.first_name} ${emp.last_name} ${emp.dni}`}
+                        value={`${lastFirstName(emp)} ${emp.dni}`}
                         onSelect={() => {
                           setValue("employee_dni", emp.dni);
                           setOpenPopover(false);
@@ -225,7 +226,7 @@ export const CreateCertificateForm = ({
                         />
                         <div className="flex flex-col">
                           <span>
-                            {emp.last_name}, {emp.first_name}
+                            {lastFirstName(emp)}
                           </span>
                           <span className="text-[10px] text-muted-foreground font-mono">
                             {emp.dni}
@@ -258,7 +259,7 @@ export const CreateCertificateForm = ({
               Certificado para:
             </p>
             <p className="font-bold text-blue-900 dark:text-blue-100 leading-none">
-              {(user as any)?.first_name} {(user as any)?.last_name}
+              {lastFirstName(user as any)}
             </p>
           </div>
         </div>

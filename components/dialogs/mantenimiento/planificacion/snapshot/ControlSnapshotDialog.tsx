@@ -39,6 +39,7 @@ import { ControlSnapshotBase } from "@/types";
 
 import type { SnapshotGroup } from "./snapshotGroups";
 import { notifyError } from "@/lib/notify-error";
+import { companyNow } from "@/lib/date";
 
 /** Lo mínimo que el diálogo necesita de cada control para ofrecerlo en la lista. */
 export interface SnapshotControlOption {
@@ -107,7 +108,7 @@ export function ControlSnapshotDialog<
   // la creación del control vía importación de histórico), no de cuándo se
   // creó el registro. Si a la fecha elegida no hay datos, el snapshot
   // simplemente sale vacío.
-  const maxDate = startOfDay(new Date());
+  const maxDate = startOfDay(companyNow());
 
   const dateParam = date ? format(date, "yyyy-MM-dd") : undefined;
   const {

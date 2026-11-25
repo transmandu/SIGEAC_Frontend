@@ -48,6 +48,7 @@ import { LinkBulletinToActivityForm } from "@/components/forms/aerolinea/sms/Lin
 import { DownloadOptionDialog } from "@/components/dialogs/shared/DownloadOptionDialog";
 import { fetchAttendanceList } from "@/hooks/sms/useGetActivityAttendanceList";
 import { generateMinutaPDF } from "@/utils/generateMinutaPDF";
+import { companyNow } from "@/lib/date";
 
 const SMSActivityDropDownActions = ({
   smsActivity,
@@ -67,7 +68,7 @@ const SMSActivityDropDownActions = ({
   const { closeSMSActivity } = useCloseSMSActivity();
   const { openSMSActivity } = useOpenSMSActivity(); // Hook para reabrir
 
-  const realNow = startOfDay(new Date());
+  const realNow = startOfDay(companyNow());
   const ActivityDate = startOfDay(smsActivity.end_date);
   const router = useRouter();
 

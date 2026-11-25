@@ -34,6 +34,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { fullName } from "@/lib/person-name";
 import {
   Command,
   CommandEmpty,
@@ -158,8 +159,8 @@ export function CreateToolBoxForm({ onClose, initialData }: FormProps) {
       ...data,
       location_id: selectedStation ? Number(selectedStation) : undefined,
       individual_ids: individualIds,
-      created_by: `${user?.first_name} ${user?.last_name}`,
-      delivered_by: `${user?.first_name} ${user?.last_name}`,
+      created_by: `${fullName(user)}`,
+      delivered_by: `${fullName(user)}`,
     };
     await createToolBox.mutateAsync({
       data: formattedData,
@@ -234,8 +235,7 @@ export function CreateToolBoxForm({ onClose, initialData }: FormProps) {
                               </AvatarFallback>
                             </Avatar>
                             <span className="truncate">
-                              {selectedEmployee.first_name}{" "}
-                              {selectedEmployee.last_name}
+                              {fullName(selectedEmployee)}
                             </span>
                           </span>
                         ) : (
@@ -268,7 +268,7 @@ export function CreateToolBoxForm({ onClose, initialData }: FormProps) {
                             employees.map((employee) => (
                               <CommandItem
                                 key={employee.id}
-                                value={`${employee.first_name} ${employee.last_name} ${employee.job_title.name}`}
+                                value={`${fullName(employee)} ${employee.job_title.name}`}
                                 onSelect={() => {
                                   field.onChange(employee.dni);
                                   setOpenEmployee(false);
@@ -290,7 +290,7 @@ export function CreateToolBoxForm({ onClose, initialData }: FormProps) {
                                 </Avatar>
                                 <span className="flex-1 truncate">
                                   <span className="block font-medium">
-                                    {employee.first_name} {employee.last_name}
+                                    {fullName(employee)}
                                   </span>
                                   <span className="block text-xs text-muted-foreground">
                                     {employee.job_title.name}

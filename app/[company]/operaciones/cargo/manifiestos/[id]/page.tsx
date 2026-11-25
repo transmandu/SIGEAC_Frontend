@@ -37,6 +37,7 @@ import { useState, useEffect } from "react";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { cargoManifiestoDetalleSteps } from "@/components/tour/steps/cargo/manifiesto-detalle";
 import { PageHeader } from "@/components/layout/PageHeader";
+import FormattedInstant from "@/components/misc/FormattedInstant";
 
 export default function ManifestDetailPage() {
   const params = useParams();
@@ -214,10 +215,11 @@ export default function ManifestDetailPage() {
                     Última actualización
                   </p>
                   <p className="font-medium text-sm">
-                    {manifest.updated_at &&
-                    isValid(parseISO(manifest.updated_at))
-                      ? format(parseISO(manifest.updated_at), "dd/MM/yyyy")
-                      : "No registrada"}
+                    <FormattedInstant
+                      value={manifest.updated_at}
+                      format="date"
+                      fallback="No registrada"
+                    />
                   </p>
                 </div>
               </div>

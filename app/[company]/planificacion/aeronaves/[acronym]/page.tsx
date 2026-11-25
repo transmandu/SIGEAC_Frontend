@@ -45,6 +45,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { formatNumber } from "@/lib/formatNumber";
 import { partLabel } from "@/app/[company]/planificacion/aeronaves/_components/partLabel";
 import { removalReadings } from "@/app/[company]/planificacion/aeronaves/_components/removalReadings";
+import { formatCalendarDate } from "@/lib/date";
 
 // ---------- helpers ----------
 const labelFor = (obj: any): string => {
@@ -55,15 +56,8 @@ const labelFor = (obj: any): string => {
   return JSON.stringify(obj);
 };
 
-const formatDate = (iso?: string | null) => {
-  if (!iso) return "—";
-  try {
-    const date = parseISO(iso);
-    return format(date, "PPP", { locale: es });
-  } catch {
-    return String(iso);
-  }
-};
+const formatDate = (iso?: string | null) =>
+  formatCalendarDate(iso, "PPP", "—");
 
 const fmtNumber = (n: unknown) =>
   formatNumber(n, { minDecimals: 2, maxDecimals: 2, fallback: "—" });

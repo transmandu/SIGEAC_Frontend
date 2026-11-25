@@ -29,6 +29,9 @@ import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { Label } from "@/components/ui/label";
+import { fullName } from "@/lib/person-name";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import { formatInstant, toZonedWallClock, companyNow } from "@/lib/date";
 
 const FormSchema = z.object({
   description: z.string().min(1, "Requerido"),
@@ -38,10 +41,9 @@ const FormSchema = z.object({
   date: z.date().optional(),
 });
 
-const getCurrentTime = () => {
-  const now = new Date();
-  return `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
-};
+/** La hora de ahora en la zona de la compañía, no la del navegador. */
+const getCurrentTime = (timeZone: string) =>
+  formatInstant(new Date(), timeZone, "time");
 
 interface DailyReportFormProps {
   activities_length: number;
@@ -53,6 +55,7 @@ export function DailyReportForm({
   report_id,
 }: DailyReportFormProps) {
   const { user } = useAuth();
+  const timeZone = useCompanyTimezone();
   const { company } = useParams<{ company: string }>();
   const { registerActivity } = useRegisterActivity();
   const [manualTime, setManualTime] = useState(false);
@@ -62,8 +65,8 @@ export function DailyReportForm({
     resolver: zodResolver(FormSchema),
     defaultValues: {
       description: "",
-      start_hour: getCurrentTime(),
-      date: new Date(),
+      start_hour: getCurrentTime(timeZone),
+      date: toZonedWallClock(new Date(), timeZone) ?? new Date(),
     },
   });
 
@@ -73,7 +76,7 @@ export function DailyReportForm({
   const handleManualTimeChange = (checked: boolean) => {
     setManualTime(checked);
     if (!checked) {
-      form.setValue("start_hour", getCurrentTime());
+      form.setValue("start_hour", getCurrentTime(timeZone));
     }
   };
 
@@ -96,7 +99,7 @@ export function DailyReportForm({
           <div className="flex flex-col space-y-3">
             <Label>Analista</Label>
             <Input
-              value={`${user?.first_name || ""} ${user?.last_name || ""}`}
+              value={`${fullName(user)}`}
               disabled
             />
           </div>
@@ -132,7 +135,7 @@ export function DailyReportForm({
                       selected={field.value}
                       onSelect={field.onChange}
                       disabled={(date) =>
-                        date > new Date() || date < new Date("1900-01-01")
+                        date > companyNow() || date < new Date("1900-01-01")
                       }
                       autoFocus
                     />

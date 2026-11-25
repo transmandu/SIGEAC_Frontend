@@ -63,6 +63,7 @@ import { EngineeringCheckButton } from "./EngineeringCheckButton";
 import { MoveToReceptionButton } from "./MoveToReceptionButton";
 import { StoreDirectlyDialog } from "./StoreDirectlyDialog";
 import { TransitUpdatesButton } from "./TransitUpdatesButton";
+import { fullName } from "@/lib/person-name";
 
 type StatusFilter = "ALL" | "TRANSIT" | "RECEPTION";
 
@@ -129,7 +130,7 @@ const ArticleRow = memo(function ArticleRow({
 
   const handleReportBlocked = async () => {
     const reportedBy =
-      [user?.first_name, user?.last_name].filter(Boolean).join(" ").trim() ||
+      fullName(user).trim() ||
       user?.username ||
       null;
 

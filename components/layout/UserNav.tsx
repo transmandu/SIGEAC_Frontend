@@ -16,6 +16,7 @@ import {
 } from "motion/react";
 
 import { cn } from "@/lib/utils";
+import { fullName as fullNameOf, initialsOf } from "@/lib/person-name";
 
 import {
   Avatar,
@@ -55,12 +56,9 @@ export function UserNav() {
     useMyEmployee();
 
   const initials =
-    `${user?.first_name?.[0] ?? ""}${user?.last_name?.[0] ?? ""}`;
+    `${initialsOf(user)}`;
 
-  const fullName =
-    `${user?.first_name ?? ""} ${user?.last_name ?? ""}`
-      .trim()
-      .toUpperCase();
+  const fullName = fullNameOf(user);
 
   return (
     <DropdownMenu>

@@ -51,6 +51,7 @@ import { truncateText } from "@/components/forms/mantenimiento/almacen/_componen
 import { SearchAwareGroup } from "@/components/forms/mantenimiento/almacen/_components/SearchAwareGroup";
 import { WorkshopCombobox } from "@/components/forms/general/WorkshopCombobox";
 import { CreateWorkshopDialog } from "@/components/dialogs/general/CreateWorkshopDialog";
+import { fullName } from "@/lib/person-name";
 import {
   useWorkshopDispatchForm,
   aeroKey,
@@ -185,7 +186,7 @@ export function WorkshopDispatchForm({ onClose }: FormProps) {
               <Input
                 className="h-10"
                 disabled
-                value={`${user?.first_name ?? ""} ${user?.last_name ?? ""}`.trim()}
+                value={`${fullName(user)}`.trim()}
               />
               <p className="text-xs text-muted-foreground">
                 Usuario actual que registra la salida.

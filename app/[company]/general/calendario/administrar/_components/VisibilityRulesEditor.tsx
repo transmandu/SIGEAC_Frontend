@@ -50,6 +50,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment";
 import { useGetUsers } from "@/hooks/sistema/usuario/useGetUsers";
+import { fullName } from "@/lib/person-name";
 import {
   useCreateCalendarVisibilityRule,
   useDeleteCalendarVisibilityRule,
@@ -182,7 +183,7 @@ export function VisibilityRulesEditor({
     }
     const user = users.find((u) => u.id === rule.user_id);
     return user
-      ? `${user.first_name} ${user.last_name} (${user.username})`
+      ? `${fullName(user)} (${user.username})`
       : `Usuario #${rule.user_id}`;
   };
 
@@ -254,7 +255,7 @@ export function VisibilityRulesEditor({
               >
                 <span className="truncate">
                   {selectedUser
-                    ? `${selectedUser.first_name} ${selectedUser.last_name}`
+                    ? fullName(selectedUser)
                     : "Buscar usuario..."}
                 </span>
                 <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
@@ -269,7 +270,7 @@ export function VisibilityRulesEditor({
                     {users.map((user) => (
                       <CommandItem
                         key={user.id}
-                        value={`${user.first_name} ${user.last_name} ${user.username}`}
+                        value={`${fullName(user)} ${user.username}`}
                         onSelect={() => {
                           setUserId(user.id);
                           setUserSearchOpen(false);
@@ -281,7 +282,7 @@ export function VisibilityRulesEditor({
                             userId === user.id ? "opacity-100" : "opacity-0",
                           )}
                         />
-                        {user.first_name} {user.last_name} ({user.username})
+                        {fullName(user)} ({user.username})
                       </CommandItem>
                     ))}
                   </CommandGroup>

@@ -39,6 +39,8 @@ import Image from "next/image";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { fullName } from "@/lib/person-name";
+import { formatCalendarDate } from "@/lib/date";
 
 const statusClassName = {
   ABIERTO:
@@ -87,10 +89,7 @@ const AirlineActivityDetail = () => {
       ]
     : [];
 
-  const dateLabel = (date: Date) =>
-    format(addDays(date, 1), "PPP", {
-      locale: es,
-    });
+  const dateLabel = (date: string | Date) => formatCalendarDate(date, "PPP");
 
   const topics = activity?.topics
     ? activity.topics
@@ -291,8 +290,7 @@ const AirlineActivityDetail = () => {
                           Autorizado por
                         </p>
                         <p className="mt-1 font-medium">
-                          {activity.authorized_by.first_name || "N/A"}{" "}
-                          {activity.authorized_by.last_name || ""}
+                          {fullName(activity.authorized_by, "N/A")}
                         </p>
                         <p className="text-xs text-muted-foreground">
                           DNI: {activity.authorized_by.dni || "N/A"}
@@ -303,8 +301,7 @@ const AirlineActivityDetail = () => {
                           Elaborado por
                         </p>
                         <p className="mt-1 font-medium">
-                          {activity.planned_by.first_name || "N/A"}{" "}
-                          {activity.planned_by.last_name || ""}
+                          {fullName(activity.planned_by, "N/A")}
                         </p>
                         <p className="text-xs text-muted-foreground">
                           DNI: {activity.planned_by.dni || "N/A"}
@@ -470,8 +467,7 @@ const AirlineActivityDetail = () => {
                                 {index + 1}
                               </td>
                               <td className="whitespace-nowrap px-3 py-3 text-sm font-medium">
-                                {attended.employee?.first_name}{" "}
-                                {attended.employee?.last_name}
+                                {fullName(attended.employee)}
                               </td>
                               <td className="whitespace-nowrap px-3 py-3 text-sm text-muted-foreground font-mono">
                                 {attended.employee?.dni ||
@@ -567,8 +563,7 @@ const AirlineActivityDetail = () => {
                                 {index + 1}
                               </td>
                               <td className="whitespace-nowrap px-3 py-3 text-sm font-medium">
-                                {attended.employee?.first_name}{" "}
-                                {attended.employee?.last_name}
+                                {fullName(attended.employee)}
                               </td>
                               <td className="hidden whitespace-nowrap px-3 py-3 text-sm text-muted-foreground font-mono sm:table-cell">
                                 {attended.employee?.dni ||

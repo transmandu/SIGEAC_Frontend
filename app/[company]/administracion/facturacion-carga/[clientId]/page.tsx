@@ -31,6 +31,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { useGetCargoCharges } from "@/hooks/administracion/facturacion_carga/useGetCargoCharges";
 import { useGetCargoChargePayments } from "@/hooks/administracion/facturacion_carga/useGetCargoChargePayments";
 import { CargoChargesTable } from "./_components/CargoChargesTable";
+import FormattedInstant from "@/components/misc/FormattedInstant";
 
 const ClientCargoBillingPage = () => {
   const { selectedCompany } = useCompanyStore();
@@ -188,7 +189,9 @@ const ClientCargoBillingPage = () => {
                 <TableBody>
                   {filteredPayments.map((payment) => (
                     <TableRow key={payment.id} className="hover:bg-muted/30">
-                      <TableCell>{formatDate(payment.created_at)}</TableCell>
+                      <TableCell>
+                        <FormattedInstant value={payment.created_at} format="date" />
+                      </TableCell>
                       <TableCell className="font-medium">
                         {payment.charge?.guide_number ?? "-"}
                       </TableCell>

@@ -5,7 +5,7 @@ import { FileText, Clock, AlertCircle } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { LibraryDropdownActions } from "@/components/dropdowns/general/LibraryDropdownActions";
 import { Document } from "@/lib/libraryService";
-import { formatCalendarDate } from "@/lib/date";
+import { formatCalendarDate, parseCalendarDate } from "@/lib/date";
 
 const fileTypeDetails: any = {
   pdf: {
@@ -44,7 +44,7 @@ const getStatusDetails = (status: string, expirationDate: string) => {
     };
   }
   const now = new Date();
-  const expDate = new Date(expirationDate);
+  const expDate = parseCalendarDate(expirationDate) ?? new Date(expirationDate);
   const diffTime = expDate.getTime() - now.getTime();
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 

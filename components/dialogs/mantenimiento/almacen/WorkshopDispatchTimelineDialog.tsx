@@ -43,6 +43,7 @@ import { useMemo, useState } from "react";
 import { PhoneInput } from "@/components/ui/PhoneInput";
 import { PHONE_ERROR_MESSAGE, isValidPhone, toPhoneValue } from "@/lib/phone";
 import { useOnChange } from "@/hooks/useOnChange";
+import FormattedInstant from "@/components/misc/FormattedInstant";
 
 interface Props {
   dispatchId: number;
@@ -83,11 +84,8 @@ type WorkshopChangeEntry = { from: unknown; to: unknown };
 /** Panel derecho: qué acción se está haciendo, además de ver el storyline. */
 type PanelMode = "idle" | "closing" | "editingWorkshop" | "changingWorkshop";
 
-function formatMoment(value: string) {
-  const date = parseISO(value);
-  return isNaN(date.getTime())
-    ? value
-    : format(date, "dd/MM/yyyy HH:mm", { locale: es });
+function Moment({ value }: { value: string }) {
+  return <FormattedInstant value={value} format="dateTime" fallback={value} />;
 }
 
 export function WorkshopDispatchTimelineDialog({
@@ -369,7 +367,7 @@ export function WorkshopDispatchTimelineDialog({
                           {EVENT_LABEL[entry.event] ?? entry.event}
                         </Badge>
                         <span className="text-xs text-muted-foreground">
-                          {formatMoment(entry.occurred_at)}
+                          <Moment value={entry.occurred_at} />
                         </span>
                       </div>
                       {entry.description && (
