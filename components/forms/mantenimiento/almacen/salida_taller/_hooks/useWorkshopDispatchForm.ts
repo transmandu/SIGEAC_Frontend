@@ -469,8 +469,13 @@ export function useWorkshopDispatchForm(onClose: () => void) {
         ? getGenMax(Number(watchedGen[index].general_article_id))
         : 0;
       const conv = convByKey[key];
-      const current = (parseFloat(qtyByKey[key] ?? "") || 0) * (conv?.factor ?? 1);
-      const next = validateAndClamp(key, String(Math.max(current, ids.length)), max);
+      const current =
+        (parseFloat(qtyByKey[key] ?? "") || 0) * (conv?.factor ?? 1);
+      const next = validateAndClamp(
+        key,
+        String(Math.max(current, ids.length)),
+        max,
+      );
 
       setQtyByKey((p) => ({ ...p, [key]: next }));
       setConvByKey((p) => {
@@ -482,7 +487,15 @@ export function useWorkshopDispatchForm(onClose: () => void) {
       setValue(`general_articles.${index}.quantity`, parseFloat(next) || 0);
       setValue(`general_articles.${index}.unit_id`, null);
     },
-    [watchedGen, getGenMax, convByKey, qtyByKey, validateAndClamp, setRowMsg, setValue],
+    [
+      watchedGen,
+      getGenMax,
+      convByKey,
+      qtyByKey,
+      validateAndClamp,
+      setRowMsg,
+      setValue,
+    ],
   );
 
   const setToMaxAero = useCallback(

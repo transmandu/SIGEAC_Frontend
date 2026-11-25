@@ -353,7 +353,9 @@ const CreateGeneralArticleForm = ({
   const [individualsError, setIndividualsError] = useState<string | null>(null);
 
   const { data: individualsData, isLoading: individualsLoading } =
-    useGetGeneralArticleIndividuals(isEditing ? (initialData?.id ?? null) : null);
+    useGetGeneralArticleIndividuals(
+      isEditing ? (initialData?.id ?? null) : null,
+    );
   const individualsSummary = individualsData?.summary;
 
   // Dimensiones e identificación no se combinan: un artículo medido por
@@ -362,7 +364,9 @@ const CreateGeneralArticleForm = ({
   // ya está en uso.
   const hasProfile = !!initialData?.dimension;
   const hasIndividuals = !!individualsSummary?.type;
-  const selectedUnit = units?.find((u) => String(u.id) === String(watchedUnitId));
+  const selectedUnit = units?.find(
+    (u) => String(u.id) === String(watchedUnitId),
+  );
 
   // Se están escribiendo identificadores: es lo que impide medir por dimensiones.
   const identifying = parseIdentifiers(individuals.text).length > 0;
@@ -371,7 +375,8 @@ const CreateGeneralArticleForm = ({
   // medidas y piezas enteras que hoy no se identifican una por una. Un
   // artículo ya dimensionado no vuelve a pasar por aquí. Al editar cuenta la
   // existencia guardada: la cantidad del formulario no se envía.
-  const quantityNow = Number(isEditing ? initialData?.quantity : watchedQuantity) || 0;
+  const quantityNow =
+    Number(isEditing ? initialData?.quantity : watchedQuantity) || 0;
   const dimensionBlocked = hasProfile
     ? null
     : hasIndividuals
@@ -386,7 +391,8 @@ const CreateGeneralArticleForm = ({
               ? "Indique primero la cantidad de piezas: un número entero, mínimo 1."
               : null;
 
-  const dimensionActive = (hasProfile || dimension.enabled) && !dimensionBlocked;
+  const dimensionActive =
+    (hasProfile || dimension.enabled) && !dimensionBlocked;
 
   // Se mide por dimensiones solo si de verdad está activo: con la casilla
   // marcada pero bloqueada (sin cantidad, por ejemplo) no puede impedir
@@ -481,7 +487,9 @@ const CreateGeneralArticleForm = ({
 
     // Solo viaja lo del modo elegido: lo escrito en otro quedó sin efecto.
     const dimensionDraft = { ...dimension, enabled: dimensionActive };
-    const identified = individualsActive ? individualsPayload(individuals) : null;
+    const identified = individualsActive
+      ? individualsPayload(individuals)
+      : null;
 
     try {
       if (values.mode === "add") {
@@ -517,8 +525,7 @@ const CreateGeneralArticleForm = ({
               : conversions,
           // Con perfil ya creado solo viajan las escalas de medida:
           // las medidas de la pieza no se pueden cambiar.
-          dimension:
-            dimensionPayload(dimensionDraft, hasProfile) ?? undefined,
+          dimension: dimensionPayload(dimensionDraft, hasProfile) ?? undefined,
           individuals: identified ?? undefined,
         });
       } else {
@@ -1033,7 +1040,9 @@ const CreateGeneralArticleForm = ({
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-10">
               {/* Sin items-start: la tarjeta toma la altura de la columna de
                     al lado y su contenido se centra en lo que sobra. */}
-              <section className={cn(sectionClass, "flex flex-col lg:col-span-4")}>
+              <section
+                className={cn(sectionClass, "flex flex-col lg:col-span-4")}
+              >
                 <SectionTitle
                   icon={ScanBarcode}
                   title="Identificar artículos"

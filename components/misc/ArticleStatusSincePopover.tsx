@@ -1,6 +1,10 @@
 "use client";
 
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { formatDistanceToNow, format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { ReactNode } from "react";
@@ -15,62 +19,64 @@ import { formatInstant } from "@/lib/date";
 const UNTRACKED_STATUSES = new Set(["STORED", "INTOOLBOX"]);
 
 export const tracksStatusSince = (status?: string | null) => {
-    const key = String(status ?? "").trim().toUpperCase();
-    return key !== "" && !UNTRACKED_STATUSES.has(key);
+  const key = String(status ?? "")
+    .trim()
+    .toUpperCase();
+  return key !== "" && !UNTRACKED_STATUSES.has(key);
 };
 
 const parseDate = (value: string) => {
-    const date = parseISO(value);
-    return isNaN(date.getTime()) ? null : date;
+  const date = parseISO(value);
+  return isNaN(date.getTime()) ? null : date;
 };
 
 export default function ArticleStatusSincePopover({
-    statusLabel,
-    statusSince,
-    children,
+  statusLabel,
+  statusSince,
+  children,
 }: {
-    statusLabel: string;
-    statusSince?: string | null;
-    children: ReactNode;
+  statusLabel: string;
+  statusSince?: string | null;
+  children: ReactNode;
 }) {
-    const timeZone = useCompanyTimezone();
-    const date = statusSince ? parseDate(statusSince) : null;
+  const timeZone = useCompanyTimezone();
+  const date = statusSince ? parseDate(statusSince) : null;
 
-    return (
-        <Popover>
-            {/* Badge renderiza un div, que no puede ir dentro de un button:
+  return (
+    <Popover>
+      {/* Badge renderiza un div, que no puede ir dentro de un button:
                 el trigger es un span con rol de botón para no anidar mal el HTML. */}
-            <PopoverTrigger asChild>
-                <span
-                    role="button"
-                    tabIndex={0}
-                    className="cursor-pointer rounded-full outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                    {children}
-                </span>
-            </PopoverTrigger>
+      <PopoverTrigger asChild>
+        <span
+          role="button"
+          tabIndex={0}
+          className="cursor-pointer rounded-full outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          {children}
+        </span>
+      </PopoverTrigger>
 
-            <PopoverContent className="w-64" align="center">
-                <div className="space-y-1.5 text-center">
-                    <p className="text-sm font-semibold">{statusLabel}</p>
+      <PopoverContent className="w-64" align="center">
+        <div className="space-y-1.5 text-center">
+          <p className="text-sm font-semibold">{statusLabel}</p>
 
-                    {date ? (
-                        <>
-                            <p className="text-sm">
-                                Desde el {formatInstant(statusSince, timeZone, "date")} a las{" "}
-                                {formatInstant(statusSince, timeZone, "time")}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                                {formatDistanceToNow(date, { locale: es, addSuffix: true })}
-                            </p>
-                        </>
-                    ) : (
-                        <p className="text-xs text-muted-foreground">
-                            Sin registro de cuándo entró a este estado.
-                        </p>
-                    )}
-                </div>
-            </PopoverContent>
-        </Popover>
-    );
+          {date ? (
+            <>
+              <p className="text-sm">
+                Desde el {formatInstant(statusSince, timeZone, "date")} a las{" "}
+                {formatInstant(statusSince, timeZone, "time")}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {formatDistanceToNow(date, { locale: es, addSuffix: true })}
+              </p>
+            </>
+          ) : (
+            <p className="text-xs text-muted-foreground">
+              Sin registro de cuándo entró a este estado.
+            </p>
+          )}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
 }

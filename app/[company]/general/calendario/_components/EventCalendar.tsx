@@ -59,7 +59,11 @@ import { EventPill } from "./EventPill";
 import { MonthGrid } from "./MonthGrid";
 import { LocalCalendarEvent } from "./types";
 import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
-import { formatInstant, toZonedWallClock, zonedWallClockToUtcIso } from "@/lib/date";
+import {
+  formatInstant,
+  toZonedWallClock,
+  zonedWallClockToUtcIso,
+} from "@/lib/date";
 
 const MANUAL_SOURCE_KEY = "manual";
 
@@ -83,11 +87,7 @@ function parseIsoDateLocal(iso: string): Date {
  * como día calendario y cualquier reinterpretación por huso puede correrlo.
  * Se manda la pared Y-M-D sin huso, que es lo único que significa un all_day.
  */
-function toBackendDate(
-  date: Date,
-  allDay: boolean,
-  timeZone: string,
-): string {
+function toBackendDate(date: Date, allDay: boolean, timeZone: string): string {
   // `date` es la hora de pared en la zona de la compañía (ver toZonedWallClock):
   // se convierte al instante UTC que guarda el backend.
   if (!allDay) return zonedWallClockToUtcIso(date, timeZone);

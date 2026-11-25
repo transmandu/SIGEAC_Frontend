@@ -58,7 +58,11 @@ import {
 import { cn, formatQuantity } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
-import { formatInstant, toZonedWallClock, zonedWallClockToUtcIso } from "@/lib/date";
+import {
+  formatInstant,
+  toZonedWallClock,
+  zonedWallClockToUtcIso,
+} from "@/lib/date";
 import type {
   GeneralArticleIntake,
   GeneralArticleIntakeEntryType,
@@ -1053,9 +1057,7 @@ export function RecepcionGeneralTab() {
           ?.toLowerCase()
           .includes(q) ||
         i.registered_by?.toLowerCase().includes(q) ||
-        `${fullName(i.handed_to_employee)}`
-          .toLowerCase()
-          .includes(q),
+        `${fullName(i.handed_to_employee)}`.toLowerCase().includes(q),
     );
   }, [intakes, statusFilter, entryTypeFilter, search]);
 

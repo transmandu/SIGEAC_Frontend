@@ -254,9 +254,7 @@ export function VisibilityRulesEditor({
                 className={cn(triggerButtonClass, "h-9 min-w-0 text-sm")}
               >
                 <span className="truncate">
-                  {selectedUser
-                    ? fullName(selectedUser)
-                    : "Buscar usuario..."}
+                  {selectedUser ? fullName(selectedUser) : "Buscar usuario..."}
                 </span>
                 <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
               </Button>

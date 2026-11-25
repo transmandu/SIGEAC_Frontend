@@ -414,7 +414,10 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
                     key={f.id}
                     article={ga}
                     generalId={generalId}
-                    qty={qtyByKey[key] ?? (item?.quantity ? String(item.quantity) : "")}
+                    qty={
+                      qtyByKey[key] ??
+                      (item?.quantity ? String(item.quantity) : "")
+                    }
                     max={max}
                     rowMsg={msgByKey[key]}
                     conversion={convByKey[key]}

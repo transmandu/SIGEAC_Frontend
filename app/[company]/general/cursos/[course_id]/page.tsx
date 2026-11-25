@@ -339,8 +339,7 @@ const ShowCourse = () => {
     if (!term) return attendance;
 
     return attendance.filter((item) => {
-      const fullName =
-        `${personName(item.employee)}`.toLowerCase();
+      const fullName = `${personName(item.employee)}`.toLowerCase();
       return (
         fullName.includes(term) ||
         item.employee_dni.toLowerCase().includes(term)

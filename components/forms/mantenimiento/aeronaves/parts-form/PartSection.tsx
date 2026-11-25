@@ -494,7 +494,10 @@ export default function PartSection({
                     <FormControl>
                       <Input
                         type="date"
-                        max={instantToCalendarDay(new Date(), timeZone) ?? undefined}
+                        max={
+                          instantToCalendarDay(new Date(), timeZone) ??
+                          undefined
+                        }
                         {...field}
                         value={field.value ?? ""}
                       />

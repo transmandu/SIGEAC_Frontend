@@ -16,12 +16,7 @@ type MovementTypeBadgeProps = {
 const MovementTypeBadge = ({ type }: MovementTypeBadgeProps) => {
   const isIncome = type === "INCOME";
   return (
-    <Badge
-      className={`text-xs ${isIncome
-        ? "bg-green-600"
-        : "bg-red-600"
-        }`}
-    >
+    <Badge className={`text-xs ${isIncome ? "bg-green-600" : "bg-red-600"}`}>
       {type}
     </Badge>
   );
@@ -50,7 +45,8 @@ const CashMovementResume = ({ movement }: { movement: CashMovement }) => {
                 </AvatarFallback>
               </Avatar>
               <p className="text-sm text-muted-foreground mt-1 text-center">
-                {fullName(movement.employee_responsible)}</p>
+                {fullName(movement.employee_responsible)}
+              </p>
             </div>
           </div>
         </CardTitle>
@@ -58,14 +54,22 @@ const CashMovementResume = ({ movement }: { movement: CashMovement }) => {
 
       <CardContent className="grid gap-4">
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-
           <div className="space-y-1 flex flex-col items-center">
             <h3 className="text-sm font-medium text-muted-foreground">Caja</h3>
             <p className="font-medium">{movement.cash.name}</p>
           </div>
           <div className="space-y-1 flex flex-col items-center">
-            <h3 className="text-sm font-medium text-muted-foreground">Tipo de Mov.</h3>
-            <Badge className={cn("font-bold", movement.type === "INCOME" ? "bg-green-500" : "bg-red-500")}>{movement.type === "INCOME" ? "INGRESO" : "EGRESO"}</Badge>
+            <h3 className="text-sm font-medium text-muted-foreground">
+              Tipo de Mov.
+            </h3>
+            <Badge
+              className={cn(
+                "font-bold",
+                movement.type === "INCOME" ? "bg-green-500" : "bg-red-500",
+              )}
+            >
+              {movement.type === "INCOME" ? "INGRESO" : "EGRESO"}
+            </Badge>
           </div>
           <div className="space-y-1 flex flex-col items-center">
             <h3 className="text-sm font-medium text-muted-foreground">
@@ -89,12 +93,20 @@ const CashMovementResume = ({ movement }: { movement: CashMovement }) => {
 
         <div className="flex flex-col gap-2">
           <h3 className="text-base font-medium text-muted-foreground">
-            Detalles del Movimiento - <span className={cn("font-bold", movement.type === "INCOME" ? "text-green-500" : "text-red-500")}>${parseFloat(movement.total_amount).toFixed(2)}</span>
+            Detalles del Movimiento -{" "}
+            <span
+              className={cn(
+                "font-bold",
+                movement.type === "INCOME" ? "text-green-500" : "text-red-500",
+              )}
+            >
+              ${parseFloat(movement.total_amount).toFixed(2)}
+            </span>
           </h3>
           <Separator />
           <div className="flex flex-col gap-4">
-            {
-              movement.cash_movement_details.length > 0 ? movement.cash_movement_details.map((detail) => (
+            {movement.cash_movement_details.length > 0 ? (
+              movement.cash_movement_details.map((detail) => (
                 <Card key={detail.id}>
                   <CardHeader>
                     <CardTitle className="text-lg font-bold">
@@ -102,17 +114,27 @@ const CashMovementResume = ({ movement }: { movement: CashMovement }) => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="flex justify-around items-center">
-                    <p className="font-medium">
-                      {detail.details}
-                    </p>
-                    <Badge className={cn("font-bold", movement.type === "INCOME" ? "bg-green-500" : "bg-red-500")}>Monto: ${parseFloat(detail.amount).toFixed(2)}</Badge>
+                    <p className="font-medium">{detail.details}</p>
+                    <Badge
+                      className={cn(
+                        "font-bold",
+                        movement.type === "INCOME"
+                          ? "bg-green-500"
+                          : "bg-red-500",
+                      )}
+                    >
+                      Monto: ${parseFloat(detail.amount).toFixed(2)}
+                    </Badge>
                   </CardContent>
                 </Card>
-              )) : <span className="text-muted-foreground text-xs italic">No existen detalles para este movimiento...</span>
-            }
+              ))
+            ) : (
+              <span className="text-muted-foreground text-xs italic">
+                No existen detalles para este movimiento...
+              </span>
+            )}
           </div>
         </div>
-
       </CardContent>
     </Card>
   );

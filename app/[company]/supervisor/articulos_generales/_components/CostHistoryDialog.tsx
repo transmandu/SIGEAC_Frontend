@@ -46,7 +46,11 @@ import {
 } from "./utils/uiHelpers";
 import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
 import { useOnChange } from "@/hooks/useOnChange";
-import { instantToCalendarDay, parseCalendarDate, companyNow } from "@/lib/date";
+import {
+  instantToCalendarDay,
+  parseCalendarDate,
+  companyNow,
+} from "@/lib/date";
 
 /**
  * Editor del historial de costo combinado del grupo en fusión.

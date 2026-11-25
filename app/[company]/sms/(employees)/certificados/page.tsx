@@ -113,9 +113,7 @@ const CertificatesPage = () => {
       group.subRows.push(cert);
     }
     return Array.from(groups.values()).sort((a, b) =>
-      lastFirstName(a.employee).localeCompare(
-        lastFirstName(b.employee),
-      ),
+      lastFirstName(a.employee).localeCompare(lastFirstName(b.employee)),
     );
   }, [certificates]);
 

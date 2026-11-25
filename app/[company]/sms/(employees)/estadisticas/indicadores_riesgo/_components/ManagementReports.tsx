@@ -46,13 +46,13 @@ export const ManagementReports: React.FC<ManagementReportsProps> = ({
   } = useGetTotalReportsStatsByYear(
     currentParams.from,
     currentParams.to,
-    companySlug || selectedCompany?.slug!
+    companySlug || selectedCompany?.slug!,
   );
 
   // Preparar datos para el gráfico
   const formatDate = useMemo(
     () => (date: string) => formatCalendarDate(date, "PPP"),
-    []
+    [],
   );
 
   // Datos para el gráfico - CORREGIDO: useMemo en lugar de useEffect + useState
@@ -79,7 +79,7 @@ export const ManagementReports: React.FC<ManagementReportsProps> = ({
 
   // Manejar cambio de fechas desde DateFilter
   const handleDateChange = (
-    dateRange: { from: Date; to: Date } | undefined
+    dateRange: { from: Date; to: Date } | undefined,
   ) => {
     if (!dateRange?.from || !dateRange?.to) return;
 

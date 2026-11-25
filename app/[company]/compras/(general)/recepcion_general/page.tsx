@@ -42,16 +42,12 @@ const RecepcionGeneralPage = () => {
           ?.toLowerCase()
           .includes(q) ||
         i.registered_by?.toLowerCase().includes(q) ||
-        `${fullName(i.handed_to_employee)}`
-          .toLowerCase()
-          .includes(q) ||
+        `${fullName(i.handed_to_employee)}`.toLowerCase().includes(q) ||
         i.warehouse?.name?.toLowerCase().includes(q) ||
         i.department?.name?.toLowerCase().includes(q) ||
         i.third_party?.name?.toLowerCase().includes(q) ||
         i.authorized_employee?.full_name?.toLowerCase().includes(q) ||
-        `${fullName(i.employee)}`
-          .toLowerCase()
-          .includes(q),
+        `${fullName(i.employee)}`.toLowerCase().includes(q),
     );
   }, [intakes, deferredSearch]);
 

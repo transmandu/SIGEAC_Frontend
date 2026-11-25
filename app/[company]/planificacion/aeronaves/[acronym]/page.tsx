@@ -56,8 +56,7 @@ const labelFor = (obj: any): string => {
   return JSON.stringify(obj);
 };
 
-const formatDate = (iso?: string | null) =>
-  formatCalendarDate(iso, "PPP", "—");
+const formatDate = (iso?: string | null) => formatCalendarDate(iso, "PPP", "—");
 
 const fmtNumber = (n: unknown) =>
   formatNumber(n, { minDecimals: 2, maxDecimals: 2, fallback: "—" });

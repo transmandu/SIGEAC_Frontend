@@ -65,7 +65,9 @@ export function SecurePdfViewerContent({
     window.addEventListener("resize", measure);
 
     const observer =
-      typeof ResizeObserver === "undefined" ? null : new ResizeObserver(measure);
+      typeof ResizeObserver === "undefined"
+        ? null
+        : new ResizeObserver(measure);
     observer?.observe(element);
 
     return () => {
@@ -81,11 +83,13 @@ export function SecurePdfViewerContent({
     const element = scrollRef.current;
     if (!element) return;
 
-    const middle = element.getBoundingClientRect().top + element.clientHeight / 2;
+    const middle =
+      element.getBoundingClientRect().top + element.clientHeight / 2;
     let visible = 1;
 
     pageRefs.current.forEach((page, index) => {
-      if (page && page.getBoundingClientRect().top <= middle) visible = index + 1;
+      if (page && page.getBoundingClientRect().top <= middle)
+        visible = index + 1;
     });
 
     setCurrentPage(visible);
@@ -103,9 +107,7 @@ export function SecurePdfViewerContent({
       <div
         data-tour={toolbarTour}
         className={`flex items-center justify-between border-b px-4 py-2 ${
-          isDark
-            ? "border-gray-800 bg-[#1a1c1e]"
-            : "border-gray-200 bg-gray-50"
+          isDark ? "border-gray-800 bg-[#1a1c1e]" : "border-gray-200 bg-gray-50"
         }`}
       >
         <div className="flex items-center gap-2">

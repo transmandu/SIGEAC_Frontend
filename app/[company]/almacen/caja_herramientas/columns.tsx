@@ -1,14 +1,14 @@
-"use client"
+"use client";
 
 import { type AppColumnDef } from "@/lib/table";
 
-import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
+import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 
-import PendingDispatchRequestDropdownActions from "@/components/dropdowns/mantenimiento/almacen/DispatchRequestDropdownActions"
-import { ToolBox } from "@/types"
-import { ToolBoxHistoryButton } from "@/components/dialogs/almacen/ToolBoxHistoryButton"
-import ToolBoxToolsDialog from "@/components/dialogs/mantenimiento/almacen/ToolBoxToolsDialog"
-import ToolBoxDropdownActions from "@/components/dropdowns/mantenimiento/ordenes_trabajo/ToolBoxDropdownActions"
+import PendingDispatchRequestDropdownActions from "@/components/dropdowns/mantenimiento/almacen/DispatchRequestDropdownActions";
+import { ToolBox } from "@/types";
+import { ToolBoxHistoryButton } from "@/components/dialogs/almacen/ToolBoxHistoryButton";
+import ToolBoxToolsDialog from "@/components/dialogs/mantenimiento/almacen/ToolBoxToolsDialog";
+import ToolBoxDropdownActions from "@/components/dropdowns/mantenimiento/ordenes_trabajo/ToolBoxDropdownActions";
 import { fullName } from "@/lib/person-name";
 
 export const columns: AppColumnDef<ToolBox>[] = [
@@ -40,10 +40,8 @@ export const columns: AppColumnDef<ToolBox>[] = [
       <DataTableColumnHeader filter column={column} title="Nombre" />
     ),
     cell: ({ row }) => {
-      return (
-        <p className="font-medium text-center">{row.original.name}</p>
-      )
-    }
+      return <p className="font-medium text-center">{row.original.name}</p>;
+    },
   },
   {
     accessorKey: "employee",
@@ -51,11 +49,13 @@ export const columns: AppColumnDef<ToolBox>[] = [
       <DataTableColumnHeader column={column} title="Empleado Responsable" />
     ),
     cell: ({ row }) => {
-      const employee = row.original.employee
+      const employee = row.original.employee;
       return (
-        <p className="font-medium text-center">{employee ? fullName(employee) : "N/A"}</p>
-      )
-    }
+        <p className="font-medium text-center">
+          {employee ? fullName(employee) : "N/A"}
+        </p>
+      );
+    },
   },
   {
     accessorKey: "delivered_by",
@@ -65,8 +65,8 @@ export const columns: AppColumnDef<ToolBox>[] = [
     cell: ({ row }) => {
       return (
         <p className="font-medium text-center">{row.original.delivered_by}</p>
-      )
-    }
+      );
+    },
   },
   {
     accessorKey: "quantity",
@@ -75,9 +75,11 @@ export const columns: AppColumnDef<ToolBox>[] = [
     ),
     cell: ({ row }) => {
       return (
-        <p className="font-medium text-center">{row.original.tool.length + (row.original.individuals?.length ?? 0)}</p>
-      )
-    }
+        <p className="font-medium text-center">
+          {row.original.tool.length + (row.original.individuals?.length ?? 0)}
+        </p>
+      );
+    },
   },
   {
     accessorKey: "tools",
@@ -92,14 +94,17 @@ export const columns: AppColumnDef<ToolBox>[] = [
           name={row.original.name}
         />
       </div>
-    )
+    ),
   },
   {
     id: "history",
     header: () => <p className="text-center text-sm font-medium">Historial</p>,
     cell: ({ row }) => (
       <div className="flex justify-center">
-        <ToolBoxHistoryButton toolBoxId={row.original.id} name={row.original.name} />
+        <ToolBoxHistoryButton
+          toolBoxId={row.original.id}
+          name={row.original.name}
+        />
       </div>
     ),
     enableSorting: false,
@@ -107,10 +112,10 @@ export const columns: AppColumnDef<ToolBox>[] = [
   {
     id: "actions",
     cell: ({ row }) => {
-      const toolbox = row.original
+      const toolbox = row.original;
       return (
         <ToolBoxDropdownActions initialData={toolbox} id={row.original.id} />
-      )
+      );
     },
   },
-]
+];

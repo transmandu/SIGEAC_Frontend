@@ -1,8 +1,8 @@
-import axios from '@/lib/axios';
-import { useCompanyStore } from '@/stores/CompanyStore';
-import { useQuery } from '@tanstack/react-query';
-import type { NeedsUnitConversionCandidate } from '@/types/purchase';
-import type { IndividualizationPreview } from '@/types/general-article-individual';
+import axios from "@/lib/axios";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { useQuery } from "@tanstack/react-query";
+import type { NeedsUnitConversionCandidate } from "@/types/purchase";
+import type { IndividualizationPreview } from "@/types/general-article-individual";
 
 /** Conversión ya registrada: lo que se sumará al stock si se confirma. */
 export interface AppliedConversionPreview {
@@ -18,7 +18,7 @@ export interface AppliedConversionPreview {
 
 /** Qué puede declararse sobre el modo dimensional al confirmar. */
 export interface DimensionPreview {
-  status: 'AVAILABLE' | 'ALREADY_DIMENSIONAL' | 'UNAVAILABLE' | 'NO_UNITS';
+  status: "AVAILABLE" | "ALREADY_DIMENSIONAL" | "UNAVAILABLE" | "NO_UNITS";
   reason?: string;
   /** Artículos individuales que se crearían; ausente si la cantidad no es entera. */
   pieces_to_add?: number | null;
@@ -47,9 +47,11 @@ interface ConfirmationPreviewResponse {
 
 const fetchConfirmationPreview = async (
   company: string,
-  intakeId: number
+  intakeId: number,
 ): Promise<ConfirmationPreviewResponse> => {
-  const { data } = await axios.get(`/${company}/general-article-intakes/${intakeId}/confirmation-preview`);
+  const { data } = await axios.get(
+    `/${company}/general-article-intakes/${intakeId}/confirmation-preview`,
+  );
   return data;
 };
 
@@ -58,11 +60,18 @@ const fetchConfirmationPreview = async (
 // necesitar una equivalencia de conversión de unidad. Evita el ciclo
 // "confirmar falla con 422 → el usuario llena el dato → confirmar de nuevo",
 // que duplicaba las mismas consultas dentro de una transacción cada vez.
-export const useGetIntakeConfirmationPreview = (intakeId: number, enabled: boolean) => {
+export const useGetIntakeConfirmationPreview = (
+  intakeId: number,
+  enabled: boolean,
+) => {
   const { selectedCompany } = useCompanyStore();
 
   return useQuery<ConfirmationPreviewResponse, Error>({
-    queryKey: ['general-article-intake-confirmation-preview', selectedCompany?.slug, intakeId],
+    queryKey: [
+      "general-article-intake-confirmation-preview",
+      selectedCompany?.slug,
+      intakeId,
+    ],
     queryFn: () => fetchConfirmationPreview(selectedCompany!.slug, intakeId),
     enabled: enabled && !!selectedCompany,
   });

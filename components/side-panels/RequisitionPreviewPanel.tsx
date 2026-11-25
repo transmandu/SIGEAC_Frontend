@@ -284,7 +284,12 @@ export default function RequisitionPreviewPanel({
             />
             <MetaItem
               label="Fecha de solicitud"
-              value={formatInstant(requisition.submission_date, timeZone, "dd MMM yyyy", "—")}
+              value={formatInstant(
+                requisition.submission_date,
+                timeZone,
+                "dd MMM yyyy",
+                "—",
+              )}
               icon={CalendarDays}
             />
             {requisition.aircraft?.acronym && (
@@ -447,8 +452,7 @@ export default function RequisitionPreviewPanel({
                 article.employee && {
                   key: "employee",
                   label: "Solicitante",
-                  value:
-                    fullName(article.employee),
+                  value: fullName(article.employee),
                 },
                 article.authorized_employee && {
                   key: "authorized_employee",

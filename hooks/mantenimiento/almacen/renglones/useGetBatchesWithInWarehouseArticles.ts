@@ -1,6 +1,6 @@
-import axios from '@/lib/axios';
-import { Article, Batch } from '@/types';
-import { useQuery } from '@tanstack/react-query';
+import axios from "@/lib/axios";
+import { Article, Batch } from "@/types";
+import { useQuery } from "@tanstack/react-query";
 
 interface BatchesWithCountProp extends Batch {
   articles: Article[];
@@ -20,9 +20,15 @@ const fetchBatchesWithInWarehouseArticles = async ({
   company,
   category,
   includeBoxed,
-}: UseGetBatchesWithInWarehouseArticlesParams): Promise<BatchesWithCountProp[]> => {
+}: UseGetBatchesWithInWarehouseArticlesParams): Promise<
+  BatchesWithCountProp[]
+> => {
   const { data } = await axios.get(`/${company}/items-for-dispatch`, {
-    params: { location_id, category, include_boxed: includeBoxed ? 1 : undefined },
+    params: {
+      location_id,
+      category,
+      include_boxed: includeBoxed ? 1 : undefined,
+    },
   });
   return data;
 };
@@ -39,8 +45,20 @@ export const useGetBatchesWithInWarehouseArticles = ({
     BatchesWithCountProp[],
     [string, string, number, string, boolean]
   >({
-    queryKey: ['batches-in-warehouse', company, location_id, category, !!includeBoxed],
-    queryFn: () => fetchBatchesWithInWarehouseArticles({ location_id, company, category, includeBoxed }),
+    queryKey: [
+      "batches-in-warehouse",
+      company,
+      location_id,
+      category,
+      !!includeBoxed,
+    ],
+    queryFn: () =>
+      fetchBatchesWithInWarehouseArticles({
+        location_id,
+        company,
+        category,
+        includeBoxed,
+      }),
     enabled: !!location_id && !!company && !!category,
   });
-};
+};

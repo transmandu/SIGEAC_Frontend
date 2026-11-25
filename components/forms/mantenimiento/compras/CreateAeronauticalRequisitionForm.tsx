@@ -210,8 +210,7 @@ export function CreateAeronauticalRequisitionForm({ onClose }: FormProps) {
     const query = employeeSearch.toLowerCase().trim();
     if (!query) return employees;
     return employees.filter((emp) => {
-      const searchText =
-        `${fullName(emp)} ${emp.dni}`.toLowerCase();
+      const searchText = `${fullName(emp)} ${emp.dni}`.toLowerCase();
       return searchText.includes(query);
     });
   }, [employees, employeeSearch]);

@@ -1,15 +1,14 @@
-"use client"
+"use client";
 
 import { type AppColumnDef } from "@/lib/table";
 
-import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
+import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 
-import ActivityReportsDropdownActions from "@/components/dropdowns/aerolinea/desarrollo/ActivityReportsDropdownActions"
-import { ActivityReport } from "@/types"
-import { addDays, format } from "date-fns"
-import { es } from "date-fns/locale"
+import ActivityReportsDropdownActions from "@/components/dropdowns/aerolinea/desarrollo/ActivityReportsDropdownActions";
+import { ActivityReport } from "@/types";
+import { addDays, format } from "date-fns";
+import { es } from "date-fns/locale";
 import { fullName } from "@/lib/person-name";
-
 
 export const columns: AppColumnDef<ActivityReport>[] = [
   // {
@@ -41,18 +40,22 @@ export const columns: AppColumnDef<ActivityReport>[] = [
     ),
     cell: ({ row }) => (
       <p className="font-medium text-center">{row.original.date}</p>
-    )
+    ),
   },
   {
     accessorKey: "user",
     header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Empleado Responsable" />
+      <DataTableColumnHeader
+        filter
+        column={column}
+        title="Empleado Responsable"
+      />
     ),
     cell: ({ row }) => {
       return (
         <p className="font-medium text-center">{fullName(row.original.user)}</p>
-      )
-    }
+      );
+    },
   },
   {
     accessorKey: "total_activities",
@@ -61,9 +64,11 @@ export const columns: AppColumnDef<ActivityReport>[] = [
     ),
     cell: ({ row }) => {
       return (
-        <p className="font-medium text-center">{row.original.activities.length}</p>
-      )
-    }
+        <p className="font-medium text-center">
+          {row.original.activities.length}
+        </p>
+      );
+    },
   },
   {
     accessorKey: "observation",
@@ -72,9 +77,11 @@ export const columns: AppColumnDef<ActivityReport>[] = [
     ),
     cell: ({ row }) => {
       return (
-        <p className="font-medium text-center">{row.original.observation ?? "Sin observaciones..."}</p>
-      )
-    }
+        <p className="font-medium text-center">
+          {row.original.observation ?? "Sin observaciones..."}
+        </p>
+      );
+    },
   },
   {
     id: "actions",
@@ -83,10 +90,8 @@ export const columns: AppColumnDef<ActivityReport>[] = [
     ),
     cell: ({ row }) => {
       return (
-        <ActivityReportsDropdownActions
-          id={row.original.id!.toString()}
-        />
+        <ActivityReportsDropdownActions id={row.original.id!.toString()} />
       );
     },
   },
-]
+];

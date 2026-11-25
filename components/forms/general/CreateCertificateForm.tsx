@@ -190,7 +190,9 @@ export const CreateCertificateForm = ({
                   ? "Cargando lista de empleados..."
                   : selectedDni
                     ? employees?.find((emp: any) => emp.dni === selectedDni)
-                      ? lastFirstName(employees.find((emp: any) => emp.dni === selectedDni))
+                      ? lastFirstName(
+                          employees.find((emp: any) => emp.dni === selectedDni),
+                        )
                       : "Seleccionar empleado..."
                     : "Seleccionar empleado..."}
                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -225,9 +227,7 @@ export const CreateCertificateForm = ({
                           )}
                         />
                         <div className="flex flex-col">
-                          <span>
-                            {lastFirstName(emp)}
-                          </span>
+                          <span>{lastFirstName(emp)}</span>
                           <span className="text-[10px] text-muted-foreground font-mono">
                             {emp.dni}
                           </span>

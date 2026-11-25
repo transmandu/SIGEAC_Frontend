@@ -285,9 +285,7 @@ export function StepRisksAndDetails({
                   value={
                     field.value ? new Date(field.value + "T00:00:00") : null
                   }
-                  setValue={(d) =>
-                    field.onChange(toCalendarPayload(d) ?? null)
-                  }
+                  setValue={(d) => field.onChange(toCalendarPayload(d) ?? null)}
                 />
                 <FormMessage />
               </FormItem>
@@ -304,9 +302,7 @@ export function StepRisksAndDetails({
                   value={
                     field.value ? new Date(field.value + "T00:00:00") : null
                   }
-                  setValue={(d) =>
-                    field.onChange(toCalendarPayload(d) ?? null)
-                  }
+                  setValue={(d) => field.onChange(toCalendarPayload(d) ?? null)}
                 />
                 <FormMessage />
               </FormItem>

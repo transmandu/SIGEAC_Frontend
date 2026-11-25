@@ -517,9 +517,7 @@ const GeneralArticleCard = ({
             {article.employee && (
               <div>
                 <p className="text-muted-foreground text-xs">Solicitante</p>
-                <p className="font-medium">
-                  {fullName(article.employee)}
-                </p>
+                <p className="font-medium">{fullName(article.employee)}</p>
               </div>
             )}
 
@@ -714,9 +712,7 @@ const RequisitionPage = () => {
               <p className="font-medium flex items-center gap-2 justify-center">
                 <User className="w-4 h-4" />
                 {data?.created_by
-                  ? fullName(data.created_by)
-                      .trim()
-                      .toUpperCase()
+                  ? fullName(data.created_by).trim().toUpperCase()
                   : "SISTEMA"}
               </p>
             </div>

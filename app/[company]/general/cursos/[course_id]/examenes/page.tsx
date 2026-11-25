@@ -592,8 +592,7 @@ const ManageExamsPage = () => {
 
     return attendanceRows.filter((attendance: any) => {
       const employee = attendance.employee ?? {};
-      const fullName =
-        `${personName(employee)}`.toLowerCase();
+      const fullName = `${personName(employee)}`.toLowerCase();
       const dni = String(
         attendance.employee_dni ?? employee.dni ?? "",
       ).toLowerCase();

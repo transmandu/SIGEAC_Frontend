@@ -71,7 +71,10 @@ export function WarehouseReportDialog() {
               <PDFDownloadLink
                 fileName={`reporte_diario_${formatInstant(new Date(), timeZone, "dd-MM-yyyy")}.pdf`}
                 document={
-                  <WarehouseReportPdf reports={data ?? []} timeZone={timeZone} />
+                  <WarehouseReportPdf
+                    reports={data ?? []}
+                    timeZone={timeZone}
+                  />
                 }
               >
                 <Button disabled={reportLoading} className="mt-2">

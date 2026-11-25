@@ -129,10 +129,7 @@ const ArticleRow = memo(function ArticleRow({
   };
 
   const handleReportBlocked = async () => {
-    const reportedBy =
-      fullName(user).trim() ||
-      user?.username ||
-      null;
+    const reportedBy = fullName(user).trim() || user?.username || null;
 
     try {
       await reportIncomingBlocked.mutateAsync({

@@ -860,10 +860,10 @@ export function RiskAssessmentForm({
                   <p className="text-xs text-muted-foreground">
                     {entry.updated_at || entry.created_at
                       ? formatInstant(
-                            entry.updated_at || entry.created_at,
-                            timeZone,
-                            "date",
-                          )
+                          entry.updated_at || entry.created_at,
+                          timeZone,
+                          "date",
+                        )
                       : "Sin fecha registrada"}
                   </p>
                 </div>

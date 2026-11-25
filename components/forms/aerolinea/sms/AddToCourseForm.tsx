@@ -377,9 +377,7 @@ export function AddToCourseForm({ onClose, initialData }: FormProps) {
 
                   <span className="min-w-0 flex-1">
                     <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                      <span className="font-medium">
-                        {fullName(employee)}
-                      </span>
+                      <span className="font-medium">{fullName(employee)}</span>
                       {employee.wasEnrolled && (
                         <span className="text-xs text-muted-foreground">
                           (inscrito)

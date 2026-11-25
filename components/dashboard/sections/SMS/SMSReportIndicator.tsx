@@ -52,7 +52,7 @@ export default function SMSReportIndicator({
   } = useGetTotalReportsStatsByYear(
     format(startOfYear(companyNow()), "yyyy-MM-dd"),
     format(companyNow(), "yyyy-MM-dd"),
-    companySlug
+    companySlug,
   );
 
   /* =========================
@@ -142,12 +142,7 @@ export default function SMSReportIndicator({
       );
     }
 
-    return (
-      <PieChartComponent
-        data={pieChartData}
-        title=""
-      />
-    );
+    return <PieChartComponent data={pieChartData} title="" />;
   };
 
   /* =========================
@@ -161,7 +156,6 @@ export default function SMSReportIndicator({
     return (
       <TintedCard className="p-4">
         <div className="flex flex-col items-center text-center space-y-3">
-
           <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600">
             <BarChart3 className="size-5" />
           </div>
@@ -182,8 +176,7 @@ export default function SMSReportIndicator({
                   className="h-full rounded-full transition-all duration-700 ease-out"
                   style={{
                     width: `${managementPercentage}%`,
-                    background:
-                      "linear-gradient(90deg, #0891b2, #3b82f6)",
+                    background: "linear-gradient(90deg, #0891b2, #3b82f6)",
                     boxShadow: "0 0 18px rgba(59,130,246,0.25)",
                   }}
                 />
@@ -234,7 +227,8 @@ export default function SMSReportIndicator({
           </div>
 
           <p className="mx-auto max-w-md text-sm leading-relaxed text-slate-500 dark:text-slate-400">
-            {barChartData?.closed || 0} de {barChartData?.total || 0} reportes gestionados
+            {barChartData?.closed || 0} de {barChartData?.total || 0} reportes
+            gestionados
           </p>
         </div>
       </TintedCard>
@@ -246,13 +240,10 @@ export default function SMSReportIndicator({
      ========================= */
   return (
     <div className="space-y-6">
-
       {/* CHARTS GRID */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
         {/* BAR CHART CARD */}
         <TintedCard className="p-4 flex flex-col items-center justify-center">
-          
           <div className="flex flex-col items-center text-center mb-2">
             <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600">
               <BarChart3 className="size-5" />
@@ -267,15 +258,11 @@ export default function SMSReportIndicator({
             </p>
           </div>
 
-          <div className="w-full h-[220px] pb-8">
-            {renderBarChart()}
-          </div>
-
+          <div className="w-full h-[220px] pb-8">{renderBarChart()}</div>
         </TintedCard>
 
         {/* PIE CHART CARD */}
         <TintedCard className="p-4 flex flex-col items-center justify-center">
-
           <div className="flex flex-col items-center text-center mb-2">
             <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600">
               <PieChart className="size-5" />
@@ -290,18 +277,14 @@ export default function SMSReportIndicator({
             </p>
           </div>
 
-          <div className="w-full h-[220px]">
-            {renderPieChart()}
-          </div>
+          <div className="w-full h-[220px]">{renderPieChart()}</div>
 
           {isErrorBarChart && (
             <p className="mx-auto max-w-md text-sm leading-relaxed text-slate-500 dark:text-slate-400">
               Error al cargar datos del gráfico.
             </p>
           )}
-
         </TintedCard>
-
       </div>
 
       {/* PROGRESS SECTION */}

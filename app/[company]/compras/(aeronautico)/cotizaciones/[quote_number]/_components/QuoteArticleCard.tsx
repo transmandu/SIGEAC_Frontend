@@ -147,7 +147,9 @@ const QuoteArticleCard = ({ article }: QuoteArticleCardProps) => {
                     Unidad
                   </span>
                   <span className="text-sm leading-none block">
-                    {hasUnit ? (article.unit?.label ?? "—") : UNITARY_UNIT_LABEL}
+                    {hasUnit
+                      ? (article.unit?.label ?? "—")
+                      : UNITARY_UNIT_LABEL}
                   </span>
                 </div>
 

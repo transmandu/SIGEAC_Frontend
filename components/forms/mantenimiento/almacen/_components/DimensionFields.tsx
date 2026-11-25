@@ -122,15 +122,12 @@ function MeasureScales({
   disabled?: boolean;
 }) {
   const available = units.filter(
-    (u) =>
-      u.id !== measureUnitId && !value.some((r) => r.unit_id === u.id),
+    (u) => u.id !== measureUnitId && !value.some((r) => r.unit_id === u.id),
   );
 
   return (
     <div className="space-y-2">
-      <Label className={hintClass}>
-        Otras escalas para medir los trazos
-      </Label>
+      <Label className={hintClass}>Otras escalas para medir los trazos</Label>
 
       {value.map((row, index) => {
         const unit = units.find((u) => u.id === row.unit_id);
@@ -146,7 +143,10 @@ function MeasureScales({
               value={row.value}
               onChange={(e) => {
                 const next = [...value];
-                next[index] = { ...row, value: sanitizeDecimal(e.target.value) };
+                next[index] = {
+                  ...row,
+                  value: sanitizeDecimal(e.target.value),
+                };
                 onChange(next);
               }}
               placeholder="100"
@@ -295,7 +295,9 @@ export function DimensionFields({
         <div className="border-t pt-3">
           <MeasureScales
             value={value.measure_conversions}
-            onChange={(rows) => onChange({ ...value, measure_conversions: rows })}
+            onChange={(rows) =>
+              onChange({ ...value, measure_conversions: rows })
+            }
             measureLabel={unitLabel}
             units={measureUnits}
             measureUnitId={activeMeasureUnitId}
@@ -388,9 +390,7 @@ export function DimensionFields({
           </Tabs>
 
           <div className="space-y-1.5">
-            <Label className={hintClass}>
-              Unidad de medida
-            </Label>
+            <Label className={hintClass}>Unidad de medida</Label>
             <Select
               disabled={disabled || measureUnits.length === 0}
               value={value.measure_unit_id}
@@ -434,7 +434,7 @@ export function DimensionFields({
               </Label>
               <Input
                 type="text"
-              inputMode="decimal"
+                inputMode="decimal"
                 disabled={disabled}
                 value={value.piece_length}
                 onChange={(e) =>
@@ -454,7 +454,7 @@ export function DimensionFields({
                 </Label>
                 <Input
                   type="text"
-              inputMode="decimal"
+                  inputMode="decimal"
                   disabled={disabled}
                   value={value.piece_width}
                   onChange={(e) =>

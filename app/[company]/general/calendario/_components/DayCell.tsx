@@ -41,7 +41,10 @@ export function DayCell({
   const timeZone = useCompanyTimezone();
 
   // "Hoy" es el día de la compañía, no el del navegador.
-  const isToday = isSameDay(day, toZonedWallClock(new Date(), timeZone) ?? new Date());
+  const isToday = isSameDay(
+    day,
+    toZonedWallClock(new Date(), timeZone) ?? new Date(),
+  );
   const inCurrentMonth =
     day.getMonth() === monthStart.getMonth() &&
     day.getFullYear() === monthStart.getFullYear();

@@ -20,7 +20,11 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { toCalendarPayload, formatCalendarDate } from "@/lib/date";
 import { fullName } from "@/lib/person-name";
 
-const ActivityReportsByIdPage = ({ params }: { params: Promise<{ id: string }> }) => {
+const ActivityReportsByIdPage = ({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) => {
   const { id } = use(params);
   const { data: report, isLoading } = useGetUserActivity(id);
   const { user, loading } = useAuth();
@@ -56,15 +60,13 @@ const ActivityReportsByIdPage = ({ params }: { params: Promise<{ id: string }> }
               </Button>
             </PDFDownloadLink>
 
-            {report?.date &&
-              report.date === toCalendarPayload(new Date()) && (
-
-                <DailyReportDialog
-                  report_id={report.id}
-                  activities_length={report.activities?.length || 0}
-                  onClose={() => setDialogOpen(false)}
-                />
-              )}
+            {report?.date && report.date === toCalendarPayload(new Date()) && (
+              <DailyReportDialog
+                report_id={report.id}
+                activities_length={report.activities?.length || 0}
+                onClose={() => setDialogOpen(false)}
+              />
+            )}
           </div>
         )}
 

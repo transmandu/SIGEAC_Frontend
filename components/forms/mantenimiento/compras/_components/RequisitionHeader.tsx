@@ -233,9 +233,7 @@ export function RequisitionHeader({
                       )}
                     >
                       {selectedEmployee ? (
-                        <span>
-                          {fullName(selectedEmployee)}
-                        </span>
+                        <span>{fullName(selectedEmployee)}</span>
                       ) : selectedAuthorizedEmployee ? (
                         <span>
                           {formatAuthorizedEmployeeLabel(

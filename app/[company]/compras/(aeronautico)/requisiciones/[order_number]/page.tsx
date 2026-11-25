@@ -271,9 +271,7 @@ const RequisitionPage = () => {
           items={[
             {
               label: "Creado por",
-              value: data?.created_by
-                ? fullName(data.created_by)
-                : "Sistema",
+              value: data?.created_by ? fullName(data.created_by) : "Sistema",
               icon: UserCheck,
             },
             {

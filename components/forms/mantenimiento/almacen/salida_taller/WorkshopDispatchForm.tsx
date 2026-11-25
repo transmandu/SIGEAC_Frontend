@@ -406,12 +406,12 @@ export function WorkshopDispatchForm({ onClose }: FormProps) {
                       ) : (
                         <CommandGroup heading="Inventario general">
                           <GeneralCatalogOptions
-                          articles={hardwareArticles}
-                          selectedIds={genSelectedSet}
-                          pickedIndividualIds={genIndividualSet}
-                          onAdd={handleAddGeneral}
-                          onToggleIndividual={handleToggleGeneralIndividual}
-                        />
+                            articles={hardwareArticles}
+                            selectedIds={genSelectedSet}
+                            pickedIndividualIds={genIndividualSet}
+                            onAdd={handleAddGeneral}
+                            onToggleIndividual={handleToggleGeneralIndividual}
+                          />
                         </CommandGroup>
                       )
                     ) : isBatchesLoading ? (
@@ -542,7 +542,10 @@ export function WorkshopDispatchForm({ onClose }: FormProps) {
                     key={f.id}
                     article={ga}
                     generalId={generalId}
-                    qty={qtyByKey[key] ?? (item?.quantity ? String(item.quantity) : "")}
+                    qty={
+                      qtyByKey[key] ??
+                      (item?.quantity ? String(item.quantity) : "")
+                    }
                     max={max}
                     rowMsg={msgByKey[key]}
                     conversion={convByKey[key]}

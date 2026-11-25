@@ -1,34 +1,29 @@
-'use client'
+"use client";
 
 import { use } from "react";
-import { ContentLayout } from '@/components/layout/ContentLayout'
-import LoadingPage from '@/components/misc/LoadingPage'
+import { ContentLayout } from "@/components/layout/ContentLayout";
+import LoadingPage from "@/components/misc/LoadingPage";
 
-import { Badge } from '@/components/ui/badge'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 
-import UserRolesTab from '@/components/cards/UserRolesTab'
-import UserCompaniesTab from '@/components/cards/UserCompaniesTab'
-import UserCompanyModulesTab from '@/components/cards/UserCompanyModulesTab'
+import UserRolesTab from "@/components/cards/UserRolesTab";
+import UserCompaniesTab from "@/components/cards/UserCompaniesTab";
+import UserCompanyModulesTab from "@/components/cards/UserCompanyModulesTab";
 
-import { useGetUserById } from '@/hooks/sistema/usuario/useGetUserById'
-import { cn } from '@/lib/utils'
+import { useGetUserById } from "@/hooks/sistema/usuario/useGetUserById";
+import { cn } from "@/lib/utils";
 
-import { Mail, User as UserIcon } from 'lucide-react'
+import { Mail, User as UserIcon } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { fullName } from "@/lib/person-name";
 
 const UserByIdPage = ({ params }: { params: Promise<{ id: string }> }) => {
   const { id } = use(params);
-  const { data: user, isLoading, isError } = useGetUserById(id)
+  const { data: user, isLoading, isError } = useGetUserById(id);
 
-  if (isLoading) return <LoadingPage />
+  if (isLoading) return <LoadingPage />;
 
   if (isError || !user) {
     return (
@@ -37,23 +32,19 @@ const UserByIdPage = ({ params }: { params: Promise<{ id: string }> }) => {
           No se pudo cargar la información del usuario.
         </p>
       </ContentLayout>
-    )
+    );
   }
 
-  const isActive =
-    user.isActive === true ||
-    (user.isActive as unknown) === 1
+  const isActive = user.isActive === true || (user.isActive as unknown) === 1;
 
   return (
     <ContentLayout title={fullName(user)}>
       <div className="flex flex-col gap-y-4">
-
         {/* Breadcrumb */}
         <PageHeader className="mb-2" currentLabel={user.username} />
 
         {/* GRID PRINCIPAL */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
-
           {/* Usuario */}
           <Card>
             <CardHeader className="pb-3">
@@ -68,17 +59,13 @@ const UserByIdPage = ({ params }: { params: Promise<{ id: string }> }) => {
                 <span className="text-sm text-muted-foreground">
                   Nombre completo
                 </span>
-                <span className="text-sm font-medium">
-                  {fullName(user)}
-                </span>
+                <span className="text-sm font-medium">{fullName(user)}</span>
               </div>
 
               <Separator />
 
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">
-                  Usuario
-                </span>
+                <span className="text-sm text-muted-foreground">Usuario</span>
                 <span className="font-mono text-sm font-semibold">
                   {user.username}
                 </span>
@@ -97,20 +84,18 @@ const UserByIdPage = ({ params }: { params: Promise<{ id: string }> }) => {
               <Separator />
 
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">
-                  Estado
-                </span>
+                <span className="text-sm text-muted-foreground">Estado</span>
 
                 <Badge
                   variant="outline"
                   className={cn(
-                    'text-[10px] font-semibold',
+                    "text-[10px] font-semibold",
                     isActive
-                      ? 'border-emerald-200 bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400'
-                      : 'border-rose-200 bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400'
+                      ? "border-emerald-200 bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400"
+                      : "border-rose-200 bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400",
                   )}
                 >
-                  {isActive ? 'ACTIVO' : 'INACTIVO'}
+                  {isActive ? "ACTIVO" : "INACTIVO"}
                 </Badge>
               </div>
             </CardContent>
@@ -119,9 +104,7 @@ const UserByIdPage = ({ params }: { params: Promise<{ id: string }> }) => {
           {/* Roles */}
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-base">
-                Roles
-              </CardTitle>
+              <CardTitle className="text-base">Roles</CardTitle>
             </CardHeader>
             <CardContent>
               <UserRolesTab user={user} />
@@ -130,7 +113,6 @@ const UserByIdPage = ({ params }: { params: Promise<{ id: string }> }) => {
 
           {/* 🔥 BLOQUE COMBINADO: EMPRESAS + MÓDULOS MISMA FILA */}
           <div className="lg:col-span-2 grid grid-cols-1 lg:grid-cols-2 gap-4">
-
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-base">
@@ -144,21 +126,17 @@ const UserByIdPage = ({ params }: { params: Promise<{ id: string }> }) => {
 
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-base">
-                  Módulos por empresa
-                </CardTitle>
+                <CardTitle className="text-base">Módulos por empresa</CardTitle>
               </CardHeader>
               <CardContent>
                 <UserCompanyModulesTab user={user} />
               </CardContent>
             </Card>
-
           </div>
-
         </div>
       </div>
     </ContentLayout>
-  )
-}
+  );
+};
 
-export default UserByIdPage
+export default UserByIdPage;

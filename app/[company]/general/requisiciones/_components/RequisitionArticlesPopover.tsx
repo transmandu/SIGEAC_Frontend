@@ -221,8 +221,7 @@ export default function RequisitionArticlesPopover({ requisition }: Props) {
             const destinations = [
               article.department?.name,
               article.third_party?.name,
-              article.employee &&
-                fullName(article.employee),
+              article.employee && fullName(article.employee),
               article.authorized_employee?.full_name ||
                 article.authorized_employee?.dni_employee,
             ].filter(Boolean);

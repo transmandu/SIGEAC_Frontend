@@ -118,7 +118,10 @@ export function ManualEventsPanel({ company }: ManualEventsPanelProps) {
                     </span>
                     <span className="text-xs font-normal text-muted-foreground">
                       {event.all_day
-                        ? formatCalendarDate(event.start_at, "d 'de' MMMM, yyyy")
+                        ? formatCalendarDate(
+                            event.start_at,
+                            "d 'de' MMMM, yyyy",
+                          )
                         : formatInstant(
                             event.start_at,
                             timeZone,

@@ -75,7 +75,9 @@ export const useIndividualizeGeneralArticle = (articleId: number) => {
     },
     onSuccess: (data) => {
       refresh();
-      toast.success("¡Artículos individuales identificados!", { description: data.message });
+      toast.success("¡Artículos individuales identificados!", {
+        description: data.message,
+      });
     },
     onError: (error) =>
       notifyError(error, { action: "identificar los artículos individuales" }),
@@ -128,6 +130,7 @@ export const useDisposeIndividual = (articleId: number) => {
           "Salió de la existencia del artículo y quedó el motivo registrado.",
       });
     },
-    onError: (error) => notifyError(error, { action: "dar de baja el artículo individual" }),
+    onError: (error) =>
+      notifyError(error, { action: "dar de baja el artículo individual" }),
   });
 };

@@ -63,7 +63,10 @@ const ToolBoxToolsDialog = ({ tools, individuals, name }: DialogProps) => {
           </DialogHeader>
           <div className="flex flex-col gap-2">
             {tools?.map((tool, index) => (
-              <div key={tool.article.id ?? `${tool.serial}-${index}`} className="flex flex-col items-center">
+              <div
+                key={tool.article.id ?? `${tool.serial}-${index}`}
+                className="flex flex-col items-center"
+              >
                 <h1 className="text-lg font-bold">
                   {tool.article.batches?.name}
                 </h1>

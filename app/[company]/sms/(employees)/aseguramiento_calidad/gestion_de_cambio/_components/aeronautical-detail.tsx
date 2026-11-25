@@ -186,9 +186,7 @@ export default function ChangeRequestDetailPage() {
             <CardContent className="space-y-3">
               <div>
                 <FieldLabel>Solicitante</FieldLabel>
-                <FieldValue>
-                  {fullName(changeRequest.requested_by)}
-                </FieldValue>
+                <FieldValue>{fullName(changeRequest.requested_by)}</FieldValue>
               </div>
               <div>
                 <FieldLabel>Aprobado por</FieldLabel>

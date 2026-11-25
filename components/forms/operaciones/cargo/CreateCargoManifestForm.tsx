@@ -320,7 +320,7 @@ export default function CreateCargoManifestForm({
   // ── Render principal ──────────────────────────────────────────────────────
 
   return (
-    <div className="space-y-3" data-tour="cargo-manifiestos-nuevo-guias" >
+    <div className="space-y-3" data-tour="cargo-manifiestos-nuevo-guias">
       {/* Listado de Guías o Mensaje Sin Resultados */}
       {!selectedAircraftId ? (
         <p className="text-center text-muted-foreground py-8 border border-dashed border-border rounded-lg bg-muted/20">

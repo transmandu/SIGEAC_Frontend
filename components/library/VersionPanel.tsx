@@ -140,7 +140,12 @@ export const HistoryPanel = ({
 
                       <div className="flex items-center gap-1 text-slate-500 dark:text-gray-500 text-[10px] font-bold uppercase tracking-tight">
                         <Clock className="h-3 w-3" />
-                        {formatInstant(v.created_at, timeZone, "date", "--/--/--")}
+                        {formatInstant(
+                          v.created_at,
+                          timeZone,
+                          "date",
+                          "--/--/--",
+                        )}
                       </div>
                     </div>
 

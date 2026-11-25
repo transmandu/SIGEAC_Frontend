@@ -293,7 +293,11 @@ export function toolBoxMembers(box: ToolBox): ToolBoxMember[] {
   // inspección, en cuarentena—, que se dice con su estado.
   const holderText = (
     holder:
-      | { who: string | null; request_number: string | null; with_box?: boolean }
+      | {
+          who: string | null;
+          request_number: string | null;
+          with_box?: boolean;
+        }
       | null
       | undefined,
     status: string,
@@ -445,7 +449,10 @@ export function useDispatchForm(
     itemCategory === "tool" && selectedStation ? String(selectedStation) : null,
     selectedCompany?.slug,
   );
-  const toolBoxes = useMemo<ToolBox[]>(() => toolBoxesRes ?? [], [toolBoxesRes]);
+  const toolBoxes = useMemo<ToolBox[]>(
+    () => toolBoxesRes ?? [],
+    [toolBoxesRes],
+  );
   const hardwareArticles = useMemo<GeneralArticle[]>(
     () => hardwareRes ?? [],
     [hardwareRes],
@@ -874,8 +881,13 @@ export function useDispatchForm(
         ? getGenMax(Number(watchedGen[index].general_article_id))
         : 0;
       const conv = convByKey[key];
-      const current = (parseFloat(qtyByKey[key] ?? "") || 0) * (conv?.factor ?? 1);
-      const next = validateAndClamp(key, String(Math.max(current, ids.length)), max);
+      const current =
+        (parseFloat(qtyByKey[key] ?? "") || 0) * (conv?.factor ?? 1);
+      const next = validateAndClamp(
+        key,
+        String(Math.max(current, ids.length)),
+        max,
+      );
 
       setQtyByKey((p) => ({ ...p, [key]: next }));
       setConvByKey((p) => {
@@ -887,7 +899,15 @@ export function useDispatchForm(
       setValue(`general_articles.${index}.quantity`, parseFloat(next) || 0);
       setValue(`general_articles.${index}.unit_id`, null);
     },
-    [watchedGen, getGenMax, convByKey, qtyByKey, validateAndClamp, setRowMsg, setValue],
+    [
+      watchedGen,
+      getGenMax,
+      convByKey,
+      qtyByKey,
+      validateAndClamp,
+      setRowMsg,
+      setValue,
+    ],
   );
 
   // ── Conversion (7 states → 1) ─────────────────────────────────────────────
@@ -1151,15 +1171,16 @@ export function useDispatchForm(
       }
 
       // Lo que sale con la caja no puede pedirse también por su cuenta.
-      const memberIndividuals = new Set((box.individuals ?? []).map((i) => i.id));
+      const memberIndividuals = new Set(
+        (box.individuals ?? []).map((i) => i.id),
+      );
       const memberTools = new Set(
         (box.tool ?? []).map((t) => Number(t.article?.id)),
       );
       const clash =
         watchedGen.some((row) =>
           (row.individual_ids ?? []).some((id) => memberIndividuals.has(id)),
-        ) ||
-        watchedAero.some((row) => memberTools.has(Number(row.article_id)));
+        ) || watchedAero.some((row) => memberTools.has(Number(row.article_id)));
       if (clash) {
         toast.error("Ya eligió parte de esa caja", {
           description: `Quite de la lista lo que ya eligió de ${box.name}: sale con la caja.`,

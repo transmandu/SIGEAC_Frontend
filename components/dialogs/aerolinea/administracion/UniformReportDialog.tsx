@@ -49,9 +49,7 @@ export function UniformReportDialog() {
   const [downloading, setDownloading] = useState(false);
   const [employeePopoverOpen, setEmployeePopoverOpen] = useState(false);
 
-  const selectedEmployee = employees?.find(
-    (e) => String(e.id) === employeeId,
-  );
+  const selectedEmployee = employees?.find((e) => String(e.id) === employeeId);
 
   const canDownload =
     searchType === "employee" ? !!employeeId : !!recipientDni.trim();
@@ -113,9 +111,7 @@ export function UniformReportDialog() {
       }}
     >
       <DialogTrigger asChild>
-        <ActionTriggerButton>
-          Generar Reporte
-        </ActionTriggerButton>
+        <ActionTriggerButton>Generar Reporte</ActionTriggerButton>
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-[500px]">

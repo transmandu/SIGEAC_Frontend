@@ -111,7 +111,8 @@ export function IndividualIdentifiersField({
   const error = individualsDraftError(draft, max) ?? serverError ?? null;
   const full = identifiers.length >= max;
 
-  const commit = (next: string[]) => onChange({ ...draft, text: next.join("\n") });
+  const commit = (next: string[]) =>
+    onChange({ ...draft, text: next.join("\n") });
 
   const addMany = (raw: string[]) => {
     const next = [...identifiers];
@@ -149,7 +150,9 @@ export function IndividualIdentifiersField({
   };
 
   // Una columna pegada desde una hoja de cálculo se agrega completa.
-  const handlePaste: React.ClipboardEventHandler<HTMLInputElement> = (event) => {
+  const handlePaste: React.ClipboardEventHandler<HTMLInputElement> = (
+    event,
+  ) => {
     const pasted = parseIdentifiers(event.clipboardData.getData("text"));
     if (pasted.length <= 1) return;
 
@@ -162,7 +165,9 @@ export function IndividualIdentifiersField({
       <div className="space-y-1.5">
         <Label className="text-[13px] font-medium">Tipo</Label>
         {lockedType ? (
-          <p className="text-sm font-medium">{INDIVIDUAL_TYPE_LABEL[lockedType]}</p>
+          <p className="text-sm font-medium">
+            {INDIVIDUAL_TYPE_LABEL[lockedType]}
+          </p>
         ) : (
           <Select
             disabled={disabled}
@@ -173,7 +178,10 @@ export function IndividualIdentifiersField({
           >
             <SelectTrigger className={selectClass}>
               <span
-                className={cn("truncate", !draft.type && "text-muted-foreground")}
+                className={cn(
+                  "truncate",
+                  !draft.type && "text-muted-foreground",
+                )}
               >
                 {draft.type
                   ? INDIVIDUAL_TYPE_LABEL[draft.type]

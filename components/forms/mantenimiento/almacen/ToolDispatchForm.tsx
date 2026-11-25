@@ -347,7 +347,10 @@ export function ToolDispatchForm({ onClose }: FormProps) {
                                     </span>
                                   </div>
                                   {article.tool_box && (
-                                    <TagBadge tone="blue" className="ml-2 shrink-0">
+                                    <TagBadge
+                                      tone="blue"
+                                      className="ml-2 shrink-0"
+                                    >
                                       En caja: {article.tool_box.name}
                                     </TagBadge>
                                   )}
@@ -370,7 +373,8 @@ export function ToolDispatchForm({ onClose }: FormProps) {
                       ) : (
                         <CommandGroup heading="Cajas de herramientas">
                           {toolBoxes.map((box) => {
-                            const { inside, outside } = toolBoxAvailability(box);
+                            const { inside, outside } =
+                              toolBoxAvailability(box);
                             const already = toolBoxSelectedSet.has(box.id);
                             const responsible = box.employee
                               ? fullName(box.employee)
@@ -400,12 +404,18 @@ export function ToolDispatchForm({ onClose }: FormProps) {
                                   </span>
                                 </div>
                                 {inside === 0 ? (
-                                  <TagBadge tone="amber" className="ml-2 shrink-0">
+                                  <TagBadge
+                                    tone="amber"
+                                    className="ml-2 shrink-0"
+                                  >
                                     Todo fuera
                                   </TagBadge>
                                 ) : (
                                   outside > 0 && (
-                                    <TagBadge tone="slate" className="ml-2 shrink-0">
+                                    <TagBadge
+                                      tone="slate"
+                                      className="ml-2 shrink-0"
+                                    >
                                       {outside} fuera
                                     </TagBadge>
                                   )
@@ -440,14 +450,14 @@ export function ToolDispatchForm({ onClose }: FormProps) {
           {aeronauticalCount === 0 &&
             generalCount === 0 &&
             selectedToolBoxes.length === 0 && (
-            <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed py-8 text-center text-muted-foreground">
-              <Wrench className="h-8 w-8 opacity-40" />
-              <p className="text-sm">Ningún artículo seleccionado.</p>
-              <p className="text-xs opacity-70">
-                Use el selector de arriba para agregar herramientas.
-              </p>
-            </div>
-          )}
+              <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed py-8 text-center text-muted-foreground">
+                <Wrench className="h-8 w-8 opacity-40" />
+                <p className="text-sm">Ningún artículo seleccionado.</p>
+                <p className="text-xs opacity-70">
+                  Use el selector de arriba para agregar herramientas.
+                </p>
+              </div>
+            )}
 
           {selectedToolBoxes.length > 0 && (
             <div className="space-y-2">
@@ -460,11 +470,7 @@ export function ToolDispatchForm({ onClose }: FormProps) {
                   name={box.name}
                   summary={toolBoxSummary(box)}
                   members={toolBoxMembers(box)}
-                  responsible={
-                    box.employee
-                      ? fullName(box.employee)
-                      : null
-                  }
+                  responsible={box.employee ? fullName(box.employee) : null}
                   onRemove={() => removeToolBox(box.id)}
                 />
               ))}

@@ -66,7 +66,8 @@ export const INDIVIDUAL_TYPE_LABEL: Record<IndividualType, string> = {
 export const INDIVIDUAL_TYPE_HINT: Record<IndividualType, string> = {
   HARDWARE_TOOL: "Se guarda en cajas de herramientas y vuelve tras cada uso.",
   IT_EQUIPMENT: "Teclados, ratones, monitores, equipos con serial.",
-  OTHER_EQUIPMENT: "Cualquier otro artículo que deba llevarse por identificador.",
+  OTHER_EQUIPMENT:
+    "Cualquier otro artículo que deba llevarse por identificador.",
 };
 
 export const INDIVIDUAL_STATUS_LABEL: Record<IndividualStatus, string> = {

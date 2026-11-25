@@ -18,7 +18,7 @@
  */
 
 const HOW =
-  "Usa formatInstant(valor, zona, formato) / FormattedInstant para un instante, formatCalendarDate para una fecha de calendario, y companyNow() para \"hoy\" (lib/date.ts).";
+  'Usa formatInstant(valor, zona, formato) / FormattedInstant para un instante, formatCalendarDate para una fecha de calendario, y companyNow() para "hoy" (lib/date.ts).';
 
 export const archivosSinContratoDeFechas = ["lib/date.ts"];
 

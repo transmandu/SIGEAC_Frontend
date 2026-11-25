@@ -66,7 +66,11 @@ export function TrainingHistoryDialog({ training }: { training: SMSTraining }) {
                 <div className="flex items-center justify-between">
                   <EventBadge event={h.event_type} />
                   <span className="text-xs text-muted-foreground">
-                    <FormattedInstant value={h.created_at} format="date" fallback="" />
+                    <FormattedInstant
+                      value={h.created_at}
+                      format="date"
+                      fallback=""
+                    />
                   </span>
                 </div>
 

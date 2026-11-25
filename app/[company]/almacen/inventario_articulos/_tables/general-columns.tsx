@@ -19,7 +19,10 @@ export const groupedIndividuals = (article: GeneralArticle) => {
   if (total === 0 || article.dimension) return null;
 
   const stocked = article.individuals?.stocked ?? 0;
-  const anonymous = Math.max(0, Math.floor(Number(article.quantity ?? 0)) - stocked);
+  const anonymous = Math.max(
+    0,
+    Math.floor(Number(article.quantity ?? 0)) - stocked,
+  );
 
   return { total, anonymous, rows: total + (anonymous > 0 ? 1 : 0) };
 };
@@ -157,7 +160,8 @@ export const buildGeneralColumns = (
             </Badge>
             <span className="text-[11px] text-muted-foreground tabular-nums">
               {grouped.total} identificado{grouped.total === 1 ? "" : "s"}
-              {grouped.anonymous > 0 && ` · ${grouped.anonymous} sin identificar`}
+              {grouped.anonymous > 0 &&
+                ` · ${grouped.anonymous} sin identificar`}
             </span>
           </div>
         );

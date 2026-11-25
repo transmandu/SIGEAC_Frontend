@@ -51,8 +51,7 @@ export const columns: AppColumnDef<Pilot>[] = [
   {
     id: "name",
     size: 280,
-    accessorFn: (pilot) =>
-      `${fullName(pilot.employee)}`.trim(),
+    accessorFn: (pilot) => `${fullName(pilot.employee)}`.trim(),
     meta: { title: "Piloto", mobileTitle: true },
     header: ({ column }) => (
       <div className={center}>

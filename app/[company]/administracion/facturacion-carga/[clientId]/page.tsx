@@ -190,7 +190,10 @@ const ClientCargoBillingPage = () => {
                   {filteredPayments.map((payment) => (
                     <TableRow key={payment.id} className="hover:bg-muted/30">
                       <TableCell>
-                        <FormattedInstant value={payment.created_at} format="date" />
+                        <FormattedInstant
+                          value={payment.created_at}
+                          format="date"
+                        />
                       </TableCell>
                       <TableCell className="font-medium">
                         {payment.charge?.guide_number ?? "-"}

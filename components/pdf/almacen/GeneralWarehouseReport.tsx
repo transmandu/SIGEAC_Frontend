@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
     fontStyle: "italic",
     fontSize: 12,
     color: "#3D0000",
-  }
+  },
 });
 
 const WarehouseReportPdf = ({
@@ -125,7 +125,9 @@ const WarehouseReportPdf = ({
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.title}>Reporte de Inventario</Text>
-          <Text style={styles.subtitle}>{formatInstant(new Date(), timeZone, "PPP")}</Text>
+          <Text style={styles.subtitle}>
+            {formatInstant(new Date(), timeZone, "PPP")}
+          </Text>
         </View>
 
         {/* Report Content */}
@@ -135,9 +137,15 @@ const WarehouseReportPdf = ({
               {/* Section Header */}
               <View style={styles.sectionHeader}>
                 <Text style={styles.sectionTitle}>{batch.name}</Text>
-                <Text style={styles.sectionInfo}>ATA Code: {batch.ata_code}</Text>
-                <Text style={styles.sectionInfo}>Almacén: {batch.warehouse}</Text>
-                <Text style={styles.sectionInfo}>Ubicación: {batch.location}</Text>
+                <Text style={styles.sectionInfo}>
+                  ATA Code: {batch.ata_code}
+                </Text>
+                <Text style={styles.sectionInfo}>
+                  Almacén: {batch.warehouse}
+                </Text>
+                <Text style={styles.sectionInfo}>
+                  Ubicación: {batch.location}
+                </Text>
                 <Text style={styles.sectionInfo}>
                   Cantidad de Artículos: {batch.articles_quantity}
                 </Text>
@@ -158,23 +166,25 @@ const WarehouseReportPdf = ({
                       {/* Article Row */}
                       <View style={styles.tableRow}>
                         <Text style={styles.column}>{article.part_number}</Text>
-                        <Text style={styles.column}>{article.part_number_quantity}</Text>
+                        <Text style={styles.column}>
+                          {article.part_number_quantity}
+                        </Text>
                         <Text style={styles.column}>{article.aircraft}</Text>
                         <Text style={styles.column}>{article.stored}</Text>
                       </View>
                       {/* Dispatch Rows */}
-                      {article.dispatch.length > 0 && (
+                      {article.dispatch.length > 0 &&
                         article.dispatch.map((dispatch, dispatchIndex) => (
                           <View
                             key={dispatchIndex}
                             style={styles.tableRowDispatch}
                           >
                             <Text style={styles.dispatchColumn}>
-                              {dispatch.quantity} enviado(s) a {dispatch.location}
+                              {dispatch.quantity} enviado(s) a{" "}
+                              {dispatch.location}
                             </Text>
                           </View>
-                        ))
-                      )}
+                        ))}
                     </View>
                   ))}
                 </>
@@ -186,12 +196,15 @@ const WarehouseReportPdf = ({
             </View>
           ))
         ) : (
-          <Text style={styles.noRecords}>No hay datos disponibles para este reporte.</Text>
+          <Text style={styles.noRecords}>
+            No hay datos disponibles para este reporte.
+          </Text>
         )}
 
         {/* Footer */}
         <Text style={styles.footer}>
-          Este es un documento generado automáticamente. Por favor, consérvelo para sus registros.
+          Este es un documento generado automáticamente. Por favor, consérvelo
+          para sus registros.
         </Text>
       </Page>
     </Document>

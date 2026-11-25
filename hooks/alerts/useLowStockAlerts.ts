@@ -112,9 +112,7 @@ export const useLowStockAlerts = () => {
         Number(article.maximum_quantity ?? 0) > 0
           ? Number(article.maximum_quantity)
           : Number(article.minimum_quantity ?? 0);
-      const restockQuantity = Math.ceil(
-        Math.max(target - remaining, 1),
-      );
+      const restockQuantity = Math.ceil(Math.max(target - remaining, 1));
 
       // Misma identidad visible que en el resto de compras: dos artículos
       // pueden compartir descripción y variante y diferir solo por marca,
@@ -136,12 +134,7 @@ export const useLowStockAlerts = () => {
         sourceId: article.id,
         // Lo agotado pesa más que lo que solo está bajo mínimo; lo que ya
         // viene en camino no compite por atención.
-        weight:
-          inTransit.length > 0
-            ? 0
-            : remaining <= 0
-              ? 20
-              : 10,
+        weight: inTransit.length > 0 ? 0 : remaining <= 0 ? 20 : 10,
         // Ya está comprado: informa, pero no cuenta como pendiente.
         countsAsPending: inTransit.length === 0,
         title:

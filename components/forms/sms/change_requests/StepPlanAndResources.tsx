@@ -143,9 +143,7 @@ function ResponsibleSelect({
             >
               {selectedLocal ? (
                 <span className="flex items-center gap-2 overflow-hidden flex-1">
-                  <span className="truncate">
-                    {fullName(selectedLocal)}
-                  </span>
+                  <span className="truncate">{fullName(selectedLocal)}</span>
                   <span className="font-mono text-xs text-muted-foreground shrink-0">
                     {selectedLocal.dni}
                   </span>

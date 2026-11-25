@@ -82,9 +82,7 @@ export function StepGeneralAndClassification({
                       ? new Date(field.value + "T00:00:00")
                       : undefined
                   }
-                  setValue={(d) =>
-                    field.onChange(toCalendarPayload(d) ?? "")
-                  }
+                  setValue={(d) => field.onChange(toCalendarPayload(d) ?? "")}
                 />
                 <FormMessage />
               </FormItem>

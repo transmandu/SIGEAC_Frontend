@@ -134,7 +134,9 @@ const EditCertificateForm = ({
                   ? "Cargando empleados..."
                   : selectedDni
                     ? employees?.find((e: any) => e.dni === selectedDni)
-                      ? lastFirstName(employees.find((e: any) => e.dni === selectedDni))
+                      ? lastFirstName(
+                          employees.find((e: any) => e.dni === selectedDni),
+                        )
                       : "Seleccionar empleado..."
                     : "Seleccionar empleado..."}
                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -164,9 +166,7 @@ const EditCertificateForm = ({
                           )}
                         />
                         <div className="flex flex-col">
-                          <span>
-                            {lastFirstName(emp)}
-                          </span>
+                          <span>{lastFirstName(emp)}</span>
                           <span className="text-[10px] text-muted-foreground">
                             {emp.dni}
                           </span>

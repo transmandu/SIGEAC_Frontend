@@ -482,7 +482,8 @@ export function CreateChangeRequestForm({
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      request_date: initialData?.request_date?.split("T")[0] ?? todayIso(timeZone),
+      request_date:
+        initialData?.request_date?.split("T")[0] ?? todayIso(timeZone),
       department_id: initialData?.department?.id ?? 0,
       requested_by: initialData?.requested_by?.id ?? 0,
       approved_by: initialData?.approved_by?.id ?? null,
@@ -694,9 +695,7 @@ export function CreateChangeRequestForm({
                             : undefined
                         }
                         setValue={(date) =>
-                          field.onChange(
-                            toCalendarPayload(date) ?? "",
-                          )
+                          field.onChange(toCalendarPayload(date) ?? "")
                         }
                       />
                       <FormMessage />

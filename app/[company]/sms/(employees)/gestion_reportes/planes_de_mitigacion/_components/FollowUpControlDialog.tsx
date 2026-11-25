@@ -81,7 +81,6 @@ const FollowUpControlDialog = ({
               Ver más
             </Button>
           </div>
-          
         </Link>
       </DialogContent>
     );
@@ -138,7 +137,9 @@ const FollowUpControlDialog = ({
           href={`/${selectedCompany?.slug}/sms/gestion_reportes/planes_de_mitigacion/${planId}/medidas/${measureId}/controles_de_seguimiento`}
         >
           <div className="flex justify-end mt-4">
-            <Button className="w-1/3 " variant="outline">Ver más</Button>
+            <Button className="w-1/3 " variant="outline">
+              Ver más
+            </Button>
           </div>
         </Link>
       </DialogContent>

@@ -115,7 +115,8 @@ const CourseStatsPage = () => {
               buttonDataTour="estadisticas-filtro"
               initialDate={{
                 from:
-                  params.from || format(startOfYear(companyNow()), "yyyy-MM-dd"),
+                  params.from ||
+                  format(startOfYear(companyNow()), "yyyy-MM-dd"),
                 to: params.to || format(companyNow(), "yyyy-MM-dd"),
               }}
             />

@@ -84,8 +84,7 @@ export function DataTableCertificates<TData extends RowData>({
       if (!row?.__isGroup) return false;
       const emp = row.employee;
       if (!emp) return false;
-      const identity =
-        `${lastFirstName(emp)} ${emp.dni}`.toLowerCase();
+      const identity = `${lastFirstName(emp)} ${emp.dni}`.toLowerCase();
       if (identity.includes(q)) return true;
       return (row.certificates ?? []).some((cert: any) =>
         String(cert.course?.name ?? "")

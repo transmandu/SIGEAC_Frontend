@@ -98,10 +98,7 @@ export function DailyReportForm({
         <div className="flex items-center w-full gap-6">
           <div className="flex flex-col space-y-3">
             <Label>Analista</Label>
-            <Input
-              value={`${fullName(user)}`}
-              disabled
-            />
+            <Input value={`${fullName(user)}`} disabled />
           </div>
 
           <FormField

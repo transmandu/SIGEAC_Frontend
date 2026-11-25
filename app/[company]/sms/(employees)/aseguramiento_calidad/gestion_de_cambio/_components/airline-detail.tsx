@@ -574,9 +574,7 @@ export default function GestionDeCambioDetailPage() {
               </div>
               <div>
                 <SectionLabel>Solicitante</SectionLabel>
-                <FieldValue>
-                  {fullName(changeRequest.requested_by)}
-                </FieldValue>
+                <FieldValue>{fullName(changeRequest.requested_by)}</FieldValue>
               </div>
               <div>
                 <SectionLabel>Departamento</SectionLabel>
