@@ -175,11 +175,12 @@ updates:
         update-types:
           - version-update:semver-major
 
-      # pdfjs-dist esta clavado sin ^ a proposito (6.3.289, la que trae
-      # react-pdf 11.0.x; react-pdf 11.1 trae la 6.5.438): react-pdf exige
-      # que la version del worker coincida exactamente con la de la libreria.
-      # Subirlo solo rompe el visor de PDF en tiempo de ejecucion, no en build.
-      # Se sube a mano, junto con react-pdf.
+      # pdfjs-dist esta clavado sin ^ a proposito (6.5.438, la que trae
+      # react-pdf 11.1.0): react-pdf exige que la version del worker coincida
+      # exactamente con la de la libreria. Subirlo solo rompe el visor de PDF
+      # en tiempo de ejecucion, no en build. Se sube a mano, junto con
+      # react-pdf: el PR de react-pdf llega solo, asi que al aceptarlo hay que
+      # poner aqui la pdfjs-dist que figure en sus dependencies.
       - dependency-name: 'pdfjs-dist'
 
       # Preact esta aqui como alias de compatibilidad junto a @preact/signals;
