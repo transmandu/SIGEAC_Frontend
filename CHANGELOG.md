@@ -1,3 +1,7 @@
+## v4.116.2 — 2026-11-25
+
+- chore(deps): update dependencies and adjust pdfjs-dist version (#426)
+
 ## v4.116.1 — 2026-11-25
 
 - refactor(notifications): add quality and engineering areas with correspon… (#425)
