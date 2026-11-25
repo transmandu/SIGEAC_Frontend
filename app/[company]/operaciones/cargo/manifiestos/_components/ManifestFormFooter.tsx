@@ -4,36 +4,22 @@ import { Button } from "@/components/ui/button";
 import { AlertCircle, Loader2 } from "lucide-react";
 
 interface Props {
-  totalWeight: number;
-  totalUnits: number;
-  activeCount: number;
   hasErrors: boolean;
   hasChanges: boolean;
   isPending: boolean;
+  isOverweight: boolean;
   onSubmit: () => void;
 }
 
 export function ManifestFormFooter({
-  totalWeight,
-  totalUnits,
-  activeCount,
   hasErrors,
   hasChanges,
   isPending,
+  isOverweight,
   onSubmit,
 }: Props) {
   return (
-    <div className="flex items-center justify-between border-t pt-3">
-      {/* Totales */}
-      <div className="text-sm text-muted-foreground">
-        <span className="font-semibold text-foreground">{activeCount}</span>{" "}
-        ítem(s) —{" "}
-        <span className="font-semibold text-primary">
-          {totalWeight.toFixed(2)} kg
-        </span>{" "}
-        — <span className="font-semibold text-primary">{totalUnits} und</span>
-      </div>
-
+    <div className="flex items-center justify-end border-t pt-3">
       {/* Acciones */}
       <div className="flex items-center gap-4">
         {hasErrors && (
@@ -45,7 +31,7 @@ export function ManifestFormFooter({
         <Button
           type="button"
           onClick={onSubmit}
-          disabled={!hasChanges || hasErrors || isPending}
+          disabled={!hasChanges || hasErrors || isPending || isOverweight}
         >
           {isPending ? (
             <>

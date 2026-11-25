@@ -109,20 +109,6 @@ const EditarManifiestoPage = () => {
 
         {/* Header */}
         <div className="flex items-center gap-4 mb-4">
-          <Button
-            asChild
-            variant="outline"
-            size="icon"
-            className="h-9 w-9"
-            data-tour="cargo-manifiestos-editar-btn-volver"
-          >
-            <Link
-              href={`/${company}/operaciones/cargo/manifiestos?month=${manifest.month}&year=${manifest.year}`}
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-          </Button>
-
           <h1
             className="text-3xl font-bold"
             data-tour="cargo-manifiestos-editar-header"

@@ -68,19 +68,8 @@ export default function UpdateCargoShipmentPage() {
 
       <div className="flex flex-col gap-4">
         <div className="mb-4 flex items-start gap-3 sm:items-center sm:gap-4">
-          <Button
-            asChild
-            variant="outline"
-            size="icon"
-            className="h-9 w-9 shrink-0"
-            data-tour="cargo-crear-btn-volver"
-          >
-            <Link href={backHref}>
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-          </Button>
           <h1
-            className="min-w-0 break-words text-xl font-bold sm:text-3xl"
+            className="min-w-0 wrap-break-words text-xl font-bold sm:text-3xl"
             data-tour="cargo-crear-title"
           >
             Modificar Carga {cargoShipment?.guide_number}

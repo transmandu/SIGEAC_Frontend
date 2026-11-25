@@ -77,7 +77,7 @@ const CargoByAircraftPage = () => {
           <div className="flex items-center justify-center gap-2 px-1 sm:gap-3">
             <Plane className="h-6 w-6 shrink-0 text-primary sm:h-7 sm:w-7" />
             <h1
-              className="break-words text-2xl font-bold sm:text-4xl"
+              className="wrap-break-words text-2xl font-bold sm:text-4xl"
               data-tour="cargo-guia-title"
             >
               {aircraft ? (
@@ -100,19 +100,6 @@ const CargoByAircraftPage = () => {
         {/* Filtros y Acciones */}
         <div className="flex flex-col sm:flex-row justify-between items-center bg-muted/30 p-3 rounded-lg border mt-4 mb-2 gap-4">
           <div className="flex w-full flex-wrap items-center justify-center gap-3 sm:w-auto sm:justify-start">
-            <Button
-              asChild
-              variant="outline"
-              size="icon"
-              className="h-9 w-9 shrink-0"
-              data-tour="cargo-guia-btn-volver"
-            >
-              <Link
-                href={`/${company}/operaciones/cargo?month=${month}&year=${year}`}
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </Link>
-            </Button>
             <span className="text-sm font-medium text-muted-foreground hidden sm:inline">
               Filtrar por:
             </span>

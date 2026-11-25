@@ -4,7 +4,6 @@ import { useDeleteCargoShipment } from "@/actions/cargo/actions";
 import { type AppColumnDef } from "@/lib/table";
 import { CargoShipment } from "@/types";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
-import { format, parseISO, isValid } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Edit, FileText, Trash, MoreHorizontal, Lock } from "lucide-react";
 import Link from "next/link";
@@ -69,10 +68,8 @@ export const StatusBadge = ({ status }: { status?: string }) => {
 };
 
 /**
- * Fecha de registro formateada.
- *
- * getUTC* extrae el día en UTC, que es el día real del registro y evita el
- * corrimiento de un día al convertir a la zona horaria local.
+ * Fecha de registro formateada como fecha de calendario: el backend la guarda
+ * sin zona y convertirla correría el día en zonas al oeste de Greenwich.
  */
 const formatRegistrationDate = (dateStr?: string) =>
   formatCalendarDate(dateStr, "date", "—");
@@ -331,7 +328,7 @@ const CardField = ({
     <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
       {label}
     </p>
-    <p className="break-words text-sm">{children}</p>
+    <p className="wrap-break-words text-sm">{children}</p>
   </div>
 );
 
@@ -362,7 +359,7 @@ export const CargoShipmentCard = ({
     <div className="rounded-lg border bg-background p-3.5">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="break-words font-semibold text-primary">
+          <p className="wrap-break-words font-semibold text-primary">
             {shipment.guide_number}
           </p>
           <p className="text-xs text-muted-foreground">

@@ -72,26 +72,9 @@ export default function CargoDetailsPage() {
         {/* Cabecera de Acciones Rápidas */}
         <div className="flex items-center justify-between gap-3 rounded-xl border border-border/50 bg-muted/30 p-3 sm:p-4">
           <div className="flex min-w-0 items-center gap-3 sm:gap-4">
-            <Button
-              asChild
-              variant="outline"
-              size="icon"
-              className="h-9 w-9 shrink-0"
-              data-tour="cargo-detalle-btn-volver"
-            >
-              <Link
-                href={
-                  shipment.aircraft
-                    ? `/${company}/operaciones/cargo/${shipment.aircraft.id}?month=${shipment.month}&year=${shipment.year}`
-                    : `/${company}/operaciones/cargo/externa/${encodeURIComponent(shipment.external_aircraft || "")}?month=${shipment.month}&year=${shipment.year}`
-                }
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </Link>
-            </Button>
             <div className="min-w-0">
               <h1
-                className="flex flex-wrap items-center gap-2 break-words text-xl font-bold sm:text-2xl"
+                className="flex flex-wrap items-center gap-2 wrap-break-words text-xl font-bold sm:text-2xl"
                 data-tour="cargo-detalle-title"
               >
                 <FileText className="h-5 w-5 shrink-0 text-primary sm:h-6 sm:w-6" />

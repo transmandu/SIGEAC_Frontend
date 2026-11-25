@@ -2,8 +2,6 @@
 
 import { formatPhone } from "@/lib/phone";
 import { CargoShipment } from "@/types";
-import { format, isValid, parseISO } from "date-fns";
-import { es } from "date-fns/locale";
 import {
   Card,
   CardContent,

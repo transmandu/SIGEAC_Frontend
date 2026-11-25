@@ -43,6 +43,7 @@ import { useState } from "react";
 import { useGetExternalPilots } from "@/hooks/operaciones/cargo/useGetExternalPilots";
 import type { ComboboxOption } from "@/components/ui/ComboboxField";
 import { fullName } from "@/lib/person-name";
+import { isCaptain, isFirstOfficer } from "@/lib/pilot-rank";
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
@@ -86,8 +87,12 @@ export default function CreateCargoShipmentForm({
     useGetExternalPilots(company);
 
   const searchParams = useSearchParams();
+  // En creacion el modo viene de la URL; en edicion hay que inferirlo del
+  // registro, porque la ruta de update no lleva el query param `external`.
   const isExternalMode =
-    searchParams.get("external") === "true" && !aircraftIdFromUrl;
+    (searchParams.get("external") === "true" && !aircraftIdFromUrl) ||
+    initialData?.aircraft?.is_external === true ||
+    (!!initialData && !initialData.aircraft_id && !!initialData.external_aircraft);
 
   const { data: externalSuggestions, isLoading: loadingExternalSuggestions } =
     useGetExternalAircraftSuggestions(company);
@@ -147,7 +152,7 @@ export default function CreateCargoShipmentForm({
     : null;
   const pilotOptions: ComboboxOption[] = [
     ...(pilots ?? [])
-      .filter((p: any) => p.rank === "CAPITAN" && p.id !== selectedCopilotRawId)
+      .filter((p: any) => isCaptain(p) && p.id !== selectedCopilotRawId)
       .map((p: any) => ({
         value: `int:${p.id}`,
         label: fullName(p.employee),
@@ -155,11 +160,7 @@ export default function CreateCargoShipmentForm({
         group: "Pilotos internos",
       })),
     ...(externalPilots ?? [])
-      .filter(
-        (p: any) =>
-          (p.rank === "Capitán" || p.rank === "CAPITAN") &&
-          p.id !== selectedCopilotRawId,
-      )
+      .filter((p: any) => isCaptain(p) && p.id !== selectedCopilotRawId)
       .map((p: any) => ({
         value: `ext:${p.id}`,
         label: fullName(p),
@@ -172,7 +173,7 @@ export default function CreateCargoShipmentForm({
     ...(pilots ?? [])
       .filter(
         (p: any) =>
-          p.rank === "PRIMER_OFICIAL" &&
+          (isFirstOfficer(p) || isCaptain(p)) &&
           p.id !== selectedPilotRawId &&
           p.id !== 6,
       )
@@ -180,19 +181,18 @@ export default function CreateCargoShipmentForm({
         value: `int:${p.id}`,
         label: fullName(p.employee),
         badge: p.rank,
-        group: "Copilotos internos",
+        group: "Tripulacion interna",
       })),
     ...(externalPilots ?? [])
       .filter(
         (p: any) =>
-          (p.rank === "Primer Oficial" || p.rank === "PRIMER_OFICIAL") &&
-          p.id !== selectedPilotRawId,
+          (isFirstOfficer(p) || isCaptain(p)) && p.id !== selectedPilotRawId,
       )
       .map((p: any) => ({
         value: `ext:${p.id}`,
         label: fullName(p),
         badge: p.rank,
-        group: "Copilotos externos",
+        group: "Tripulacion externa",
       })),
   ];
 
@@ -239,9 +239,9 @@ export default function CreateCargoShipmentForm({
                         ]
                 }
                 disabled={
-                  isExternalMode
+                  (isExternalMode
                     ? loadingExternalSuggestions
-                    : loadingAircrafts || isEditing || !!aircraftIdFromUrl
+                    : loadingAircrafts || !!aircraftIdFromUrl) || isEditing
                 }
               />
             </div>

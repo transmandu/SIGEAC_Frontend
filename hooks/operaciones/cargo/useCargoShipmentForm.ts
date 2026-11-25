@@ -3,7 +3,8 @@
 import { useForm, useFieldArray, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@/lib/zod-resolver";
-import { format, startOfMonth, endOfMonth, parseISO, isValid } from "date-fns";
+import { format, startOfMonth, endOfMonth } from "date-fns";
+import { companyNow, parseCalendarDate } from "@/lib/date";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -20,7 +21,6 @@ import { useGetNextGuide } from "@/hooks/operaciones/cargo/useGetNextGuide";
 import { useGetPilots } from "@/hooks/sms/useGetPilots";
 import { useGetExternalAircraftSuggestions } from "@/hooks/operaciones/cargo/useGetExternalAircraftSuggestions";
 import { useGetCarriers } from "@/hooks/operaciones/cargo/useGetCarriers";
-import { companyNow } from "@/lib/date";
 
 const itemSchema = z.object({
   item_id: z.coerce.number().optional(),
@@ -104,13 +104,8 @@ export function useCargoShipmentForm(initialData?: any) {
     company,
     (() => {
       if (!registrationDate) return format(companyNow(), "yyyy-MM-dd");
-      const d =
-        registrationDate instanceof Date
-          ? registrationDate
-          : parseISO(registrationDate);
-      return isValid(d)
-        ? format(d, "yyyy-MM-dd")
-        : format(companyNow(), "yyyy-MM-dd");
+      const d = parseCalendarDate(registrationDate);
+      return d ? format(d, "yyyy-MM-dd") : format(companyNow(), "yyyy-MM-dd");
     })(),
     watchedAircraftId ?? null,
     null,
@@ -274,12 +269,6 @@ export function useCargoShipmentForm(initialData?: any) {
 }
 
 function buildDefaultValues(initialData?: any): CargoShipmentFormValues {
-  const safeDate = (dateStr: string) => {
-    if (!dateStr) return new Date();
-    const d = new Date(dateStr.includes("T") ? dateStr : dateStr + "T00:00:00");
-    return isNaN(d.getTime()) ? new Date() : d;
-  };
-
   if (!initialData) {
     return {
       registration_date: companyNow(),
@@ -294,7 +283,8 @@ function buildDefaultValues(initialData?: any): CargoShipmentFormValues {
   }
 
   return {
-    registration_date: safeDate(initialData.registration_date),
+    registration_date:
+      parseCalendarDate(initialData.registration_date) ?? new Date(),
     carrier_id: initialData.carrier_id,
     issuer: initialData.issuer,
     pilot_id: initialData.pilot_id
@@ -322,12 +312,8 @@ function buildDefaultValues(initialData?: any): CargoShipmentFormValues {
 }
 
 function buildCalendarDisabledDates(initialData: any, isEditing: boolean) {
-  const safeDate = (dateStr: string) => {
-    if (!dateStr) return new Date();
-    const d = new Date(dateStr.includes("T") ? dateStr : dateStr + "T00:00:00");
-    return isNaN(d.getTime()) ? new Date() : d;
-  };
-
-  const ref = isEditing ? safeDate(initialData?.registration_date) : new Date();
+  const ref = isEditing
+    ? (parseCalendarDate(initialData?.registration_date) ?? new Date())
+    : new Date();
   return [{ before: startOfMonth(ref) }, { after: endOfMonth(ref) }];
 }

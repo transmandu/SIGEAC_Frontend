@@ -10,6 +10,7 @@ import { useManifestEditor } from "@/hooks/operaciones/cargo/useManifestEditor";
 import { useNewItemSelector } from "@/hooks/operaciones/cargo/useNewItemSelector";
 import { CargoManifest } from "@/types";
 import { Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 // Subcomponentes
 import { ExistingShipmentGroup } from "@/app/[company]/operaciones/cargo/manifiestos/_components/ExistingShipmentGroup";
@@ -53,6 +54,9 @@ const statusConfig: Record<string, { label: string; className: string }> = {
     className: "bg-green-100 text-green-800",
   },
 };
+
+// Límite de peso por manifiesto de carga (mismo valor que usa counter).
+const MAX_MANIFEST_WEIGHT_KG = 1800;
 
 export default function UpdateCargoManifestForm({
   manifest,
@@ -126,6 +130,15 @@ export default function UpdateCargoManifestForm({
 
     return { totalWeight, totalUnits, activeCount };
   }, [editor.itemStates, selector.newSelections]);
+
+  // Redondeamos antes de comparar: la acumulación de floats puede dar
+  // 1800.0000000001 y disparar un falso "excedido" (mismo criterio que counter).
+  const totalWeightRounded = Math.round(totals.totalWeight * 100) / 100;
+  const availableWeight =
+    Math.round((MAX_MANIFEST_WEIGHT_KG - totalWeightRounded) * 100) / 100;
+  const excessWeight =
+    Math.round((totalWeightRounded - MAX_MANIFEST_WEIGHT_KG) * 100) / 100;
+  const isOverweight = totalWeightRounded > MAX_MANIFEST_WEIGHT_KG;
 
   const hasChanges = editor.hasChanges || selector.newSelections.size > 0;
   const hasErrors = editor.errors.size > 0 || selector.hasNewErrors;
@@ -203,6 +216,7 @@ export default function UpdateCargoManifestForm({
         {editor.shipmentGroups.map(([shipmentId, group]) => (
           <ExistingShipmentGroup
             key={shipmentId}
+            company={company}
             shipmentId={shipmentId}
             group={group}
             itemStates={editor.itemStates}
@@ -241,6 +255,7 @@ export default function UpdateCargoManifestForm({
             {filteredAvailableShipments.map((shipment) => (
               <AvailableShipmentGroup
                 key={shipment.id}
+                company={company}
                 shipment={shipment}
                 newSelections={selector.newSelections}
                 newErrors={selector.newErrors}
@@ -254,15 +269,40 @@ export default function UpdateCargoManifestForm({
         )}
       </div>
 
-      {/* ── FOOTER: TOTALES Y ENVÍO ── */}
+      {/* Indicador de capacidad de peso */}
+      <div
+        className={cn(
+          "rounded-md border p-3 flex flex-wrap items-center justify-between text-sm gap-2",
+          isOverweight
+            ? "bg-destructive/10 border-destructive/30 text-destructive"
+            : availableWeight < 200
+              ? "bg-yellow-500/10 border-yellow-300 text-yellow-700 dark:text-yellow-400"
+              : "bg-muted/50 border-border",
+        )}
+        data-tour="cargo-manifiestos-editar-peso"
+      >
+        <span className="font-bold">
+          Total: {totalWeightRounded} / {MAX_MANIFEST_WEIGHT_KG} kg
+        </span>
+        <span
+          className={cn(
+            "font-semibold",
+            isOverweight && "text-destructive font-bold",
+          )}
+        >
+          {isOverweight
+            ? `⚠ Exceso: ${excessWeight} kg`
+            : `Disponible: ${availableWeight} kg`}
+        </span>
+      </div>
+
+      {/* ── FOOTER: ENVÍO ── */}
       <div data-tour="cargo-manifiestos-editar-footer">
         <ManifestFormFooter
-          totalWeight={totals.totalWeight}
-          totalUnits={totals.totalUnits}
-          activeCount={totals.activeCount}
           hasErrors={hasErrors}
           hasChanges={hasChanges}
           isPending={updateCargoManifest.isPending}
+          isOverweight={isOverweight}
           onSubmit={handleSubmit}
         />
       </div>

@@ -11,7 +11,7 @@ export function buildOperationGroup({
     menus: [
       {
         href: `/${currentCompany?.slug}/operaciones/counter`,
-        label: "Counter",
+        label: "Facilitación",
         requiresTables: ["pax_flights"],
         active: pathname.includes(
           `/${currentCompany?.slug}/operaciones/counter`,

@@ -15,7 +15,7 @@ const ActionsCell = ({ clientId }: { clientId: number }) => {
 
   return (
     <div className="flex justify-center">
-      <Button size="sm" className="bg-secondary" asChild>
+      <Button size="sm" variant="default" asChild>
         <Link href={`/${company}/administracion/facturacion-carga/${clientId}`}>
           <Eye className="h-4 w-4 mr-2" />
           Ver cobros
