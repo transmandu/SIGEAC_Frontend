@@ -17,6 +17,11 @@ import type {
   AudienceRule,
   AudienceSubject,
 } from "@/components/forms/recipients/audience-types";
+import {
+  RuleFilterBar,
+  RuleFilterEmpty,
+  useRuleFilters,
+} from "@/components/forms/recipients/RuleFilterBar";
 import { TARGET_TYPES } from "@/components/forms/recipients/recipient-targets";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 import { EmptyState } from "@/components/misc/EmptyState";
@@ -136,6 +141,7 @@ export function AudienceRulesPanel({
 }) {
   const { selectedCompany } = useCompanyStore();
   const deleteRule = api.useDelete();
+  const ruleFilters = useRuleFilters(rules);
 
   // "new" abre el formulario vacío; una regla, el de edición.
   const [editing, setEditing] = useState<AudienceRule | "new" | null>(null);
@@ -171,20 +177,28 @@ export function AudienceRulesPanel({
             className="py-8"
           />
         ) : (
-          <ul className="divide-y divide-border/60 overflow-hidden rounded-b-xl">
-            {rules.map((rule) => (
-              <AudienceRow
-                key={rule.id}
-                rule={rule}
-                api={api}
-                onEdit={() => setEditing(rule)}
-                onDelete={() => {
-                  setDeleting(rule);
-                  setConfirmingDelete(true);
-                }}
-              />
-            ))}
-          </ul>
+          <>
+            <RuleFilterBar rules={rules} state={ruleFilters} />
+
+            {ruleFilters.visible.length === 0 ? (
+              <RuleFilterEmpty onReset={ruleFilters.reset} />
+            ) : (
+              <ul className="divide-y divide-border/60 overflow-hidden rounded-b-xl">
+                {ruleFilters.visible.map((rule) => (
+                  <AudienceRow
+                    key={rule.id}
+                    rule={rule}
+                    api={api}
+                    onEdit={() => setEditing(rule)}
+                    onDelete={() => {
+                      setDeleting(rule);
+                      setConfirmingDelete(true);
+                    }}
+                  />
+                ))}
+              </ul>
+            )}
+          </>
         )}
       </PanelSection>
 

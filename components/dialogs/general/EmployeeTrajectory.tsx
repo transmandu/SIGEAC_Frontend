@@ -112,8 +112,8 @@ export function EmployeeTrajectory({ trajectory }: { trajectory: Trajectory }) {
   return (
     <PanelSection icon={Route} title="Trayectoria" compact>
       <div className="overflow-x-auto">
-        <div className="grid min-w-120 grid-cols-[6rem_minmax(0,1fr)] items-center gap-x-3 gap-y-1.5">
-          <span aria-hidden />
+        <div className="grid min-w-64 grid-cols-1 gap-y-1 sm:grid-cols-[5.5rem_minmax(0,1fr)] sm:items-center sm:gap-x-3 sm:gap-y-1.5">
+          <span aria-hidden className="hidden sm:block" />
           <div
             aria-hidden
             className="relative flex h-4 items-center justify-between text-xs tabular-nums text-muted-foreground"
@@ -169,7 +169,9 @@ function Lane({
 }) {
   return (
     <>
-      <span className="text-[13px] text-muted-foreground">{label}</span>
+      <span className="mt-1.5 text-[13px] text-muted-foreground sm:mt-0">
+        {label}
+      </span>
 
       <div className="relative h-7 rounded-md bg-muted/40">
         {yearTicks.map((tick) => (

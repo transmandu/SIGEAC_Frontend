@@ -28,6 +28,7 @@ import { GenerateReceptionFormButton } from "./GenerateReceptionFormButton";
 import { IncomingArticle } from "@/app/[company]/control_calidad/incoming/IncomingTypes";
 import { notifyError } from "@/lib/notify-error";
 import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import { useIsSuperuser } from "@/hooks/helpers/useIsSuperuser";
 import { formatInstant, instantToCalendarDay } from "@/lib/date";
 
 /**
@@ -59,6 +60,7 @@ function formatoLabel(
 
 export function IssuedFormatsDialog() {
   const timeZone = useCompanyTimezone();
+  const isSuperuser = useIsSuperuser();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [correcting, setCorrecting] = useState<IssuedIncomingFormat | null>(
@@ -105,8 +107,9 @@ export function IssuedFormatsDialog() {
             <DialogTitle>Formatos H74-036 emitidos</DialogTitle>
             <DialogDescription>
               Vuelve a descargar el PDF tal como se emitió, o corrígelo si lleva
-              datos equivocados. Al corregir se emite uno nuevo y el anterior
-              queda anulado.
+              datos equivocados. Al corregir se emite uno nuevo que sustituye al
+              anterior.
+              {isSuperuser && " Usted también ve los formatos anulados."}
             </DialogDescription>
           </DialogHeader>
 
@@ -139,11 +142,15 @@ export function IssuedFormatsDialog() {
                         <span className="font-medium">
                           H74-036 · {formatoLabel(f, formats, timeZone)}
                         </span>
-                        {anulado ? (
-                          <Badge variant="destructive">Anulado</Badge>
-                        ) : (
-                          <Badge variant="secondary">Vigente</Badge>
-                        )}
+                        {/* Solo el superusuario recibe anulados, y solo a él le
+                            hace falta distinguirlos: para Calidad todo lo listado
+                            es vigente y marcarlo sembraría la duda. */}
+                        {isSuperuser &&
+                          (anulado ? (
+                            <Badge variant="destructive">Anulado</Badge>
+                          ) : (
+                            <Badge variant="secondary">Vigente</Badge>
+                          ))}
                       </div>
 
                       <p className="text-xs text-muted-foreground">

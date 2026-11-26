@@ -52,6 +52,9 @@ const FormSchema = z.object({
   location_id: z.string(),
   created_by: z.string(),
   requested_by: z.string().min(1, "Debe ingresar quien lo solicita."),
+  // Solo con un solicitante de otra empresa (convenio): `requested_by` lleva
+  // entonces su cédula y este, el registro que lo autoriza.
+  requested_by_authorized_employee_id: z.string().optional(),
   priority: z.enum(["HIGH", "MEDIUM", "LOW"]).optional(),
   department_id: z.string().optional(),
   third_party_id: z.string().optional(),
@@ -316,9 +319,18 @@ export function CreateGeneralRequisitionForm({
   const submitRequisition = async (data: FormSchemaType) => {
     if (!selectedCompany) return;
 
+    // Con un solicitante de otra empresa viaja solo el registro que lo autoriza:
+    // el backend toma la cédula de ahí, y mandar también la que trae el
+    // formulario podía rechazarse por el formato de cédula de otro país.
+    const authorizedRequesterId = data.requested_by_authorized_employee_id
+      ? Number(data.requested_by_authorized_employee_id)
+      : undefined;
+
     const formattedData = {
       ...data,
       type: "GENERAL" as const,
+      requested_by: authorizedRequesterId ? undefined : data.requested_by,
+      requested_by_authorized_employee_id: authorizedRequesterId,
       department_id: data.department_id
         ? Number(data.department_id)
         : undefined,
@@ -382,6 +394,9 @@ export function CreateGeneralRequisitionForm({
           filteredEmployees={filteredEmployees}
           employeeSearch={employeeSearch}
           setEmployeeSearch={setEmployeeSearch}
+          authorizedEmployees={authorizedEmployees}
+          isAuthorizedEmployeesLoading={isAuthorizedEmployeesLoading}
+          allowAuthorizedEmployees
           showAircraftWorkOrder={false}
           departments={departments}
           isDepartmentsLoading={isDepartmentsLoading}

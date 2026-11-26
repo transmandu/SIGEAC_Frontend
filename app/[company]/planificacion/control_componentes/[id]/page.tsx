@@ -69,6 +69,7 @@ import { RetiredControlBanner } from "@/components/planificacion/controles/Retir
 import { RetiredItemsSection } from "@/components/planificacion/controles/RetiredItemsSection";
 import { RetireRecordButton } from "@/components/planificacion/controles/RetireRecordButton";
 import { useLinkComponentPendingWorkOrder } from "@/actions/mantenimiento/planificacion/control_componentes/actions";
+import { RemainingValue } from "@/components/planificacion/controles/RemainingValue";
 import { WorkOrderCell } from "@/components/planificacion/controles/WorkOrderCell";
 import { AddToQueueButton } from "@/components/planificacion/cola/AddToQueueButton";
 import {
@@ -89,7 +90,7 @@ function InfoItem({
 }) {
   return (
     <div className="space-y-0.5">
-      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="text-xs font-semibold text-muted-foreground">{label}</p>
       <p className="text-sm font-semibold leading-tight">
         {value || (
           <span className="font-normal italic text-muted-foreground">
@@ -117,7 +118,7 @@ function InfoSection({
           "border-t border-slate-400/30 pt-3 dark:border-slate-600/30",
       )}
     >
-      <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground/70">
+      <p className="mb-2 text-sm font-semibold text-muted-foreground">
         {title}
       </p>
       <div className="grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3 md:grid-cols-6">
@@ -286,16 +287,20 @@ function ItemActionCell({
   );
 }
 
+// Anchos ajustados al contenido (con 12 px de margen por lado). En pantalla
+// estrecha suman 1004 px y lo que sobre es de la columna del componente; en
+// pantalla grande cada columna gana 8 px (2xl) o 20 px (1800 px) para que esa
+// columna no se coma todo el sobrante y las demás respiren.
 const COL = {
-  limit: "w-[120px]",
-  applied: "w-[125px]",
-  since: "w-[110px]",
-  next: "w-[120px]",
-  remaining: "w-37.5",
-  estimate: "w-[115px]",
-  provider: "w-[140px]",
-  workOrder: "w-37.5",
-  actions: "w-[80px]",
+  limit: "w-28 2xl:w-30 min-[1800px]:w-33",
+  applied: "w-29 2xl:w-31 min-[1800px]:w-34",
+  since: "w-26 2xl:w-28 min-[1800px]:w-31",
+  next: "w-28 2xl:w-30 min-[1800px]:w-33",
+  remaining: "w-35 2xl:w-37 min-[1800px]:w-40",
+  estimate: "w-27 2xl:w-29 min-[1800px]:w-32",
+  provider: "w-34 2xl:w-36 min-[1800px]:w-39",
+  workOrder: "w-30 2xl:w-32 min-[1800px]:w-35",
+  actions: "w-14 2xl:w-16 min-[1800px]:w-19",
 };
 
 function ComponentsTable({
@@ -327,7 +332,12 @@ function ComponentsTable({
 
   return (
     <div className="overflow-x-auto rounded-lg border border-slate-400/40 dark:border-slate-600/40">
-      <Table className="table-fixed">
+      {/* La columna del componente toma lo que sobra de las fijas (COL): en una
+          laptop de 14" quedaba casi sin ancho y el nombre salía cortado. El
+          mínimo (1004 + 200) le garantiza 200 px; con menos pantalla el
+          contenedor desplaza en horizontal en vez de aplastarla. Si cambia
+          COL, ajustar el mínimo. */}
+      <Table className="table-fixed min-w-301 [&_td]:px-3 [&_th]:px-3">
         <TableHeader>
           <TableRow className="hover:bg-transparent">
             <TableHead className="bg-muted/40 font-semibold">
@@ -379,8 +389,10 @@ function ComponentsTable({
                 className={cn(meta.row, "transition-colors hover:bg-primary/3")}
               >
                 <TableCell className="font-medium">
-                  <TruncatedText>{item.description}</TruncatedText>
-                  <span className="block truncate text-xs text-muted-foreground">
+                  <span className="block wrap-anywhere text-[15px] font-semibold">
+                    {item.description}
+                  </span>
+                  <span className="block wrap-anywhere text-xs text-muted-foreground">
                     P/N {item.part_number} · S/N {item.serial}
                     {item.position ? ` · ${item.position}` : ""}
                   </span>
@@ -442,32 +454,19 @@ function ComponentsTable({
                     </span>
                   ))}
                 </TableCell>
-                <TableCell className={cn(COL.remaining, "truncate")}>
-                  <span
-                    className={cn(
-                      "inline-flex items-center gap-1.5 font-semibold",
-                      meta.text,
-                    )}
-                  >
-                    <span
-                      className={cn("size-1.5 shrink-0 rounded-full", meta.dot)}
-                    />
-                    {computed.remaining}
-                    {item.remaining_percentage !== null &&
-                      item.remaining_percentage !== undefined && (
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span className="rounded bg-muted px-1 text-[10px] font-medium text-muted-foreground">
-                              {Number(item.remaining_percentage)}%
-                            </span>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            Margen propio de este ítem, distinto del{" "}
-                            {controlRemainingPercentage}% del control
-                          </TooltipContent>
-                        </Tooltip>
-                      )}
-                  </span>
+                <TableCell className={COL.remaining}>
+                  <RemainingValue
+                    value={computed.remaining}
+                    textClass={meta.text}
+                    dotClass={meta.dot}
+                    ownPercentage={item.remaining_percentage}
+                    ownPercentageHint={
+                      <>
+                        Margen propio de este ítem, distinto del{" "}
+                        {controlRemainingPercentage}% del control
+                      </>
+                    }
+                  />
                   {computed.extras.map((extra, i) => (
                     <span
                       key={i}
@@ -635,7 +634,13 @@ const ComponentControlDetailPage = () => {
 
   return (
     <ContentLayout title={control.title}>
-      <div className="flex flex-col gap-6">
+      {/* En oscuro el gris "muted" (65 % de luz) se perdía en textos de 10-12 px
+          sobre el fondo azul marino; aquí sube a 80 % solo dentro de esta
+          pantalla (el diálogo y los tooltips quedan fuera: son portales). Se
+          redefine `--color-muted-foreground` y no `--muted-foreground`: la
+          utilidad usa la primera, que el tema resuelve en :root, así que
+          cambiar la segunda en un descendiente no tiene efecto. */}
+      <div className="flex flex-col gap-6 dark:[--color-muted-foreground:hsl(226_5%_80%)]">
         <PageHeader currentLabel={control.title} />
 
         <div className="flex flex-col gap-2 border-b pb-4 sm:flex-row sm:items-end sm:justify-between">

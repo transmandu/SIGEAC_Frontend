@@ -195,7 +195,7 @@ export function GenerateReceptionFormButton({
       await generatePdf.mutateAsync(payload);
       toast.success(
         isCorrection
-          ? "Formato reemitido. El anterior quedó anulado."
+          ? "Formato reemitido."
           : downloadFormat
             ? "PDF generado y descargado."
             : "Artículos actualizados correctamente.",
@@ -253,9 +253,8 @@ export function GenerateReceptionFormButton({
               {isCorrection ? (
                 <>
                   Se emitirá un formato nuevo para <b>{selected.length}</b>{" "}
-                  artículo(s) y el anterior (
-                  <b>{correcting?.purchase_order_code ?? "N/A"}</b>) quedará{" "}
-                  <b>anulado</b>, conservándose en el historial.
+                  artículo(s) que sustituirá al anterior (
+                  <b>{correcting?.purchase_order_code ?? "N/A"}</b>).
                 </>
               ) : (
                 <>
@@ -396,7 +395,7 @@ export function GenerateReceptionFormButton({
                   rows={3}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Queda registrado junto al formato anulado como evidencia.
+                  Queda registrado junto al formato anterior como evidencia.
                 </p>
               </div>
             ) : null}

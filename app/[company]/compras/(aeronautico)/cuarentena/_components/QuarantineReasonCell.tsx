@@ -1,6 +1,13 @@
 "use client";
 
-import { CalendarClock, Repeat2, User } from "lucide-react";
+import {
+  CalendarClock,
+  CircleHelp,
+  ListChecks,
+  MessageSquareText,
+  Repeat2,
+  User,
+} from "lucide-react";
 
 import {
   Tooltip,
@@ -35,7 +42,7 @@ const parsePoints = (reason: string): FailedPoint[] | null => {
   const match = reason.match(STRUCTURED);
   if (!match) return null;
 
-  return match[1]
+  const points = match[1]
     .split(" · ")
     .map((part) => part.trim())
     .filter(Boolean)
@@ -51,6 +58,10 @@ const parsePoints = (reason: string): FailedPoint[] | null => {
           : observation,
       };
     });
+
+  // Sin ningún punto legible (solo espacios o separadores) se muestra el texto
+  // tal cual: la celda y el tooltip dan por hecho que hay al menos uno.
+  return points.length > 0 ? points : null;
 };
 
 export function QuarantineReasonCell({ record }: { record: QuarantineRecord }) {
@@ -62,26 +73,41 @@ export function QuarantineReasonCell({ record }: { record: QuarantineRecord }) {
       <Tooltip>
         <TooltipTrigger asChild>
           <div className="min-w-0 cursor-default space-y-1 text-left">
-            {points ? (
-              <>
-                <p className="text-sm font-medium text-slate-800 dark:text-slate-200">
+            <p className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[13px] font-semibold text-slate-700 dark:text-slate-200">
+              {points ? (
+                <>
+                  <ListChecks aria-hidden className="size-4 shrink-0" />
                   Rechazado en inspección
                   <span className="font-normal text-muted-foreground">
-                    {" "}
-                    · {points.length}{" "}
-                    {points.length === 1 ? "punto fallido" : "puntos fallidos"}
+                    ·{" "}
+                    {points.length === 1
+                      ? "1 punto fallido"
+                      : `${points.length} puntos fallidos`}
                   </span>
-                </p>
-                <p className="line-clamp-1 text-xs text-muted-foreground">
+                </>
+              ) : (
+                <>
+                  <MessageSquareText aria-hidden className="size-4 shrink-0" />
+                  Observación del inspector
+                </>
+              )}
+            </p>
+
+            <p className="line-clamp-2 text-sm text-slate-800 dark:text-slate-200">
+              {points ? (
+                <>
                   {points[0].label}
-                  {points.length > 1 && ` y ${points.length - 1} más`}
-                </p>
-              </>
-            ) : (
-              <p className="line-clamp-2 text-sm text-slate-800 dark:text-slate-200">
-                {record.reason}
-              </p>
-            )}
+                  {points.length > 1 && (
+                    <span className="text-muted-foreground">
+                      {" "}
+                      y {points.length - 1} más
+                    </span>
+                  )}
+                </>
+              ) : (
+                record.reason
+              )}
+            </p>
 
             <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
               <span className="inline-flex items-center gap-1">
@@ -108,18 +134,45 @@ export function QuarantineReasonCell({ record }: { record: QuarantineRecord }) {
           className="max-w-sm space-y-1.5 text-xs"
         >
           {points ? (
-            <ul className="space-y-1.5">
-              {points.map((point) => (
-                <li key={point.label}>
-                  <p className="font-medium">{point.label}</p>
-                  {point.observation && (
-                    <p className="text-muted-foreground">{point.observation}</p>
-                  )}
-                </li>
-              ))}
-            </ul>
+            <div className="space-y-2">
+              <p className="flex items-start gap-1.5 font-medium">
+                <CircleHelp aria-hidden className="mt-px size-3.5 shrink-0" />
+                Puntos que no pasaron la inspección de entrada
+              </p>
+              <ol className="list-none space-y-1.5 border-t pt-2">
+                {points.map((point, index) => (
+                  <li key={`${index}-${point.label}`} className="flex gap-2">
+                    <span
+                      aria-hidden
+                      className="grid size-4 shrink-0 place-items-center rounded-full bg-muted text-[10px] font-semibold leading-none text-muted-foreground"
+                    >
+                      {index + 1}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="font-medium wrap-anywhere">{point.label}</p>
+                      {point.observation && (
+                        <p className="text-muted-foreground wrap-anywhere">
+                          {point.observation}
+                        </p>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </div>
           ) : (
-            <p className="whitespace-pre-wrap">{record.reason}</p>
+            <div className="space-y-2">
+              <p className="flex items-start gap-1.5 font-medium">
+                <MessageSquareText
+                  aria-hidden
+                  className="mt-px size-3.5 shrink-0"
+                />
+                Observación del inspector
+              </p>
+              <p className="whitespace-pre-wrap border-t pt-2 wrap-anywhere">
+                {record.reason}
+              </p>
+            </div>
           )}
         </TooltipContent>
       </Tooltip>
