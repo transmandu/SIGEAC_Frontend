@@ -39,10 +39,7 @@ export function elapsedLabel(iso: string | null, now: Date): string {
 }
 
 export type AttentionKind =
-  | "disabled-with-session"
-  | "multiple-sessions"
-  | "never-signed-in"
-  | "stale";
+  "disabled-with-session" | "multiple-sessions" | "never-signed-in" | "stale";
 
 export interface Attention {
   kind: AttentionKind;
@@ -106,8 +103,7 @@ export function summarize(rows: UserActivityRow[], now: Date): Summary {
   return {
     total: rows.length,
     online: rows.filter((u) => u.is_active && u.presence === "online").length,
-    standby: rows.filter((u) => u.is_active && u.presence === "standby")
-      .length,
+    standby: rows.filter((u) => u.is_active && u.presence === "standby").length,
     sessions: rows.reduce((sum, u) => sum + u.sessions.length, 0),
     attention: rows.filter((u) => attentionOf(u, now)).length,
   };
@@ -117,5 +113,5 @@ export function summarize(rows: UserActivityRow[], now: Date): Summary {
 export const manageUserHref = (userId: number) =>
   `/sistema/usuarios_permisos/usuarios/${userId}`;
 
-export const isConnected =(user: UserActivityRow) =>
+export const isConnected = (user: UserActivityRow) =>
   user.is_active && user.presence !== "offline";

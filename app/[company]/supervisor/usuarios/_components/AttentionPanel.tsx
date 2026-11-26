@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  Clock,
-  Copy,
-  ShieldAlert,
-  UserX,
-  type LucideIcon,
-} from "lucide-react";
+import { Clock, Copy, ShieldAlert, UserX, type LucideIcon } from "lucide-react";
 
 import { PanelSection } from "@/components/forms/PanelSection";
 import { cn } from "@/lib/utils";
@@ -98,7 +92,9 @@ export function AttentionPanel({
                   </p>
                 </div>
                 <ManageUserLink userId={user.id} />
-                {user.sessions.length > 0 && <CloseSessionsAction user={user} />}
+                {user.sessions.length > 0 && (
+                  <CloseSessionsAction user={user} />
+                )}
               </li>
             );
           })}

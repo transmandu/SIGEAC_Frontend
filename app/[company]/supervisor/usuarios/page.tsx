@@ -75,9 +75,7 @@ export default function SupervisarUsuariosPage() {
             )}
           >
             <LiveNowPanel rows={rows} now={now} />
-            {summary.attention > 0 && (
-              <AttentionPanel rows={rows} now={now} />
-            )}
+            {summary.attention > 0 && <AttentionPanel rows={rows} now={now} />}
           </div>
         )}
 

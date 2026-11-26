@@ -59,8 +59,8 @@ export function CloseSessionsAction({ user }: { user: UserActivityRow }) {
         onConfirm={() => close.mutateAsync({ userId: user.id })}
       >
         Se cerrarán las {user.sessions.length}{" "}
-        {user.sessions.length === 1 ? "sesión abierta" : "sesiones abiertas"}{" "}
-        de este usuario. Perderá lo que no haya guardado y tendrá que iniciar
+        {user.sessions.length === 1 ? "sesión abierta" : "sesiones abiertas"} de
+        este usuario. Perderá lo que no haya guardado y tendrá que iniciar
         sesión de nuevo.
       </ConfirmActionDialog>
     </>
