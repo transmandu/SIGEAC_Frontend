@@ -708,6 +708,13 @@ export function CreateWarehouseRequisitionForm({
   };
 
   const submitRequisition = async (data: FormSchemaType) => {
+    // Con un solicitante de otra empresa viaja solo el registro que lo autoriza:
+    // el backend toma la cédula de ahí, y mandar también la que trae el
+    // formulario podía rechazarse por el formato de cédula de otro país.
+    const authorizedRequesterId = data.requested_by_authorized_employee_id
+      ? Number(data.requested_by_authorized_employee_id)
+      : undefined;
+
     const formattedData = {
       ...data,
       type: requisitionType,
@@ -716,10 +723,8 @@ export function CreateWarehouseRequisitionForm({
         : undefined,
       work_order: data.work_order_id ? undefined : data.work_order,
       aircraft_id: data.aircraft_id ? Number(data.aircraft_id) : undefined,
-      requested_by_authorized_employee_id:
-        data.requested_by_authorized_employee_id
-          ? Number(data.requested_by_authorized_employee_id)
-          : undefined,
+      requested_by: authorizedRequesterId ? undefined : data.requested_by,
+      requested_by_authorized_employee_id: authorizedRequesterId,
       general_articles: data.general_articles?.map((article) => ({
         ...article,
         // `image` solo lleva un File nuevo, o la URL del catálogo para la vista

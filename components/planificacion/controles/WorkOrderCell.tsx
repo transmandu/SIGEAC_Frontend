@@ -119,7 +119,7 @@ export function WorkOrderCell({
     <div className="flex flex-col gap-1.5">
       {/* Orden cronológico: lo que ya se hizo arriba, lo que viene abajo. */}
       <div>
-        <p className="text-[10px] uppercase tracking-wide text-muted-foreground/70">
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
           OT Anterior
         </p>
         {showPrevious ? (
@@ -141,7 +141,7 @@ export function WorkOrderCell({
       </div>
 
       <div>
-        <p className="text-[10px] uppercase tracking-wide text-muted-foreground/70">
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
           OT en Curso
         </p>
         {openCurrent ? (

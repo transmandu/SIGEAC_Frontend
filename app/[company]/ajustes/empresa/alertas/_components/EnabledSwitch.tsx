@@ -12,7 +12,7 @@ export function EnabledSwitch({ alert }: { alert: CriticalAlertRow }) {
   const { updateAlert } = useUpdateCriticalAlertSetting();
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
       <TagBadge tone={alert.generates ? "violet" : "slate"}>
         {alert.generates ? "Generada por día" : "En vivo"}
       </TagBadge>

@@ -19,8 +19,18 @@ import { EmptyState } from "@/components/misc/EmptyState";
 import { TagBadge } from "@/components/misc/TagBadge";
 import { Dialog } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import {
+  RuleFilterBar,
+  RuleFilterEmpty,
+  useRuleFilters,
+} from "@/components/forms/recipients/RuleFilterBar";
 import { TARGET_TYPES } from "@/components/forms/recipients/recipient-targets";
 import type { MailNoticeRow, MailRecipientRule } from "@/types/mail-recipients";
 
@@ -168,6 +178,7 @@ function RuleRow({
 export function NoticeRules({ notice }: { notice: MailNoticeRow }) {
   const { selectedCompany } = useCompanyStore();
   const { deleteRule } = useDeleteMailRecipientRule();
+  const ruleFilters = useRuleFilters(notice.rules);
 
   // "new" abre el formulario vacío; una regla, el de edición.
   const [editing, setEditing] = useState<MailRecipientRule | "new" | null>(
@@ -188,16 +199,26 @@ export function NoticeRules({ notice }: { notice: MailNoticeRow }) {
         flush
         action={
           <div className="flex items-center gap-2">
-            <ActionTriggerButton
-              type="button"
-              size="sm"
-              className="max-sm:h-10"
-              aria-label="Quién recibe hoy"
-              onClick={() => setPreviewing(true)}
-            >
-              <MailCheck className="size-4 sm:mr-2" />
-              <span className="max-sm:hidden">Quién recibe hoy</span>
-            </ActionTriggerButton>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <ActionTriggerButton
+                  type="button"
+                  size="sm"
+                  className="max-sm:h-10"
+                  aria-label="Quién recibe hoy"
+                  onClick={() => setPreviewing(true)}
+                >
+                  <MailCheck className="size-4 xl:mr-2" />
+                  <span className="max-xl:hidden">Quién recibe hoy</span>
+                </ActionTriggerButton>
+              </TooltipTrigger>
+              <TooltipContent
+                side="top"
+                className="px-2 py-1 text-xs xl:hidden"
+              >
+                Quién recibe hoy
+              </TooltipContent>
+            </Tooltip>
             <ActionTriggerButton
               type="button"
               size="sm"
@@ -218,20 +239,28 @@ export function NoticeRules({ notice }: { notice: MailNoticeRow }) {
             className="py-8"
           />
         ) : (
-          <ul className="divide-y divide-border/60 overflow-hidden rounded-b-xl">
-            {notice.rules.map((rule) => (
-              <RuleRow
-                key={rule.id}
-                rule={rule}
-                notice={notice}
-                onEdit={() => setEditing(rule)}
-                onDelete={() => {
-                  setDeleting(rule);
-                  setConfirmingDelete(true);
-                }}
-              />
-            ))}
-          </ul>
+          <>
+            <RuleFilterBar rules={notice.rules} state={ruleFilters} />
+
+            {ruleFilters.visible.length === 0 ? (
+              <RuleFilterEmpty onReset={ruleFilters.reset} />
+            ) : (
+              <ul className="divide-y divide-border/60 overflow-hidden rounded-b-xl">
+                {ruleFilters.visible.map((rule) => (
+                  <RuleRow
+                    key={rule.id}
+                    rule={rule}
+                    notice={notice}
+                    onEdit={() => setEditing(rule)}
+                    onDelete={() => {
+                      setDeleting(rule);
+                      setConfirmingDelete(true);
+                    }}
+                  />
+                ))}
+              </ul>
+            )}
+          </>
         )}
       </PanelSection>
 

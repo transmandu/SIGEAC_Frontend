@@ -52,12 +52,12 @@ import { RetiredControlBanner } from "@/components/planificacion/controles/Retir
 import { RetiredItemsSection } from "@/components/planificacion/controles/RetiredItemsSection";
 import { RetireRecordButton } from "@/components/planificacion/controles/RetireRecordButton";
 import { useLinkPendingWorkOrder } from "@/actions/mantenimiento/planificacion/control_mantenimiento/actions";
+import { RemainingValue } from "@/components/planificacion/controles/RemainingValue";
 import { WorkOrderCell } from "@/components/planificacion/controles/WorkOrderCell";
 import { AddToQueueButton } from "@/components/planificacion/cola/AddToQueueButton";
 import {
   AlertTriangle,
   ClipboardList,
-  Clock,
   Cog,
   Info,
   Plane,
@@ -73,7 +73,7 @@ function InfoItem({
 }) {
   return (
     <div className="space-y-0.5">
-      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="text-xs font-semibold text-muted-foreground">{label}</p>
       <p className="text-sm font-semibold leading-tight">
         {value || (
           <span className="font-normal text-muted-foreground italic">
@@ -104,7 +104,7 @@ function InfoSection({
           "border-t border-slate-400/30 pt-3 dark:border-slate-600/30",
       )}
     >
-      <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground/70">
+      <p className="mb-2 text-sm font-semibold text-muted-foreground">
         {title}
       </p>
       <div className="grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3 md:grid-cols-6">
@@ -173,15 +173,19 @@ function StatusLegend({
   );
 }
 
+// Anchos medidos sobre el contenido real de cada columna (con 12 px de margen
+// por lado). En pantalla estrecha suman 886 px y lo que sobre es de Nombre; en
+// pantalla grande cada columna gana 8 px (2xl) o 20 px (1800 px) para que Nombre
+// no se coma todo el sobrante y las demás respiren.
 const COL = {
-  frequency: "w-[110px]",
-  applied: "w-[120px]",
-  next: "w-[120px]",
-  remaining: "w-37.5",
-  estimate: "w-[120px]",
-  provider: "w-37.5",
-  workOrder: "w-37.5",
-  actions: "w-[100px]",
+  frequency: "w-26 2xl:w-28 min-[1800px]:w-31",
+  applied: "w-27.5 2xl:w-29.5 min-[1800px]:w-32.5",
+  next: "w-27.5 2xl:w-29.5 min-[1800px]:w-32.5",
+  remaining: "w-35 2xl:w-37 min-[1800px]:w-40",
+  estimate: "w-27.5 2xl:w-29.5 min-[1800px]:w-32.5",
+  provider: "w-34 2xl:w-36 min-[1800px]:w-39",
+  workOrder: "w-30 2xl:w-32 min-[1800px]:w-35",
+  actions: "w-14 2xl:w-16 min-[1800px]:w-19",
 };
 
 // Columnas como "Estimación" pueden llevar texto largo ("Sin vuelos en los
@@ -229,36 +233,15 @@ function ItemActionCell({
 
   const current = item.current_compliance;
   const pendingWorkOrder = current?.work_order;
-  const hasOpenWorkOrder =
-    !!pendingWorkOrder && pendingWorkOrder.status !== "CLOSED";
   const workOrderDescription =
     item.declared_description?.trim() || item.description;
   const units = item.intervals.map((interval) => interval.counting_method);
 
   return (
     <div className="flex flex-col items-end gap-0.5">
-      {/* Informativo, no excluyente: tener una OT abierta no impide volver a
-          encolar el ítem — puede entrar en una segunda orden, o en un formato. */}
-      {hasOpenWorkOrder && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Link
-              href={`/${company}/planificacion/ordenes_trabajo/${pendingWorkOrder!.order_number}`}
-              className="flex items-center text-muted-foreground hover:text-foreground"
-            >
-              <Clock className="size-3.5 shrink-0" />
-              <span className="sr-only">
-                Ver Orden de Trabajo {pendingWorkOrder!.order_number}
-              </span>
-            </Link>
-          </TooltipTrigger>
-          <TooltipContent>
-            Orden de Trabajo {pendingWorkOrder!.order_number} abierta para este
-            ítem.
-          </TooltipContent>
-        </Tooltip>
-      )}
-
+      {/* Tener una OT abierta no impide volver a encolar el ítem — puede entrar
+          en una segunda orden, o en un formato. Esa OT ya se ve (con su
+          enlace) en "OT en curso", así que aquí no hay indicador aparte. */}
       <AddToQueueButton
         type="maintenance_control_item"
         itemId={item.id}
@@ -328,7 +311,15 @@ function MaintenanceItemsTable({
 
   return (
     <div className="overflow-x-auto rounded-lg border border-slate-400/40 dark:border-slate-600/40">
-      <Table className="table-fixed">
+      {/* Nombre toma lo que sobra de las columnas fijas (COL, 886 px). Con 1020
+          px fijos y márgenes de 16 px, en una laptop de 14" (contenedor de
+          ~1100 px) le quedaban unos 80 px y el nombre salía como "Servi…".
+          Con columnas ajustadas a su contenido y márgenes de 12 px (px-3) le
+          quedan ~215 px, y se parte en líneas en vez de cortarse. El mínimo
+          de la tabla (886 + 200) le garantiza 200 px: si la pantalla es aún
+          menor, el contenedor desplaza en horizontal en lugar de aplastarlo.
+          Si cambia COL, ajustar el mínimo. */}
+      <Table className="table-fixed min-w-272 [&_td]:px-3 [&_th]:px-3">
         <TableHeader>
           <TableRow className="hover:bg-transparent">
             <TableHead className="bg-muted/40 font-semibold">Nombre</TableHead>
@@ -376,7 +367,9 @@ function MaintenanceItemsTable({
                 className={cn(meta.row, "transition-colors hover:bg-primary/3")}
               >
                 <TableCell className="font-medium">
-                  <TruncatedText>{item.description}</TruncatedText>
+                  <span className="block wrap-anywhere text-[15px] font-semibold">
+                    {item.description}
+                  </span>
                 </TableCell>
                 <TableCell className={cn(COL.frequency, "truncate")}>
                   <span className="block truncate">{computed.frequency}</span>
@@ -391,19 +384,46 @@ function MaintenanceItemsTable({
                   ))}
                 </TableCell>
                 <TableCell className={COL.applied}>
-                  {/* La segunda línea va fuera del flujo (absolute): así la
-                      principal queda a la misma altura que Frecuencia,
-                      Próximo y Remanente en vez de subir para hacerle sitio. */}
-                  <div className="relative">
-                    <span className="block truncate">
-                      {computed.appliedPrimary}
-                    </span>
-                    {computed.appliedSecondary && (
-                      <span className="absolute left-0 top-full block w-full truncate text-muted-foreground">
-                        {computed.appliedSecondary}
+                  {/* Las celdas se centran en vertical, así que la línea
+                      principal solo coincide con la de sus vecinas si todas
+                      tienen las mismas líneas. Sin intervalos extra las
+                      vecinas tienen una: la fecha va fuera del flujo para no
+                      subir a la principal. Con extras, las vecinas llevan
+                      una línea pequeña por intervalo: la fecha ocupa el mismo
+                      lugar, del mismo tamaño, y se reserva una línea vacía por
+                      cada intervalo que falte. */}
+                  {computed.extras.length === 0 ? (
+                    <div className="relative">
+                      <span className="block truncate">
+                        {computed.appliedPrimary}
                       </span>
-                    )}
-                  </div>
+                      {computed.appliedSecondary && (
+                        <span className="absolute left-0 top-full block w-full truncate text-muted-foreground">
+                          {computed.appliedSecondary}
+                        </span>
+                      )}
+                    </div>
+                  ) : (
+                    <>
+                      <span className="block truncate">
+                        {computed.appliedPrimary}
+                      </span>
+                      {computed.extras.map((_, i) => (
+                        <span
+                          key={i}
+                          className={cn(
+                            "block truncate text-xs text-muted-foreground",
+                            !(i === 0 && computed.appliedSecondary) &&
+                              "invisible",
+                          )}
+                        >
+                          {i === 0 && computed.appliedSecondary
+                            ? computed.appliedSecondary
+                            : " "}
+                        </span>
+                      ))}
+                    </>
+                  )}
                 </TableCell>
                 <TableCell className={cn(COL.next, "truncate")}>
                   <span className="block truncate">{computed.next}</span>
@@ -416,32 +436,19 @@ function MaintenanceItemsTable({
                     </span>
                   ))}
                 </TableCell>
-                <TableCell className={cn(COL.remaining, "truncate")}>
-                  <span
-                    className={cn(
-                      "inline-flex items-center gap-1.5 font-semibold",
-                      meta.text,
-                    )}
-                  >
-                    <span
-                      className={cn("size-1.5 shrink-0 rounded-full", meta.dot)}
-                    />
-                    {computed.remaining}
-                    {item.remaining_percentage !== null &&
-                      item.remaining_percentage !== undefined && (
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span className="rounded bg-muted px-1 text-[10px] font-medium text-muted-foreground">
-                              {Number(item.remaining_percentage)}%
-                            </span>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            Margen propio de este ítem, distinto del{" "}
-                            {controlRemainingPercentage}% del control
-                          </TooltipContent>
-                        </Tooltip>
-                      )}
-                  </span>
+                <TableCell className={COL.remaining}>
+                  <RemainingValue
+                    value={computed.remaining}
+                    textClass={meta.text}
+                    dotClass={meta.dot}
+                    ownPercentage={item.remaining_percentage}
+                    ownPercentageHint={
+                      <>
+                        Margen propio de este ítem, distinto del{" "}
+                        {controlRemainingPercentage}% del control
+                      </>
+                    }
+                  />
                   {computed.extras.map((extra, i) => (
                     <span
                       key={i}
@@ -595,7 +602,13 @@ const MaintenanceControlDetailPage = () => {
 
   return (
     <ContentLayout title={control.title}>
-      <div className="flex flex-col gap-6">
+      {/* En oscuro el gris "muted" (65 % de luz) se perdía en textos de 10-12 px
+          sobre el fondo azul marino; aquí sube a 80 % solo dentro de esta
+          pantalla (el diálogo y los tooltips quedan fuera: son portales). Se
+          redefine `--color-muted-foreground` y no `--muted-foreground`: la
+          utilidad usa la primera, que el tema resuelve en :root, así que
+          cambiar la segunda en un descendiente no tiene efecto. */}
+      <div className="flex flex-col gap-6 dark:[--color-muted-foreground:hsl(226_5%_80%)]">
         <PageHeader currentLabel={control.title} />
 
         <div className="flex flex-col gap-2 border-b pb-4 sm:flex-row sm:items-end sm:justify-between">

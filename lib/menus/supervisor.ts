@@ -1,5 +1,5 @@
 import type { Group, MenuContext } from "@/lib/menus/types";
-import { ShieldCheck } from "lucide-react";
+import { ShieldCheck, Users } from "lucide-react";
 
 /**
  * Módulo SUPERVISOR — exclusivo de SUPERUSER.
@@ -39,6 +39,20 @@ export function buildSupervisorGroup({
             label: "Historial de Fusiones",
             requiresTables: ["general_article_merges"],
             active: pathname === `${base}/articulos_generales/fusiones`,
+          },
+        ],
+      },
+      {
+        href: `${base}/usuarios`,
+        label: "Usuarios",
+        active: pathname.includes(`${base}/usuarios`),
+        icon: Users,
+        roles: ["SUPERUSER"],
+        submenus: [
+          {
+            href: `${base}/usuarios`,
+            label: "Actividad de Usuarios",
+            active: pathname === `${base}/usuarios`,
           },
         ],
       },

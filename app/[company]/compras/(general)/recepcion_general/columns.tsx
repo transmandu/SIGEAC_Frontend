@@ -414,18 +414,18 @@ export const columns: AppColumnDef<GeneralArticleIntake>[] = [
 
       return (
         <div className="flex w-full flex-col items-center text-center">
-          <span className="text-[11px] font-bold text-muted-foreground">
+          <span className="text-xs font-medium text-slate-600 dark:text-slate-300">
             Por:
           </span>
-          <span className="text-[13px] uppercase text-slate-700 dark:text-slate-300">
+          <span className="text-[13px] text-slate-700 dark:text-slate-300">
             {registered_by}
           </span>
           {handed_to_employee && (
             <>
-              <span className="mt-1 text-[11px] font-bold text-muted-foreground">
+              <span className="mt-1 text-xs font-medium text-slate-600 dark:text-slate-300">
                 A:
               </span>
-              <span className="text-[13px] uppercase text-slate-700 dark:text-slate-300">
+              <span className="text-[13px] text-slate-700 dark:text-slate-300">
                 {fullName(handed_to_employee)}
               </span>
             </>

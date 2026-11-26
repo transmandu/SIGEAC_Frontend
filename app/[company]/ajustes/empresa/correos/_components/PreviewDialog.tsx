@@ -112,7 +112,7 @@ export function PreviewDialog({ notice, open, onOpenChange }: Props) {
             <ul className="divide-y divide-border/60 rounded-xl border border-slate-200 bg-white dark:border-slate-700/60 dark:bg-slate-900/60">
               {data.map((recipient) => (
                 <li key={recipient.email} className="space-y-0.5 px-4 py-3">
-                  <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                  <p className="text-sm font-semibold text-slate-700 wrap-anywhere dark:text-slate-200">
                     {recipient.name || recipient.email}
                   </p>
                   {recipient.name && (

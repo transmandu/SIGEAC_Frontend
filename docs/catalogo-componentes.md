@@ -775,7 +775,6 @@ varios módulos significa que es transversal; **huérfano** significa cero consu
 | `RedirectHandler` | `misc/RedirectHandler.tsx` | _app_root | 32 |
 | `_(sin export nombrado)_` | `misc/RiskMatrix.tsx` | sms | 258 |
 | `SelectCompanyState` | `misc/SelectCompanyState.tsx` | _app_root | 62 |
-| `_(sin export nombrado)_` | `misc/SimpleNotificationBell.tsx` | dashboard | 16 |
 | `StatusCellWithPopover` | `misc/StatusCellWithPopover.tsx` | almacen | 187 |
 | `PAGE_SIZES, TablePagination` | `misc/TablePagination.tsx` | administracion, general | 145 |
 | `description, TestChart` | `misc/TestChart.tsx` | planificacion | 222 |
