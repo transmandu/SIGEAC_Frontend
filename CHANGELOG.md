@@ -1,3 +1,7 @@
+## v4.117.1 — 2026-11-26
+
+- refactor: employee lifecycle management and history (#428)
+
 ## v4.117.0 — 2026-11-25
 
 - Merge pull request #427 from transmandu/fox/operation-module
