@@ -166,12 +166,31 @@ export function RequisitionHeader({
               );
             };
 
-            // Un solo selector con dos grupos —propios y de otras empresas— y una
-            // sola búsqueda. Sus ids pueden coincidir (viven en tablas distintas),
-            // por eso el valor de cada fila externa lleva el prefijo `ext-`.
+            // Un solo selector —propios y de otras empresas— y una sola búsqueda.
+            // Sus ids pueden coincidir (viven en tablas distintas), por eso el
+            // valor de cada fila externa lleva el prefijo `ext-`.
             const showExternal =
               allowAuthorizedEmployees &&
               filteredAuthorizedEmployees.length > 0;
+
+            // Empresas en orden alfabético y, dentro de cada una, por nombre.
+            const externalByCompany = (() => {
+              const byCompany = new Map<string, ExternalEmployee[]>();
+
+              [...filteredAuthorizedEmployees]
+                .sort((a, b) =>
+                  a.employee_name.localeCompare(b.employee_name, "es"),
+                )
+                .forEach((emp) => {
+                  const people = byCompany.get(emp.from_company_name) ?? [];
+                  people.push(emp);
+                  byCompany.set(emp.from_company_name, people);
+                });
+
+              return [...byCompany.entries()].sort(([a], [b]) =>
+                a.localeCompare(b, "es"),
+              );
+            })();
 
             const requesterList = (
               <Command shouldFilter={false}>
@@ -216,35 +235,35 @@ export function RequisitionHeader({
                     </CommandGroup>
                   )}
 
-                  {showExternal && (
-                    <CommandGroup heading="De otras empresas (convenio)">
-                      {filteredAuthorizedEmployees.map((authorizedEmployee) => (
-                        <CommandItem
-                          value={`ext-${authorizedEmployee.id} ${authorizedEmployee.employee_name}`}
-                          key={authorizedEmployee.id}
-                          onSelect={() =>
-                            selectAuthorizedEmployee(authorizedEmployee)
-                          }
-                        >
-                          <Check
-                            className={cn(
-                              "mr-2 h-4 w-4 shrink-0",
-                              `${authorizedEmployee.id}` ===
-                                authorizedEmployeeId
-                                ? "opacity-100"
-                                : "opacity-0",
-                            )}
-                          />
-                          <span className="min-w-0 flex-1 truncate">
-                            {authorizedEmployee.employee_name}
-                          </span>
-                          <span className="ml-2 shrink-0 text-xs text-muted-foreground">
-                            {authorizedEmployee.from_company_name}
-                          </span>
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  )}
+                  {/* Una sección por empresa: el nombre del empleado ocupa toda
+                      la fila y la empresa se dice una sola vez, en el título. */}
+                  {showExternal &&
+                    externalByCompany.map(([company, people]) => (
+                      <CommandGroup key={company} heading={company}>
+                        {people.map((authorizedEmployee) => (
+                          <CommandItem
+                            value={`ext-${authorizedEmployee.id} ${authorizedEmployee.employee_name}`}
+                            key={authorizedEmployee.id}
+                            onSelect={() =>
+                              selectAuthorizedEmployee(authorizedEmployee)
+                            }
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4 shrink-0",
+                                `${authorizedEmployee.id}` ===
+                                  authorizedEmployeeId
+                                  ? "opacity-100"
+                                  : "opacity-0",
+                              )}
+                            />
+                            <span className="min-w-0 flex-1 wrap-anywhere">
+                              {authorizedEmployee.employee_name}
+                            </span>
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    ))}
                 </CommandList>
               </Command>
             );
