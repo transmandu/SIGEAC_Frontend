@@ -1,3 +1,7 @@
+## v4.118.0 — 2026-11-26
+
+- feat: new functions mix (#429)
+
 ## v4.117.1 — 2026-11-26
 
 - refactor: employee lifecycle management and history (#428)
