@@ -1626,12 +1626,76 @@ export type Employee = {
   department_id?: number;
   user?: User;
   user_id?: number | null;
+  /** Inicio y fin del periodo laboral más reciente (aplanados por el backend). */
   start_date?: string | null;
   end_date?: string | null;
   isActive: boolean;
+  /** Periodo laboral más reciente: el vigente o, si ya egresó, el último. */
+  period?: EmploymentPeriod;
+  /** Asignación más reciente: la vigente o, si ya egresó, la última. */
+  assignment?: EmployeeAssignment;
   photo_url?: string | null;
   photo_url_lg?: string | null;
   company?: string;
+};
+
+export type EmploymentStartType = "HIRE" | "REHIRE";
+
+export type EmploymentEndType =
+  | "RESIGNATION"
+  | "DISMISSAL"
+  | "CONTRACT_END"
+  | "MUTUAL_AGREEMENT"
+  | "RETIREMENT"
+  | "DISABILITY"
+  | "DEATH"
+  | "JOB_ABANDONMENT"
+  | "OTHER";
+
+export type AssignmentChangeType =
+  | "INITIAL"
+  | "PROMOTION"
+  | "DEMOTION"
+  | "LATERAL_MOVE"
+  | "RESTRUCTURING"
+  | "OPERATIONAL_NEED"
+  | "EMPLOYEE_REQUEST"
+  | "OTHER";
+
+/** Un tramo en que la persona estuvo contratada. `ended_at` nulo = vigente. */
+export type EmploymentPeriod = {
+  id: number;
+  employee_id: number;
+  started_at: string;
+  ended_at: string | null;
+  start_type: EmploymentStartType;
+  end_type: EmploymentEndType | null;
+  end_reason: string | null;
+  registered_by: string;
+  closed_by: string | null;
+};
+
+/** Cargo, departamento y sede de un empleado durante un tramo de tiempo. */
+export type EmployeeAssignment = {
+  id: number;
+  employment_period_id: number;
+  employee_id: number;
+  job_title_id: number;
+  department_id: number;
+  location_id: number;
+  started_at: string;
+  ended_at: string | null;
+  change_type: AssignmentChangeType;
+  reason: string | null;
+  registered_by: string;
+  closed_by: string | null;
+  job_title?: Pick<JobTitle, "id" | "name"> | null;
+  department?: Pick<Department, "id" | "name" | "acronym"> | null;
+  location?: Location | null;
+};
+
+export type EmployeeHistoryPeriod = EmploymentPeriod & {
+  assignments: EmployeeAssignment[];
 };
 
 export type AdministrationVendor = {

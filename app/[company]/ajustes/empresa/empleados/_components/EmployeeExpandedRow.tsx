@@ -3,7 +3,9 @@
 import type { ReactNode } from "react";
 import { Contact, IdCard, KeyRound, type LucideIcon } from "lucide-react";
 
+import { TagBadge } from "@/components/misc/TagBadge";
 import { formatCalendarDate } from "@/lib/date";
+import { END_TYPE_META } from "@/lib/employee-lifecycle";
 import { locationLabel } from "@/lib/locations";
 import { formatPhone } from "@/lib/phone";
 import type { Employee } from "@/types";
@@ -40,8 +42,11 @@ const Group = ({
   </section>
 );
 
-/** Lo que la fila no muestra: datos personales, contacto y acceso al sistema. */
+/** Lo que la fila no muestra: datos personales, contacto, trabajo y acceso al sistema. */
 export function EmployeeExpandedRow({ employee }: { employee: Employee }) {
+  const period = employee.period;
+  const endMeta = period?.end_type ? END_TYPE_META[period.end_type] : null;
+
   return (
     <div className="grid gap-3 md:grid-cols-3">
       <Group icon={IdCard} title="Datos personales">
@@ -61,17 +66,40 @@ export function EmployeeExpandedRow({ employee }: { employee: Employee }) {
 
       <Group icon={KeyRound} title="Trabajo y acceso">
         <Row
-          label="Ubicación"
+          label="Sede"
           value={employee.location ? locationLabel(employee.location) : null}
         />
         <Row
-          label={employee.isActive ? "Ingreso" : "Egreso"}
+          label="Ingreso"
           value={formatCalendarDate(
-            employee.isActive ? employee.start_date : employee.end_date,
+            period?.started_at ?? employee.start_date,
             "date",
             "",
           )}
         />
+        {!employee.isActive && (
+          <>
+            <Row
+              label="Egreso"
+              value={formatCalendarDate(
+                period?.ended_at ?? employee.end_date,
+                "date",
+                "",
+              )}
+            />
+            <Row
+              label="Motivo"
+              value={
+                endMeta ? (
+                  <TagBadge tone={endMeta.tone}>{endMeta.label}</TagBadge>
+                ) : null
+              }
+            />
+            {period?.end_reason && (
+              <Row label="Detalle" value={period.end_reason} />
+            )}
+          </>
+        )}
         <Row label="Usuario" value={employee.user?.username} />
       </Group>
     </div>

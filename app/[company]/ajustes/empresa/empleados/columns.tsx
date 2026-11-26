@@ -5,7 +5,13 @@ import { ChevronRight } from "lucide-react";
 import EmployeesDropdownActions from "@/components/dropdowns/general/EmployeesDropdownActions";
 import { TagBadge } from "@/components/misc/TagBadge";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { formatCalendarDate } from "@/lib/date";
+import { END_TYPE_META } from "@/lib/employee-lifecycle";
 import { locationLabel } from "@/lib/locations";
 import { type AppColumnDef } from "@/lib/table";
 import { cn } from "@/lib/utils";
@@ -119,9 +125,16 @@ const buildEmployeeColumns = (mode: EmployeeMode): AppColumnDef<Employee>[] => [
       return (
         <div className={center}>
           {location ? (
-            <TagBadge tone="slate" title={locationLabel(location)}>
-              {location.cod_iata || locationLabel(location)}
-            </TagBadge>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <TagBadge tone="slate">
+                  {location.cod_iata || locationLabel(location)}
+                </TagBadge>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="px-2 py-1 text-xs">
+                {locationLabel(location)}
+              </TooltipContent>
+            </Tooltip>
           ) : (
             <span className="text-sm text-muted-foreground">—</span>
           )}
@@ -164,6 +177,42 @@ const buildEmployeeColumns = (mode: EmployeeMode): AppColumnDef<Employee>[] => [
           </div>
         ),
       },
+  ...(mode === "inactive"
+    ? [
+        {
+          id: "end_type",
+          size: 160,
+          accessorFn: (employee: Employee) =>
+            employee.period?.end_type
+              ? END_TYPE_META[employee.period.end_type].label
+              : "",
+          meta: { title: "Motivo de egreso" },
+          header: ({ column }) => (
+            <div className={center}>
+              <DataTableColumnHeader
+                filter
+                column={column}
+                title="Motivo de egreso"
+              />
+            </div>
+          ),
+          cell: ({ row }) => {
+            const endType = row.original.period?.end_type;
+            const meta = endType ? END_TYPE_META[endType] : null;
+
+            return (
+              <div className={center}>
+                {meta ? (
+                  <TagBadge tone={meta.tone}>{meta.label}</TagBadge>
+                ) : (
+                  <span className="text-sm text-muted-foreground">—</span>
+                )}
+              </div>
+            );
+          },
+        } satisfies AppColumnDef<Employee>,
+      ]
+    : []),
   {
     id: "actions",
     size: 100,

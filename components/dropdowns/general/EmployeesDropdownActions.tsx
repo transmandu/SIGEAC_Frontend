@@ -2,20 +2,21 @@
 
 import { useState } from "react";
 import {
-  Minus,
+  ArrowRightLeft,
+  History,
   Pencil,
-  RotateCcw,
   Trash2,
   UserCheck,
   UserRound,
   UserX,
 } from "lucide-react";
+import { useDeleteEmployee } from "@/actions/ajustes/empleados/actions";
+import { EmployeeHistoryDialog } from "@/components/dialogs/general/EmployeeHistoryDialog";
 import {
-  useDeactivateEmployee,
-  useDeleteEmployee,
-  useReactivateEmployee,
-} from "@/actions/ajustes/empleados/actions";
-import { ConfirmActionDialog } from "@/components/dialogs/shared/ConfirmActionDialog";
+  ChangeAssignmentDialog,
+  RehireEmployeeDialog,
+  TerminateEmployeeDialog,
+} from "@/components/dialogs/general/EmployeeLifecycleDialogs";
 import { ConfirmDeleteDialog } from "@/components/dialogs/shared/ConfirmDeleteDialog";
 import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import {
@@ -32,57 +33,72 @@ import { fullName as personName } from "@/lib/person-name";
 const EmployeesDropdownActions = ({ employee }: { employee: Employee }) => {
   const [openUpdate, setOpenUpdate] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
-  const [openDeactivate, setOpenDeactivate] = useState(false);
-  const [openReactivate, setOpenReactivate] = useState(false);
+  const [openAssignment, setOpenAssignment] = useState(false);
+  const [openTerminate, setOpenTerminate] = useState(false);
+  const [openRehire, setOpenRehire] = useState(false);
+  const [openHistory, setOpenHistory] = useState(false);
 
   const { selectedCompany } = useCompanyStore();
   const isSuperUser = useIsSuperuser();
 
   const deleteEmployee = useDeleteEmployee();
-  const deactivateEmployee = useDeactivateEmployee();
-  const reactivateEmployee = useReactivateEmployee();
 
   const isActive = !!employee.isActive;
   const fullName = personName(employee);
   const company = selectedCompany?.slug ?? "";
 
-  const actions: RowAction[] = [
-    ...(isActive
-      ? [
-          {
-            key: "edit",
-            label: "Editar empleado",
-            icon: Pencil,
-            tone: "blue" as const,
-            onSelect: () => setOpenUpdate(true),
-          },
-          {
-            key: "deactivate",
-            label: "Desactivar empleado",
-            icon: Minus,
-            onSelect: () => setOpenDeactivate(true),
-          },
-        ]
-      : [
-          {
-            key: "reactivate",
-            label: "Reactivar empleado",
-            icon: RotateCcw,
-            onSelect: () => setOpenReactivate(true),
-          },
-        ]),
-    ...(isSuperUser
-      ? [
-          {
-            key: "delete",
-            label: "Eliminar permanentemente",
-            icon: Trash2,
-            tone: "red" as const,
-            onSelect: () => setOpenDelete(true),
-          },
-        ]
-      : []),
-  ];
+  const history: RowAction = {
+    key: "history",
+    label: "Ver historial laboral",
+    icon: History,
+    tone: "blue",
+    onSelect: () => setOpenHistory(true),
+  };
+
+  // Todo lo que escribe empleados es solo de SUPERUSER (la API lo exige igual).
+  const actions: RowAction[] = isSuperUser
+    ? [
+        ...(isActive
+          ? [
+              {
+                key: "edit",
+                label: "Editar empleado",
+                icon: Pencil,
+                tone: "blue" as const,
+                onSelect: () => setOpenUpdate(true),
+              },
+              {
+                key: "assignment",
+                label: "Cambiar asignación",
+                icon: ArrowRightLeft,
+                tone: "blue" as const,
+                onSelect: () => setOpenAssignment(true),
+              },
+            ]
+          : []),
+        history,
+        isActive
+          ? {
+              key: "terminate",
+              label: "Dar de baja",
+              icon: UserX,
+              onSelect: () => setOpenTerminate(true),
+            }
+          : {
+              key: "rehire",
+              label: "Recontratar",
+              icon: UserCheck,
+              onSelect: () => setOpenRehire(true),
+            },
+        {
+          key: "delete",
+          label: "Eliminar permanentemente",
+          icon: Trash2,
+          tone: "red" as const,
+          onSelect: () => setOpenDelete(true),
+        },
+      ]
+    : [history];
 
   return (
     <>
@@ -94,7 +110,7 @@ const EmployeesDropdownActions = ({ employee }: { employee: Employee }) => {
           title="Actualizar empleado"
           description={
             <>
-              Modifique la información de{" "}
+              Modifique los datos personales y de contacto de{" "}
               <span className="font-medium text-foreground">{fullName}</span>
             </>
           }
@@ -107,39 +123,34 @@ const EmployeesDropdownActions = ({ employee }: { employee: Employee }) => {
         </FormDialogContent>
       </Dialog>
 
-      <ConfirmActionDialog
-        open={openDeactivate}
-        onOpenChange={setOpenDeactivate}
-        title="Desactivar empleado"
-        entityName={fullName}
-        icon={UserX}
-        tone="amber"
-        confirmLabel="Desactivar"
-        isPending={deactivateEmployee.isPending}
-        onConfirm={() =>
-          deactivateEmployee.mutateAsync({ id: employee.id, company })
-        }
-      >
-        Será ocultado de las operaciones activas, pero podrá ser reactivado
-        después. Acción reversible: no se elimina ningún dato.
-      </ConfirmActionDialog>
+      {isActive && (
+        <>
+          <ChangeAssignmentDialog
+            employee={employee}
+            open={openAssignment}
+            onOpenChange={setOpenAssignment}
+          />
+          <TerminateEmployeeDialog
+            employee={employee}
+            open={openTerminate}
+            onOpenChange={setOpenTerminate}
+          />
+        </>
+      )}
 
-      <ConfirmActionDialog
-        open={openReactivate}
-        onOpenChange={setOpenReactivate}
-        title="Reactivar empleado"
-        entityName={fullName}
-        icon={UserCheck}
-        tone="primary"
-        confirmLabel="Reactivar"
-        isPending={reactivateEmployee.isPending}
-        onConfirm={() =>
-          reactivateEmployee.mutateAsync({ id: employee.id, company })
-        }
-      >
-        Volverá a estar activo en el sistema y se restaurará su acceso a las
-        operaciones activas.
-      </ConfirmActionDialog>
+      {!isActive && (
+        <RehireEmployeeDialog
+          employee={employee}
+          open={openRehire}
+          onOpenChange={setOpenRehire}
+        />
+      )}
+
+      <EmployeeHistoryDialog
+        employee={employee}
+        open={openHistory}
+        onOpenChange={setOpenHistory}
+      />
 
       <ConfirmDeleteDialog
         open={openDelete}
@@ -148,9 +159,10 @@ const EmployeesDropdownActions = ({ employee }: { employee: Employee }) => {
         entityName={fullName}
         warning={
           <>
-            Esta acción es <b>irreversible</b>. Si el empleado tiene registros
-            asociados (solicitudes, minutas, recepciones, cursos…) no se podrá
-            eliminar: en ese caso, desactívelo para conservar su historial.
+            Esta acción es <b>irreversible</b> y borra también su historial
+            laboral. Si el empleado tiene registros asociados (solicitudes,
+            minutas, recepciones, cursos…) no se podrá eliminar: en ese caso, dé
+            de baja al empleado para conservar su historial.
           </>
         }
         isPending={deleteEmployee.isPending}
