@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { Briefcase, BriefcaseBusiness, Contact, UserRound } from "lucide-react";
+import { Contact, UserRound } from "lucide-react";
 import { Control, useFormContext, useWatch } from "react-hook-form";
 
 import {
@@ -9,8 +8,6 @@ import {
   hintClass,
   selectTriggerClass,
 } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
-import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
-import { CreateJobTitleForm } from "@/components/forms/general/CreateJobTitleForm";
 import { PanelFieldLabel, PanelSection } from "@/components/forms/PanelSection";
 import { RequiredIndicator } from "@/components/misc/RequiredIndicator";
 import {
@@ -21,9 +18,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { DateField } from "@/components/misc/DateField";
-import { Dialog } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { useCanManageCatalog } from "@/hooks/helpers/useCanManageCatalog";
 import { PhoneInput } from "@/components/ui/PhoneInput";
 import {
   Select,
@@ -35,7 +30,6 @@ import {
 import { toCalendarPayload } from "@/lib/date";
 import { cn } from "@/lib/utils";
 import { EmployeePhotoField } from "./EmployeePhotoField";
-import { OptionCombobox } from "./OptionCombobox";
 import {
   BLOOD_TYPES,
   DNI_TYPES,
@@ -55,10 +49,6 @@ interface Props {
   isEditing?: boolean;
   /** Foto guardada del empleado (edición). */
   existingPhotoUrl?: string | null;
-  jobTitles: Option[];
-  departments: Option[];
-  locations: Option[];
-  loading?: { jobTitles?: boolean; departments?: boolean; locations?: boolean };
 }
 
 const initialsOf = (first?: string, last?: string) =>
@@ -115,58 +105,6 @@ function SelectRow({
           {hint && (
             <FormDescription className={hintClass}>{hint}</FormDescription>
           )}
-          <FormMessage />
-        </FormItem>
-      )}
-    />
-  );
-}
-
-/** Selector con búsqueda de un registro de otra tabla, con su rótulo y mensaje de error. */
-function ComboRow({
-  control,
-  name,
-  label,
-  options,
-  searchPlaceholder,
-  loading,
-  disabled,
-  required,
-  createLabel,
-  onCreate,
-}: {
-  control: Control<EmployeeFormValues>;
-  name: keyof EmployeeFormValues & string;
-  label: string;
-  options: Option[];
-  searchPlaceholder: string;
-  loading?: boolean;
-  disabled?: boolean;
-  required?: boolean;
-  createLabel?: string;
-  onCreate?: () => void;
-}) {
-  return (
-    <FormField
-      control={control}
-      name={name as "job_title_id"}
-      render={({ field, fieldState }) => (
-        <FormItem>
-          <PanelFieldLabel preventClick>
-            {label}
-            {required && <RequiredIndicator invalid={!!fieldState.error} />}
-          </PanelFieldLabel>
-          <OptionCombobox
-            value={(field.value as string) || ""}
-            onChange={field.onChange}
-            options={options}
-            searchPlaceholder={searchPlaceholder}
-            loading={loading}
-            disabled={disabled}
-            invalid={!!fieldState.error}
-            createLabel={createLabel}
-            onCreate={onCreate}
-          />
           <FormMessage />
         </FormItem>
       )}
@@ -287,18 +225,12 @@ export function EmployeeFormFields({
   disabled,
   isEditing,
   existingPhotoUrl,
-  jobTitles,
-  departments,
-  locations,
-  loading,
 }: Props) {
   const firstName = useWatch({ control, name: "first_name" });
   const lastName = useWatch({ control, name: "last_name" });
   const removePhoto = useWatch({ control, name: "remove_photo" });
   const { setValue } = useFormContext<EmployeeFormValues>();
   const todayIso = toCalendarPayload(new Date()) ?? "";
-  const canCreateJobTitle = useCanManageCatalog("jobTitles");
-  const [creatingJobTitle, setCreatingJobTitle] = useState(false);
 
   return (
     <>
@@ -510,78 +442,6 @@ export function EmployeeFormFields({
           />
         </div>
       </PanelSection>
-
-      <PanelSection
-        icon={Briefcase}
-        title="Trabajo"
-        hint="Dónde y en qué cargo se desempeña en la empresa."
-      >
-        <div className="grid gap-4 sm:grid-cols-2">
-          <ComboRow
-            control={control}
-            name="job_title_id"
-            label="Cargo"
-            options={jobTitles}
-            searchPlaceholder="Buscar cargo..."
-            loading={loading?.jobTitles}
-            disabled={disabled}
-            required
-            createLabel="Crear cargo"
-            onCreate={
-              canCreateJobTitle ? () => setCreatingJobTitle(true) : undefined
-            }
-          />
-          <ComboRow
-            control={control}
-            name="department_id"
-            label="Departamento"
-            options={departments}
-            searchPlaceholder="Buscar departamento..."
-            loading={loading?.departments}
-            disabled={disabled}
-            required
-          />
-          <ComboRow
-            control={control}
-            name="location_id"
-            label="Ubicación"
-            options={locations}
-            searchPlaceholder="Buscar ubicación..."
-            loading={loading?.locations}
-            disabled={disabled}
-            required
-          />
-          <DateRow
-            control={control}
-            name="start_date"
-            label="Fecha de ingreso"
-            disabled={disabled}
-            hint={isEditing ? undefined : "Si se deja vacía, será hoy."}
-          />
-        </div>
-      </PanelSection>
-
-      {canCreateJobTitle && (
-        <Dialog open={creatingJobTitle} onOpenChange={setCreatingJobTitle}>
-          <FormDialogContent
-            icon={BriefcaseBusiness}
-            title="Crear Cargo"
-            description="Registre el cargo; quedará elegido para este empleado."
-            className="sm:max-w-105"
-          >
-            <CreateJobTitleForm
-              onCreated={(jobTitle) =>
-                setValue("job_title_id", String(jobTitle.id), {
-                  shouldDirty: true,
-                  shouldValidate: true,
-                })
-              }
-              onSuccess={() => setCreatingJobTitle(false)}
-              onCancel={() => setCreatingJobTitle(false)}
-            />
-          </FormDialogContent>
-        </Dialog>
-      )}
     </>
   );
 }

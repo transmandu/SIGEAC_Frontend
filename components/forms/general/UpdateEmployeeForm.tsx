@@ -20,15 +20,10 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
-import { useGetJobTitles } from "@/hooks/ajustes/cargo/useGetJobTitles";
-import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment";
 import { useGetEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetEmployees";
 import { useGetInactiveEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetInactiveEmployees";
 import { useIsSuperuser } from "@/hooks/helpers/useIsSuperuser";
-import { useGetLocationsByCompany } from "@/hooks/sistema/useGetLocationsByCompany";
 import { useGetUsers } from "@/hooks/sistema/usuario/useGetUsers";
-import { flattenDepartments } from "@/lib/departments";
-import { locationLabel } from "@/lib/locations";
 import { zodResolver } from "@/lib/zod-resolver";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import type { Employee } from "@/types";
@@ -55,12 +50,6 @@ export function UpdateEmployeeForm({
   const updateEmployee = useUpdateEmployee();
 
   const slug = selectedCompany?.slug;
-  const { data: locations, isLoading: loadingLocations } =
-    useGetLocationsByCompany(slug);
-  const { data: departments, isLoading: loadingDepartments } =
-    useGetDepartments(slug);
-  const { data: jobTitles, isLoading: loadingJobTitles } =
-    useGetJobTitles(slug);
   const { data: activeEmployees } = useGetEmployeesByCompany(slug);
   const { data: inactiveEmployees } = useGetInactiveEmployeesByCompany(slug);
   // `/users` es solo de SUPERUSER: para los demás no se pide ni se ofrece.
@@ -158,25 +147,6 @@ export function UpdateEmployeeForm({
           disabled={updateEmployee.isPending}
           isEditing
           existingPhotoUrl={employee.photo_url_lg || employee.photo_url}
-          jobTitles={(jobTitles ?? []).map((title) => ({
-            id: String(title.id),
-            label: title.name,
-          }))}
-          departments={flattenDepartments(departments ?? []).map(
-            (department) => ({
-              id: String(department.id),
-              label: department.name,
-            }),
-          )}
-          locations={(locations ?? []).map((location) => ({
-            id: String(location.id),
-            label: locationLabel(location),
-          }))}
-          loading={{
-            jobTitles: loadingJobTitles,
-            departments: loadingDepartments,
-            locations: loadingLocations,
-          }}
         />
 
         {isSuperuser && (

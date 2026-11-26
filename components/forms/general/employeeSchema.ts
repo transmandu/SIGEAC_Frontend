@@ -60,12 +60,6 @@ const employeeObject = ({ current }: EmployeeSchemaOptions) =>
       }),
     phone: phoneSchema({ keep: current?.phone }),
     address: z.string().trim().max(255),
-    start_date: z.string(),
-    job_title_id: z.string().min(1, { message: "Seleccione el cargo." }),
-    department_id: z
-      .string()
-      .min(1, { message: "Seleccione el departamento." }),
-    location_id: z.string().min(1, { message: "Seleccione la ubicación." }),
     /** Vacío = sin usuario. */
     user_id: z.string(),
     profile_photo: z.instanceof(File).optional(),
@@ -124,9 +118,9 @@ const checkDuplicates = (
 };
 
 /**
- * Esquema de la edición. Obligatorios los que la base exige (nombre, apellido,
- * cédula, género, cargo, departamento y ubicación); el resto se puede dejar
- * vacío. La cédula y el correo no se pueden repetir: el servidor lo vuelve a
+ * Esquema de la ficha del empleado. Obligatorios los que la base exige (nombre,
+ * apellido, cédula y género); el resto se puede dejar vacío. El cargo, el
+ * departamento y la sede no son de la ficha: viven en su historial laboral. La cédula y el correo no se pueden repetir: el servidor lo vuelve a
  * comprobar, esto solo lo adelanta.
  */
 export const buildEmployeeSchema = (options: EmployeeSchemaOptions = {}) =>
@@ -135,7 +129,7 @@ export const buildEmployeeSchema = (options: EmployeeSchemaOptions = {}) =>
   );
 
 /**
- * Alta: lo mismo más el acceso al sistema. Con "crear usuario" se exigen
+ * Alta: lo mismo más su primera asignación y el acceso al sistema. Con "crear usuario" se exigen
  * también los datos de la cuenta; con "vincular", el usuario elegido.
  */
 export const buildCreateEmployeeSchema = (
@@ -143,6 +137,18 @@ export const buildCreateEmployeeSchema = (
 ) =>
   employeeObject(options)
     .extend({
+      /** Primera asignación del empleado: dónde y como qué ingresa. */
+      job_title_id: z.string().min(1, { message: "Seleccione el cargo." }),
+      department_id: z
+        .string()
+        .min(1, { message: "Seleccione el departamento." }),
+      location_id: z.string().min(1, { message: "Seleccione la sede." }),
+      /** Vacío = hoy. */
+      start_date: z
+        .string()
+        .refine((value) => value === "" || value <= today(), {
+          message: "La fecha de ingreso no puede ser futura.",
+        }),
       access: z.enum(["none", "existing", "new"]),
       new_user: z.object({
         username: z.string(),
@@ -203,7 +209,7 @@ export const EMPLOYEE_FIELD_LABELS: Record<string, string> = {
   start_date: "Fecha de ingreso",
   job_title_id: "Cargo",
   department_id: "Departamento",
-  location_id: "Ubicación",
+  location_id: "Sede",
   user_id: "Usuario",
   profile_photo: "Foto",
   "new_user.username": "Nombre de usuario",
@@ -230,10 +236,6 @@ export const employeeToValues = (employee: Employee): EmployeeFormValues => ({
   email: employee.email ?? "",
   phone: toPhoneValue(employee.phone),
   address: employee.address ?? "",
-  start_date: employee.start_date ?? "",
-  job_title_id: employee.job_title_id ? String(employee.job_title_id) : "",
-  department_id: employee.department_id ? String(employee.department_id) : "",
-  location_id: employee.location_id ? String(employee.location_id) : "",
   user_id: employee.user_id ? String(employee.user_id) : "",
   profile_photo: undefined,
   remove_photo: false,
@@ -251,10 +253,6 @@ const FIELDS_TO_COMPARE = [
   "email",
   "phone",
   "address",
-  "start_date",
-  "job_title_id",
-  "department_id",
-  "location_id",
   "user_id",
 ] as const;
 

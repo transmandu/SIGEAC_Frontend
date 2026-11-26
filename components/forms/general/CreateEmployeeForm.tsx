@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { Briefcase } from "lucide-react";
 import { type Control, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -18,18 +19,20 @@ import {
   serverFieldErrors,
 } from "@/components/forms/mantenimiento/almacen/_components/form-feedback";
 import { ArticleFormShell } from "@/components/forms/mantenimiento/almacen/articulos/ArticleFormShell";
+import { PanelSection } from "@/components/forms/PanelSection";
 import { Form } from "@/components/ui/form";
-import { useGetJobTitles } from "@/hooks/ajustes/cargo/useGetJobTitles";
-import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment";
+import { useAssignmentOptions } from "@/hooks/ajustes/empleados/useAssignmentOptions";
 import { useGetEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetEmployees";
 import { useGetInactiveEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetInactiveEmployees";
 import { useIsSuperuser } from "@/hooks/helpers/useIsSuperuser";
-import { useGetLocationsByCompany } from "@/hooks/sistema/useGetLocationsByCompany";
-import { flattenDepartments } from "@/lib/departments";
-import { locationLabel } from "@/lib/locations";
 import { zodResolver } from "@/lib/zod-resolver";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { EmployeeAccessPanel } from "./EmployeeAccessPanel";
+import {
+  AssignmentFields,
+  LifecycleDateField,
+} from "./employee-lifecycle/LifecycleFields";
+import { lifecycleToday } from "./employee-lifecycle/lifecycleSchema";
 import { EmployeeFormFields } from "./EmployeeFormFields";
 import {
   buildCreateEmployeeSchema,
@@ -62,12 +65,7 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
   const { addModules } = useAddModulesToUser();
 
   const slug = selectedCompany?.slug;
-  const { data: locations, isLoading: loadingLocations } =
-    useGetLocationsByCompany(slug);
-  const { data: departments, isLoading: loadingDepartments } =
-    useGetDepartments(slug);
-  const { data: jobTitles, isLoading: loadingJobTitles } =
-    useGetJobTitles(slug);
+  const assignmentOptions = useAssignmentOptions(slug);
   const { data: activeEmployees } = useGetEmployeesByCompany(slug);
   const { data: inactiveEmployees } = useGetInactiveEmployeesByCompany(slug);
 
@@ -202,18 +200,6 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
     onSuccess?.();
   };
 
-  const jobTitleOptions = (jobTitles ?? []).map((title) => ({
-    id: String(title.id),
-    label: title.name,
-  }));
-  const departmentOptions = flattenDepartments(departments ?? []).map(
-    (department) => ({ id: String(department.id), label: department.name }),
-  );
-  const locationOptions = (locations ?? []).map((location) => ({
-    id: String(location.id),
-    label: locationLabel(location),
-  }));
-
   return (
     <Form {...form}>
       <ArticleFormShell
@@ -232,15 +218,32 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
         <EmployeeFormFields
           control={form.control as unknown as Control<EmployeeFormValues>}
           disabled={busy}
-          jobTitles={jobTitleOptions}
-          departments={departmentOptions}
-          locations={locationOptions}
-          loading={{
-            jobTitles: loadingJobTitles,
-            departments: loadingDepartments,
-            locations: loadingLocations,
-          }}
         />
+
+        <PanelSection
+          icon={Briefcase}
+          title="Trabajo"
+          hint="Dónde y en qué cargo ingresa a la empresa. Es su primera asignación: los cambios futuros quedan en su historial."
+        >
+          <div className="grid gap-4 sm:grid-cols-2">
+            <AssignmentFields
+              control={form.control}
+              disabled={busy}
+              jobTitles={assignmentOptions.jobTitles}
+              departments={assignmentOptions.departments}
+              locations={assignmentOptions.locations}
+              loading={assignmentOptions.loading}
+            />
+            <LifecycleDateField
+              control={form.control}
+              name="start_date"
+              label="Fecha de ingreso"
+              hint="Si se deja vacía, será hoy."
+              max={lifecycleToday()}
+              disabled={busy}
+            />
+          </div>
+        </PanelSection>
 
         {isSuperuser && (
           <EmployeeAccessPanel control={form.control} disabled={busy} />

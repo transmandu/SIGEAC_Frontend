@@ -74,7 +74,7 @@ const EmployeePage = () => {
     <SettingsListPage
       title="Empleados"
       heading="Gestión de Empleados"
-      description="Administre los empleados de la empresa: sus datos, su cargo, departamento y sede, y si tienen acceso al sistema. Quien deja la empresa se da de baja (inactivo) y su historial se conserva."
+      description="Administre los empleados de la empresa: sus datos y su acceso al sistema. Los cambios de cargo, departamento o sede, las bajas y las recontrataciones quedan en su historial laboral."
       tabs={
         <SegmentedTabs
           value={tab}
