@@ -23,20 +23,21 @@ export function DuplicateSuggestions({
 }) {
     if (groups.length === 0) {
         return (
-            <div className="relative rounded-xl border border-border/60 bg-linear-to-b from-muted/30 to-muted/10 p-5 shadow-xs">
-                <div className="min-h-[140px] flex items-center justify-center">
-                    <div className="flex flex-col items-center gap-1.5 text-muted-foreground/60 select-none">
-                        <ShieldCheck className="size-4 opacity-60" />
-                        <span className="text-[11px] tracking-widest uppercase">
-                            Sin duplicados evidentes
-                        </span>
-                        <span className="text-xs text-muted-foreground/50 max-w-xs text-center mt-1">
-                            Puede seleccionar artículos manualmente desde el inventario completo.
-                        </span>
-                    </div>
-                </div>
+          <div className="relative rounded-xl border border-border/60 bg-linear-to-b from-muted/30 to-muted/10 p-5 shadow-xs">
+            <div className="min-h-35 flex items-center justify-center">
+              <div className="flex flex-col items-center gap-1.5 text-muted-foreground/60 select-none">
+                <ShieldCheck className="size-4 opacity-60" />
+                <span className="text-[11px] tracking-widest uppercase">
+                  Sin duplicados evidentes
+                </span>
+                <span className="text-xs text-muted-foreground/50 max-w-xs text-center mt-1">
+                  Puede seleccionar artículos manualmente desde el inventario
+                  completo.
+                </span>
+              </div>
             </div>
-        )
+          </div>
+        );
     }
 
     return (
