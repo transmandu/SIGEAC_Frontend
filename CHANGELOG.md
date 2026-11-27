@@ -1,3 +1,7 @@
+## v4.119.0 — 2026-11-26
+
+- feat: new fuctions mix 2 (#430)
+
 ## v4.118.0 — 2026-11-26
 
 - feat: new functions mix (#429)
