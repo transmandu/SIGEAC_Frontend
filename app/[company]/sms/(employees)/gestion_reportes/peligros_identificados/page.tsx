@@ -9,9 +9,13 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMemo } from "react";
+import { useTabParam } from "@/hooks/helpers/use-tab-param";
+
+const DANGER_TABS = ["ros", "rvp"] as const;
 
 const DangerIdentificationsPage = () => {
   const { selectedCompany } = useCompanyStore();
+  const [tab, setTab] = useTabParam(DANGER_TABS, "ros");
   const { data, isLoading, isError } = useGetDangerIdentifications(
     selectedCompany?.slug
   );
@@ -34,7 +38,11 @@ const DangerIdentificationsPage = () => {
     <ContentLayout title="Peligros Identificados">
       <PageHeader className="mb-6" />
 
-      <Tabs defaultValue="ros" className="w-full">
+      <Tabs
+        value={tab}
+        onValueChange={(value) => setTab(value as (typeof DANGER_TABS)[number])}
+        className="w-full"
+      >
         <TabsList className="grid w-full grid-cols-2 mb-6">
           <TabsTrigger value="ros" className="flex items-center gap-2">
             Reportes Obligatorios (ROS)

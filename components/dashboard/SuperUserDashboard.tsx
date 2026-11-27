@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useTabParam } from "@/hooks/helpers/use-tab-param";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Shield, LayoutDashboard } from "lucide-react";
 import {
@@ -25,14 +25,26 @@ interface SuperUserDashboardProps {
 
 type DashboardType = "WAREHOUSE" | "ADMINISTRATION" | "SMS" | null;
 
+const SUPERUSER_DASHBOARDS = [
+  "NONE",
+  "WAREHOUSE",
+  "ADMINISTRATION",
+  "SMS",
+] as const;
+
 export default function SuperUserDashboard({
   companySlug,
   location_id,
   user,
   roleNames,
 }: SuperUserDashboardProps) {
-  const [selectedDashboard, setSelectedDashboard] =
-    useState<DashboardType>(null);
+  const [chosenDashboard, setSelectedDashboard] = useTabParam(
+    SUPERUSER_DASHBOARDS,
+    "NONE",
+    "dashboard",
+  );
+  const selectedDashboard: DashboardType =
+    chosenDashboard === "NONE" ? null : chosenDashboard;
 
   const renderDashboardContent = () => {
     switch (selectedDashboard) {
@@ -121,12 +133,15 @@ export default function SuperUserDashboard({
           </div>
 
           <div className="
-            w-full sm:w-[250px]
+            w-full sm:w-62.5
           ">
 
             <Select
+              value={selectedDashboard ?? ""}
               onValueChange={(value) =>
-                setSelectedDashboard(value as DashboardType)
+                setSelectedDashboard(
+                  value as (typeof SUPERUSER_DASHBOARDS)[number],
+                )
               }
             >
 

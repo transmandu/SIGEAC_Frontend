@@ -3,13 +3,13 @@
 import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 
-import { useState } from "react";
+import { useActionDialog } from "@/hooks/helpers/use-action-dialog";
 import { Plus, PlaneTakeoff } from "lucide-react";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { CreatePilotForm } from "@/components/forms/general/CreatePilotForm";
 
 export default function CreatePilotDialog() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useActionDialog("crear-piloto");
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

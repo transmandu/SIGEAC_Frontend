@@ -8,14 +8,22 @@ import {
   DialogTrigger
 } from "@/components/ui/dialog"
 import { CreateUserForm } from "@/components/forms/ajustes/CreateUserForm"
+import { useActionDialog } from "@/hooks/helpers/use-action-dialog";
 
 export function CreateUserDialog() {
+  const [open, setOpen] = useActionDialog("crear-usuario");
+
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant={'outline'} className="flex items-center justify-center gap-2 h-8 border-dashed">Crear</Button>
+        <Button
+          variant={"outline"}
+          className="flex items-center justify-center gap-2 h-8 border-dashed"
+        >
+          Crear
+        </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[550px]">
+      <DialogContent className="sm:max-w-137.5">
         <DialogHeader>
           <DialogTitle>Creación de Usuario</DialogTitle>
           <DialogDescription>
@@ -25,5 +33,5 @@ export function CreateUserDialog() {
         <CreateUserForm />
       </DialogContent>
     </Dialog>
-  )
+  );
 }

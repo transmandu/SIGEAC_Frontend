@@ -6,11 +6,11 @@ import { Plus, Store } from "lucide-react";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
-import { useState } from "react";
+import { useActionDialog } from "@/hooks/helpers/use-action-dialog";
 import CreateRetailerForm from "@/components/forms/general/CreateRetailerForm";
 
 export function CreateRetailerDialog() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useActionDialog("crear-comercio");
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>

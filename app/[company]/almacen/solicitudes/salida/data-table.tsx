@@ -98,7 +98,7 @@ export function DataTable({
   return (
     <>
       <div className="flex flex-col gap-2 mb-4">
-        <h1 className="text-5xl font-bold text-center">Registro de Salidas</h1>
+        <h1 className="text-3xl sm:text-5xl wrap-break-word font-bold text-center">Registro de Salidas</h1>
         <p className="text-sm italic text-muted-foreground text-center">
           Aquí puede ver el registro de movimientos de los articulos, así como
           también solicitar la salida de uno.

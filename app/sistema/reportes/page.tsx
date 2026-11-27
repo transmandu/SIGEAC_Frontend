@@ -18,8 +18,12 @@ import ErrorReportDiagnosisDialog from "./_components/ErrorReportDiagnosisDialog
 import CreateErrorReportDialog from "@/components/dialogs/sistema/CreateErrorReportDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { useActionDialog } from "@/hooks/helpers/use-action-dialog";
+import { useTabParam } from "@/hooks/helpers/use-tab-param";
 
 const DEFAULT_PAGE_SIZE = 25;
+
+const REPORT_TABS = ["reportes", "importaciones"] as const;
 
 export default function ReportesErrorPage() {
   const { user } = useAuth();
@@ -29,8 +33,9 @@ export default function ReportesErrorPage() {
     page: 1,
     per_page: DEFAULT_PAGE_SIZE,
   });
-  const [createOpen, setCreateOpen] = useState(false);
-  const [importOpen, setImportOpen] = useState(false);
+  const [tab, setTab] = useTabParam(REPORT_TABS, "reportes");
+  const [createOpen, setCreateOpen] = useActionDialog("crear-reporte");
+  const [importOpen, setImportOpen] = useActionDialog("importar-whatsapp");
   const [selectedReport, setSelectedReport] = useState<ErrorReport | null>(null);
   const [diagnosisOpen, setDiagnosisOpen] = useState(false);
   const [searchText, setSearchText] = useState("");
@@ -119,7 +124,11 @@ export default function ReportesErrorPage() {
     <ContentLayout title="Reportes de Error">
       <PageHeader className="mb-6" />
 
-      <Tabs defaultValue="reportes" className="flex flex-col gap-4">
+      <Tabs
+        value={tab}
+        onValueChange={(value) => setTab(value as (typeof REPORT_TABS)[number])}
+        className="flex flex-col gap-4"
+      >
         <div className="flex items-center justify-between flex-wrap gap-2">
           <h1 className="text-2xl font-bold">Reportes de Error</h1>
           <TabsList>

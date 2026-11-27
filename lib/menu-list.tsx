@@ -13,6 +13,10 @@ import { buildOperationGroup } from "@/lib/menus/operation";
 import { buildPlanificationGroup } from "@/lib/menus/planification";
 import { buildPurchasesGroups } from "@/lib/menus/purchases";
 import { buildQualityControlGroup } from "@/lib/menus/quality-control";
+import {
+  buildQuickActionGroups,
+  buildMasterQuickActionGroups,
+} from "@/lib/menus/quick-actions";
 import { buildProfileGroup } from "@/lib/menus/profile";
 import { buildSettingsGroup } from "@/lib/menus/settings";
 import { buildSmsGroup } from "@/lib/menus/sms";
@@ -63,6 +67,28 @@ export function buildMenuGroups(
     buildSystemGroup(context),
     buildSupervisorGroup(context),
   ];
+}
+
+export function getQuickActionGroups(
+  currentCompany: Company | null,
+  userRoles: string[],
+  availableTables?: string[] | null,
+): Group[] {
+  const context = {
+    pathname: "",
+    currentCompany,
+    date: format(companyNow(), "yyyy-MM-dd"),
+    userRoles,
+  };
+
+  // Sistema es de master: sus acciones existen también sin empresa elegida.
+  return filterMenuGroups(
+    [
+      ...(currentCompany ? buildQuickActionGroups(context) : []),
+      ...buildMasterQuickActionGroups(context),
+    ],
+    { currentCompany, userRoles, availableTables },
+  );
 }
 
 export function getMenuList(

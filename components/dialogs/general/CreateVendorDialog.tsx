@@ -1,7 +1,8 @@
 "use client";
 
 import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
+import { useActionDialog } from "@/hooks/helpers/use-action-dialog";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Plus, Building2 } from "lucide-react";
@@ -18,7 +19,7 @@ export function CreateVendorDialog({
   open: openProp,
   onOpenChange: onOpenChangeProp,
 }: CreateVendorDialogProps) {
-  const [internalOpen, setInternalOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useActionDialog("crear-proveedor");
   const open = openProp ?? internalOpen;
   const onOpenChange = onOpenChangeProp ?? setInternalOpen;
 

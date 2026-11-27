@@ -34,6 +34,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNotifications } from "@/hooks/notifications/useNotifications";
 import { useResettingState } from "@/hooks/useResettingState";
+import { useTabParam } from "@/hooks/helpers/use-tab-param";
 import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
 import { instantToCalendarDay, relativeDayLabel } from "@/lib/date";
 import {
@@ -48,7 +49,8 @@ import {
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
-type ReadFilter = "ALL" | "READ" | "UNREAD";
+const READ_FILTERS = ["ALL", "READ", "UNREAD"] as const;
+type ReadFilter = (typeof READ_FILTERS)[number];
 
 const filterTriggerClass =
   "h-8 w-50 max-sm:h-10 max-sm:w-full pl-8 text-xs bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60 transition-colors focus:ring-1 focus:ring-primary/40";
@@ -101,7 +103,7 @@ export default function NotificationsPage() {
   const { user } = useAuth();
   const timeZone = useCompanyTimezone();
   const [search, setSearch] = useState("");
-  const [readFilter, setReadFilter] = useState<ReadFilter>("ALL");
+  const [readFilter, setReadFilter] = useTabParam(READ_FILTERS, "ALL");
 
   const { notifications, unreadCount, isPending, isError, refetch } =
     useNotifications(selectedCompany?.slug);

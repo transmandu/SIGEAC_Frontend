@@ -1,7 +1,8 @@
 "use client";
 
 import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
+import { useActionDialog } from "@/hooks/helpers/use-action-dialog";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Plus, Truck } from "lucide-react";
@@ -10,7 +11,7 @@ import { useTourContext } from "@/components/tour/TourProvider";
 import { agenciasEnvioCrearSteps } from "@/components/tour/steps/ajustes/agencia-envios/agencias-envio-crear";
 
 export function CreateShippingAgencyDialog() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useActionDialog("crear-agencia");
 
   const { registerTour, unregisterTour } = useTourContext();
 

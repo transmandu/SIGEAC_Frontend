@@ -35,7 +35,7 @@ export function ReturnWarehouseDialog({ serial, id }: ReturnWarhouseProps) {
       <DialogTrigger asChild>
         <IterationCw className="size-6 hover:scale-110 transition-all text-center ml-4" />
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-106.25">
         <DialogHeader>
           <DialogTitle>
             Retorno de Articulo:{" "}

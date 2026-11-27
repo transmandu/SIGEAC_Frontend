@@ -1,7 +1,7 @@
 "use client";
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { useState } from "react";
+import { useTabParam } from "@/hooks/helpers/use-tab-param";
 import { useGetWarehouseDashboard } from "@/hooks/sistema/dashboard/useWarehouseDashboard";
 import { User } from "@/types";
 
@@ -17,6 +17,8 @@ import ToolsSummary from "@/components/dashboard/sections/warehouse/ToolsSummary
 import UsersSummary from "@/components/dashboard/sections/warehouse/UsersSummary";
 import DashboardSummary from "@/components/dashboard/sections/warehouse/DashboardSummary";
 
+const WAREHOUSE_TABS = ["OVERVIEW", "ARTICLES", "TOOLS", "USERS"] as const;
+
 interface WarehouseDashboardContentProps {
   companySlug: string;
   location_id: string;
@@ -29,7 +31,10 @@ export default function WarehouseDashboardContent({
   location_id,
   roleNames,
 }: WarehouseDashboardContentProps) {
-  const [activeTab, setActiveTab] = useState("OVERVIEW");
+  const [requestedTab, setActiveTab] = useTabParam(
+    WAREHOUSE_TABS,
+    "OVERVIEW",
+  );
 
   const { data, isLoading, isError } = useGetWarehouseDashboard(
     companySlug,
@@ -40,9 +45,18 @@ export default function WarehouseDashboardContent({
     ["SUPERUSER", "JEFE_ALMACEN"].includes(r)
   );
 
+  // Pedir "Usuarios" sin poder verlos no debe dejar la pantalla sin pestaña.
+  const activeTab =
+    requestedTab === "USERS" && !canViewUsersTab ? "OVERVIEW" : requestedTab;
+
   return (
     <main className="max-w-7xl mt-6 mx-auto px-4">
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) =>
+          setActiveTab(value as (typeof WAREHOUSE_TABS)[number])
+        }
+      >
 
         {/* ================= TABS ================= */}
         <TabsList className="w-full mb-6 p-2 rounded-2xl bg-slate-200/50 dark:bg-slate-800/60 backdrop-blur-md border border-slate-200/40 dark:border-slate-800/60">

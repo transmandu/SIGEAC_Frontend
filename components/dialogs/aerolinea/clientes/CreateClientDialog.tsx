@@ -1,7 +1,8 @@
 "use client";
 
 import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useActionDialog } from "@/hooks/helpers/use-action-dialog";
 import { Plus, UserRound } from "lucide-react";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
@@ -10,7 +11,7 @@ import { useTourContext } from "@/components/tour/TourProvider";
 import { clientesCrearAirlineSteps } from "@/components/tour/steps/ajustes/clientes/clientes-crear";
 
 export function CreateClientDialog() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useActionDialog("crear-cliente");
   const { registerTour, unregisterTour } = useTourContext();
 
   useEffect(() => {

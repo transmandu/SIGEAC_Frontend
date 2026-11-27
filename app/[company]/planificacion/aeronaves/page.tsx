@@ -150,7 +150,7 @@ const AircraftsPage = () => {
 
       {/* Header */}
       <div className="flex flex-col text-center justify-center gap-2 mb-8">
-        <h1 className="font-bold text-5xl">Gestión de Aeronaves</h1>
+        <h1 className="font-bold text-3xl sm:text-5xl wrap-break-word">Gestión de Aeronaves</h1>
         <p className="text-muted-foreground italic text-sm">
           Aquí puede llevar un registro de todas las aeronaves registradas en el
           sistema. <br />

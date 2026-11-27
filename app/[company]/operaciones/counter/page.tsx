@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/select";
 import { Loader2, Plus, Plane, Users, MessageSquare } from "lucide-react";
 import WhatsAppImportModal from "@/components/forms/operaciones/counter/WhatsAppImportModal";
+import { useActionDialog } from "@/hooks/helpers/use-action-dialog";
 
 const CounterPage = () => {
   const params = useParams();
@@ -41,7 +42,8 @@ const CounterPage = () => {
     string | null
   >(null);
   const [filterType, setFilterType] = useState<string>("all");
-  const [importModalOpen, setImportModalOpen] = useState<boolean>(false);
+  const [importModalOpen, setImportModalOpen] =
+    useActionDialog("importar-whatsapp");
 
   const month = filterDate.getMonth() + 1;
   const year = filterDate.getFullYear();
@@ -230,7 +232,7 @@ const CounterPage = () => {
         )}
 
         <WhatsAppImportModal
-          open={importModalOpen}
+          open={importModalOpen && canImportWhatsApp}
           onClose={() => setImportModalOpen(false)}
           company={company}
         />

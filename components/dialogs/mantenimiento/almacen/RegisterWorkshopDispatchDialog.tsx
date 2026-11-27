@@ -9,11 +9,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useState } from "react";
+import { useActionDialog } from "@/hooks/helpers/use-action-dialog";
 import { WorkshopDispatchForm } from "@/components/forms/mantenimiento/almacen/salida_taller/WorkshopDispatchForm";
 
 export function RegisterWorkshopDispatchDialog() {
-  const [open, setOpen] = useState<boolean>(false);
+  const [open, setOpen] = useActionDialog("registrar-salida-taller");
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

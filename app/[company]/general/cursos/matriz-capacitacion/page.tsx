@@ -11,17 +11,19 @@ import { CreateSmsTrainingModulePatternDialog } from "@/components/dialogs/gener
 import { useGetSmsTrainingGroups } from "@/hooks/curso/useGetSmsTrainingGroups";
 import { useGetSmsTrainingModules } from "@/hooks/curso/useGetSmsTrainingModules";
 import { useGetSmsTrainingModulePatterns } from "@/hooks/curso/useGetSmsTrainingModulePatterns";
+import { useTabParam } from "@/hooks/helpers/use-tab-param";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { SmsTrainingGroupEmployees } from "./_components/SmsTrainingGroupEmployees";
 import { columns as groupColumns } from "./columns";
 import { moduleColumns } from "./module-columns";
 import { patternColumns } from "./pattern-columns";
 
-type TabValue = "groups" | "modules" | "patterns";
+const MATRIX_TABS = ["groups", "modules", "patterns"] as const;
+type TabValue = (typeof MATRIX_TABS)[number];
 
 const SmsTrainingMatrixPage = () => {
   const { selectedCompany } = useCompanyStore();
-  const [tab, setTab] = useState<TabValue>("groups");
+  const [tab, setTab] = useTabParam(MATRIX_TABS, "groups");
   const [search, setSearch] = useState("");
   const deferredSearch = useDeferredValue(search);
 

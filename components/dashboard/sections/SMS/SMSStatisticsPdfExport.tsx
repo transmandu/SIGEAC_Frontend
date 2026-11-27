@@ -599,7 +599,7 @@ export default function SMSStatisticsPdfExport({
 
       {/* Dialog de configuración de descarga */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-[520px]">
+        <DialogContent className="sm:max-w-130">
           <DialogHeader className="pb-2 border-b border-border/60">
             <div className="flex items-center gap-3">
               <div className="flex items-center justify-center h-9 w-9 rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-500 shrink-0">

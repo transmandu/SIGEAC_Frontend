@@ -16,6 +16,8 @@ export type Submenu = {
    */
   requiresTables?: string[];
   allowedCompanySlugs?: string[];
+  /** Sinónimos y siglas con los que el buscador global encuentra la entrada. */
+  keywords?: string[];
 };
 
 export type Menu = {
@@ -35,6 +37,12 @@ export type Menu = {
    */
   requiresTables?: string[];
   allowedCompanySlugs?: string[];
+  /** Ver `Submenu.keywords`. */
+  keywords?: string[];
+  /** Solo acciones rápidas: la pantalla de la que cuelgan en el buscador. */
+  parentHref?: string;
+  /** Solo acciones rápidas: una vista (pestaña, pantalla sin menú) y no una acción. */
+  entryType?: "view";
 };
 
 export type Group = {

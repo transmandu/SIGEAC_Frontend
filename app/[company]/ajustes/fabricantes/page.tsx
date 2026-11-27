@@ -5,6 +5,7 @@ import { SettingsListPage } from "@/components/layout/SettingsListPage";
 import { SettingsDataTable } from "@/components/tables/SettingsDataTable";
 import { CreateManufacturerDialog } from "@/components/dialogs/general/CreateManufacturerDialog";
 import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufacturers";
+import { useActionDialog } from "@/hooks/helpers/use-action-dialog";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { fabricantesSteps } from "@/components/tour/steps/ajustes/fabricantes";
@@ -27,6 +28,7 @@ const ManufacturersPage = () => {
     refetch,
   } = useGetManufacturers(selectedCompany?.slug);
   const { registerTour, unregisterTour } = useTourContext();
+  const [createOpen, setCreateOpen] = useActionDialog("crear-fabricante");
   const [search, setSearch] = useState("");
   const [type, setType] = useState("ALL");
   const deferredSearch = useDeferredValue(search);
@@ -101,7 +103,12 @@ const ManufacturersPage = () => {
         filtered={!!deferredSearch.trim() || type !== "ALL"}
         loading={isPending}
         emptyMessage="No se han encontrado fabricantes."
-        actions={<CreateManufacturerDialog />}
+        actions={
+          <CreateManufacturerDialog
+            open={createOpen}
+            onOpenChange={setCreateOpen}
+          />
+        }
         tourPrefix="fabricantes"
       />
     </SettingsListPage>

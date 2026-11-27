@@ -41,7 +41,7 @@ const WorkOrderPage = () => {
         </TabsList>
         <TabsContent value="overview" className="space-y-4">
           <div className='space-y-6'>
-            <h1 className='text-center text-5xl font-bold'>Detalles de WO - <span className='text-blue-600 italic'>{order_number}</span></h1>
+            <h1 className='text-center text-3xl sm:text-5xl wrap-break-word font-bold'>Detalles de WO - <span className='text-blue-600 italic'>{order_number}</span></h1>
             {
               work_order && (
                 <>

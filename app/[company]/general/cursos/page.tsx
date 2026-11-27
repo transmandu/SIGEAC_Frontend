@@ -10,11 +10,13 @@ import { useGetCoursesByDeparment } from "@/hooks/curso/useGetCoursesByDeparment
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PorExpirarTab } from "./_components/PorExpirarTab";
-import { useSearchParams } from "next/navigation";
+import { useTabParam } from "@/hooks/helpers/use-tab-param";
+
+const COURSE_TABS = ["cursos", "por-expirar"] as const;
 
 const CoursePage = () => {
   const { selectedCompany } = useCompanyStore();
-  const searchParams = useSearchParams();
+  const [tab, setTab] = useTabParam(COURSE_TABS, "cursos");
 
   const {
     data: courses,
@@ -22,14 +24,14 @@ const CoursePage = () => {
     isError,
   } = useGetCoursesByDeparment(selectedCompany?.slug);
 
-  const defaultTab =
-    searchParams.get("tab") === "por-expirar" ? "por-expirar" : "cursos";
-
   return (
     <ContentLayout title="Cursos">
       <PageHeader className="mb-6" />
 
-      <Tabs defaultValue={defaultTab}>
+      <Tabs
+        value={tab}
+        onValueChange={(value) => setTab(value as (typeof COURSE_TABS)[number])}
+      >
         <TabsList>
           <TabsTrigger value="cursos" className="text-base">
             Cursos

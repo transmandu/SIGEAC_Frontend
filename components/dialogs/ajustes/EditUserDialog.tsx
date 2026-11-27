@@ -28,7 +28,7 @@ export function EditUserDialog({ user }: { user: User }) {
         </button>
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-[550px]">
+      <DialogContent className="sm:max-w-137.5">
         <DialogHeader>
           <DialogTitle>Edición de Usuario</DialogTitle>
           <DialogDescription>
@@ -39,5 +39,5 @@ export function EditUserDialog({ user }: { user: User }) {
         <EditUserForm user={user} onClose={() => setOpen(false)} />
       </DialogContent>
     </Dialog>
-  )
+  );
 }

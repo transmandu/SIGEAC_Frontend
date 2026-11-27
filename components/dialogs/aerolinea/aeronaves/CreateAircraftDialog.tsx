@@ -1,14 +1,14 @@
 "use client";
 
 import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
-import { useState } from "react";
+import { useActionDialog } from "@/hooks/helpers/use-action-dialog";
 import { Plus, Plane } from "lucide-react";
 import { CreateAircraftForm } from "@/components/forms/aerolinea/aeronaves/CreateAircraftForm";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 
 export function CreateAircraftDialog() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useActionDialog("crear-aeronave");
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

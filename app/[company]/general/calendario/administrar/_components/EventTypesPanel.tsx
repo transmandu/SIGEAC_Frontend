@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Palette, Pencil, Plus, Trash2 } from "lucide-react";
+import { useActionDialog } from "@/hooks/helpers/use-action-dialog";
 
 import {
   AlertDialog,
@@ -36,7 +37,7 @@ export function EventTypesPanel({ company }: EventTypesPanelProps) {
   const { data: eventTypes = [], isLoading } =
     useGetCalendarEventTypes(company);
   const { deleteCalendarEventType } = useDeleteCalendarEventType();
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogOpen, setDialogOpen] = useActionDialog("crear-tipo");
   const [editing, setEditing] = useState<CalendarEventType | undefined>();
 
   return (

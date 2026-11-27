@@ -24,7 +24,7 @@ const CalendarServicesPage = () => {
       <PageHeader className="mb-6" />
 
       <div className="flex flex-col text-center justify-center gap-2 mb-6">
-        <h1 className="font-bold text-5xl">Calendario de Actividades SMS</h1>
+        <h1 className="font-bold text-3xl sm:text-5xl wrap-break-word">Calendario de Actividades SMS</h1>
         <p className="text-muted-foreground italic text-sm">
           Aquí puede llevar un registro de todas las actividades de SMS
           registradas en el sistema. <br />

@@ -6,11 +6,11 @@ import { Plus, Ruler } from "lucide-react";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
-import { useState } from "react";
+import { useActionDialog } from "@/hooks/helpers/use-action-dialog";
 import CreateUnitForm from "@/components/forms/ajustes/CreateUnitForm";
 
 export function CreateUnitDialog() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useActionDialog("crear-unidad");
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>

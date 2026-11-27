@@ -25,6 +25,9 @@ import { useTourContext } from "@/components/tour/TourProvider";
 import { cargoDashboardSteps } from "@/components/tour/steps/cargo/dashboard";
 import { useEffect } from "react";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { useTabParam } from "@/hooks/helpers/use-tab-param";
+
+const CARGO_TABS = ["registered", "external"] as const;
 
 const AircraftCard = ({
   aircraft,
@@ -102,7 +105,7 @@ const CargoPage = () => {
   const [year, setYear] = useState(
     Number(searchParams.get("year")) || new Date().getFullYear(),
   );
-  const [activeTab, setActiveTab] = useState("registered");
+  const [activeTab, setActiveTab] = useTabParam(CARGO_TABS, "registered");
 
   const {
     data: statsData,
@@ -135,7 +138,7 @@ const CargoPage = () => {
 
         <div className="flex flex-col gap-2 text-center md:text-left">
           <h1
-            className="break-words text-2xl font-bold sm:text-4xl text-center"
+            className="wrap-break-words text-2xl font-bold sm:text-4xl text-center"
             data-tour="cargo-dashboard-title"
           >
             Módulo de Carga
@@ -193,7 +196,13 @@ const CargoPage = () => {
         </div>
 
         {/* Tabs de Aeronaves */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-2">
+        <Tabs
+          value={activeTab}
+          onValueChange={(value) =>
+            setActiveTab(value as (typeof CARGO_TABS)[number])
+          }
+          className="mt-2"
+        >
           <TabsList className="mx-auto grid h-auto w-full max-w-md grid-cols-1 gap-1 sm:grid-cols-2">
             <TabsTrigger
               value="registered"

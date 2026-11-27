@@ -10,6 +10,10 @@ import { QueueDataTable } from "@/app/[company]/control_calidad/_components/Queu
 import { QueuePanel } from "@/app/[company]/control_calidad/_components/QueuePanel";
 import { useInspectionQueue } from "@/hooks/mantenimiento/almacen/inventario/useArticleQueues";
 import { useState } from "react";
+import { useActionDialog } from "@/hooks/helpers/use-action-dialog";
+import { useTabParam } from "@/hooks/helpers/use-tab-param";
+
+const INCOMING_TABS = ["incoming", "waitingForm", "reinspection"] as const;
 import { IncomingArticle } from "./IncomingTypes";
 import { GenerateReceptionFormButton } from "./_components/GenerateReceptionFormButton";
 import { IssuedFormatsDialog } from "./_components/IssuedFormatsDialog";
@@ -22,6 +26,12 @@ const NO_ARTICLES: IncomingArticle[] = [];
 
 const IncomingControlPage = () => {
   const [selectedForForm, setSelectedForForm] = useState<IncomingArticle[]>([]);
+  const [tab, setTab] = useTabParam(INCOMING_TABS, "incoming");
+  const [formatsOpen, setFormatsOpen] = useActionDialog("formatos-emitidos");
+
+  // "Formatos emitidos" vive en la barra de "Pendientes por formato": pedirlo
+  // desde fuera lleva primero a esa pestaña, que es donde se monta el diálogo.
+  if (formatsOpen && tab !== "waitingForm") setTab("waitingForm");
 
   const incomingQueue = useInspectionQueue("INCOMING");
   const waitingForFormQueue = useInspectionQueue("WAITING_FOR_FORMAT");
@@ -52,7 +62,13 @@ const IncomingControlPage = () => {
           </p>
         </div>
 
-        <Tabs defaultValue="incoming" className="w-full">
+        <Tabs
+          value={tab}
+          onValueChange={(value) =>
+            setTab(value as (typeof INCOMING_TABS)[number])
+          }
+          className="w-full"
+        >
           <TabsList className="mx-auto w-full justify-center rounded-full p-5">
             <TabsTrigger value="incoming" className="gap-2">
               Incoming
@@ -109,7 +125,10 @@ const IncomingControlPage = () => {
                 toolbar={
                   <div className="flex items-center gap-2">
                     <GenerateReceptionFormButton selected={selectedForForm} />
-                    <IssuedFormatsDialog />
+                    <IssuedFormatsDialog
+                      open={formatsOpen}
+                      onOpenChange={setFormatsOpen}
+                    />
                   </div>
                 }
               />

@@ -10,6 +10,10 @@ import { ArticulosEnTransitoTab } from "./_components/ArticulosEnTransitoTab";
 import { RecepcionGeneralTab } from "./_components/RecepcionGeneralTab";
 import { TrasladosEntreSedesTab } from "./_components/TrasladosEntreSedesTab";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { useTabParam } from "@/hooks/helpers/use-tab-param";
+
+const RECEPTION_TABS = ["transito", "traslados", "recepcion-general"] as const;
+type ReceptionTab = (typeof RECEPTION_TABS)[number];
 
 const ALMACEN_ROLES = [
   "ALMACEN",
@@ -22,9 +26,12 @@ const ALMACEN_ROLES = [
 const RecepcionArticulosPage = () => {
   const { selectedCompany } = useCompanyStore();
   const { user } = useAuth();
-  const [visitedTabs, setVisitedTabs] = useState<Set<string>>(
-    () => new Set(["transito"]),
-  );
+  const [tab, setTab] = useTabParam(RECEPTION_TABS, "transito");
+  // Cada pestaña se monta la primera vez que se ve y se conserva después. La
+  // activa siempre cuenta como vista, también cuando llegó por la URL.
+  const [visitedTabs, setVisitedTabs] = useState<Set<string>>(new Set());
+  const isVisited = (value: ReceptionTab) =>
+    value === tab || visitedTabs.has(value);
 
   const userRoles = user?.roles?.map((r) => r.name) ?? [];
   const canView = ALMACEN_ROLES.some((r) => userRoles.includes(r));
@@ -56,12 +63,11 @@ const RecepcionArticulosPage = () => {
 
         {/* Tabs */}
         <Tabs
-          defaultValue="transito"
+          value={tab}
           className="space-y-4"
           onValueChange={(value) => {
-            if (!visitedTabs.has(value)) {
-              setVisitedTabs((prev) => new Set(prev).add(value));
-            }
+            setVisitedTabs((prev) => new Set(prev).add(tab).add(value));
+            setTab(value as ReceptionTab);
           }}
         >
           <TabsList>
@@ -75,15 +81,15 @@ const RecepcionArticulosPage = () => {
           </TabsList>
 
           <TabsContent value="transito">
-            {visitedTabs.has("transito") && <ArticulosEnTransitoTab />}
+            {isVisited("transito") && <ArticulosEnTransitoTab />}
           </TabsContent>
 
           <TabsContent value="traslados">
-            {visitedTabs.has("traslados") && <TrasladosEntreSedesTab />}
+            {isVisited("traslados") && <TrasladosEntreSedesTab />}
           </TabsContent>
 
           <TabsContent value="recepcion-general">
-            {visitedTabs.has("recepcion-general") && <RecepcionGeneralTab />}
+            {isVisited("recepcion-general") && <RecepcionGeneralTab />}
           </TabsContent>
         </Tabs>
       </div>

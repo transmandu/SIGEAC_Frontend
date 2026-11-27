@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useTabParam } from "@/hooks/helpers/use-tab-param";
 import { PLANIFICATION_AUDIT_ROLES } from "@/hooks/mantenimiento/planificacion/useCanViewPlanificationAudit";
 import type { AuditModule } from "@/types/planification/audit";
 import { useMemo, useState } from "react";
@@ -27,12 +28,15 @@ import { ExportExcelButton, IntegrityCheck } from "./_components/AuditToolbar";
 
 type ModuleKey = AuditModule | "ALL";
 
+const AUDIT_TABS = ["stats", "log"] as const;
+
 /**
  * AUDITORÍA DE PLANIFICACIÓN: todo lo que se crea, corrige, da de baja,
  * elimina o emite en Planificación, sellado en una cadena de hash. La tasa de
  * error cuenta solo las correcciones marcadas "Error de captura".
  */
 const PlanificationAuditPage = () => {
+  const [tab, setTab] = useTabParam(AUDIT_TABS, "stats");
   const [period, setPeriod] = useState<PeriodKey>("6m");
   const [module, setModule] = useState<ModuleKey>("ALL");
 
@@ -90,7 +94,13 @@ const PlanificationAuditPage = () => {
             </div>
           </div>
 
-          <Tabs defaultValue="stats" className="flex flex-col gap-4">
+          <Tabs
+            value={tab}
+            onValueChange={(value) =>
+              setTab(value as (typeof AUDIT_TABS)[number])
+            }
+            className="flex flex-col gap-4"
+          >
             <TabsList className="w-fit">
               <TabsTrigger value="stats" className="text-xs">
                 Estadísticas

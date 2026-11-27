@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { useActionDialog } from "@/hooks/helpers/use-action-dialog";
 import { useGetSMSCertificates } from "@/hooks/sms/useGetCertificates";
 import { useAuth } from "@/contexts/AuthContext";
 import { Loader2, Calendar } from "lucide-react";
@@ -29,8 +30,8 @@ import { lastFirstName } from "@/lib/person-name";
 const CertificatesPage = () => {
   const { selectedCompany } = useCompanyStore();
   const { user } = useAuth();
-  const [open, setOpen] = useState(false);
-  const [bulkOpen, setBulkOpen] = useState(false);
+  const [open, setOpen] = useActionDialog("cargar-certificado");
+  const [bulkOpen, setBulkOpen] = useActionDialog("cargar-certificados-lote");
   const [bulkRunning, setBulkRunning] = useState(false);
   const [selectedEmployee, setSelectedEmployee] =
     useState<CertificateGroup | null>(null);
@@ -43,7 +44,7 @@ const CertificatesPage = () => {
       if (!next && bulkRunning) return;
       setBulkOpen(next);
     },
-    [bulkRunning],
+    [bulkRunning, setBulkOpen],
   );
 
   useEffect(() => {
@@ -148,7 +149,7 @@ const CertificatesPage = () => {
         )}
 
         {/* DIALOG DE CARGA CORREGIDO */}
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open && !!isManagement} onOpenChange={setOpen}>
           {/* Eliminamos bg-slate-900 y border-slate-800 para usar variables del tema */}
           <DialogContent
             className="sm:max-w-120 bg-background border-border shadow-lg"
@@ -173,7 +174,10 @@ const CertificatesPage = () => {
         </Dialog>
 
         {/* DIALOG DE CARGA MASIVA */}
-        <Dialog open={bulkOpen} onOpenChange={handleBulkOpenChange}>
+        <Dialog
+          open={bulkOpen && !!isManagement}
+          onOpenChange={handleBulkOpenChange}
+        >
           <DialogContent
             className="sm:max-w-2xl bg-background border-border shadow-lg"
             data-tour="cert-bulk-dialog"

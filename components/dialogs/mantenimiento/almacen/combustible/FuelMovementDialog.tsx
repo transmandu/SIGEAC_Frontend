@@ -14,7 +14,7 @@ import { getFuelMovementLabel } from "@/lib/fuel";
 import { cn } from "@/lib/utils";
 import { FuelMovementType, FuelSummary, FuelVehicle } from "@/types";
 import { LucideIcon } from "lucide-react";
-import { useState } from "react";
+import { useActionDialog } from "@/hooks/helpers/use-action-dialog";
 
 export function FuelMovementDialog({
   company,
@@ -37,7 +37,7 @@ export function FuelMovementDialog({
   className?: string;
   iconClassName?: string;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useActionDialog(`movimiento-${type}`);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

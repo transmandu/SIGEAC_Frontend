@@ -3,13 +3,13 @@
 import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 
-import { useState } from "react";
+import { useActionDialog } from "@/hooks/helpers/use-action-dialog";
 import { Plus, Rss } from "lucide-react";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { CreateInformationSourceForm } from "@/components/forms/aerolinea/sms/CreateInformationSourceForm";
 
 export default function CreateInformationSourceDialog() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useActionDialog("crear-fuente");
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

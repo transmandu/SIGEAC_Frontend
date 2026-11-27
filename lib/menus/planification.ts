@@ -10,38 +10,50 @@ import {
   Wrench,
 } from "lucide-react";
 
+/**
+ * Pertenece a la sección: la ruta misma o cualquiera de sus sub-rutas (detalle,
+ * crear, editar). Con límite de segmento: `/control_mantenimiento` no cubre
+ * `/control_mantenimiento_x`.
+ */
+const isWithin = (pathname: string, href: string): boolean =>
+  pathname === href || pathname.startsWith(`${href}/`);
+
 export function buildPlanificationGroup({
   pathname,
   currentCompany,
 }: MenuContext): Group {
+  const base = `/${currentCompany?.slug}/planificacion`;
+
+  const audit = `${base}/auditoria`;
+  const aircrafts = `${base}/aeronaves`;
+  const workOrders = `${base}/ordenes_trabajo`;
+  const flights = `${base}/control_vuelos`;
+  const maintenance = `${base}/control_mantenimiento`;
+  const components = `${base}/control_componentes`;
+  const avionics = `${base}/control_avionica`;
+  const directives = `${base}/control_directivas`;
+
   return {
     groupLabel: "Planificación",
     moduleValue: "planification",
     menus: [
       {
-        href: `/${currentCompany?.slug}/planificacion/auditoria`,
+        href: audit,
         label: "Auditoría",
         requiresTables: ["planification_audit_logs"],
-        active: pathname.includes(
-          `/${currentCompany?.slug}/planificacion/auditoria`,
-        ),
+        active: isWithin(pathname, audit),
         icon: ClipboardCheck,
         requiresOmac: true,
-        roles: [
-          "JEFE_CONTROL_CALIDAD",
-          "JEFE_MANTENIMIENTO",
-          "JEFE_PLANIFICACION",
-          "SUPERUSER",
-        ],
+        // Los mismos roles que el middleware de esas rutas (ver
+        // PLANIFICATION_AUDIT_ROLES).
+        roles: ["JEFE_CONTROL_CALIDAD", "JEFE_PLANIFICACION", "SUPERUSER"],
         submenus: [],
       },
       {
-        href: `/${currentCompany?.slug}/planificacion/aeronaves`,
+        href: aircrafts,
         label: "Aeronaves",
         requiresTables: ["aircrafts"],
-        active: pathname.includes(
-          `/${currentCompany?.slug}/planificacion/reportes`,
-        ),
+        active: isWithin(pathname, aircrafts),
         icon: Plane,
         roles: [
           "ANALISTA_PLANIFICACION",
@@ -52,20 +64,18 @@ export function buildPlanificationGroup({
         requiresOmac: true,
         submenus: [
           {
-            href: `/${currentCompany?.slug}/planificacion/aeronaves`,
+            href: aircrafts,
             label: "Gestión de Aeronaves",
-            active:
-              pathname === `/${currentCompany?.slug}/planificacion/aeronaves`,
+            active: isWithin(pathname, aircrafts),
           },
         ],
       },
       {
-        href: `/${currentCompany?.slug}/planificacion/ordenes_trabajo`,
+        href: workOrders,
         label: "Ordenes de Trabajo",
+        keywords: ["ot", "work order"],
         requiresTables: ["work_orders"],
-        active: pathname.includes(
-          `/${currentCompany?.slug}/planificacion/ordenes_trabajo`,
-        ),
+        active: isWithin(pathname, workOrders),
         icon: SquarePen,
         roles: [
           "ANALISTA_PLANIFICACION",
@@ -76,21 +86,19 @@ export function buildPlanificationGroup({
         requiresOmac: true,
         submenus: [
           {
-            href: `/${currentCompany?.slug}/planificacion/ordenes_trabajo/`,
+            href: workOrders,
             label: "Gestionar Ordenes",
-            active:
-              pathname ===
-              `/${currentCompany?.slug}/planificacion/ordenes_trabajo`,
+            active: isWithin(pathname, workOrders),
           },
         ],
       },
       {
-        href: `/${currentCompany?.slug}/planificacion/aeronaves`,
+        // El contenedor apunta a su única pantalla; antes apuntaba a la de
+        // aeronaves y las migajas mandaban a otra sección.
+        href: `${flights}/vuelos`,
         label: "Control de Horas Vuelos",
         requiresTables: ["flights"],
-        active: pathname.includes(
-          `/${currentCompany?.slug}/planificacion/control_vuelos`,
-        ),
+        active: isWithin(pathname, flights),
         icon: BookCheck,
         requiresOmac: true,
         roles: [
@@ -101,98 +109,80 @@ export function buildPlanificationGroup({
         ],
         submenus: [
           {
-            href: `/${currentCompany?.slug}/planificacion/control_vuelos/vuelos`,
+            href: `${flights}/vuelos`,
             label: "Vuelos",
-            active:
-              pathname ===
-              `/${currentCompany?.slug}/planificacion/control_vuelos/vuelos`,
+            active: isWithin(pathname, flights),
           },
         ],
       },
       {
-        href: `/${currentCompany?.slug}/planificacion/control_mantenimiento`,
+        href: maintenance,
         label: "Control de Mantenimiento",
         requiresTables: ["maintenance_controls"],
-        active: pathname.includes(
-          `/${currentCompany?.slug}/planificacion/control_mantenimiento`,
-        ),
+        active: isWithin(pathname, maintenance),
         icon: Wrench,
         requiresOmac: true,
         roles: ["ANALISTA_PLANIFICACION", "JEFE_PLANIFICACION", "SUPERUSER"],
         submenus: [
           {
-            href: `/${currentCompany?.slug}/planificacion/control_mantenimiento`,
+            href: maintenance,
             label: "Gestionar",
             active:
-              pathname ===
-              `/${currentCompany?.slug}/planificacion/control_mantenimiento`,
+              isWithin(pathname, maintenance) &&
+              !isWithin(pathname, `${maintenance}/historial`),
           },
           {
-            href: `/${currentCompany?.slug}/planificacion/control_mantenimiento/historial`,
+            href: `${maintenance}/historial`,
             label: "Histórico",
-            active: pathname.includes(
-              `/${currentCompany?.slug}/planificacion/control_mantenimiento/historial`,
-            ),
+            active: isWithin(pathname, `${maintenance}/historial`),
           },
         ],
       },
       {
-        href: `/${currentCompany?.slug}/planificacion/control_componentes`,
+        href: components,
         label: "Control de Componentes",
         requiresTables: ["component_controls"],
-        active: pathname.includes(
-          `/${currentCompany?.slug}/planificacion/control_componentes`,
-        ),
+        active: isWithin(pathname, components),
         icon: Cog,
         requiresOmac: true,
         roles: ["ANALISTA_PLANIFICACION", "JEFE_PLANIFICACION", "SUPERUSER"],
         submenus: [
           {
-            href: `/${currentCompany?.slug}/planificacion/control_componentes`,
+            href: components,
             label: "Gestionar",
-            active:
-              pathname ===
-              `/${currentCompany?.slug}/planificacion/control_componentes`,
+            active: isWithin(pathname, components),
           },
         ],
       },
       {
-        href: `/${currentCompany?.slug}/planificacion/control_avionica`,
+        href: avionics,
         label: "Control de Aviónica",
         requiresTables: ["avionics_controls"],
-        active: pathname.includes(
-          `/${currentCompany?.slug}/planificacion/control_avionica`,
-        ),
+        active: isWithin(pathname, avionics),
         icon: Radio,
         requiresOmac: true,
         roles: ["ANALISTA_PLANIFICACION", "JEFE_PLANIFICACION", "SUPERUSER"],
         submenus: [
           {
-            href: `/${currentCompany?.slug}/planificacion/control_avionica`,
+            href: avionics,
             label: "Gestionar",
-            active:
-              pathname ===
-              `/${currentCompany?.slug}/planificacion/control_avionica`,
+            active: isWithin(pathname, avionics),
           },
         ],
       },
       {
-        href: `/${currentCompany?.slug}/planificacion/control_directivas`,
+        href: directives,
         label: "Control de Directivas",
         requiresTables: ["directive_controls"],
-        active: pathname.includes(
-          `/${currentCompany?.slug}/planificacion/control_directivas`,
-        ),
+        active: isWithin(pathname, directives),
         icon: ShieldAlert,
         requiresOmac: true,
         roles: ["SUPERUSER"],
         submenus: [
           {
-            href: `/${currentCompany?.slug}/planificacion/control_directivas`,
+            href: directives,
             label: "Gestionar",
-            active:
-              pathname ===
-              `/${currentCompany?.slug}/planificacion/control_directivas`,
+            active: isWithin(pathname, directives),
           },
         ],
       },

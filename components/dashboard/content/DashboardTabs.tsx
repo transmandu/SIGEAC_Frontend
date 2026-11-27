@@ -1,9 +1,10 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useTabParam } from "@/hooks/helpers/use-tab-param";
 
 type DashboardTabTone = "blue" | "cyan" | "sky";
 
@@ -29,7 +30,10 @@ export interface DashboardTab {
  * así que sus consultas no se disparan si nadie la visita.
  */
 export function DashboardTabs({ tabs }: { tabs: DashboardTab[] }) {
-  const [activeTab, setActiveTab] = useState(tabs[0]?.value);
+  const [activeTab, setActiveTab] = useTabParam(
+    tabs.map((tab) => tab.value),
+    tabs[0]?.value ?? "",
+  );
 
   return (
     <main className="max-w-7xl mt-6 mx-auto px-4">

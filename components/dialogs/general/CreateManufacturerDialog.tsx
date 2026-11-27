@@ -13,14 +13,21 @@ interface CreateManufacturerDialogProps {
     "AIRCRAFT" | "ENGINE" | "APU" | "PROPELLER" | "GENERAL" | "PART";
   onSuccess?: (manufacturer: any) => void;
   triggerButton?: React.ReactNode;
+  /** La pantalla de fabricantes lo controla para abrirlo desde `?accion=`. */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 export function CreateManufacturerDialog({
   defaultType = "GENERAL",
   onSuccess,
   triggerButton,
+  open: openProp,
+  onOpenChange: onOpenChangeProp,
 }: CreateManufacturerDialogProps) {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = openProp ?? internalOpen;
+  const setOpen = onOpenChangeProp ?? setInternalOpen;
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>

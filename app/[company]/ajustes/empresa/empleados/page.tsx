@@ -1,6 +1,7 @@
 "use client";
 
 import { useDeferredValue, useMemo, useState } from "react";
+import { useTabParam } from "@/hooks/helpers/use-tab-param";
 
 import { CreateEmployeeDialog } from "@/components/dialogs/general/CreateEmployeeDialog";
 import { SettingsListPage } from "@/components/layout/SettingsListPage";
@@ -19,7 +20,8 @@ import { EmployeeExpandedRow } from "./_components/EmployeeExpandedRow";
 import { activeEmployeeColumns, inactiveEmployeeColumns } from "./columns";
 import { formalName } from "@/lib/person-name";
 
-type Tab = "active" | "inactive";
+const EMPLOYEE_TABS = ["active", "inactive"] as const;
+type Tab = (typeof EMPLOYEE_TABS)[number];
 
 const matches = (employee: Employee, q: string) =>
   [
@@ -38,7 +40,7 @@ const EmployeePage = () => {
   const { selectedCompany } = useCompanyStore();
   const companySlug = selectedCompany?.slug;
 
-  const [tab, setTab] = useState<Tab>("active");
+  const [tab, setTab] = useTabParam(EMPLOYEE_TABS, "active");
   const [search, setSearch] = useState("");
   const deferredSearch = useDeferredValue(search);
 

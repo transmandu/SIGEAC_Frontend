@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useActionDialog } from "@/hooks/helpers/use-action-dialog";
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -27,7 +27,7 @@ type Role = string
 
 export function GeneralModuleRequisitionDialog() {
   const { user } = useAuth()
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useActionDialog("crear-solicitud");
 
   const userRoles: Role[] = user?.roles?.map(role => role.name) || []
 
@@ -98,15 +98,14 @@ export function GeneralModuleRequisitionDialog() {
           `
           w-[95vw]
           max-w-[95vw]
-          sm:max-w-[860px]
+          sm:max-w-215
           max-h-[85vh]
           p-0
           overflow-hidden
           flex
           flex-col
           `,
-          isWarehouseUser &&
-            'sm:max-w-[960px] max-h-[94vh]'
+          isWarehouseUser && "sm:max-w-240 max-h-[94vh]",
         )}
       >
         <DialogHeader className="space-y-2 px-6 pt-6 shrink-0">
@@ -116,9 +115,8 @@ export function GeneralModuleRequisitionDialog() {
 
           <DialogDescription>
             {tabs.length === 1 && showWarehouse
-              ? 'Cree una solicitud para reponer artículos de almacén'
-              : 'Seleccione el tipo de solicitud que desea crear'
-            }
+              ? "Cree una solicitud para reponer artículos de almacén"
+              : "Seleccione el tipo de solicitud que desea crear"}
           </DialogDescription>
         </DialogHeader>
 
@@ -129,7 +127,7 @@ export function GeneralModuleRequisitionDialog() {
               {showWarehouse && (
                 <CreateWarehouseRequisitionForm
                   onClose={() => setOpen(false)}
-                  itemLabelSize={isWarehouseUser ? 'lg' : 'default'}
+                  itemLabelSize={isWarehouseUser ? "lg" : "default"}
                 />
               )}
 
@@ -139,23 +137,18 @@ export function GeneralModuleRequisitionDialog() {
                 />
               )}
 
-              {!showWarehouse &&
-                !showAeronautical &&
-                showGeneral && (
-                  <CreateGeneralRequisitionForm
-                    isEditing={false}
-                    onClose={() => setOpen(false)}
-                  />
-                )}
+              {!showWarehouse && !showAeronautical && showGeneral && (
+                <CreateGeneralRequisitionForm
+                  isEditing={false}
+                  onClose={() => setOpen(false)}
+                />
+              )}
             </>
           )}
 
           {/* ================= MULTIPLE TABS ================= */}
           {tabs.length > 1 && (
-            <Tabs
-              defaultValue={defaultTab}
-              className="w-full overflow-hidden"
-            >
+            <Tabs defaultValue={defaultTab} className="w-full overflow-hidden">
               <TabsList
                 className={`
                   grid
@@ -165,7 +158,7 @@ export function GeneralModuleRequisitionDialog() {
                   ${tabsGridClass}
                 `}
               >
-                {tabs.map(tab => (
+                {tabs.map((tab) => (
                   <TabsTrigger
                     key={tab.value}
                     value={tab.value}
@@ -180,10 +173,7 @@ export function GeneralModuleRequisitionDialog() {
               </TabsList>
 
               {showAeronautical && (
-                <TabsContent
-                  value="AERONAUTICAL"
-                  className="mt-4"
-                >
+                <TabsContent value="AERONAUTICAL" className="mt-4">
                   <CreateAeronauticalRequisitionForm
                     onClose={() => setOpen(false)}
                   />
@@ -194,16 +184,13 @@ export function GeneralModuleRequisitionDialog() {
                 <TabsContent value="WAREHOUSE" className="mt-4">
                   <CreateWarehouseRequisitionForm
                     onClose={() => setOpen(false)}
-                    itemLabelSize={isWarehouseUser ? 'lg' : 'default'}
+                    itemLabelSize={isWarehouseUser ? "lg" : "default"}
                   />
                 </TabsContent>
               )}
 
               {showGeneral && (
-                <TabsContent
-                  value="GENERAL"
-                  className="mt-4"
-                >
+                <TabsContent value="GENERAL" className="mt-4">
                   <CreateGeneralRequisitionForm
                     isEditing={false}
                     onClose={() => setOpen(false)}
@@ -215,5 +202,5 @@ export function GeneralModuleRequisitionDialog() {
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

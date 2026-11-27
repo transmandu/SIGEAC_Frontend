@@ -131,7 +131,7 @@ export function buildSettingsGroup({
               "ANALISTA_SMS",
               "SUPERUSER",
               "COORDINADOR_SMS",
-              "GENRENTE_SMS",
+              "GERENTE_SMS",
               "EJECUTIVO_RESPONSABLE",
             ],
           },

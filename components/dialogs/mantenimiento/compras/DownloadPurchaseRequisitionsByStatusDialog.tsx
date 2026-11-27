@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useActionDialog } from "@/hooks/helpers/use-action-dialog";
 import { toast } from "sonner";
 import { Check, FileDown, Loader2 } from "lucide-react";
 
@@ -84,7 +85,7 @@ type Props = {
  */
 export function DownloadPurchaseRequisitionsByStatusDialog({ type }: Props) {
   const { selectedCompany, selectedStation } = useCompanyStore();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useActionDialog("reporte-solicitudes");
   const [selected, setSelected] = useState<string[]>(DEFAULT_STATUSES);
 
   const { mutateAsync: downloadPdf, isPending } =

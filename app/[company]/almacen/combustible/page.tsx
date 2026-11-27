@@ -51,6 +51,9 @@ import { FuelTraceabilityPanel } from "./_components/FuelTraceabilityPanel";
 import { FuelVehiclesTable } from "./_components/FuelVehiclesTable";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { useResettingState } from "@/hooks/useResettingState";
+import { useTabParam } from "@/hooks/helpers/use-tab-param";
+
+const FUEL_TABS = ["movements", "vehicles", "traceability"] as const;
 
 const movementFilterOptions: Array<{
   value: FuelMovementType;
@@ -97,7 +100,7 @@ export default function FuelWarehousePage() {
   const [movementFuelType, setMovementFuelType] = useState<FuelType | "all">(
     "all",
   );
-  const [activeFuelTab, setActiveFuelTab] = useState("movements");
+  const [activeFuelTab, setActiveFuelTab] = useTabParam(FUEL_TABS, "movements");
 
   const { data: vehicles, isLoading: vehiclesLoading } =
     useGetFuelVehicles(company);
@@ -363,7 +366,9 @@ export default function FuelWarehousePage() {
         {/* --- Tabs con datos --- */}
         <Tabs
           value={activeFuelTab}
-          onValueChange={setActiveFuelTab}
+          onValueChange={(value) =>
+            setActiveFuelTab(value as (typeof FUEL_TABS)[number])
+          }
           className="space-y-4"
         >
           <TabsList className="gap-1 rounded-full border border-slate-200/70 bg-slate-100/60 p-1 dark:border-slate-800 dark:bg-slate-800/40">

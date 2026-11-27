@@ -42,7 +42,7 @@ export function EditFuelVehicleDialog({
           </Button>
         </DialogTrigger>
       )}
-      <DialogContent className="sm:max-w-[520px]">
+      <DialogContent className="sm:max-w-130">
         <DialogHeader>
           <DialogTitle>Editar vehiculo</DialogTitle>
           <DialogDescription>

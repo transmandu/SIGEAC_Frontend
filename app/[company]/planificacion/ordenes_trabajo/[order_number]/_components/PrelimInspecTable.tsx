@@ -216,7 +216,7 @@ const PrelimInspecTable = ({ work_order }: { work_order: WorkOrder }) => {
                         </Button>
                       </DialogTrigger>
 
-                      <DialogContent className="sm:max-w-[425px]">
+                      <DialogContent className="sm:max-w-106.25">
                         <DialogHeader>
                           <DialogTitle className="text-center text-xl">
                             ¿Desea dar por finalizada la inspección?
@@ -264,7 +264,7 @@ const PrelimInspecTable = ({ work_order }: { work_order: WorkOrder }) => {
                     </Button>
                   </DialogTrigger>
 
-                  <DialogContent className="sm:max-w-[520px]">
+                  <DialogContent className="sm:max-w-130">
                     <DialogHeader>
                       <DialogTitle>Imprimir inspección preliminar</DialogTitle>
                       <DialogDescription>
@@ -372,7 +372,7 @@ const PrelimInspecTable = ({ work_order }: { work_order: WorkOrder }) => {
               </div>
             </DialogTrigger>
 
-            <DialogContent className="sm:max-w-[600px]">
+            <DialogContent className="sm:max-w-150">
               <DialogHeader>
                 <DialogTitle>Crear Inspec. Preliminar</DialogTitle>
               </DialogHeader>

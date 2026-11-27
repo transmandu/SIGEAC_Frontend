@@ -34,12 +34,10 @@ export function buildOperationGroup({
         requiresTables: ["cargo_shipments"],
         active: pathname.includes(`/${currentCompany?.slug}/operaciones/cargo`),
         icon: Package,
-        roles: [
-          "ANALISTA_ADMINISTRACION",
-          "JEFE_ADMINISTRACION",
-          "SUPERUSER",
-          "OPERADOR_CARGA",
-        ],
+        // Los endpoints de lectura de carga y manifiestos (y el layout de
+        // /cargo) solo admiten estos tres; con JEFE_ADMINISTRACION el menú
+        // ofrecía una pantalla que lo rechazaba al entrar.
+        roles: ["ANALISTA_ADMINISTRACION", "SUPERUSER", "OPERADOR_CARGA"],
         requiresOmac: false,
         submenus: [
           {
@@ -51,12 +49,7 @@ export function buildOperationGroup({
                 `/${currentCompany?.slug}/operaciones/cargo`,
               ) &&
                 !pathname.includes("/manifiestos")),
-            roles: [
-              "ANALISTA_ADMINISTRACION",
-              "JEFE_ADMINISTRACION",
-              "SUPERUSER",
-              "OPERADOR_CARGA",
-            ],
+            roles: ["ANALISTA_ADMINISTRACION", "SUPERUSER", "OPERADOR_CARGA"],
           },
           {
             href: `/${currentCompany?.slug}/operaciones/cargo/manifiestos`,
@@ -65,12 +58,7 @@ export function buildOperationGroup({
             active: pathname.includes(
               `/${currentCompany?.slug}/operaciones/cargo/manifiestos`,
             ),
-            roles: [
-              "ANALISTA_ADMINISTRACION",
-              "JEFE_ADMINISTRACION",
-              "SUPERUSER",
-              "OPERADOR_CARGA",
-            ],
+            roles: ["ANALISTA_ADMINISTRACION", "SUPERUSER", "OPERADOR_CARGA"],
           },
         ],
       },

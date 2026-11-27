@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
 import { CalendarPlus, Palette, Radio } from "lucide-react";
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { cn } from "@/lib/utils";
+import { useTabParam } from "@/hooks/helpers/use-tab-param";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { EventTypesPanel } from "./_components/EventTypesPanel";
 import { SourceAccessPanel } from "./_components/SourceAccessPanel";
@@ -34,6 +34,8 @@ const SECTIONS = [
 
 type SectionId = (typeof SECTIONS)[number]["id"];
 
+const SECTION_IDS = SECTIONS.map((section) => section.id);
+
 /**
  * Administración del Calendario de Eventos — exclusivo de SUPERUSER (el
  * backend ya rechaza estas rutas para cualquier otro rol; acá solo se evita
@@ -42,7 +44,10 @@ type SectionId = (typeof SECTIONS)[number]["id"];
 const CalendarAdminPage = () => {
   const { selectedCompany } = useCompanyStore();
   const company = selectedCompany?.slug;
-  const [activeSection, setActiveSection] = useState<SectionId>("accesos");
+  const [activeSection, setActiveSection] = useTabParam<SectionId>(
+    SECTION_IDS,
+    "accesos",
+  );
 
   if (!company) return null;
 

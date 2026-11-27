@@ -10,18 +10,23 @@ import {
   DialogTrigger
 } from "@/components/ui/dialog"
 import CreateRoleForm from "@/components/forms/general/CreateRoleForm"
-import { useState } from "react"
+import { useActionDialog } from "@/hooks/helpers/use-action-dialog"
 
 export function CreateRoleDialog() {
 
-  const [open, setOpen] = useState<boolean>();
+  const [open, setOpen] = useActionDialog("crear-rol");
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant={'outline'} className="flex items-center justify-center gap-2 h-8 border-dashed">Crear</Button>
+        <Button
+          variant={"outline"}
+          className="flex items-center justify-center gap-2 h-8 border-dashed"
+        >
+          Crear
+        </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-106.25">
         <DialogHeader>
           <DialogTitle>Creación de Rol</DialogTitle>
           <DialogDescription>
@@ -31,5 +36,5 @@ export function CreateRoleDialog() {
         <CreateRoleForm onClose={() => setOpen(false)} />
       </DialogContent>
     </Dialog>
-  )
+  );
 }

@@ -325,92 +325,100 @@ function NewConversionRow({
     const rightLabel = direction === "base_per_unit" ? baseUnitLabel : unitLabel
 
     return (
-        <div className="flex flex-col gap-2 rounded-lg border border-primary/40 bg-primary/6 px-3 py-2.5">
-            {/* Con la base cambiada y sin guardar, el catálogo filtraría por la
+      <div className="flex flex-col gap-2 rounded-lg border border-primary/40 bg-primary/6 px-3 py-2.5">
+        {/* Con la base cambiada y sin guardar, el catálogo filtraría por la
                 base vieja y ofrecería factores que ya no aplican. */}
-            {!!articleId && !baseUnitChanged && (
-                <ConversionSuggestionPicker
-                    type="general-articles"
-                    articleId={articleId}
-                    onPick={applySuggestion}
-                />
-            )}
+        {!!articleId && !baseUnitChanged && (
+          <ConversionSuggestionPicker
+            type="general-articles"
+            articleId={articleId}
+            onPick={applySuggestion}
+          />
+        )}
 
-            <div className="flex items-center gap-2">
-                <Select
-                    value={String(unitId ?? "")}
-                    onValueChange={(next) => setUnitId(Number(next))}
+        <div className="flex items-center gap-2">
+          <Select
+            value={String(unitId ?? "")}
+            onValueChange={(next) => setUnitId(Number(next))}
+          >
+            <SelectTrigger className="h-8 w-40 text-xs bg-background border-border/60">
+              <SelectValue placeholder="Unidad a convertir" />
+            </SelectTrigger>
+            <SelectContent>
+              {units.map((unit) => (
+                <SelectItem
+                  key={unit.id}
+                  value={String(unit.id)}
+                  className="text-xs"
                 >
-                    <SelectTrigger className="h-8 w-[160px] text-xs bg-background border-border/60">
-                        <SelectValue placeholder="Unidad a convertir" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {units.map((unit) => (
-                            <SelectItem key={unit.id} value={String(unit.id)} className="text-xs">
-                                {unit.label}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
+                  {unit.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-                <Select
-                    value={direction}
-                    onValueChange={(next) => setDirection(next as ConversionDirection)}
-                >
-                    <SelectTrigger className="h-8 w-[190px] text-xs bg-background border-border/60">
-                        <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="base_per_unit" className="text-xs">
-                            1 {unitLabel} = ? {baseUnitLabel}
-                        </SelectItem>
-                        <SelectItem value="units_per_base" className="text-xs">
-                            1 {baseUnitLabel} = ? {unitLabel}
-                        </SelectItem>
-                    </SelectContent>
-                </Select>
+          <Select
+            value={direction}
+            onValueChange={(next) => setDirection(next as ConversionDirection)}
+          >
+            <SelectTrigger className="h-8 w-47.5 text-xs bg-background border-border/60">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="base_per_unit" className="text-xs">
+                1 {unitLabel} = ? {baseUnitLabel}
+              </SelectItem>
+              <SelectItem value="units_per_base" className="text-xs">
+                1 {baseUnitLabel} = ? {unitLabel}
+              </SelectItem>
+            </SelectContent>
+          </Select>
 
-                <div className="flex items-center gap-0.5 ml-auto shrink-0">
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className="size-8 text-muted-foreground hover:text-foreground"
-                        disabled={!isValid}
-                        onClick={() =>
-                            onAdd({ unit_id: unitId!, direction, value: numericValue })
-                        }
-                    >
-                        <Check className="size-3.5" />
-                    </Button>
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className="size-8 text-muted-foreground hover:text-foreground"
-                        onClick={onCancel}
-                    >
-                        <X className="size-3.5" />
-                    </Button>
-                </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground shrink-0">1 {leftLabel}</span>
-                <span className="text-muted-foreground/50">=</span>
-                <DecimalInput
-                    placeholder="0.00"
-                    className="h-8 w-28 bg-background border-border/60"
-                    value={value}
-                    onValueChange={setValue}
-                />
-                <span className="text-sm text-muted-foreground truncate">{rightLabel}</span>
-            </div>
-
-            {alreadyExists && (
-                <span className="text-xs text-destructive">
-                    Este artículo ya tiene una conversión para esa unidad. Edite la existente
-                    en vez de crear otra.
-                </span>
-            )}
+          <div className="flex items-center gap-0.5 ml-auto shrink-0">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-8 text-muted-foreground hover:text-foreground"
+              disabled={!isValid}
+              onClick={() =>
+                onAdd({ unit_id: unitId!, direction, value: numericValue })
+              }
+            >
+              <Check className="size-3.5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-8 text-muted-foreground hover:text-foreground"
+              onClick={onCancel}
+            >
+              <X className="size-3.5" />
+            </Button>
+          </div>
         </div>
-    )
+
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground shrink-0">
+            1 {leftLabel}
+          </span>
+          <span className="text-muted-foreground/50">=</span>
+          <DecimalInput
+            placeholder="0.00"
+            className="h-8 w-28 bg-background border-border/60"
+            value={value}
+            onValueChange={setValue}
+          />
+          <span className="text-sm text-muted-foreground truncate">
+            {rightLabel}
+          </span>
+        </div>
+
+        {alreadyExists && (
+          <span className="text-xs text-destructive">
+            Este artículo ya tiene una conversión para esa unidad. Edite la
+            existente en vez de crear otra.
+          </span>
+        )}
+      </div>
+    );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useActionDialog } from "@/hooks/helpers/use-action-dialog";
 import { Plus, UsersRound } from "lucide-react";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
@@ -8,7 +8,7 @@ import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 import { CreateSmsTrainingGroupForm } from "@/components/forms/general/CreateSmsTrainingGroupForm";
 
 export function CreateSmsTrainingGroupDialog() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useActionDialog("crear-grupo");
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

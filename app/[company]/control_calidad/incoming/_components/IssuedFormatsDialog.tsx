@@ -58,10 +58,19 @@ function formatoLabel(
   return `${fecha}-${mismoDia.findIndex((o) => o.id === f.id) + 1}`;
 }
 
-export function IssuedFormatsDialog() {
+export function IssuedFormatsDialog({
+  open: openProp,
+  onOpenChange,
+}: {
+  /** La pantalla de Incoming lo controla para abrirlo desde `?accion=`. */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}) {
   const timeZone = useCompanyTimezone();
   const isSuperuser = useIsSuperuser();
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = openProp ?? internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
   const [search, setSearch] = useState("");
   const [correcting, setCorrecting] = useState<IssuedIncomingFormat | null>(
     null,

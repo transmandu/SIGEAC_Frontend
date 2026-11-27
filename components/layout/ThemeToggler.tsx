@@ -5,7 +5,6 @@ import { useTheme } from "next-themes";
 import { AnimatePresence, motion } from "motion/react";
 
 import { cn } from "@/lib/utils";
-
 import {
   Tooltip,
   TooltipContent,
@@ -135,6 +134,7 @@ export function ThemeToggler() {
               "relative flex items-center justify-center",
               "size-9 rounded-full",
               "border",
+              "border-slate-400/60! hover:border-blue-400/30! dark:border-slate-600/60!",
               "text-foreground/90",
               "hover:text-foreground",
               "active:scale-95",

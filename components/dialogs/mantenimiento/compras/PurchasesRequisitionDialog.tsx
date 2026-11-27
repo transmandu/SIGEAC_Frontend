@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-
+import { useActionDialog } from "@/hooks/helpers/use-action-dialog";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
@@ -23,7 +22,7 @@ import { CreateWarehouseRequisitionForm } from "@/components/forms/mantenimiento
 import { CreateGeneralRequisitionForm } from "@/components/forms/mantenimiento/compras/CreateGeneralRequisitionForm";
 
 export function PurchasesRequisitionDialog() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useActionDialog("crear-solicitud");
   const { user } = useAuth();
   const isSuperuser = useIsSuperuser();
 

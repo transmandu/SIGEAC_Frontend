@@ -21,6 +21,9 @@ import { EditArticleDialog } from "./_components/EditArticleDialog";
 import { MergeDialog } from "./_components/MergeDialog";
 import SupervisorActionButton from "./_components/SupervisorActionButton";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { useTabParam } from "@/hooks/helpers/use-tab-param";
+
+const SUPERVISOR_TABS = ["sugerencias", "inventario"] as const;
 
 /**
  * SUPERVISAR ARTÍCULOS GENERALES — exclusivo de SUPERUSER.
@@ -36,6 +39,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
  */
 export default function SupervisarArticulosGeneralesPage() {
   const { selectedCompany } = useCompanyStore();
+  const [tab, setTab] = useTabParam(SUPERVISOR_TABS, "sugerencias");
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [mergeOpen, setMergeOpen] = useState(false);
   /**
@@ -155,7 +159,13 @@ export default function SupervisarArticulosGeneralesPage() {
             </div>
           </div>
         ) : (
-          <Tabs defaultValue="sugerencias" className="flex flex-col gap-4">
+          <Tabs
+            value={tab}
+            onValueChange={(value) =>
+              setTab(value as (typeof SUPERVISOR_TABS)[number])
+            }
+            className="flex flex-col gap-4"
+          >
             <TabsList className="w-fit">
               <TabsTrigger value="sugerencias" className="text-xs">
                 Sugerencias

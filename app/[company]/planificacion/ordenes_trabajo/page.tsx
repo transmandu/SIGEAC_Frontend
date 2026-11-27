@@ -22,7 +22,7 @@ const WorkOrdersPage = () => {
       <PageHeader className="mb-6" />
 
       <div className='flex flex-col gap-y-2'>
-        <h1 className='text-5xl font-bold text-center'>Gestión de Ord. de Trabajo</h1>
+        <h1 className='text-3xl sm:text-5xl wrap-break-word font-bold text-center'>Gestión de Ord. de Trabajo</h1>
         <p className='text-sm text-muted-foreground text-center'>
           Aquí puede observar todos las ordenes de trabajo realizadas. <br />Filtre y/o busque sí desea una orden en específico.
         </p>

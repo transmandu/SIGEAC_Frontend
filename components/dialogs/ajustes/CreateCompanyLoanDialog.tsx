@@ -1,7 +1,7 @@
 "use client";
 
 import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
-import { useState } from "react";
+import { useActionDialog } from "@/hooks/helpers/use-action-dialog";
 import { Plus, Handshake } from "lucide-react";
 
 import CreateCompanyLoanForm from "@/components/forms/ajustes/CreateCompanyLoanForm";
@@ -11,7 +11,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 
 export function CreateCompanyLoanDialog() {
   const { selectedCompany } = useCompanyStore();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useActionDialog("crear-convenio");
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

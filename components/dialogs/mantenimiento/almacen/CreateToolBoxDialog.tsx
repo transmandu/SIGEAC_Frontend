@@ -9,11 +9,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useState } from "react";
+import { useActionDialog } from "@/hooks/helpers/use-action-dialog";
 import { CreateToolBoxForm } from "@/components/forms/mantenimiento/almacen/CreateToolBoxForm";
 
 export function CreateToolBoxDialog() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useActionDialog("crear-caja");
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>

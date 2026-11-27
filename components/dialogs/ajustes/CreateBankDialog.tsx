@@ -9,13 +9,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useState } from "react";
+import { useActionDialog } from "@/hooks/helpers/use-action-dialog";
 import CreateBankForm from "@/components/forms/ajustes/CreateBankForm";
 import { useAuth } from "@/contexts/AuthContext";
 
 export function CreateBankDialog() {
   const { user } = useAuth();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useActionDialog("crear-banco");
 
   // La gestión de bancos es exclusiva de ADMINISTRACIÓN (el backend también lo exige).
   const ALLOWED_ROLES = [

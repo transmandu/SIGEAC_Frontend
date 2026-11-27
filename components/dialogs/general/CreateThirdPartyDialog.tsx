@@ -5,11 +5,11 @@ import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Plus, UserRoundCog } from "lucide-react";
-import { useState } from "react";
+import { useActionDialog } from "@/hooks/helpers/use-action-dialog";
 import CreateThirdPartyForm from "@/components/forms/general/CreateThirdPartyForm";
 
 export function CreateThirdPartyDialog() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useActionDialog("crear-tercero");
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>

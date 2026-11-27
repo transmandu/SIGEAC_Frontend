@@ -35,7 +35,7 @@ const CalendarServicesPage = () => {
         className="flex flex-col text-center justify-center gap-2 mb-6"
         data-tour="calendario-header"
       >
-        <h1 className="font-bold text-5xl">Calendario de Cursos</h1>
+        <h1 className="font-bold text-3xl sm:text-5xl wrap-break-word">Calendario de Cursos</h1>
         <p className="text-muted-foreground italic text-sm">
           Aquí puede llevar un registro de los cursos registradas en el sistema.{" "}
           <br />

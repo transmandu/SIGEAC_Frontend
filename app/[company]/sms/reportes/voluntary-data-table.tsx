@@ -24,6 +24,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { Download } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useActionDialog } from "@/hooks/helpers/use-action-dialog";
 
 import CreateVoluntaryReportDialog from "@/components/dialogs/aerolinea/sms/CreateVoluntaryReportDialog";
 
@@ -53,6 +54,9 @@ export function DataTable<TData extends RowData>({
   });
 
   const router = useRouter();
+  const [createOpen, setCreateOpen] = useActionDialog(
+    "nuevo-reporte-voluntario",
+  );
 
   const isFiltered = table.state.columnFilters.length > 0;
 
@@ -69,7 +73,7 @@ export function DataTable<TData extends RowData>({
   return (
     <>
       <div className="flex flex-col gap-2 mb-4">
-        <h1 className="text-5xl font-bold text-center">Reportes Voluntarios</h1>
+        <h1 className="text-3xl sm:text-5xl wrap-break-word font-bold text-center">Reportes Voluntarios</h1>
         <p className="text-sm italic text-muted-foreground text-center">
           Aquí se pueden visualizar los reportes voluntarios de peligro
           realizados hasta el momento.
@@ -78,7 +82,11 @@ export function DataTable<TData extends RowData>({
 
       <div className="flex items-center justify-between py-4 gap-5">
         <div className="flex items-center gap-2">
-          <CreateVoluntaryReportDialog title="Nuevo" />
+          <CreateVoluntaryReportDialog
+            title="Nuevo"
+            open={createOpen}
+            onOpenChange={setCreateOpen}
+          />
           <Button
             onClick={handleExport}
             variant="outline"

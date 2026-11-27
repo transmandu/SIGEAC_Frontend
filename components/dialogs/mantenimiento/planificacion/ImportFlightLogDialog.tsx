@@ -43,6 +43,7 @@ import {
   Upload,
 } from "lucide-react";
 import { useState } from "react";
+import { useActionDialog } from "@/hooks/helpers/use-action-dialog";
 import { toast } from "sonner";
 
 // El informe se muestra con 2 decimales; el servidor guarda y compara a ese mismo nivel.
@@ -285,7 +286,7 @@ export function ImportFlightLogDialog({
   const { data: aircrafts } = useGetMaintenanceAircrafts(selectedCompany?.slug);
   const { importFlightLog } = useImportFlightLog();
 
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useActionDialog("importar-bitacora");
   const [aircraftId, setAircraftId] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [expectedHours, setExpectedHours] = useState("");

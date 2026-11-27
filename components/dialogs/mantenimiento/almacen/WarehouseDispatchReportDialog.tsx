@@ -2,6 +2,7 @@
 
 import { flattenDepartments } from "@/lib/departments";
 import { useState } from "react";
+import { useActionDialog } from "@/hooks/helpers/use-action-dialog";
 import { format } from "date-fns";
 
 import {
@@ -65,7 +66,7 @@ export function WarehouseDispatchReportDialog() {
   const canSeeBalance = !isPlanning;
 
   const [activeTab, setActiveTab] = useState("dispatch");
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useActionDialog("reporte-salidas");
   const [loadingDownload, setLoadingDownload] = useState(false);
 
   const [startDate, setStartDate] = useState<Date | undefined>();

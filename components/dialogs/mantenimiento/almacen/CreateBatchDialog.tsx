@@ -19,6 +19,9 @@ interface CreateBatchDialogProps {
   onSuccess?: (batchName: string) => void;
   triggerButton?: React.ReactNode;
   defaultCategory?: string;
+  /** La pantalla de inventario lo controla para abrirlo desde `?accion=`. */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 type DialogMode = "create" | "edit";
@@ -27,8 +30,12 @@ export function CreateBatchDialog({
   onSuccess,
   triggerButton,
   defaultCategory,
+  open: openProp,
+  onOpenChange: onOpenChangeProp,
 }: CreateBatchDialogProps) {
-  const [open, setOpen] = useState<boolean>(false);
+  const [internalOpen, setInternalOpen] = useState<boolean>(false);
+  const open = openProp ?? internalOpen;
+  const setOpen = onOpenChangeProp ?? setInternalOpen;
   const [mode, setMode] = useState<DialogMode>("create");
 
   return (

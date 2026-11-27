@@ -9,7 +9,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
+import { useActionDialog } from "@/hooks/helpers/use-action-dialog";
 import CreateBankAccountForm from "@/components/forms/ajustes/CreateBankAccountForm";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTourContext } from "@/components/tour/TourProvider";
@@ -17,7 +18,7 @@ import { cuentasCrearSteps } from "@/components/tour/steps/sistema/banca/cuentas
 
 export function CreateBankAccountDialog() {
   const { user } = useAuth();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useActionDialog("crear-cuenta");
 
   const { registerTour, unregisterTour } = useTourContext();
 

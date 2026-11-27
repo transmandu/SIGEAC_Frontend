@@ -5,7 +5,7 @@ import { useIsSuperuser } from "@/hooks/helpers/useIsSuperuser";
 export const PLANIFICATION_AUDIT_ROLES = [
   "SUPERUSER",
   "JEFE_CONTROL_CALIDAD",
-  "JEFE_MANTENIMIENTO",
+  "JEFE_PLANIFICACION",
 ];
 
 export const useCanViewPlanificationAudit = (): boolean => {

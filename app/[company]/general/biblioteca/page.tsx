@@ -6,6 +6,7 @@ import { useTourContext } from "@/components/tour/TourProvider";
 import { bibliotecaPageSteps } from "@/components/tour/steps/general/biblioteca/biblioteca-page";
 import useLibraryNotifications from "@/hooks/notifications/useLibraryNotifications";
 import { useParams } from "next/navigation";
+import { useActionDialog } from "@/hooks/helpers/use-action-dialog";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -123,7 +124,7 @@ const BibliotecaPage = () => {
   const [selectedDocumentIds, setSelectedDocumentIds] = useState<number[]>([]);
   const [moveDialogOpen, setMoveDialogOpen] = useState(false);
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useActionDialog("subir-documento");
   const [viewingDocId, setViewingDocId] = useState<number | string | null>(
     null,
   );
@@ -135,7 +136,8 @@ const BibliotecaPage = () => {
   const [dashboardOpen, setDashboardOpen] = useState(false);
   const [downloadFoldersOpen, setDownloadFoldersOpen] = useState(false);
 
-  const [createFolderOpen, setCreateFolderOpen] = useState(false);
+  const [createFolderOpen, setCreateFolderOpen] =
+    useActionDialog("crear-carpeta");
   const [renameTarget, setRenameTarget] = useState<{
     node: FolderNode;
     departmentId: number;
@@ -1120,7 +1122,7 @@ const BibliotecaPage = () => {
 
       <UploadModal
         company={companySlug}
-        isOpen={isModalOpen}
+        isOpen={isModalOpen && canManage}
         onClose={() => setIsModalOpen(false)}
         onSuccess={handleDocRefresh}
         departmentId={currentDeptForDialog?.id ?? null}
@@ -1135,7 +1137,7 @@ const BibliotecaPage = () => {
       />
 
       <CreateFolderDialog
-        open={createFolderOpen}
+        open={createFolderOpen && canManage}
         onClose={() => setCreateFolderOpen(false)}
         company={companySlug}
         departmentId={currentDeptForDialog?.id ?? null}

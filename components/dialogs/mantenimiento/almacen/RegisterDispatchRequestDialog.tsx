@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useState } from "react"
+import { useActionDialog } from "@/hooks/helpers/use-action-dialog";
 import { ConsumableDispatchForm } from "@/components/forms/mantenimiento/almacen/ConsumableDispatchRequestForm"
 import { ToolDispatchForm } from "@/components/forms/mantenimiento/almacen/ToolDispatchForm"
 import { ComponentDispatchForm } from "@/components/forms/mantenimiento/almacen/ComponentDispatchForm"
@@ -31,18 +32,18 @@ const CATEGORIES = [
 ]
 
 export function RegisterDispatchRequestDialog() {
-  const [open, setOpen] = useState<boolean>(false);
+  const [open, setOpen] = useActionDialog("registrar-salida");
   const [category, setCategory] = useState<string | null>(null);
 
   return (
     <Dialog
       open={open}
       onOpenChange={(next) => {
-        setOpen(next)
+        setOpen(next);
         // Radix desmonta el contenido al cerrar y el formulario se limpia solo,
         // pero la categoría vive aquí: sin reiniciarla, al reabrir aparece el
         // formulario de la salida anterior en vez del estado inicial.
-        if (!next) setCategory(null)
+        if (!next) setCategory(null);
       }}
     >
       <DialogTrigger asChild>
@@ -62,11 +63,14 @@ export function RegisterDispatchRequestDialog() {
               </DialogDescription>
             </div>
             <div className="shrink-0 space-y-1.5">
-              <label htmlFor="dispatch-category" className="text-sm font-medium">
+              <label
+                htmlFor="dispatch-category"
+                className="text-sm font-medium"
+              >
                 Tipo de artículo
               </label>
               <Select value={category ?? ""} onValueChange={setCategory}>
-                <SelectTrigger id="dispatch-category" className="h-9 w-[190px]">
+                <SelectTrigger id="dispatch-category" className="h-9 w-47.5">
                   <SelectValue placeholder="Seleccione..." />
                 </SelectTrigger>
                 <SelectContent align="end">
@@ -85,21 +89,30 @@ export function RegisterDispatchRequestDialog() {
         </DialogHeader>
         {category && (
           <div className="min-w-0 flex-1 overflow-y-auto px-1 py-1">
-            {category === 'consumible' && (
-              <ConsumableDispatchForm key="consumible" onClose={() => setOpen(false)} />
+            {category === "consumible" && (
+              <ConsumableDispatchForm
+                key="consumible"
+                onClose={() => setOpen(false)}
+              />
             )}
-            {category === 'herramienta' && (
-              <ToolDispatchForm key="herramienta" onClose={() => setOpen(false)} />
+            {category === "herramienta" && (
+              <ToolDispatchForm
+                key="herramienta"
+                onClose={() => setOpen(false)}
+              />
             )}
-            {category === 'componente' && (
-              <ComponentDispatchForm key="componente" onClose={() => setOpen(false)} />
+            {category === "componente" && (
+              <ComponentDispatchForm
+                key="componente"
+                onClose={() => setOpen(false)}
+              />
             )}
-            {category === 'parte' && (
+            {category === "parte" && (
               <PartDispatchForm key="parte" onClose={() => setOpen(false)} />
             )}
           </div>
         )}
       </DialogContent>
     </Dialog>
-  )
+  );
 }

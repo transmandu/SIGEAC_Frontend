@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -49,6 +49,10 @@ import { UniformBrandForm } from "@/components/forms/sms/UniformBrandForm";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { toCalendarPayload } from "@/lib/date";
 import { notifyError } from "@/lib/notify-error";
+import { useActionDialog } from "@/hooks/helpers/use-action-dialog";
+import { useTabParam } from "@/hooks/helpers/use-tab-param";
+
+const UNIFORM_TABS = ["inventory", "movements", "types", "brands"] as const;
 
 const UniformesPage = () => {
   const { selectedCompany } = useCompanyStore();
@@ -62,17 +66,20 @@ const UniformesPage = () => {
   const { data: brands, isLoading: loadingBrands } =
     useGetUniformBrands(company);
 
-  const [createOpen, setCreateOpen] = useState(false);
-  const [movementOpen, setMovementOpen] = useState(false);
+  const [tab, setTab] = useTabParam(UNIFORM_TABS, "inventory");
+  const [createOpen, setCreateOpen] = useActionDialog("crear-articulo");
+  const [movementOpen, setMovementOpen] = useActionDialog(
+    "registrar-movimiento",
+  );
   const [movementItemId, setMovementItemId] = useState<number | undefined>();
   const [editOpen, setEditOpen] = useState(false);
   const [editItem, setEditItem] = useState<UniformItem | undefined>();
   const [exporting, setExporting] = useState(false);
 
-  const [typeFormOpen, setTypeFormOpen] = useState(false);
+  const [typeFormOpen, setTypeFormOpen] = useActionDialog("crear-tipo");
   const [editType, setEditType] = useState<UniformArticleType | undefined>();
 
-  const [brandFormOpen, setBrandFormOpen] = useState(false);
+  const [brandFormOpen, setBrandFormOpen] = useActionDialog("crear-marca");
   const [editBrand, setEditBrand] = useState<UniformBrand | undefined>();
 
   const openMovementFor = (item?: UniformItem) => {
@@ -90,29 +97,35 @@ const UniformesPage = () => {
     setTypeFormOpen(true);
   };
 
-  const openEditType = (type: UniformArticleType) => {
-    setEditType(type);
-    setTypeFormOpen(true);
-  };
+  const openEditType = useCallback(
+    (type: UniformArticleType) => {
+      setEditType(type);
+      setTypeFormOpen(true);
+    },
+    [setTypeFormOpen],
+  );
 
   const openCreateBrand = () => {
     setEditBrand(undefined);
     setBrandFormOpen(true);
   };
 
-  const openEditBrand = (brand: UniformBrand) => {
-    setEditBrand(brand);
-    setBrandFormOpen(true);
-  };
+  const openEditBrand = useCallback(
+    (brand: UniformBrand) => {
+      setEditBrand(brand);
+      setBrandFormOpen(true);
+    },
+    [setBrandFormOpen],
+  );
 
   const articleTypesColumns = useMemo(
     () => getArticleTypesColumns({ onEdit: openEditType }),
-    [],
+    [openEditType],
   );
 
   const brandsColumns = useMemo(
     () => getBrandsColumns({ onEdit: openEditBrand }),
-    [],
+    [openEditBrand],
   );
 
   const lowStockCount = useMemo(
@@ -202,7 +215,11 @@ const UniformesPage = () => {
         </div>
       </div>
 
-      <Tabs defaultValue="inventory" className="w-full">
+      <Tabs
+        value={tab}
+        onValueChange={(value) => setTab(value as (typeof UNIFORM_TABS)[number])}
+        className="w-full"
+      >
         <TabsList className="mx-auto grid w-full max-w-2xl grid-cols-4">
           <TabsTrigger value="inventory" className="gap-2">
             <Package className="size-4" />

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useActionDialog } from "@/hooks/helpers/use-action-dialog";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarPlus, CalendarX2, Pencil, Trash2 } from "lucide-react";
@@ -43,7 +44,7 @@ import { formatCalendarDate, formatInstant } from "@/lib/date";
 // Mismo problema de especificidad que en SourceAccessPanel: AccordionItem
 // trae "border-b" de base, se fuerza con !important para el borde completo.
 const ACCORDION_ITEM_CLASS =
-  "rounded-xl !border !border-slate-400/40 bg-linear-to-br from-background/70 to-background/40 backdrop-blur-md shadow-sm dark:!border-slate-600/40";
+  "rounded-xl border! border-slate-400/40! bg-linear-to-br from-background/70 to-background/40 backdrop-blur-md shadow-sm dark:border-slate-600/40!";
 
 interface ManualEventsPanelProps {
   company: string;
@@ -55,7 +56,7 @@ export function ManualEventsPanel({ company }: ManualEventsPanelProps) {
   const { data: allRules = [], isLoading: isLoadingRules } =
     useGetAllCalendarVisibilityRules(company);
   const { deleteCalendarEvent } = useDeleteCalendarEvent();
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogOpen, setDialogOpen] = useActionDialog("crear-evento");
   const [editing, setEditing] = useState<ManualCalendarEvent | undefined>();
 
   const rulesByEvent = useMemo(() => {
@@ -103,7 +104,7 @@ export function ManualEventsPanel({ company }: ManualEventsPanelProps) {
               className={ACCORDION_ITEM_CLASS}
             >
               <div className="flex items-center gap-2 px-4">
-                <AccordionTrigger className="flex-1 py-3.5 text-sm font-semibold hover:no-underline [&[data-state=open]]:pb-2">
+                <AccordionTrigger className="flex-1 py-3.5 text-sm font-semibold hover:no-underline data-[state=open]:pb-2">
                   <div className="flex flex-col items-start gap-0.5 text-left">
                     <span className="flex items-center gap-2">
                       <span
@@ -199,9 +200,9 @@ export function ManualEventsPanel({ company }: ManualEventsPanelProps) {
                 </TooltipProvider>
               </div>
 
-              {/* !pt-2: sin esto el halo de foco del primer Select queda
+              {/* pt-2!: sin esto el halo de foco del primer Select queda
                   pegado al overflow-hidden del wrapper de Radix y se corta. */}
-              <AccordionContent className="px-4 pb-4 !pt-2">
+              <AccordionContent className="px-4 pb-4 pt-2!">
                 <p className="mb-2 text-xs font-medium text-muted-foreground">
                   Quién lo ve
                 </p>

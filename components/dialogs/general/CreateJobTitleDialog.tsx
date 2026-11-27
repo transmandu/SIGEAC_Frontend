@@ -3,13 +3,13 @@
 import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 
-import { useState } from "react";
+import { useActionDialog } from "@/hooks/helpers/use-action-dialog";
 import { Plus, BriefcaseBusiness } from "lucide-react";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { CreateJobTitleForm } from "@/components/forms/general/CreateJobTitleForm";
 
 export function CreateJobTitleDialog() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useActionDialog("crear-cargo");
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

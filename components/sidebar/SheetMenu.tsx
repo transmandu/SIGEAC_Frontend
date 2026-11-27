@@ -9,7 +9,6 @@ import { PanelLeftOpen, PanelLeftClose } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 
 import { cn } from "@/lib/utils";
-
 import { Menu } from "@/components/sidebar/Menu";
 
 import {
@@ -63,6 +62,7 @@ export function SheetMenu() {
             "relative flex items-center justify-center",
             "h-9 w-9 rounded-lg",
             "border",
+            "border-slate-400/60! hover:border-blue-400/30! dark:border-slate-600/60!",
             "text-foreground/80",
             "hover:text-foreground",
           )}

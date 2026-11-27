@@ -9,17 +9,23 @@ import {
   DialogTitle,
   DialogTrigger
 } from "@/components/ui/dialog"
-import { useState } from "react"
+import { useActionDialog } from "@/hooks/helpers/use-action-dialog"
 import { CreateCompanyForm } from "@/components/forms/general/CreateCompanyForm"
 
 export function CreateCompanyDialog() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useActionDialog("crear-empresa");
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button onClick={() => setOpen(true)} variant={'outline'} className="flex items-center justify-center gap-2 h-8 border-dashed">Nuevo</Button>
+        <Button
+          onClick={() => setOpen(true)}
+          variant={"outline"}
+          className="flex items-center justify-center gap-2 h-8 border-dashed"
+        >
+          Nuevo
+        </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[520px]">
+      <DialogContent className="sm:max-w-130">
         <DialogHeader>
           <DialogTitle>Creación de Empresa</DialogTitle>
           <DialogDescription>
@@ -29,5 +35,5 @@ export function CreateCompanyDialog() {
         <CreateCompanyForm onClose={() => setOpen(false)} />
       </DialogContent>
     </Dialog>
-  )
+  );
 }

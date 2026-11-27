@@ -3,13 +3,13 @@
 import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 
-import { useState } from "react";
+import { useActionDialog } from "@/hooks/helpers/use-action-dialog";
 import { Plus, Warehouse } from "lucide-react";
 import CreateWarehouseForm from "@/components/forms/ajustes/CreateWarehouseForm";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 
 const CreateWarehouseDialog = () => {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useActionDialog("crear-almacen");
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

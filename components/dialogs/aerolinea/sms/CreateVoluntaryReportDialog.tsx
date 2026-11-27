@@ -17,14 +17,21 @@ interface FormProps {
   title: string;
   initialData?: VoluntaryReport;
   isEditing?: boolean;
+  /** La pantalla de reportes lo controla para abrirlo desde `?accion=`. */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 export default function CreateVoluntaryReportDialog({
   title,
   isEditing,
   initialData,
+  open: openProp,
+  onOpenChange,
 }: FormProps) {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = openProp ?? internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
   return (
     <>
       <Dialog open={open} onOpenChange={setOpen}>

@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { cn } from "@/lib/utils";
 import { useSidebarToggle } from "@/hooks/helpers/use-sidebar-toggle";
 import { useStoreHydrated } from "@/hooks/helpers/use-store";
@@ -35,7 +36,9 @@ export default function DashboardLayout({
             )}
           >
             <Navbar />
-            {children}
+            {/* Los hooks ?accion= / ?tab= leen la URL con useSearchParams; en las
+                rutas prerrenderizadas (cuenta, sistema) exigen este límite. */}
+            <Suspense fallback={null}>{children}</Suspense>
           </main>
 
           <footer

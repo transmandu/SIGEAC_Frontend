@@ -4,7 +4,7 @@ import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
-import { useState } from "react";
+import { useActionDialog } from "@/hooks/helpers/use-action-dialog";
 import { CreateConditionForm } from "@/components/forms/ajustes/CreateConditionForm";
 import { Condition } from "@/types";
 import { Plus, BadgeCheck } from "lucide-react";
@@ -18,7 +18,7 @@ export function CreateConditionDialog({
   onSuccess,
   triggerButton,
 }: CreateConditionDialogProps) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useActionDialog("crear-condicion");
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>

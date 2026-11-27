@@ -107,7 +107,7 @@ function EntityActions({
       {dataTour ? <div data-tour={dataTour}>{dropdown}</div> : dropdown}
 
       <Dialog open={openEdit} onOpenChange={setOpenEdit}>
-        <DialogContent className="sm:max-w-[520px]">
+        <DialogContent className="sm:max-w-130">
           <DialogHeader>
             <DialogTitle>{editTitle}</DialogTitle>
             <DialogDescription>

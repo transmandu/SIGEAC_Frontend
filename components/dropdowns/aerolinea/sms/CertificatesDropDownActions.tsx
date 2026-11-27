@@ -108,7 +108,7 @@ const CertificatesDropDownActions = ({
             <MoreHorizontal className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-[160px]">
+        <DropdownMenuContent align="end" className="w-40">
           <DropdownMenuItem
             onClick={handleView}
             className="cursor-pointer gap-2"

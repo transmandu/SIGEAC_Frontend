@@ -355,14 +355,14 @@ varios módulos significa que es transversal; **huérfano** significa cero consu
 | `AcceptObligatoryReport` | `forms/aerolinea/sms/AcceptObligatoryForm.tsx` | sms | 129 |
 | `AcceptVoluntaryReport` | `forms/aerolinea/sms/AcceptVoluntaryForm.tsx` | sms | 111 |
 | `ActivityCategoriesForm` | `forms/aerolinea/sms/ActivityCategoriesForm.tsx` | general, sms | 254 |
-| `AddCourseAttendanceForm` | `forms/aerolinea/sms/AddCourseAtendanceForm.tsx` | general, general_admin | 284 |
+| `AddCourseAttendanceForm` | `forms/aerolinea/sms/AddCourseAtendanceForm.tsx` | general | 284 |
 | `AddSMSActivityAttendanceForm` | `forms/aerolinea/sms/AddSMSActivityAttendanceForm.tsx` | sms | 286 |
-| `AddToCourseForm` | `forms/aerolinea/sms/AddToCourseForm.tsx` | general, general_admin | 312 |
+| `AddToCourseForm` | `forms/aerolinea/sms/AddToCourseForm.tsx` | general | 312 |
 | `AddToSMSActivity` | `forms/aerolinea/sms/AddToSMSActivityForm.tsx` | sms | 314 |
 | `CreateAnalysisForm` | `forms/aerolinea/sms/CreateAnalysisForm.tsx` | sms | 254 |
-| `CreateCourseForm` | `forms/aerolinea/sms/CreateCourseForm.tsx` | general, general_admin | 419 |
-| `CreateExamForm` | `forms/aerolinea/sms/CreateExamForm.tsx` | general, general_admin | 174 |
-| `CreateFollowUpControlForm` | `forms/aerolinea/sms/CreateFollowUpControlForm.tsx` | general_admin, sms | 249 |
+| `CreateCourseForm` | `forms/aerolinea/sms/CreateCourseForm.tsx` | general | 419 |
+| `CreateExamForm` | `forms/aerolinea/sms/CreateExamForm.tsx` | general | 174 |
+| `CreateFollowUpControlForm` | `forms/aerolinea/sms/CreateFollowUpControlForm.tsx` | sms | 249 |
 | `CreateGeneralObligatoryReportForm` | `forms/aerolinea/sms/CreateGeneralObligatoryReportForm.tsx` | _app_root | 853 |
 | `CreateGeneralVoluntaryReportForm` | `forms/aerolinea/sms/CreateGeneralVoluntaryReportForm.tsx` | _app_root | 632 |
 | `CreateDangerIdentificationForm` | `forms/aerolinea/sms/CreateIdentificationForm.tsx` | sms | 632 |
@@ -525,7 +525,7 @@ varios módulos significa que es transversal; **huérfano** significa cero consu
 | `ActionPlanDialog` | `dialogs/aerolinea/sms/ActionPlanDialog.tsx` | _app_root | 100 |
 | `CreateAnalysesDialog` | `dialogs/aerolinea/sms/CreateAnalysesDialog.tsx` | sms | 76 |
 | `CreateDangerIdentificationDialog` | `dialogs/aerolinea/sms/CreateDangerIdentificationDialog.tsx` | sms | 66 |
-| `CreateFollowUpControlDialog` | `dialogs/aerolinea/sms/CreateFollowUpControlDialog.tsx` | general_admin, sms | 54 |
+| `CreateFollowUpControlDialog` | `dialogs/aerolinea/sms/CreateFollowUpControlDialog.tsx` | sms | 54 |
 | `CreateMitigationMeasureDialog` | `dialogs/aerolinea/sms/CreateMitigationMeasureDialog.tsx` | sms | 52 |
 | `CreateObligatoryReportDialog` | `dialogs/aerolinea/sms/CreateObligatoryDialog.tsx` | sms | 64 |
 | `CreateSafetyBulletinDialog` | `dialogs/aerolinea/sms/CreateSafetyBulletinDialog.tsx` | sms | 65 |
@@ -561,7 +561,7 @@ varios módulos significa que es transversal; **huérfano** significa cero consu
 | `ModuleDialog` | `dialogs/ajustes/ModuleDialog.tsx` | _app_root | 36 |
 | `CourseListDialog` | `dialogs/CourseListDialog.tsx` | general, sms | 116 |
 | `CreateCourseCalendarDialog` | `dialogs/general/CreateCourseCalendarDialog.tsx` | general | 40 |
-| `CreateCourseDialog` | `dialogs/general/CreateCourseDialog.tsx` | general, general_admin | 79 |
+| `CreateCourseDialog` | `dialogs/general/CreateCourseDialog.tsx` | general | 79 |
 | `CreateDepartmentDialog` | `dialogs/general/CreateDepartmentDialog.tsx` | ajustes | 37 |
 | `CreateEmployeeDialog` | `dialogs/general/CreateEmployeeDialog.tsx` | ajustes | 59 |
 | `CreateJobTitleDialog` | `dialogs/general/CreateJobTitleDialog.tsx` | ajustes | 37 |
@@ -629,7 +629,7 @@ varios módulos significa que es transversal; **huérfano** significa cero consu
 | `ActivityDropdownActions` | `dropdowns/aerolinea/desarrollo/ActivityDropdownActions.tsx` | desarrollo | 314 |
 | `_(sin export nombrado)_` | `dropdowns/aerolinea/desarrollo/ActivityReportsDropdownActions.tsx` | desarrollo | 142 |
 | `_(sin export nombrado)_` | `dropdowns/aerolinea/sms/CertificatesDropDownActions.tsx` | sms | 212 |
-| `_(sin export nombrado)_` | `dropdowns/aerolinea/sms/CourseDropdownActions.tsx` | general, general_admin | 349 |
+| `_(sin export nombrado)_` | `dropdowns/aerolinea/sms/CourseDropdownActions.tsx` | general | 349 |
 | `_(sin export nombrado)_` | `dropdowns/aerolinea/sms/DangerIdentificationDropdownActions.tsx` | sms | 231 |
 | `_(sin export nombrado)_` | `dropdowns/aerolinea/sms/FollowUpControlDropdownActions.tsx` | sms | 137 |
 | `_(sin export nombrado)_` | `dropdowns/aerolinea/sms/InformationSourceDropDownActions.tsx` | ajustes | 122 |
@@ -714,7 +714,7 @@ varios módulos significa que es transversal; **huérfano** significa cero consu
 | `calendarioSteps` | `tour/steps/general/cursos/calendario.ts` | general | 17 |
 | `certificadosCrearSteps` | `tour/steps/general/cursos/certificados/certificados-crear.ts` | sms | 31 |
 | `getCertificadosSteps` | `tour/steps/general/cursos/certificados/certificados.ts` | sms | 47 |
-| `cursosCrearSteps` | `tour/steps/general/cursos/cursos/crear.ts` | general, general_admin | 45 |
+| `cursosCrearSteps` | `tour/steps/general/cursos/cursos/crear.ts` | general | 45 |
 | `cursosIndexSteps` | `tour/steps/general/cursos/cursos/index.ts` | general | 37 |
 | `estadisticasSteps` | `tour/steps/general/cursos/estadisticas.ts` | general | 28 |
 | `resumenSteps` | `tour/steps/general/cursos/resumen.ts` | general | 21 |
@@ -728,7 +728,7 @@ varios módulos significa que es transversal; **huérfano** significa cero consu
 | `notificacionesSteps` | `tour/steps/sistema/banca/notificaciones.ts` | notifications | 23 |
 | `tarjetasSteps` | `tour/steps/sistema/banca/tarjeras.ts` | _app_root | 35 |
 | `tercerosSteps` | `tour/steps/sistema/terceros.ts` | ajustes | 35 |
-| `useTourContext, CustomTourProvider` | `tour/TourProvider.tsx` | _app_root, administracion, ajustes, general, general_admin, layout, notifications, operaciones, sms | 229 |
+| `useTourContext, CustomTourProvider` | `tour/TourProvider.tsx` | _app_root, administracion, ajustes, general, layout, notifications, operaciones, sms | 229 |
 | `useTourProgress` | `tour/useTourProgress.ts` | **huérfano** | 33 |
 
 ### misc  (47)
@@ -739,7 +739,7 @@ varios módulos significa que es transversal; **huérfano** significa cero consu
 | `AmountInput` | `misc/AmountInput.tsx` | administracion, ajustes, compras, general | 50 |
 | `_(sin export nombrado)_` | `misc/ArticleDocumentsSelector.tsx` | almacen, compras, control_calidad, general, ingenieria | 339 |
 | `tracksStatusSince, ArticleStatusSincePopover` | `misc/ArticleStatusSincePopover.tsx` | almacen | 74 |
-| `BackButton` | `misc/BackButton.tsx` | _app_root, administracion, ajustes, almacen, compras, control_calidad, cuenta, desarrollo, general, general_admin, ingenieria, mantenimiento, notifications, operaciones, planificacion, sms, supervisor | 203 |
+| `BackButton` | `misc/BackButton.tsx` | _app_root, administracion, ajustes, almacen, compras, control_calidad, cuenta, desarrollo, general, ingenieria, mantenimiento, notifications, operaciones, planificacion, sms, supervisor | 203 |
 | `_(sin export nombrado)_` | `misc/BigCalendarComponent.tsx` | **huérfano** | 84 |
 | `ButtonLink` | `misc/ButtonLink.tsx` | **huérfano** | 43 |
 | `_(sin export nombrado)_` | `misc/CashMovementResume.tsx` | administracion | 122 |
@@ -790,27 +790,27 @@ varios módulos significa que es transversal; **huérfano** significa cero consu
 | `AlertDialog, AlertDialogPortal, AlertDialogOverlay, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogFooter, AlertDialogTitle, AlertDialogDescription, AlertDialogAction, AlertDialogCancel` | `ui/alert-dialog.tsx` | _app_root, ajustes, almacen, compras, general, operaciones, planificacion, sms, supervisor | 142 |
 | `Alert, AlertTitle, AlertDescription` | `ui/alert.tsx` | administracion, planificacion | 63 |
 | `Avatar, AvatarImage, AvatarFallback` | `ui/avatar.tsx` | _app_root, administracion, ajustes, almacen, general, layout, sms | 51 |
-| `Badge, badgeVariants` | `ui/badge.tsx` | _app_root, administracion, ajustes, almacen, compras, control_calidad, dashboard, general, general_admin, ingenieria, operaciones, planificacion, sms, supervisor | 39 |
-| `Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator, BreadcrumbEllipsis` | `ui/breadcrumb.tsx` | _app_root, administracion, ajustes, almacen, compras, control_calidad, cuenta, desarrollo, general, general_admin, ingenieria, mantenimiento, notifications, operaciones, planificacion, sms, supervisor | 116 |
-| `Button, buttonVariants` | `ui/button.tsx` | _app_root, administracion, ajustes, almacen, compras, control_calidad, cuenta, dashboard, desarrollo, general, general_admin, ingenieria, layout, mantenimiento, notifications, operaciones, planificacion, sms, supervisor | 57 |
-| `Calendar` | `ui/calendar.tsx` | _app_root, administracion, almacen, compras, control_calidad, dashboard, desarrollo, general, general_admin, ingenieria, operaciones, planificacion, sms, supervisor | 69 |
-| `Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent` | `ui/card.tsx` | _app_root, administracion, ajustes, almacen, compras, control_calidad, dashboard, general, general_admin, ingenieria, operaciones, planificacion, sms | 80 |
+| `Badge, badgeVariants` | `ui/badge.tsx` | _app_root, administracion, ajustes, almacen, compras, control_calidad, dashboard, general, ingenieria, operaciones, planificacion, sms, supervisor | 39 |
+| `Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator, BreadcrumbEllipsis` | `ui/breadcrumb.tsx` | _app_root, administracion, ajustes, almacen, compras, control_calidad, cuenta, desarrollo, general, ingenieria, mantenimiento, notifications, operaciones, planificacion, sms, supervisor | 116 |
+| `Button, buttonVariants` | `ui/button.tsx` | _app_root, administracion, ajustes, almacen, compras, control_calidad, cuenta, dashboard, desarrollo, general, ingenieria, layout, mantenimiento, notifications, operaciones, planificacion, sms, supervisor | 57 |
+| `Calendar` | `ui/calendar.tsx` | _app_root, administracion, almacen, compras, control_calidad, dashboard, desarrollo, general, ingenieria, operaciones, planificacion, sms, supervisor | 69 |
+| `Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent` | `ui/card.tsx` | _app_root, administracion, ajustes, almacen, compras, control_calidad, dashboard, general, ingenieria, operaciones, planificacion, sms | 80 |
 | `ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent, ChartStyle` | `ui/chart.tsx` | planificacion | 370 |
 | `Checkbox` | `ui/checkbox.tsx` | _app_root, administracion, ajustes, almacen, compras, control_calidad, dashboard, desarrollo, general, ingenieria, layout, mantenimiento, operaciones, planificacion, sms, supervisor | 31 |
 | `Collapsible, CollapsibleTrigger, CollapsibleContent` | `ui/collapsible.tsx` | _app_root, layout, operaciones, planificacion, sms | 12 |
 | `ComboboxField` | `ui/ComboboxField.tsx` | operaciones, sms | 197 |
-| `Command, CommandDialog, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem, CommandShortcut, CommandSeparator` | `ui/command.tsx` | _app_root, administracion, ajustes, almacen, compras, control_calidad, general, general_admin, ingenieria, mantenimiento, operaciones, planificacion, sms | 164 |
+| `Command, CommandDialog, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem, CommandShortcut, CommandSeparator` | `ui/command.tsx` | _app_root, administracion, ajustes, almacen, compras, control_calidad, general, ingenieria, mantenimiento, operaciones, planificacion, sms | 164 |
 | `DataTableColumnHeader` | `ui/DataTableColumHeader.tsx` | **huérfano** | 74 |
 | `DatePickerField` | `ui/DatePickerField.tsx` | almacen | 304 |
-| `Dialog, DialogPortal, DialogOverlay, DialogClose, DialogTrigger, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription` | `ui/dialog.tsx` | _app_root, administracion, ajustes, almacen, compras, control_calidad, dashboard, desarrollo, general, general_admin, ingenieria, layout, mantenimiento, operaciones, planificacion, sms, supervisor | 131 |
+| `Dialog, DialogPortal, DialogOverlay, DialogClose, DialogTrigger, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription` | `ui/dialog.tsx` | _app_root, administracion, ajustes, almacen, compras, control_calidad, dashboard, desarrollo, general, ingenieria, layout, mantenimiento, operaciones, planificacion, sms, supervisor | 131 |
 | `Drawer, DrawerPortal, DrawerOverlay, DrawerTrigger, DrawerClose, DrawerContent, DrawerHeader, DrawerFooter, DrawerTitle, DrawerDescription` | `ui/drawer.tsx` | — | 119 |
-| `DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuCheckboxItem, DropdownMenuRadioItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuGroup, DropdownMenuPortal, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuRadioGroup` | `ui/dropdown-menu.tsx` | _app_root, administracion, ajustes, almacen, compras, control_calidad, cuenta, desarrollo, general, general_admin, ingenieria, layout, mantenimiento, notifications, operaciones, planificacion, sms, supervisor | 201 |
-| `useFormField, Form, FormItem, FormLabel, FormControl, FormDescription, FormMessage, FormField` | `ui/form.tsx` | _app_root, administracion, ajustes, almacen, compras, control_calidad, desarrollo, general, general_admin, ingenieria, layout, mantenimiento, operaciones, planificacion, sms | 179 |
+| `DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuCheckboxItem, DropdownMenuRadioItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuGroup, DropdownMenuPortal, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuRadioGroup` | `ui/dropdown-menu.tsx` | _app_root, administracion, ajustes, almacen, compras, control_calidad, cuenta, desarrollo, general, ingenieria, layout, mantenimiento, notifications, operaciones, planificacion, sms, supervisor | 201 |
+| `useFormField, Form, FormItem, FormLabel, FormControl, FormDescription, FormMessage, FormField` | `ui/form.tsx` | _app_root, administracion, ajustes, almacen, compras, control_calidad, desarrollo, general, ingenieria, layout, mantenimiento, operaciones, planificacion, sms | 179 |
 | `ImageZoom` | `ui/ImageZoom.tsx` | sms | 298 |
 | `InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator` | `ui/input-otp.tsx` | administracion | 72 |
-| `Input` | `ui/input.tsx` | _app_root, administracion, ajustes, almacen, compras, control_calidad, dashboard, desarrollo, general, general_admin, ingenieria, layout, mantenimiento, notifications, operaciones, planificacion, sms, supervisor | 26 |
-| `Label` | `ui/label.tsx` | _app_root, administracion, ajustes, almacen, compras, control_calidad, dashboard, desarrollo, general, general_admin, ingenieria, layout, mantenimiento, operaciones, planificacion, sms, supervisor | 27 |
-| `Popover, PopoverTrigger, PopoverAnchor, PopoverContent, PopoverClose` | `ui/popover.tsx` | _app_root, administracion, ajustes, almacen, compras, control_calidad, dashboard, desarrollo, general, general_admin, ingenieria, layout, mantenimiento, notifications, operaciones, planificacion, sms, supervisor | 43 |
+| `Input` | `ui/input.tsx` | _app_root, administracion, ajustes, almacen, compras, control_calidad, dashboard, desarrollo, general, ingenieria, layout, mantenimiento, notifications, operaciones, planificacion, sms, supervisor | 26 |
+| `Label` | `ui/label.tsx` | _app_root, administracion, ajustes, almacen, compras, control_calidad, dashboard, desarrollo, general, ingenieria, layout, mantenimiento, operaciones, planificacion, sms, supervisor | 27 |
+| `Popover, PopoverTrigger, PopoverAnchor, PopoverContent, PopoverClose` | `ui/popover.tsx` | _app_root, administracion, ajustes, almacen, compras, control_calidad, dashboard, desarrollo, general, ingenieria, layout, mantenimiento, notifications, operaciones, planificacion, sms, supervisor | 43 |
 | `Progress` | `ui/progress.tsx` | planificacion | 29 |
 | `RadioGroup, RadioGroupItem` | `ui/radio-group.tsx` | _app_root, planificacion, sms, supervisor | 45 |
 | `ScaleButton` | `ui/scale/ScaleButton.tsx` | operaciones | 58 |
@@ -818,20 +818,20 @@ varios módulos significa que es transversal; **huérfano** significa cero consu
 | `ScaleStatusBadge` | `ui/scale/ScaleStatusBadge.tsx` | operaciones | 40 |
 | `ScrollArea, ScrollBar` | `ui/scroll-area.tsx` | _app_root, administracion, almacen, compras, general, layout, mantenimiento, operaciones, planificacion, sms | 49 |
 | `SectionCard` | `ui/SectionCard.tsx` | almacen | 27 |
-| `Select, SelectGroup, SelectValue, SelectTrigger, SelectContent, SelectLabel, SelectItem, SelectSeparator, SelectScrollUpButton, SelectScrollDownButton` | `ui/select.tsx` | _app_root, administracion, ajustes, almacen, compras, control_calidad, dashboard, desarrollo, general, general_admin, ingenieria, layout, mantenimiento, notifications, operaciones, planificacion, sms, supervisor | 161 |
-| `Separator` | `ui/separator.tsx` | _app_root, administracion, ajustes, almacen, compras, control_calidad, general, general_admin, ingenieria, layout, planificacion, sms | 32 |
+| `Select, SelectGroup, SelectValue, SelectTrigger, SelectContent, SelectLabel, SelectItem, SelectSeparator, SelectScrollUpButton, SelectScrollDownButton` | `ui/select.tsx` | _app_root, administracion, ajustes, almacen, compras, control_calidad, dashboard, desarrollo, general, ingenieria, layout, mantenimiento, notifications, operaciones, planificacion, sms, supervisor | 161 |
+| `Separator` | `ui/separator.tsx` | _app_root, administracion, ajustes, almacen, compras, control_calidad, general, ingenieria, layout, planificacion, sms | 32 |
 | `Sheet, SheetPortal, SheetOverlay, SheetTrigger, SheetClose, SheetContent, SheetHeader, SheetFooter, SheetTitle, SheetDescription` | `ui/sheet.tsx` | _app_root, compras, control_calidad, layout, sms | 150 |
 | `Skeleton` | `ui/skeleton.tsx` | _app_root, sms | 9 |
 | `Toaster` | `ui/sonner.tsx` | _app_root | 38 |
 | `StepIndicator` | `ui/step-indicator.tsx` | sms | 105 |
 | `Switch` | `ui/switch.tsx` | _app_root, general, planificacion, sms | 30 |
-| `Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell, TableCaption` | `ui/table.tsx` | _app_root, administracion, ajustes, almacen, compras, control_calidad, dashboard, desarrollo, general, general_admin, ingenieria, mantenimiento, operaciones, planificacion, sms | 118 |
+| `Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell, TableCaption` | `ui/table.tsx` | _app_root, administracion, ajustes, almacen, compras, control_calidad, dashboard, desarrollo, general, ingenieria, mantenimiento, operaciones, planificacion, sms | 118 |
 | `Tabs, TabsList, TabsTrigger, TabsContent` | `ui/tabs.tsx` | _app_root, administracion, ajustes, almacen, compras, control_calidad, dashboard, general, ingenieria, operaciones, planificacion, sms, supervisor | 56 |
-| `Textarea` | `ui/textarea.tsx` | _app_root, administracion, ajustes, almacen, compras, control_calidad, desarrollo, general, general_admin, ingenieria, layout, mantenimiento, planificacion, sms | 25 |
+| `Textarea` | `ui/textarea.tsx` | _app_root, administracion, ajustes, almacen, compras, control_calidad, desarrollo, general, ingenieria, layout, mantenimiento, planificacion, sms | 25 |
 | `TimePicker` | `ui/timePicker.tsx` | **huérfano** | 87 |
 | `type ToastProps, type ToastActionElement, ToastProvider, ToastViewport, Toast, ToastTitle, ToastDescription, ToastClose, ToastAction` | `ui/toast.tsx` | desarrollo, planificacion, sms | 130 |
 | `Toaster` | `ui/toaster.tsx` | **huérfano** | 36 |
-| `Tooltip, TooltipTrigger, TooltipContent, TooltipProvider` | `ui/tooltip.tsx` | _app_root, administracion, ajustes, almacen, compras, control_calidad, cuenta, dashboard, desarrollo, general, general_admin, ingenieria, layout, mantenimiento, notifications, operaciones, planificacion, sms, supervisor | 33 |
+| `Tooltip, TooltipTrigger, TooltipContent, TooltipProvider` | `ui/tooltip.tsx` | _app_root, administracion, ajustes, almacen, compras, control_calidad, cuenta, dashboard, desarrollo, general, ingenieria, layout, mantenimiento, notifications, operaciones, planificacion, sms, supervisor | 33 |
 | `reducer, useToast, toast` | `ui/use-toast.ts` | desarrollo, planificacion, sms | 195 |
 
 ### layout  (18)
@@ -839,7 +839,7 @@ varios módulos significa que es transversal; **huérfano** significa cero consu
 | Componente | Ruta | Usado por | Líneas |
 |---|---|---|---|
 | `BirthdayConfetti` | `layout/BirthdayConfetti.tsx` | _app_root, layout | 103 |
-| `ContentLayout` | `layout/ContentLayout.tsx` | _app_root, administracion, ajustes, almacen, compras, control_calidad, cuenta, dashboard, desarrollo, general, general_admin, ingenieria, mantenimiento, notifications, operaciones, planificacion, sms, supervisor | 33 |
+| `ContentLayout` | `layout/ContentLayout.tsx` | _app_root, administracion, ajustes, almacen, compras, control_calidad, cuenta, dashboard, desarrollo, general, ingenieria, mantenimiento, notifications, operaciones, planificacion, sms, supervisor | 33 |
 | `CriticalAlertCard` | `layout/CriticalAlertCard.tsx` | _app_root, layout | 124 |
 | `CriticalAlertsButton` | `layout/CriticalAlertsButton.tsx` | _app_root, layout | 284 |
 | `DashboardLayout` | `layout/DashboardLayout.tsx` | _app_root, layout | 55 |
@@ -850,7 +850,7 @@ varios módulos significa que es transversal; **huérfano** significa cero consu
 | `GuestSidebar` | `layout/GuestSidebar.tsx` | _app_root | 56 |
 | `GuestUserNav` | `layout/GuestUserNav.tsx` | _app_root | 167 |
 | `Navbar` | `layout/Navbar.tsx` | _app_root, layout | 48 |
-| `PageHeader` | `layout/PageHeader.tsx` | _app_root, administracion, ajustes, almacen, compras, control_calidad, cuenta, desarrollo, general, general_admin, ingenieria, mantenimiento, notifications, operaciones, planificacion, sms, supervisor | 146 |
+| `PageHeader` | `layout/PageHeader.tsx` | _app_root, administracion, ajustes, almacen, compras, control_calidad, cuenta, desarrollo, general, ingenieria, mantenimiento, notifications, operaciones, planificacion, sms, supervisor | 146 |
 | `PageTitle` | `layout/PageTitle.tsx` | _app_root, layout | 149 |
 | `_(sin export nombrado)_` | `layout/ProtectedLayout.tsx` | administracion, almacen, compras, general, sms, supervisor | 76 |
 | `_(sin export nombrado)_` | `layout/ProtectedRoute.tsx` | _app_root, administracion, ajustes, operaciones, sms | 50 |
@@ -944,10 +944,10 @@ varios módulos significa que es transversal; **huérfano** significa cero consu
 | Componente | Ruta | Usado por | Líneas |
 |---|---|---|---|
 | `DataTableFacetedFilter` | `tables/DataTableFacetedFilter.tsx` | _app_root | 164 |
-| `DataTableColumnHeader` | `tables/DataTableHeader.tsx` | _app_root, administracion, ajustes, almacen, compras, control_calidad, desarrollo, general, general_admin, ingenieria, mantenimiento, operaciones, planificacion, sms | 268 |
+| `DataTableColumnHeader` | `tables/DataTableHeader.tsx` | _app_root, administracion, ajustes, almacen, compras, control_calidad, desarrollo, general, ingenieria, mantenimiento, operaciones, planificacion, sms | 268 |
 | `DataTableColumnHeaderAct` | `tables/DataTableHeaderAct.tsx` | **huérfano** | 153 |
-| `DataTablePagination` | `tables/DataTablePagination.tsx` | _app_root, administracion, ajustes, almacen, compras, control_calidad, desarrollo, general, general_admin, mantenimiento, operaciones, planificacion, sms | 139 |
-| `DataTableViewOptions` | `tables/DataTableViewOptions.tsx` | _app_root, administracion, ajustes, almacen, control_calidad, desarrollo, general, general_admin, mantenimiento, operaciones, planificacion, sms | 66 |
+| `DataTablePagination` | `tables/DataTablePagination.tsx` | _app_root, administracion, ajustes, almacen, compras, control_calidad, desarrollo, general, mantenimiento, operaciones, planificacion, sms | 139 |
+| `DataTableViewOptions` | `tables/DataTableViewOptions.tsx` | _app_root, administracion, ajustes, almacen, control_calidad, desarrollo, general, mantenimiento, operaciones, planificacion, sms | 66 |
 | `LoadingDataTable` | `tables/LoadingDataTable.tsx` | operaciones | 15 |
 | `StatusColumnHeader` | `tables/StatusColumnHeader.tsx` | almacen | 153 |
 

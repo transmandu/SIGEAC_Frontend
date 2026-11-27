@@ -1,7 +1,8 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
+import { useActionDialog } from "@/hooks/helpers/use-action-dialog";
 import {
   Building2,
   IdCard,
@@ -49,7 +50,7 @@ const AccountPage = () => {
   const { data: employee, isLoading: employeeLoading } = useMyEmployee();
   const { registerTour, unregisterTour } = useTourContext();
 
-  const [resetOpen, setResetOpen] = useState(false);
+  const [resetOpen, setResetOpen] = useActionDialog("cambiar-contrasena");
 
   useEffect(() => {
     if (!user) return;

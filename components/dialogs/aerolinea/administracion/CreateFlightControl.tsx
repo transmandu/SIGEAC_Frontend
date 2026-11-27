@@ -10,7 +10,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useState } from "react";
+import { useActionDialog } from "@/hooks/helpers/use-action-dialog";
 
 interface CreateFlightControlDialogProps {
   defaultAircraftId?: string; // El signo '?' la hace opcional
@@ -19,7 +19,7 @@ interface CreateFlightControlDialogProps {
 export function CreateFlightControlDialog({
   defaultAircraftId,
 }: CreateFlightControlDialogProps) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useActionDialog("registrar-vuelo");
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -31,7 +31,7 @@ export function CreateFlightControlDialog({
           Nuevo
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px] md:max-w-[900px] max-h-[85vh] flex flex-col overflow-hidden">
+      <DialogContent className="sm:max-w-150 md:max-w-225 max-h-[85vh] flex flex-col overflow-hidden">
         <DialogHeader className="shrink-0">
           <DialogTitle>Creación de Vuelo</DialogTitle>
           <DialogDescription>

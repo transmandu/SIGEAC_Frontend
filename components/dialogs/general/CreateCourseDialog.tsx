@@ -11,7 +11,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Course } from "@/types";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
+import { useActionDialog } from "@/hooks/helpers/use-action-dialog";
 import { CreateCourseForm } from "@/components/forms/aerolinea/sms/CreateCourseForm";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { cursosCrearSteps } from "@/components/tour/steps/general/cursos/cursos/crear";
@@ -27,7 +28,7 @@ export default function CreateCourseDialog({
   isEditing,
   initialData,
 }: FormProps) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useActionDialog("crear-curso");
   const { registerTour, unregisterTour } = useTourContext();
 
   useEffect(() => {

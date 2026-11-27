@@ -36,6 +36,7 @@ import {
   X,
 } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useActionDialog } from "@/hooks/helpers/use-action-dialog";
 import { FaFilePdf } from "react-icons/fa";
 import { RiFileExcel2Fill } from "react-icons/ri";
 
@@ -92,6 +93,7 @@ const InventarioArticulosPage = () => {
   const { selectedCompany } = useCompanyStore();
   const [activeTab, setActiveTab] = useState<InventoryTab>("aeronautic");
   const [searchAcrossOpen, setSearchAcrossOpen] = useState(false);
+  const [batchOpen, setBatchOpen] = useActionDialog("crear-renglon");
   const [activeCategory, setActiveCategory] =
     useState<InventoryCategory>("all");
   const { exporting, exportPdf, exportExcel } = useInventoryExport();
@@ -434,7 +436,10 @@ const InventarioArticulosPage = () => {
                     <Puzzle className="size-5" /> Partes
                   </TabsTrigger>
 
-                  <CreateBatchDialog />
+                  <CreateBatchDialog
+                    open={batchOpen}
+                    onOpenChange={setBatchOpen}
+                  />
 
                   {/* Botones exportación */}
                   <div className="flex gap-4 items-center">
