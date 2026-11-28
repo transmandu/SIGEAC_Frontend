@@ -1,3 +1,8 @@
+## v4.120.0 — 2026-11-28
+
+- Merge pull request #431 from transmandu/feat/add-prefix-filter-reports-sms
+- feat: add prefix filter functions for obligatory and voluntary report columns
+
 ## v4.119.0 — 2026-11-26
 
 - feat: new fuctions mix 2 (#430)
