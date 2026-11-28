@@ -22,13 +22,13 @@ export const proveedoresSteps: StepType[] = [
   {
     selector: '[data-tour="proveedores-new"]',
     content:
-      "Cree un nuevo proveedor o beneficiario. Debe ingresar nombre, correo, teléfono, tipo y dirección.",
+      "Cree un nuevo proveedor o beneficiario. Debe ingresar nombre, correo, teléfono y tipo; la dirección es opcional.",
     position: "left",
   },
   {
     selector: '[data-tour="proveedores-actions"]',
     content:
-      "Edite los datos del proveedor o elimínelo. Si tiene órdenes de compra asociadas, no podrá ser eliminado.",
+      "Edite los datos del proveedor o elimínelo. Si tiene órdenes de compra o cotizaciones asociadas, no podrá ser eliminado.",
     position: "left",
   },
   {

@@ -1,15 +1,18 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import { FileText, Layers, ChevronDown } from "lucide-react";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import axiosInstance from "@/lib/axios";
+import { useEffect, useMemo, useState } from "react";
+import { FileText, Layers, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
+import { ChoiceCard } from "@/components/library/ChoiceCard";
+import { LibraryDialogActions } from "@/components/library/LibraryDialogActions";
+import { VersionSelect } from "@/components/library/VersionSelect";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { bibliotecaEliminarSteps } from "@/components/tour/steps/general/biblioteca/biblioteca-eliminar";
-import { notifyError } from "@/lib/notify-error";
-import { useResettingState } from "@/hooks/useResettingState";
+import { Dialog } from "@/components/ui/dialog";
 import { useGetDocumentVersions } from "@/hooks/general/archivos/useGetDocumentVersions";
+import axiosInstance from "@/lib/axios";
+import { notifyError } from "@/lib/notify-error";
 
 interface DeleteProps {
   isOpen: boolean;
@@ -24,34 +27,8 @@ interface DeleteProps {
 export const DeleteDocumentDialog = ({
   isOpen,
   onClose,
-  doc,
-  company,
-  onSuccess,
-  folderPath,
+  ...rest
 }: DeleteProps) => {
-  const [isProcessing, setIsProcessing] = useState(false);
-
-  // El id como valor propio: es lo único que lee el callback, y así su lista de
-  // dependencias dice exactamente eso (con `doc?.id` y `doc.id` mezclados no coincidía).
-  const docId = doc?.id;
-
-  const { versions: versionList, isFetching: loadingVersions } =
-    useGetDocumentVersions({
-      company,
-      documentId: docId,
-      enabled: isOpen,
-      action: "obtener el historial de versiones",
-    });
-
-  // Cada vez que se abre (o llega otro documento) el diálogo parte de borrar el
-  // documento completo, sin versión elegida.
-  const [deleteMode, setDeleteMode] = useResettingState<"document" | "version">(
-    "document",
-    [isOpen, docId],
-  );
-  const [selectedVersionToDelete, setSelectedVersionToDelete] =
-    useResettingState<string>("", [isOpen, docId]);
-
   const { registerTour, unregisterTour } = useTourContext();
 
   useEffect(() => {
@@ -60,203 +37,159 @@ export const DeleteDocumentDialog = ({
         "biblioteca-eliminar",
         "Eliminar Documento",
         bibliotecaEliminarSteps,
+        { onlyVisible: true },
       );
     }
     return () => unregisterTour("biblioteca-eliminar");
   }, [isOpen, registerTour, unregisterTour]);
 
-  const handleFinalDelete = async () => {
-    setIsProcessing(true);
-    let isActuallyDeleted = false;
+  return (
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <FormDialogContent
+        icon={Trash2}
+        tone="rose"
+        title="Eliminar"
+        description={
+          <>
+            Elija qué desea quitar de{" "}
+            <span className="font-medium text-foreground">
+              {rest.doc?.title}
+            </span>
+            .
+          </>
+        }
+        tourId="biblioteca-delete-title"
+        className="sm:max-w-lg"
+      >
+        {/* Dentro del diálogo: al cerrarlo se desmonta y reabre sin elección previa. */}
+        <DeleteDocumentForm onClose={onClose} {...rest} />
+      </FormDialogContent>
+    </Dialog>
+  );
+};
 
+function DeleteDocumentForm({
+  onClose,
+  doc,
+  company,
+  onSuccess,
+  folderPath,
+}: Omit<DeleteProps, "isOpen">) {
+  const [processing, setProcessing] = useState(false);
+  const [mode, setMode] = useState<"document" | "version">("document");
+  const [versionId, setVersionId] = useState("");
+
+  const { versions, isFetching: loadingVersions } = useGetDocumentVersions({
+    company,
+    documentId: doc?.id,
+    action: "obtener el historial de versiones",
+  });
+
+  // Con una sola versión no hay nada que borrar por separado: el backend
+  // rechaza dejar el documento sin archivo y devuelve 422.
+  const removable = useMemo(
+    () => (versions.length > 1 ? versions : []),
+    [versions],
+  );
+
+  // Borrar desde una réplica solo la desvincula de esta carpeta: el original
+  // y sus versiones se quedan donde están.
+  const clean = (p?: string | null) => (p || "").replace(/[\\/]+$/, "") || "/";
+  const isReplicaHere =
+    (doc?.folder_paths?.length ?? 0) > 1 &&
+    !!folderPath &&
+    !!doc?.folder_path &&
+    clean(folderPath) !== clean(doc.folder_path);
+
+  const canConfirm =
+    mode === "document" || (!!versionId && removable.length > 0);
+
+  const handleConfirm = async () => {
+    setProcessing(true);
     try {
-      if (deleteMode === "document") {
+      if (mode === "document") {
         await axiosInstance.delete(`/${company}/library/documents/${doc.id}`, {
           ...(folderPath != null
             ? { data: { source_folder_path: folderPath } }
             : {}),
         });
-        toast.success("Documento eliminado correctamente");
-      } else {
-        if (!selectedVersionToDelete) {
-          toast.error("¡Ops! Selecciona la versión que quieres eliminar");
-          return;
-        }
-        await axiosInstance.delete(
-          `/${company}/library/versions/${selectedVersionToDelete}`,
+        toast.success(
+          isReplicaHere
+            ? "Documento quitado de la carpeta"
+            : "Documento enviado a la papelera",
         );
-        toast.success("Versión eliminada correctamente");
+      } else {
+        await axiosInstance.delete(`/${company}/library/versions/${versionId}`);
+        toast.success("Versión eliminada");
       }
-      isActuallyDeleted = true;
-    } catch (error: any) {
+    } catch (error) {
       notifyError(error, { action: "eliminar el documento" });
+      setProcessing(false);
+      return;
+    }
+
+    setProcessing(false);
+    try {
+      await onSuccess();
     } finally {
-      setIsProcessing(false);
-      if (isActuallyDeleted) {
-        try {
-          await onSuccess();
-          onClose();
-        } catch (refreshError) {
-          onClose();
-        }
-      }
+      onClose();
     }
   };
 
-  // Con una sola versión no hay nada que borrar por separado: el backend
-  // rechaza dejar el documento sin archivo y devuelve 422.
-  const filteredVersions = useMemo(
-    () => (versionList.length > 1 ? versionList : []),
-    [versionList],
-  );
-
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-white dark:bg-[#1a1c1e] border-none text-slate-900 dark:text-white sm:max-w-120 rounded-2xl overflow-hidden p-0 outline-hidden shadow-2xl">
-        <div
-          className="bg-slate-50 dark:bg-gray-800/40 px-6 py-5 border-b border-slate-200 dark:border-gray-700"
-          data-tour="biblioteca-delete-title"
+    <div className="flex flex-col gap-5">
+      <div role="radiogroup" className="space-y-3">
+        <ChoiceCard
+          tour="biblioteca-delete-version"
+          selected={mode === "version"}
+          onSelect={() => setMode("version")}
+          tone="amber"
+          icon={Layers}
+          title="Eliminar una versión"
+          description="El documento sigue activo con la versión anterior. La versión se borra para siempre."
         >
-          <DialogTitle className="text-lg font-bold text-slate-800 dark:text-white tracking-tight uppercase">
-            Gestión de Eliminación
-          </DialogTitle>
-        </div>
+          <VersionSelect
+            tour="biblioteca-delete-version-select"
+            versions={removable}
+            value={versionId}
+            onChange={setVersionId}
+            loading={loadingVersions}
+            disabled={processing}
+            emptyLogLabel="Sin descripción"
+            noVersionsLabel="No hay versiones adicionales para eliminar"
+          />
+        </ChoiceCard>
 
-        <div className="p-6 space-y-5">
-          {/* Texto secundario en slate-500 */}
-          <p className="text-sm text-slate-500 dark:text-gray-400 leading-relaxed">
-            Selecciona qué nivel de información deseas remover para: <br />
-            <span className="text-slate-900 dark:text-white font-bold tracking-tight">
-              {doc?.title}
-            </span>
-          </p>
+        <ChoiceCard
+          tour="biblioteca-delete-document"
+          selected={mode === "document"}
+          onSelect={() => setMode("document")}
+          tone="rose"
+          icon={FileText}
+          title={
+            isReplicaHere
+              ? "Quitar de esta carpeta"
+              : "Enviar el documento a la papelera"
+          }
+          description={
+            isReplicaHere
+              ? "Es una réplica: solo se desvincula de esta carpeta. El original y su historial se mantienen."
+              : "Deja de verse en la biblioteca y en sus enlaces. Puede restaurarlo desde la papelera."
+          }
+        />
+      </div>
 
-          <div className="space-y-3">
-            {/* Opción de eliminar Versión */}
-            <div
-              data-tour="biblioteca-delete-version"
-              onClick={() => setDeleteMode("version")}
-              className={`group p-4 border rounded-2xl cursor-pointer transition-all ${
-                deleteMode === "version"
-                  ? "border-orange-500 bg-orange-50/40 dark:bg-orange-500/10 shadow-xs"
-                  : "border-slate-300 dark:border-gray-800 hover:border-slate-400 bg-white dark:bg-transparent"
-              }`}
-            >
-              <div className="flex items-start gap-3">
-                <div
-                  className={`mt-1 w-4 h-4 rounded-full border-2 flex items-center justify-center ${deleteMode === "version" ? "border-orange-500" : "border-slate-300 dark:border-slate-600"}`}
-                >
-                  {deleteMode === "version" && (
-                    <div className="w-2 h-2 bg-orange-500 rounded-full" />
-                  )}
-                </div>
-                <div className="flex-1">
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-orange-600 dark:text-orange-400 flex items-center gap-2 mb-1">
-                    <Layers className="h-3.5 w-3.5" /> Eliminar versión
-                    específica
-                  </label>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-tight mb-3">
-                    El registro principal se mantendrá activo con la versión
-                    anterior.
-                  </p>
-
-                  {deleteMode === "version" && (
-                    <div
-                      className="relative animate-in fade-in zoom-in-95 duration-200"
-                      data-tour="biblioteca-delete-version-select"
-                    >
-                      <select
-                        value={selectedVersionToDelete}
-                        onChange={(e) =>
-                          setSelectedVersionToDelete(e.target.value)
-                        }
-                        disabled={isProcessing || loadingVersions}
-                        className="w-full h-10 pl-3 pr-10 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-[#111214] text-[11px] font-bold text-slate-700 dark:text-white outline-hidden appearance-none"
-                      >
-                        {loadingVersions ? (
-                          <option value="">Cargando Versiones...</option>
-                        ) : filteredVersions.length === 0 ? (
-                          <option value="">
-                            No hay versiones adicionales para eliminar
-                          </option>
-                        ) : (
-                          <>
-                            <option value="">Selecciona la versión...</option>
-                            {filteredVersions.map((v) => (
-                              <option key={v.id} value={v.id}>
-                                {v.version_label || v.version_number} —{" "}
-                                {v.change_log || "Sin descripción"}
-                              </option>
-                            ))}
-                          </>
-                        )}
-                      </select>
-                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-orange-400 pointer-events-none" />
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Opción de eliminar Documento Completo */}
-            <div
-              data-tour="biblioteca-delete-document"
-              onClick={() => setDeleteMode("document")}
-              className={`group p-4 border rounded-2xl cursor-pointer transition-all ${
-                deleteMode === "document"
-                  ? "border-red-500 bg-red-50/40 dark:bg-red-500/10 shadow-xs"
-                  : "border-slate-300 dark:border-gray-800 hover:border-slate-400 bg-white dark:bg-transparent"
-              }`}
-            >
-              <div className="flex items-start gap-3">
-                <div
-                  className={`mt-1 w-4 h-4 rounded-full border-2 flex items-center justify-center ${deleteMode === "document" ? "border-red-500" : "border-slate-300 dark:border-slate-600"}`}
-                >
-                  {deleteMode === "document" && (
-                    <div className="w-2 h-2 bg-red-500 rounded-full" />
-                  )}
-                </div>
-                <div>
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-red-600 dark:text-red-400 flex items-center gap-2 mb-1">
-                    <FileText className="h-3.5 w-3.5" /> Eliminar documento
-                    completo
-                  </label>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-tight">
-                    Borrado permanente de todo el historial y archivos físicos.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
-            <button
-              data-tour="biblioteca-delete-cancel"
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-3 text-[10px] font-black text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 uppercase tracking-widest transition-colors"
-            >
-              CANCELAR
-            </button>
-            <button
-              data-tour="biblioteca-delete-submit"
-              onClick={handleFinalDelete}
-              disabled={
-                isProcessing ||
-                (deleteMode === "version" &&
-                  (!selectedVersionToDelete || filteredVersions.length === 0))
-              }
-              className={`flex-1 px-4 py-3 text-[10px] font-black text-white rounded-xl transition-all tracking-widest shadow-md active:scale-[0.98] ${
-                deleteMode === "document"
-                  ? "bg-red-600 hover:bg-red-700 shadow-red-100 dark:shadow-none"
-                  : "bg-orange-600 hover:bg-orange-700 shadow-orange-100 dark:shadow-none"
-              } disabled:opacity-50 disabled:cursor-not-allowed uppercase`}
-            >
-              {isProcessing ? "PROCESANDO..." : "CONFIRMAR"}
-            </button>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+      <LibraryDialogActions
+        onCancel={onClose}
+        onSubmit={handleConfirm}
+        busy={processing}
+        busyLabel="Procesando..."
+        disabled={!canConfirm}
+        destructive={mode === "document"}
+        submitLabel="Confirmar"
+        cancelTourId="biblioteca-delete-cancel"
+        submitTourId="biblioteca-delete-submit"
+      />
+    </div>
   );
-};
+}

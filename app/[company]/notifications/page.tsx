@@ -21,7 +21,7 @@ import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 import NotificationBulkActions from "@/components/notifications/NotificationBulkActions";
 import NotificationItem from "@/components/notifications/NotificationItem";
 import { useTourContext } from "@/components/tour/TourProvider";
-import { notificacionesSteps } from "@/components/tour/steps/sistema/banca/notificaciones";
+import { notificacionesSteps } from "@/components/tour/steps/notificaciones";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -115,7 +115,9 @@ export default function NotificationsPage() {
   useEffect(() => {
     if (!hasNotifications) return;
 
-    registerTour("notificaciones", "Notificaciones", notificacionesSteps);
+    registerTour("notificaciones", "Notificaciones", notificacionesSteps, {
+      onlyVisible: true,
+    });
     return () => unregisterTour("notificaciones");
   }, [registerTour, unregisterTour, hasNotifications]);
 

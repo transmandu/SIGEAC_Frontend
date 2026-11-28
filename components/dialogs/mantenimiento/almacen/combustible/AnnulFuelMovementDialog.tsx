@@ -54,7 +54,7 @@ export function AnnulFuelMovementDialog({
           Anular
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[460px]">
+      <DialogContent className="sm:max-w-115">
         <DialogHeader>
           <DialogTitle>Anular movimiento</DialogTitle>
           <DialogDescription>

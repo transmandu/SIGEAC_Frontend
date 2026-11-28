@@ -1,30 +1,49 @@
 "use client";
 
-import { useEffect, useState, useCallback, useMemo, useRef } from "react";
-import { useQuery } from "@tanstack/react-query";
+import {
+  useDeferredValue,
+  useEffect,
+  useState,
+  useCallback,
+  useMemo,
+  useRef,
+} from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { bibliotecaPageSteps } from "@/components/tour/steps/general/biblioteca/biblioteca-page";
 import useLibraryNotifications from "@/hooks/notifications/useLibraryNotifications";
+import { createPortal } from "react-dom";
 import { useParams } from "next/navigation";
 import { useActionDialog } from "@/hooks/helpers/use-action-dialog";
 import { ContentLayout } from "@/components/layout/ContentLayout";
-import { Button } from "@/components/ui/button";
+import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
+import { StripButton } from "@/components/library/StripButton";
+import { ConfirmDeleteDialog } from "@/components/dialogs/shared/ConfirmDeleteDialog";
+import { EmptyState } from "@/components/misc/EmptyState";
+import { Skeleton } from "@/components/ui/skeleton";
+import LibraryToolbar, {
+  type SortKey,
+} from "@/components/library/LibraryToolbar";
+import { useLibraryView } from "@/hooks/useLibraryView";
+import { useTabParam } from "@/hooks/helpers/use-tab-param";
 import { useAuth } from "@/contexts/AuthContext";
 import {
-  Plus,
-  Search,
-  FolderOpen,
-  Loader2,
-  History,
-  FolderPlus,
-  Send,
-  BarChart,
-  SlidersHorizontal,
-  X,
-  Filter,
   ArrowRightLeft,
-  ChevronRight,
-  Download,
+  Clock,
+  Copy,
+  FolderOpen,
+  FolderPlus,
+  Inbox,
+  LayoutGrid,
+  List,
+  Loader2,
+  Menu,
+  Plus,
+  SearchX,
+  Star,
+  Trash2,
+  UploadCloud,
+  X,
 } from "lucide-react";
 import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment";
 import DocumentTable from "./DocumentTable";
@@ -36,6 +55,25 @@ import FolderTree, {
 } from "@/components/library/FolderTree";
 import CreateFolderDialog from "@/components/library/CreateFolderDialog";
 import RenameFolderDialog from "@/components/library/RenameFolderDialog";
+import FolderAccessDialog from "@/components/library/FolderAccessDialog";
+import SubfolderGrid from "@/components/library/SubfolderGrid";
+import TrashView from "@/components/library/TrashView";
+import QuickAccessNav, {
+  type QuickAccess,
+} from "@/components/library/QuickAccessNav";
+import {
+  ActionsContextMenu,
+  useContextMenu,
+} from "@/components/library/ActionsContextMenu";
+import {
+  folderActions,
+  type MenuAction,
+} from "@/components/library/menu-actions";
+import LibraryBreadcrumb from "@/components/library/LibraryBreadcrumb";
+import { fileProblem } from "@/lib/Library/upload-rules";
+import { hasOpenOverlay, isInteractiveTarget } from "@/lib/Library/shortcuts";
+import FolderShareDialog from "@/components/library/FolderShareDialog";
+import FolderSharesDialog from "@/components/library/FolderSharesDialog";
 import DeleteFolderDialog from "@/components/library/DeleteFolderDialog";
 import ShareRequestsPanel from "@/components/library/ShareRequestsPanel";
 import DashboardModal from "@/components/library/DashboardModal";
@@ -45,16 +83,9 @@ import libraryService, { FolderNode, Document } from "@/lib/libraryService";
 import axiosInstance from "@/lib/axios";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/layout/PageHeader";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
 import { notifyError } from "@/lib/notify-error";
-
-// El árbol puede venir anidado, así que un find() plano no encuentra a los hijos.
+import { hasNoPreview, NO_PREVIEW_MESSAGE } from "@/lib/Library/preview";
+import { departmentNameOf } from "@/lib/Library/document-info";
 
 // Poda el árbol dejando solo las ramas que llevan a un departamento accesible:
 // un padre no accesible se descarta pero sus hijos permitidos suben de nivel.
@@ -75,6 +106,46 @@ const collectAllowedDepartments = (
   return children;
 };
 
+const expiryOf = (doc: any): string | null =>
+  doc.latest_version?.expiration_date ?? doc.expiration_date ?? null;
+
+function TreeSkeleton() {
+  return (
+    <div className="space-y-2 p-2">
+      {[0, 1, 2, 3, 4].map((i) => (
+        <Skeleton key={i} className="h-8" style={{ width: `${95 - i * 9}%` }} />
+      ))}
+    </div>
+  );
+}
+
+function WorkspaceSkeleton() {
+  return (
+    <div className="space-y-3">
+      {[0, 1, 2, 3, 4].map((i) => (
+        <Skeleton key={i} className="h-14 w-full rounded-xl" />
+      ))}
+    </div>
+  );
+}
+
+// Un solo colador para todas las comparaciones: `localeCompare` con opciones
+// crea uno nuevo en cada llamada y ordenar cientos de títulos se notaba.
+const TITLE_COLLATOR = new Intl.Collator("es", {
+  numeric: true,
+  sensitivity: "base",
+});
+
+const BIBLIOTECA_SECTIONS = [
+  "carpetas",
+  "favoritos",
+  "recientes",
+  "papelera",
+] as const;
+
+/** Cuántos documentos recientes se listan (el servidor recuerda hasta 50). */
+const RECENTS_SHOWN = 30;
+
 const BibliotecaPage = () => {
   const params = useParams();
   const { user } = useAuth();
@@ -83,33 +154,7 @@ const BibliotecaPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [selectedStatus, setSelectedStatus] = useState<string>("");
-  const [showFilters, setShowFilters] = useState(false);
   const [mobileFolderOpen, setMobileFolderOpen] = useState(false);
-
-  const popoverRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        popoverRef.current &&
-        !popoverRef.current.contains(event.target as Node)
-      ) {
-        setShowFilters(false);
-      }
-    };
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setShowFilters(false);
-    };
-
-    if (showFilters) {
-      document.addEventListener("mousedown", handleClickOutside);
-      document.addEventListener("keydown", handleEscape);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("keydown", handleEscape);
-    };
-  }, [showFilters]);
 
   const { data: rawDepartments = [] } = useGetDepartments(companySlug);
   const [foldersMap, setFoldersMap] = useState<Record<number, FolderNode[]>>(
@@ -121,8 +166,22 @@ const BibliotecaPage = () => {
   );
   const [loadingDeptIds, setLoadingDeptIds] = useState<number[]>([]);
   const [movingDocument, setMovingDocument] = useState(false);
-  const [selectedDocumentIds, setSelectedDocumentIds] = useState<number[]>([]);
+  const [sortBy, setSortBy] = useState<SortKey>("default");
+  const [view, setView] = useLibraryView();
+  // Archivo del escritorio soltado sobre el panel, y si hay uno encima ahora.
+  const [droppedFile, setDroppedFile] = useState<File | null>(null);
+  const [isFileDragging, setIsFileDragging] = useState(false);
+  const [pickedDocumentIds, setSelectedDocumentIds] = useState<number[]>([]);
   const [moveDialogOpen, setMoveDialogOpen] = useState(false);
+  // Documentos que se están copiando y el departamento al que pertenecen todos.
+  const [copyTarget, setCopyTarget] = useState<{
+    ids: number[];
+    department: { id: number; name: string };
+  } | null>(null);
+  // Qué ocupa el panel de contenido: las carpetas, los favoritos o recientes
+  // (documentos de todos los departamentos, sin carpeta) o la papelera. Se
+  // puede fijar con `?tab=` desde el buscador global.
+  const [section, setSection] = useTabParam(BIBLIOTECA_SECTIONS, "carpetas");
 
   const [isModalOpen, setIsModalOpen] = useActionDialog("subir-documento");
   const [viewingDocId, setViewingDocId] = useState<number | string | null>(
@@ -148,6 +207,17 @@ const BibliotecaPage = () => {
     departmentId: number;
     departmentName: string;
   } | null>(null);
+  const [shareFolderTarget, setShareFolderTarget] = useState<{
+    node: FolderNode;
+    departmentId: number;
+    departmentName: string;
+  } | null>(null);
+  const [folderSharesOpen, setFolderSharesOpen] = useState(false);
+  const [accessTarget, setAccessTarget] = useState<{
+    node: FolderNode;
+    departmentId: number;
+    departmentName: string;
+  } | null>(null);
 
   const canManage = useMemo(() => {
     if (!user) return false;
@@ -161,6 +231,15 @@ const BibliotecaPage = () => {
     return !!(isSuperUser || isDirector);
   }, [user]);
 
+  // La papelera es de quien gestiona: la URL no salta ese permiso.
+  const trashOpen = section === "papelera" && canManage;
+  const quickAccess: QuickAccess | null =
+    section === "favoritos"
+      ? "favorites"
+      : section === "recientes"
+        ? "recents"
+        : null;
+
   const isSuperUser = useMemo(() => {
     return (
       user?.roles?.some((role) =>
@@ -169,10 +248,6 @@ const BibliotecaPage = () => {
         ),
       ) ?? false
     );
-  }, [user]);
-
-  const userDeptId = useMemo(() => {
-    return user?.employee?.[0]?.department?.id ?? null;
   }, [user]);
 
   const isDipDirector = useMemo(() => {
@@ -241,25 +316,65 @@ const BibliotecaPage = () => {
     return roots;
   }, []);
 
+  const documentsQuery = useQuery({
+    queryKey: ["library-documents", companySlug],
+    queryFn: async () => {
+      const response = await libraryService.getDocuments(companySlug);
+      return {
+        grouped: (response.data || {}) as Record<string, Document[]>,
+        // Departamentos de los que el backend devuelve carpetas: el propio y los
+        // que le comparten carpetas a este usuario.
+        visibleDepartmentNames: Object.keys(response.folders || {}),
+      };
+    },
+    enabled: !!companySlug,
+  });
+
+  const visibleDepartmentNames = useMemo(
+    () => documentsQuery.data?.visibleDepartmentNames ?? [],
+    [documentsQuery.data],
+  );
+
   const departments = useMemo(() => {
     if (isSuperUser || isDipDirector) {
       return rawDepartments;
     }
 
-    if (accessibleDepartmentIds.length === 0) {
-      return [];
-    }
+    const own =
+      accessibleDepartmentIds.length === 0
+        ? []
+        : hasNestedDepartmentTree
+          ? rawDepartments.flatMap((dept: any) =>
+              collectAllowedDepartments(dept, accessibleDepartmentIds),
+            )
+          : buildFlatDepartmentTree(rawDepartments).flatMap((dept: any) =>
+              collectAllowedDepartments(dept, accessibleDepartmentIds),
+            );
 
-    if (hasNestedDepartmentTree) {
-      return rawDepartments.flatMap((dept: any) =>
-        collectAllowedDepartments(dept, accessibleDepartmentIds),
-      );
-    }
+    // Departamentos ajenos que le comparten carpetas: aparecen aparte, sin
+    // sus hijos, porque solo se ve lo compartido.
+    const ownIds = new Set<number>();
+    const collectIds = (list: any[]) =>
+      list.forEach((d) => {
+        ownIds.add(Number(d.id));
+        collectIds(d.descendants ?? []);
+      });
+    collectIds(own);
 
-    const rootTree = buildFlatDepartmentTree(rawDepartments);
-    return rootTree.flatMap((dept: any) =>
-      collectAllowedDepartments(dept, accessibleDepartmentIds),
-    );
+    const shared: any[] = [];
+    const collectShared = (list: any[]) =>
+      list.forEach((d) => {
+        if (
+          visibleDepartmentNames.includes(d.name) &&
+          !ownIds.has(Number(d.id))
+        ) {
+          shared.push({ ...d, descendants: [], department_parent_id: null });
+        }
+        collectShared(d.descendants ?? []);
+      });
+    collectShared(rawDepartments);
+
+    return [...own, ...shared];
   }, [
     rawDepartments,
     isSuperUser,
@@ -267,6 +382,7 @@ const BibliotecaPage = () => {
     accessibleDepartmentIds,
     hasNestedDepartmentTree,
     buildFlatDepartmentTree,
+    visibleDepartmentNames,
   ]);
 
   // Con un solo departamento no hay nada que elegir: queda seleccionado de
@@ -278,15 +394,6 @@ const BibliotecaPage = () => {
   const isMultiDept = useMemo(() => {
     return isSuperUser || departments.length > 1;
   }, [isSuperUser, departments]);
-
-  const documentsQuery = useQuery({
-    queryKey: ["library-documents", companySlug],
-    queryFn: async () => {
-      const response = await libraryService.getDocuments(companySlug);
-      return (response.data || {}) as Record<string, Document[]>;
-    },
-    enabled: !!companySlug,
-  });
 
   const categoriesQuery = useQuery({
     queryKey: ["library-categories", companySlug],
@@ -317,7 +424,7 @@ const BibliotecaPage = () => {
   // El ?? crea un valor nuevo en cada render, así que se memoiza para no
   // invalidar los useMemo que dependen de estos datos.
   const groupedDocuments = useMemo(
-    () => documentsQuery.data ?? {},
+    () => documentsQuery.data?.grouped ?? {},
     [documentsQuery.data],
   );
   const categoriesList = useMemo(
@@ -351,6 +458,19 @@ const BibliotecaPage = () => {
     }
   }, [categoriesQuery.isError, categoriesQuery.error]);
 
+  // Mismo prefijo de clave que el diálogo de enlaces: aprobar o rechazar allí
+  // refresca este conteo.
+  const pendingFolderSharesQuery = useQuery({
+    queryKey: ["library-folder-shares", companySlug, "pending"],
+    queryFn: async () => {
+      const shares = await libraryService.getFolderShares(companySlug);
+      return shares.filter((s) => s.status === "pending").length;
+    },
+    enabled: !!companySlug && isDipDirector,
+    placeholderData: (previous: number | undefined) => previous,
+  });
+  const pendingFolderShareCount = pendingFolderSharesQuery.data ?? 0;
+
   const { refetch: refetchDocuments } = documentsQuery;
   const { refetch: refetchPendingRequests } = pendingRequestsQuery;
 
@@ -358,14 +478,36 @@ const BibliotecaPage = () => {
     await refetchDocuments();
   }, [refetchDocuments]);
 
+  const queryClient = useQueryClient();
+
+  // Solicitudes de documentos y de enlaces de carpeta: lo llama también el
+  // aviso en tiempo real, así los contadores y el listado se mantienen al día.
   const refreshPendingCount = useCallback(async () => {
-    await refetchPendingRequests();
-  }, [refetchPendingRequests]);
+    await Promise.all([
+      refetchPendingRequests(),
+      queryClient.invalidateQueries({
+        queryKey: ["library-folder-shares", companySlug],
+      }),
+    ]);
+  }, [refetchPendingRequests, queryClient, companySlug]);
 
   const currentDeptDocs = useMemo(() => {
     if (!selectedDeptName || !groupedDocuments[selectedDeptName]) return [];
     return groupedDocuments[selectedDeptName] as Document[];
   }, [selectedDeptName, groupedDocuments]);
+
+  // Favoritos y recientes cruzan departamentos: salen de todo lo que el
+  // usuario ve, no de la carpeta abierta.
+  const quickAccessDocs = useMemo(() => {
+    const all = Object.values(groupedDocuments).flat() as Document[];
+    return {
+      favorites: all.filter((d) => d.is_favorite),
+      recents: all
+        .filter((d) => d.opened_at)
+        .sort((a, b) => String(b.opened_at).localeCompare(String(a.opened_at)))
+        .slice(0, RECENTS_SHOWN),
+    };
+  }, [groupedDocuments]);
 
   const categoriesToDisplay = useMemo(() => {
     if (categoriesList && categoriesList.length > 0) {
@@ -389,25 +531,37 @@ const BibliotecaPage = () => {
       }));
   }, [categoriesList, groupedDocuments]);
 
+  // El campo responde al instante; el filtrado (que repinta la lista) va un
+  // paso detrás y se descarta si se sigue escribiendo.
+  const deferredSearch = useDeferredValue(searchTerm);
+  const isSearching = deferredSearch.trim() !== "";
+
   const filteredDocs = useMemo(() => {
-    let docs = currentDeptDocs;
+    let docs = quickAccess ? quickAccessDocs[quickAccess] : currentDeptDocs;
 
-    // Sin carpeta elegida la vista es la raíz: filtrarla igual que "/" evita que
-    // se cuelen los documentos de las subcarpetas bajo el breadcrumb "Raíz".
-    // `folder_paths` incluye todas las carpetas en las que aparece el documento
-    // (incluida la primaria por retrocompatibilidad).
-    if (!selectedFolderPath || selectedFolderPath === "/") {
-      docs = docs.filter(
-        (d) => !d.folder_paths?.length || d.folder_paths.includes("/"),
-      );
+    // Buscar recorre TODO el departamento, no solo la carpeta abierta (como en
+    // MEGA): cada resultado indica en qué carpeta vive.
+    if (quickAccess) {
+      // Sin carpetas: solo se filtra por lo que se escriba en el buscador.
+      if (isSearching) {
+        const term = deferredSearch.trim().toLowerCase();
+        docs = docs.filter((d) => (d.title ?? "").toLowerCase().includes(term));
+      }
+    } else if (!isSearching) {
+      // Sin carpeta elegida la vista es la raíz: filtrarla igual que "/" evita
+      // que se cuelen los documentos de las subcarpetas bajo el breadcrumb.
+      // `folder_paths` incluye todas las carpetas en las que aparece el
+      // documento (incluida la primaria por retrocompatibilidad).
+      if (!selectedFolderPath || selectedFolderPath === "/") {
+        docs = docs.filter(
+          (d) => !d.folder_paths?.length || d.folder_paths.includes("/"),
+        );
+      } else {
+        docs = docs.filter((d) => d.folder_paths?.includes(selectedFolderPath));
+      }
     } else {
-      docs = docs.filter((d) => d.folder_paths?.includes(selectedFolderPath));
-    }
-
-    if (searchTerm) {
-      docs = docs.filter((d) =>
-        (d.title ?? "").toLowerCase().includes(searchTerm.toLowerCase()),
-      );
+      const term = deferredSearch.trim().toLowerCase();
+      docs = docs.filter((d) => (d.title ?? "").toLowerCase().includes(term));
     }
 
     if (selectedCategory) {
@@ -424,16 +578,72 @@ const BibliotecaPage = () => {
       });
     }
 
-    // El orden lo define el backend (LibraryDocument::compareCorrelative):
-    // filtrar no lo altera, así que se devuelve tal cual.
-    return docs;
+    // Por defecto manda el orden del backend (LibraryDocument::compareCorrelative);
+    // las demás opciones reordenan una copia.
+    if (sortBy === "default") return docs;
+
+    const byTitle = (a: Document, b: Document) =>
+      TITLE_COLLATOR.compare(a.title ?? "", b.title ?? "");
+    // Sin vencimiento (permanentes) siempre al final, sea cual sea el sentido.
+    const byExpiry = (a: Document, b: Document, direction: 1 | -1) => {
+      const ea = expiryOf(a);
+      const eb = expiryOf(b);
+      if (!ea && !eb) return byTitle(a, b);
+      if (!ea) return 1;
+      if (!eb) return -1;
+      return direction * ea.localeCompare(eb) || byTitle(a, b);
+    };
+
+    return [...docs].sort((a, b) => {
+      switch (sortBy) {
+        case "title-asc":
+          return byTitle(a, b);
+        case "title-desc":
+          return byTitle(b, a);
+        case "expiry-asc":
+          return byExpiry(a, b, 1);
+        default:
+          return byExpiry(a, b, -1);
+      }
+    });
   }, [
     currentDeptDocs,
+    quickAccess,
+    quickAccessDocs,
     selectedFolderPath,
-    searchTerm,
+    isSearching,
+    deferredSearch,
     selectedCategory,
     selectedStatus,
+    sortBy,
   ]);
+
+  // Documentos que hay directamente en cada carpeta del departamento abierto.
+  const folderDocCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const doc of currentDeptDocs) {
+      for (const path of doc.folder_paths ?? []) {
+        counts[path] = (counts[path] ?? 0) + 1;
+      }
+    }
+    return counts;
+  }, [currentDeptDocs]);
+
+  // Solo cuentan los documentos que se están viendo: tras buscar o filtrar,
+  // una selección anterior no debe mover documentos que ya no están a la vista.
+  const selectedDocumentIds = useMemo(() => {
+    const visible = new Set(filteredDocs.map((d) => d.id));
+    return pickedDocumentIds.filter((id) => visible.has(id));
+  }, [pickedDocumentIds, filteredDocs]);
+
+  const selectedDocumentsAllFavorite = useMemo(
+    () =>
+      selectedDocumentIds.length > 0 &&
+      filteredDocs
+        .filter((d) => selectedDocumentIds.includes(d.id))
+        .every((d) => d.is_favorite),
+    [selectedDocumentIds, filteredDocs],
+  );
 
   // Espejo de foldersMap para que los callbacks lean el valor vigente sin
   // depender de él: incluirlo en sus deps los recrearía en cada carga de carpetas.
@@ -506,66 +716,6 @@ const BibliotecaPage = () => {
     return roots;
   }, [departments, foldersMap]);
 
-  const handleDeleteDocument = async (id: number | string) => {
-    try {
-      const data = await libraryService.deleteDocument(
-        companySlug,
-        id,
-        selectedFolderPath && selectedFolderPath !== "/"
-          ? selectedFolderPath
-          : "/",
-      );
-      toast.success(data?.message || "Documento eliminado correctamente");
-      await fetchDocs();
-    } catch (error) {
-      console.error("Error al eliminar:", error);
-      notifyError(error, { action: "eliminar el documento" });
-    }
-  };
-
-  const handleDropDocument = async (
-    documentId: number,
-    folderPath: string,
-    departmentId: number,
-    departmentName: string,
-  ) => {
-    if (!departmentId) return;
-    setMovingDocument(true);
-    try {
-      await libraryService.moveDocument(
-        companySlug,
-        documentId,
-        folderPath,
-        departmentId,
-        selectedFolderPath && selectedFolderPath !== "/"
-          ? selectedFolderPath
-          : "/",
-      );
-      toast.success("Documento movido exitosamente");
-
-      // El destino se navega y se refresca tras la mutación para que el
-      // documento aparezca en la nueva carpeta y el árbol quede al día.
-      setSelectedDeptName(departmentName);
-      setSelectedFolderPath(folderPath);
-      setSelectedDocumentIds([]);
-
-      await Promise.all([fetchDocs(), handleFolderRefresh(departmentId)]);
-    } catch (error: any) {
-      notifyError(error, { action: "mover el documento" });
-    } finally {
-      setMovingDocument(false);
-    }
-  };
-
-  const handleSelectFolder = (folderPath: string, departmentName: string) => {
-    setSelectedDeptName(departmentName);
-    setSelectedFolderPath(folderPath);
-    // Al cambiar de vista la selección anterior deja de tener sentido: se
-    // limpia para no mover documentos que ya no están visibles.
-    setSelectedDocumentIds([]);
-    setMobileFolderOpen(false);
-  };
-
   const handleFolderRefresh = useCallback(
     async (deptId: number) => {
       try {
@@ -579,10 +729,90 @@ const BibliotecaPage = () => {
     [companySlug],
   );
 
-  const refreshAllLoadedFolders = useCallback(async () => {
-    const ids = Object.keys(foldersMapRef.current).map(Number);
-    await Promise.all(ids.map((id) => handleFolderRefresh(id)));
-  }, [handleFolderRefresh]);
+  const handleDropDocument = useCallback(
+    async (
+      documentIds: number[],
+      folderPath: string,
+      departmentId: number,
+      departmentName: string,
+      // Desde el árbol se navega a la carpeta destino; al soltar sobre una tarjeta
+      // del panel se queda donde está, como en un explorador de archivos.
+      navigate = true,
+    ) => {
+      if (!departmentId) return;
+      setMovingDocument(true);
+      try {
+        // Solo con una carpeta abierta se sabe de dónde sale cada documento: al
+        // buscar o en favoritos/recientes los resultados vienen de cualquier
+        // carpeta y se mueve el documento mismo, no una réplica de la abierta.
+        const sourcePath =
+          quickAccess || isSearching
+            ? undefined
+            : selectedFolderPath && selectedFolderPath !== "/"
+              ? selectedFolderPath
+              : "/";
+
+        if (documentIds.length === 1) {
+          await libraryService.moveDocument(
+            companySlug,
+            documentIds[0],
+            folderPath,
+            departmentId,
+            sourcePath,
+          );
+          toast.success("Documento movido exitosamente");
+        } else {
+          await libraryService.moveDocumentsBatch(companySlug, {
+            document_ids: documentIds,
+            department_id: departmentId,
+            folder_path: folderPath,
+            source_folder_path: sourcePath,
+          });
+          toast.success(
+            `${documentIds.length} documentos movidos exitosamente`,
+          );
+        }
+
+        // El destino se navega y se refresca tras la mutación para que el
+        // documento aparezca en la nueva carpeta y el árbol quede al día.
+        if (navigate) {
+          setSelectedDeptName(departmentName);
+          setSelectedFolderPath(folderPath);
+        }
+        setSelectedDocumentIds([]);
+
+        // Mover documentos no cambia el árbol de carpetas: solo se piden los documentos.
+        await fetchDocs();
+      } catch (error: any) {
+        notifyError(error, { action: "mover los documentos" });
+      } finally {
+        setMovingDocument(false);
+      }
+    },
+    [companySlug, selectedFolderPath, quickAccess, isSearching, fetchDocs],
+  );
+
+  const handleSelectFolder = useCallback(
+    (folderPath: string, departmentName: string) => {
+      setSelectedDeptName(departmentName);
+      setSelectedFolderPath(folderPath);
+      // Al cambiar de vista la selección anterior deja de tener sentido: se
+      // limpia para no mover documentos que ya no están visibles.
+      setSelectedDocumentIds([]);
+      setMobileFolderOpen(false);
+      setSection("carpetas");
+    },
+    [setSection],
+  );
+
+  const handleQuickAccess = useCallback(
+    (value: QuickAccess) => {
+      setSection(value === "favorites" ? "favoritos" : "recientes");
+      setSelectedDocumentIds([]);
+      setMobileFolderOpen(false);
+    },
+    [setSection],
+  );
 
   const handleBatchMoveSuccess = useCallback(
     async (departmentId: number, folderPath: string) => {
@@ -592,23 +822,100 @@ const BibliotecaPage = () => {
 
       setSelectedDocumentIds([]);
       setMoveDialogOpen(false);
+      setSection("carpetas");
 
-      // Se refrescan las carpetas de todos los departamentos ya cargados (el
-      // destino y los de origen) y los documentos, para que el cambio del
-      // grupo por departamento y por carpeta se refleje de inmediato.
-      await Promise.all([fetchDocs(), refreshAllLoadedFolders()]);
+      // Solo hacen falta los documentos: el árbol de carpetas no cambia al
+      // mover documentos, y el grupo por departamento y carpeta sale de ellos.
+      await fetchDocs();
 
       if (target) {
         setSelectedDeptName(target.name);
         setSelectedFolderPath(folderPath);
       }
     },
-    [departments, fetchDocs, refreshAllLoadedFolders],
+    [departments, fetchDocs, setSection],
   );
 
   useLibraryNotifications(
     user?.id ? Number(user.id) : undefined,
     refreshPendingCount,
+  );
+
+  // Los marcadores del documento (favorito, último acceso) se cambian en la
+  // caché del listado para verse al instante, sin esperar otra consulta.
+  const patchDocument = useCallback(
+    (id: number, patch: Partial<Document>) => {
+      queryClient.setQueryData<{
+        grouped: Record<string, Document[]>;
+        visibleDepartmentNames: string[];
+      }>(["library-documents", companySlug], (old) =>
+        old
+          ? {
+              ...old,
+              grouped: Object.fromEntries(
+                Object.entries(old.grouped).map(([department, docs]) => [
+                  department,
+                  docs.map((d) => (d.id === id ? { ...d, ...patch } : d)),
+                ]),
+              ),
+            }
+          : old,
+      );
+    },
+    [queryClient, companySlug],
+  );
+
+  const handleToggleFavorite = useCallback(
+    async (id: number, favorite: boolean) => {
+      patchDocument(id, { is_favorite: favorite });
+      try {
+        await libraryService.setFavorite(companySlug, id, favorite);
+      } catch (error) {
+        patchDocument(id, { is_favorite: !favorite });
+        notifyError(error, { action: "actualizar los favoritos" });
+      }
+    },
+    [companySlug, patchDocument],
+  );
+
+  // Acciones sobre la selección: un solo viaje al servidor por acción.
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+
+  const handleBulkFavorite = useCallback(
+    async (ids: number[], favorite: boolean) => {
+      ids.forEach((id) => patchDocument(id, { is_favorite: favorite }));
+      try {
+        await libraryService.setFavoriteBatch(companySlug, ids, favorite);
+      } catch (error) {
+        ids.forEach((id) => patchDocument(id, { is_favorite: !favorite }));
+        notifyError(error, { action: "actualizar los favoritos" });
+      }
+    },
+    [companySlug, patchDocument],
+  );
+
+  const docsRef = useRef<Document[]>([]);
+  useEffect(() => {
+    docsRef.current = filteredDocs;
+  }, [filteredDocs]);
+
+  // Estable a propósito: si dependiera de la lista, cada filtro, favorito o
+  // apertura lo recrearía y repintaría TODAS las filas (que están memoizadas).
+  const handleViewDocument = useCallback(
+    (id: number) => {
+      const doc = docsRef.current.find((d) => d.id === id);
+      if (hasNoPreview((doc as any)?.file_type)) {
+        toast.info(NO_PREVIEW_MESSAGE);
+        return;
+      }
+      setViewingDocId(id);
+      setIsViewerOpen(true);
+
+      // Reciente al instante; el servidor lo anota aparte y, si falla, no importa.
+      patchDocument(id, { opened_at: new Date().toISOString() });
+      libraryService.markOpened(companySlug, id).catch(() => {});
+    },
+    [patchDocument, companySlug],
   );
 
   const handleDocRefresh = useCallback(async () => {
@@ -619,6 +926,19 @@ const BibliotecaPage = () => {
     if (!selectedFolderPath || selectedFolderPath === "/") return "Raíz";
     return selectedFolderPath.replace(/\//g, " > ").replace(/^ > /, "");
   }, [selectedFolderPath]);
+
+  // Mover documentos exige ser director del departamento destino (o
+  // administrador): los departamentos ajenos que solo comparten carpetas no se
+  // ofrecen, porque el servidor los rechazaría.
+  const moveTargetDepartments = useMemo(
+    () =>
+      departments
+        .filter(
+          (d) => isSuperUser || accessibleDepartmentIds.includes(Number(d.id)),
+        )
+        .map((d) => ({ id: Number(d.id), name: d.name as string })),
+    [departments, isSuperUser, accessibleDepartmentIds],
+  );
 
   const currentDeptForDialog = useMemo(() => {
     if (!selectedDeptName) return null;
@@ -644,6 +964,31 @@ const BibliotecaPage = () => {
     return group?.folders || [];
   }, [selectedDeptName, departmentFolders]);
 
+  // Carpetas que contiene la que se está viendo (o las de primer nivel en la
+  // raíz) y su carpeta superior, para recorrerlas desde el panel de documentos.
+  const { subfolders, parentFolderPath } = useMemo(() => {
+    const atRoot = !selectedFolderPath || selectedFolderPath === "/";
+    if (atRoot) {
+      return { subfolders: currentFoldersForDialog, parentFolderPath: null };
+    }
+    const find = (nodes: FolderNode[]): FolderNode | null => {
+      for (const node of nodes) {
+        if (node.path === selectedFolderPath) return node;
+        const found = find(node.children);
+        if (found) return found;
+      }
+      return null;
+    };
+    const parent = selectedFolderPath.slice(
+      0,
+      selectedFolderPath.lastIndexOf("/"),
+    );
+    return {
+      subfolders: find(currentFoldersForDialog)?.children ?? [],
+      parentFolderPath: parent || "/",
+    };
+  }, [selectedFolderPath, currentFoldersForDialog]);
+
   // Scroll lock del drawer de carpetas en móvil: mientras esté abierto la
   // página de fondo no debe moverse.
   useEffect(() => {
@@ -655,6 +1000,53 @@ const BibliotecaPage = () => {
     };
   }, [mobileFolderOpen]);
 
+  // Escape cierra el panel lateral abierto. Si encima hay un diálogo, este ya
+  // atendió la tecla (Radix la marca como atendida) y el panel se queda.
+  const sidePanelOpen = auditTarget !== null || shareRequestsOpen;
+  useEffect(() => {
+    if (!sidePanelOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape" || event.defaultPrevented) return;
+      setAuditTarget(null);
+      setShareRequestsOpen(false);
+      refreshPendingCount();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [sidePanelOpen, refreshPendingCount]);
+
+  // «/» lleva al buscador, como en tantos exploradores y gestores web. No actúa
+  // si ya se está escribiendo o si hay un diálogo, menú, visor o panel abierto.
+  const overlayOpen =
+    isViewerOpen ||
+    auditTarget !== null ||
+    shareRequestsOpen ||
+    mobileFolderOpen;
+  useEffect(() => {
+    if (overlayOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (
+        event.key !== "/" ||
+        event.ctrlKey ||
+        event.metaKey ||
+        event.altKey ||
+        event.defaultPrevented ||
+        isInteractiveTarget(event.target) ||
+        hasOpenOverlay()
+      )
+        return;
+
+      const input = document.querySelector<HTMLInputElement>(
+        '[data-tour="biblioteca-search-input"] input',
+      );
+      if (!input) return;
+      event.preventDefault();
+      input.focus();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [overlayOpen]);
+
   const { registerTour, unregisterTour } = useTourContext();
 
   useEffect(() => {
@@ -662,471 +1054,627 @@ const BibliotecaPage = () => {
       "biblioteca-principal",
       "Biblioteca Digital",
       bibliotecaPageSteps,
+      { onlyVisible: true },
     );
     return () => unregisterTour("biblioteca-principal");
   }, [registerTour, unregisterTour]);
 
+  // Estables para que el árbol (memoizado) no se repinte con cada tecla del buscador.
+  const openRename = useCallback(
+    (node: FolderNode, departmentId: number, departmentName: string) =>
+      setRenameTarget({ node, departmentId, departmentName }),
+    [],
+  );
+  const openDelete = useCallback(
+    (node: FolderNode, departmentId: number, departmentName: string) =>
+      setDeleteTarget({ node, departmentId, departmentName }),
+    [],
+  );
+  const openAccess = useCallback(
+    (node: FolderNode, departmentId: number, departmentName: string) =>
+      setAccessTarget({ node, departmentId, departmentName }),
+    [],
+  );
+  const openShare = useCallback(
+    (node: FolderNode, departmentId: number, departmentName: string) =>
+      setShareFolderTarget({ node, departmentId, departmentName }),
+    [],
+  );
+
+  const openUpload = useCallback(() => setIsModalOpen(true), [setIsModalOpen]);
+  const openGlobalHistory = useCallback(() => setAuditTarget("global"), []);
+  const openShareRequests = useCallback(() => setShareRequestsOpen(true), []);
+  const openFolderShares = useCallback(() => setFolderSharesOpen(true), []);
+  const openDashboard = useCallback(() => setDashboardOpen(true), []);
+  const openDownloadFolders = useCallback(
+    () => setDownloadFoldersOpen(true),
+    [],
+  );
+
+  // Mover desde el menú de un documento: si ya está en la selección se mueve
+  // toda la selección; si no, solo ese documento.
+  const selectedIdsRef = useRef<number[]>([]);
+  useEffect(() => {
+    selectedIdsRef.current = selectedDocumentIds;
+  }, [selectedDocumentIds]);
+
+  // Copiar es una réplica dentro del departamento del documento: todos los que
+  // se copian deben ser de uno solo (en favoritos y recientes pueden mezclarse).
+  const startCopy = useCallback(
+    (ids: number[]) => {
+      const names = new Set(
+        docsRef.current
+          .filter((d) => ids.includes(d.id))
+          .map((d) => departmentNameOf(d)),
+      );
+      const department = moveTargetDepartments.find((d) => names.has(d.name));
+
+      if (names.size !== 1 || !department) {
+        toast.error(
+          names.size > 1
+            ? "Seleccione documentos de un solo departamento para copiarlos."
+            : "No puede copiar documentos de ese departamento.",
+        );
+        return;
+      }
+      setCopyTarget({ ids, department });
+    },
+    [moveTargetDepartments],
+  );
+
+  // Desde el menú de un documento: si ya está seleccionado se copia toda la
+  // selección; si no, solo ese documento.
+  const handleCopyDocument = useCallback(
+    (id: number) => {
+      const current = selectedIdsRef.current;
+      startCopy(current.includes(id) ? current : [id]);
+    },
+    [startCopy],
+  );
+
+  const handleMoveDocument = useCallback((id: number) => {
+    setSelectedDocumentIds((current) =>
+      current.includes(id) ? current : [id],
+    );
+    setMoveDialogOpen(true);
+  }, []);
+
+  // Menú de clic derecho de las carpetas del panel de contenido.
+  const getSubfolderActions = useCallback(
+    (folder: FolderNode): MenuAction[] => {
+      if (!currentDeptForDialog || !selectedDeptName) return [];
+      const departmentId = Number(currentDeptForDialog.id);
+      return folderActions({
+        node: folder,
+        canManage,
+        onOpen: () => handleSelectFolder(folder.path, selectedDeptName),
+        onRename: () => openRename(folder, departmentId, selectedDeptName),
+        onAccess: () => openAccess(folder, departmentId, selectedDeptName),
+        onShare: () => openShare(folder, departmentId, selectedDeptName),
+        onDelete: () => openDelete(folder, departmentId, selectedDeptName),
+      });
+    },
+    [
+      currentDeptForDialog,
+      selectedDeptName,
+      canManage,
+      handleSelectFolder,
+      openRename,
+      openAccess,
+      openShare,
+      openDelete,
+    ],
+  );
+
+  // Clic derecho en un hueco del panel de contenido: lo que se hace «aquí».
+  const backgroundMenu = useContextMenu();
+  const backgroundActions: MenuAction[] =
+    selectedDeptName && !quickAccess
+      ? [
+          ...(canManage
+            ? ([
+                {
+                  key: "upload",
+                  label: "Subir documento",
+                  icon: UploadCloud,
+                  tone: "blue",
+                  onSelect: openUpload,
+                },
+                {
+                  key: "folder",
+                  label: "Nueva carpeta",
+                  icon: FolderPlus,
+                  tone: "blue",
+                  onSelect: () => setCreateFolderOpen(true),
+                },
+              ] satisfies MenuAction[])
+            : []),
+          {
+            key: "view",
+            label: view === "grid" ? "Ver como lista" : "Ver como cuadrícula",
+            icon: view === "grid" ? List : LayoutGrid,
+            tone: "blue",
+            separatorBefore: canManage,
+            onSelect: () => setView(view === "grid" ? "list" : "grid"),
+          },
+        ]
+      : [];
+
+  // El panel de carpetas se usa dos veces: fijo en escritorio y dentro del
+  // drawer móvil.
+  const folderPanelBody = (
+    <>
+      <div
+        className="flex shrink-0 items-center justify-between gap-2 border-b bg-muted/30 px-4 py-2"
+        data-tour="biblioteca-carpetas-header"
+      >
+        <div className="flex min-w-0 items-center gap-2.5">
+          <FolderOpen className="size-4 shrink-0 text-muted-foreground" />
+          <h2 className="text-[13px] font-semibold text-slate-700 dark:text-slate-200">
+            Carpetas
+          </h2>
+        </div>
+        <button
+          type="button"
+          onClick={() => setMobileFolderOpen(false)}
+          aria-label="Cerrar carpetas"
+          className="grid size-8 place-items-center rounded-md text-muted-foreground hover:bg-muted lg:hidden"
+        >
+          <X className="size-4" />
+        </button>
+      </div>
+
+      <div
+        className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-2"
+        data-tour="biblioteca-folder-tree"
+      >
+        {loading ? (
+          <TreeSkeleton />
+        ) : (
+          <>
+            <QuickAccessNav
+              value={trashOpen ? null : quickAccess}
+              onChange={handleQuickAccess}
+              counts={{
+                favorites: quickAccessDocs.favorites.length,
+                recents: quickAccessDocs.recents.length,
+              }}
+            />
+            <FolderTree
+              departmentFolders={departmentFolders}
+              isMultiDept={isMultiDept}
+              selectedDeptName={quickAccess ? null : selectedDeptName}
+              selectedFolderPath={quickAccess ? null : selectedFolderPath}
+              onSelect={handleSelectFolder}
+              onRename={openRename}
+              onDelete={openDelete}
+              onAccess={openAccess}
+              onShare={openShare}
+              onDropDocument={handleDropDocument}
+              onToggleDept={handleToggleDept}
+              loadingDeptIds={loadingDeptIds}
+              canManage={canManage}
+              companySlug={companySlug}
+            />
+          </>
+        )}
+      </div>
+
+      {canManage && (
+        <div className="shrink-0 border-t p-3">
+          <ActionTriggerButton
+            type="button"
+            data-tour="biblioteca-nueva-carpeta-btn"
+            onClick={() => setCreateFolderOpen(true)}
+            className="w-full"
+          >
+            <FolderPlus className="mr-2 size-4" />
+            Nueva carpeta
+          </ActionTriggerButton>
+        </div>
+      )}
+    </>
+  );
+
+  // En favoritos, recientes o la papelera no hay carpeta abierta: subir desde
+  // ahí no debe caer en la última carpeta que se miró.
+  const detached = !!quickAccess || trashOpen;
+
+  const folderParam =
+    selectedFolderPath && selectedFolderPath !== "/" ? selectedFolderPath : "/";
+
   return (
     <ContentLayout title="Biblioteca Digital">
-      <PageHeader className="mb-6" />
+      <div className="flex flex-col gap-6 lg:h-[calc(100dvh-8rem)]">
+        <PageHeader />
 
-      <div className="flex flex-col gap-y-4">
-        {loading ? (
-          <div className="w-full rounded-4xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#1a1c1e] shadow-xl animate-pulse overflow-hidden">
-            <div className="flex min-h-100">
-              <div className="hidden lg:block w-95 shrink-0 border-r border-slate-200 dark:border-slate-800 p-5">
-                <div className="h-3 w-16 bg-slate-200 dark:bg-slate-700 rounded mb-4" />
-                {[1, 2, 3, 4].map((i) => (
-                  <div
-                    key={i}
-                    className="h-3 w-full bg-slate-200 dark:bg-slate-700 rounded mb-3"
-                    style={{ width: `${60 + i * 8}%` }}
-                  />
-                ))}
-              </div>
-              <div className="flex-1 p-4 sm:p-8">
-                <div className="h-5 w-40 bg-slate-200 dark:bg-slate-700 rounded mb-6" />
-                {[1, 2, 3].map((i) => (
-                  <div
-                    key={i}
-                    className="h-12 w-full bg-slate-200 dark:bg-slate-700 rounded mb-3"
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-            <div className="mb-6 flex flex-col gap-2 border-b pb-4">
-              <h1
-                className="text-3xl font-semibold tracking-tight"
-                data-tour="biblioteca-title"
-              >
-                Biblioteca Digital
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                Gestión de documentos técnicos y certificados de {companySlug}.
+        <div className="flex shrink-0 flex-col gap-2 border-b pb-4">
+          <h1
+            className="text-2xl font-semibold tracking-tight sm:text-3xl"
+            data-tour="biblioteca-title"
+          >
+            Biblioteca Digital
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Gestión de documentos técnicos y certificados de {companySlug}.
+          </p>
+        </div>
+
+        <LibraryToolbar
+          search={searchTerm}
+          onSearchChange={setSearchTerm}
+          category={selectedCategory}
+          onCategoryChange={setSelectedCategory}
+          categories={categoriesToDisplay}
+          status={selectedStatus}
+          onStatusChange={setSelectedStatus}
+          sort={sortBy}
+          onSortChange={setSortBy}
+          view={view}
+          onViewChange={setView}
+          count={
+            loading || trashOpen || (!selectedDeptName && !quickAccess)
+              ? undefined
+              : filteredDocs.length
+          }
+          trashOpen={trashOpen}
+          onTrash={() => {
+            setSelectedDocumentIds([]);
+            setSection(trashOpen ? "carpetas" : "papelera");
+          }}
+          canManage={canManage}
+          isDipDirector={isDipDirector}
+          canViewDashboard={canViewDashboard}
+          pendingRequestCount={pendingRequestCount}
+          pendingFolderShareCount={pendingFolderShareCount}
+          onUpload={openUpload}
+          onHistory={openGlobalHistory}
+          onRequests={openShareRequests}
+          onFolderShares={openFolderShares}
+          onDashboard={openDashboard}
+          onDownloadFolders={openDownloadFolders}
+        />
+
+        {/* Explorador: carpetas a la izquierda, contenido a la derecha. En
+            escritorio cada columna desplaza por dentro y la página no se mueve. */}
+        <div className="relative flex min-h-112 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-700/60 dark:bg-slate-900/60 lg:min-h-0 lg:flex-1 lg:flex-row">
+          {movingDocument && (
+            <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-background/75">
+              <Loader2 className="size-8 animate-spin text-primary" />
+              <p className="text-sm font-medium text-muted-foreground">
+                Moviendo documentos...
               </p>
             </div>
+          )}
 
-            <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex flex-wrap items-center gap-3">
-                {canManage && (
-                  <>
-                    <Button
-                      data-tour="biblioteca-subir-btn"
-                      onClick={() => setIsModalOpen(true)}
-                      variant="outline"
-                      size="sm"
-                      className="w-fit flex items-center gap-1.5 rounded-xl border-blue-600 text-blue-600 hover:bg-blue-50 dark:border-blue-500 dark:text-blue-400 dark:hover:bg-blue-500/10 dark:hover:text-blue-300 font-bold text-[10px] uppercase tracking-widest px-5 h-10 shadow-xs transition-all active:scale-95"
-                    >
-                      <Plus className="h-4 w-4" />
-                      Subir Documento
-                    </Button>
+          <aside className="hidden shrink-0 flex-col border-r lg:flex lg:w-72 xl:w-80">
+            {folderPanelBody}
+          </aside>
 
-                    <Button
-                      data-tour="biblioteca-historial-btn"
-                      onClick={() => setAuditTarget("global")}
-                      variant="outline"
-                      size="sm"
-                      className="w-fit flex items-center gap-1.5 rounded-xl border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-white font-bold text-[10px] uppercase tracking-widest px-5 h-10 shadow-xs transition-all active:scale-95"
-                    >
-                      <History className="h-4 w-4" />
-                      Historial
-                    </Button>
-
-                    {isDipDirector && (
-                      <Button
-                        data-tour="biblioteca-solicitudes-btn"
-                        onClick={() => setShareRequestsOpen(true)}
-                        variant="outline"
-                        size="sm"
-                        className="w-fit flex items-center gap-1.5 rounded-xl border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-white font-bold text-[10px] uppercase tracking-widest px-5 h-10 shadow-xs transition-all active:scale-95"
-                      >
-                        <Send className="h-4 w-4" />
-                        Solicitudes
-                        {pendingRequestCount > 0 && (
-                          <span className="select-none ml-1 px-1.5 py-0.5 text-[9px] font-bold text-white bg-red-500 rounded-full min-w-4.5 text-center leading-none">
-                            {pendingRequestCount > 99
-                              ? "99+"
-                              : pendingRequestCount}
-                          </span>
-                        )}
-                      </Button>
-                    )}
-
-                    {canViewDashboard && (
-                      <Button
-                        data-tour="biblioteca-dashboard-btn"
-                        onClick={() => setDashboardOpen(true)}
-                        variant="outline"
-                        size="sm"
-                        className="w-fit flex items-center gap-1.5 rounded-xl border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-white font-bold text-[10px] uppercase tracking-widest px-5 h-10 shadow-xs transition-all active:scale-95"
-                      >
-                        <BarChart className="h-4 w-4" />
-                        Dashboard
-                      </Button>
-                    )}
-                  </>
-                )}
-
-                {/* Fuera del bloque canManage a propósito: descargar no es
-                    gestionar. El backend valida documento por documento con
-                    LibraryService::canDownloadDocument y los que no pasan se
-                    omiten del ZIP avisando en el resumen. */}
-                <Button
-                  onClick={() => setDownloadFoldersOpen(true)}
-                  variant="outline"
-                  size="sm"
-                  className="w-fit flex items-center gap-1.5 rounded-xl border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-white font-bold text-[10px] uppercase tracking-widest px-5 h-10 shadow-xs transition-all active:scale-95"
-                >
-                  <Download className="h-4 w-4" />
-                  Descargar Carpetas
-                </Button>
+          <section
+            className="relative flex min-h-0 min-w-0 flex-1 flex-col"
+            data-tour="biblioteca-documentos-header"
+            // Arrastrar un archivo del escritorio sobre el panel lo sube a la
+            // carpeta abierta. Solo cuentan los archivos (Files): mover
+            // documentos de la biblioteca usa otro tipo y no se toca aquí.
+            onDragOver={(e) => {
+              if (
+                trashOpen ||
+                quickAccess ||
+                !canManage ||
+                !selectedDeptName ||
+                !e.dataTransfer.types.includes("Files")
+              )
+                return;
+              e.preventDefault();
+              setIsFileDragging(true);
+            }}
+            onDragLeave={(e) => {
+              if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                setIsFileDragging(false);
+              }
+            }}
+            onDrop={(e) => {
+              if (!e.dataTransfer.types.includes("Files")) return;
+              e.preventDefault();
+              setIsFileDragging(false);
+              if (trashOpen || quickAccess || !canManage || !selectedDeptName)
+                return;
+              const file = e.dataTransfer.files[0];
+              if (!file) return;
+              const problem = fileProblem(file);
+              if (problem) {
+                toast.error(problem);
+                return;
+              }
+              setDroppedFile(file);
+              setIsModalOpen(true);
+            }}
+          >
+            {isFileDragging && (
+              <div className="pointer-events-none absolute inset-2 z-10 flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-primary bg-primary/5 text-primary">
+                <Plus className="size-8" />
+                <p className="text-sm font-semibold">
+                  Suelte el archivo para subirlo a{" "}
+                  {breadcrumbText === "Raíz"
+                    ? selectedDeptName
+                    : breadcrumbText}
+                </p>
               </div>
+            )}
 
-              {/* BUSCADOR CON POPOVER DE FILTROS */}
-              <div
-                className="relative flex items-center w-full sm:w-80"
-                ref={popoverRef}
-              >
-                <div
-                  className="flex items-center w-full bg-white dark:bg-[#111214] border border-slate-300 dark:border-slate-800 rounded-xl shadow-xs focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500 transition-all overflow-hidden h-10"
-                  data-tour="biblioteca-search-input"
-                >
-                  <div className="pl-4">
-                    <Search className="h-4 w-4 text-slate-400" />
-                  </div>
-                  <input
-                    type="text"
-                    placeholder="BUSCAR DOCUMENTO..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="flex-1 bg-transparent border-none outline-hidden px-3 text-[10px] font-bold tracking-widest text-slate-700 dark:text-white placeholder:text-slate-300 uppercase"
-                  />
-                  <TooltipProvider delayDuration={120}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <button
-                          data-tour="biblioteca-filter-btn"
-                          type="button"
-                          aria-label="Filtros avanzados"
-                          aria-expanded={showFilters}
-                          aria-haspopup="dialog"
-                          onClick={() => setShowFilters(!showFilters)}
-                          className={`flex items-center justify-center h-full px-3.5 border-l border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 transition-all text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 relative ${
-                            selectedCategory || selectedStatus
-                              ? "text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10"
-                              : ""
-                          }`}
-                        >
-                          <SlidersHorizontal className="h-4 w-4" />
-                          {(selectedCategory || selectedStatus) && (
-                            <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-blue-600 dark:bg-blue-400 animate-pulse" />
-                          )}
-                        </button>
-                      </TooltipTrigger>
-                      <TooltipContent>Filtros avanzados</TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
-
-                {/* POPOVER DE FILTROS */}
-                {showFilters && (
-                  <div className="absolute left-0 right-auto sm:left-auto sm:right-0 top-12 z-50 w-[calc(100vw-2rem)] max-w-72 p-5 bg-white dark:bg-[#1a1c1e] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl animate-in fade-in slide-in-from-top-2 duration-200">
-                    <div
-                      className="flex items-center justify-between mb-4 pb-2 border-b border-slate-100 dark:border-slate-800"
-                      data-tour="biblioteca-filter-limpiar"
-                    >
-                      <span className="text-[11px] font-black uppercase tracking-wider text-slate-800 dark:text-white">
-                        Filtros
-                      </span>
-                      {(selectedCategory || selectedStatus || searchTerm) && (
-                        <button
-                          onClick={() => {
-                            setSelectedCategory("");
-                            setSelectedStatus("");
-                            setSearchTerm("");
-                          }}
-                          className="text-[9px] font-extrabold text-red-500 hover:text-red-600 uppercase tracking-widest transition-colors"
-                        >
-                          Limpiar todo
-                        </button>
-                      )}
-                    </div>
-
-                    <div className="space-y-4">
-                      {/* Categoría Selector */}
-                      <div
-                        className="space-y-1.5"
-                        data-tour="biblioteca-filter-categoria"
-                      >
-                        <label className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500">
-                          Categoría
-                        </label>
-                        <select
-                          value={selectedCategory}
-                          onChange={(e) => setSelectedCategory(e.target.value)}
-                          className="w-full h-9 px-3 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-[#111214] text-slate-700 dark:text-white text-[10px] font-bold tracking-wider uppercase focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-hidden transition-all cursor-pointer"
-                        >
-                          <option value="">TODAS LAS CATEGORÍAS</option>
-                          {categoriesToDisplay.map((cat) => (
-                            <option key={cat.id} value={cat.name}>
-                              {cat.name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      {/* Estado Selector */}
-                      <div
-                        className="space-y-1.5"
-                        data-tour="biblioteca-filter-estado"
-                      >
-                        <label className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500">
-                          Estado
-                        </label>
-                        <select
-                          value={selectedStatus}
-                          onChange={(e) => setSelectedStatus(e.target.value)}
-                          className="w-full h-9 px-3 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-[#111214] text-slate-700 dark:text-white text-[10px] font-bold tracking-wider uppercase focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-hidden transition-all cursor-pointer"
-                        >
-                          <option value="">TODOS LOS ESTADOS</option>
-                          <option value="vigente">VIGENTE</option>
-                          <option value="vencido">VENCIDO</option>
-                          <option value="no_aplica">NO APLICA</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* TARJETA ÚNICA: SIDEBAR + CONTENIDO */}
-            <div className="w-full rounded-4xl border border-slate-200 dark:border-slate-800 dark:bg-[#1a1c1e] bg-white shadow-xl shadow-slate-200/50 dark:shadow-none relative overflow-hidden">
-              {movingDocument && (
-                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-white/75 dark:bg-[#1a1c1e]/75 backdrop-blur-[2px]">
-                  <Loader2 className="h-9 w-9 animate-spin text-blue-600 dark:text-blue-400" />
-                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
-                    Moviendo documento...
-                  </p>
-                </div>
-              )}
-              <div className="flex min-h-100">
-                {/* Backdrop del drawer de carpetas en móvil */}
-                {mobileFolderOpen && (
-                  <button
-                    type="button"
-                    aria-label="Cerrar carpetas"
-                    onClick={() => setMobileFolderOpen(false)}
-                    className="lg:hidden fixed inset-0 z-40 bg-black/40 backdrop-blur-[1px] animate-in fade-in duration-200"
-                  />
-                )}
-
-                {/* PANEL DE CARPETAS — sidebar en desktop, drawer en móvil */}
-                <div
-                  className={cn(
-                    "flex flex-col border-r border-slate-200 dark:border-slate-800",
-                    mobileFolderOpen
-                      ? "fixed inset-y-0 left-0 z-50 w-[85vw] max-w-xs bg-white dark:bg-[#1a1c1e] p-5 shadow-2xl animate-in slide-in-from-left-2 duration-200"
-                      : "hidden lg:flex lg:w-87.5 shrink-0 lg:p-5 lg:pt-8",
-                  )}
-                >
-                  <div
-                    className="flex items-start justify-between gap-2 mb-6 border-b pb-6 border-slate-200 dark:border-slate-800 shrink-0"
-                    data-tour="biblioteca-carpetas-header"
-                  >
-                    <div className="flex flex-col gap-1">
-                      <h2 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-widest">
-                        Carpetas
-                      </h2>
-                      <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 tracking-wide">
-                        Organización departamental
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => setMobileFolderOpen(false)}
-                      aria-label="Cerrar carpetas"
-                      className="lg:hidden flex items-center justify-center h-8 w-8 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
-                  <div
-                    className="flex-1 overflow-y-auto max-h-125 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-200 dark:[&::-webkit-scrollbar-thumb]:bg-slate-700 [&::-webkit-scrollbar-thumb]:rounded-full pr-2"
-                    data-tour="biblioteca-folder-tree"
-                  >
-                    <FolderTree
-                      departmentFolders={departmentFolders}
-                      isMultiDept={isMultiDept}
-                      selectedDeptName={selectedDeptName}
-                      selectedFolderPath={selectedFolderPath}
-                      onSelect={handleSelectFolder}
-                      onRename={(node, deptId, deptName) =>
-                        setRenameTarget({
-                          node,
-                          departmentId: deptId,
-                          departmentName: deptName,
-                        })
-                      }
-                      onDelete={(node, deptId, deptName) =>
-                        setDeleteTarget({
-                          node,
-                          departmentId: deptId,
-                          departmentName: deptName,
-                        })
-                      }
-                      onDropDocument={handleDropDocument}
-                      onToggleDept={handleToggleDept}
-                      loadingDeptIds={loadingDeptIds}
-                      canManage={canManage}
-                      companySlug={companySlug}
-                    />
-                  </div>
-                  {canManage && (
-                    <button
-                      data-tour="biblioteca-nueva-carpeta-btn"
-                      onClick={() => setCreateFolderOpen(true)}
-                      className="mt-3 w-full flex items-center justify-center gap-2 py-2.5 text-[10px] font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 rounded-xl transition-all active:scale-[0.98] shrink-0"
-                    >
-                      <FolderPlus className="h-3.5 w-3.5" />
-                      Nueva Carpeta
-                    </button>
-                  )}
-                </div>
-
-                <div
-                  className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8"
-                  data-tour="biblioteca-documentos-header"
-                >
-                  {/* Selector de carpetas en móvil */}
-                  <button
+            {trashOpen ? (
+              <TrashView
+                company={companySlug}
+                onExit={() => setSection("carpetas")}
+                onChanged={fetchDocs}
+              />
+            ) : (
+              <>
+                {/* Ruta de la carpeta abierta (o, al buscar, el alcance de la búsqueda) */}
+                <div className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-2 border-b bg-muted/30 px-4 py-2">
+                  <StripButton
+                    icon={Menu}
                     onClick={() => setMobileFolderOpen(true)}
-                    className="lg:hidden mb-5 w-full flex items-center gap-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40 px-4 py-2.5 text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                     data-tour="biblioteca-carpetas-movil-btn"
+                    className="lg:hidden"
                   >
-                    <FolderOpen className="h-4 w-4 text-slate-500 dark:text-slate-400 shrink-0" />
-                    <span className="flex-1 min-w-0">
-                      <span className="block text-[9px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">
-                        Carpetas
-                      </span>
-                      <span className="block text-[11px] font-semibold text-slate-700 dark:text-slate-200 truncate">
-                        {selectedDeptName
-                          ? `${selectedDeptName} — ${breadcrumbText}`
-                          : "Selecciona una carpeta"}
-                      </span>
-                    </span>
-                    <ChevronRight className="h-4 w-4 text-slate-400 shrink-0" />
-                  </button>
+                    Carpetas
+                  </StripButton>
 
-                  <div className="flex flex-col gap-1 mb-6 border-b pb-6 border-slate-200 dark:border-slate-800">
-                    <h2 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-widest">
-                      Documentos
-                    </h2>
-                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 tracking-wide">
-                      {selectedDeptName
-                        ? `${selectedDeptName} — ${breadcrumbText}`
-                        : "Selecciona una carpeta"}
-                    </p>
-                  </div>
-
-                  {selectedDocumentIds.length > 0 && canManage && (
-                    <div className="mb-4 flex items-center gap-3 rounded-xl border border-blue-200 dark:border-blue-500/30 bg-blue-50 dark:bg-blue-900/20 px-4 py-2.5 animate-in fade-in slide-in-from-top-2 duration-200">
-                      <span className="text-[10px] font-black uppercase tracking-widest text-blue-700 dark:text-blue-300">
-                        {selectedDocumentIds.length} documento
-                        {selectedDocumentIds.length === 1 ? "" : "s"}{" "}
-                        seleccionado
-                        {selectedDocumentIds.length === 1 ? "" : "s"}
-                      </span>
-                      <Button
-                        onClick={() => setMoveDialogOpen(true)}
-                        variant="outline"
-                        size="sm"
-                        className="w-fit flex items-center gap-1.5 rounded-xl border-blue-600 text-blue-600 hover:bg-blue-100 dark:border-blue-500 dark:text-blue-400 dark:hover:bg-blue-500/10 dark:hover:text-blue-300 font-bold text-[10px] uppercase tracking-widest px-4 h-9 shadow-xs transition-all active:scale-95 ml-auto"
-                      >
-                        <ArrowRightLeft className="h-4 w-4" />
-                        Mover a...
-                      </Button>
-                      <button
-                        onClick={() => setSelectedDocumentIds([])}
-                        aria-label="Limpiar selección"
-                        className="flex items-center justify-center h-9 w-9 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-700 transition-all"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    </div>
-                  )}
-
-                  <div className="overflow-x-auto">
-                    {!selectedDeptName ? (
-                      <div
-                        data-tour="biblioteca-empty-folder"
-                        className="flex flex-col items-center justify-center py-16 text-center"
-                      >
-                        <FolderOpen className="h-12 w-12 text-slate-300 dark:text-slate-600 mb-4" />
-                        <p className="text-sm font-bold text-slate-400 dark:text-slate-500">
-                          Selecciona una carpeta del árbol para ver sus
-                          documentos
-                        </p>
-                      </div>
-                    ) : filteredDocs.length === 0 ? (
-                      <div
-                        data-tour="biblioteca-empty-docs"
-                        className="flex flex-col items-center justify-center py-16 text-center"
-                      >
-                        <FolderOpen className="h-12 w-12 text-slate-300 dark:text-slate-600 mb-4" />
-                        <p className="text-sm font-bold text-slate-400 dark:text-slate-500">
-                          No hay documentos en esta carpeta
-                        </p>
-                        {canManage && (
-                          <Button
-                            onClick={() => setIsModalOpen(true)}
-                            variant="outline"
-                            size="sm"
-                            className="mt-4 text-[10px] font-bold uppercase tracking-widest"
-                          >
-                            Subir aquí
-                          </Button>
+                  <div className="min-w-0 flex-1">
+                    {quickAccess ? (
+                      <p className="truncate text-sm text-slate-600 dark:text-slate-400">
+                        <span className="font-semibold text-slate-700 dark:text-slate-200">
+                          {quickAccess === "favorites"
+                            ? "Favoritos"
+                            : "Recientes"}
+                        </span>
+                        {isSearching && (
+                          <> · resultados de «{deferredSearch.trim()}»</>
                         )}
-                      </div>
+                      </p>
+                    ) : !selectedDeptName ? (
+                      <p className="text-sm text-muted-foreground">
+                        Seleccione una carpeta
+                      </p>
+                    ) : isSearching ? (
+                      <p className="truncate text-sm text-slate-600 dark:text-slate-400">
+                        Resultados de «{deferredSearch.trim()}» en todo{" "}
+                        <span className="font-semibold text-slate-700 dark:text-slate-200">
+                          {selectedDeptName}
+                        </span>
+                      </p>
                     ) : (
-                      <DocumentTable
-                        company={companySlug}
-                        documents={filteredDocs}
-                        onRefresh={handleDocRefresh}
-                        onView={(id: number) => {
-                          setViewingDocId(id);
-                          setIsViewerOpen(true);
-                        }}
-                        onDelete={handleDeleteDocument}
-                        canManage={canManage}
-                        isDipDirector={isDipDirector}
-                        user={user}
-                        selectedIds={selectedDocumentIds}
-                        onSelectionChange={setSelectedDocumentIds}
-                        folderPath={
-                          selectedFolderPath && selectedFolderPath !== "/"
-                            ? selectedFolderPath
-                            : "/"
+                      <LibraryBreadcrumb
+                        departmentName={selectedDeptName}
+                        path={selectedFolderPath ?? "/"}
+                        onNavigate={(path) =>
+                          handleSelectFolder(path, selectedDeptName)
                         }
                       />
                     )}
                   </div>
                 </div>
-              </div>
-            </div>
-          </div>
-        )}
+
+                {selectedDocumentIds.length > 0 && canManage && (
+                  <div className="flex shrink-0 items-center gap-3 border-b bg-primary/5 px-4 py-2 max-sm:px-3">
+                    <span className="text-[13px] font-semibold text-primary">
+                      {selectedDocumentIds.length}{" "}
+                      {selectedDocumentIds.length === 1
+                        ? "documento seleccionado"
+                        : "documentos seleccionados"}
+                    </span>
+                    <StripButton
+                      icon={ArrowRightLeft}
+                      onClick={() => setMoveDialogOpen(true)}
+                      className="ml-auto"
+                    >
+                      Mover a...
+                    </StripButton>
+                    <StripButton
+                      icon={Copy}
+                      onClick={() => startCopy(selectedDocumentIds)}
+                    >
+                      Copiar a...
+                    </StripButton>
+                    <StripButton
+                      icon={Star}
+                      onClick={() =>
+                        handleBulkFavorite(
+                          selectedDocumentIds,
+                          !selectedDocumentsAllFavorite,
+                        )
+                      }
+                    >
+                      {selectedDocumentsAllFavorite
+                        ? "Quitar favoritos"
+                        : "Favoritos"}
+                    </StripButton>
+                    <StripButton
+                      icon={Trash2}
+                      danger
+                      onClick={() => setBulkDeleteOpen(true)}
+                    >
+                      Eliminar
+                    </StripButton>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedDocumentIds([])}
+                      aria-label="Limpiar selección"
+                      className="grid size-8 place-items-center rounded-md text-muted-foreground hover:bg-muted max-sm:size-10"
+                    >
+                      <X className="size-4" />
+                    </button>
+                  </div>
+                )}
+
+                <div
+                  className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain p-4 max-sm:p-3"
+                  onContextMenu={
+                    backgroundActions.length > 0
+                      ? backgroundMenu.onContextMenu
+                      : undefined
+                  }
+                >
+                  <ActionsContextMenu
+                    point={backgroundMenu.point}
+                    onClose={backgroundMenu.close}
+                    actions={backgroundActions}
+                  />
+                  {loading ? (
+                    <WorkspaceSkeleton />
+                  ) : (
+                    <>
+                      {selectedDeptName && !isSearching && !quickAccess && (
+                        <SubfolderGrid
+                          getActions={getSubfolderActions}
+                          folders={subfolders}
+                          counts={folderDocCounts}
+                          parentPath={parentFolderPath}
+                          onDropDocument={
+                            canManage && currentDeptForDialog
+                              ? (documentIds, folderPath) =>
+                                  handleDropDocument(
+                                    documentIds,
+                                    folderPath,
+                                    Number(currentDeptForDialog.id),
+                                    selectedDeptName,
+                                    false,
+                                  )
+                              : undefined
+                          }
+                          onOpenParent={
+                            parentFolderPath
+                              ? () =>
+                                  handleSelectFolder(
+                                    parentFolderPath,
+                                    selectedDeptName,
+                                  )
+                              : undefined
+                          }
+                          onOpen={(path) =>
+                            handleSelectFolder(path, selectedDeptName)
+                          }
+                        />
+                      )}
+
+                      {!selectedDeptName && !quickAccess ? (
+                        <EmptyState
+                          icon={FolderOpen}
+                          title="Seleccione una carpeta"
+                          description="Elija una carpeta del árbol para ver sus documentos."
+                          className="flex-1 py-12"
+                          action={
+                            <StripButton
+                              icon={FolderOpen}
+                              onClick={() => setMobileFolderOpen(true)}
+                              data-tour="biblioteca-empty-folder"
+                              className="mt-2 lg:hidden"
+                            >
+                              Ver carpetas
+                            </StripButton>
+                          }
+                        />
+                      ) : filteredDocs.length === 0 ? (
+                        <div
+                          data-tour="biblioteca-empty-docs"
+                          className="flex flex-1 items-center justify-center py-8"
+                        >
+                          {quickAccess &&
+                          !isSearching &&
+                          !selectedCategory &&
+                          !selectedStatus ? (
+                            <EmptyState
+                              icon={quickAccess === "favorites" ? Star : Clock}
+                              title={
+                                quickAccess === "favorites"
+                                  ? "Aún no tiene favoritos"
+                                  : "Aún no ha abierto documentos"
+                              }
+                              description={
+                                quickAccess === "favorites"
+                                  ? "Marque un documento con la estrella para tenerlo siempre a mano."
+                                  : "Los documentos que abra aparecerán aquí."
+                              }
+                            />
+                          ) : isSearching ||
+                            selectedCategory ||
+                            selectedStatus ? (
+                            <EmptyState
+                              icon={SearchX}
+                              title="Ningún documento coincide"
+                              description="Pruebe con otro nombre o limpie los filtros."
+                            />
+                          ) : (
+                            <EmptyState
+                              icon={Inbox}
+                              title="No hay documentos en esta carpeta"
+                              action={
+                                canManage ? (
+                                  <ActionTriggerButton
+                                    type="button"
+                                    onClick={() => setIsModalOpen(true)}
+                                    className="mt-2"
+                                  >
+                                    <Plus className="mr-2 size-4" />
+                                    Subir aquí
+                                  </ActionTriggerButton>
+                                ) : undefined
+                              }
+                            />
+                          )}
+                        </div>
+                      ) : (
+                        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-700/60 dark:bg-slate-900/60">
+                          <DocumentTable
+                            onMove={handleMoveDocument}
+                            onCopy={handleCopyDocument}
+                            company={companySlug}
+                            documents={filteredDocs}
+                            view={view}
+                            onRefresh={handleDocRefresh}
+                            onView={handleViewDocument}
+                            canManage={canManage}
+                            isDipDirector={isDipDirector}
+                            user={user}
+                            selectedIds={selectedDocumentIds}
+                            onSelectionChange={setSelectedDocumentIds}
+                            // Sin carpeta de referencia en favoritos y recientes: cada documento
+                            // se trata en su propia carpeta (eliminar no debe confundirlo con una réplica).
+                            folderPath={quickAccess ? undefined : folderParam}
+                            showFolderPath={isSearching || !!quickAccess}
+                            showDepartment={!!quickAccess}
+                            onToggleFavorite={handleToggleFavorite}
+                            shortcutsEnabled={!overlayOpen}
+                          />
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              </>
+            )}
+          </section>
+        </div>
       </div>
 
       <UploadModal
         company={companySlug}
         isOpen={isModalOpen && canManage}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          setDroppedFile(null);
+        }}
         onSuccess={handleDocRefresh}
-        departmentId={currentDeptForDialog?.id ?? null}
-        folders={currentFoldersForDialog}
+        initialFile={droppedFile}
+        departmentId={detached ? null : (currentDeptForDialog?.id ?? null)}
+        folders={detached ? [] : currentFoldersForDialog}
+        currentFolderPath={
+          !detached && selectedFolderPath && selectedFolderPath !== "/"
+            ? selectedFolderPath
+            : ""
+        }
       />
 
       <DocumentViewer
@@ -1140,11 +1688,11 @@ const BibliotecaPage = () => {
         open={createFolderOpen && canManage}
         onClose={() => setCreateFolderOpen(false)}
         company={companySlug}
-        departmentId={currentDeptForDialog?.id ?? null}
+        departmentId={detached ? null : (currentDeptForDialog?.id ?? null)}
         departmentName={selectedDeptName}
         departments={departments}
-        folders={currentFoldersForDialog}
-        selectedFolderPath={selectedFolderPath}
+        folders={detached ? [] : currentFoldersForDialog}
+        selectedFolderPath={detached ? null : selectedFolderPath}
         isSuperUser={isSuperUser}
         onSuccess={(deptId) => handleFolderRefresh(deptId)}
       />
@@ -1157,7 +1705,60 @@ const BibliotecaPage = () => {
           folderId={renameTarget.node.id}
           currentName={renameTarget.node.name}
           departmentId={renameTarget.departmentId}
-          onSuccess={() => handleFolderRefresh(renameTarget.departmentId)}
+          onSuccess={(newPath) => {
+            const oldPath = renameTarget.node.path;
+            // La carpeta abierta (o una de sus subcarpetas) cambió de ruta.
+            if (
+              newPath &&
+              selectedDeptName === renameTarget.departmentName &&
+              selectedFolderPath &&
+              (selectedFolderPath === oldPath ||
+                selectedFolderPath.startsWith(`${oldPath}/`))
+            ) {
+              setSelectedFolderPath(
+                newPath + selectedFolderPath.slice(oldPath.length),
+              );
+            }
+            return Promise.all([
+              fetchDocs(),
+              handleFolderRefresh(renameTarget.departmentId),
+            ]);
+          }}
+        />
+      )}
+
+      {shareFolderTarget && (
+        <FolderShareDialog
+          open={!!shareFolderTarget}
+          onClose={() => setShareFolderTarget(null)}
+          company={companySlug}
+          folderId={shareFolderTarget.node.id}
+          folderName={shareFolderTarget.node.name}
+          departmentId={shareFolderTarget.departmentId}
+        />
+      )}
+
+      <FolderSharesDialog
+        open={folderSharesOpen}
+        onClose={() => setFolderSharesOpen(false)}
+        company={companySlug}
+        canReview={isDipDirector}
+      />
+
+      {accessTarget && (
+        <FolderAccessDialog
+          open={!!accessTarget}
+          onClose={() => setAccessTarget(null)}
+          company={companySlug}
+          folderId={accessTarget.node.id}
+          folderName={accessTarget.node.name}
+          departmentId={accessTarget.departmentId}
+          onSuccess={() =>
+            Promise.all([
+              fetchDocs(),
+              handleFolderRefresh(accessTarget.departmentId),
+            ])
+          }
         />
       )}
 
@@ -1169,44 +1770,78 @@ const BibliotecaPage = () => {
           folderId={deleteTarget.node.id}
           folderName={deleteTarget.node.name}
           departmentId={deleteTarget.departmentId}
-          onSuccess={() => handleFolderRefresh(deleteTarget.departmentId)}
+          onSuccess={() => {
+            const deletedPath = deleteTarget.node.path;
+            // Si se estaba viendo la carpeta borrada, se vuelve a la raíz.
+            if (
+              selectedDeptName === deleteTarget.departmentName &&
+              selectedFolderPath &&
+              (selectedFolderPath === deletedPath ||
+                selectedFolderPath.startsWith(`${deletedPath}/`))
+            ) {
+              setSelectedFolderPath("/");
+            }
+            return handleFolderRefresh(deleteTarget.departmentId);
+          }}
         />
       )}
 
-      {auditTarget && (
-        <div className="fixed inset-0 z-100 flex justify-end overflow-hidden">
-          <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-[2px] animate-in fade-in duration-300"
-            onClick={() => setAuditTarget(null)}
-          />
-          <div className="relative z-10 h-full">
-            <TraceabilityPanel
-              documentId={auditTarget === "global" ? null : auditTarget}
-              company={companySlug}
-              onClose={() => setAuditTarget(null)}
+      {auditTarget &&
+        createPortal(
+          <div className="fixed inset-0 z-100 flex justify-end overflow-hidden">
+            <div
+              className="absolute inset-0 bg-black/40"
+              onClick={() => setAuditTarget(null)}
             />
-          </div>
-        </div>
-      )}
+            <div className="relative z-10 h-full">
+              <TraceabilityPanel
+                documentId={auditTarget === "global" ? null : auditTarget}
+                company={companySlug}
+                onClose={() => setAuditTarget(null)}
+              />
+            </div>
+          </div>,
+          document.body,
+        )}
 
-      {shareRequestsOpen && (
-        <div className="fixed inset-0 z-100 flex justify-end overflow-hidden">
-          <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-[2px] animate-in fade-in duration-300"
-            onClick={() => setShareRequestsOpen(false)}
-          />
-          <div className="relative z-10 h-full">
-            <ShareRequestsPanel
-              company={companySlug}
-              onClose={() => {
-                setShareRequestsOpen(false);
-                refreshPendingCount();
-              }}
-              onRefresh={refreshPendingCount}
+      {shareRequestsOpen &&
+        createPortal(
+          <div className="fixed inset-0 z-100 flex justify-end overflow-hidden">
+            <div
+              className="absolute inset-0 bg-black/40"
+              onClick={() => setShareRequestsOpen(false)}
             />
-          </div>
-        </div>
-      )}
+            <div className="relative z-10 h-full">
+              <ShareRequestsPanel
+                company={companySlug}
+                onClose={() => {
+                  setShareRequestsOpen(false);
+                  refreshPendingCount();
+                }}
+                onRefresh={refreshPendingCount}
+              />
+            </div>
+          </div>,
+          document.body,
+        )}
+
+      {/* Drawer de carpetas en móvil: al body, porque el layout crea su propio
+          contexto de apilamiento y por dentro quedaría bajo la barra y el menú. */}
+      {mobileFolderOpen &&
+        createPortal(
+          <div className="lg:hidden">
+            <button
+              type="button"
+              aria-label="Cerrar carpetas"
+              onClick={() => setMobileFolderOpen(false)}
+              className="fixed inset-0 z-40 bg-black/40"
+            />
+            <div className="fixed inset-y-0 left-0 z-50 flex w-[85vw] max-w-xs flex-col border-r border-border/50 bg-background shadow-2xl motion-safe:animate-item-in">
+              {folderPanelBody}
+            </div>
+          </div>,
+          document.body,
+        )}
 
       <DashboardModal
         open={dashboardOpen}
@@ -1225,16 +1860,57 @@ const BibliotecaPage = () => {
       />
 
       <MoveDocumentsDialog
+        key="copy"
+        mode="copy"
+        open={!!copyTarget}
+        onClose={() => setCopyTarget(null)}
+        company={companySlug}
+        documentIds={copyTarget?.ids ?? []}
+        departmentFolders={departmentFolders}
+        departments={copyTarget ? [copyTarget.department] : []}
+        onLoadFolders={handleToggleDept}
+        loadingDepartmentIds={loadingDeptIds}
+        onSuccess={async () => {
+          setSelectedDocumentIds([]);
+          await fetchDocs();
+        }}
+      />
+
+      <ConfirmDeleteDialog
+        open={bulkDeleteOpen}
+        onOpenChange={setBulkDeleteOpen}
+        title="Eliminar documentos"
+        entityName={`${selectedDocumentIds.length} ${selectedDocumentIds.length === 1 ? "documento" : "documentos"}`}
+        confirmLabel="Enviar a la papelera"
+        warning="Van a la papelera: dejan de verse y sus enlaces dejan de funcionar, pero se pueden restaurar durante 30 días. Las réplicas de esta carpeta solo se quitan de ella."
+        onConfirm={async () => {
+          try {
+            await libraryService.trashDocuments(
+              companySlug,
+              selectedDocumentIds,
+              // La carpeta de origen decide si una réplica solo se quita de ella;
+              // fuera de una carpeta (búsqueda, accesos rápidos) se elimina el documento.
+              detached || isSearching ? undefined : (selectedFolderPath ?? "/"),
+            );
+            toast.success("Documentos enviados a la papelera");
+            setSelectedDocumentIds([]);
+            await fetchDocs();
+          } catch (error) {
+            notifyError(error, { action: "eliminar los documentos" });
+            throw error;
+          }
+        }}
+      />
+
+      <MoveDocumentsDialog
         open={moveDialogOpen}
         onClose={() => setMoveDialogOpen(false)}
         company={companySlug}
         documentIds={selectedDocumentIds}
         departmentFolders={departmentFolders}
-        departments={departments.map((d) => ({
-          id: Number(d.id),
-          name: d.name,
-        }))}
+        departments={moveTargetDepartments}
         onLoadFolders={handleToggleDept}
+        loadingDepartmentIds={loadingDeptIds}
         onSuccess={handleBatchMoveSuccess}
         sourceFolderPath={
           selectedFolderPath && selectedFolderPath !== "/"

@@ -18,7 +18,9 @@ const ConditionsPage = () => {
 
   useEffect(() => {
     if (conditions && conditions.length > 0) {
-      registerTour("condiciones", "Condiciones", condicionesSteps);
+      registerTour("condiciones", "Condiciones", condicionesSteps, {
+        onlyVisible: true,
+      });
     }
 
     return () => unregisterTour("condiciones");
@@ -42,6 +44,7 @@ const ConditionsPage = () => {
       heading="Control de Condiciones"
       description="Administre las condiciones de los artículos del almacén y cuáles no cuentan como gasto en los reportes."
       tourPrefix="condiciones"
+      toolbarTourId="condiciones-toolbar"
       search={{
         value: search,
         onChange: setSearch,

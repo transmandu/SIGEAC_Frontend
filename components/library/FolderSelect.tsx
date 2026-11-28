@@ -23,6 +23,13 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { FormControl } from "@/components/ui/form";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { triggerButtonClass } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
 import { cn } from "@/lib/utils";
 import { useOnChange } from "@/hooks/useOnChange";
 
@@ -96,24 +103,29 @@ function FolderRow({
   const isExpanded = expanded.has(node.path);
   const isSelected = selected.has(node.path);
   const isPrimary = primary === node.path;
+  // Carpeta ajena que solo se recorre para llegar a una compartida: no se puede
+  // guardar nada en ella.
+  const selectable = !node.navigation_only;
 
   return (
     <div>
       <div
         role="button"
         tabIndex={0}
-        onClick={() => onToggle(node.path)}
+        aria-disabled={!selectable}
+        onClick={() => selectable && onToggle(node.path)}
         onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
+          if (selectable && (e.key === "Enter" || e.key === " ")) {
             e.preventDefault();
             onToggle(node.path);
           }
         }}
         className={cn(
-          "group flex w-full items-center gap-1.5 py-1.5 px-2 text-sm rounded-md border text-left cursor-pointer transition-colors",
+          "flex w-full cursor-pointer items-center gap-1.5 rounded-lg px-2 py-1.5 text-left text-sm outline-hidden motion-safe:transition-colors focus-visible:ring-2 focus-visible:ring-primary/30 max-md:py-2.5",
           isSelected
-            ? "bg-muted/60 border-border/60 font-medium text-foreground"
-            : "border-transparent text-foreground/90 hover:bg-muted/20",
+            ? "bg-primary/10 font-semibold text-primary"
+            : "text-slate-700 hover:bg-muted/60 dark:text-slate-300",
+          !selectable && "cursor-default opacity-50 hover:bg-transparent",
         )}
       >
         {hasChildren ? (
@@ -123,61 +135,66 @@ function FolderRow({
               e.stopPropagation();
               onToggleExpand(node.path);
             }}
-            className="p-0.5 shrink-0 text-muted-foreground/70 hover:bg-muted/40 rounded"
+            className="shrink-0 rounded p-0.5 text-muted-foreground hover:bg-muted"
             aria-label={isExpanded ? "Contraer" : "Expandir"}
           >
             {isExpanded ? (
-              <ChevronDown className="h-3.5 w-3.5" />
+              <ChevronDown className="size-3.5" />
             ) : (
-              <ChevronRight className="h-3.5 w-3.5" />
+              <ChevronRight className="size-3.5" />
             )}
           </button>
         ) : (
-          <span className="w-4 shrink-0" />
+          <span className="w-5 shrink-0" />
         )}
 
         {isExpanded ? (
-          <FolderOpen className="h-3.5 w-3.5 shrink-0 text-foreground/80" />
+          <FolderOpen className="size-4 shrink-0" />
         ) : (
-          <Folder className="h-3.5 w-3.5 shrink-0 text-muted-foreground/70" />
+          <Folder className="size-4 shrink-0 text-muted-foreground" />
         )}
 
-        <span className="truncate flex-1" title={node.name}>
-          {node.name}
-        </span>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="truncate flex-1">{node.name}</span>
+          </TooltipTrigger>
+          <TooltipContent>{node.name}</TooltipContent>
+        </Tooltip>
 
         {isSelected && showPrimary && (
-          <>
-            <button
-              type="button"
-              title={
-                isPrimary
-                  ? "Carpeta principal"
-                  : "Marcar como carpeta principal"
-              }
-              aria-label={
-                isPrimary ? "Carpeta principal" : "Marcar como principal"
-              }
-              onClick={(e) => {
-                e.stopPropagation();
-                onSetPrimary(node.path);
-              }}
-              className={cn(
-                "p-0.5 shrink-0 rounded hover:bg-muted/50 transition-colors",
-                isPrimary ? "text-amber-400" : "text-muted-foreground/50",
-              )}
-            >
-              <Star
-                className={cn("h-3.5 w-3.5", isPrimary ? "fill-amber-400" : "")}
-              />
-            </button>
-          </>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                aria-label={
+                  isPrimary ? "Carpeta principal" : "Marcar como principal"
+                }
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onSetPrimary(node.path);
+                }}
+                className={cn(
+                  "shrink-0 rounded p-0.5 hover:bg-muted motion-safe:transition-colors",
+                  isPrimary ? "text-amber-500" : "text-muted-foreground",
+                )}
+              >
+                <Star
+                  className={cn("size-4", isPrimary ? "fill-amber-500" : "")}
+                />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>
+              {isPrimary
+                ? "Carpeta principal"
+                : "Marcar como carpeta principal"}
+            </TooltipContent>
+          </Tooltip>
         )}
-        {isSelected && <Check className="h-3.5 w-3.5 shrink-0 text-primary" />}
+        {isSelected && <Check className="size-4 shrink-0 text-primary" />}
       </div>
 
       {hasChildren && isExpanded && (
-        <div className="pl-3 border-l border-border/40">
+        <div className="ml-2.5 border-l border-border/60 pl-2.5">
           {node.children.map((child) => (
             <FolderRow
               key={child.id}
@@ -349,101 +366,86 @@ export default function FolderSelect({
   }, [value, withPrimary]);
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <FormControl>
-          <Button
-            variant="outline"
-            role="combobox"
-            type="button"
-            disabled={loadingDept && !company}
-            aria-expanded={open}
-            className={cn(
-              "w-full justify-between font-normal h-9",
-              !value.length && "text-muted-foreground",
-            )}
-          >
-            <span className="flex items-center gap-2 overflow-hidden flex-1 min-w-0">
-              {value.length > 1 ? (
-                <Layers className="h-3.5 w-3.5 shrink-0 text-muted-foreground/70" />
-              ) : (
-                <Folder className="h-3.5 w-3.5 shrink-0 text-muted-foreground/70" />
+    <TooltipProvider delayDuration={200}>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <FormControl>
+            <Button
+              variant="outline"
+              role="combobox"
+              type="button"
+              disabled={loadingDept && !company}
+              aria-expanded={open}
+              className={cn(
+                triggerButtonClass,
+                "min-w-0 max-sm:text-base",
+                !value.length && "text-muted-foreground",
               )}
-              <span className="truncate min-w-0" title={triggerLabel}>
-                {triggerLabel}
-              </span>
-            </span>
-            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-          </Button>
-        </FormControl>
-      </PopoverTrigger>
-
-      <PopoverContent
-        className="w-[min(420px,calc(100vw-1.5rem))] p-0"
-        align="start"
-        sideOffset={4}
-      >
-        <div className="border-b border-border/50 px-3 py-2">
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            {smsDepartment?.name ?? departmentAcronym}
-          </p>
-          <p className="mt-0.5 text-[13px] leading-snug text-foreground/90">
-            {value.length === 0
-              ? "Sin carpetas seleccionadas"
-              : value.length === 1
-                ? formatPathLabel(value[0])
-                : `${value.length} carpetas seleccionadas`}
-          </p>
-        </div>
-
-        {isLoading && (
-          <div className="flex items-center gap-2 px-3 py-4 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin shrink-0" />
-            Cargando carpetas...
-          </div>
-        )}
-
-        {!isLoading && !smsDepartment && (
-          <p className="px-3 py-4 text-sm text-muted-foreground">
-            No se encontró el departamento {departmentAcronym}.
-          </p>
-        )}
-
-        {!isLoading && smsDepartment && !hasFolders && (
-          <p className="px-3 py-4 text-sm text-muted-foreground">
-            No hay carpetas disponibles. Créelas desde el módulo Librería.
-          </p>
-        )}
-
-        {!isLoading && smsDepartment && hasFolders && (
-          <>
-            <div className="max-h-72 overflow-y-auto">
-              <p className="px-3 pt-2 pb-1 text-[11px] leading-snug text-muted-foreground">
-                {single
-                  ? "Selecciona la carpeta donde se guardará el documento."
-                  : withPrimary
-                    ? "Marca las carpetas donde aparecerá el documento y usa la estrella para fijar la principal."
-                    : "Marca las carpetas donde aparecerá el documento. Puedes seleccionar varias."}
-              </p>
-              <div className="p-1">
-                {includeRoot && (
-                  <FolderRow
-                    node={rootNode}
-                    level={0}
-                    selected={draft}
-                    expanded={expanded}
-                    onToggle={toggleSelection}
-                    onToggleExpand={toggle}
-                    onSetPrimary={setPrimarySelection}
-                    primary={withPrimary && !single ? primary : null}
-                    showPrimary={withPrimary && !single}
-                  />
+            >
+              <span className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">
+                {value.length > 1 ? (
+                  <Layers className="size-4 shrink-0 text-muted-foreground" />
+                ) : (
+                  <Folder className="size-4 shrink-0 text-muted-foreground" />
                 )}
-                {!includeRoot &&
-                  folders.map((node) => (
+                <span className="min-w-0 truncate">{triggerLabel}</span>
+              </span>
+              <ChevronsUpDown className="ml-1 size-3.5 shrink-0 opacity-50" />
+            </Button>
+          </FormControl>
+        </PopoverTrigger>
+
+        <PopoverContent
+          className="w-[min(420px,calc(100vw-1.5rem))] p-0"
+          align="start"
+          sideOffset={4}
+        >
+          <div className="border-b bg-muted/30 px-3 py-2">
+            <p className="text-[13px] font-semibold text-slate-700 dark:text-slate-200">
+              {smsDepartment?.name ?? departmentAcronym}
+            </p>
+            <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-400">
+              {value.length === 0
+                ? "Sin carpetas seleccionadas"
+                : value.length === 1
+                  ? formatPathLabel(value[0])
+                  : `${value.length} carpetas seleccionadas`}
+            </p>
+          </div>
+
+          {isLoading && (
+            <div className="flex items-center gap-2 px-3 py-4 text-sm text-muted-foreground">
+              <Loader2 className="size-4 shrink-0 animate-spin" />
+              Cargando carpetas...
+            </div>
+          )}
+
+          {!isLoading && !smsDepartment && (
+            <p className="px-3 py-4 text-sm text-muted-foreground">
+              No se encontró el departamento {departmentAcronym}.
+            </p>
+          )}
+
+          {!isLoading && smsDepartment && !hasFolders && (
+            <p className="px-3 py-4 text-sm text-muted-foreground">
+              No hay carpetas disponibles. Créelas desde el módulo Librería.
+            </p>
+          )}
+
+          {!isLoading && smsDepartment && hasFolders && (
+            <>
+              <div className="max-h-72 overflow-y-auto overscroll-contain">
+                <p className="px-3 pb-1 pt-2 text-xs leading-snug text-muted-foreground">
+                  {single
+                    ? "Seleccione la carpeta donde se guardará el documento."
+                    : withPrimary
+                      ? "Marque las carpetas donde aparecerá el documento y use la estrella para fijar la principal."
+                      : "Marque las carpetas donde aparecerá el documento. Puede seleccionar varias."}
+                </p>
+                <div className="p-1">
+                  {includeRoot && (
                     <FolderRow
-                      key={node.id}
-                      node={node}
+                      node={rootNode}
                       level={0}
                       selected={draft}
                       expanded={expanded}
@@ -453,33 +455,49 @@ export default function FolderSelect({
                       primary={withPrimary && !single ? primary : null}
                       showPrimary={withPrimary && !single}
                     />
-                  ))}
+                  )}
+                  {!includeRoot &&
+                    folders.map((node) => (
+                      <FolderRow
+                        key={node.id}
+                        node={node}
+                        level={0}
+                        selected={draft}
+                        expanded={expanded}
+                        onToggle={toggleSelection}
+                        onToggleExpand={toggle}
+                        onSetPrimary={setPrimarySelection}
+                        primary={withPrimary && !single ? primary : null}
+                        showPrimary={withPrimary && !single}
+                      />
+                    ))}
+                </div>
               </div>
-            </div>
 
-            <div className="flex items-center justify-between gap-2 border-t border-border/50 p-2">
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="h-8 text-xs"
-                onClick={clearSelection}
-              >
-                Limpiar
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                className="h-8 text-xs"
-                onClick={apply}
-                disabled={draft.size === 0}
-              >
-                Aplicar ({draft.size})
-              </Button>
-            </div>
-          </>
-        )}
-      </PopoverContent>
-    </Popover>
+              <div className="flex items-center justify-between gap-2 border-t p-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="max-sm:h-10"
+                  onClick={clearSelection}
+                >
+                  Limpiar
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  className="max-sm:h-10"
+                  onClick={apply}
+                  disabled={draft.size === 0}
+                >
+                  Aplicar ({draft.size})
+                </Button>
+              </div>
+            </>
+          )}
+        </PopoverContent>
+      </Popover>
+    </TooltipProvider>
   );
 }

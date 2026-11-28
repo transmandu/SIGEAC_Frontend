@@ -9,25 +9,27 @@ import axiosInstance from "@/lib/axios";
 export const downloadDocumentFile = async (url: string, fileName: string) => {
   try {
     const response = await axiosInstance.get(url, {
-      responseType: 'blob', // 👈 Crucial: Indica a Axios que el retorno es un archivo binario
+      responseType: "blob", // 👈 Crucial: Indica a Axios que el retorno es un archivo binario
     });
 
     // 1. Creamos una URL temporal que apunta al objeto Blob en memoria
     const urlBlob = window.URL.createObjectURL(new Blob([response.data]));
 
     // 2. Creamos un elemento <a> invisible para disparar la descarga
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = urlBlob;
-    link.setAttribute('download', fileName);
+    link.setAttribute("download", fileName);
 
     // 3. Lo añadimos al DOM, simulamos el click y lo removemos
     document.body.appendChild(link);
     link.click();
-    
+
     // 4. Limpieza de memoria (importante para no saturar el navegador)
     link.parentNode?.removeChild(link);
-    window.URL.revokeObjectURL(urlBlob);
-    
+    // Se libera después del clic: algunos navegadores cancelan la descarga si la
+    // URL desaparece en el mismo instante.
+    setTimeout(() => window.URL.revokeObjectURL(urlBlob), 1000);
+
     return true;
   } catch (error) {
     console.error("Error en la descarga del archivo:", error);

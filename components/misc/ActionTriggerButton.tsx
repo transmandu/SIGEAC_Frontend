@@ -57,10 +57,12 @@ export const ActionTriggerButton = React.forwardRef<
   const glow = (
     <span
       aria-hidden
-      className="pointer-events-none absolute inset-0 transition-opacity duration-300 ease-out"
+      // Oscuro: el pastel claro sobre fondo marino se lee lechoso; ahí el brillo
+      // es el azul vivo del tono, con poca opacidad.
+      className="pointer-events-none absolute inset-0 transition-opacity duration-300 ease-out [--glow:55%_78%] dark:[--glow:85%_60%]"
       style={{
         opacity: hovered && !disabled ? 1 : 0,
-        backgroundImage: `radial-gradient(circle 55px at ${pos.x}px ${pos.y}px, hsl(var(--primary-h, 226) 55% 78% / 0.30), hsl(var(--primary-h, 226) 55% 78% / 0.10) 50%, transparent 75%)`,
+        backgroundImage: `radial-gradient(circle 55px at ${pos.x}px ${pos.y}px, hsl(var(--primary-h, 226) var(--glow) / 0.30), hsl(var(--primary-h, 226) var(--glow) / 0.10) 50%, transparent 75%)`,
       }}
     />
   );
@@ -122,9 +124,13 @@ export const ActionTriggerButton = React.forwardRef<
         "text-foreground font-medium",
         "shadow-xs transition-all duration-200",
         // El fondo no cambia al apuntar; el único tinte es el brillo que sigue
-        // al cursor. `hover:bg-transparent` anula el gris de la variante.
-        "hover:bg-transparent",
+        // al cursor. `hover:bg-background` anula el gris de la variante.
+        // Mismo fondo, no transparent: sobre una superficie distinta al fondo de
+        // la página, transparent dejaba ver el color de atrás.
+        "hover:bg-background",
         "hover:border-primary/40 hover:text-primary hover:shadow-md",
+        // Oscuro: `primary` es un azul profundo, sin contraste sobre el fondo.
+        "dark:hover:border-[hsl(var(--primary-h)_80%_65%/0.55)] dark:hover:text-[hsl(var(--primary-h)_90%_78%)] dark:hover:shadow-black/30",
         "hover:-translate-y-px",
         "active:translate-y-0 active:shadow-xs max-md:active:scale-[0.97]",
         "focus-visible:ring-2 focus-visible:ring-primary/20",

@@ -1,32 +1,46 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
+  ArrowRightLeft,
+  Copy,
+  Check,
+  ChevronDown,
+  ChevronRight,
   Folder,
   FolderOpen,
-  ChevronRight,
-  ChevronDown,
-  Check,
-  Building2,
-  FolderTree as FolderTreeIcon,
   Loader2,
 } from "lucide-react";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Checkbox } from "@/components/ui/checkbox";
-import libraryService from "@/lib/libraryService";
 import { toast } from "sonner";
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
+import { OptionCombobox } from "@/components/forms/general/OptionCombobox";
+import { ArticleFormShell } from "@/components/forms/mantenimiento/almacen/articulos/ArticleFormShell";
+import {
+  PanelSection,
+  PanelStaticLabel,
+} from "@/components/forms/PanelSection";
 import { DepartmentFolderGroup } from "@/components/library/FolderTree";
+import { Dialog } from "@/components/ui/dialog";
+import libraryService, { FolderNode } from "@/lib/libraryService";
 import { notifyError } from "@/lib/notify-error";
+import { cn } from "@/lib/utils";
 
 interface MoveDocumentsDialogProps {
   open: boolean;
+  /** Mover cambia el documento de sitio; copiar le añade una réplica en otra carpeta. */
+  mode?: "move" | "copy";
   onClose: () => void;
   company: string;
   documentIds: number[];
   departmentFolders: DepartmentFolderGroup[];
   departments: { id: number; name: string }[];
   onLoadFolders: (departmentId: number) => void;
-  onSuccess: (departmentId: number, folderPath: string) => void;
+  /** Departamentos cuyas carpetas se están pidiendo todavía. */
+  loadingDepartmentIds?: number[];
+  onSuccess: (
+    departmentId: number,
+    folderPath: string,
+  ) => void | Promise<unknown>;
   /** Carpeta desde la que se mueven los documentos (para distinguir una réplica). */
   sourceFolderPath?: string;
 }
@@ -45,6 +59,14 @@ function findGroup(
   return null;
 }
 
+const rowClass = (selected: boolean) =>
+  cn(
+    "flex cursor-pointer items-center gap-1.5 rounded-lg py-1.5 pr-2 text-sm motion-safe:transition-colors max-md:py-2.5",
+    selected
+      ? "bg-primary/10 font-semibold text-primary"
+      : "text-slate-700 hover:bg-muted/60 dark:text-slate-300",
+  );
+
 function FolderOptionRow({
   node,
   level,
@@ -53,7 +75,7 @@ function FolderOptionRow({
   expandedFolders,
   onToggle,
 }: {
-  node: { id: string; name: string; path: string; children: any[] };
+  node: FolderNode;
   level: number;
   selectedPath: string;
   onSelect: (path: string) => void;
@@ -67,48 +89,45 @@ function FolderOptionRow({
   return (
     <div>
       <div
-        className={`group flex items-center gap-1.5 py-1.5 rounded-lg cursor-pointer transition-all text-sm
-          ${
-            isSelected
-              ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
-              : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/50"
-          }`}
-        style={{ paddingLeft: `${12 + level * 16}px` }}
+        role="option"
+        aria-selected={isSelected}
+        className={rowClass(isSelected)}
+        style={{ paddingLeft: `${8 + level * 16}px` }}
         onClick={() => onSelect(node.path)}
       >
         {hasChildren ? (
           <button
-            onClick={(e) => {
-              e.stopPropagation();
+            type="button"
+            aria-label={isExpanded ? "Contraer carpeta" : "Expandir carpeta"}
+            onClick={(event) => {
+              event.stopPropagation();
               onToggle(node.id);
             }}
-            className="p-0.5 hover:bg-slate-200 dark:hover:bg-slate-700 rounded"
+            className="rounded p-0.5 hover:bg-muted"
           >
             {isExpanded ? (
-              <ChevronDown className="h-3 w-3" />
+              <ChevronDown className="size-3.5" />
             ) : (
-              <ChevronRight className="h-3 w-3" />
+              <ChevronRight className="size-3.5" />
             )}
           </button>
         ) : (
-          <span className="w-4" />
+          <span className="w-5" />
         )}
 
         {isExpanded ? (
-          <FolderOpen className="h-3.5 w-3.5 shrink-0" />
+          <FolderOpen className="size-4 shrink-0" />
         ) : (
-          <Folder className="h-3.5 w-3.5 shrink-0" />
+          <Folder className="size-4 shrink-0" />
         )}
 
-        <span className="truncate flex-1">{node.name}</span>
+        <span className="flex-1 truncate">{node.name}</span>
 
-        {isSelected && (
-          <Check className="h-3.5 w-3.5 shrink-0 text-blue-600 dark:text-blue-400" />
-        )}
+        {isSelected && <Check className="size-4 shrink-0" />}
       </div>
 
       {isExpanded &&
-        node.children.map((child: any) => (
+        node.children.map((child) => (
           <FolderOptionRow
             key={child.id}
             node={child}
@@ -126,142 +145,176 @@ function FolderOptionRow({
 export default function MoveDocumentsDialog({
   open,
   onClose,
+  ...form
+}: MoveDocumentsDialogProps) {
+  const count = form.documentIds.length;
+  const copying = form.mode === "copy";
+
+  return (
+    <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
+      <FormDialogContent
+        icon={copying ? Copy : ArrowRightLeft}
+        title={copying ? "Copiar documentos" : "Mover documentos"}
+        description={
+          copying
+            ? `${count} ${count === 1 ? "documento" : "documentos"}: queda una réplica en la carpeta elegida, sin duplicar el archivo.`
+            : `${count} ${count === 1 ? "documento seleccionado" : "documentos seleccionados"}`
+        }
+        className="sm:max-w-xl"
+      >
+        {/* Dentro del diálogo: al cerrarlo se desmonta y reabre en la raíz del primer departamento. */}
+        <MoveDocumentsForm onClose={onClose} {...form} />
+      </FormDialogContent>
+    </Dialog>
+  );
+}
+
+function MoveDocumentsForm({
+  onClose,
   company,
   documentIds,
   departmentFolders,
   departments,
   onLoadFolders,
+  loadingDepartmentIds = [],
   onSuccess,
   sourceFolderPath,
-}: MoveDocumentsDialogProps) {
-  const [selectedDeptId, setSelectedDeptId] = useState<number | null>(null);
+  mode = "move",
+}: Omit<MoveDocumentsDialogProps, "open">) {
+  const copying = mode === "copy";
+  const [selectedDeptId, setSelectedDeptId] = useState<number | null>(
+    departments[0]?.id ?? null,
+  );
   const [selectedPath, setSelectedPath] = useState("/");
   const [expandedFolders, setExpandedFolders] = useState<
     Record<string, boolean>
   >({});
-  const [loading, setLoading] = useState(false);
-  const wasOpen = useRef(false);
+  const [moving, setMoving] = useState(false);
 
   useEffect(() => {
-    // Solo al abrir (transición false→true) se reinicia la selección; si el
-    // padre re-renderiza con un array departments nuevo, no se toca nada.
-    if (open && !wasOpen.current && departments.length > 0) {
-      setSelectedDeptId(departments[0].id);
-      setSelectedPath("/");
-      setExpandedFolders({});
-    }
-    wasOpen.current = open;
-  }, [open, departments]);
+    if (selectedDeptId) onLoadFolders(selectedDeptId);
+  }, [selectedDeptId, onLoadFolders]);
 
-  useEffect(() => {
-    if (open && selectedDeptId) {
-      onLoadFolders(selectedDeptId);
-    }
-  }, [open, selectedDeptId, onLoadFolders]);
-
-  const deptGroup = useMemo(
+  const folders = useMemo(
     () =>
-      selectedDeptId ? findGroup(departmentFolders, selectedDeptId) : null,
+      (selectedDeptId
+        ? findGroup(departmentFolders, selectedDeptId)?.folders
+        : null) ?? [],
     [departmentFolders, selectedDeptId],
   );
 
-  const folders = deptGroup?.folders ?? [];
+  const departmentOptions = useMemo(
+    () => departments.map((d) => ({ id: String(d.id), label: d.name })),
+    [departments],
+  );
 
-  const handleToggleFolder = (id: string) => {
-    setExpandedFolders((prev) => ({ ...prev, [id]: !prev[id] }));
-  };
+  const loadingFolders =
+    selectedDeptId !== null && loadingDepartmentIds.includes(selectedDeptId);
+  const count = documentIds.length;
 
-  const handleConfirm = async () => {
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
     if (!selectedDeptId) return;
-    setLoading(true);
+
+    setMoving(true);
     try {
-      await libraryService.moveDocumentsBatch(company, {
-        document_ids: documentIds,
-        department_id: selectedDeptId,
-        folder_path: selectedPath,
-        ...(sourceFolderPath != null
-          ? { source_folder_path: sourceFolderPath }
-          : {}),
-      });
-      toast.success(
-        `${documentIds.length} documento${documentIds.length === 1 ? "" : "s"} movido${documentIds.length === 1 ? "" : "s"} exitosamente`,
-      );
-      onSuccess(selectedDeptId, selectedPath);
+      if (copying) {
+        const { copied, skipped } = await libraryService.copyDocuments(
+          company,
+          {
+            document_ids: documentIds,
+            department_id: selectedDeptId,
+            folder_path: selectedPath,
+          },
+        );
+        const text =
+          copied === 0
+            ? "Ya estaban en esa carpeta: no se copió nada."
+            : `${copied} ${copied === 1 ? "documento copiado" : "documentos copiados"}${
+                skipped > 0 ? `; ${skipped} ya estaban en esa carpeta` : ""
+              }.`;
+        if (copied === 0) toast.info(text);
+        else toast.success(text);
+      } else {
+        await libraryService.moveDocumentsBatch(company, {
+          document_ids: documentIds,
+          department_id: selectedDeptId,
+          folder_path: selectedPath,
+          ...(sourceFolderPath != null
+            ? { source_folder_path: sourceFolderPath }
+            : {}),
+        });
+        toast.success(
+          count === 1 ? "Documento movido" : `${count} documentos movidos`,
+        );
+      }
+      await onSuccess(selectedDeptId, selectedPath);
       onClose();
-    } catch (error: any) {
-      notifyError(error, { action: "mover los documentos" });
+    } catch (error) {
+      notifyError(error, {
+        action: copying ? "copiar los documentos" : "mover los documentos",
+      });
     } finally {
-      setLoading(false);
+      setMoving(false);
     }
   };
 
-  const handleClose = () => {
-    setSelectedPath("/");
-    setExpandedFolders({});
-    onClose();
-  };
-
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="bg-white dark:bg-[#1a1c1e] border-none text-slate-900 dark:text-white sm:max-w-[460px] rounded-2xl overflow-hidden p-0 outline-hidden shadow-2xl">
-        <div className="bg-slate-50 dark:bg-gray-800/40 px-6 py-5 border-b border-slate-200 dark:border-gray-700">
-          <DialogTitle className="text-lg font-bold text-slate-800 dark:text-white tracking-tight uppercase">
-            Mover documentos
-          </DialogTitle>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mt-1">
-            {documentIds.length} documento{documentIds.length === 1 ? "" : "s"}{" "}
-            seleccionado{documentIds.length === 1 ? "" : "s"}
-          </p>
-        </div>
-
-        <div className="p-6 space-y-5 max-h-[65vh] overflow-y-auto">
-          {/* Departamento */}
+    <ArticleFormShell
+      onSubmit={handleSubmit}
+      onCancel={onClose}
+      busy={moving}
+      canSave={!!selectedDeptId}
+      submitLabel={
+        copying
+          ? count === 1
+            ? "Copiar documento"
+            : `Copiar ${count} documentos`
+          : count === 1
+            ? "Mover documento"
+            : `Mover ${count} documentos`
+      }
+    >
+      <PanelSection
+        icon={copying ? Copy : ArrowRightLeft}
+        title="Destino"
+        compact
+      >
+        <div className="space-y-4">
           {departments.length > 1 && (
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-gray-400 flex items-center gap-2">
-                <Building2 className="h-3.5 w-3.5 text-blue-500" /> Departamento
-                destino
-              </label>
-              <div className="relative">
-                <select
-                  value={selectedDeptId ?? ""}
-                  onChange={(e) => setSelectedDeptId(Number(e.target.value))}
-                  className="w-full h-11 pl-4 pr-10 border border-slate-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-slate-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-hidden appearance-none cursor-pointer"
-                >
-                  {departments.map((d) => (
-                    <option key={d.id} value={d.id}>
-                      {d.name}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
-              </div>
+            <div>
+              <PanelStaticLabel>Departamento destino</PanelStaticLabel>
+              <OptionCombobox
+                value={selectedDeptId ? String(selectedDeptId) : ""}
+                onChange={(value) => {
+                  setSelectedDeptId(Number(value));
+                  // La ruta elegida pertenece al departamento anterior.
+                  setSelectedPath("/");
+                  setExpandedFolders({});
+                }}
+                options={departmentOptions}
+                searchPlaceholder="Buscar departamento..."
+              />
             </div>
           )}
 
-          {/* Carpeta destino */}
-          <div className="space-y-1.5">
-            <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-gray-400 flex items-center gap-2">
-              <FolderTreeIcon className="h-3.5 w-3.5 text-blue-500" /> Carpeta
-              destino
-            </label>
-
-            <div className="border border-slate-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 max-h-80 overflow-y-auto p-2 space-y-0.5 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-200 dark:[&::-webkit-scrollbar-thumb]:bg-slate-700 [&::-webkit-scrollbar-thumb]:rounded-full">
-              {/* Raíz option */}
+          <div>
+            <PanelStaticLabel>Carpeta destino</PanelStaticLabel>
+            <div
+              role="listbox"
+              aria-label="Carpeta destino"
+              className="max-h-72 space-y-0.5 overflow-y-auto overscroll-contain rounded-xl border border-slate-200 bg-background p-2 dark:border-slate-700/60"
+            >
               <div
-                className={`group flex items-center gap-1.5 py-1.5 px-2 rounded-lg cursor-pointer transition-all text-sm ${
-                  selectedPath === "/"
-                    ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
-                    : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/50"
-                }`}
+                role="option"
+                aria-selected={selectedPath === "/"}
+                className={cn(rowClass(selectedPath === "/"), "pl-2")}
                 onClick={() => setSelectedPath("/")}
               >
-                <span className="w-4" />
-                <Folder className="h-3.5 w-3.5 shrink-0" />
+                <span className="w-5" />
+                <Folder className="size-4 shrink-0" />
                 <span className="flex-1">Raíz</span>
-                {selectedPath === "/" && (
-                  <Check className="h-3.5 w-3.5 shrink-0 text-blue-600 dark:text-blue-400" />
-                )}
+                {selectedPath === "/" && <Check className="size-4 shrink-0" />}
               </div>
 
               {folders.map((folder) => (
@@ -272,47 +325,31 @@ export default function MoveDocumentsDialog({
                   selectedPath={selectedPath}
                   onSelect={setSelectedPath}
                   expandedFolders={expandedFolders}
-                  onToggle={handleToggleFolder}
+                  onToggle={(id) =>
+                    setExpandedFolders((prev) => ({ ...prev, [id]: !prev[id] }))
+                  }
                 />
               ))}
 
-              {folders.length === 0 && (
-                <p className="px-2 py-4 text-center text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-                  No hay carpetas disponibles
-                </p>
-              )}
+              {folders.length === 0 &&
+                (loadingFolders ? (
+                  <p className="flex items-center justify-center gap-2 px-2 py-4 text-sm text-muted-foreground">
+                    <Loader2 className="size-4 animate-spin" /> Cargando
+                    carpetas...
+                  </p>
+                ) : (
+                  <p className="px-2 py-4 text-center text-sm text-muted-foreground">
+                    No hay carpetas disponibles.
+                  </p>
+                ))}
             </div>
 
-            <p className="text-[9px] font-bold text-slate-400 dark:text-slate-500">
+            <p className="mt-2 text-[13px] text-muted-foreground">
               Ruta: {selectedPath === "/" ? "/ (raíz)" : selectedPath}
             </p>
           </div>
-
-          {/* Botones */}
-          <div className="flex gap-3 pt-4 border-t border-slate-200 dark:border-gray-700">
-            <button
-              type="button"
-              onClick={handleClose}
-              className="flex-1 px-4 py-3 text-[10px] font-black text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 uppercase tracking-widest transition-colors"
-            >
-              CANCELAR
-            </button>
-            <button
-              onClick={handleConfirm}
-              disabled={loading || !selectedDeptId}
-              className="flex-1 px-4 py-3 text-[10px] font-black text-white bg-blue-600 rounded-xl hover:bg-blue-700 disabled:opacity-50 shadow-lg shadow-blue-500/20 uppercase tracking-widest transition-all"
-            >
-              {loading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <Loader2 className="h-3 w-3 animate-spin" /> MOVIENDO...
-                </span>
-              ) : (
-                `MOVER ${documentIds.length} DOCUMENTO${documentIds.length === 1 ? "" : "S"}`
-              )}
-            </button>
-          </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </PanelSection>
+    </ArticleFormShell>
   );
 }

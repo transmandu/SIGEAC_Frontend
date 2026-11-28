@@ -56,12 +56,21 @@ interface SheetContentProps
 const SheetContent = React.forwardRef<
   React.ElementRef<typeof SheetPrimitive.Content>,
   SheetContentProps
->(({ side = "right", className, children, ...props }, ref) => (
+>(({ side = "right", className, children, onInteractOutside, ...props }, ref) => (
   <SheetPortal>
     <SheetOverlay />
     <SheetPrimitive.Content
       ref={ref}
       className={cn(sheetVariants({ side }), className)}
+      // El tour (menú y popover) vive fuera del panel: tocarlo no lo cierra.
+      onInteractOutside={(e) => {
+        const target = e.target as HTMLElement | null
+        if (target?.closest?.("[data-tour-menu], [data-tour-popover]")) {
+          e.preventDefault()
+          return
+        }
+        onInteractOutside?.(e)
+      }}
       {...props}
     >
       {children}

@@ -2,7 +2,11 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { BarChart, FileText, Share2, Eye, Send, Loader2 } from "lucide-react";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
+import { PanelSection } from "@/components/forms/PanelSection";
+import { Button } from "@/components/ui/button";
+import { Dialog } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
 import libraryService, { Document } from "@/lib/libraryService";
 import axiosInstance from "@/lib/axios";
 import { useAuth } from "@/contexts/AuthContext";
@@ -51,6 +55,20 @@ const STATUS_COLORS = {
   no_aplica: "#0369a1",
 };
 
+/** Etiqueta flotante de las gráficas: nombre y valor, legibles y sin efectos. */
+const ChartTip = ({
+  name,
+  children,
+}: {
+  name: string;
+  children: React.ReactNode;
+}) => (
+  <div className="flex flex-col gap-0.5 whitespace-nowrap rounded-lg border bg-popover px-3 py-2 text-popover-foreground shadow-md">
+    <span className="text-xs text-muted-foreground">{name}</span>
+    <span className="text-sm font-semibold">{children}</span>
+  </div>
+);
+
 const DonutChart = ({
   data,
   total,
@@ -67,18 +85,18 @@ const DonutChart = ({
   if (total === 0) {
     return (
       <div className="relative w-48 h-48 mx-auto mt-4 mb-2 flex items-center justify-center">
-        <span className="text-slate-400 text-sm font-bold">Sin datos</span>
+        <span className="text-sm text-muted-foreground">Sin datos</span>
       </div>
     );
   }
 
   const getCleanLabel = (name: string): string => {
     const upper = name.toUpperCase();
-    if (upper.includes("SEGURIDAD OPERACIONAL") || upper.includes("SMS"))
+    if (upper.includes("SEGURIDAD OPERACIONAL") || /\bSMS\b/.test(upper))
       return "Seguridad Op.";
-    if (upper.includes("TECNOLOGIA") || upper.includes("DIP"))
+    if (upper.includes("TECNOLOGIA") || /\bDIP\b/.test(upper))
       return "IT / DIP";
-    if (upper.includes("MANTENIMIENTO") || upper.includes("DMA"))
+    if (upper.includes("MANTENIMIENTO") || /\bDMA\b/.test(upper))
       return "Mantenimiento";
     return name;
   };
@@ -131,14 +149,9 @@ const DonutChart = ({
                 const data = payload[0].payload;
                 const percent = Math.round((data.value / total) * 100);
                 return (
-                  <div className="bg-slate-900/90 dark:bg-slate-900/95 backdrop-blur-md text-white px-3 py-2 rounded-xl text-[10px] font-black border border-white/10 shadow-2xl flex flex-col gap-0.5 whitespace-nowrap">
-                    <span className="text-slate-300 uppercase tracking-widest text-[8px] font-bold">
-                      {data.name}
-                    </span>
-                    <span className="text-white text-[11px] font-black">
-                      {data.value} docs ({percent}%)
-                    </span>
-                  </div>
+                  <ChartTip name={data.name}>
+                    {data.value} docs ({percent}%)
+                  </ChartTip>
                 );
               }
               return null;
@@ -150,19 +163,19 @@ const DonutChart = ({
       <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center pointer-events-none">
         {hovered ? (
           <>
-            <span className="text-[10px] font-black text-slate-800 dark:text-white truncate max-w-[80%] uppercase tracking-wider">
+            <span className="max-w-[80%] truncate text-xs text-slate-600 dark:text-slate-400">
               {hovered.label}
             </span>
-            <span className="text-lg font-black text-blue-600 dark:text-blue-400 mt-0.5">
+            <span className="mt-0.5 text-lg font-semibold text-primary">
               {hovered.value} ({hovered.percent}%)
             </span>
           </>
         ) : (
           <>
-            <span className="text-3xl font-black text-slate-800 dark:text-white leading-none">
+            <span className="text-3xl font-semibold leading-none text-slate-700 dark:text-slate-200">
               {total}
             </span>
-            <span className="text-[9px] font-black tracking-widest text-slate-400 uppercase mt-1">
+            <span className="mt-1 text-xs text-slate-600 dark:text-slate-400">
               Total
             </span>
           </>
@@ -188,9 +201,7 @@ const HalfDonutChart = ({
   if (total === 0) {
     return (
       <div className="relative w-full h-24 flex items-center justify-center">
-        <span className="text-slate-400 text-sm font-bold">
-          Sin solicitudes
-        </span>
+        <span className="text-sm text-muted-foreground">Sin solicitudes</span>
       </div>
     );
   }
@@ -245,14 +256,9 @@ const HalfDonutChart = ({
                 const data = payload[0].payload;
                 const percent = Math.round((data.value / total) * 100);
                 return (
-                  <div className="bg-slate-900/90 dark:bg-slate-900/95 backdrop-blur-md text-white px-3 py-2 rounded-xl text-[10px] font-black border border-white/10 shadow-2xl flex flex-col gap-0.5 whitespace-nowrap">
-                    <span className="text-slate-300 uppercase tracking-widest text-[8px] font-bold">
-                      {data.name}
-                    </span>
-                    <span className="text-white text-[11px] font-black">
-                      {data.value} solicitudes ({percent}%)
-                    </span>
-                  </div>
+                  <ChartTip name={data.name}>
+                    {data.value} solicitudes ({percent}%)
+                  </ChartTip>
                 );
               }
               return null;
@@ -264,19 +270,19 @@ const HalfDonutChart = ({
       <div className="absolute bottom-0 left-0 right-0 flex flex-col items-center pointer-events-none text-center translate-y-2">
         {hovered ? (
           <>
-            <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider">
+            <span className="text-xs text-slate-600 dark:text-slate-400">
               {hovered.label}
             </span>
-            <span className="text-lg font-black text-blue-600 dark:text-blue-400 leading-none mt-0.5">
+            <span className="mt-0.5 text-lg font-semibold leading-none text-primary">
               {hovered.value} ({hovered.percent}%)
             </span>
           </>
         ) : (
           <>
-            <span className="text-2xl font-black text-slate-800 dark:text-white leading-none">
+            <span className="text-2xl font-semibold leading-none text-slate-700 dark:text-slate-200">
               {total}
             </span>
-            <span className="text-[8px] font-black tracking-widest text-slate-400 uppercase mt-0.5">
+            <span className="mt-0.5 text-xs text-slate-600 dark:text-slate-400">
               Total
             </span>
           </>
@@ -301,22 +307,20 @@ const VerticalBarChart = ({
       }));
   }, [data]);
 
-  const maxVal = Math.max(...sortedData.map((d) => d.value), 1);
-
   const getCleanDeptLabel = (name: string): string => {
     const upper = name.toUpperCase();
-    if (upper.includes("SEGURIDAD OPERACIONAL") || upper.includes("SMS"))
+    if (upper.includes("SEGURIDAD OPERACIONAL") || /\bSMS\b/.test(upper))
       return "Seguridad Op.";
-    if (upper.includes("TECNOLOGIA") || upper.includes("DIP"))
+    if (upper.includes("TECNOLOGIA") || /\bDIP\b/.test(upper))
       return "IT / DIP";
-    if (upper.includes("MANTENIMIENTO") || upper.includes("DMA"))
+    if (upper.includes("MANTENIMIENTO") || /\bDMA\b/.test(upper))
       return "Mantenimiento";
     if (upper.includes("PRESIDENCIA")) return "Presidencia";
     if (upper.includes("OPERACIONES")) return "Operaciones";
     if (upper.includes("PILOTOS")) return "Pilotos";
     if (upper.includes("INSTRUCCI")) return "Instrucción";
     if (upper.includes("CALIDAD")) return "Calidad";
-    if (upper.includes("RRHH") || upper.includes("ADMINISTRACION"))
+    if (/\bRRHH\b/.test(upper) || upper.includes("ADMINISTRACION"))
       return "RRHH / Adm.";
 
     let clean = name.replace(
@@ -337,13 +341,13 @@ const VerticalBarChart = ({
           <XAxis
             dataKey="name"
             tickFormatter={getCleanDeptLabel}
-            tick={{ fontSize: 9, fontWeight: 700, fill: "#64748b" }}
+            tick={{ fontSize: 12, fill: "#64748b" }}
             tickLine={false}
             axisLine={false}
           />
           <YAxis
             allowDecimals={false}
-            tick={{ fontSize: 9, fontWeight: 700, fill: "#64748b" }}
+            tick={{ fontSize: 12, fill: "#64748b" }}
             tickLine={false}
             axisLine={false}
           />
@@ -352,14 +356,7 @@ const VerticalBarChart = ({
               if (active && payload && payload.length) {
                 const data = payload[0].payload;
                 return (
-                  <div className="bg-slate-900/90 dark:bg-slate-900/95 backdrop-blur-md text-white px-3 py-2 rounded-xl text-[10px] font-black border border-white/10 shadow-2xl flex flex-col gap-0.5 whitespace-nowrap">
-                    <span className="text-slate-300 uppercase tracking-widest text-[8px] font-bold">
-                      {data.name}
-                    </span>
-                    <span className="text-white text-[11px] font-black">
-                      {data.value} accesos
-                    </span>
-                  </div>
+                  <ChartTip name={data.name}>{data.value} accesos</ChartTip>
                 );
               }
               return null;
@@ -405,6 +402,7 @@ export default function DashboardModal({
         "biblioteca-dashboard",
         "Dashboard Biblioteca",
         bibliotecaDashboardSteps,
+        { onlyVisible: true },
       );
     }
     return () => unregisterTour("biblioteca-dashboard");
@@ -606,29 +604,25 @@ export default function DashboardModal({
       label: "Documentos",
       value: stats.totalDocs,
       icon: FileText,
-      bgLight: "bg-blue-50",
-      iconColor: "text-blue-500",
+      tone: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
     },
     {
       label: "Compartidos",
       value: stats.totalShared,
       icon: Share2,
-      bgLight: "bg-emerald-50",
-      iconColor: "text-emerald-500",
+      tone: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
     },
     {
-      label: "Accesos (QR)",
+      label: "Accesos por enlace",
       value: stats.totalAccesses,
       icon: Eye,
-      bgLight: "bg-purple-50",
-      iconColor: "text-purple-500",
+      tone: "bg-violet-500/10 text-violet-600 dark:text-violet-400",
     },
     {
       label: "Solicitudes",
       value: reqStats.total,
       icon: Send,
-      bgLight: "bg-amber-50",
-      iconColor: "text-amber-500",
+      tone: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
     },
   ];
 
@@ -638,236 +632,224 @@ export default function DashboardModal({
     return "Análisis de interacción y volumen documental";
   }, [isSingleDeptView, userDeptName]);
 
+  const visibleCards = isDipDirector
+    ? cards
+    : cards.filter((c) => c.label !== "Solicitudes");
+
   return (
     <TooltipProvider delayDuration={300}>
-      <Dialog open={open} onOpenChange={onClose}>
-        <DialogContent className="bg-slate-100 dark:bg-[#0a0c10] border border-slate-200/60 dark:border-white/10 text-slate-900 dark:text-white max-w-[1200px] w-[95vw] rounded-4xl p-0 outline-hidden shadow-2xl">
-          <div
-            className="bg-white dark:bg-slate-900 px-8 py-5 border-b border-slate-200/80 dark:border-white/5 flex items-center justify-between"
-            data-tour="biblioteca-dashboard-title"
-          >
-            <div className="flex flex-col gap-1">
-              <DialogTitle className="text-xl font-black text-slate-800 dark:text-white tracking-tight">
-                Estadísticas de la Biblioteca
-              </DialogTitle>
-              <p className="text-[12px] font-medium text-slate-500 dark:text-slate-400">
-                {subtitleText}
+      <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
+        <FormDialogContent
+          icon={BarChart}
+          title="Estadísticas de la biblioteca"
+          description={subtitleText}
+          tourId="biblioteca-dashboard-title"
+          lockOutside={false}
+          className="sm:max-w-6xl"
+          footer={
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cerrar
+            </Button>
+          }
+        >
+          {loading ? (
+            <div className="flex flex-col items-center justify-center gap-3 py-24">
+              <Loader2 className="size-8 animate-spin text-primary" />
+              <p className="text-sm text-muted-foreground">
+                Cargando métricas...
               </p>
             </div>
-          </div>
-
-          <div className="p-6 md:p-8 space-y-6 max-h-[85vh] overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-300 dark:[&::-webkit-scrollbar-thumb]:bg-slate-700 [&::-webkit-scrollbar-thumb]:rounded-full">
-            {loading ? (
-              <div className="flex flex-col items-center justify-center py-32 gap-4">
-                <Loader2 className="h-12 w-12 animate-spin text-blue-500" />
-                <p className="text-sm font-medium text-slate-500">
-                  Cargando métricas...
-                </p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                {canViewCharts && chartData.length > 0 && (
+          ) : (
+            <div className="flex flex-col gap-4">
+              <div
+                className={cn(
+                  "grid grid-cols-2 gap-3",
+                  isDipDirector ? "lg:grid-cols-4" : "lg:grid-cols-3",
+                )}
+                data-tour="biblioteca-dashboard-metrics"
+              >
+                {visibleCards.map((card) => (
                   <div
-                    className="col-span-1 lg:col-span-1 bg-white dark:bg-slate-900 rounded-4xl p-6 shadow-xs border border-slate-200/50 dark:border-white/5 flex flex-col justify-between"
-                    data-tour="biblioteca-dashboard-distribucion"
+                    key={card.label}
+                    className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700/60 dark:bg-slate-900/60"
                   >
-                    <div>
-                      <h3 className="text-[14px] font-black text-slate-800 dark:text-white tracking-tight">
-                        Distribución Documental
-                      </h3>
-                      <p className="text-[11px] font-medium text-slate-400 mb-2">
-                        Por departamento
+                    <span
+                      className={cn(
+                        "grid size-10 shrink-0 place-items-center rounded-xl",
+                        card.tone,
+                      )}
+                    >
+                      <card.icon className="size-5" />
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-[13px] text-slate-600 dark:text-slate-400">
+                        {card.label}
+                      </p>
+                      <p className="text-2xl font-semibold tabular-nums text-slate-700 dark:text-slate-200">
+                        {card.value}
                       </p>
                     </div>
-
-                    <DonutChart
-                      data={chartData.map((d) => ({
-                        label: d.label,
-                        value: d.docsValue,
-                        color: d.color,
-                      }))}
-                      total={stats.totalDocs}
-                    />
-
-                    <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 justify-center max-h-24 overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-slate-200">
-                      {chartData
-                        .filter((d) => d.docsValue > 0)
-                        .map((d) => (
-                          <div
-                            key={d.label}
-                            className="flex items-center gap-1.5 w-[45%]"
-                          >
-                            <div
-                              className="w-2.5 h-2.5 rounded-full shrink-0"
-                              style={{ backgroundColor: d.color }}
-                            />
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <span className="text-[9px] font-bold text-slate-500 truncate">
-                                  {d.label.substring(0, 18)}
-                                </span>
-                              </TooltipTrigger>
-                              <TooltipContent>{d.label}</TooltipContent>
-                            </Tooltip>
-                          </div>
-                        ))}
-                    </div>
                   </div>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
+                {canViewCharts && chartData.length > 0 && (
+                  <PanelSection
+                    icon={FileText}
+                    title="Distribución documental"
+                    hint="Por departamento"
+                    className="lg:col-span-1"
+                  >
+                    <div data-tour="biblioteca-dashboard-distribucion">
+                      <DonutChart
+                        data={chartData.map((d) => ({
+                          label: d.label,
+                          value: d.docsValue,
+                          color: d.color,
+                        }))}
+                        total={stats.totalDocs}
+                      />
+
+                      <div className="mt-4 flex max-h-28 flex-wrap justify-center gap-x-4 gap-y-2 overflow-y-auto">
+                        {chartData
+                          .filter((d) => d.docsValue > 0)
+                          .map((d) => (
+                            <div
+                              key={d.label}
+                              className="flex w-[45%] items-center gap-1.5"
+                            >
+                              <span
+                                className="size-2.5 shrink-0 rounded-full"
+                                style={{ backgroundColor: d.color }}
+                              />
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <span className="truncate text-xs text-slate-600 dark:text-slate-400">
+                                    {d.label.substring(0, 18)}
+                                  </span>
+                                </TooltipTrigger>
+                                <TooltipContent>{d.label}</TooltipContent>
+                              </Tooltip>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  </PanelSection>
                 )}
 
                 {isSingleDeptView && statusChartData.length > 0 && (
-                  <div className="col-span-1 lg:col-span-1 bg-white dark:bg-slate-900 rounded-4xl p-6 shadow-xs border border-slate-200/50 dark:border-white/5 flex flex-col justify-between">
-                    <div>
-                      <h3 className="text-[14px] font-black text-slate-800 dark:text-white tracking-tight">
-                        Estado de Documentos
-                      </h3>
-                      <p className="text-[11px] font-medium text-slate-400 mb-2">
-                        Vigencia en el departamento
-                      </p>
-                    </div>
-
+                  <PanelSection
+                    icon={FileText}
+                    title="Estado de los documentos"
+                    hint="Vigencia en el departamento"
+                    className="lg:col-span-1"
+                  >
                     <DonutChart
                       data={statusChartData}
                       total={statusChartData.reduce((s, d) => s + d.value, 0)}
                     />
 
-                    <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 justify-center">
+                    <div className="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-2">
                       {statusChartData.map((d) => (
                         <div
                           key={d.label}
                           className="flex items-center gap-1.5"
                         >
-                          <div
-                            className="w-2.5 h-2.5 rounded-full shrink-0"
+                          <span
+                            className="size-2.5 shrink-0 rounded-full"
                             style={{ backgroundColor: d.color }}
                           />
-                          <span className="text-[9px] font-bold text-slate-500">
+                          <span className="text-xs text-slate-600 dark:text-slate-400">
                             {d.label}: {d.value}
                           </span>
                         </div>
                       ))}
                     </div>
-                  </div>
+                  </PanelSection>
                 )}
 
                 {(canViewCharts || isSingleDeptView) && (
-                  <div
-                    className={`${isSingleDeptView ? (statusChartData.length > 0 ? "col-span-1 lg:col-span-3" : "col-span-1 lg:col-span-4") : "col-span-1 lg:col-span-2"} bg-white dark:bg-slate-900 rounded-4xl p-6 shadow-xs border border-slate-200/50 dark:border-white/5`}
-                    data-tour="biblioteca-dashboard-accesos"
+                  <PanelSection
+                    icon={Eye}
+                    title={
+                      isSingleDeptView
+                        ? "Documentos más consultados"
+                        : "Accesos externos"
+                    }
+                    hint={
+                      isSingleDeptView
+                        ? "Con más accesos por enlace o QR"
+                        : "Interacciones por enlace o QR"
+                    }
+                    className={
+                      isSingleDeptView
+                        ? statusChartData.length > 0
+                          ? "lg:col-span-3"
+                          : "lg:col-span-4"
+                        : "lg:col-span-2"
+                    }
                   >
-                    <h3 className="text-[14px] font-black text-slate-800 dark:text-white tracking-tight">
-                      {isSingleDeptView
-                        ? "Top Documentos Accedidos"
-                        : "Accesos Externos"}
-                    </h3>
-                    <p className="text-[11px] font-medium text-slate-400 mb-2">
-                      {isSingleDeptView
-                        ? "Documentos con más accesos vía QR"
-                        : "Interacciones vía QR"}
-                    </p>
-
-                    {isSingleDeptView ? (
-                      topDocsChart.length > 0 ? (
-                        <VerticalBarChart data={topDocsChart} />
+                    <div data-tour="biblioteca-dashboard-accesos">
+                      {isSingleDeptView ? (
+                        topDocsChart.length > 0 ? (
+                          <VerticalBarChart data={topDocsChart} />
+                        ) : (
+                          <div className="flex h-48 items-center justify-center text-sm text-muted-foreground">
+                            Sin accesos registrados
+                          </div>
+                        )
                       ) : (
-                        <div className="flex items-center justify-center h-48 text-slate-400 text-sm font-bold">
-                          Sin accesos registrados
-                        </div>
-                      )
-                    ) : (
-                      <VerticalBarChart
-                        data={chartData.map((d) => ({
-                          label: d.label,
-                          value: d.accessValue,
-                          color: d.color,
-                        }))}
-                      />
-                    )}
-                  </div>
+                        <VerticalBarChart
+                          data={chartData.map((d) => ({
+                            label: d.label,
+                            value: d.accessValue,
+                            color: d.color,
+                          }))}
+                        />
+                      )}
+                    </div>
+                  </PanelSection>
                 )}
 
                 {canViewCharts && (
-                  <div
-                    className="col-span-1 lg:col-span-1 bg-white dark:bg-slate-900 rounded-4xl p-6 shadow-xs border border-slate-200/50 dark:border-white/5 flex flex-col justify-between"
-                    data-tour="biblioteca-dashboard-solicitudes"
+                  <PanelSection
+                    icon={Send}
+                    title="Estado de las solicitudes"
+                    hint="Aprobaciones y rechazos"
+                    className="lg:col-span-1"
                   >
-                    <div>
-                      <h3 className="text-[14px] font-black text-slate-800 dark:text-white tracking-tight">
-                        Estado Solicitudes
-                      </h3>
-                      <p className="text-[11px] font-medium text-slate-400 mb-2">
-                        Aprobaciones y rechazos
-                      </p>
-                    </div>
-
-                    <div className="flex-1 flex flex-col justify-center overflow-visible">
+                    <div data-tour="biblioteca-dashboard-solicitudes">
                       <HalfDonutChart data={reqData} total={reqStats.total} />
-                    </div>
 
-                    <div className="mt-2 flex flex-col gap-2">
-                      {reqData.map((d) => (
-                        <div
-                          key={d.label}
-                          className="flex items-center justify-between bg-slate-50 dark:bg-slate-800/50 rounded-xl p-2 px-3"
-                        >
-                          <div className="flex items-center gap-2">
-                            <div
-                              className="w-2.5 h-2.5 rounded-full shrink-0"
-                              style={{ backgroundColor: d.color }}
-                            />
-                            <span className="text-[10px] font-bold text-slate-600 dark:text-slate-400">
-                              {d.label}
+                      <div className="mt-3 flex flex-col gap-2">
+                        {reqData.map((d) => (
+                          <div
+                            key={d.label}
+                            className="flex items-center justify-between rounded-lg bg-muted/40 px-3 py-2"
+                          >
+                            <div className="flex items-center gap-2">
+                              <span
+                                className="size-2.5 shrink-0 rounded-full"
+                                style={{ backgroundColor: d.color }}
+                              />
+                              <span className="text-[13px] text-slate-700 dark:text-slate-300">
+                                {d.label}
+                              </span>
+                            </div>
+                            <span className="text-sm font-semibold tabular-nums text-slate-700 dark:text-slate-200">
+                              {d.value}
                             </span>
                           </div>
-                          <span className="text-[12px] font-black text-slate-800 dark:text-white">
-                            {d.value}
-                          </span>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  </PanelSection>
                 )}
-
-                {/* Clases literales: Tailwind purga en compilación y una
-                  interpolada (lg:grid-cols-${n}) nunca llega a generarse. */}
-                <div
-                  className={`col-span-1 lg:col-span-4 grid grid-cols-2 gap-6 ${
-                    isDipDirector ? "lg:grid-cols-4" : "lg:grid-cols-3"
-                  }`}
-                  data-tour="biblioteca-dashboard-metrics"
-                >
-                  {(isDipDirector
-                    ? cards
-                    : cards.filter((c) => c.label !== "Solicitudes")
-                  ).map((card) => (
-                    <div
-                      key={card.label}
-                      className="bg-white dark:bg-slate-900 rounded-4xl p-6 shadow-xs border border-slate-200/50 dark:border-white/5 flex flex-col justify-between group hover:-translate-y-1 transition-transform duration-300"
-                    >
-                      <div className="flex justify-between items-center mb-4">
-                        <div
-                          className={`p-3 rounded-2xl ${card.bgLight} dark:bg-white/5`}
-                        >
-                          <card.icon
-                            className={`h-5 w-5 ${card.iconColor} dark:text-white`}
-                          />
-                        </div>
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                          {card.label}
-                        </span>
-                      </div>
-                      <div>
-                        <div className="text-4xl font-black text-slate-800 dark:text-white tracking-tighter">
-                          {card.value}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
               </div>
-            )}
-          </div>
-        </DialogContent>
+            </div>
+          )}
+        </FormDialogContent>
       </Dialog>
     </TooltipProvider>
   );

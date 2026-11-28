@@ -53,7 +53,9 @@ const UnitsPage = () => {
 
   useEffect(() => {
     if (primaryUnits && primaryUnits.length > 0) {
-      registerTour("unidades", "Unidades", unidadesSteps);
+      registerTour("unidades", "Unidades", unidadesSteps, {
+        onlyVisible: true,
+      });
     }
     return () => unregisterTour("unidades");
   }, [registerTour, unregisterTour, primaryUnits]);
@@ -83,7 +85,10 @@ const UnitsPage = () => {
     >
       {canReviewConversions ? (
         <SegmentedTabs value={tab} onValueChange={setTab}>
-          <SegmentedTabsList className="max-sm:flex-col max-sm:items-stretch">
+          <SegmentedTabsList
+            className="max-sm:flex-col max-sm:items-stretch"
+            data-tour="unidades-tabs"
+          >
             {TABS.map(({ value, label }) => (
               <SegmentedTabsTrigger key={value} value={value}>
                 {label}

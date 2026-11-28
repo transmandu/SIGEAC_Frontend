@@ -21,6 +21,7 @@ export function CreateShippingAgencyDialog() {
         "agencias-envio-crear",
         "Agencias - Crear",
         agenciasEnvioCrearSteps,
+        { onlyVisible: true },
       );
     }
 

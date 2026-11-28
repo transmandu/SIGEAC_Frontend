@@ -63,6 +63,7 @@ export default function NotificationBulkActions({
             <button
               type="button"
               aria-label="Marcar todas como leídas"
+              data-tour="notificaciones-mark-all"
               className={toolbarIconButton}
               onClick={() => markAll.mutate()}
               disabled={unreadCount === 0 || markAll.isPending}
@@ -83,6 +84,7 @@ export default function NotificationBulkActions({
                   <button
                     type="button"
                     aria-label="Eliminar notificaciones"
+                    data-tour="notificaciones-clear"
                     className={toolbarIconButton}
                     disabled={total === 0}
                   >

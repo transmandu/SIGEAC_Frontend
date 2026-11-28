@@ -138,29 +138,30 @@ export default function PublicNativeViewerPage() {
       onContextMenu={(e) => e.preventDefault()}
     >
       {/* HEADER NATIVO */}
-      <div className="p-4 border-b border-gray-800 flex justify-between items-center bg-[#1a1c1e]">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-emerald-500/10">
-            <ShieldCheck className="h-5 w-5 text-emerald-500" />
+      <div className="flex items-center justify-between gap-3 border-b border-gray-800 bg-[#1a1c1e] px-4 py-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-emerald-500/10">
+            <ShieldCheck className="size-5 text-emerald-500" />
           </div>
-          <div>
-            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white">
-              Visualizador Seguro
+          <div className="min-w-0">
+            <h3 className="truncate text-sm font-semibold leading-tight text-white">
+              {docTitle || "Visualizador seguro"}
             </h3>
-            <p className="text-[9px] text-gray-500 font-bold uppercase">
-              Transmisión Protegida por SIGEAC
+            <p className="text-xs text-gray-500">
+              Transmisión protegida por SIGEAC
             </p>
           </div>
         </div>
 
         {!readOnly && !loading && !error && (
-          <button
+          <Button
+            type="button"
             onClick={handleDownload}
-            className="flex items-center gap-2 px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-all active:scale-95 shadow-lg"
+            className="shrink-0 gap-2 max-sm:h-10"
           >
-            <Download className="h-4 w-4" />
+            <Download className="size-4" />
             Descargar
-          </button>
+          </Button>
         )}
       </div>
 
@@ -168,30 +169,28 @@ export default function PublicNativeViewerPage() {
       <div className="flex-1 relative overflow-hidden bg-[#141517]">
         {loading && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#111214] z-10">
-            <Loader2 className="h-10 w-10 animate-spin text-emerald-500" />
-            <p className="mt-4 text-[10px] font-black uppercase tracking-widest text-gray-500 text-center px-4">
-              Cifrando Visualización...
+            <Loader2 className="size-8 animate-spin text-emerald-500" />
+            <p className="mt-4 px-4 text-center text-sm text-gray-500">
+              Cargando el documento...
             </p>
           </div>
         )}
 
         {error ? (
           <div className="flex flex-col items-center justify-center h-full p-8 text-center bg-[#111214]">
-            <div className="mb-6 p-6 rounded-full bg-amber-500/10 animate-pulse">
-              <Frown className="h-16 w-16 text-amber-500" />
+            <div className="mb-5 grid size-14 place-items-center rounded-2xl bg-amber-500/10">
+              <Frown className="size-7 text-amber-500" />
             </div>
-            <h2 className="text-xl font-bold mb-2 uppercase tracking-tight text-white">
+            <h2 className="mb-2 text-lg font-semibold text-white">
               No se pudo cargar el documento
             </h2>
-            <p className="max-w-md text-sm text-gray-400 mb-10 font-medium italic leading-relaxed">
-              {error}
-            </p>
+            <p className="mb-8 max-w-md text-sm text-gray-400">{error}</p>
             <Button
+              type="button"
               onClick={loadFile}
-              variant="default"
-              className="bg-emerald-600 hover:bg-emerald-700 flex items-center gap-2 transition-all active:scale-95"
+              className="gap-2 bg-emerald-600 hover:bg-emerald-700"
             >
-              <RotateCcw className="h-4 w-4" />
+              <RotateCcw className="size-4" />
               Reintentar
             </Button>
           </div>
@@ -205,9 +204,9 @@ export default function PublicNativeViewerPage() {
       </div>
 
       {/* FOOTER NATIVO */}
-      <div className="p-3 border-t border-gray-800 flex justify-center items-center gap-4 bg-[#1a1c1e]">
-        <div className="flex items-center gap-2 text-[8px] font-bold uppercase text-gray-500 tracking-tighter">
-          <Lock className="h-3 w-3" />© SIGEAC Digital Library - 2026
+      <div className="flex items-center justify-center border-t border-gray-800 bg-[#1a1c1e] px-3 py-2.5">
+        <div className="flex items-center gap-2 text-xs text-gray-500">
+          <Lock className="size-3" />© SIGEAC Digital Library - 2026
         </div>
       </div>
     </div>

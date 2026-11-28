@@ -20,6 +20,7 @@ export function CreateClientDialog() {
         "clientes-crear",
         "Clientes - Crear",
         clientesCrearAirlineSteps,
+        { onlyVisible: true },
       );
     }
     return () => unregisterTour("clientes-crear");

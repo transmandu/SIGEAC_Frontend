@@ -31,6 +31,7 @@ export function CreateVendorDialog({
         "proveedores-crear",
         "Proveedores - Crear",
         proveedoresCrearSteps,
+        { onlyVisible: true },
       );
     }
     return () => unregisterTour("proveedores-crear");

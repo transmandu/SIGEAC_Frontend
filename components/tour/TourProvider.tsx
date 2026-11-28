@@ -11,6 +11,7 @@ import React, {
   useState,
 } from "react";
 import { TourProvider, useTour, StepType } from "@reactour/tour";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { HelpCircle } from "lucide-react";
 import {
@@ -25,10 +26,25 @@ interface TourInfo {
   start: () => void;
 }
 
+interface RegisterTourOptions {
+  /**
+   * Al iniciar el tour, descarta los pasos cuyo elemento no se ve en ese
+   * momento (no existe, está oculto o mide cero): botones que dependen del rol,
+   * paneles ocultos en móvil, pestañas que solo salen en ciertos casos. No usar
+   * en un tour cuyos pasos señalan algo que aparece durante el recorrido.
+   */
+  onlyVisible?: boolean;
+}
+
 interface TourContextType {
   startTour: (steps: StepType[], tourKey: string) => void;
   availableTours: TourInfo[];
-  registerTour: (key: string, label: string, steps: StepType[]) => void;
+  registerTour: (
+    key: string,
+    label: string,
+    steps: StepType[],
+    options?: RegisterTourOptions,
+  ) => void;
   unregisterTour: (key: string) => void;
 }
 
@@ -40,6 +56,55 @@ const TourContext = createContext<TourContextType>({
 });
 
 export const useTourContext = () => useContext(TourContext);
+
+/** El elemento existe y ocupa espacio: es algo que el usuario puede ver ahora. */
+function isShown(selector: string): boolean {
+  try {
+    const element = document.querySelector(selector);
+    if (!element) return false;
+
+    const style = getComputedStyle(element);
+    if (style.display === "none" || style.visibility === "hidden") return false;
+
+    const rect = element.getBoundingClientRect();
+    return rect.width > 0 && rect.height > 0;
+  } catch {
+    // Un selector que el navegador no entiende no se descarta: mejor un paso de más.
+    return true;
+  }
+}
+
+/** Los pasos de un tour que tienen su elemento a la vista (los que no señalan nada se conservan). */
+export function visibleSteps(steps: StepType[]): StepType[] {
+  return steps.filter(
+    (step) => typeof step.selector !== "string" || isShown(step.selector),
+  );
+}
+
+/**
+ * Cada paso trae a la vista su elemento antes de resaltarlo. reactour solo
+ * desplaza la ventana: un elemento dentro de un panel con scroll propio (el
+ * árbol de carpetas, una lista) que estaba fuera de la vista quedaba
+ * señalado en otro lugar. Tras desplazar se fuerza un `resize` para que
+ * recalcule la posición.
+ */
+function withScrollIntoView(step: StepType): StepType {
+  if (typeof step.selector !== "string") return step;
+  const selector = step.selector;
+  const original = step.action;
+
+  return {
+    ...step,
+    action: (element) => {
+      original?.(element);
+      const target = element ?? document.querySelector(selector);
+      if (!target) return;
+
+      target.scrollIntoView({ block: "nearest", inline: "nearest" });
+      requestAnimationFrame(() => window.dispatchEvent(new Event("resize")));
+    },
+  };
+}
 
 interface TourInnerProps {
   children: ReactNode;
@@ -64,7 +129,7 @@ function TourInner({ children, tourKeyRef }: TourInnerProps) {
     (steps: StepType[], tourKey: string) => {
       if (setSteps && setCurrentStep && setIsOpen) {
         tourKeyRef.current = tourKey;
-        setSteps(steps);
+        setSteps(steps.map(withScrollIntoView));
         setCurrentStep(0);
         setIsOpen(true);
       }
@@ -73,14 +138,32 @@ function TourInner({ children, tourKeyRef }: TourInnerProps) {
   );
 
   const registerTour = useCallback(
-    (key: string, label: string, steps: StepType[]) => {
+    (
+      key: string,
+      label: string,
+      steps: StepType[],
+      options?: RegisterTourOptions,
+    ) => {
+      // Los pasos visibles se calculan al pulsar el tour, no al registrarlo:
+      // en ese momento es cuando el usuario ve (o no) cada elemento.
+      const start = () => {
+        const toShow = options?.onlyVisible ? visibleSteps(steps) : steps;
+
+        if (toShow.length === 0) {
+          toast.info(
+            "Este recorrido no tiene nada que mostrar en su pantalla.",
+          );
+          return;
+        }
+
+        startTour(toShow, key);
+      };
+
       setAvailableTours((prev) => {
         if (prev.some((t) => t.key === key)) {
-          return prev.map((t) =>
-            t.key === key ? { ...t, start: () => startTour(steps, key) } : t,
-          );
+          return prev.map((t) => (t.key === key ? { ...t, start } : t));
         }
-        return [...prev, { key, label, start: () => startTour(steps, key) }];
+        return [...prev, { key, label, start }];
       });
     },
     [startTour],
@@ -132,7 +215,7 @@ function FloatingTourMenu() {
       // dentro de uno. Con alertas a la vista sube sobre su botón (z-40, por
       // debajo de diálogos y menús) para que nunca se solapen, y se retira
       // mientras el panel de alertas está abierto (ver globals.css).
-      className="fixed bottom-[var(--fab-alert-offset,1rem)] right-7 z-100 flex flex-col items-end gap-2 pointer-events-auto transition-[bottom,opacity] duration-300"
+      className="fixed bottom-(--fab-alert-offset,1rem) right-7 z-100 flex flex-col items-end gap-2 pointer-events-auto transition-[bottom,opacity] duration-300"
     >
       {open && (
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl w-64 p-2">

@@ -17,14 +17,25 @@ import {
   Eye,
   Copy,
   Check,
-  Share2,
   Info,
   CalendarDays,
   ShieldAlert,
   Download,
 } from "lucide-react";
 import { toast } from "sonner";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
+import { textareaClass } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
+import { PanelSection } from "@/components/forms/PanelSection";
+import { EmptyState } from "@/components/misc/EmptyState";
+import {
+  SegmentedTabs,
+  SegmentedTabsList,
+  SegmentedTabsTrigger,
+} from "@/components/misc/SegmentedTabs";
+import { TagBadge } from "@/components/misc/TagBadge";
+import { Button } from "@/components/ui/button";
+import { Dialog } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { QRCodeSVG } from "qrcode.react";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { bibliotecaSolicitudesSteps } from "@/components/tour/steps/general/biblioteca/biblioteca-solicitudes";
@@ -41,6 +52,17 @@ interface ShareRequestsPanelProps {
 }
 
 type FilterTab = "all" | "pending" | "approved" | "rejected";
+
+const EMPTY_LABEL: Record<Exclude<FilterTab, "all">, string> = {
+  pending: "pendientes",
+  approved: "aprobadas",
+  rejected: "rechazadas",
+};
+
+/** El enlace aprobado ya venció (por tiempo o porque se deshabilitó). */
+const isLinkExpired = (req: any) =>
+  !!req.calculated_expires_at &&
+  new Date(req.calculated_expires_at).getTime() <= Date.now();
 
 const isReadOnlyAccess = (value: unknown) => {
   return value === true || value === 1 || value === "1";
@@ -99,7 +121,9 @@ export default function ShareRequestsPanel({
   );
 
   useEffect(() => {
-    registerTour("biblioteca-solicitudes", "Solicitudes de Acceso", steps);
+    registerTour("biblioteca-solicitudes", "Solicitudes de Acceso", steps, {
+      onlyVisible: true,
+    });
     return () => unregisterTour("biblioteca-solicitudes");
   }, [registerTour, unregisterTour, steps]);
 
@@ -211,291 +235,314 @@ export default function ShareRequestsPanel({
     switch (status) {
       case "approved":
         return (
-          <span className="select-none flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-1 rounded-full border border-emerald-200">
-            <CheckCircle2 className="h-3 w-3" /> APROBADA
-          </span>
+          <TagBadge tone="emerald" icon={CheckCircle2}>
+            Aprobada
+          </TagBadge>
         );
       case "rejected":
         return (
-          <span className="select-none flex items-center gap-1 text-[10px] font-bold text-red-600 bg-red-50 dark:bg-red-500/10 px-2 py-1 rounded-full border border-red-200">
-            <XCircle className="h-3 w-3" /> RECHAZADA
-          </span>
+          <TagBadge tone="rose" icon={XCircle}>
+            Rechazada
+          </TagBadge>
         );
       default:
         return (
-          <span className="select-none flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-500/10 px-2 py-1 rounded-full border border-amber-200">
-            <Clock className="h-3 w-3" /> PENDIENTE
-          </span>
+          <TagBadge tone="amber" icon={Clock}>
+            Pendiente
+          </TagBadge>
         );
     }
   };
 
   return (
     <>
-      <div className="w-[480px] h-full bg-white dark:bg-[#1a1c1e] border-l border-slate-200 dark:border-gray-700 shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
-        <div className="px-6 py-4 border-b border-slate-200 dark:border-gray-700 flex items-center justify-between shrink-0 bg-white dark:bg-gray-800/60">
+      <div className="flex h-full w-[min(30rem,100vw)] flex-col border-l border-border/50 bg-background shadow-2xl motion-safe:animate-item-in">
+        <div className="flex shrink-0 items-center justify-between border-b bg-muted/30 px-4 py-3 sm:px-6">
           <div
-            className="flex items-center gap-2"
+            className="flex items-center gap-2.5"
             data-tour="biblioteca-requests-title"
           >
+            <Send className="size-4 text-muted-foreground" />
             <div>
-              <h2 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tight">
+              <h2 className="text-[15px] font-semibold leading-tight text-slate-700 dark:text-slate-200">
                 Solicitudes
               </h2>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              <p className="text-xs text-slate-600 dark:text-slate-400">
                 Compartición de documentos
               </p>
             </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-all"
+            aria-label="Cerrar solicitudes"
+            className="grid size-8 place-items-center rounded-md text-muted-foreground hover:bg-muted max-md:size-10"
             data-tour="biblioteca-requests-close"
           >
-            <X className="h-5 w-5" />
+            <X className="size-4" />
           </button>
         </div>
 
-        {/* Tabs */}
         <div
-          className="flex gap-1 px-4 py-3 border-b border-slate-200 dark:border-gray-800 bg-slate-50 dark:bg-white/2"
+          className="shrink-0 border-b px-4 py-3"
           data-tour="biblioteca-requests-tab-pendientes"
         >
-          {tabs.map((tab) => (
-            <button
-              key={tab.key}
-              data-tour={`biblioteca-requests-tab-${tab.key}`}
-              onClick={() => setActiveTab(tab.key)}
-              className={`relative flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all
-              ${
-                activeTab === tab.key
-                  ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 shadow-xs"
-                  : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/50"
-              }`}
-            >
-              {tab.label}
-              <span
-                className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold
-              ${activeTab === tab.key ? "bg-blue-200 dark:bg-blue-800/50 text-blue-700 dark:text-blue-300" : "bg-slate-200 dark:bg-slate-700 text-slate-500"}
-            `}
-              >
-                {tab.count}
-              </span>
-            </button>
-          ))}
+          <SegmentedTabs
+            value={activeTab}
+            onValueChange={(value) => setActiveTab(value as FilterTab)}
+          >
+            <SegmentedTabsList size="sm">
+              {tabs.map((tab) => (
+                <SegmentedTabsTrigger
+                  key={tab.key}
+                  value={tab.key}
+                  data-tour={`biblioteca-requests-tab-${tab.key}`}
+                >
+                  {tab.label}
+                  <span className="tabular-nums text-muted-foreground">
+                    {tab.count}
+                  </span>
+                </SegmentedTabsTrigger>
+              ))}
+            </SegmentedTabsList>
+          </SegmentedTabs>
         </div>
 
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto overscroll-contain">
           {loading ? (
             <div className="flex items-center justify-center py-20">
-              <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+              <Loader2 className="size-8 animate-spin text-primary" />
             </div>
           ) : filteredRequests.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-center px-6">
-              <Send className="h-12 w-12 text-slate-300 dark:text-slate-600 mb-4" />
-              <p className="text-sm font-bold text-slate-400 dark:text-slate-500">
-                No hay solicitudes {activeTab !== "all" ? activeTab : ""}
-              </p>
-              {activeTab === "pending" && (
-                <p className="text-[11px] text-slate-400 mt-1">
-                  Los directores pueden solicitar compartir documentos desde el
-                  menú de acciones.
-                </p>
-              )}
-            </div>
+            <EmptyState
+              icon={Send}
+              title={
+                activeTab === "all"
+                  ? "No hay solicitudes"
+                  : `No hay solicitudes ${EMPTY_LABEL[activeTab]}`
+              }
+              description={
+                activeTab === "pending"
+                  ? "Los directores pueden solicitar compartir documentos desde el menú de acciones."
+                  : undefined
+              }
+              className="px-6 py-20"
+            />
           ) : (
-            <div className="p-4 space-y-4">
+            <div className="space-y-3 p-4">
               {filteredRequests.map((req: any) => (
                 <div
                   key={req.id}
-                  className="bg-white dark:bg-[#111214] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs hover:shadow-md transition-all"
+                  className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700/60 dark:bg-slate-900/60"
                   data-tour="biblioteca-requests-card"
                 >
-                  {/* Status and Date row */}
-                  <div className="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-800/50 pb-3">
+                  <div className="mb-3 flex items-center justify-between border-b border-border/60 pb-3">
                     {statusBadge(req.status)}
-                    <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-500">
-                      <CalendarDays className="h-3.5 w-3.5" />
+                    <span className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">
+                      <CalendarDays className="size-3.5" />
                       {formatInstant(req.created_at, timeZone, "date")}
-                    </div>
-                  </div>
-
-                  {/* Title and Version */}
-                  <div className="flex items-start justify-between gap-3 mb-4">
-                    <h3 className="text-[13px] font-black text-slate-800 dark:text-white uppercase tracking-tight leading-tight flex-1">
-                      {req.document?.title || req.document_title || "Documento"}
-                    </h3>
-                    <span className="select-none shrink-0 inline-flex items-center px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-600 dark:text-slate-300">
-                      {req.version?.version_label ||
-                        req.version?.version_number ||
-                        "Última"}
                     </span>
                   </div>
 
-                  {/* Requester and Shared With */}
-                  <div className="flex items-start mb-4">
-                    <div className="flex-1">
-                      <p className="text-[9px] font-bold uppercase text-slate-400 mb-1 tracking-wider">
+                  <div className="mb-3 flex items-start justify-between gap-3">
+                    <h3 className="min-w-0 flex-1 text-sm font-semibold text-slate-700 wrap-anywhere dark:text-slate-200">
+                      {req.document?.title || req.document_title || "Documento"}
+                    </h3>
+                    <TagBadge tone="blue" className="shrink-0">
+                      {req.version?.version_label ||
+                        req.version?.version_number ||
+                        "Última"}
+                    </TagBadge>
+                  </div>
+
+                  <div className="mb-3 grid grid-cols-2 gap-3">
+                    <div>
+                      <p className="mb-0.5 text-xs text-slate-600 dark:text-slate-400">
                         Solicitado por
                       </p>
-                      <p className="text-[11px] font-bold text-slate-900 dark:text-white uppercase">
+                      <p className="text-[13px] font-medium text-slate-700 wrap-anywhere dark:text-slate-300">
                         {req.requested_by_name || "N/A"}
                       </p>
                     </div>
-                    <div className="w-px h-8 bg-slate-200 dark:bg-slate-700 mx-4"></div>
-                    <div className="flex-1">
-                      <p className="text-[9px] font-bold uppercase text-slate-400 mb-1 tracking-wider">
+                    <div className="border-l border-border/60 pl-3">
+                      <p className="mb-0.5 text-xs text-slate-600 dark:text-slate-400">
                         Destinatario
                       </p>
-                      <p className="text-[11px] font-bold text-slate-900 dark:text-white uppercase">
+                      <p className="text-[13px] font-medium text-slate-700 wrap-anywhere dark:text-slate-300">
                         {req.shared_with_name || "Externo"}
                       </p>
                     </div>
                   </div>
 
-                  {/* Reason */}
                   {req.reason && (
-                    <div className="flex items-start gap-2 p-3 bg-slate-50 dark:bg-slate-800/30 rounded-xl mb-4 border border-slate-100 dark:border-slate-800/50">
-                      <MessageSquare className="h-4 w-4 text-slate-400 mt-0.5 shrink-0" />
-                      <p className="text-[12px] italic font-medium text-slate-700 dark:text-slate-300">
-                        {'"'}
-                        {req.reason}
-                        {'"'}
+                    <div className="mb-3 flex items-start gap-2 rounded-lg bg-muted/40 p-3">
+                      <MessageSquare className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
+                      <p className="text-[13px] text-slate-700 wrap-anywhere dark:text-slate-300">
+                        &ldquo;{req.reason}&rdquo;
                       </p>
                     </div>
                   )}
 
-                  {/* Rejection Reason */}
                   {req.status === "rejected" && req.rejection_reason && (
-                    <div className="flex items-start gap-2 p-3 bg-red-50 dark:bg-red-900/10 rounded-xl mb-4 border border-red-100 dark:border-red-900/30">
-                      <XCircle className="h-4 w-4 text-red-500 mt-0.5 shrink-0" />
+                    <div className="mb-3 flex items-start gap-2 rounded-lg border border-red-500/20 bg-red-500/5 p-3">
+                      <XCircle className="mt-0.5 size-3.5 shrink-0 text-red-500" />
                       <div>
-                        <p className="text-[9px] font-bold uppercase text-red-500 mb-0.5 tracking-wider">
-                          Motivo de Rechazo
+                        <p className="mb-0.5 text-xs font-semibold text-red-700 dark:text-red-400">
+                          Motivo del rechazo
                         </p>
-                        <p className="text-[11px] font-medium text-red-700 dark:text-red-400">
-                          {'"'}
-                          {req.rejection_reason}
-                          {'"'}
+                        <p className="text-[13px] text-red-700 wrap-anywhere dark:text-red-400">
+                          &ldquo;{req.rejection_reason}&rdquo;
                         </p>
                       </div>
                     </div>
                   )}
 
-                  {/* QR Generation Area */}
                   {req.shared_link_id &&
                     req.status === "approved" &&
+                    isLinkExpired(req) && (
+                      <div className="mb-3 flex items-center gap-2 rounded-lg bg-muted/40 p-3 text-[13px] text-slate-600 dark:text-slate-400">
+                        <Clock className="size-4 shrink-0" /> El enlace ya no
+                        está vigente.
+                      </div>
+                    )}
+
+                  {req.shared_link_id &&
+                    req.status === "approved" &&
+                    !isLinkExpired(req) &&
                     req.share_url && (
-                      <div className="mb-4 flex items-start gap-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/40 rounded-xl">
+                      <div className="mb-3 flex items-start gap-4 rounded-lg border border-primary/20 bg-primary/5 p-3">
                         <div
-                          className="p-1.5 bg-white dark:bg-gray-900 rounded-lg shrink-0"
+                          className="shrink-0 rounded-lg bg-white p-1.5"
                           data-qr-value={req.share_url}
                         >
                           <QRCodeSVG value={req.share_url} size={72} />
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-2">
-                            QR generado
+                        <div className="min-w-0 flex-1">
+                          <p className="mb-2 text-[13px] font-semibold text-primary">
+                            Enlace generado
                           </p>
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => {
-                                navigator.clipboard.writeText(req.share_url);
-                                setCopiedUrl(req.share_url);
-                                setTimeout(() => setCopiedUrl(null), 3000);
+                          <div className="flex flex-wrap gap-2">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={async () => {
+                                try {
+                                  await navigator.clipboard.writeText(
+                                    req.share_url,
+                                  );
+                                  setCopiedUrl(req.share_url);
+                                  setTimeout(() => setCopiedUrl(null), 3000);
+                                } catch {
+                                  toast.error("No se pudo copiar el enlace");
+                                }
                               }}
-                              className="flex items-center gap-1 text-[9px] font-bold text-blue-600 hover:text-blue-700 bg-white dark:bg-gray-800 px-2.5 py-1.5 rounded-lg border border-blue-200 dark:border-blue-800 transition-colors"
+                              className="max-sm:h-10"
                             >
                               {copiedUrl === req.share_url ? (
-                                <Check className="h-3 w-3" />
+                                <Check className="size-3.5" />
                               ) : (
-                                <Copy className="h-3 w-3" />
+                                <Copy className="size-3.5" />
                               )}
                               {copiedUrl === req.share_url
-                                ? "COPIADO"
-                                : "COPIAR LINK"}
-                            </button>
-                            <button
+                                ? "Copiado"
+                                : "Copiar enlace"}
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
                               onClick={() =>
                                 downloadQRCode(
                                   req.share_url,
                                   req.document?.title || "documento",
                                 )
                               }
-                              className="flex items-center gap-1 text-[9px] font-bold text-emerald-600 hover:text-emerald-700 bg-white dark:bg-gray-800 px-2.5 py-1.5 rounded-lg border border-emerald-200 dark:border-emerald-800 transition-colors"
+                              className="max-sm:h-10"
                             >
-                              <Download className="h-3 w-3" /> DESCARGAR QR
-                            </button>
+                              <Download className="size-3.5" /> Descargar QR
+                            </Button>
                           </div>
                         </div>
                       </div>
                     )}
 
-                  {/* Actions */}
                   <div className="flex flex-col gap-3">
                     <div className="flex justify-end">
-                      <button
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
                         onClick={() => setSelectedDetails(req)}
-                        className="flex items-center gap-1.5 text-[9px] font-bold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/40 px-3 py-1.5 rounded-lg transition-colors uppercase"
+                        className="gap-1.5 max-sm:h-10"
                       >
-                        <Info className="h-3 w-3" /> Detalles
-                      </button>
+                        <Info className="size-3.5" /> Detalles
+                      </Button>
                     </div>
 
                     {req.status === "pending" && isDipDirector && (
-                      <div className="pt-3 border-t border-slate-100 dark:border-slate-800/50">
+                      <div className="border-t border-border/60 pt-3">
                         {rejectingId === req.id ? (
                           <div className="space-y-2">
-                            <textarea
+                            <Textarea
                               placeholder="Motivo del rechazo..."
-                              className="placeholder:text-gray-400 w-full h-16 px-3 py-2 text-[11px] border border-red-300 dark:border-red-800 rounded-lg bg-white dark:bg-gray-800 text-slate-700 dark:text-white outline-hidden focus:ring-2 focus:ring-red-500 resize-none"
+                              aria-label="Motivo del rechazo"
+                              rows={2}
+                              className={textareaClass}
                               value={rejectReason}
                               onChange={(e) => setRejectReason(e.target.value)}
                             />
                             <div className="flex gap-2">
-                              <button
+                              <Button
+                                type="button"
+                                variant="outline"
                                 onClick={() => {
                                   setRejectingId(null);
                                   setRejectReason("");
                                 }}
-                                className="flex-1 py-2 text-[10px] font-bold text-slate-500 hover:text-slate-700 uppercase tracking-wider transition-colors"
+                                className="flex-1"
                               >
-                                CANCELAR
-                              </button>
-                              <button
+                                Cancelar
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="destructive"
                                 onClick={() => handleReject(req.id)}
                                 disabled={actionLoading === req.id}
-                                className="flex-1 py-2 text-[10px] font-bold text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50 uppercase tracking-wider"
+                                className="flex-1"
                               >
                                 {actionLoading === req.id
-                                  ? "RECHAZANDO..."
-                                  : "CONFIRMAR RECHAZO"}
-                              </button>
+                                  ? "Rechazando..."
+                                  : "Confirmar rechazo"}
+                              </Button>
                             </div>
                           </div>
                         ) : (
                           <div className="flex gap-2">
-                            <button
+                            <Button
+                              type="button"
                               data-tour="biblioteca-requests-aprobar"
                               onClick={() => handleApprove(req.id)}
                               disabled={actionLoading === req.id}
-                              className="flex-1 py-2 text-[10px] font-bold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 disabled:opacity-50 uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-xs active:scale-[0.98] transition-all"
+                              className="flex-1 gap-1.5"
                             >
                               {actionLoading === req.id ? (
-                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                <Loader2 className="size-4 animate-spin" />
                               ) : (
-                                <CheckCircle2 className="h-3.5 w-3.5" />
+                                <CheckCircle2 className="size-4" />
                               )}
-                              APROBAR
-                            </button>
-                            <button
+                              Aprobar
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="outline"
                               data-tour="biblioteca-requests-rechazar"
                               onClick={() => setRejectingId(req.id)}
-                              className="flex-1 py-2 text-[10px] font-bold text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50 uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-xs active:scale-[0.98] transition-all"
+                              className="flex-1 gap-1.5 text-red-600 hover:text-red-600 dark:text-red-400"
                             >
-                              <XCircle className="h-3.5 w-3.5" />
-                              RECHAZAR
-                            </button>
+                              <XCircle className="size-4" />
+                              Rechazar
+                            </Button>
                           </div>
                         )}
                       </div>
@@ -508,180 +555,160 @@ export default function ShareRequestsPanel({
         </div>
       </div>
 
-      {/* MODAL DE DETALLES */}
       <Dialog
         open={!!selectedDetails}
         onOpenChange={() => setSelectedDetails(null)}
       >
-        <DialogContent className="bg-white dark:bg-[#1a1c1e] border-none text-slate-900 dark:text-white sm:max-w-120 rounded-2xl overflow-hidden p-0 outline-hidden shadow-2xl z-100!">
-          <div className="bg-slate-50 dark:bg-slate-800/50 px-6 py-5 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
-            <div className="flex items-center gap-2">
-              <DialogTitle className="text-lg font-bold text-slate-800 dark:text-white tracking-tight uppercase">
-                Detalles de la Solicitud
-              </DialogTitle>
-            </div>
-          </div>
-
+        <FormDialogContent
+          icon={Info}
+          title="Detalles de la solicitud"
+          lockOutside={false}
+          className="z-100! sm:max-w-xl"
+          footer={
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setSelectedDetails(null)}
+            >
+              Cerrar
+            </Button>
+          }
+        >
           {selectedDetails && (
-            <div className="p-6 flex flex-col w-full gap-4 text-[11px] text-slate-700 dark:text-slate-300 max-h-[70vh] overflow-y-auto">
-              {/* SECCIONES COMBINADAS */}
-              <div className="bg-slate-50 dark:bg-gray-800/20 rounded-xl border border-slate-200 dark:border-gray-800 flex flex-col divide-y divide-slate-200 dark:divide-gray-800">
-                {/* SECCIÓN: Documento */}
-                <div className="p-4 space-y-3">
-                  <h4 className="text-[9px] font-black uppercase tracking-widest text-blue-600 dark:text-blue-400 flex items-center gap-1.5">
-                    <FileText className="h-3 w-3" /> Documento
-                  </h4>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <span className="block text-[8px] font-bold uppercase text-slate-400 mb-0.5">
-                        Título
-                      </span>
-                      <span className="font-bold text-slate-900 dark:text-white">
-                        {selectedDetails.document?.title ||
-                          selectedDetails.document_title ||
-                          "N/A"}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="block text-[8px] font-bold uppercase text-slate-400 mb-0.5">
-                        Versión
-                      </span>
-                      <span className="font-bold text-slate-900 dark:text-white">
-                        {selectedDetails.version?.version_label ||
-                          selectedDetails.version?.version_number ||
-                          "Última"}
-                      </span>
-                    </div>
-                    <div className="col-span-2">
-                      <span className="block text-[8px] font-bold uppercase text-slate-400 mb-0.5">
-                        Departamento
-                      </span>
-                      <span className="font-bold text-slate-900 dark:text-white">
-                        {selectedDetails.document_department_name ||
-                          selectedDetails.document?.department?.name ||
-                          "N/A"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
+            <div className="flex flex-col gap-4">
+              <PanelSection icon={FileText} title="Documento" compact>
+                <DetailList
+                  rows={[
+                    [
+                      "Título",
+                      selectedDetails.document?.title ||
+                        selectedDetails.document_title ||
+                        "N/A",
+                    ],
+                    [
+                      "Versión",
+                      selectedDetails.version?.version_label ||
+                        selectedDetails.version?.version_number ||
+                        "Última",
+                    ],
+                    [
+                      "Departamento",
+                      selectedDetails.document_department_name ||
+                        selectedDetails.document?.department?.name ||
+                        "N/A",
+                    ],
+                  ]}
+                />
+              </PanelSection>
 
-                {/* SECCIÓN: Solicitante */}
-                <div className="p-4 space-y-3">
-                  <h4 className="text-[9px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
-                    <Send className="h-3 w-3" /> Solicitante
-                  </h4>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <span className="block text-[8px] font-bold uppercase text-slate-400 mb-0.5">
-                        Solicitado por
-                      </span>
-                      <span className="font-bold text-slate-900 dark:text-white">
-                        {selectedDetails.requested_by_name || "N/A"}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="block text-[8px] font-bold uppercase text-slate-400 mb-0.5">
-                        Depto. Solicitante
-                      </span>
-                      <span className="font-bold text-slate-900 dark:text-white">
-                        {selectedDetails.requester_department_name || "N/A"}
-                      </span>
-                    </div>
-                    <div className="col-span-2">
-                      <span className="block text-[8px] font-bold uppercase text-slate-400 mb-0.5">
-                        Destinatario
-                      </span>
-                      <span className="font-bold text-slate-900 dark:text-white">
-                        {selectedDetails.shared_with_name ||
-                          "Público / Externo"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
+              <PanelSection icon={Send} title="Solicitante" compact>
+                <DetailList
+                  rows={[
+                    [
+                      "Solicitado por",
+                      selectedDetails.requested_by_name || "N/A",
+                    ],
+                    [
+                      "Departamento solicitante",
+                      selectedDetails.requester_department_name || "N/A",
+                    ],
+                    [
+                      "Destinatario",
+                      selectedDetails.shared_with_name || "Público / Externo",
+                    ],
+                  ]}
+                />
+              </PanelSection>
 
-                {/* SECCIÓN: Seguridad y Vigencia */}
-                <div className="p-4 space-y-3">
-                  <h4 className="text-[9px] font-black uppercase tracking-widest text-primary flex items-center gap-1.5">
-                    <ShieldAlert className="h-3 w-3" /> Seguridad y Vigencia
-                  </h4>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <span className="flex items-center gap-1 text-[8px] font-bold uppercase text-slate-400 mb-0.5">
-                        <CalendarDays className="h-3 w-3" /> Fecha Solicitud
-                      </span>
-                      <span className="font-bold text-slate-900 dark:text-white">
-                        <FormattedInstant
-                          value={selectedDetails.created_at}
-                          format="dateTime"
-                          fallback="N/A"
-                        />
-                      </span>
-                    </div>
-                    <div>
-                      <span className="flex items-center gap-1 text-[8px] font-bold uppercase text-slate-400 mb-0.5">
-                        <Clock className="h-3 w-3" /> Válido Hasta
-                      </span>
-                      <span className="font-bold text-slate-900 dark:text-white">
-                        <FormattedInstant
-                          value={selectedDetails.calculated_expires_at}
-                          format="dateTime"
-                          fallback="Pendiente de aprobación"
-                        />
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 pt-1">
-                    <span className="flex items-center gap-1 text-[8px] font-bold uppercase text-slate-400">
-                      <ShieldAlert className="h-3 w-3" /> Nivel:
-                    </span>
-                    {isReadOnlyAccess(selectedDetails.read_only) ? (
-                      <span className="select-none flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-100 dark:bg-amber-900/30 px-2 py-0.5 rounded-full">
-                        <Eye className="h-3 w-3" /> Solo Lectura
-                      </span>
-                    ) : (
-                      <span className="select-none flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30 px-2 py-0.5 rounded-full">
-                        <CheckCircle2 className="h-3 w-3" /> Permite Descarga
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
+              <PanelSection
+                icon={ShieldAlert}
+                title="Seguridad y vigencia"
+                compact
+              >
+                <DetailList
+                  rows={[
+                    [
+                      "Fecha de solicitud",
+                      <FormattedInstant
+                        key="created"
+                        value={selectedDetails.created_at}
+                        format="dateTime"
+                        fallback="N/A"
+                      />,
+                    ],
+                    [
+                      "Válido hasta",
+                      <FormattedInstant
+                        key="expires"
+                        value={selectedDetails.calculated_expires_at}
+                        format="dateTime"
+                        fallback="Pendiente de aprobación"
+                      />,
+                    ],
+                    [
+                      "Nivel de acceso",
+                      isReadOnlyAccess(selectedDetails.read_only) ? (
+                        <TagBadge key="level" tone="amber" icon={Eye}>
+                          Solo lectura
+                        </TagBadge>
+                      ) : (
+                        <TagBadge
+                          key="level"
+                          tone="emerald"
+                          icon={CheckCircle2}
+                        >
+                          Permite descarga
+                        </TagBadge>
+                      ),
+                    ],
+                  ]}
+                />
+              </PanelSection>
 
-              {/* SECCIÓN: Justificación */}
               {selectedDetails.reason && (
-                <div className="bg-slate-50 dark:bg-gray-800/20 p-4 rounded-xl border border-slate-200 dark:border-gray-800 space-y-2">
-                  <h4 className="text-[9px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-                    <MessageSquare className="h-3 w-3" /> Justificación
-                  </h4>
-                  <p className="bg-white dark:bg-gray-900/40 p-3 rounded-lg border border-slate-200 dark:border-gray-700 italic text-[11px] leading-relaxed">
+                <PanelSection
+                  icon={MessageSquare}
+                  title="Justificación"
+                  compact
+                >
+                  <p className="text-sm text-slate-700 wrap-anywhere dark:text-slate-300">
                     &ldquo;{selectedDetails.reason}&rdquo;
                   </p>
-                </div>
+                </PanelSection>
               )}
 
               {selectedDetails.rejection_reason && (
-                <div className="bg-red-50 dark:bg-red-900/10 p-4 rounded-xl border border-red-200 dark:border-red-900/30 space-y-2">
-                  <h4 className="text-[9px] font-black uppercase tracking-widest text-red-500 flex items-center gap-1.5">
-                    <XCircle className="h-3 w-3" /> Motivo de Rechazo
-                  </h4>
-                  <p className="bg-white dark:bg-gray-900/40 p-3 rounded-lg border border-red-200 dark:border-red-900/40 italic text-[11px] leading-relaxed">
+                <PanelSection icon={XCircle} title="Motivo del rechazo" compact>
+                  <p className="text-sm text-red-700 wrap-anywhere dark:text-red-400">
                     &ldquo;{selectedDetails.rejection_reason}&rdquo;
                   </p>
-                </div>
+                </PanelSection>
               )}
-
-              <div className="flex pt-4 border-t border-slate-100 dark:border-slate-800 mt-2">
-                <button
-                  onClick={() => setSelectedDetails(null)}
-                  className="w-full px-4 py-3 text-[10px] font-black text-white bg-slate-800 hover:bg-slate-900 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white rounded-xl uppercase tracking-widest transition-colors shadow-md active:scale-[0.98]"
-                >
-                  CERRAR
-                </button>
-              </div>
             </div>
           )}
-        </DialogContent>
+        </FormDialogContent>
       </Dialog>
     </>
+  );
+}
+
+/** Pares etiqueta / valor del detalle de solo lectura, con divisores. */
+function DetailList({ rows }: { rows: [string, React.ReactNode][] }) {
+  return (
+    <dl className="divide-y divide-border/60">
+      {rows.map(([label, value]) => (
+        <div
+          key={label}
+          className="flex items-start justify-between gap-4 py-2 first:pt-0 last:pb-0 max-sm:flex-col max-sm:gap-0.5"
+        >
+          <dt className="shrink-0 text-[13px] text-slate-600 dark:text-slate-400">
+            {label}
+          </dt>
+          <dd className="text-right text-sm font-medium text-slate-700 wrap-anywhere dark:text-slate-200 max-sm:text-left max-sm:text-base">
+            {value}
+          </dd>
+        </div>
+      ))}
+    </dl>
   );
 }

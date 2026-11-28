@@ -424,6 +424,10 @@ export type LibraryFolderNode = {
   name: string;
   path: string;
   children: LibraryFolderNode[];
+  /** Visible solo para una lista de empleados. */
+  restricted?: boolean;
+  /** Carpeta ajena que solo se recorre para llegar a una compartida. */
+  navigation_only?: boolean;
 };
 
 export type Department = {

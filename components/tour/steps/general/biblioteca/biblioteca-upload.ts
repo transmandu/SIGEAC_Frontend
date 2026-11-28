@@ -3,8 +3,15 @@ import { StepType } from "@reactour/tour";
 export const bibliotecaUploadSteps: StepType[] = [
   {
     selector: '[data-tour="biblioteca-upload-title"]',
-    content: "Complete el formulario para registrar un nuevo documento en la biblioteca.",
+    content:
+      "Complete el formulario para registrar un nuevo documento en la biblioteca. El archivo queda como su primera versión.",
     position: "center",
+  },
+  {
+    selector: '[data-tour="biblioteca-upload-dropzone"]',
+    content:
+      "Seleccione el archivo o arrástrelo aquí. Se aceptan PDF y Excel de hasta 10 MB.",
+    position: "bottom",
   },
   {
     selector: '[data-tour="biblioteca-upload-name"]',
@@ -13,32 +20,35 @@ export const bibliotecaUploadSteps: StepType[] = [
   },
   {
     selector: '[data-tour="biblioteca-upload-version"]',
-    content: "Etiqueta de versión. Opcional, puede asignar un identificador personalizado a la versión que está subiendo.",
+    content:
+      "Etiqueta de versión. Opcional: un identificador propio para esta versión (por ejemplo, «Rev A»).",
     position: "bottom",
   },
   {
     selector: '[data-tour="biblioteca-upload-depto"]',
-    content: "Seleccione el departamento al que pertenece el documento.",
+    content: "Departamento al que pertenece el documento.",
     position: "bottom",
   },
   {
     selector: '[data-tour="biblioteca-upload-categoria"]',
-    content: "Seleccione la categoría del documento. Puede agregar una nueva si es necesario.",
+    content:
+      "Categoría del documento. Si no existe, use «Nueva categoría» al final de la lista.",
+    position: "bottom",
+  },
+  {
+    selector: '[data-tour="biblioteca-upload-carpeta"]',
+    content: "Carpeta de destino. Por defecto es la carpeta que tenía abierta.",
     position: "bottom",
   },
   {
     selector: '[data-tour="biblioteca-upload-vigencia"]',
-    content: "Defina si el documento tiene fecha de vencimiento o es permanente.",
-    position: "bottom",
-  },
-  {
-    selector: '[data-tour="biblioteca-upload-dropzone"]',
-    content: "Arrastre o haga clic para seleccionar el archivo PDF. Solo se aceptan archivos PDF.",
+    content:
+      "Active «Tiene vencimiento» si el documento caduca y elija la fecha; si no, queda como permanente.",
     position: "top",
   },
   {
     selector: '[data-tour="biblioteca-upload-save"]',
-    content: "Guarde el documento.  ",
+    content: "Guarde el documento.",
     position: "top",
   },
 ];

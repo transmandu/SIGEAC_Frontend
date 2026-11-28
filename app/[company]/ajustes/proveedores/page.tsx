@@ -30,7 +30,9 @@ const VendorsPage = () => {
 
   useEffect(() => {
     if (vendors && vendors.length > 0) {
-      registerTour("proveedores", "Proveedores", proveedoresSteps);
+      registerTour("proveedores", "Proveedores", proveedoresSteps, {
+        onlyVisible: true,
+      });
     }
     return () => unregisterTour("proveedores");
   }, [registerTour, unregisterTour, vendors]);

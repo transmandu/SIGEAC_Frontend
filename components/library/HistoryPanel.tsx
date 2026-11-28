@@ -2,20 +2,31 @@
 
 import { useState, useEffect } from "react";
 import libraryService from "@/lib/libraryService";
+import { toast } from "sonner";
+import { notifyError } from "@/lib/notify-error";
+import { ConfirmDeleteDialog } from "@/components/dialogs/shared/ConfirmDeleteDialog";
 import {
   X,
   Loader2,
   FileText,
   CalendarDays,
+  History,
   MessageSquare,
   CheckCircle2,
   AlertCircle,
-  Eye,
   Copy,
   Check,
+  Ban,
+  QrCode,
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
+import { fieldClass } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
+import { EmptyState } from "@/components/misc/EmptyState";
+import { TagBadge } from "@/components/misc/TagBadge";
+import { Button } from "@/components/ui/button";
+import { Dialog } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
 import { formatInstant } from "@/lib/date";
 
@@ -30,6 +41,7 @@ export default function TraceabilityPanel({
   const [error, setError] = useState<string | null>(null);
   const [selectedQR, setSelectedQR] = useState<string | null>(null);
   const [isCopying, setIsCopying] = useState(false);
+  const [revokeTarget, setRevokeTarget] = useState<any | null>(null);
 
   const formatEmployeeName = (fullName: string) => {
     if (!fullName) return "N/A";
@@ -40,7 +52,7 @@ export default function TraceabilityPanel({
       return (
         <>
           <span className="block truncate">{name}</span>
-          <span className="block text-[9px] text-slate-500 font-bold leading-none mt-1">
+          <span className="mt-1 block text-xs font-normal text-slate-600 dark:text-slate-400">
             {id}
           </span>
         </>
@@ -53,11 +65,15 @@ export default function TraceabilityPanel({
     return new Date(expiresAt) > new Date();
   };
 
-  const copyToClipboard = () => {
+  const copyToClipboard = async () => {
     if (!selectedQR) return;
-    navigator.clipboard.writeText(selectedQR);
-    setIsCopying(true);
-    setTimeout(() => setIsCopying(false), 2000);
+    try {
+      await navigator.clipboard.writeText(selectedQR);
+      setIsCopying(true);
+      setTimeout(() => setIsCopying(false), 2000);
+    } catch {
+      toast.error("No se pudo copiar el enlace");
+    }
   };
 
   const getPublicViewerUrl = (token: string) => {
@@ -81,6 +97,12 @@ export default function TraceabilityPanel({
         : browserOrigin;
 
     return `${origin}/acceso_publico/shared-viewer/${company}/${encodeURIComponent(token)}`;
+  };
+
+  const openQr = (log: any) => {
+    const token = log.full_share_url || log.share_url || log.share_token;
+    if (!token) return;
+    setSelectedQR(token.startsWith("http") ? token : getPublicViewerUrl(token));
   };
 
   useEffect(() => {
@@ -122,57 +144,56 @@ export default function TraceabilityPanel({
   };
 
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-[#0f1112] border-l border-slate-300 dark:border-gray-800 shadow-2xl w-100 animate-in slide-in-from-right duration-300 ease-in-out">
-      <div className="p-6 border-b border-slate-200 dark:border-gray-800 flex justify-between items-center bg-slate-100/50 dark:bg-white/2">
-        <div className="flex flex-col gap-1" data-tour="biblioteca-trace-title">
-          <h3 className="text-sm font-black text-slate-950 dark:text-white uppercase tracking-widest leading-none">
-            Historial
-          </h3>
-          <p className="text-[10px] text-slate-600 dark:text-gray-400 font-bold uppercase tracking-tight italic">
-            Documentos Compartidos
-          </p>
+    <div className="flex h-full w-[min(25rem,100vw)] flex-col border-l border-border/50 bg-background shadow-2xl motion-safe:animate-item-in">
+      <div className="flex items-center justify-between border-b bg-muted/30 px-4 py-3 sm:px-6">
+        <div
+          className="flex items-center gap-2.5"
+          data-tour="biblioteca-trace-title"
+        >
+          <History className="size-4 text-muted-foreground" />
+          <div>
+            <h3 className="text-[15px] font-semibold leading-tight text-slate-700 dark:text-slate-200">
+              Historial
+            </h3>
+            <p className="text-xs text-slate-600 dark:text-slate-400">
+              Documentos compartidos
+            </p>
+          </div>
         </div>
         <button
+          type="button"
           onClick={onClose}
-          className="p-2 hover:bg-slate-200 dark:hover:bg-gray-800 rounded-full transition-colors text-slate-700 dark:text-slate-400"
+          aria-label="Cerrar historial"
+          className="grid size-8 place-items-center rounded-md text-muted-foreground hover:bg-muted max-md:size-10"
         >
-          <X className="h-5 w-5" />
+          <X className="size-4" />
         </button>
       </div>
 
-      {/* CONTENT - Scrollbar invisible */}
-      <div
-        className="flex-1 overflow-y-auto p-6 bg-slate-50 dark:bg-[#0a0c0d] no-scrollbar"
-        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-      >
-        <style jsx>{`
-          .no-scrollbar::-webkit-scrollbar {
-            display: none;
-          }
-        `}</style>
-
+      <div className="flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6">
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-3">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-700" />
-            <p className="text-[10px] font-semibold text-slate-600 dark:text-gray-400 uppercase tracking-widest">
+          <div className="flex flex-col items-center justify-center gap-3 py-20">
+            <Loader2 className="size-8 animate-spin text-primary" />
+            <p className="text-sm text-muted-foreground">
               Cargando registros...
             </p>
           </div>
         ) : error ? (
-          <div className="text-center py-20 border-2 border-dashed border-red-300 dark:border-red-900 rounded-3xl bg-white dark:bg-transparent">
-            <p className="text-[10px] text-red-600 dark:text-red-400 font-semibold uppercase px-10 italic">
-              {error}
-            </p>
-          </div>
+          <EmptyState
+            tone="error"
+            icon={AlertCircle}
+            title={error}
+            className="py-16"
+          />
         ) : logs.length === 0 ? (
-          <div className="text-center py-20 border-2 border-dashed border-slate-300 dark:border-gray-800 rounded-3xl bg-white dark:bg-transparent">
-            <p className="text-[10px] text-slate-600 font-semibold uppercase px-10 italic">
-              Sin registros disponibles
-            </p>
-          </div>
+          <EmptyState
+            icon={History}
+            title="Sin registros disponibles"
+            className="py-16"
+          />
         ) : (
           <div
-            className="relative border-l-2 border-slate-300 dark:border-gray-700 ml-4 space-y-8 pb-6"
+            className="relative ml-4 space-y-6 border-l border-border pb-6"
             data-tour="biblioteca-trace-timeline"
           >
             {logs.map((log) => {
@@ -180,75 +201,77 @@ export default function TraceabilityPanel({
               const versionLabel = getVersionLabel(log);
 
               return (
-                <div key={log.id} className="relative pl-8 group">
+                <div key={log.id} className="relative pl-7">
                   <div
-                    className={`absolute -left-4.5 top-1 w-8 h-8 rounded-lg bg-white dark:bg-[#0f1112] border-2 ${active ? "border-emerald-500" : "border-slate-400"} z-10 shadow-md flex items-center justify-center p-1.5 ring-4 ring-slate-50 dark:ring-[#0a0c0d]`}
+                    className={`absolute -left-4 top-1 z-10 grid size-8 place-items-center rounded-lg border-2 bg-background ${active ? "border-emerald-500" : "border-slate-300 dark:border-slate-600"}`}
                   >
                     <FileText
-                      className={`h-full w-full ${active ? "text-emerald-500" : "text-slate-400"}`}
-                      strokeWidth={2.5}
+                      className={`size-4 ${active ? "text-emerald-500" : "text-slate-400"}`}
                     />
                   </div>
 
                   <div
-                    onClick={() => {
-                      const token =
-                        log.full_share_url || log.share_url || log.share_token;
-                      if (token) {
-                        const fullUrl = token.startsWith("http")
-                          ? token
-                          : getPublicViewerUrl(token);
-                        setSelectedQR(fullUrl);
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => openQr(log)}
+                    onKeyDown={(event) => {
+                      if (event.target !== event.currentTarget) return;
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        openQr(log);
                       }
                     }}
-                    className="bg-white dark:bg-white/3 rounded-2xl p-4 border border-slate-300 dark:border-gray-800 shadow-xs transition-all hover:border-blue-400 hover:shadow-md cursor-pointer active:scale-[0.98]"
+                    className="cursor-pointer rounded-xl border border-slate-200 bg-white p-4 outline-hidden motion-safe:transition-colors hover:border-primary/40 focus-visible:ring-2 focus-visible:ring-primary/40 dark:border-slate-700/60 dark:bg-slate-900/60"
                     data-tour="biblioteca-trace-qr-btn"
                   >
-                    <div className="flex justify-between items-center mb-3 pb-2 border-b border-slate-100 dark:border-gray-800/50">
-                      <div className="flex items-center gap-2">
-                        {active ? (
-                          <span className="select-none flex items-center gap-1 text-[9px] font-semibold text-emerald-600 uppercase bg-emerald-100 dark:bg-emerald-500/10 px-2 py-0.5 rounded-full">
-                            <CheckCircle2 className="h-2.5 w-2.5" /> Activo
-                          </span>
-                        ) : (
-                          <span className="select-none flex items-center gap-1 text-[9px] font-semibold text-slate-500 uppercase bg-slate-100 dark:bg-slate-500/10 px-2 py-0.5 rounded-full">
-                            <AlertCircle className="h-2.5 w-2.5" /> Expirado
-                          </span>
-                        )}
-                      </div>
-                      <span className="text-[10px] text-slate-500 font-bold uppercase flex items-center gap-1">
-                        <CalendarDays className="h-3 w-3" />
+                    <div className="mb-3 flex items-center justify-between gap-2 border-b border-border/60 pb-3">
+                      {active ? (
+                        <TagBadge tone="emerald" icon={CheckCircle2}>
+                          Activo
+                        </TagBadge>
+                      ) : log.is_revoked ? (
+                        <TagBadge tone="slate" icon={Ban}>
+                          Deshabilitado
+                        </TagBadge>
+                      ) : (
+                        <TagBadge tone="slate" icon={AlertCircle}>
+                          Expirado
+                        </TagBadge>
+                      )}
+
+                      <span className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">
+                        <CalendarDays className="size-3.5" />
                         {formatInstant(log.created_at, timeZone, "date")}
                       </span>
                     </div>
 
                     {log.document_title && (
                       <div className="mb-3 flex items-center justify-between gap-2">
-                        <p className="text-[12px] font-bold text-blue-900 dark:text-blue-400 uppercase tracking-tight truncate leading-tight flex-1">
+                        <p className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-700 dark:text-slate-200">
                           {log.document_title}
                         </p>
                         {versionLabel !== "N/A" && (
-                          <span className="select-none shrink-0 text-[10px] font-medium bg-slate-100 dark:bg-white/4 text-slate-600 dark:text-slate-300 px-2.5 py-0.5 rounded-full border border-slate-200 dark:border-gray-800 tracking-tighter">
+                          <TagBadge tone="blue" className="shrink-0">
                             {versionLabel}
-                          </span>
+                          </TagBadge>
                         )}
                       </div>
                     )}
 
-                    <div className="grid grid-cols-2 gap-3 mb-4">
+                    <div className="mb-3 grid grid-cols-2 gap-3">
                       <div>
-                        <p className="text-[8px] text-slate-500 dark:text-gray-500 font-semibold uppercase tracking-widest mb-1">
+                        <p className="mb-1 text-xs text-slate-600 dark:text-slate-400">
                           Generado por
                         </p>
-                        <div className="text-[11px] font-semibold text-slate-950 dark:text-gray-100 uppercase tracking-tighter leading-tight">
+                        <div className="text-[13px] font-medium text-slate-700 dark:text-slate-300">
                           {formatEmployeeName(log.created_by_name)}
                         </div>
                       </div>
-                      <div className="border-l border-slate-300 dark:border-gray-800 pl-3">
-                        <p className="text-[8px] text-slate-500 dark:text-gray-500 font-semibold uppercase tracking-widest mb-1">
+                      <div className="border-l border-border/60 pl-3">
+                        <p className="mb-1 text-xs text-slate-600 dark:text-slate-400">
                           Asignado a
                         </p>
-                        <div className="text-[11px] font-semibold text-slate-950 dark:text-gray-100 uppercase tracking-tighter leading-tight">
+                        <div className="text-[13px] font-medium text-slate-700 dark:text-slate-300">
                           {formatEmployeeName(
                             log.shared_with_name || "Personal Externo",
                           )}
@@ -256,14 +279,29 @@ export default function TraceabilityPanel({
                       </div>
                     </div>
 
-                    <div className="bg-slate-100 dark:bg-black/40 p-3 rounded-xl border border-slate-200 dark:border-gray-800 shadow-inner">
-                      <div className="flex items-start gap-2">
-                        <MessageSquare className="h-3 w-3 text-slate-400 mt-0.5 shrink-0" />
-                        <p className="text-[11px] text-slate-800 dark:text-gray-300 font-bold leading-tight italic line-clamp-2">
-                          &quot;{log.reason || "Sin descripcion."}&quot;
-                        </p>
-                      </div>
+                    <div className="flex items-start gap-2 rounded-lg bg-muted/40 p-3">
+                      <MessageSquare className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
+                      <p className="line-clamp-2 text-[13px] text-slate-700 dark:text-slate-300">
+                        &quot;{log.reason || "Sin descripción."}&quot;
+                      </p>
                     </div>
+
+                    {active && (
+                      <div className="mt-3 flex justify-end">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            setRevokeTarget(log);
+                          }}
+                          className="gap-1.5 text-red-600 hover:text-red-600 max-sm:h-10 dark:text-red-400"
+                        >
+                          <Ban className="size-3.5" /> Deshabilitar
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
               );
@@ -272,17 +310,44 @@ export default function TraceabilityPanel({
         )}
       </div>
 
-      {/* MODAL QR DINÁMICO */}
-      <Dialog open={!!selectedQR} onOpenChange={() => setSelectedQR(null)}>
-        <DialogContent className="sm:max-w-95 p-0 flex flex-col items-center overflow-hidden shadow-2xl bg-white dark:bg-[#1a1c1e] border-slate-200 dark:border-gray-800 outline-hidden sm:-ml-110! sm:translate-x-0! z-100!">
-          <div className="w-full px-6 py-4 border-b flex items-center justify-center bg-slate-100/50 dark:bg-gray-800/40 border-slate-200 dark:border-gray-700">
-            <DialogTitle className="text-slate-900 dark:text-white text-center text-xs font-semibold uppercase tracking-widest">
-              Vista del Código QR
-            </DialogTitle>
-          </div>
+      <ConfirmDeleteDialog
+        open={!!revokeTarget}
+        onOpenChange={(open) => !open && setRevokeTarget(null)}
+        title="Deshabilitar enlace"
+        entityName={
+          revokeTarget?.document_title
+            ? `el enlace de «${revokeTarget.document_title}»`
+            : "el enlace"
+        }
+        confirmLabel="Deshabilitar"
+        warning="Quien lo tenga dejará de poder abrirlo de inmediato. No se puede reactivar: habría que generar uno nuevo."
+        onConfirm={async () => {
+          try {
+            await libraryService.revokeSharedLink(company, revokeTarget.id);
+            toast.success("Enlace deshabilitado");
+            const now = new Date().toISOString();
+            setLogs((prev) =>
+              prev.map((l) =>
+                l.id === revokeTarget.id ? { ...l, expires_at: now } : l,
+              ),
+            );
+          } catch (error) {
+            notifyError(error, { action: "deshabilitar el enlace" });
+            throw error;
+          }
+        }}
+      />
 
-          <div className="p-6 flex flex-col items-center w-full space-y-6">
-            <div className="p-5 bg-white rounded-2xl shadow-xl border border-slate-200">
+      <Dialog open={!!selectedQR} onOpenChange={() => setSelectedQR(null)}>
+        <FormDialogContent
+          icon={QrCode}
+          title="Código QR"
+          description="Escanéelo o copie el enlace para abrir el documento."
+          lockOutside={false}
+          className="z-110! sm:max-w-sm"
+        >
+          <div className="flex flex-col items-center gap-5">
+            <div className="rounded-xl border border-slate-200 bg-white p-4">
               {selectedQR && (
                 <QRCodeSVG
                   value={selectedQR}
@@ -293,34 +358,40 @@ export default function TraceabilityPanel({
               )}
             </div>
 
-            <div className="w-full space-y-4 pb-2">
-              <div className="flex items-center gap-2 p-1.5 rounded-xl border bg-slate-50 dark:bg-gray-800/50 border-slate-200 dark:border-gray-700">
-                <input
-                  readOnly
-                  value={selectedQR || ""}
-                  className="flex-1 h-8 bg-transparent border-none text-[10px] text-slate-700 dark:text-gray-400 outline-hidden px-2 font-mono truncate"
-                />
-                <button
-                  onClick={copyToClipboard}
-                  className="h-8 w-8 p-0 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                >
-                  {isCopying ? (
-                    <Check className="h-3.5 w-3.5 text-emerald-500" />
-                  ) : (
-                    <Copy className="h-3.5 w-3.5 text-slate-500 dark:text-gray-400" />
-                  )}
-                </button>
-              </div>
-
-              <button
-                onClick={() => setSelectedQR(null)}
-                className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold text-[11px] uppercase tracking-widest shadow-lg shadow-blue-500/20"
+            <div className="flex w-full items-center gap-2">
+              <Input
+                readOnly
+                value={selectedQR || ""}
+                aria-label="Enlace"
+                className={fieldClass}
+                onFocus={(event) => event.currentTarget.select()}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={copyToClipboard}
+                aria-label="Copiar enlace"
+                className="size-10 shrink-0"
               >
-                CERRAR VISOR
-              </button>
+                {isCopying ? (
+                  <Check className="size-4 text-emerald-600" />
+                ) : (
+                  <Copy className="size-4" />
+                )}
+              </Button>
             </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setSelectedQR(null)}
+              className="w-full"
+            >
+              Cerrar
+            </Button>
           </div>
-        </DialogContent>
+        </FormDialogContent>
       </Dialog>
     </div>
   );

@@ -25,7 +25,9 @@ export function AirlineClientsView() {
 
   useEffect(() => {
     if (clients && clients.length > 0) {
-      registerTour("clientes", "Clientes", clientesSteps);
+      registerTour("clientes", "Clientes", clientesSteps, {
+        onlyVisible: true,
+      });
     }
     return () => unregisterTour("clientes");
   }, [registerTour, unregisterTour, clients]);
@@ -50,6 +52,7 @@ export function AirlineClientsView() {
       heading="Control de Clientes"
       description="Administre los clientes registrados en el sistema."
       tourPrefix="clientes"
+      toolbarTourId="clientes-toolbar"
       search={{
         value: search,
         onChange: setSearch,

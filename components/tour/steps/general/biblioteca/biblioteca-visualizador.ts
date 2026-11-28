@@ -3,7 +3,8 @@ import { StepType } from "@reactour/tour";
 export const bibliotecaVisualizadorSteps: StepType[] = [
   {
     selector: '[data-tour="biblioteca-viewer-title"]',
-    content: "Visor seguro de documentos. Los archivos se visualizan mediante cifrado AES-256.",
+    content:
+      "Visor seguro de documentos. Desde aquí no se puede copiar ni guardar el contenido.",
     position: "center",
   },
   {
@@ -13,7 +14,7 @@ export const bibliotecaVisualizadorSteps: StepType[] = [
   },
   {
     selector: '[data-tour="biblioteca-viewer-close"]',
-    content: "Cierre el visor y vuelva a la biblioteca.",
+    content: "Cierre el visor y vuelva a la biblioteca (también con Esc).",
     position: "bottom",
   },
 ];

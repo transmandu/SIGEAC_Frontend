@@ -35,7 +35,9 @@ const ManufacturersPage = () => {
 
   useEffect(() => {
     if (manufacturers && manufacturers.length > 0) {
-      registerTour("fabricantes", "Fabricantes", fabricantesSteps);
+      registerTour("fabricantes", "Fabricantes", fabricantesSteps, {
+        onlyVisible: true,
+      });
     }
 
     return () => unregisterTour("fabricantes");
@@ -63,6 +65,7 @@ const ManufacturersPage = () => {
       heading="Control de Fabricantes"
       description="Administre los fabricantes registrados para aeronaves, partes y artículos."
       tourPrefix="fabricantes"
+      toolbarTourId="fabricantes-toolbar"
       search={{
         value: search,
         onChange: setSearch,

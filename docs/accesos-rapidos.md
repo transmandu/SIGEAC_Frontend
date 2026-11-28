@@ -140,9 +140,15 @@ Actualizar al evaluar. Formato: pantalla · qué · motivo.
 
 - Supervisor › artículos generales · fusionar y editar en lote · exigen una
   selección hecha en la tabla.
-- Biblioteca · «Subir documento» solo para SUPERUSER/ADMIN/ADMINISTRADOR · la
-  pantalla también deja a quien tiene cargo de director; un rol no puede
-  expresarlo (esa persona sigue teniéndolo en su pantalla, no en el catálogo).
+- Biblioteca · «Subir documento», «Crear carpeta» y la vista «Papelera de la
+  biblioteca» solo para SUPERUSER/ADMIN/ADMINISTRADOR · la pantalla también deja
+  a quien tiene cargo de director; un rol no puede expresarlo (esa persona sigue
+  teniéndolo en su pantalla, no en el catálogo). Las vistas «Documentos
+  favoritos» y «Documentos recientes» (`?tab=favoritos|recientes`) las ve
+  cualquiera que abra la biblioteca; la papelera por URL se protege con
+  `canManage`.
+- Biblioteca · copiar, mover, renombrar, eliminar, favorito, versiones,
+  compartir · acciones por documento: exigen elegir un documento.
 - Mantenimiento (control de directivas/componentes/aviónica) · «Consultar
   Estado» (snapshot) · pendiente de replicar el diseño aprobado en esos
   módulos; entrar al catálogo cuando exista.

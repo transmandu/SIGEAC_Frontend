@@ -30,7 +30,9 @@ const ShippingAgenciesPage = () => {
 
   useEffect(() => {
     if (agencies && agencies.length > 0) {
-      registerTour("agencias-envio", "Agencias de Envío", agenciasEnvioSteps);
+      registerTour("agencias-envio", "Agentes de Envío", agenciasEnvioSteps, {
+        onlyVisible: true,
+      });
     }
 
     return () => unregisterTour("agencias-envio");

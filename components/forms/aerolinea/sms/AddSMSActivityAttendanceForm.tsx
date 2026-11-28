@@ -335,7 +335,7 @@ export function AddSMSActivityAttendanceForm({
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent
-                    className="w-[calc(100vw-2rem)] max-w-[480px] p-0"
+                    className="w-[calc(100vw-2rem)] max-w-120 p-0"
                     align="start"
                   >
                     <Command>

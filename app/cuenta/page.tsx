@@ -55,7 +55,7 @@ const AccountPage = () => {
   useEffect(() => {
     if (!user) return;
 
-    registerTour("cuenta", "Mi Cuenta", cuentaSteps);
+    registerTour("cuenta", "Mi Cuenta", cuentaSteps, { onlyVisible: true });
     return () => unregisterTour("cuenta");
   }, [registerTour, unregisterTour, user]);
 
@@ -116,7 +116,7 @@ const AccountPage = () => {
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
-          <div {...enter(2)}>
+          <div data-tour="cuenta-account" {...enter(2)}>
             <ProfileSection title="Cuenta" icon={UserRound} className="h-full">
               <div className="divide-y">
                 <ProfileField
@@ -133,7 +133,7 @@ const AccountPage = () => {
             </ProfileSection>
           </div>
 
-          <div {...enter(3)}>
+          <div data-tour="cuenta-employee" {...enter(3)}>
             <ProfileSection
               title="Ficha laboral"
               icon={IdCard}

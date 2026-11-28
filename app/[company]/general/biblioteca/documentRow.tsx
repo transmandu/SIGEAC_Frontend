@@ -1,296 +1,245 @@
 "use client";
 
-import { useMemo, useCallback } from "react";
-import { FileText, Clock, AlertCircle } from "lucide-react";
+import { memo } from "react";
+import { Clock, Folder } from "lucide-react";
+import { useEffect } from "react";
+import type { MenuAction } from "@/components/library/menu-actions";
 import { Checkbox } from "@/components/ui/checkbox";
-import { LibraryDropdownActions } from "@/components/dropdowns/general/LibraryDropdownActions";
-import { Document } from "@/lib/libraryService";
-import { formatCalendarDate, parseCalendarDate } from "@/lib/date";
-
-const fileTypeDetails: any = {
-  pdf: {
-    color: "text-red-600",
-    bgColor: "bg-red-500/10",
-    iconColor: "text-red-700 dark:text-red-400",
-    label: "PDF",
-  },
-  excel: {
-    color: "text-emerald-700",
-    bgColor: "bg-emerald-500/10",
-    iconColor: "text-emerald-700 dark:text-emerald-400",
-    label: "EXCEL",
-  },
-  word: {
-    color: "text-blue-700",
-    bgColor: "bg-blue-500/10",
-    iconColor: "text-blue-700 dark:text-blue-400",
-    label: "WORD",
-  },
-  default: {
-    color: "text-slate-700",
-    bgColor: "bg-slate-500/10",
-    iconColor: "text-slate-600 dark:text-gray-400",
-    label: "ARCHIVO",
-  },
-};
-
-const getStatusDetails = (status: string, expirationDate: string) => {
-  if (!expirationDate || status?.toLowerCase() === "no_aplica") {
-    return {
-      label: "PERMANENTE",
-      classes:
-        "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:border-blue-500/30",
-      isWarning: false,
-    };
-  }
-  const now = new Date();
-  const expDate = parseCalendarDate(expirationDate) ?? new Date(expirationDate);
-  const diffTime = expDate.getTime() - now.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-  if (diffTime < 0)
-    return {
-      label: "VENCIDO",
-      classes:
-        "bg-red-50 text-red-700 border-red-200 dark:bg-red-500/10 dark:border-red-500/30",
-      isWarning: false,
-    };
-  if (diffDays <= 5)
-    return {
-      label: `VENCE EN ${diffDays} DÍAS`,
-      classes:
-        "bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-500/10 dark:border-amber-500/30 animate-pulse",
-      isWarning: true,
-    };
-  return {
-    label: "VIGENTE",
-    classes:
-      "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/30",
-    isWarning: false,
-  };
-};
-
-const normalizePath = (path?: string | null): string => {
-  const p = (path || "").replace(/[\\/]+$/, "");
-  return p === "" ? "/" : p;
-};
+import { TagBadge } from "@/components/misc/TagBadge";
+import ReplicaTag from "@/components/library/ReplicaTag";
+import RestrictedTag from "@/components/library/RestrictedTag";
+import DocumentActionsMenu from "@/components/library/DocumentActionsMenu";
+import FavoriteButton from "@/components/library/FavoriteButton";
+import {
+  ActionsContextMenu,
+  useContextMenu,
+} from "@/components/library/ActionsContextMenu";
+import { useDocumentActions } from "@/components/library/useDocumentActions";
+import { useDocumentDrag } from "@/components/library/useDocumentDrag";
+import {
+  departmentNameOf,
+  describeDocument,
+  withVersionData,
+  type LibraryDocument,
+} from "@/lib/Library/document-info";
+import { isOwnEvent } from "@/lib/Library/shortcuts";
+import { cn } from "@/lib/utils";
 
 interface DocumentRowProps {
-  doc: Document & {
-    latest_version?: any;
-    versions?: any[];
-    expiry_status?: string;
-    file_type?: string;
-  };
+  company: string;
+  doc: LibraryDocument;
   onView: (id: number) => void;
-  onDelete: (id: number | string) => Promise<void>;
   onRefresh: () => Promise<void>;
+  /** Mueve este documento, o la selección donde esté incluido, a otra carpeta. */
+  onMove?: (id: number) => void;
+  onCopy?: (id: number) => void;
+  /** El cursor del teclado está en este documento. */
+  active?: boolean;
+  /** Un clic sobre el documento lleva allí el cursor del teclado. */
+  onActivate?: (id: number) => void;
+  /** Entrega las acciones del menú para que el teclado las use. */
+  registerActions?: (id: number, actions: MenuAction[] | null) => void;
+  /** Marca o desmarca el favorito; sin él no hay estrella ni acción. */
+  onToggleFavorite?: (id: number, favorite: boolean) => void;
+  /** Con varios departamentos a la vista (favoritos, recientes) se indica el de cada uno. */
+  showDepartment?: boolean;
   canManage: boolean;
   isDipDirector: boolean;
   user: any;
   selected?: boolean;
-  onToggleSelect?: () => void;
+  onToggleSelect?: (id: number) => void;
+  /** Ids que viajan al arrastrar esta fila (la selección, si ella está dentro). */
+  getDragIds?: (id: number) => number[];
   folderPath?: string;
+  /** En una búsqueda: muestra en qué carpeta vive cada resultado. */
+  showFolderPath?: boolean;
 }
 
-export default function DocumentRow({
+function DocumentRow({
+  company,
   doc,
   onView,
-  onDelete,
   onRefresh,
+  onMove,
+  onCopy,
+  active = false,
+  onActivate,
+  registerActions,
+  onToggleFavorite,
+  showDepartment = false,
   canManage,
   isDipDirector,
   user,
   selected = false,
   onToggleSelect,
+  getDragIds,
   folderPath,
+  showFolderPath = false,
 }: DocumentRowProps) {
-  const latestVersion = useMemo(() => {
-    if (doc.latest_version) return doc.latest_version;
-    if (!doc.versions || doc.versions.length === 0) return null;
-    return doc.versions[0];
-  }, [doc.latest_version, doc.versions]);
+  const info = describeDocument(doc, folderPath);
+  const { actions, dialogs, loadingVersions } = useDocumentActions({
+    company,
+    doc: withVersionData(doc, info),
+    user,
+    canManage,
+    isDipDirector,
+    onView,
+    onRefresh,
+    folderPath,
+    onMove,
+    onCopy,
+    onToggleFavorite,
+  });
+  const contextMenu = useContextMenu();
 
-  const activeFilePath = useMemo(() => {
-    return latestVersion ? latestVersion.file_path : doc.document || "";
-  }, [latestVersion, doc.document]);
-
-  const activeFileType = useMemo(() => {
-    if (activeFilePath) return activeFilePath.split(".").pop()?.toLowerCase();
-    return doc.file_type?.toLowerCase() || "default";
-  }, [activeFilePath, doc.file_type]);
-
-  const activeExpirationDate = useMemo(() => {
-    return latestVersion
-      ? latestVersion.expiration_date
-      : doc.expiration_date || null;
-  }, [latestVersion, doc.expiration_date]);
-
-  const activeExpiryStatus = useMemo(() => {
-    return latestVersion
-      ? latestVersion.expiry_status
-      : doc.expiry_status || "no_aplica";
-  }, [latestVersion, doc.expiry_status]);
-
-  const docWithVersionData = useMemo(
-    () => ({
-      ...doc,
-      expiry_status: activeExpiryStatus,
-      expiration_date: activeExpirationDate,
-      requires_expiry: activeExpirationDate ? 1 : 0,
-      latest_version: latestVersion,
-    }),
-    [doc, activeExpiryStatus, activeExpirationDate, latestVersion],
+  useEffect(() => {
+    registerActions?.(doc.id, actions);
+    return () => registerActions?.(doc.id, null);
+  });
+  const drag = useDocumentDrag(
+    doc.id,
+    departmentNameOf(doc),
+    getDragIds,
+    canManage,
   );
 
-  const getFileDetails = (type: any, title: any) => {
-    const t = String(type || "").toLowerCase();
-    const name = String(title || "").toLowerCase();
-    if (t.includes("pdf") || name.includes(".pdf")) return fileTypeDetails.pdf;
-    if (
-      t.includes("xls") ||
-      t.includes("xlsx") ||
-      name.includes(".xls") ||
-      name.includes(".xlsx")
-    )
-      return fileTypeDetails.excel;
-    if (t.includes("doc") || name.includes(".doc")) return fileTypeDetails.word;
-    return fileTypeDetails.default;
-  };
-
-  const fileDetails = getFileDetails(activeFileType, doc.title);
-  const statusInfo = getStatusDetails(activeExpiryStatus, activeExpirationDate);
-
-  // Marca si el documento aparece en varias carpetas (réplicas) y si la carpeta
-  // actual es donde vive el original (primaria) o solo un vínculo (réplica).
-  const hasReplicas = (doc.folder_paths?.length ?? 0) > 1;
-  const isPrimaryHere = useMemo(() => {
-    if (!hasReplicas || !folderPath || !doc.folder_path) return false;
-    return normalizePath(folderPath) === normalizePath(doc.folder_path);
-  }, [hasReplicas, folderPath, doc.folder_path]);
-
-  // Fecha de calendario: se muestra tal cual la manda el backend, sin convertir.
-  const displayExpirationDate = activeExpirationDate
-    ? formatCalendarDate(activeExpirationDate, "date", "Permanente")
-    : "Permanente";
-
-  const handleDragStart = useCallback(
-    (e: React.DragEvent) => {
-      e.dataTransfer.setData("text/plain", doc.id.toString());
-      e.dataTransfer.setData("text/dept-name", doc.department_name || "");
-      e.dataTransfer.effectAllowed = "move";
-      const el = e.currentTarget as HTMLElement;
-      el.classList.add("opacity-40");
-    },
-    [doc.id, doc.department_name],
-  );
-
-  const handleDragEnd = useCallback((e: React.DragEvent) => {
-    const el = e.currentTarget as HTMLElement;
-    el.classList.remove("opacity-40");
-  }, []);
+  const Icon = info.kind.icon;
 
   return (
     <div
-      draggable={canManage}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-      className="group flex items-center gap-4 p-3 transition-colors border-l-2 border-l-transparent hover:border-l-blue-600 border-b border-slate-200 dark:border-transparent bg-white hover:bg-slate-100 dark:bg-transparent dark:hover:bg-white/5 cursor-grab active:cursor-grabbing"
+      {...drag}
+      data-doc-id={doc.id}
+      aria-current={active || undefined}
+      onClick={(event) => {
+        if (isOwnEvent(event)) onActivate?.(doc.id);
+      }}
+      onContextMenu={contextMenu.onContextMenu}
+      // Doble clic abre el documento, como en un explorador de archivos.
+      onDoubleClick={(event) => {
+        if (!isOwnEvent(event)) return;
+        if (
+          (event.target as HTMLElement).closest(
+            "button, input, [role='checkbox'], [role='menuitem']",
+          )
+        )
+          return;
+        onView(doc.id);
+      }}
       data-tour="biblioteca-doc-row"
+      className={cn(
+        active && "ring-2 ring-inset ring-primary/40",
+        "group relative flex items-center gap-3 px-4 py-3 motion-safe:transition-colors max-sm:px-3",
+        selected
+          ? "bg-primary/5 before:absolute before:inset-y-0 before:left-0 before:w-0.5 before:bg-primary"
+          : "hover:bg-muted/40",
+      )}
     >
       {onToggleSelect && (
-        <div className="shrink-0 pl-1" onClick={(e) => e.stopPropagation()}>
-          <Checkbox
-            checked={selected}
-            onCheckedChange={() => onToggleSelect()}
-            aria-label={`Seleccionar ${doc.title || "documento"}`}
-            className="border-slate-300 dark:border-slate-600 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
-          />
-        </div>
-      )}
-      <div
-        className={`p-2 rounded-lg ${fileDetails.bgColor} shrink-0 border border-current/10`}
-      >
-        <FileText
-          className={`h-5 w-5 ${fileDetails.iconColor}`}
-          strokeWidth={2}
+        <Checkbox
+          checked={selected}
+          onCheckedChange={() => onToggleSelect(doc.id)}
+          aria-label={`Seleccionar ${doc.title || "documento"}`}
+          className="shrink-0"
         />
-      </div>
+      )}
+
       <div
-        className="flex-1 min-w-0 flex flex-col gap-0.5"
+        className={cn(
+          "grid size-10 shrink-0 place-items-center rounded-lg",
+          info.kind.iconClass,
+        )}
+      >
+        <Icon className="size-5" strokeWidth={1.75} />
+      </div>
+
+      <div
+        className="flex min-w-0 flex-1 flex-col gap-1"
         data-tour="biblioteca-doc-title"
       >
-        <div className="flex items-center gap-2">
-          <h4 className="text-[12px] font-semibold text-slate-950 dark:text-gray-100 truncate uppercase">
-            {doc.title || "Sin título"}
-            {latestVersion && (
-              <span className="select-none ml-2 text-[9px] font-bold text-slate-500 dark:text-gray-400 bg-slate-100 dark:bg-gray-800 px-1.5 py-0.5 rounded tracking-wider border border-slate-300 dark:border-gray-600">
-                {latestVersion.version_label || latestVersion.version_number}
-              </span>
-            )}
-          </h4>
-          {statusInfo.isWarning && (
-            <AlertCircle className="h-3.5 w-3.5 text-amber-600 animate-bounce" />
+        <button
+          type="button"
+          onClick={() => onView(doc.id)}
+          className="w-fit max-w-full truncate rounded-sm text-left text-sm font-semibold text-slate-700 outline-hidden hover:text-primary focus-visible:ring-2 focus-visible:ring-primary/30 dark:text-slate-200"
+        >
+          {doc.title || "Sin título"}
+        </button>
+
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-600 dark:text-slate-400">
+          <span>{info.kind.label}</span>
+          {info.versionLabel && (
+            <>
+              <span aria-hidden>·</span>
+              <span className="tabular-nums">{info.versionLabel}</span>
+            </>
           )}
-        </div>
-        <div className="flex flex-wrap items-center gap-1.5">
-          <span
-            className={`w-fit text-[8px] font-bold px-1.5 py-0.5 rounded border border-current/30 ${fileDetails.bgColor} ${fileDetails.color}`}
+          {info.expirationDate && (
+            <span className="tabular-nums @2xl:hidden">
+              <span aria-hidden>· </span>
+              Vence {info.expirationText}
+            </span>
+          )}
+          {showFolderPath && (
+            <>
+              <span aria-hidden>·</span>
+              <span className="flex min-w-0 items-center gap-1">
+                <Folder className="size-3 shrink-0" />
+                <span className="truncate">
+                  {showDepartment && departmentNameOf(doc)
+                    ? `${departmentNameOf(doc)} · ${info.locationText}`
+                    : info.locationText}
+                </span>
+              </span>
+            </>
+          )}
+          {info.hasReplicas && (
+            <ReplicaTag isPrimaryHere={info.isPrimaryHere} className="h-5" />
+          )}
+          {doc.restricted && (
+            <RestrictedTag memberCount={doc.member_count} className="h-5" />
+          )}
+          <TagBadge
+            tone={info.status.tone}
+            className="h-5 @xl:hidden"
+            data-tour="biblioteca-doc-status-mobile"
           >
-            {fileDetails.label}
-          </span>
-          {hasReplicas &&
-            (isPrimaryHere ? (
-              <span
-                title="Carpeta principal: aquí vive el archivo original"
-                className="w-fit text-[8px] font-bold px-1.5 py-0.5 rounded border bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-500/10 dark:text-amber-500 dark:border-amber-500/30"
-              >
-                ● Original
-              </span>
-            ) : (
-              <span
-                title="Réplica: es un vínculo al original, que vive en otra carpeta"
-                className="w-fit text-[8px] font-bold px-1.5 py-0.5 rounded border bg-slate-50 text-slate-500 border-slate-300 dark:bg-slate-500/10 dark:text-slate-400 dark:border-slate-600"
-              >
-                Réplica
-              </span>
-            ))}
+            {info.status.label}
+          </TagBadge>
         </div>
       </div>
 
-      <div className="hidden sm:flex items-center gap-2 shrink-0">
-        <Clock className="h-3.5 w-3.5 text-slate-400" />
-        <span className="text-[10px] text-slate-500 dark:text-gray-400 font-bold uppercase w-20 leading-none">
-          {displayExpirationDate}
-        </span>
+      <div className="hidden w-36 shrink-0 items-center gap-2 text-sm text-slate-600 @2xl:flex dark:text-slate-300">
+        <Clock className="size-3.5 shrink-0 text-muted-foreground" />
+        <span className="truncate tabular-nums">{info.expirationText}</span>
       </div>
 
       <div
-        className="hidden md:block shrink-0 px-2 w-32 text-center"
+        className="hidden w-36 shrink-0 justify-center @xl:flex"
         data-tour="biblioteca-doc-status"
       >
-        <span
-          className={`px-2.5 py-1.5 rounded-full text-[8px] font-bold uppercase tracking-wider border ${statusInfo.classes} leading-none`}
-        >
-          {statusInfo.label}
-        </span>
+        <TagBadge tone={info.status.tone}>{info.status.label}</TagBadge>
       </div>
 
-      <div
-        className="flex items-center gap-1 shrink-0 ml-2"
-        data-tour="biblioteca-doc-actions"
-      >
-        <LibraryDropdownActions
-          doc={docWithVersionData}
-          user={user}
-          canManage={canManage}
-          isDipDirector={isDipDirector}
-          onView={onView}
-          onDelete={onDelete}
-          onRefresh={onRefresh}
-          folderPath={folderPath}
+      {onToggleFavorite && (
+        <FavoriteButton
+          favorite={!!doc.is_favorite}
+          onToggle={() => onToggleFavorite(doc.id, !doc.is_favorite)}
         />
+      )}
+
+      <div className="shrink-0" data-tour="biblioteca-doc-actions">
+        <DocumentActionsMenu actions={actions} loading={loadingVersions} />
       </div>
+
+      <ActionsContextMenu
+        point={contextMenu.point}
+        onClose={contextMenu.close}
+        actions={actions}
+      />
+      {dialogs}
     </div>
   );
 }
+
+// Con 200 documentos en pantalla, escribir en el buscador no debe repintar las
+// 200 filas: solo se repinta la que cambia (su `doc`, su selección o su carpeta).
+export default memo(DocumentRow);

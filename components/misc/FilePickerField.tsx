@@ -20,6 +20,7 @@ export function FilePickerField({
   file,
   onChange,
   acceptedTypes,
+  acceptedExtensions,
   typesLabel,
   maxBytes,
   disabled,
@@ -30,6 +31,12 @@ export function FilePickerField({
   onChange: (file: File | undefined) => void;
   /** Tipos MIME admitidos (p. ej. `application/pdf`). */
   acceptedTypes: string[];
+  /**
+   * Extensiones (sin punto) que también se aceptan. Hay sistemas que entregan
+   * un Excel sin tipo MIME (cadena vacía): con solo el tipo se rechazaría un
+   * archivo válido.
+   */
+  acceptedExtensions?: string[];
   /** Cómo se nombran al usuario: "PDF, JPG o PNG". */
   typesLabel: string;
   maxBytes: number;
@@ -43,7 +50,12 @@ export function FilePickerField({
   const accept = (candidate: File | undefined) => {
     if (!candidate) return;
 
-    if (!acceptedTypes.includes(candidate.type)) {
+    const extension = candidate.name.split(".").pop()?.toLowerCase() ?? "";
+    const allowed =
+      acceptedTypes.includes(candidate.type) ||
+      (acceptedExtensions?.includes(extension) ?? false);
+
+    if (!allowed) {
       toast.error(`¡Ops! Solo se admiten archivos ${typesLabel}.`);
       return;
     }
@@ -83,7 +95,10 @@ export function FilePickerField({
       <input
         ref={inputRef}
         type="file"
-        accept={acceptedTypes.join(",")}
+        accept={[
+          ...acceptedTypes,
+          ...(acceptedExtensions ?? []).map((ext) => `.${ext}`),
+        ].join(",")}
         className="hidden"
         disabled={disabled}
         onChange={(event) => {

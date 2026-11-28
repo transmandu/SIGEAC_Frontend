@@ -33,7 +33,9 @@ const ThirdPartiesPage = () => {
 
   useEffect(() => {
     if (thirdParties && thirdParties.length > 0) {
-      registerTour("terceros", "Terceros", tercerosSteps);
+      registerTour("terceros", "Terceros", tercerosSteps, {
+        onlyVisible: true,
+      });
     }
 
     return () => unregisterTour("terceros");
@@ -60,6 +62,7 @@ const ThirdPartiesPage = () => {
       heading="Control de Terceros"
       description="Administre los terceros registrados en el sistema."
       tourPrefix="terceros"
+      toolbarTourId="terceros-toolbar"
       search={{
         value: search,
         onChange: setSearch,

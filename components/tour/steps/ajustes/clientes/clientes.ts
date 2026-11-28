@@ -8,15 +8,21 @@ export const clientesSteps: StepType[] = [
     position: "center",
   },
   {
+    selector: '[data-tour="clientes-toolbar"]',
+    content:
+      "Busque clientes por nombre, documento (RIF / C.I.), teléfono o ubicación.",
+    position: "top",
+  },
+  {
     selector: '[data-tour="clientes-table"]',
     content:
-      "Cada fila muestra el nombre del cliente, su RIF/C.I., número de teléfono y ubicación. Use las acciones disponibles para administrar cada cliente.",
+      "Cada fila muestra el nombre del cliente, su RIF / C.I., teléfono y ubicación, y además su tipo (Propietario o Explotador) o sus días de crédito, según la empresa.",
     position: "top",
   },
   {
     selector: '[data-tour="clientes-new"]',
     content:
-      "Registre un nuevo cliente. Debe completar tipo de documento, número de identificación, nombre y datos de contacto.",
+      "Registre un nuevo cliente. En una empresa aeronáutica solo el nombre y el tipo son obligatorios; en una aerolínea se piden también el documento, el contacto y los días de crédito.",
     position: "left",
   },
   {

@@ -106,7 +106,7 @@ export function SecurePdfViewerContent({
     <div ref={containerRef} className="secure-pdf-viewer flex h-full flex-col">
       <div
         data-tour={toolbarTour}
-        className={`flex items-center justify-between border-b px-4 py-2 ${
+        className={`flex items-center justify-between border-b px-3 py-1.5 sm:px-4 ${
           isDark ? "border-gray-800 bg-[#1a1c1e]" : "border-gray-200 bg-gray-50"
         }`}
       >
@@ -115,24 +115,24 @@ export function SecurePdfViewerContent({
             type="button"
             aria-label="Alejar"
             onClick={() => setScale((s) => Math.max(MIN_SCALE, s - STEP))}
-            className="rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-accent hover:text-foreground"
+            className="grid size-8 place-items-center rounded-lg text-gray-500 transition-colors hover:bg-accent hover:text-foreground max-sm:size-10"
           >
-            <ZoomOut className="h-4 w-4" />
+            <ZoomOut className="size-4" />
           </button>
-          <span className="w-12 text-center text-xs font-bold text-gray-500">
+          <span className="w-12 text-center text-xs font-medium tabular-nums text-gray-500">
             {Math.round(scale * 100)}%
           </span>
           <button
             type="button"
             aria-label="Acercar"
             onClick={() => setScale((s) => Math.min(MAX_SCALE, s + STEP))}
-            className="rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-accent hover:text-foreground"
+            className="grid size-8 place-items-center rounded-lg text-gray-500 transition-colors hover:bg-accent hover:text-foreground max-sm:size-10"
           >
-            <ZoomIn className="h-4 w-4" />
+            <ZoomIn className="size-4" />
           </button>
         </div>
 
-        <div className="flex items-center gap-2 text-xs font-bold text-gray-400">
+        <div className="flex items-center gap-2 text-xs font-medium tabular-nums text-gray-400">
           <input
             aria-label="Página actual"
             value={currentPage}
@@ -143,7 +143,7 @@ export function SecurePdfViewerContent({
                 goToPage(page);
               }
             }}
-            className={`w-10 rounded border bg-transparent px-1 py-0.5 text-center ${
+            className={`w-10 rounded-md border bg-transparent px-1 py-0.5 text-center max-sm:h-9 max-sm:text-base ${
               isDark ? "border-gray-700" : "border-gray-300"
             }`}
           />
@@ -154,16 +154,16 @@ export function SecurePdfViewerContent({
           type="button"
           aria-label="Pantalla completa"
           onClick={() => containerRef.current?.requestFullscreen?.()}
-          className="rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-accent hover:text-foreground"
+          className="grid size-8 place-items-center rounded-lg text-gray-500 transition-colors hover:bg-accent hover:text-foreground max-sm:size-10"
         >
-          <Maximize className="h-4 w-4" />
+          <Maximize className="size-4" />
         </button>
       </div>
 
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        className={`flex-1 overflow-auto ${isDark ? "bg-[#0b0c0d]" : "bg-gray-100"}`}
+        className={`flex-1 overflow-auto overscroll-contain ${isDark ? "bg-[#0b0c0d]" : "bg-gray-100"}`}
       >
         {/* react-pdf 11 gestiona `loading` y `error` internamente; `Document`
             no expone la prop `suspense`. */}
@@ -175,7 +175,7 @@ export function SecurePdfViewerContent({
           }}
           loading={
             <div className="flex h-full items-center justify-center py-16">
-              <Loader2 className="h-8 w-8 animate-spin text-emerald-500" />
+              <Loader2 className="size-8 animate-spin text-emerald-500" />
             </div>
           }
           error={

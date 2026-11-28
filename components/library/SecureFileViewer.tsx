@@ -20,6 +20,13 @@ interface SecureFileViewerProps {
    * puede montar.
    */
   isImage?: boolean;
+  /**
+   * Qué se está viendo. Si cambia con el visor abierto se vuelve a cargar;
+   * sin él, "abierto" es la única identidad y el archivo se pide una vez.
+   */
+  signature?: string;
+  /** Marcas del recorrido guiado de cada zona del visor. */
+  tour?: { title?: string; close?: string; toolbar?: string; footer?: string };
 }
 
 const LOAD_ERROR =
@@ -36,34 +43,31 @@ export default function SecureFileViewer({
   title,
   fetchBlobUrl,
   isImage,
+  signature = "open",
+  tour,
 }: SecureFileViewerProps) {
   const [currentTheme, setCurrentTheme] = useState<"light" | "dark">("dark");
-  const [detectedIsImage, setDetectedIsImage] = useState(false);
+  // La detección queda ligada a la URL que la produjo: al cambiar de archivo
+  // deja de valer sin tener que reiniciarla desde un efecto.
+  const [detected, setDetected] = useState<string | null>(null);
 
   const {
     url: fileUrl,
     loading,
     failed,
     retry,
-  } = useBlobUrlLoader(fetchBlobUrl, isOpen ? "open" : null);
+  } = useBlobUrlLoader(fetchBlobUrl, isOpen ? signature : null);
   const error = failed ? LOAD_ERROR : null;
 
   useEffect(() => {
-    if (!fileUrl) {
-      setDetectedIsImage(false);
-      return;
-    }
-    if (isImage) {
-      setDetectedIsImage(true);
-      return;
-    }
+    if (!fileUrl || isImage) return;
 
     let cancelled = false;
     fetch(fileUrl)
       .then((res) => res.blob())
       .then((blob) => {
         if (!cancelled && blob.type.startsWith("image/")) {
-          setDetectedIsImage(true);
+          setDetected(fileUrl);
         }
       })
       .catch(() => {});
@@ -73,7 +77,7 @@ export default function SecureFileViewer({
     };
   }, [fileUrl, isImage]);
 
-  const showAsImage = isImage || detectedIsImage;
+  const showAsImage = isImage || (!!fileUrl && detected === fileUrl);
 
   useEffect(() => {
     const updateTheme = () => {
@@ -128,20 +132,31 @@ export default function SecureFileViewer({
       }
     };
 
+    // En captura y frenando la propagación: si el visor está encima de un
+    // diálogo, Escape cierra solo el visor y no también lo que tiene debajo.
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.stopPropagation();
+        onClose();
+      }
+    };
+
     const handleCopy = (e: ClipboardEvent) => {
       e.preventDefault();
     };
 
     if (isOpen) {
       window.addEventListener("keydown", handleKeyDown);
+      window.addEventListener("keydown", handleEscape, true);
       window.addEventListener("copy", handleCopy);
     }
 
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keydown", handleEscape, true);
       window.removeEventListener("copy", handleCopy);
     };
-  }, [isOpen]);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -159,12 +174,12 @@ export default function SecureFileViewer({
       onPointerDown={(e) => e.stopPropagation()}
       onMouseDown={(e) => e.stopPropagation()}
       onClick={(e) => e.stopPropagation()}
-      className={`pointer-events-auto fixed inset-0 z-200 flex items-center justify-center p-2 md:p-6 backdrop-blur-xs transition-colors duration-300 ${
+      className={`pointer-events-auto fixed inset-0 z-200 flex items-center justify-center p-0 sm:p-2 md:p-6 ${
         currentTheme === "dark" ? "bg-black/95" : "bg-slate-900/40"
       }`}
     >
       <div
-        className={`relative w-full h-full max-w-7xl rounded-2xl overflow-hidden border flex flex-col shadow-2xl transition-all duration-300 ${
+        className={`relative flex h-full w-full max-w-7xl flex-col overflow-hidden border shadow-2xl max-sm:rounded-none sm:rounded-xl ${
           currentTheme === "dark"
             ? "bg-[#111214] border-gray-800"
             : "bg-white border-gray-300"
@@ -172,30 +187,29 @@ export default function SecureFileViewer({
       >
         {/* HEADER */}
         <div
-          className={`p-4 border-b flex justify-between items-center ${currentTheme === "dark" ? "bg-[#1a1c1e] border-gray-800" : "bg-gray-50 border-gray-200"}`}
+          className={`flex items-center justify-between border-b px-4 py-3 max-sm:pt-[max(0.75rem,env(safe-area-inset-top))] ${currentTheme === "dark" ? "bg-[#1a1c1e] border-gray-800" : "bg-gray-50 border-gray-200"}`}
         >
-          <div className="flex items-center gap-3">
-            <div
-              className={`p-2 rounded-lg ${currentTheme === "dark" ? "bg-emerald-500/10" : "bg-emerald-500/20"}`}
-            >
-              <ShieldCheck className="h-5 w-5 text-emerald-500" />
+          <div className="flex items-center gap-3" data-tour={tour?.title}>
+            <div className="grid size-10 place-items-center rounded-xl bg-emerald-500/10">
+              <ShieldCheck className="size-5 text-emerald-500" />
             </div>
             <div>
               <h3
-                className={`text-xs font-black uppercase tracking-[0.2em] ${currentTheme === "dark" ? "text-white" : "text-slate-900"}`}
+                className={`text-sm font-semibold leading-tight ${currentTheme === "dark" ? "text-white" : "text-slate-900"}`}
               >
                 {title ?? "Visualizador Seguro"}
               </h3>
-              <p className="text-[9px] text-gray-500 font-bold uppercase">
-                Transmisión Protegida
-              </p>
+              <p className="text-xs text-gray-500">Transmisión protegida</p>
             </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
-            className="p-2 hover:bg-red-500/10 hover:text-red-500 text-gray-500 rounded-xl transition-all"
+            aria-label="Cerrar visor"
+            data-tour={tour?.close}
+            className="grid size-10 place-items-center rounded-xl text-gray-500 transition-colors hover:bg-red-500/10 hover:text-red-500"
           >
-            <X className="h-6 w-6" />
+            <X className="size-5" />
           </button>
         </div>
 
@@ -206,42 +220,41 @@ export default function SecureFileViewer({
         >
           {loading && (
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-inherit z-10">
-              <Loader2 className="h-10 w-10 animate-spin text-emerald-500" />
-              <p className="mt-4 text-[10px] font-black uppercase tracking-widest text-gray-500 text-center px-4">
-                Iniciando Virtualización AES-256...
+              <Loader2 className="size-8 animate-spin text-emerald-500" />
+              <p className="mt-4 px-4 text-center text-sm text-gray-500">
+                Estableciendo conexión segura...
               </p>
             </div>
           )}
 
           {error ? (
-            <div className="flex flex-col items-center justify-center h-full p-8 text-center bg-inherit animate-in fade-in zoom-in duration-300">
-              <div className="mb-6 p-6 rounded-full bg-amber-500/10 animate-pulse">
-                <Frown className="h-16 w-16 text-amber-500" />
+            <div className="flex h-full flex-col items-center justify-center bg-inherit p-8 text-center">
+              <div className="mb-5 grid size-14 place-items-center rounded-2xl bg-amber-500/10">
+                <Frown className="size-7 text-amber-500" />
               </div>
               <h2
-                className={`text-xl font-bold mb-2 uppercase tracking-tight ${currentTheme === "dark" ? "text-white" : "text-gray-900"}`}
+                className={`mb-2 text-lg font-semibold ${currentTheme === "dark" ? "text-white" : "text-gray-900"}`}
               >
-                Algo salió mal...
+                No se pudo cargar el documento
               </h2>
-              <p className="max-w-md text-sm text-gray-500 mb-10 font-medium italic leading-relaxed">
-                {error}
-              </p>
+              <p className="mb-8 max-w-md text-sm text-gray-500">{error}</p>
 
-              <div className="flex flex-col sm:flex-row gap-4 w-full max-w-sm justify-center">
+              <div className="flex w-full max-w-sm flex-col justify-center gap-3 sm:flex-row">
                 <Button
+                  type="button"
                   onClick={retry}
-                  variant="default"
-                  className="bg-emerald-600 hover:bg-emerald-700 w-full sm:w-auto flex items-center gap-2 group transition-all active:scale-95"
+                  className="w-full gap-2 bg-emerald-600 hover:bg-emerald-700 sm:w-auto"
                 >
-                  <RotateCcw className="h-4 w-4 group-hover:-rotate-90 transition-transform" />
+                  <RotateCcw className="size-4" />
                   Reintentar
                 </Button>
                 <Button
+                  type="button"
                   onClick={onClose}
                   variant="outline"
-                  className="border-gray-500 w-full sm:w-auto hover:bg-red-500/5 hover:text-red-500 transition-colors"
+                  className="w-full border-gray-500 sm:w-auto"
                 >
-                  Cerrar Visor
+                  Cerrar visor
                 </Button>
               </div>
             </div>
@@ -259,7 +272,11 @@ export default function SecureFileViewer({
                     />
                   </div>
                 ) : (
-                  <SecurePdfViewer fileUrl={fileUrl} theme={currentTheme} />
+                  <SecurePdfViewer
+                    fileUrl={fileUrl}
+                    theme={currentTheme}
+                    toolbarTour={tour?.toolbar}
+                  />
                 )}
               </div>
             )
@@ -268,10 +285,11 @@ export default function SecureFileViewer({
 
         {/* FOOTER */}
         <div
-          className={`p-3 border-t flex justify-center items-center gap-4 ${currentTheme === "dark" ? "bg-[#1a1c1e] border-gray-800" : "bg-gray-50 border-gray-200"}`}
+          data-tour={tour?.footer}
+          className={`flex items-center justify-center border-t px-3 py-2.5 max-sm:pb-[max(0.625rem,env(safe-area-inset-bottom))] ${currentTheme === "dark" ? "bg-[#1a1c1e] border-gray-800" : "bg-gray-50 border-gray-200"}`}
         >
-          <div className="flex items-center gap-2 text-[8px] font-bold uppercase text-gray-500 tracking-tighter">
-            <Lock className="h-3 w-3" />© SIGEAC Digital Library - 2026
+          <div className="flex items-center gap-2 text-xs text-gray-500">
+            <Lock className="size-3" />© SIGEAC Digital Library - 2026
           </div>
         </div>
       </div>

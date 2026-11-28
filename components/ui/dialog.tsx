@@ -35,7 +35,7 @@ DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, onPointerDownOutside, ...props }, ref) => {
+>(({ className, children, onInteractOutside, ...props }, ref) => {
   return (
     <DialogPortal>
       <DialogOverlay />
@@ -45,13 +45,16 @@ const DialogContent = React.forwardRef<
           "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg motion-safe:data-[state=open]:animate-dialog-in motion-safe:data-[state=closed]:animate-dialog-out sm:rounded-lg max-sm:max-h-[calc(100dvh-1.5rem)] max-sm:overflow-y-auto motion-safe:max-sm:data-[state=open]:animate-sheet-up! motion-safe:max-sm:data-[state=closed]:animate-sheet-down!",
           className,
         )}
-        onPointerDownOutside={(e) => {
-          const target = e.target as HTMLElement;
-          if (target.closest("[data-tour-menu], [data-tour-popover]")) {
+        // Radix cierra también al mover el foco fuera (no solo con clic): el
+        // tour recibe foco al pulsar sus botones, así que se vigila todo lo
+        // «exterior» y no solo el puntero.
+        onInteractOutside={(e) => {
+          const target = e.target as HTMLElement | null;
+          if (target?.closest?.("[data-tour-menu], [data-tour-popover]")) {
             e.preventDefault();
             return;
           }
-          onPointerDownOutside?.(e);
+          onInteractOutside?.(e);
         }}
         {...props}
       >

@@ -8,13 +8,18 @@ import {
   Folder,
   FolderOpen,
   FolderTree as FolderTreeIcon,
+  Download,
   KeyRound,
   Loader2,
-  Minus,
   PackageCheck,
 } from "lucide-react";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
+import { fieldClass } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
+import { PanelSection } from "@/components/forms/PanelSection";
+import { Button } from "@/components/ui/button";
+import { Dialog } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
+import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { DepartmentFolderGroup } from "@/components/library/FolderTree";
@@ -230,6 +235,10 @@ export default function DownloadFoldersDialog({
   }, [open, departmentFolders, onLoadFolders]);
 
   useEffect(() => {
+    if (!open && wasOpen.current) {
+      setPassword("");
+      setPasswordError(null);
+    }
     if (open && !wasOpen.current) {
       setSelected({});
       setCollapsed({});
@@ -557,11 +566,10 @@ export default function DownloadFoldersDialog({
     return (
       <div key={key}>
         <div
-          className={`group flex items-center gap-2 py-1.5 pr-2 rounded-lg transition-colors ${
-            state === "checked"
-              ? "bg-blue-50 dark:bg-blue-900/20"
-              : "hover:bg-slate-50 dark:hover:bg-slate-800/50"
-          }`}
+          className={cn(
+            "flex items-center gap-2 rounded-lg py-1.5 pr-2 motion-safe:transition-colors max-md:py-2.5",
+            state === "checked" ? "bg-primary/10" : "hover:bg-muted/60",
+          )}
           style={{ paddingLeft: `${8 + node.depth * 16}px` }}
         >
           {hasChildren ? (
@@ -571,16 +579,16 @@ export default function DownloadFoldersDialog({
                 setCollapsed((prev) => ({ ...prev, [key]: !prev[key] }))
               }
               aria-label={isCollapsed ? "Expandir" : "Contraer"}
-              className="p-0.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-400"
+              className="rounded p-0.5 text-muted-foreground hover:bg-muted"
             >
               {isCollapsed ? (
-                <ChevronRight className="h-3.5 w-3.5" />
+                <ChevronRight className="size-3.5" />
               ) : (
-                <ChevronDown className="h-3.5 w-3.5" />
+                <ChevronDown className="size-3.5" />
               )}
             </button>
           ) : (
-            <span className="w-4" />
+            <span className="w-5" />
           )}
 
           <Checkbox
@@ -589,33 +597,29 @@ export default function DownloadFoldersDialog({
             }
             onCheckedChange={(checked) => toggleBranch(key, checked === true)}
             aria-label={`Descargar ${node.label}`}
-            className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 data-[state=checked]:text-white data-[state=indeterminate]:bg-blue-600 data-[state=indeterminate]:border-blue-600 data-[state=indeterminate]:text-white"
           />
 
           {isDepartment ? (
-            isCollapsed ? (
-              <Building2 className="h-3.5 w-3.5 shrink-0 text-blue-500" />
-            ) : (
-              <Building2 className="h-3.5 w-3.5 shrink-0 text-blue-600" />
-            )
+            <Building2 className="size-4 shrink-0 text-primary" />
           ) : isCollapsed ? (
-            <Folder className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+            <Folder className="size-4 shrink-0 text-muted-foreground" />
           ) : (
-            <FolderOpen className="h-3.5 w-3.5 shrink-0 text-amber-500" />
+            <FolderOpen className="size-4 shrink-0 text-amber-500" />
           )}
 
           <span
-            className={`truncate flex-1 text-sm ${
+            className={cn(
+              "flex-1 truncate text-sm",
               isDepartment
-                ? "font-bold text-slate-800 dark:text-slate-100"
-                : "text-slate-600 dark:text-slate-300"
-            }`}
+                ? "font-semibold text-slate-700 dark:text-slate-200"
+                : "text-slate-600 dark:text-slate-300",
+            )}
           >
-            {isDepartment ? node.label : node.label}
+            {node.label}
           </span>
 
           {node.docCount > 0 && (
-            <span className="shrink-0 select-none px-1.5 py-0.5 text-[9px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 rounded-full min-w-4.5 text-center leading-none">
+            <span className="shrink-0 text-xs tabular-nums text-slate-600 dark:text-slate-400">
               {node.docCount}
             </span>
           )}
@@ -629,202 +633,192 @@ export default function DownloadFoldersDialog({
   const isLoadingFolders = loadingDepartmentIds.length > 0;
   const hasTree = rootKeys.length > 0;
 
+  const footer =
+    phase === "confirm" ? (
+      <>
+        <Button type="button" variant="outline" onClick={handleBackToSelection}>
+          Atrás
+        </Button>
+        <Button
+          type="button"
+          onClick={() => void handleDownload()}
+          disabled={isBusy}
+          className="min-w-35"
+        >
+          <KeyRound className="size-4" />
+          Confirmar y descargar
+        </Button>
+      </>
+    ) : (
+      <>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={isBusy ? handleCancel : onClose}
+        >
+          {isBusy ? "Cancelar descarga" : "Cerrar"}
+        </Button>
+        <Button
+          type="button"
+          onClick={handleStart}
+          disabled={isBusy || plan.documents.length === 0}
+          className="min-w-35"
+        >
+          {isBusy ? (
+            phase === "saving" ? (
+              <PackageCheck className="size-4" />
+            ) : (
+              <Loader2 className="size-4 animate-spin" />
+            )
+          ) : (
+            <Download className="size-4" />
+          )}
+          {isBusy ? "Descargando..." : "Descargar ZIP"}
+        </Button>
+      </>
+    );
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="bg-white dark:bg-[#1a1c1e] border-none text-slate-900 dark:text-white sm:max-w-[560px] rounded-2xl overflow-hidden p-0 outline-hidden shadow-2xl">
-        <div className="bg-slate-50 dark:bg-gray-800/40 px-6 py-5 border-b border-slate-200 dark:border-gray-700">
-          <DialogTitle className="text-lg font-bold text-slate-800 dark:text-white tracking-tight uppercase">
-            Descargar carpetas
-          </DialogTitle>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mt-1">
-            Elige las ramas que quieres descargar
-          </p>
-        </div>
-
-        <div className="p-6 space-y-5 max-h-[65vh] overflow-y-auto">
-          <div className="flex items-center justify-between">
-            <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-gray-400 flex items-center gap-2">
-              <FolderTreeIcon className="h-3.5 w-3.5 text-blue-500" /> Carpetas
-            </label>
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => setBranches(rootKeys, true)}
-                disabled={!hasTree || isBusy}
-                className="text-[10px] font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400 hover:underline disabled:opacity-40 disabled:no-underline"
-              >
-                Todo
-              </button>
-              <span className="text-slate-300 dark:text-slate-700">|</span>
-              <button
-                type="button"
-                onClick={() => setSelected({})}
-                disabled={isBusy}
-                className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 hover:underline disabled:opacity-40 disabled:no-underline"
-              >
-                Limpiar
-              </button>
-            </div>
-          </div>
-
-          <div className="border border-slate-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 max-h-80 overflow-y-auto p-2 space-y-0.5 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-200 dark:[&::-webkit-scrollbar-thumb]:bg-slate-700 [&::-webkit-scrollbar-thumb]:rounded-full">
-            {hasTree ? (
-              rootKeys.map(renderRow)
-            ) : (
-              <div className="flex flex-col items-center gap-2 px-2 py-6">
-                {isLoadingFolders ? (
-                  <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
-                ) : null}
-                <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider text-center">
-                  {isLoadingFolders
-                    ? "Cargando carpetas..."
-                    : "No hay carpetas disponibles"}
-                </p>
+      <FormDialogContent
+        icon={Download}
+        title="Descargar carpetas"
+        description="Elija las ramas que desea descargar en un solo ZIP."
+        lockOutside={false}
+        className="sm:max-w-xl"
+        footer={footer}
+      >
+        <div className="flex flex-col gap-5">
+          <PanelSection
+            icon={FolderTreeIcon}
+            title="Carpetas"
+            flush
+            action={
+              <div className="flex items-center gap-1">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setBranches(rootKeys, true)}
+                  disabled={!hasTree || isBusy}
+                  className="h-7 px-2 text-[13px] max-sm:h-9"
+                >
+                  Todo
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSelected({})}
+                  disabled={isBusy}
+                  className="h-7 px-2 text-[13px] max-sm:h-9"
+                >
+                  Limpiar
+                </Button>
               </div>
-            )}
-          </div>
+            }
+          >
+            <div className="max-h-80 space-y-0.5 overflow-y-auto overscroll-contain p-2">
+              {hasTree ? (
+                rootKeys.map(renderRow)
+              ) : (
+                <div className="flex flex-col items-center gap-2 px-2 py-6">
+                  {isLoadingFolders && (
+                    <Loader2 className="size-4 animate-spin text-primary" />
+                  )}
+                  <p className="text-center text-sm text-muted-foreground">
+                    {isLoadingFolders
+                      ? "Cargando carpetas..."
+                      : "No hay carpetas disponibles."}
+                  </p>
+                </div>
+              )}
+            </div>
+          </PanelSection>
 
-          <div className="flex items-center justify-between text-[9px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">
+          <div className="flex items-center justify-between text-[13px] text-slate-600 dark:text-slate-400">
             <span>
-              {selectedKeys.length} carpeta
-              {selectedKeys.length === 1 ? "" : "s"}
+              {selectedKeys.length}{" "}
+              {selectedKeys.length === 1 ? "carpeta" : "carpetas"}
             </span>
             <span>
-              {plan.documents.length} documento
-              {plan.documents.length === 1 ? "" : "s"}
+              {plan.documents.length}{" "}
+              {plan.documents.length === 1 ? "documento" : "documentos"}
             </span>
           </div>
 
           {phase === "confirm" && (
-            <div className="space-y-2 rounded-xl border border-amber-200 dark:border-amber-900/50 bg-amber-50/60 dark:bg-amber-900/10 p-3">
-              <div className="flex items-center gap-2">
-                <KeyRound className="h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
-                <p className="text-[9px] font-black uppercase tracking-widest text-amber-700 dark:text-amber-300">
-                  Confirma tu contraseña
+            <PanelSection
+              icon={KeyRound}
+              title="Confirme su contraseña"
+              compact
+            >
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Se exportarán {plan.documents.length}{" "}
+                  {plan.documents.length === 1 ? "documento" : "documentos"} de{" "}
+                  {selectedKeys.length}{" "}
+                  {selectedKeys.length === 1 ? "carpeta" : "carpetas"}. Escriba
+                  su contraseña de usuario para continuar.
                 </p>
-              </div>
-              <p className="text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
-                Se exportarán {plan.documents.length} documento
-                {plan.documents.length === 1 ? "" : "s"} de{" "}
-                {selectedKeys.length} carpeta
-                {selectedKeys.length === 1 ? "" : "s"}. Escribe tu contraseña de
-                usuario para continuar.
-              </p>
-              <Input
-                ref={passwordRef}
-                type="password"
-                autoComplete="current-password"
-                value={password}
-                onChange={(event) => {
-                  setPassword(event.target.value);
-                  if (passwordError) setPasswordError(null);
-                }}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") {
-                    event.preventDefault();
-                    void handleDownload();
+                <Input
+                  ref={passwordRef}
+                  type="password"
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(event) => {
+                    setPassword(event.target.value);
+                    if (passwordError) setPasswordError(null);
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      event.preventDefault();
+                      void handleDownload();
+                    }
+                  }}
+                  placeholder="Contraseña"
+                  aria-label="Contraseña"
+                  aria-invalid={passwordError ? true : undefined}
+                  aria-describedby={
+                    passwordError ? "library-export-password-error" : undefined
                   }
-                }}
-                placeholder="Contraseña"
-                aria-invalid={passwordError ? true : undefined}
-                aria-describedby={
-                  passwordError ? "library-export-password-error" : undefined
-                }
-                className={`h-9 text-[13px] ${
-                  passwordError
-                    ? "border-red-500 focus-visible:ring-red-500"
-                    : ""
-                }`}
-              />
-              {passwordError && (
-                <p
-                  id="library-export-password-error"
-                  role="alert"
-                  className="text-[11px] font-bold text-red-600 dark:text-red-400"
-                >
-                  {passwordError}
-                </p>
-              )}
-            </div>
+                  className={fieldClass}
+                />
+                {passwordError && (
+                  <p
+                    id="library-export-password-error"
+                    role="alert"
+                    className="text-[13px] font-medium text-red-600 dark:text-red-400"
+                  >
+                    {passwordError}
+                  </p>
+                )}
+              </div>
+            </PanelSection>
           )}
+
           {isBusy && (
-            <div className="space-y-2 rounded-xl border border-blue-100 dark:border-blue-900/40 bg-blue-50/50 dark:bg-blue-900/10 p-3">
-              {/* La barra solo aparece si se conoce el tamaño total: la
+            <PanelSection icon={Loader2} title="Generando el archivo" compact>
+              <div className="space-y-2">
+                {/* La barra solo aparece si se conoce el tamaño total: la
                     respuesta va streamada y suele llegar sin Content-Length, y
                     un `Progress` sin total se quedaría en 0% dando a entender
                     que no avanza nada. */}
-              {progress.total > 0 && (
-                <Progress
-                  value={percentage}
-                  className="h-1.5 bg-blue-100 dark:bg-blue-900/40 [&>div]:bg-blue-600"
-                />
-              )}
-              <p className="text-[9px] font-bold uppercase tracking-widest text-blue-700 dark:text-blue-300 truncate">
-                {phase === "saving"
-                  ? "Generando el ZIP..."
-                  : progress.total > 0
-                    ? `${percentage}% · ${formatBytes(progress.received)} de ${formatBytes(progress.total)}`
-                    : `Descargando… ${formatBytes(progress.received)}`}
-              </p>
-            </div>
+                {progress.total > 0 && (
+                  <Progress value={percentage} className="h-1.5" />
+                )}
+                <p className="truncate text-[13px] text-slate-600 dark:text-slate-400">
+                  {phase === "saving"
+                    ? "Generando el ZIP..."
+                    : progress.total > 0
+                      ? `${percentage}% · ${formatBytes(progress.received)} de ${formatBytes(progress.total)}`
+                      : `Descargando… ${formatBytes(progress.received)}`}
+                </p>
+              </div>
+            </PanelSection>
           )}
-
-          <div className="flex gap-3 pt-4 border-t border-slate-200 dark:border-gray-700">
-            {phase === "confirm" ? (
-              <>
-                <button
-                  type="button"
-                  onClick={handleBackToSelection}
-                  className="flex-1 px-4 py-3 text-[10px] font-black text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 uppercase tracking-widest transition-colors"
-                >
-                  ATRÁS
-                </button>
-                <button
-                  type="button"
-                  onClick={() => void handleDownload()}
-                  disabled={isBusy}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 text-[10px] font-black text-white bg-blue-600 rounded-xl hover:bg-blue-700 disabled:opacity-50 shadow-lg shadow-blue-500/20 uppercase tracking-widest transition-all"
-                >
-                  <KeyRound className="h-3 w-3" />
-                  CONFIRMAR Y DESCARGAR
-                </button>
-              </>
-            ) : (
-              <>
-                <button
-                  type="button"
-                  onClick={isBusy ? handleCancel : onClose}
-                  className="flex-1 px-4 py-3 text-[10px] font-black text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 uppercase tracking-widest transition-colors"
-                >
-                  {isBusy ? "CANCELAR" : "CERRAR"}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleStart}
-                  disabled={isBusy || plan.documents.length === 0}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 text-[10px] font-black text-white bg-blue-600 rounded-xl hover:bg-blue-700 disabled:opacity-50 shadow-lg shadow-blue-500/20 uppercase tracking-widest transition-all"
-                >
-                  {isBusy ? (
-                    <>
-                      {phase === "saving" ? (
-                        <PackageCheck className="h-3 w-3" />
-                      ) : (
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                      )}
-                      DESCARGANDO...
-                    </>
-                  ) : (
-                    <>
-                      <Minus className="h-3 w-3 rotate-90" />
-                      DESCARGAR ZIP
-                    </>
-                  )}
-                </button>
-              </>
-            )}
-          </div>
         </div>
-      </DialogContent>
+      </FormDialogContent>
     </Dialog>
   );
 }

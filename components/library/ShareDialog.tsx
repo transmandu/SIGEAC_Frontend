@@ -1,36 +1,63 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { QRCodeSVG } from "qrcode.react";
 import {
-  QrCode,
+  ArrowLeft,
+  Ban,
+  Check,
   Clock,
-  ChevronDown,
   Copy,
   Download,
+  Eye,
+  Link2,
   List,
   Plus,
-  History,
-  Eye,
-  ArrowLeft,
+  QrCode,
   Send,
-  CheckCircle2,
   Share2,
 } from "lucide-react";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { QRCodeSVG } from "qrcode.react";
 import { toast } from "sonner";
-import axiosInstance from "@/lib/axios";
-import { useQuery } from "@tanstack/react-query";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
+import { ConfirmDeleteDialog } from "@/components/dialogs/shared/ConfirmDeleteDialog";
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
+import {
+  fieldClass,
+  onlyInteger,
+  selectTriggerClass,
+  textareaClass,
+} from "@/components/forms/mantenimiento/almacen/_components/form-theme";
+import {
+  PanelSection,
+  PanelStaticLabel,
+  SwitchRow,
+} from "@/components/forms/PanelSection";
+import { LibraryDialogActions } from "@/components/library/LibraryDialogActions";
+import { EmptyState } from "@/components/misc/EmptyState";
+import FormattedInstant from "@/components/misc/FormattedInstant";
+import {
+  SegmentedTabs,
+  SegmentedTabsList,
+  SegmentedTabsTrigger,
+} from "@/components/misc/SegmentedTabs";
+import { TagBadge } from "@/components/misc/TagBadge";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { bibliotecaShareSteps } from "@/components/tour/steps/general/biblioteca/biblioteca-share";
-import { notifyError } from "@/lib/notify-error";
-import { useOnChange } from "@/hooks/useOnChange";
-import { useResettingState } from "@/hooks/useResettingState";
+import { Button } from "@/components/ui/button";
+import { Dialog } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { useGetDocumentVersions } from "@/hooks/general/archivos/useGetDocumentVersions";
-import FormattedInstant from "@/components/misc/FormattedInstant";
+import axiosInstance from "@/lib/axios";
+import libraryService from "@/lib/libraryService";
+import { notifyError } from "@/lib/notify-error";
 
 interface ShareDialogProps {
   isOpen: boolean;
@@ -44,32 +71,19 @@ type Tab = "form" | "active";
 
 const NO_SHARES: any[] = [];
 
+const DURATIONS = [
+  { value: "24", label: "24 horas" },
+  { value: "48", label: "48 horas" },
+  { value: "72", label: "72 horas" },
+  { value: "168", label: "1 semana" },
+  { value: "custom", label: "Personalizado" },
+];
+
 export default function ShareDialog({
   isOpen,
   onClose,
-  doc,
-  company,
-  isDipDirector,
+  ...rest
 }: ShareDialogProps) {
-  const [activeTab, setActiveTab] = useState<Tab>("form");
-
-  // La versión elegida; si no eligió ninguna, la más reciente.
-  const [versionChoice, setVersionId] = useResettingState("", [isOpen, doc]);
-  const [sharedWithName, setSharedWithName] = useState("");
-  const [reason, setReason] = useState("");
-  const [duration, setDuration] = useState("24");
-  const [customHours, setCustomHours] = useState("");
-  const [showCustomDuration, setShowCustomDuration] = useState(false);
-  const [readOnly, setReadOnly] = useState(true);
-  const [loading, setLoading] = useState(false);
-
-  const [generatedUrl, setGeneratedUrl] = useState("");
-  const [confirmed, setConfirmed] = useState(false);
-
-  const [selectedShareUrl, setSelectedShareUrl] = useState<string | null>(null);
-
-  const isReasonValid = reason.trim().length >= 10;
-
   const { registerTour, unregisterTour } = useTourContext();
 
   useEffect(() => {
@@ -78,15 +92,134 @@ export default function ShareDialog({
         "biblioteca-share",
         "Compartir Documento",
         bibliotecaShareSteps,
+        { onlyVisible: true },
       );
     }
     return () => unregisterTour("biblioteca-share");
   }, [isOpen, registerTour, unregisterTour]);
 
+  return (
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <FormDialogContent
+        icon={Share2}
+        title="Compartir documento"
+        description={rest.doc?.title}
+        tourId="biblioteca-share-title"
+        lockOutside={false}
+        className="sm:max-w-lg"
+      >
+        {/* Dentro del diálogo: al cerrarlo se desmonta y reabre en el formulario, sin lo anterior. */}
+        <ShareBody onClose={onClose} {...rest} />
+      </FormDialogContent>
+    </Dialog>
+  );
+}
+
+function QrBlock({
+  url,
+  title,
+  onCopy,
+}: {
+  url: string;
+  title: string;
+  onCopy: (url: string) => void;
+}) {
+  const downloadQRCode = () => {
+    const svg = document.getElementById("qr-gen");
+    if (!svg) return;
+    const svgData = new XMLSerializer().serializeToString(svg);
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    const img = new Image();
+    img.onload = () => {
+      canvas.width = img.width + 40;
+      canvas.height = img.height + 40;
+      if (ctx) {
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 20, 20);
+        const link = document.createElement("a");
+        link.download = `QR_${title || "documento"}.png`;
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+      }
+    };
+    img.src = "data:image/svg+xml;base64," + btoa(svgData);
+  };
+
+  return (
+    <div className="flex flex-col items-center gap-5">
+      <div className="rounded-xl border border-slate-200 bg-white p-4">
+        <QRCodeSVG id="qr-gen" value={url} size={180} />
+      </div>
+
+      <div className="flex w-full items-center gap-2">
+        <Input
+          readOnly
+          value={url}
+          aria-label="Enlace"
+          className={fieldClass}
+          onFocus={(event) => event.currentTarget.select()}
+        />
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          aria-label="Copiar enlace"
+          onClick={() => onCopy(url)}
+          className="size-10 shrink-0"
+        >
+          <Copy className="size-4" />
+        </Button>
+      </div>
+
+      <Button type="button" onClick={downloadQRCode} className="w-full">
+        <Download className="size-4" /> Descargar QR
+      </Button>
+    </div>
+  );
+}
+
+function ShareBody({
+  onClose,
+  doc,
+  company,
+  isDipDirector,
+}: Omit<ShareDialogProps, "isOpen">) {
+  const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState<Tab>("form");
+
+  // La versión elegida; si no eligió ninguna, la más reciente.
+  const [versionChoice, setVersionId] = useState("");
+  const [sharedWithName, setSharedWithName] = useState("");
+  const [reason, setReason] = useState("");
+  const [duration, setDuration] = useState("24");
+  const [customHours, setCustomHours] = useState("");
+  const [readOnly, setReadOnly] = useState(true);
+  const [loading, setLoading] = useState(false);
+
+  const [generatedUrl, setGeneratedUrl] = useState("");
+  const [confirmed, setConfirmed] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const [selectedShareUrl, setSelectedShareUrl] = useState<string | null>(null);
+  const [revokeTarget, setRevokeTarget] = useState<any | null>(null);
+
+  const showCustomDuration = duration === "custom";
+  const durationValue = parseInt(
+    showCustomDuration ? customHours : duration,
+    10,
+  );
+  const durationValid =
+    !showCustomDuration ||
+    (!Number.isNaN(durationValue) &&
+      durationValue >= 24 &&
+      durationValue <= 168);
+  const canSubmit = reason.trim().length >= 10 && durationValid;
+
   const { versions } = useGetDocumentVersions({
     company,
     documentId: doc?.id,
-    enabled: isOpen,
     action: "cargar las versiones del documento",
   });
   const versionId = versionChoice || versions[0]?.id.toString() || "";
@@ -106,501 +239,374 @@ export default function ShareDialog({
           return NO_SHARES;
         }
       },
-      enabled: isOpen && !!doc?.id,
+      enabled: !!doc?.id,
       staleTime: 0,
       meta: { silent: true },
     });
 
-  useOnChange([isOpen, doc], () => {
-    if (isOpen && doc?.id) {
-      setGeneratedUrl("");
-      setConfirmed(false);
-      setSelectedShareUrl(null);
-      setActiveTab("form");
-      setReason("");
-      setSharedWithName("");
-      setDuration("24");
-      setCustomHours("");
-      setShowCustomDuration(false);
-      setReadOnly(true);
-    }
-  });
-
-  const getDurationValue = () => {
-    if (showCustomDuration && customHours) {
-      return parseInt(customHours, 10);
-    }
-    return parseInt(duration, 10);
-  };
+  const hasActiveShares = activeShares.length > 0;
 
   const handleSubmit = async () => {
-    if (!isReasonValid) {
-      return toast.error("¡Ops! El motivo debe tener al menos 10 caracteres.");
-    }
+    if (!canSubmit) return;
 
-    const durationValue = getDurationValue();
-    if (
-      showCustomDuration &&
-      (!customHours || durationValue < 24 || durationValue > 168)
-    ) {
-      return toast.error("¡Ops! La duración debe estar entre 24 y 168 horas.");
-    }
+    const payload = {
+      version_id: versionId || undefined,
+      shared_with_name: sharedWithName.trim() || undefined,
+      reason: reason.trim(),
+      expires_at: durationValue,
+      read_only: readOnly,
+    };
 
     setLoading(true);
     try {
       if (isDipDirector) {
         const response = await axiosInstance.post(
           `/${company}/library/documents/${doc.id}/share`,
-          {
-            document_id: doc.id,
-            version_id: versionId || undefined,
-            shared_with_name: sharedWithName.trim() || undefined,
-            reason: reason.trim(),
-            expires_at: durationValue,
-            read_only: readOnly,
-          },
+          { document_id: doc.id, ...payload },
         );
         setGeneratedUrl(response.data.share_url);
-        toast.success("Acceso generado exitosamente");
+        toast.success("Acceso generado");
+        // Con un acceso nuevo la pestaña «Accesos activos» debe aparecer ya.
+        void queryClient.invalidateQueries({
+          queryKey: ["library-active-shares", company, doc?.id],
+        });
       } else {
         await axiosInstance.post(`/${company}/library/share-requests`, {
           document_id: doc.id,
-          version_id: versionId || undefined,
-          shared_with_name: sharedWithName.trim() || undefined,
-          reason: reason.trim(),
-          expires_at: durationValue,
-          read_only: readOnly,
+          ...payload,
         });
         setConfirmed(true);
-        toast.success(
-          "Solicitud enviada correctamente. Pendiente de aprobación.",
-        );
+        toast.success("Solicitud enviada. Queda pendiente de aprobación.");
       }
-    } catch (error: any) {
+    } catch (error) {
       notifyError(error, { action: "procesar la solicitud" });
     } finally {
       setLoading(false);
     }
   };
 
-  const copyToClipboard = (url: string) => {
-    navigator.clipboard.writeText(url);
-    toast.success("Enlace copiado al portapapeles");
+  const copyToClipboard = async (url: string) => {
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      toast.success("Enlace copiado");
+    } catch {
+      toast.error("No se pudo copiar el enlace");
+    }
   };
 
-  const downloadQRCode = () => {
-    const svg = document.getElementById("qr-gen");
-    if (!svg) return;
-    const svgData = new XMLSerializer().serializeToString(svg);
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-    const img = new Image();
-    img.onload = () => {
-      canvas.width = img.width + 40;
-      canvas.height = img.height + 40;
-      if (ctx) {
-        ctx.fillStyle = "white";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, 20, 20);
-        const link = document.createElement("a");
-        link.download = `QR_${doc.title || "documento"}.png`;
-        link.href = canvas.toDataURL("image/png");
-        link.click();
-      }
-    };
-    img.src = "data:image/svg+xml;base64," + btoa(svgData);
-  };
-
-  const handleClose = () => {
+  const resetResult = () => {
     setGeneratedUrl("");
     setConfirmed(false);
     setSelectedShareUrl(null);
-    onClose();
+    setCopied(false);
   };
 
-  const hasActiveShares = activeShares.length > 0;
+  const closeRow = (
+    <div className="sticky bottom-0 z-10 -mx-4 flex justify-end border-t bg-linear-to-t from-slate-50 to-background px-4 py-3 sm:-mx-6 sm:px-6 sm:py-4 dark:from-slate-900/40 max-sm:[&>button]:w-full">
+      <Button type="button" variant="outline" onClick={onClose}>
+        Cerrar
+      </Button>
+    </div>
+  );
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md bg-white dark:bg-[#141618] border-slate-300 dark:border-gray-800 shadow-2xl p-0 overflow-hidden outline-hidden rounded-4xl">
-        <div className="bg-white dark:bg-gray-800/30 border-b border-slate-200 dark:border-gray-800">
-          <div className="px-6 py-5" data-tour="biblioteca-share-title">
-            <DialogTitle className="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-widest">
-              Compartir Documento
-            </DialogTitle>
-          </div>
-
-          <div className="flex px-6 gap-8">
-            <button
+    <div className="flex flex-col gap-5">
+      {hasActiveShares && (
+        <SegmentedTabs
+          value={activeTab}
+          onValueChange={(value) => {
+            setActiveTab(value as Tab);
+            resetResult();
+          }}
+        >
+          <SegmentedTabsList size="sm">
+            <SegmentedTabsTrigger
+              value="form"
               data-tour="biblioteca-share-tab-generar"
-              onClick={() => {
-                setActiveTab("form");
-                setGeneratedUrl("");
-                setConfirmed(false);
-                setSelectedShareUrl(null);
-              }}
-              className={`pb-3 text-[10px] font-bold tracking-widest uppercase transition-all relative ${activeTab === "form" ? "text-blue-600" : "text-slate-500 hover:text-slate-700 dark:text-gray-400"}`}
             >
-              <div className="flex items-center gap-2">
-                {isDipDirector ? (
-                  <Plus className="h-3.5 w-3.5" />
-                ) : (
-                  <Send className="h-3.5 w-3.5" />
-                )}
-                {isDipDirector ? "Generar Acceso" : "Solicitar Acceso"}
-              </div>
-              {activeTab === "form" && (
-                <div className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600" />
-              )}
-            </button>
-            {hasActiveShares && (
-              <button
-                data-tour="biblioteca-share-tab-activos"
-                onClick={() => {
-                  setActiveTab("active");
-                  setSelectedShareUrl(null);
-                }}
-                className={`pb-3 text-[10px] font-bold tracking-widest uppercase transition-all relative ${activeTab === "active" ? "text-blue-600" : "text-slate-500 hover:text-slate-700 dark:text-gray-400"}`}
-              >
-                <div className="flex items-center gap-2">
-                  <List className="h-3.5 w-3.5" />
-                  Accesos Activos
-                </div>
-                {activeTab === "active" && (
-                  <div className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600" />
-                )}
-              </button>
-            )}
-          </div>
-        </div>
-
-        <div className="p-6 bg-slate-50 dark:bg-[#141618] max-h-[65vh] overflow-y-auto custom-scrollbar">
-          {activeTab === "active" ? (
-            <div className="space-y-4 animate-in fade-in duration-300">
-              {selectedShareUrl ? (
-                <div className="flex flex-col items-center animate-in slide-in-from-right-4 duration-300 py-2">
-                  <button
-                    onClick={() => setSelectedShareUrl(null)}
-                    className="self-start text-[10px] font-bold text-blue-600 mb-5 flex items-center gap-1 hover:underline uppercase tracking-widest"
-                  >
-                    <ArrowLeft className="h-3 w-3" /> Volver al listado
-                  </button>
-                  <div className="p-4 bg-white rounded-4xl shadow-xl border border-slate-200 mb-6">
-                    <QRCodeSVG
-                      id="qr-gen"
-                      value={selectedShareUrl}
-                      size={180}
-                    />
-                  </div>
-                  <div className="flex gap-3 w-full">
-                    <Button
-                      onClick={() => copyToClipboard(selectedShareUrl)}
-                      variant="outline"
-                      className="flex-1 h-12 text-[10px] font-bold tracking-widest border-slate-300 dark:border-gray-800 rounded-2xl dark:text-white"
-                    >
-                      <Copy className="h-3.5 w-3.5 mr-2 text-blue-600" /> COPIAR
-                      LINK
-                    </Button>
-                    <Button
-                      onClick={downloadQRCode}
-                      className="flex-1 h-12 bg-blue-600 hover:bg-blue-700 text-white border border-transparent text-[10px] font-bold tracking-widest rounded-2xl shadow-lg shadow-blue-500/20"
-                    >
-                      <Download className="h-3.5 w-3.5 mr-2 text-white" />{" "}
-                      DESCARGAR
-                    </Button>
-                  </div>
-                </div>
+              {isDipDirector ? (
+                <Plus className="size-3.5" />
               ) : (
-                <div className="space-y-3">
-                  {loadingShares ? (
-                    <div className="py-16 text-center text-[10px] animate-pulse font-bold text-slate-500 uppercase tracking-widest">
-                      Consultando accesos...
-                    </div>
-                  ) : activeShares.length === 0 ? (
-                    <div className="py-16 text-center space-y-3 border-2 border-dashed border-slate-300 dark:border-gray-800 rounded-4xl bg-white/50 dark:bg-white/1">
-                      <QrCode className="h-10 w-10 text-slate-300 dark:text-gray-700 mx-auto" />
-                      <p className="text-[10px] font-bold text-slate-500 dark:text-gray-500 uppercase tracking-widest">
-                        Sin accesos vigentes
-                      </p>
-                    </div>
-                  ) : (
-                    activeShares.map((share) => (
-                      <div
-                        key={share.id}
-                        onClick={() => setSelectedShareUrl(share.share_url)}
-                        className="group p-5 bg-white dark:bg-white/1 border border-slate-300 dark:border-gray-800 rounded-2xl hover:border-blue-400 dark:hover:border-blue-500 transition-all cursor-pointer flex items-center justify-between shadow-xs hover:shadow-md"
-                      >
-                        <div className="space-y-2">
-                          <div className="flex flex-col">
-                            <span className="text-[9px] font-bold text-slate-500 dark:text-gray-500 uppercase tracking-widest mb-1">
-                              Entregado a:
-                            </span>
-                            <span className="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-tight">
-                              {share.shared_with_name}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-4">
-                            <span className="select-none flex items-center gap-1.5 text-[9px] font-bold bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-2.5 py-1 rounded-full uppercase border border-blue-100 dark:border-blue-800/50">
-                              <History className="h-3 w-3" />
-                              {share.version?.version_label ||
-                                share.version?.version_number ||
-                                "ACTUAL"}
-                            </span>
-                            <span className="flex items-center gap-1.5 text-[9px] text-slate-600 dark:text-gray-400 font-bold uppercase tracking-tight">
-                              <Clock className="h-3.5 w-3.5 text-blue-500" />
-                              <FormattedInstant
-                                value={share.expires_at}
-                                format="dd/MM HH:mm"
-                                fallback="--/--"
-                              />
-                            </span>
-                          </div>
-                        </div>
-                        <div className="flex flex-col items-center gap-1">
-                          <div className="p-2 bg-slate-50 dark:bg-gray-800 rounded-xl group-hover:bg-blue-50 dark:group-hover:bg-blue-900/30 transition-colors">
-                            <Eye className="h-4 w-4 text-slate-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" />
-                          </div>
-                          <span className="text-[8px] font-bold text-slate-400 group-hover:text-blue-600 uppercase tracking-widest">
-                            Ver
-                          </span>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
+                <Send className="size-3.5" />
               )}
-            </div>
-          ) : generatedUrl ? (
-            <div className="flex flex-col items-center animate-in zoom-in-95 duration-300 py-2">
-              <div className="p-4 bg-white rounded-4xl shadow-xl border border-slate-200 mb-6">
-                <QRCodeSVG id="qr-gen" value={generatedUrl} size={180} />
-              </div>
-              <div className="w-full space-y-2 mb-6">
-                <div className="flex items-center gap-2 bg-white dark:bg-white/2 p-1.5 rounded-2xl border border-slate-300 dark:border-gray-800 shadow-xs">
-                  <div className="flex-1 px-3 text-[10px] font-mono text-blue-600 dark:text-blue-400 truncate">
-                    {generatedUrl}
+              {isDipDirector ? "Generar acceso" : "Solicitar acceso"}
+            </SegmentedTabsTrigger>
+            <SegmentedTabsTrigger
+              value="active"
+              data-tour="biblioteca-share-tab-activos"
+            >
+              <List className="size-3.5" />
+              Accesos activos
+            </SegmentedTabsTrigger>
+          </SegmentedTabsList>
+        </SegmentedTabs>
+      )}
+
+      {activeTab === "active" ? (
+        selectedShareUrl ? (
+          <div className="space-y-4">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setSelectedShareUrl(null)}
+              className="-ml-2 gap-1.5"
+            >
+              <ArrowLeft className="size-4" /> Volver al listado
+            </Button>
+            <QrBlock
+              url={selectedShareUrl}
+              title={doc.title}
+              onCopy={copyToClipboard}
+            />
+          </div>
+        ) : loadingShares ? (
+          <p className="py-12 text-center text-sm text-muted-foreground motion-safe:animate-pulse">
+            Consultando accesos...
+          </p>
+        ) : activeShares.length === 0 ? (
+          <EmptyState
+            icon={QrCode}
+            title="Sin accesos vigentes"
+            className="py-10"
+          />
+        ) : (
+          <div className="divide-y divide-border/60 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700/60">
+            {activeShares.map((share) => (
+              <div
+                key={share.id}
+                className="flex items-center justify-between gap-3 px-4 py-3"
+              >
+                <div className="min-w-0 space-y-1.5">
+                  <p className="text-sm font-semibold text-slate-700 wrap-anywhere dark:text-slate-200">
+                    {share.shared_with_name || "Sin destinatario"}
+                  </p>
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                    <TagBadge tone="blue">
+                      {share.version?.version_label ||
+                        share.version?.version_number ||
+                        "Actual"}
+                    </TagBadge>
+                    <span className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">
+                      <Clock className="size-3.5" />
+                      Vence{" "}
+                      <FormattedInstant
+                        value={share.expires_at}
+                        format="dd/MM HH:mm"
+                        fallback="--/--"
+                      />
+                    </span>
                   </div>
+                </div>
+
+                <div className="flex shrink-0 items-center gap-1">
                   <Button
+                    type="button"
                     variant="ghost"
                     size="sm"
-                    className="h-9 px-4 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-xl"
-                    onClick={() => copyToClipboard(generatedUrl)}
+                    onClick={() => setSelectedShareUrl(share.share_url)}
+                    className="gap-1.5 max-sm:h-10"
                   >
-                    <Copy className="h-3.5 w-3.5 mr-2" />{" "}
-                    <span className="text-[10px] font-bold tracking-widest">
-                      COPIAR
-                    </span>
+                    <Eye className="size-4" /> Ver
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setRevokeTarget(share)}
+                    className="gap-1.5 text-red-600 hover:text-red-600 max-sm:h-10 dark:text-red-400"
+                  >
+                    <Ban className="size-4" /> Deshabilitar
                   </Button>
                 </div>
               </div>
-              <div className="flex gap-3 w-full">
-                <Button
-                  onClick={downloadQRCode}
-                  className="flex-1 h-12 bg-blue-600 hover:bg-blue-700 text-white border border-transparent text-[11px] font-bold tracking-widest rounded-2xl shadow-lg shadow-blue-500/20 transition-all active:scale-95"
-                >
-                  <Download className="h-4 w-4 mr-2 text-white" /> DESCARGAR QR
-                </Button>
-                <Button
-                  onClick={() => {
-                    setGeneratedUrl("");
-                    setReason("");
-                    setSharedWithName("");
-                  }}
-                  variant="outline"
-                  className="flex-1 h-12 text-[10px] font-bold tracking-widest border-slate-300 dark:border-gray-800 rounded-2xl dark:text-white"
-                >
-                  <Plus className="h-3.5 w-3.5 mr-2" /> GENERAR OTRO
-                </Button>
-              </div>
-            </div>
-          ) : confirmed ? (
-            <div className="flex flex-col items-center py-12 animate-in zoom-in-95 duration-300">
-              <div className="p-4 bg-emerald-100 dark:bg-emerald-900/30 rounded-full mb-6">
-                <Send className="h-10 w-10 text-emerald-600 dark:text-emerald-400" />
-              </div>
-              <h3 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tight mb-2">
-                Solicitud Enviada
-              </h3>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 text-center mb-8 max-w-70">
-                Tu solicitud ha sido enviada al Director DIP para aprobación.
-                Recibirás una notificación cuando sea revisada.
-              </p>
-              <Button
-                onClick={handleClose}
-                className="h-11 px-8 bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold tracking-widest rounded-2xl shadow-lg shadow-blue-500/20"
-              >
-                CERRAR
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-5 animate-in fade-in duration-300">
-              <div className="flex items-end gap-4">
-                <div
-                  className="flex-1 space-y-2"
-                  data-tour="biblioteca-share-version"
-                >
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-gray-400 ml-1">
-                    Versión
-                  </label>
+            ))}
+          </div>
+        )
+      ) : generatedUrl ? (
+        <>
+          <QrBlock
+            url={generatedUrl}
+            title={doc.title}
+            onCopy={copyToClipboard}
+          />
+          {copied && (
+            <p className="flex items-center justify-center gap-1.5 text-[13px] text-emerald-700 dark:text-emerald-400">
+              <Check className="size-4" /> Enlace copiado
+            </p>
+          )}
+          <div className="sticky bottom-0 z-10 -mx-4 flex justify-end gap-3 border-t bg-linear-to-t from-slate-50 to-background px-4 py-3 sm:-mx-6 sm:px-6 sm:py-4 dark:from-slate-900/40 max-sm:flex-col-reverse max-sm:[&>button]:w-full">
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cerrar
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                resetResult();
+                setReason("");
+                setSharedWithName("");
+              }}
+            >
+              <Plus className="size-4" /> Generar otro
+            </Button>
+          </div>
+        </>
+      ) : confirmed ? (
+        <>
+          <EmptyState
+            icon={Send}
+            title="Solicitud enviada"
+            description="Se envió al Director DIP para su aprobación. Recibirá una notificación cuando la revise."
+            className="py-10"
+          />
+          {closeRow}
+        </>
+      ) : (
+        <>
+          <PanelSection icon={Link2} title="Enlace" compact>
+            <div className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div data-tour="biblioteca-share-version">
+                  <PanelStaticLabel>Versión</PanelStaticLabel>
                   {versions.length <= 1 ? (
-                    <div className="w-full h-11 px-4 border border-slate-300 dark:border-gray-800 rounded-2xl bg-white dark:bg-white/2 text-sm font-medium flex items-center text-slate-700 dark:text-slate-300 shadow-xs">
+                    <div className="flex h-10 items-center rounded-lg border border-slate-400/60 px-3 text-sm dark:border-slate-600/60">
                       {versions[0]?.version_label ||
                         versions[0]?.version_number ||
                         "Última versión"}
                     </div>
                   ) : (
-                    <div className="relative">
-                      <select
-                        value={versionId}
-                        onChange={(e) => setVersionId(e.target.value)}
-                        className="w-full h-11 px-4 border border-slate-300 dark:border-gray-800 rounded-2xl bg-white dark:bg-white/2 text-slate-800 dark:text-white text-sm font-medium appearance-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all pr-10 cursor-pointer outline-hidden shadow-xs"
+                    <Select value={versionId} onValueChange={setVersionId}>
+                      <SelectTrigger
+                        className={selectTriggerClass}
+                        aria-label="Versión"
                       >
-                        {versions.map((v: any) => (
-                          <option
-                            key={v.id}
-                            value={v.id}
-                            className="bg-white dark:bg-[#1a1c1e]"
-                          >
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {versions.map((v) => (
+                          <SelectItem key={v.id} value={String(v.id)}>
                             {v.version_label || v.version_number}
-                          </option>
+                          </SelectItem>
                         ))}
-                      </select>
-                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
-                    </div>
+                      </SelectContent>
+                    </Select>
                   )}
                 </div>
 
-                <div
-                  className="flex-1 space-y-2"
-                  data-tour="biblioteca-share-duracion"
-                >
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-gray-400 ml-1 flex items-center gap-1">
-                    <Clock className="h-3 w-3" /> Duración
-                  </label>
-                  <div className="relative">
-                    <select
-                      value={showCustomDuration ? "custom" : duration}
-                      onChange={(e) => {
-                        if (e.target.value === "custom") {
-                          setShowCustomDuration(true);
-                          setCustomHours("");
-                        } else {
-                          setShowCustomDuration(false);
-                          setDuration(e.target.value);
-                        }
-                      }}
-                      className="w-full h-11 px-4 border border-slate-300 dark:border-gray-800 rounded-2xl bg-white dark:bg-white/2 text-slate-800 dark:text-white text-sm font-medium appearance-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all pr-10 cursor-pointer outline-hidden shadow-xs"
+                <div data-tour="biblioteca-share-duracion">
+                  <PanelStaticLabel>Duración</PanelStaticLabel>
+                  <Select
+                    value={duration}
+                    onValueChange={(value) => {
+                      setDuration(value);
+                      if (value === "custom") setCustomHours("");
+                    }}
+                  >
+                    <SelectTrigger
+                      className={selectTriggerClass}
+                      aria-label="Duración"
                     >
-                      <option value="24" className="bg-white dark:bg-[#1a1c1e]">
-                        24 horas
-                      </option>
-                      <option value="48" className="bg-white dark:bg-[#1a1c1e]">
-                        48 horas
-                      </option>
-                      <option value="72" className="bg-white dark:bg-[#1a1c1e]">
-                        72 horas
-                      </option>
-                      <option
-                        value="168"
-                        className="bg-white dark:bg-[#1a1c1e]"
-                      >
-                        1 semana
-                      </option>
-                      <option
-                        value="custom"
-                        className="bg-white dark:bg-[#1a1c1e]"
-                      >
-                        Personalizado
-                      </option>
-                    </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
-                  </div>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {DURATIONS.map((d) => (
+                        <SelectItem key={d.value} value={d.value}>
+                          {d.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   {showCustomDuration && (
-                    <div className="mt-2">
-                      <input
-                        type="number"
-                        min={24}
-                        max={168}
-                        placeholder="Horas (24-168)"
-                        value={customHours}
-                        onChange={(e) => setCustomHours(e.target.value)}
-                        className="w-full h-11 px-4 border border-slate-300 dark:border-gray-800 rounded-2xl bg-white dark:bg-white/2 text-sm font-medium outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 shadow-xs transition-all dark:text-white placeholder:text-slate-400"
-                      />
-                    </div>
+                    <Input
+                      inputMode="numeric"
+                      placeholder="Horas (24 a 168)"
+                      aria-label="Horas de duración"
+                      value={customHours}
+                      onChange={(event) =>
+                        setCustomHours(onlyInteger(event.target.value))
+                      }
+                      className={`${fieldClass} mt-2`}
+                    />
                   )}
                 </div>
               </div>
 
-              <div
-                className="space-y-2"
-                data-tour="biblioteca-share-destinatario"
-              >
-                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-gray-400 ml-1">
-                  Destinatario{" "}
-                  <span className="text-[9px] font-normal normal-case tracking-normal text-slate-400">
-                    (opcional)
-                  </span>
-                </label>
-                <input
-                  type="text"
+              <div data-tour="biblioteca-share-destinatario">
+                <PanelStaticLabel>Destinatario</PanelStaticLabel>
+                <Input
                   value={sharedWithName}
-                  onChange={(e) => setSharedWithName(e.target.value)}
-                  placeholder="Nombre de la persona o área que recibirá el enlace"
-                  className="w-full h-11 px-4 border border-slate-300 dark:border-gray-800 rounded-2xl bg-white dark:bg-white/2 text-sm font-medium outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 shadow-xs transition-all dark:text-white placeholder:text-slate-400"
+                  onChange={(event) => setSharedWithName(event.target.value)}
+                  placeholder="Persona o área que recibirá el enlace (opcional)"
                   maxLength={255}
+                  className={fieldClass}
                 />
               </div>
 
-              <div className="space-y-2" data-tour="biblioteca-share-motivo">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-gray-400 ml-1">
-                  Motivo *
-                </label>
-                <textarea
+              <div data-tour="biblioteca-share-motivo">
+                <PanelStaticLabel>Motivo *</PanelStaticLabel>
+                <Textarea
                   value={reason}
-                  onChange={(e) => setReason(e.target.value)}
-                  placeholder="¿Por qué necesitas compartir este documento? (mín. 10 caracteres)"
-                  className="w-full h-24 px-4 py-3 border border-slate-300 dark:border-gray-800 rounded-2xl bg-white dark:bg-white/2 text-sm font-medium resize-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:text-white outline-hidden transition-all shadow-xs placeholder:text-slate-400"
+                  onChange={(event) => setReason(event.target.value)}
+                  placeholder="¿Por qué necesita compartir este documento? (mínimo 10 caracteres)"
+                  rows={3}
                   maxLength={500}
+                  className={textareaClass}
                 />
               </div>
 
-              <label
-                className="flex items-center gap-3 p-3 bg-white dark:bg-white/2 rounded-2xl border border-slate-300 dark:border-gray-800 cursor-pointer select-none shadow-xs"
-                data-tour="biblioteca-share-readonly"
-              >
-                <input
-                  type="checkbox"
+              <div data-tour="biblioteca-share-readonly">
+                <SwitchRow
+                  id="library-share-readonly"
                   checked={readOnly}
-                  onChange={(e) => setReadOnly(e.target.checked)}
-                  className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                  onCheckedChange={setReadOnly}
+                  label="Compartir en solo lectura"
+                  description="Si está apagado, el visor público mostrará un botón de descarga."
                 />
-                <div>
-                  <span className="text-[12px] font-bold text-slate-700 dark:text-slate-200">
-                    Compartir en Solo Lectura
-                  </span>
-                  <p className="text-[10px] text-slate-400">
-                    Si se desmarca, el visor público mostrará un botón de
-                    descarga
-                  </p>
-                </div>
-              </label>
-
-              <Button
-                data-tour="biblioteca-share-submit"
-                disabled={!isReasonValid || loading}
-                onClick={handleSubmit}
-                className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-[11px] font-bold tracking-widest rounded-2xl shadow-lg shadow-blue-500/20 transition-all active:scale-95"
-              >
-                {loading
-                  ? "PROCESANDO..."
-                  : isDipDirector
-                    ? "GENERAR ACCESO"
-                    : "SOLICITAR COMPARTICIÓN"}
-              </Button>
+              </div>
             </div>
-          )}
-        </div>
-      </DialogContent>
-    </Dialog>
+          </PanelSection>
+
+          <LibraryDialogActions
+            onCancel={onClose}
+            onSubmit={handleSubmit}
+            busy={loading}
+            busyLabel="Procesando..."
+            disabled={!canSubmit}
+            submitLabel={isDipDirector ? "Generar acceso" : "Solicitar acceso"}
+            submitTourId="biblioteca-share-submit"
+          />
+        </>
+      )}
+
+      <ConfirmDeleteDialog
+        open={!!revokeTarget}
+        onOpenChange={(open) => !open && setRevokeTarget(null)}
+        title="Deshabilitar enlace"
+        entityName={
+          revokeTarget?.shared_with_name
+            ? `el enlace entregado a ${revokeTarget.shared_with_name}`
+            : "el enlace"
+        }
+        confirmLabel="Deshabilitar"
+        warning="Quien lo tenga dejará de poder abrirlo de inmediato. No se puede reactivar: habría que generar uno nuevo."
+        onConfirm={async () => {
+          try {
+            await libraryService.revokeSharedLink(company, revokeTarget.id);
+            toast.success("Enlace deshabilitado");
+            setSelectedShareUrl(null);
+            // Sin accesos vigentes la pestaña desaparece: se vuelve al formulario.
+            if (activeShares.length <= 1) setActiveTab("form");
+            await queryClient.invalidateQueries({
+              queryKey: ["library-active-shares", company, doc?.id],
+            });
+          } catch (error) {
+            notifyError(error, { action: "deshabilitar el enlace" });
+            throw error;
+          }
+        }}
+      />
+    </div>
   );
 }

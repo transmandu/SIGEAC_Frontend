@@ -14,6 +14,7 @@ import {
   FileWarning,
   FileX,
   Flag,
+  Library,
   MailWarning,
   PackagePlus,
   PackageOpen,
@@ -131,7 +132,7 @@ export const NOTIFICATION_TONE_STYLES: Record<
 /**
  * Áreas por las que se puede filtrar la bandeja. Son las mismas que usa el
  * catálogo de Ajustes → Notificaciones in-app (Almacén, Calidad, Ingeniería,
- * Compras, Operaciones, SMS), más "Sistema" para los avisos técnicos que solo
+ * Compras, Operaciones, SMS, Biblioteca), más "Sistema" para los avisos técnicos que solo
  * ve el superusuario. El área es el módulo donde quien recibe el aviso lo
  * resuelve, no el módulo donde ocurrió el hecho.
  */
@@ -142,6 +143,7 @@ export type NotificationArea =
   | "purchasing"
   | "operations"
   | "sms"
+  | "library"
   | "system";
 
 export const NOTIFICATION_AREAS: Record<
@@ -154,6 +156,7 @@ export const NOTIFICATION_AREAS: Record<
   purchasing: { label: "Compras", icon: ShoppingCart },
   operations: { label: "Operaciones", icon: PackageOpen },
   sms: { label: "SMS", icon: ShieldAlert },
+  library: { label: "Biblioteca", icon: Library },
   system: { label: "Sistema", icon: Server },
 };
 
@@ -164,6 +167,7 @@ const AREA_ORDER: NotificationArea[] = [
   "purchasing",
   "operations",
   "sms",
+  "library",
   "system",
 ];
 
@@ -196,6 +200,7 @@ const AREA_BY_TYPE: [RegExp, NotificationArea][] = [
   ],
   [/^(REQUISITION_|QUOTE_)/, "purchasing"],
   [/^(REPORTE_|TRAINING_)/, "sms"],
+  [/^LIBRARY_/, "library"],
   [/^(MAIL_CHANNEL|REPLICA_|ERROR_REPORT)/, "system"],
 ];
 

@@ -1,9 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import libraryService from "@/lib/libraryService";
+import { Folder } from "lucide-react";
 import { toast } from "sonner";
+import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
+import { fieldClass } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
+import { ArticleFormShell } from "@/components/forms/mantenimiento/almacen/articulos/ArticleFormShell";
+import {
+  PanelSection,
+  PanelStaticLabel,
+} from "@/components/forms/PanelSection";
+import { Dialog } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import libraryService from "@/lib/libraryService";
 import { notifyError } from "@/lib/notify-error";
 
 interface RenameFolderDialogProps {
@@ -13,91 +22,82 @@ interface RenameFolderDialogProps {
   folderId: string;
   currentName: string;
   departmentId: number;
-  onSuccess: () => void;
+  /** Recibe la ruta nueva de la carpeta renombrada. */
+  onSuccess: (newPath?: string) => void | Promise<unknown>;
 }
 
 export default function RenameFolderDialog({
   open,
+  onClose,
+  ...form
+}: RenameFolderDialogProps) {
+  return (
+    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
+      <FormDialogContent
+        icon={Folder}
+        title="Renombrar carpeta"
+        description="Los documentos que contiene se mantienen en ella."
+        className="sm:max-w-md"
+      >
+        {/* Dentro del diálogo: al cerrarlo se desmonta y reabre con el nombre vigente. */}
+        <RenameFolderForm onClose={onClose} {...form} />
+      </FormDialogContent>
+    </Dialog>
+  );
+}
+
+function RenameFolderForm({
   onClose,
   company,
   folderId,
   currentName,
   departmentId,
   onSuccess,
-}: RenameFolderDialogProps) {
+}: Omit<RenameFolderDialogProps, "open">) {
   const [name, setName] = useState(currentName);
-  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim() || name.trim() === currentName) return;
+  const trimmed = name.trim();
+  const canSave = trimmed !== "" && trimmed !== currentName;
 
-    setLoading(true);
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!canSave) return;
+
+    setSaving(true);
     try {
-      await libraryService.updateFolder(company, folderId, {
+      const res = await libraryService.updateFolder(company, folderId, {
         department_id: departmentId,
-        name: name.trim(),
+        name: trimmed,
       });
-      toast.success("Carpeta renombrada exitosamente");
-      onSuccess();
+      toast.success("Carpeta renombrada");
+      await onSuccess(res?.folder?.path);
       onClose();
-    } catch (error: any) {
+    } catch (error) {
       notifyError(error, { action: "renombrar la carpeta" });
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
-  const handleClose = () => {
-    setName(currentName);
-    onClose();
-  };
-
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="bg-white dark:bg-[#1a1c1e] border-none text-slate-900 dark:text-white sm:max-w-95 rounded-2xl overflow-hidden p-0 outline-hidden shadow-2xl">
-        <div className="bg-slate-50 dark:bg-gray-800/40 px-6 py-5 border-b border-slate-200 dark:border-gray-700">
-          <div className="flex items-center gap-2">
-            <DialogTitle className="text-lg font-bold text-slate-800 dark:text-white tracking-tight uppercase">
-              Renombrar Carpeta
-            </DialogTitle>
-          </div>
-        </div>
-
-        <form onSubmit={handleSubmit} className="p-6 space-y-5">
-          <div className="space-y-1.5">
-            <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-gray-400">
-              Nuevo nombre
-            </label>
-            <input
-              type="text"
-              required
-              autoFocus
-              className="w-full h-11 px-4 border border-slate-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-slate-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-hidden transition-all"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              maxLength={120}
-            />
-          </div>
-
-          <div className="flex gap-3 pt-4 border-t border-slate-200 dark:border-gray-700">
-            <button
-              type="button"
-              onClick={handleClose}
-              className="flex-1 px-4 py-3 text-[10px] font-black text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 uppercase tracking-widest transition-colors"
-            >
-              CANCELAR
-            </button>
-            <button
-              type="submit"
-              disabled={loading || !name.trim() || name.trim() === currentName}
-              className="flex-1 px-4 py-3 text-[10px] font-black text-white bg-blue-600 rounded-xl hover:bg-blue-700 disabled:opacity-50 shadow-lg shadow-blue-500/20 uppercase tracking-widest transition-all"
-            >
-              {loading ? "GUARDANDO..." : "GUARDAR"}
-            </button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+    <ArticleFormShell
+      onSubmit={handleSubmit}
+      onCancel={onClose}
+      busy={saving}
+      canSave={canSave}
+      submitLabel="Guardar cambios"
+    >
+      <PanelSection icon={Folder} title="Nombre" compact>
+        <PanelStaticLabel>Nuevo nombre *</PanelStaticLabel>
+        <Input
+          autoFocus
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+          maxLength={120}
+          className={fieldClass}
+        />
+      </PanelSection>
+    </ArticleFormShell>
   );
 }

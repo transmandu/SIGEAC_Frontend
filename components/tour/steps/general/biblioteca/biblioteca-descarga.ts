@@ -13,12 +13,13 @@ export const bibliotecaDescargaSteps: StepType[] = [
   },
   {
     selector: '[data-tour="biblioteca-download-version"]',
-    content: "O seleccione una versión específica del historial para descargar.",
+    content:
+      "O seleccione una versión específica del historial para descargar.",
     position: "bottom",
   },
   {
     selector: '[data-tour="biblioteca-download-submit"]',
-    content: "Inicie la descarga del archivo PDF seleccionado.",
+    content: "Inicie la descarga del archivo seleccionado.",
     position: "top",
   },
 ];

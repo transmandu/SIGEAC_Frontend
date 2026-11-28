@@ -25,7 +25,9 @@ const RetailersPage = () => {
 
   useEffect(() => {
     if (retailers && retailers.length > 0) {
-      registerTour("comercios", "Comercios", comerciosSteps);
+      registerTour("comercios", "Comercios", comerciosSteps, {
+        onlyVisible: true,
+      });
     }
 
     return () => unregisterTour("comercios");
@@ -50,6 +52,7 @@ const RetailersPage = () => {
       heading="Control de Comercios"
       description="Administre los comercios y lugares de compra (tiendas físicas o en línea) donde se adquieren los artículos generales."
       tourPrefix="comercios"
+      toolbarTourId="comercios-toolbar"
       search={{
         value: search,
         onChange: setSearch,
