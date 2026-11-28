@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { Boxes, Loader2, TriangleAlert } from "lucide-react";
+import { Boxes, Loader2, Save, TriangleAlert } from "lucide-react";
 
 import {
   Dialog,
@@ -12,7 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-import { Button } from "@/components/ui/button";
+import { DialogButton } from "@/components/misc/DialogButton";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -142,24 +142,22 @@ const ManageCompanyModulesDialog = ({ company, open, onOpenChange }: Props) => {
         )}
 
         <DialogFooter>
-          <Button
-            variant="ghost"
+          <DialogButton
+            tone="cancel"
             onClick={() => onOpenChange(false)}
             disabled={syncCompanyModules.isPending}
           >
             Cancelar
-          </Button>
+          </DialogButton>
 
-          <Button
+          <DialogButton
             onClick={handleSubmit}
-            disabled={!isDirty || syncCompanyModules.isPending}
+            disabled={!isDirty}
+            busy={syncCompanyModules.isPending}
+            icon={<Save />}
           >
-            {syncCompanyModules.isPending ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              "Guardar"
-            )}
-          </Button>
+            Guardar
+          </DialogButton>
         </DialogFooter>
       </DialogContent>
     </Dialog>

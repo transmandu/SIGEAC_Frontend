@@ -6,7 +6,6 @@ import {
   AlertTriangle,
   CalendarClock,
   Info,
-  Loader2,
   Package,
   Save,
   StickyNote,
@@ -14,7 +13,7 @@ import {
 } from "lucide-react";
 
 import { useUpdateGeneralArticleIntake } from "@/actions/mantenimiento/almacen/inventario/articulos_generales/actions";
-import { Button } from "@/components/ui/button";
+import { DialogButton } from "@/components/misc/DialogButton";
 import { Dialog } from "@/components/ui/dialog";
 import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import {
@@ -320,26 +319,23 @@ export default function EditIntakeDialog({
         }
         footer={
           <>
-            <Button
-              variant="outline"
+            <DialogButton
+              tone="cancel"
               onClick={() => onOpenChange(false)}
               disabled={updateGeneralArticleIntake.isPending}
             >
               Cancelar
-            </Button>
+            </DialogButton>
 
-            <Button
+            <DialogButton
               onClick={handleSubmit}
               disabled={!canSubmit}
-              className="min-w-35 gap-2"
+              busy={updateGeneralArticleIntake.isPending}
+              icon={<Save />}
+              className="min-w-35"
             >
-              {updateGeneralArticleIntake.isPending ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <Save className="size-4" />
-              )}
               Guardar cambios
-            </Button>
+            </DialogButton>
           </>
         }
       >

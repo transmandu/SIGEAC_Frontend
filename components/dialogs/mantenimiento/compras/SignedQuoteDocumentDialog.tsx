@@ -10,6 +10,7 @@ import {
   Upload,
 } from "lucide-react";
 
+import { DialogButton } from "@/components/misc/DialogButton";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { ConfirmDeleteDialog } from "@/components/dialogs/shared/ConfirmDeleteDialog";
@@ -153,29 +154,26 @@ export default function SignedQuoteDocumentDialog({
         }
         footer={
           <>
-            <Button
-              variant="outline"
+            <DialogButton
+              tone="secondary"
               onClick={() => handleOpenChange(false)}
               disabled={busy}
             >
               Cerrar
-            </Button>
-            <Button
-              className="min-w-35 gap-2"
+            </DialogButton>
+            <DialogButton
+              className="min-w-35"
               onClick={handleUpload}
               disabled={!file || busy}
+              busy={isUploading}
+              icon={<Upload />}
             >
-              {isUploading ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <Upload className="size-4" />
-              )}
               {isUploading
                 ? "Guardando..."
                 : current
                   ? "Reemplazar"
                   : "Guardar"}
-            </Button>
+            </DialogButton>
           </>
         }
       >

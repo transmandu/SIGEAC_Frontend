@@ -33,6 +33,7 @@ import {
   SegmentedTabsTrigger,
 } from "@/components/misc/SegmentedTabs";
 import { TagBadge } from "@/components/misc/TagBadge";
+import { DialogButton } from "@/components/misc/DialogButton";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
@@ -565,13 +566,12 @@ export default function ShareRequestsPanel({
           lockOutside={false}
           className="z-100! sm:max-w-xl"
           footer={
-            <Button
-              type="button"
-              variant="outline"
+            <DialogButton
+              tone="secondary"
               onClick={() => setSelectedDetails(null)}
             >
               Cerrar
-            </Button>
+            </DialogButton>
           }
         >
           {selectedDetails && (

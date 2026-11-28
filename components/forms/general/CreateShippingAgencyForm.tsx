@@ -1,5 +1,7 @@
 "use client";
 
+
+import { Truck } from "lucide-react";
 import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 
@@ -81,6 +83,7 @@ export function CreateShippingAgencyForm({ onClose, onCreated }: Props) {
         busy={createAgency.isPending}
         canSave
         submitLabel="Crear agencia"
+        submitIcon={<Truck />}
         submitTourId="agencias-envio-crear-submit"
         onCancel={onClose}
         // stopPropagation: este form puede renderizarse dentro de otros

@@ -3,10 +3,10 @@
 import { useState } from "react";
 import { useActionDialog } from "@/hooks/helpers/use-action-dialog";
 import { toast } from "sonner";
-import { Check, FileDown, Loader2 } from "lucide-react";
+import { Check, FileDown } from "lucide-react";
 
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
-import { Button } from "@/components/ui/button";
+import { DialogButton } from "@/components/misc/DialogButton";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import { cn } from "@/lib/utils";
@@ -168,22 +168,19 @@ export function DownloadPurchaseRequisitionsByStatusDialog({ type }: Props) {
         description="Elija los estados a incluir. El PDF lista los artículos de cada requisición con una columna en blanco para cotizar a mano."
         footer={
           <>
-            <Button variant="outline" onClick={() => setOpen(false)}>
+            <DialogButton tone="cancel" onClick={() => setOpen(false)}>
               Cancelar
-            </Button>
+            </DialogButton>
 
-            <Button
+            <DialogButton
               onClick={handleDownload}
-              disabled={isPending || selected.length === 0}
-              className="min-w-35 gap-2"
+              disabled={selected.length === 0}
+              busy={isPending}
+              icon={<FileDown />}
+              className="min-w-35"
             >
-              {isPending ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <FileDown className="size-4" />
-              )}
               {isPending ? "Generando…" : "Descargar PDF"}
-            </Button>
+            </DialogButton>
           </>
         }
       >

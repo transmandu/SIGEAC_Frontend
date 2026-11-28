@@ -8,6 +8,7 @@ import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent
 import { fieldClass } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
 import { EmptyState } from "@/components/misc/EmptyState";
 import { TagBadge, type TagTone } from "@/components/misc/TagBadge";
+import { DialogButton } from "@/components/misc/DialogButton";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -44,9 +45,9 @@ export default function FolderSharesDialog({
         lockOutside={false}
         className="sm:max-w-3xl"
         footer={
-          <Button type="button" variant="outline" onClick={onClose}>
+          <DialogButton tone="secondary" onClick={onClose}>
             Cerrar
-          </Button>
+          </DialogButton>
         }
       >
         {/* Dentro del diálogo: la consulta solo corre abierto y el estado se reinicia al cerrar. */}

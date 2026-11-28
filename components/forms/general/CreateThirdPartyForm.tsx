@@ -1,5 +1,7 @@
 "use client";
 
+
+import { Users } from "lucide-react";
 import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 
@@ -66,6 +68,7 @@ export default function CreateThirdPartyForm({ onClose }: FormProps) {
         busy={createThirdParty.isPending}
         canSave
         submitLabel="Crear tercero"
+        submitIcon={<Users />}
         onCancel={onClose}
         // stopPropagation: este form puede renderizarse dentro de otros
         // formularios. React propaga el submit por su árbol aunque el Dialog

@@ -6,7 +6,7 @@ import {
   useOpenQuoteDraft,
   useSaveQuoteDraft,
 } from "@/actions/mantenimiento/compras/cotizaciones/actions";
-import { Button } from "@/components/ui/button";
+import { DialogButton } from "@/components/misc/DialogButton";
 import { Form } from "@/components/ui/form";
 import { useGetVendors } from "@/hooks/general/proveedores/useGetVendors";
 import { useGetLocationsByCompany } from "@/hooks/sistema/useGetLocationsByCompany";
@@ -14,7 +14,7 @@ import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits";
 import { useGetConditions } from "@/hooks/general/condiciones/useGetConditions";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { zodResolver } from "@/lib/zod-resolver";
-import { Info, Loader2, PackageSearch, Save, Send } from "lucide-react";
+import { Info, PackageSearch, Save, Send } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
@@ -914,54 +914,34 @@ export function CreateQuoteForm({
             <DiscardDraftButton onClick={onDiscard} disabled={isDiscarding} />
           )}
 
-          <Button
-            type="button"
-            variant="outline"
-            disabled={isSavingDraft}
+          <DialogButton
+            tone="secondary"
+            busy={isSavingDraft}
             onClick={handleSaveDraft}
-            className="min-w-35 gap-2"
+            icon={<Save />}
+            className="min-w-35"
           >
-            {isSavingDraft ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              <>
-                <Save className="size-4" />
-                Guardar borrador
-              </>
-            )}
-          </Button>
+            Guardar borrador
+          </DialogButton>
 
           {draftId ? (
-            <Button
-              type="button"
-              disabled={issueQuoteDraft.isPending}
+            <DialogButton
+              busy={issueQuoteDraft.isPending}
               onClick={() => setIssueDialogOpen(true)}
-              className="min-w-35 gap-2"
+              icon={<Send />}
+              className="min-w-35"
             >
-              {issueQuoteDraft.isPending ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <>
-                  <Send className="size-4" />
-                  Emitir cotización
-                </>
-              )}
-            </Button>
+              Emitir cotización
+            </DialogButton>
           ) : (
-            <Button
-              disabled={createQuote.isPending}
+            <DialogButton
               type="submit"
-              className="min-w-35 gap-2"
+              busy={createQuote.isPending}
+              icon={<PackageSearch />}
+              className="min-w-35"
             >
-              {createQuote.isPending ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <>
-                  <PackageSearch className="size-4" />
-                  Crear cotización
-                </>
-              )}
-            </Button>
+              Crear cotización
+            </DialogButton>
           )}
         </FormActions>
       </form>

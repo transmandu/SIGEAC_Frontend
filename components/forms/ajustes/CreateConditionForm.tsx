@@ -1,5 +1,7 @@
 "use client";
 
+
+import { BadgeCheck } from "lucide-react";
 import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 
@@ -69,6 +71,7 @@ export function CreateConditionForm({ onClose, onSuccess }: FormProps) {
         busy={createCondition.isPending}
         canSave
         submitLabel="Crear condición"
+        submitIcon={<BadgeCheck />}
         onCancel={onClose}
         // stopPropagation: este form se renderiza dentro de otros formularios
         // (ej. cotización). React propaga el submit por su árbol aunque el

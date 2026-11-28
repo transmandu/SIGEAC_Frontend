@@ -1,6 +1,6 @@
 "use client";
 import { useCreateRequisition } from "@/actions/mantenimiento/compras/requisiciones/actions";
-import { Button } from "@/components/ui/button";
+import { DialogButton } from "@/components/misc/DialogButton";
 import { Form } from "@/components/ui/form";
 import { useAuth } from "@/contexts/AuthContext";
 import { useGetBatchesByLocation } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByLocation";
@@ -17,7 +17,7 @@ import { useGetThirdParties } from "@/hooks/general/terceros/useGetThirdParties"
 import { useGetExternalEmployees } from "@/hooks/ajustes/convenios/useGetExternalEmployees";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { zodResolver } from "@/lib/zod-resolver";
-import { Loader2, Send, Plane, Package } from "lucide-react";
+import { Send, Plane, Package } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
@@ -865,17 +865,14 @@ export function CreateWarehouseRequisitionForm({
         <AdditionalInfoSection form={form} />
 
         <FormActions>
-          <Button
-            disabled={createRequisition.isPending}
-            className="min-w-35 gap-2"
+          <DialogButton
+            type="submit"
+            busy={createRequisition.isPending}
+            icon={<Send />}
+            className="min-w-35"
           >
-            <>
-              <Send className="size-4" /> Generar requisición
-            </>
-            {createRequisition.isPending && (
-              <Loader2 className="size-4 animate-spin" />
-            )}
-          </Button>
+            Generar requisición
+          </DialogButton>
         </FormActions>
       </form>
 

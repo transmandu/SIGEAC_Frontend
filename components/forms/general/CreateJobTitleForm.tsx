@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { BriefcaseBusiness } from "lucide-react";
+import { BriefcaseBusiness, Save } from "lucide-react";
 import { useForm, useWatch } from "react-hook-form";
 import * as z from "zod";
 
@@ -155,6 +155,7 @@ export function CreateJobTitleForm({
         canSave={jobTitle ? form.formState.isDirty : true}
         isEditing={!!jobTitle}
         submitLabel={jobTitle ? "Guardar cambios" : "Crear cargo"}
+        submitIcon={jobTitle ? <Save /> : <BriefcaseBusiness />}
         onCancel={onCancel}
         // stopPropagation: el formulario puede montarse dentro de otro y el
         // submit subiría por el árbol de React hasta el formulario padre.

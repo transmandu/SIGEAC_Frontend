@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { BarChart, FileText, Share2, Eye, Send, Loader2 } from "lucide-react";
 import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import { PanelSection } from "@/components/forms/PanelSection";
-import { Button } from "@/components/ui/button";
+import { DialogButton } from "@/components/misc/DialogButton";
 import { Dialog } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import libraryService, { Document } from "@/lib/libraryService";
@@ -647,9 +647,9 @@ export default function DashboardModal({
           lockOutside={false}
           className="sm:max-w-6xl"
           footer={
-            <Button type="button" variant="outline" onClick={onClose}>
+            <DialogButton tone="secondary" onClick={onClose}>
               Cerrar
-            </Button>
+            </DialogButton>
           }
         >
           {loading ? (

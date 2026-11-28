@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { useForm } from "react-hook-form";
-import { Building2 } from "lucide-react";
+import { Building2, Handshake } from "lucide-react";
 
 import { useCreateCompanyLoan } from "@/actions/ajustes/convenios/actions";
 import {
@@ -89,6 +89,7 @@ export default function CreateCompanyLoanForm({
         busy={createLoan.isPending}
         canSave
         submitLabel="Habilitar empresa"
+        submitIcon={<Handshake />}
         onCancel={onClose}
         onSubmit={(e) => {
           e.stopPropagation();

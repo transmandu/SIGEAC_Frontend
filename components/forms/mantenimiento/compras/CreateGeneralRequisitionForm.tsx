@@ -23,8 +23,8 @@ import {
 } from "@/hooks/mantenimiento/compras/useGetActiveGeneralArticleRequisitions";
 
 import { Form } from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
-import { Loader2, Pencil, Send } from "lucide-react";
+import { DialogButton } from "@/components/misc/DialogButton";
+import { Pencil, Send } from "lucide-react";
 import type { RequisitionGeneralArticleForm } from "@/types/purchase";
 import type { GeneralArticle } from "@/types";
 import { RequisitionHeader } from "./_components/RequisitionHeader";
@@ -433,18 +433,14 @@ export function CreateGeneralRequisitionForm({
         <AdditionalInfoSection form={form} />
 
         <FormActions>
-          <Button disabled={isPending} className="min-w-35 gap-2">
-            {isEditing ? (
-              <>
-                <Pencil className="size-4" /> Editar requisición
-              </>
-            ) : (
-              <>
-                <Send className="size-4" /> Generar requisición
-              </>
-            )}
-            {isPending && <Loader2 className="size-4 animate-spin" />}
-          </Button>
+          <DialogButton
+            type="submit"
+            busy={isPending}
+            icon={isEditing ? <Pencil /> : <Send />}
+            className="min-w-35"
+          >
+            {isEditing ? "Editar requisición" : "Generar requisición"}
+          </DialogButton>
         </FormActions>
       </form>
 

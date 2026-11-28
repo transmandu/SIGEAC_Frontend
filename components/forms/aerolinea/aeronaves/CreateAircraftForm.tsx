@@ -1,5 +1,7 @@
 "use client";
 
+
+import { Plane } from "lucide-react";
 import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 
@@ -85,6 +87,7 @@ export function CreateAircraftForm({ onClose }: Props) {
         busy={createAircraft.isPending}
         canSave
         submitLabel="Crear aeronave"
+        submitIcon={<Plane />}
         onCancel={onClose}
         onSubmit={(e) => {
           e.stopPropagation();

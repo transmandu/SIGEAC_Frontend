@@ -1,8 +1,8 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Trash2 } from "lucide-react";
+import { DialogButton, inferActionIcon } from "@/components/misc/DialogButton";
 import { cn } from "@/lib/utils";
 
 interface LibraryDialogActionsProps {
@@ -47,26 +47,26 @@ export function LibraryDialogActions({
         "max-sm:flex-col-reverse max-sm:pb-[max(0.75rem,env(safe-area-inset-bottom))] max-sm:[&>button]:w-full",
       )}
     >
-      <Button
-        type="button"
-        variant="outline"
+      <DialogButton
+        tone="cancel"
         onClick={onCancel}
         disabled={busy}
         data-tour={cancelTourId}
       >
         {cancelLabel}
-      </Button>
-      <Button
+      </DialogButton>
+      <DialogButton
         type={onSubmit ? "button" : "submit"}
-        variant={destructive ? "destructive" : "default"}
+        tone={destructive ? "danger" : "primary"}
         onClick={onSubmit}
-        disabled={busy || disabled}
+        busy={busy}
+        disabled={disabled}
+        icon={icon ?? (destructive ? <Trash2 /> : inferActionIcon(submitLabel))}
         data-tour={submitTourId}
         className="min-w-35"
       >
-        {busy ? <Loader2 className="size-4 animate-spin" /> : icon}
         {busy && busyLabel ? busyLabel : submitLabel}
-      </Button>
+      </DialogButton>
     </div>
   );
 }

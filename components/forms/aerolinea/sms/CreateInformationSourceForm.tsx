@@ -1,5 +1,7 @@
 "use client";
 
+
+import { Rss } from "lucide-react";
 import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 
@@ -75,6 +77,7 @@ export function CreateInformationSourceForm({ onClose }: FormProps) {
         busy={createInformationSource.isPending}
         canSave
         submitLabel="Crear fuente"
+        submitIcon={<Rss />}
         onCancel={onClose}
         // stopPropagation: este form puede renderizarse dentro de otros
         // formularios. React propaga el submit por su árbol aunque el Dialog

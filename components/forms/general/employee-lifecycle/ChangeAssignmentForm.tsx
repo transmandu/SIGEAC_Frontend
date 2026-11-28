@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { ArrowRightLeft, Briefcase } from "lucide-react";
+import { ArrowLeftRight, ArrowRightLeft, Briefcase } from "lucide-react";
 import { useForm, useWatch } from "react-hook-form";
 
 import { useChangeEmployeeAssignment } from "@/actions/ajustes/empleados/actions";
@@ -124,6 +124,7 @@ export function ChangeAssignmentForm({
         busy={changeAssignment.isPending}
         canSave={changed}
         submitLabel="Registrar cambio"
+        submitIcon={<ArrowLeftRight />}
         onCancel={onSuccess}
         onSubmit={(event) => {
           event.stopPropagation();

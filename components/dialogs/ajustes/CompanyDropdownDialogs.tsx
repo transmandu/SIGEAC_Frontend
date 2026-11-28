@@ -8,9 +8,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-import { Building2, AlertTriangle, Loader2 } from "lucide-react";
+import { Building2, AlertTriangle, Trash2 } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { DialogButton } from "@/components/misc/DialogButton";
 import { Company } from "@/types";
 
 import { useDeleteCompany } from "@/actions/sistema/empresas/actions";
@@ -147,36 +147,18 @@ const CompanyDropdownDialogs = ({
 
           {/* ACTIONS */}
           <div className="px-6 pb-6 pt-5 flex justify-end gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setOpenDelete(false)}
-              className="
-                rounded-xl
-                border border-border/60
-                bg-background
-                hover:bg-muted
-                text-muted-foreground
-                hover:text-foreground
-              "
-            >
+            <DialogButton tone="cancel" onClick={() => setOpenDelete(false)}>
               Cancelar
-            </Button>
+            </DialogButton>
 
-            <Button
-              variant="destructive"
+            <DialogButton
+              tone="danger"
               onClick={handleDelete}
-              disabled={deleteCompany.isPending}
-              className="
-                rounded-xl
-                bg-red-600/90
-                hover:bg-red-600
-              "
+              busy={deleteCompany.isPending}
+              icon={<Trash2 />}
             >
-              {deleteCompany.isPending && (
-                <Loader2 className="mr-2 size-4 animate-spin" />
-              )}
               Eliminar
-            </Button>
+            </DialogButton>
           </div>
         </DialogContent>
       </Dialog>

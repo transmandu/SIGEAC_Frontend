@@ -9,7 +9,7 @@ import {
   useMarkPurchaseOrderAsPaid,
 } from "@/actions/mantenimiento/compras/ordenes_compras/actions";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { DialogButton } from "@/components/misc/DialogButton";
 import { Switch } from "@/components/ui/switch";
 import {
   Form,
@@ -38,7 +38,6 @@ import { zodResolver } from "@/lib/zod-resolver";
 import {
   Building2,
   CreditCard,
-  Loader2,
   Package,
   Receipt,
   Truck,
@@ -955,16 +954,14 @@ export function PayPurchaseOrderForm({
         </div>
 
         <FormActions>
-          <Button disabled={isPending} type="submit" className="min-w-35 gap-2">
-            {isPending ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              <>
-                <Wallet className="size-4" />
-                Pagar orden de compra
-              </>
-            )}
-          </Button>
+          <DialogButton
+            type="submit"
+            busy={isPending}
+            icon={<Wallet />}
+            className="min-w-35"
+          >
+            Pagar orden de compra
+          </DialogButton>
         </FormActions>
       </form>
     </Form>

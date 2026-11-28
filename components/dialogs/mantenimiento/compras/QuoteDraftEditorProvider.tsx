@@ -5,7 +5,7 @@ import { FileClock } from "lucide-react";
 import { useDeleteQuoteDraft } from "@/actions/mantenimiento/compras/cotizaciones/actions";
 import { CreateQuoteForm } from "@/components/forms/mantenimiento/compras/CreateQuoteForm";
 import { CreateGeneralQuoteForm } from "@/components/forms/general/compras/CreateGeneralQuoteForm";
-import { Button } from "@/components/ui/button";
+import { DialogButton } from "@/components/misc/DialogButton";
 import { DiscardQuoteDraftDialog } from "./DiscardQuoteDraftDialog";
 import { Dialog } from "@/components/ui/dialog";
 import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
@@ -115,13 +115,9 @@ export function QuoteDraftEditorProvider({
                 Este borrador ya no está disponible: puede haberse emitido o
                 descartado.
               </p>
-              <Button
-                variant="outline"
-                className="max-sm:h-10"
-                onClick={() => setEditingId(null)}
-              >
+              <DialogButton tone="secondary" onClick={() => setEditingId(null)}>
                 Cerrar
-              </Button>
+              </DialogButton>
             </div>
           )}
         </FormDialogContent>

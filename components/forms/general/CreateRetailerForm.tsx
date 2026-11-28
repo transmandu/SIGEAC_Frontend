@@ -1,5 +1,7 @@
 "use client";
 
+
+import { Store } from "lucide-react";
 import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 
@@ -73,6 +75,7 @@ export default function CreateRetailerForm({ onClose, onCreated }: FormProps) {
         busy={createRetailer.isPending}
         canSave
         submitLabel="Crear comercio"
+        submitIcon={<Store />}
         onCancel={onClose}
         // stopPropagation: este form se renderiza dentro de otros formularios
         // (ej. cotización). React propaga el submit por su árbol aunque el

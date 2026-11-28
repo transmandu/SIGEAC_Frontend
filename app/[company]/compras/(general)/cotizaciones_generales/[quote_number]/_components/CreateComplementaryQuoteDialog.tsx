@@ -5,7 +5,6 @@ import { useMemo, useState } from "react";
 import {
   Check,
   Info,
-  Loader2,
   MessageSquareText,
   Package,
   PackagePlus,
@@ -14,7 +13,7 @@ import {
 import { useCreateComplementaryQuote } from "@/actions/mantenimiento/compras/cotizaciones/actions";
 import { AmountInput } from "@/components/misc/AmountInput";
 import { TagBadge } from "@/components/misc/TagBadge";
-import { Button } from "@/components/ui/button";
+import { DialogButton } from "@/components/misc/DialogButton";
 import { Dialog } from "@/components/ui/dialog";
 import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import {
@@ -166,25 +165,22 @@ export default function CreateComplementaryQuoteDialog({
         }
         footer={
           <>
-            <Button
-              variant="outline"
+            <DialogButton
+              tone="cancel"
               onClick={() => onOpenChange(false)}
               disabled={createComplementaryQuote.isPending}
             >
               Cancelar
-            </Button>
-            <Button
+            </DialogButton>
+            <DialogButton
               onClick={handleSubmit}
               disabled={!canSubmit}
-              className="min-w-35 gap-2"
+              busy={createComplementaryQuote.isPending}
+              icon={<PackagePlus />}
+              className="min-w-35"
             >
-              {createComplementaryQuote.isPending ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <PackagePlus className="size-4" />
-              )}
               Crear complementaria
-            </Button>
+            </DialogButton>
           </>
         }
       >

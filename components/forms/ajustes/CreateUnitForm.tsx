@@ -1,4 +1,6 @@
 "use client";
+
+import { Ruler } from "lucide-react";
 import { useCreateUnit } from "@/actions/ajustes/unidades/actions";
 import {
   applyServerFieldErrors,
@@ -80,6 +82,7 @@ export default function CreateUnitForm({
         busy={createUnit.isPending}
         canSave
         submitLabel="Crear unidad"
+        submitIcon={<Ruler />}
         onCancel={onClose}
         // stopPropagation: este form se renderiza dentro de otros formularios
         // (ej. cotización). React propaga el submit por su árbol aunque el

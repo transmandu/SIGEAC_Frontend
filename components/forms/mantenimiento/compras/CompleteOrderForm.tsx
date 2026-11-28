@@ -9,7 +9,7 @@ import {
   useMarkPurchaseOrderAsCompleted,
 } from "@/actions/mantenimiento/compras/ordenes_compras/actions";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { DialogButton } from "@/components/misc/DialogButton";
 import {
   Form,
   FormControl,
@@ -38,7 +38,6 @@ import {
   Building2,
   ClipboardCheck,
   CreditCard,
-  Loader2,
   Package,
   Receipt,
 } from "lucide-react";
@@ -913,16 +912,14 @@ export function CompleteOrderForm({
         </div>
 
         <FormActions>
-          <Button disabled={isPending} type="submit" className="min-w-35 gap-2">
-            {isPending ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              <>
-                <ClipboardCheck className="size-4" />
-                Confirmar y completar
-              </>
-            )}
-          </Button>
+          <DialogButton
+            type="submit"
+            busy={isPending}
+            icon={<ClipboardCheck />}
+            className="min-w-35"
+          >
+            Confirmar y completar
+          </DialogButton>
         </FormActions>
       </form>
     </Form>

@@ -6,7 +6,7 @@ import { MapPin, MessageSquareText, Pencil, Plane } from "lucide-react";
 import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import { PanelSection } from "@/components/forms/PanelSection";
 import { TagBadge } from "@/components/misc/TagBadge";
-import { Button } from "@/components/ui/button";
+import { DialogButton } from "@/components/misc/DialogButton";
 import { Dialog } from "@/components/ui/dialog";
 import {
   AIRCRAFT_STATUS_LABELS,
@@ -58,17 +58,12 @@ export function AircraftDetailDialog({
         className="sm:max-w-2xl"
         footer={
           <>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
+            <DialogButton tone="secondary" onClick={() => onOpenChange(false)}>
               Cerrar
-            </Button>
-            <Button type="button" onClick={onEdit}>
-              <Pencil className="mr-2 size-4" />
+            </DialogButton>
+            <DialogButton onClick={onEdit} icon={<Pencil />}>
               Editar aeronave
-            </Button>
+            </DialogButton>
           </>
         }
       >

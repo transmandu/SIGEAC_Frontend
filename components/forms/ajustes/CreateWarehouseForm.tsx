@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { Plane, Warehouse as WarehouseIcon, Package } from "lucide-react";
+import { Package, Plane, Save, Warehouse as WarehouseIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -167,6 +167,7 @@ const CreateWarehouseForm = ({ onClose, warehouse }: FormProps) => {
         canSave={warehouse ? form.formState.isDirty : true}
         isEditing={!!warehouse}
         submitLabel={warehouse ? "Guardar cambios" : "Crear almacén"}
+        submitIcon={warehouse ? <Save /> : <WarehouseIcon />}
         onCancel={onClose}
         // stopPropagation: el formulario puede montarse dentro de otro y el
         // submit subiría por el árbol de React hasta el formulario padre.

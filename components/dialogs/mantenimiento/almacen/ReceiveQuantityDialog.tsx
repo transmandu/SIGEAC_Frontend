@@ -1,7 +1,7 @@
 "use client";
 
 import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
-import { Button } from "@/components/ui/button";
+import { DialogButton } from "@/components/misc/DialogButton";
 import { Dialog } from "@/components/ui/dialog";
 import {
   PanelSection,
@@ -11,7 +11,7 @@ import { fieldClass } from "@/components/forms/mantenimiento/almacen/_components
 import { Input } from "@/components/ui/input";
 import { useResettingState } from "@/hooks/useResettingState";
 import { cn } from "@/lib/utils";
-import { Loader2, PackageCheck } from "lucide-react";
+import { PackageCheck } from "lucide-react";
 
 interface ReceiveQuantityDialogProps {
   /** Lo que se esperaba recibir (la cantidad del artículo en tránsito). */
@@ -98,27 +98,22 @@ export function ReceiveQuantityDialog({
         }
         footer={
           <>
-            <Button
-              type="button"
-              variant="outline"
+            <DialogButton
+              tone="cancel"
               disabled={pending}
               onClick={() => onOpenChange(false)}
             >
               Cancelar
-            </Button>
-            <Button
-              type="button"
-              disabled={!valid || pending}
+            </DialogButton>
+            <DialogButton
+              disabled={!valid}
+              busy={pending}
               onClick={() => onConfirm(tidy(quantity))}
-              className="min-w-35 gap-1.5"
+              icon={<PackageCheck />}
+              className="min-w-35"
             >
-              {pending ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <PackageCheck className="size-4" />
-              )}
               Confirmar recepción
-            </Button>
+            </DialogButton>
           </>
         }
       >

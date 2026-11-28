@@ -13,7 +13,7 @@ import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent
 import { PanelSection } from "@/components/forms/PanelSection";
 import { EvidenceGallery } from "@/components/misc/EvidenceGallery";
 import { TagBadge } from "@/components/misc/TagBadge";
-import { Button } from "@/components/ui/button";
+import { DialogButton } from "@/components/misc/DialogButton";
 import { Dialog } from "@/components/ui/dialog";
 import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
 import { formatInstant } from "@/lib/date";
@@ -96,9 +96,9 @@ export default function MyReportDetailDialog({
         lockOutside={false}
         className="sm:max-w-2xl"
         footer={
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <DialogButton tone="secondary" onClick={() => onOpenChange(false)}>
             Cerrar
-          </Button>
+          </DialogButton>
         }
       >
         <div className="space-y-4">

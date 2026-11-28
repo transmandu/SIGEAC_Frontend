@@ -1,5 +1,7 @@
 "use client";
 
+
+import { Factory } from "lucide-react";
 import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 
@@ -83,6 +85,7 @@ export default function CreateManufacturerForm({
         busy={createManufacturer.isPending}
         canSave
         submitLabel="Crear fabricante"
+        submitIcon={<Factory />}
         onCancel={onClose}
         // stopPropagation: este form se renderiza dentro de otros formularios
         // (ej. artículos). React propaga el submit por su árbol aunque el

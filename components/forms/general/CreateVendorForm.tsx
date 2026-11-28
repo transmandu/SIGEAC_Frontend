@@ -1,5 +1,7 @@
 "use client";
 
+
+import { Building2 } from "lucide-react";
 import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 
@@ -76,6 +78,7 @@ export default function CreateVendorForm({ onClose, onCreated }: Props) {
         busy={createVendor.isPending}
         canSave
         submitLabel="Crear proveedor"
+        submitIcon={<Building2 />}
         submitTourId="proveedores-dialog-submit"
         onCancel={onClose}
         // stopPropagation: este form se renderiza dentro de otros formularios

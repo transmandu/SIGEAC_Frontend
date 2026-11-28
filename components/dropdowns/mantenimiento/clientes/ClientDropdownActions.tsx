@@ -10,7 +10,7 @@ import {
   type RowAction,
 } from "@/components/dropdowns/SettingsRowActions";
 import { EditClientForm } from "@/components/forms/mantenimiento/clientes/EditClientForm";
-import { Button } from "@/components/ui/button";
+import { DialogButton } from "@/components/misc/DialogButton";
 import { Dialog } from "@/components/ui/dialog";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import type { AeronauticalClient } from "@/types";
@@ -79,9 +79,9 @@ const ClientDropdownActions = ({ client }: { client: AeronauticalClient }) => {
             </>
           }
           footer={
-            <Button variant="outline" onClick={() => setOpenDetails(false)}>
+            <DialogButton tone="secondary" onClick={() => setOpenDetails(false)}>
               Cerrar
-            </Button>
+            </DialogButton>
           }
           lockOutside={false}
           className="sm:max-w-md"

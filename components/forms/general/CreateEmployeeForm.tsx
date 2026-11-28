@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { Briefcase } from "lucide-react";
+import { Briefcase, UserRound } from "lucide-react";
 import { type Control, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -206,6 +206,7 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
         busy={busy}
         canSave
         submitLabel="Crear empleado"
+        submitIcon={<UserRound />}
         onCancel={onSuccess}
         onSubmit={(event) => {
           event.stopPropagation();

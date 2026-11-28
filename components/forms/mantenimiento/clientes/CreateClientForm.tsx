@@ -1,5 +1,7 @@
 "use client";
 
+
+import { UserRound } from "lucide-react";
 import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 
@@ -90,6 +92,7 @@ export function CreateClientForm({
         busy={createClient.isPending}
         canSave
         submitLabel="Crear cliente"
+        submitIcon={<UserRound />}
         submitTourId="clientes-crear-submit"
         onCancel={onClose}
         // stopPropagation: este form se renderiza dentro de otros formularios.

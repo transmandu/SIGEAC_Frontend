@@ -273,6 +273,7 @@ function UploadForm({
       busy={saving}
       canSave={canSave}
       submitLabel={saving ? "Subiendo..." : "Guardar documento"}
+      submitIcon={<UploadCloud />}
       submitTourId="biblioteca-upload-save"
     >
       <PanelSection icon={FileUp} title="Archivo" compact>

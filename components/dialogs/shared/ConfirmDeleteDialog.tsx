@@ -1,8 +1,8 @@
 "use client";
 
-import { AlertTriangle, Loader2 } from "lucide-react";
+import { AlertTriangle, Trash2 } from "lucide-react";
 import { fullScreenOnMobile } from "@/components/dialogs/shared/FormDialogContent";
-import { Button } from "@/components/ui/button";
+import { DialogButton } from "@/components/misc/DialogButton";
 import { cn } from "@/lib/utils";
 import {
   Dialog,
@@ -103,24 +103,22 @@ export function ConfirmDeleteDialog({
         {extra && <div className="mx-6 mt-4">{extra}</div>}
 
         <div className="px-6 pb-6 pt-5 flex justify-end gap-2">
-          <Button
-            variant="outline"
+          <DialogButton
+            tone="cancel"
             disabled={isPending}
             onClick={() => onOpenChange(false)}
-            className="rounded-xl border border-border/60 bg-background hover:bg-muted text-muted-foreground hover:text-foreground"
           >
             Cancelar
-          </Button>
+          </DialogButton>
 
-          <Button
-            variant="destructive"
+          <DialogButton
+            tone="danger"
             onClick={handleConfirm}
-            disabled={isPending}
-            className="rounded-xl bg-red-600/90 hover:bg-red-600"
+            busy={isPending}
+            icon={<Trash2 />}
           >
-            {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
             {confirmLabel}
-          </Button>
+          </DialogButton>
         </div>
       </DialogContent>
     </Dialog>

@@ -5,7 +5,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Download, FileText, Loader2, UserCheck } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { DialogButton } from "@/components/misc/DialogButton";
 import { Dialog } from "@/components/ui/dialog";
 import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -101,25 +101,22 @@ export default function DownloadQuotePdfDialog({
         }
         footer={
           <>
-            <Button
-              variant="outline"
+            <DialogButton
+              tone="cancel"
               onClick={() => handleOpenChange(false)}
               disabled={isPending}
             >
               Cancelar
-            </Button>
-            <Button
-              className="min-w-37.5 gap-2"
+            </DialogButton>
+            <DialogButton
+              className="min-w-37.5"
               onClick={handleDownload}
-              disabled={!authorizer || isPending}
+              disabled={!authorizer}
+              busy={isPending}
+              icon={<Download />}
             >
-              {isPending ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <Download className="size-4" />
-              )}
               {isPending ? "Generando..." : "Descargar PDF"}
-            </Button>
+            </DialogButton>
           </>
         }
       >

@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { Check, FileWarning, Loader2, PackageCheck } from "lucide-react";
+import { Check, FileWarning, PackageCheck } from "lucide-react";
 
 import { Dialog } from "@/components/ui/dialog";
 import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
-import { Button } from "@/components/ui/button";
+import { DialogButton } from "@/components/misc/DialogButton";
 import { CheckboxCard } from "@/components/forms/mantenimiento/almacen/_components/CheckboxCard";
 import CopyPartNumberButton from "@/components/misc/CopyPartNumberButton";
 import { FilePickerField } from "@/components/misc/FilePickerField";
@@ -146,25 +146,22 @@ export function PendingDocumentsDialog({
         }
         footer={
           <>
-            <Button
-              variant="outline"
+            <DialogButton
+              tone="cancel"
               disabled={busy}
               onClick={() => handleOpenChange(false)}
             >
               Cancelar
-            </Button>
-            <Button
-              disabled={busy || !allResolved}
+            </DialogButton>
+            <DialogButton
+              disabled={!allResolved}
+              busy={busy}
               onClick={handleConfirm}
-              className="min-w-35 gap-2"
+              icon={<PackageCheck />}
+              className="min-w-35"
             >
-              {busy ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <PackageCheck className="size-4" />
-              )}
               Consignar y recibir
-            </Button>
+            </DialogButton>
           </>
         }
       >

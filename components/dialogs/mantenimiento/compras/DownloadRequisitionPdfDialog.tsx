@@ -5,7 +5,7 @@ import { useMemo } from "react";
 import { toast } from "sonner";
 import { Download, FileText, Loader2, UserCheck } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { DialogButton } from "@/components/misc/DialogButton";
 import { Dialog } from "@/components/ui/dialog";
 import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import { SearchableSelect } from "@/components/misc/SearchableSelect";
@@ -139,25 +139,22 @@ export default function DownloadRequisitionPdfDialog({
         }
         footer={
           <>
-            <Button
-              variant="outline"
+            <DialogButton
+              tone="cancel"
               onClick={() => onOpenChange(false)}
               disabled={isPending}
             >
               Cancelar
-            </Button>
-            <Button
-              className="min-w-37.5 gap-2"
+            </DialogButton>
+            <DialogButton
+              className="min-w-37.5"
               onClick={handleDownload}
-              disabled={!canDownload || isPending}
+              disabled={!canDownload}
+              busy={isPending}
+              icon={<Download />}
             >
-              {isPending ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <Download className="size-4" />
-              )}
               {isPending ? "Generando..." : "Descargar PDF"}
-            </Button>
+            </DialogButton>
           </>
         }
       >

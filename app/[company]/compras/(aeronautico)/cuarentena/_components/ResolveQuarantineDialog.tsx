@@ -6,7 +6,7 @@ import {
   useSendToReinspection,
 } from "@/actions/mantenimiento/control_calidad/cuarentena/actions";
 import RegisterArticleForm from "@/components/forms/mantenimiento/almacen/RegisterArticleForm";
-import { Button } from "@/components/ui/button";
+import { DialogButton } from "@/components/misc/DialogButton";
 import { Dialog } from "@/components/ui/dialog";
 import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import { textareaClass } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
@@ -181,27 +181,28 @@ export function ResolveQuarantineDialog({ record, open, onOpenChange }: Props) {
         description="Resuelva el hallazgo de calidad y describa qué corrigió. El artículo pasará a re-inspección."
         footer={
           <>
-            <Button variant="outline" onClick={close} disabled={busy}>
+            <DialogButton tone="cancel" onClick={close} disabled={busy}>
               Cancelar
-            </Button>
-            <Button
+            </DialogButton>
+            <DialogButton
               onClick={handleConfirm}
-              disabled={busy || !notesAreValid}
-              className="min-w-35 gap-2"
+              disabled={!notesAreValid}
+              busy={busy}
+              icon={
+                formState.canSave && !articleSaved ? (
+                  <PencilLine />
+                ) : (
+                  <SendHorizonal />
+                )
+              }
+              className="min-w-35"
             >
-              {busy ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : formState.canSave && !articleSaved ? (
-                <PencilLine className="size-4" />
-              ) : (
-                <SendHorizonal className="size-4" />
-              )}
               {articleSaved
                 ? "Reintentar envío"
                 : formState.canSave
                   ? "Guardar y enviar"
                   : "Enviar a re-inspección"}
-            </Button>
+            </DialogButton>
           </>
         }
       >

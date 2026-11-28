@@ -2,7 +2,7 @@
 
 import { Trash2 } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { DialogButton } from "@/components/misc/DialogButton";
 
 /**
  * Salida del borrador de cotización. Va a la izquierda del pie, separada de
@@ -16,15 +16,13 @@ export default function DiscardDraftButton({
   disabled?: boolean;
 }) {
   return (
-    <Button
-      type="button"
-      variant="outline"
+    <DialogButton
+      tone="cancel"
       disabled={disabled}
       onClick={onClick}
-      className="gap-2 text-muted-foreground hover:border-destructive/40 hover:text-destructive"
+      icon={<Trash2 />}
     >
-      <Trash2 className="size-4" />
       Descartar borrador
-    </Button>
+    </DialogButton>
   );
 }

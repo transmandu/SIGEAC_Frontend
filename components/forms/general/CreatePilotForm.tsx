@@ -1,5 +1,7 @@
 "use client";
 
+
+import { PlaneTakeoff } from "lucide-react";
 import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 
@@ -85,6 +87,7 @@ export function CreatePilotForm({ onClose }: FormProps) {
         busy={createPilot.isPending}
         canSave
         submitLabel="Registrar piloto"
+        submitIcon={<PlaneTakeoff />}
         onCancel={onClose}
         onSubmit={(e) => {
           e.stopPropagation();

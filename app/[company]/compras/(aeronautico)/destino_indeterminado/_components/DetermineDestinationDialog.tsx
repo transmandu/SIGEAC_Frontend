@@ -22,6 +22,7 @@ import {
   selectTriggerClass,
   textareaClass,
 } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
+import { DialogButton } from "@/components/misc/DialogButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -202,28 +203,23 @@ export function DetermineDestinationDialog({
         description="Indique a qué sede pertenece el artículo. Puede repartirlo entre varias."
         footer={
           <>
-            <Button
-              type="button"
-              variant="outline"
+            <DialogButton
+              tone="cancel"
               disabled={busy}
               onClick={() => onOpenChange(false)}
             >
               Cancelar
-            </Button>
+            </DialogButton>
 
-            <Button
-              type="button"
-              disabled={busy || !canSubmit}
+            <DialogButton
+              disabled={!canSubmit}
+              busy={busy}
               onClick={submit}
-              className="min-w-35 gap-2"
+              icon={<Check />}
+              className="min-w-35"
             >
-              {busy ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <Check className="size-4" />
-              )}
               Confirmar destino
-            </Button>
+            </DialogButton>
           </>
         }
       >

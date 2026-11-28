@@ -8,7 +8,6 @@ import {
   CalendarClock,
   Handshake,
   Info,
-  Loader2,
   MapPin,
   PackageCheck,
   Package,
@@ -21,6 +20,7 @@ import {
   useRegisterGeneralArticlesDelivery,
   type GeneralArticlesDeliveryDestination,
 } from "@/actions/mantenimiento/compras/ordenes_compras/actions";
+import { DialogButton } from "@/components/misc/DialogButton";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
@@ -306,25 +306,22 @@ export default function RegisterGeneralArticlesDeliveryDialog({
         }
         footer={
           <>
-            <Button
-              variant="outline"
+            <DialogButton
+              tone="cancel"
               onClick={() => onOpenChange(false)}
               disabled={registerGeneralArticlesDelivery.isPending}
             >
               Cancelar
-            </Button>
-            <Button
+            </DialogButton>
+            <DialogButton
               onClick={handleSubmit}
               disabled={!canSubmit}
-              className="min-w-35 gap-2"
+              busy={registerGeneralArticlesDelivery.isPending}
+              icon={<PackageCheck />}
+              className="min-w-35"
             >
-              {registerGeneralArticlesDelivery.isPending ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <PackageCheck className="size-4" />
-              )}
               Confirmar entrega
-            </Button>
+            </DialogButton>
           </>
         }
       >

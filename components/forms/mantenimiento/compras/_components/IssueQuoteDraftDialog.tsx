@@ -1,8 +1,8 @@
 "use client";
 
-import { AlertTriangle, Ban, Loader2, Send } from "lucide-react";
+import { AlertTriangle, Ban, Send } from "lucide-react";
 import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
-import { Button } from "@/components/ui/button";
+import { DialogButton } from "@/components/misc/DialogButton";
 import { Dialog } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
@@ -68,27 +68,23 @@ export function IssueQuoteDraftDialog({
         }}
         footer={
           <>
-            <Button
-              variant="outline"
+            <DialogButton
+              tone="secondary"
               disabled={isPending}
               onClick={() => onOpenChange(false)}
             >
               {blocked ? "Seguir cotizando" : "Revisar"}
-            </Button>
+            </DialogButton>
 
             {!blocked && (
-              <Button
+              <DialogButton
                 onClick={onConfirm}
-                disabled={isPending}
-                className="min-w-35 gap-2"
+                busy={isPending}
+                icon={<Send />}
+                className="min-w-35"
               >
-                {isPending ? (
-                  <Loader2 className="size-4 animate-spin" />
-                ) : (
-                  <Send className="size-4" />
-                )}
                 Emitir cotización
-              </Button>
+              </DialogButton>
             )}
           </>
         }

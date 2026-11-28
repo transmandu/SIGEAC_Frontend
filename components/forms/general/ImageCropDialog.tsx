@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Crop, Loader2, Minus, Plus, RotateCcw } from "lucide-react";
+import { Check, Crop, Loader2, Minus, Plus, RotateCcw } from "lucide-react";
 
 import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
+import { DialogButton } from "@/components/misc/DialogButton";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { useObjectUrl } from "@/hooks/useObjectUrl";
@@ -227,26 +228,18 @@ export function ImageCropDialog({
         className="sm:max-w-md"
         footer={
           <>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onCancel}
-              disabled={saving}
-            >
+            <DialogButton tone="cancel" onClick={onCancel} disabled={saving}>
               Cancelar
-            </Button>
-            <Button
-              type="button"
+            </DialogButton>
+            <DialogButton
               onClick={apply}
-              disabled={!ready || saving}
+              disabled={!ready}
+              busy={saving}
+              icon={<Check />}
               className="min-w-32"
             >
-              {saving ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                "Usar esta foto"
-              )}
-            </Button>
+              Usar esta foto
+            </DialogButton>
           </>
         }
       >

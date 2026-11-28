@@ -16,6 +16,7 @@ import {
 import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
 import { fieldClass } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
 import { PanelSection } from "@/components/forms/PanelSection";
+import { DialogButton } from "@/components/misc/DialogButton";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -636,45 +637,44 @@ export default function DownloadFoldersDialog({
   const footer =
     phase === "confirm" ? (
       <>
-        <Button type="button" variant="outline" onClick={handleBackToSelection}>
+        <DialogButton tone="secondary" onClick={handleBackToSelection}>
           Atrás
-        </Button>
-        <Button
-          type="button"
+        </DialogButton>
+        <DialogButton
           onClick={() => void handleDownload()}
           disabled={isBusy}
+          icon={<KeyRound />}
           className="min-w-35"
         >
-          <KeyRound className="size-4" />
           Confirmar y descargar
-        </Button>
+        </DialogButton>
       </>
     ) : (
       <>
-        <Button
-          type="button"
-          variant="outline"
+        <DialogButton
+          tone={isBusy ? "cancel" : "secondary"}
           onClick={isBusy ? handleCancel : onClose}
         >
           {isBusy ? "Cancelar descarga" : "Cerrar"}
-        </Button>
-        <Button
-          type="button"
+        </DialogButton>
+        <DialogButton
           onClick={handleStart}
           disabled={isBusy || plan.documents.length === 0}
+          icon={
+            isBusy ? (
+              phase === "saving" ? (
+                <PackageCheck />
+              ) : (
+                <Loader2 className="animate-spin" />
+              )
+            ) : (
+              <Download />
+            )
+          }
           className="min-w-35"
         >
-          {isBusy ? (
-            phase === "saving" ? (
-              <PackageCheck className="size-4" />
-            ) : (
-              <Loader2 className="size-4 animate-spin" />
-            )
-          ) : (
-            <Download className="size-4" />
-          )}
           {isBusy ? "Descargando..." : "Descargar ZIP"}
-        </Button>
+        </DialogButton>
       </>
     );
 

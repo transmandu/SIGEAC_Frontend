@@ -1,8 +1,7 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
-
 import { useInFormDialog } from "@/components/dialogs/shared/FormDialogContent";
+import { DialogButton, inferActionIcon } from "@/components/misc/DialogButton";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -17,6 +16,7 @@ export const ArticleFormShell = ({
   canSave,
   isEditing,
   submitLabel,
+  submitIcon,
   onCancel,
   /** Presente cuando el contexto monta el botón en el pie de un diálogo. */
   hideActions,
@@ -32,6 +32,8 @@ export const ArticleFormShell = ({
   canSave?: boolean;
   isEditing?: boolean;
   submitLabel?: string;
+  /** Icono del botón principal; sin él se deduce del verbo del rótulo. */
+  submitIcon?: React.ReactNode;
   onCancel?: () => void;
   hideActions?: boolean;
   opensPreview?: boolean;
@@ -44,6 +46,15 @@ export const ArticleFormShell = ({
   children: React.ReactNode;
 }) => {
   const inDialog = useInFormDialog();
+  const label =
+    submitLabel ??
+    (opensPreview
+      ? isEditing
+        ? "Revisar cambios"
+        : "Revisar y registrar"
+      : isEditing
+        ? "Guardar cambios"
+        : "Registrar");
 
   return (
     <form
@@ -72,34 +83,31 @@ export const ArticleFormShell = ({
           )}
         >
           {onCancel && (
-            <Button
-              type="button"
-              variant={inDialog ? "outline" : "ghost"}
-              onClick={onCancel}
-              disabled={busy}
-            >
-              Cancelar
-            </Button>
+            inDialog ? (
+              <DialogButton tone="cancel" onClick={onCancel} disabled={busy}>
+                Cancelar
+              </DialogButton>
+            ) : (
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={onCancel}
+                disabled={busy}
+              >
+                Cancelar
+              </Button>
+            )
           )}
-          <Button
+          <DialogButton
             type="submit"
-            disabled={busy || !canSave}
+            busy={busy}
+            disabled={!canSave}
             className="min-w-42.5"
+            icon={submitIcon ?? inferActionIcon(label)}
             data-tour={submitTourId}
           >
-            {busy ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              (submitLabel ??
-              (opensPreview
-                ? isEditing
-                  ? "Revisar cambios"
-                  : "Revisar y registrar"
-                : isEditing
-                  ? "Guardar cambios"
-                  : "Registrar"))
-            )}
-          </Button>
+            {label}
+          </DialogButton>
         </div>
       )}
     </form>

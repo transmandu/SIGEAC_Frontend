@@ -10,6 +10,7 @@ import {
   SegmentedTabsList,
   SegmentedTabsTrigger,
 } from "@/components/misc/SegmentedTabs";
+import { DialogButton } from "@/components/misc/DialogButton";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -56,13 +57,9 @@ export function PreviewDialog({ notice, open, onOpenChange }: Props) {
         lockOutside={false}
         className="sm:max-w-xl"
         footer={
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-          >
+          <DialogButton tone="secondary" onClick={() => onOpenChange(false)}>
             Cerrar
-          </Button>
+          </DialogButton>
         }
       >
         <div className="space-y-4">

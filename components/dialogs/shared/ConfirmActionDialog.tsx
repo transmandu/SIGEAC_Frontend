@@ -1,8 +1,8 @@
 "use client";
 
-import { Loader2, type LucideIcon } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { fullScreenOnMobile } from "@/components/dialogs/shared/FormDialogContent";
-import { Button } from "@/components/ui/button";
+import { DialogButton } from "@/components/misc/DialogButton";
 import {
   Dialog,
   DialogContent,
@@ -36,12 +36,12 @@ const TONES = {
   amber: {
     icon: "border-amber-500/20 bg-amber-500/10 text-amber-600",
     note: "border-amber-500/20 bg-amber-500/5 text-amber-700 dark:text-amber-400",
-    button: "bg-amber-600/90 hover:bg-amber-600 text-white",
+    button: "warning",
   },
   primary: {
     icon: "border-primary/20 bg-primary/10 text-primary",
     note: "border-primary/20 bg-primary/5 text-foreground/80",
-    button: "",
+    button: "primary",
   },
 } as const;
 
@@ -121,23 +121,22 @@ export function ConfirmActionDialog({
         {extra && <div className="mx-6 mt-4">{extra}</div>}
 
         <div className="px-6 pb-6 pt-5 flex justify-end gap-2">
-          <Button
-            variant="outline"
+          <DialogButton
+            tone="cancel"
             disabled={isPending}
             onClick={() => onOpenChange(false)}
-            className="rounded-xl border border-border/60 bg-background hover:bg-muted text-muted-foreground hover:text-foreground"
           >
             Cancelar
-          </Button>
+          </DialogButton>
 
-          <Button
+          <DialogButton
+            tone={styles.button}
             onClick={handleConfirm}
-            disabled={isPending}
-            className={cn("rounded-xl", styles.button)}
+            busy={isPending}
+            icon={<Icon />}
           >
-            {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
             {confirmLabel}
-          </Button>
+          </DialogButton>
         </div>
       </DialogContent>
     </Dialog>

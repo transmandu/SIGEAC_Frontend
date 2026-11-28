@@ -1,5 +1,7 @@
 "use client";
 
+
+import { MapPin } from "lucide-react";
 import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 
@@ -72,6 +74,7 @@ export default function CreateLocationForm({
         busy={createLocation.isPending}
         canSave
         submitLabel="Crear sede"
+        submitIcon={<MapPin />}
         onCancel={onClose}
         onSubmit={(e) => {
           e.stopPropagation();

@@ -1,8 +1,8 @@
 "use client";
 
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Send } from "lucide-react";
 import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
-import { Button } from "@/components/ui/button";
+import { DialogButton } from "@/components/misc/DialogButton";
 import { Dialog } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { ActiveGeneralArticleRequisition } from "@/types/purchase";
@@ -39,10 +39,12 @@ export function DuplicateRequisitionDialog({
         }
         footer={
           <>
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
+            <DialogButton tone="secondary" onClick={() => onOpenChange(false)}>
               Revisar
-            </Button>
-            <Button onClick={onConfirm}>Solicitar igual</Button>
+            </DialogButton>
+            <DialogButton onClick={onConfirm} icon={<Send />}>
+              Solicitar igual
+            </DialogButton>
           </>
         }
       >

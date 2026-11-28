@@ -43,6 +43,7 @@ import {
 import { TagBadge } from "@/components/misc/TagBadge";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { bibliotecaShareSteps } from "@/components/tour/steps/general/biblioteca/biblioteca-share";
+import { DialogButton } from "@/components/misc/DialogButton";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -304,9 +305,9 @@ function ShareBody({
 
   const closeRow = (
     <div className="sticky bottom-0 z-10 -mx-4 flex justify-end border-t bg-linear-to-t from-slate-50 to-background px-4 py-3 sm:-mx-6 sm:px-6 sm:py-4 dark:from-slate-900/40 max-sm:[&>button]:w-full">
-      <Button type="button" variant="outline" onClick={onClose}>
+      <DialogButton tone="secondary" onClick={onClose}>
         Cerrar
-      </Button>
+      </DialogButton>
     </div>
   );
 
@@ -437,20 +438,19 @@ function ShareBody({
             </p>
           )}
           <div className="sticky bottom-0 z-10 -mx-4 flex justify-end gap-3 border-t bg-linear-to-t from-slate-50 to-background px-4 py-3 sm:-mx-6 sm:px-6 sm:py-4 dark:from-slate-900/40 max-sm:flex-col-reverse max-sm:[&>button]:w-full">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <DialogButton tone="secondary" onClick={onClose}>
               Cerrar
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
+            </DialogButton>
+            <DialogButton
+              icon={<Plus />}
               onClick={() => {
                 resetResult();
                 setReason("");
                 setSharedWithName("");
               }}
             >
-              <Plus className="size-4" /> Generar otro
-            </Button>
+              Generar otro
+            </DialogButton>
           </div>
         </>
       ) : confirmed ? (

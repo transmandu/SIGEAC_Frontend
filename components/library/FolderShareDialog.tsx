@@ -14,6 +14,7 @@ import {
   PanelStaticLabel,
   SwitchRow,
 } from "@/components/forms/PanelSection";
+import { DialogButton } from "@/components/misc/DialogButton";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -154,9 +155,9 @@ function FolderShareForm({
         </PanelSection>
 
         <div className="sticky bottom-0 z-10 -mx-4 flex justify-end border-t bg-linear-to-t from-slate-50 to-background px-4 py-3 sm:-mx-6 sm:px-6 sm:py-4 dark:from-slate-900/40 max-sm:[&>button]:w-full">
-          <Button type="button" onClick={onClose} className="min-w-35">
+          <DialogButton tone="secondary" onClick={onClose} className="min-w-35">
             Cerrar
-          </Button>
+          </DialogButton>
         </div>
       </div>
     );

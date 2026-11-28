@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowRight, Flag, Loader2, Package } from "lucide-react";
+import { ArrowRight, Flag, Package, Save } from "lucide-react";
 
 import { useUpdateRequisitionPriority } from "@/actions/mantenimiento/compras/requisiciones/actions";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import type { MyRequisition, Requisition } from "@/types/purchase";
+import { DialogButton } from "@/components/misc/DialogButton";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { FormDialogContent } from "@/components/dialogs/shared/FormDialogContent";
@@ -140,20 +141,18 @@ const PriorityForm = ({ req, setOpen, onSuccess }: Omit<Props, "open">) => {
       }
       footer={
         <>
-          <Button variant="outline" onClick={() => setOpen(false)}>
+          <DialogButton tone="cancel" onClick={() => setOpen(false)}>
             Cancelar
-          </Button>
+          </DialogButton>
 
-          <Button
+          <DialogButton
             onClick={handleSubmit}
-            disabled={updatePriorityRequisition.isPending}
-            className="min-w-35 gap-2"
+            busy={updatePriorityRequisition.isPending}
+            icon={<Save />}
+            className="min-w-35"
           >
-            {updatePriorityRequisition.isPending && (
-              <Loader2 className="size-4 animate-spin" />
-            )}
             Guardar
-          </Button>
+          </DialogButton>
         </>
       }
     >
