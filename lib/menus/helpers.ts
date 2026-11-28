@@ -1,4 +1,60 @@
-import type { Group, Menu, MenuFilterContext } from "@/lib/menus/types";
+import type {
+  Group,
+  GroupDef,
+  Menu,
+  MenuFilterContext,
+  Submenu,
+} from "@/lib/menus/types";
+
+const trimPath = (path: string): string =>
+  path.split(/[?#]/)[0].replace(/\/+$/, "");
+
+/**
+ * La URL pertenece a la sección: es la ruta misma o cuelga de ella (detalle,
+ * crear, editar). Respeta el límite de segmento, así que `/cursos` no cubre
+ * `/cursos_x`, y no se confunde con barras finales ni con query strings.
+ */
+export function isPathWithin(pathname: string, href: string): boolean {
+  const base = trimPath(href);
+  if (!base) return false;
+
+  const current = trimPath(pathname);
+  return current === base || current.startsWith(`${base}/`);
+}
+
+/**
+ * Marca qué entradas están activas según la URL. Entre submenús hermanos gana
+ * la ruta más específica (`/cursos` no se enciende estando en `/cursos/resumen`),
+ * y un menú queda activo si lo está su propia sección o alguno de sus submenús.
+ */
+export function resolveActive(groups: GroupDef[], pathname: string): Group[] {
+  return groups.map((group) => ({
+    ...group,
+    menus: group.menus.map((menu) => {
+      const bases = menu.submenus.map((sub) => trimPath(sub.match ?? sub.href));
+      const longest = menu.submenus.reduce(
+        (best, _sub, index) =>
+          isPathWithin(pathname, bases[index])
+            ? Math.max(best, bases[index].length)
+            : best,
+        -1,
+      );
+
+      const submenus: Submenu[] = menu.submenus.map((sub, index) => ({
+        ...sub,
+        active:
+          isPathWithin(pathname, bases[index]) &&
+          bases[index].length === longest,
+      }));
+
+      return {
+        ...menu,
+        active: Boolean(menu.active) || submenus.some((sub) => sub.active),
+        submenus,
+      };
+    }),
+  }));
+}
 
 export function filterMenuGroups(
   groups: Group[],

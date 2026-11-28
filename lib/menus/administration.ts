@@ -1,10 +1,11 @@
-import type { Group, MenuContext } from "@/lib/menus/types";
+import { isPathWithin } from "@/lib/menus/helpers";
+import type { GroupDef, MenuContext } from "@/lib/menus/types";
 import { Landmark, Truck, Receipt } from "lucide-react";
 
 export function buildAdministrationGroup({
   pathname,
   currentCompany,
-}: MenuContext): Group {
+}: MenuContext): GroupDef {
   return {
     groupLabel: "Administración",
     moduleValue: "administration",
@@ -12,7 +13,8 @@ export function buildAdministrationGroup({
       {
         href: `/${currentCompany?.slug}/administracion/banca/cuentas`,
         label: "Banca",
-        active: pathname.includes(
+        active: isPathWithin(
+          pathname,
           `/${currentCompany?.slug}/administracion/banca`,
         ),
         icon: Landmark,
@@ -26,16 +28,10 @@ export function buildAdministrationGroup({
           {
             href: `/${currentCompany?.slug}/administracion/banca/cuentas`,
             label: "Cuentas Bancarias",
-            active:
-              pathname ===
-              `/${currentCompany?.slug}/administracion/banca/cuentas`,
           },
           {
             href: `/${currentCompany?.slug}/administracion/banca/tarjetas`,
             label: "Tarjetas",
-            active:
-              pathname ===
-              `/${currentCompany?.slug}/administracion/banca/tarjetas`,
           },
         ],
       },
@@ -43,7 +39,8 @@ export function buildAdministrationGroup({
         href: `/${currentCompany?.slug}/administracion/recepciones`,
         label: "Historial de Recepciones",
         requiresTables: ["articles"],
-        active: pathname.includes(
+        active: isPathWithin(
+          pathname,
           `/${currentCompany?.slug}/administracion/recepciones`,
         ),
         icon: Truck,
@@ -60,7 +57,8 @@ export function buildAdministrationGroup({
         href: `/${currentCompany?.slug}/administracion/facturacion-carga`,
         label: "Facturación de Carga",
         requiresTables: ["cargo_charges"],
-        active: pathname.includes(
+        active: isPathWithin(
+          pathname,
           `/${currentCompany?.slug}/administracion/facturacion-carga`,
         ),
         icon: Receipt,

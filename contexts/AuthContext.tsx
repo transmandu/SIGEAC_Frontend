@@ -7,6 +7,11 @@ import axiosInstance, {
 } from "@/lib/axios";
 import { createCookie, deleteCookie, hasAuthCookie } from "@/lib/cookie";
 import { resetEcho } from "@/lib/echo";
+import {
+  clearSessionSnapshot,
+  writeSessionSnapshot,
+} from "@/lib/session-snapshot";
+import { initialsOf } from "@/lib/person-name";
 import { setPostLoginRedirect } from "@/lib/postLoginRedirect";
 import { useIsClient } from "@/hooks/useIsClient";
 import { useCompanyStore } from "@/stores/CompanyStore";
@@ -103,6 +108,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // usuario que nadie podía usar y a AuthRedirect empujando hacia un rebote.
   const user = hasToken ? cachedUser : null;
 
+  // Lo que el navbar y el menú necesitan para pintarse tras una recarga sin
+  // esperar a /user (ver lib/session-snapshot).
+  useEffect(() => {
+    if (!user) return;
+
+    writeSessionSnapshot({
+      roles: user.roles?.map((role) => role.name) ?? [],
+      initials: initialsOf(user),
+    });
+  }, [user]);
+
   // Sin cookie no hay consulta que esperar: la sesión se resuelve como ausente.
   const loading = !tokenChecked || (hasToken && userLoading);
 
@@ -146,6 +162,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // que la siguiente cuenta heredara la estación de la anterior en cuanto
         // coincidieran en una empresa.
         localStorage.removeItem("company-station-history");
+
+        // Lo guardado para pintar el menú y el navbar es de quien se va.
+        clearSessionSnapshot();
 
         // Un destino pendiente de la sesión que termina no es de la siguiente.
         setPostLoginRedirect(null);
@@ -221,6 +240,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           // cookie muerta debe irse para que el middleware mande al login.
           deleteCookie("auth_token");
           setHasToken(false);
+
+          // Aquí no pasa por logout(), y lo guardado es de la sesión muerta.
+          clearSessionSnapshot();
         }
 
         return Promise.reject(error);
@@ -259,6 +281,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // El login ya devuelve el payload completo, así que se siembra la caché
       // en lugar de volver a pedir /user, que es la llamada más cara del flujo.
       sessionEndedRef.current = false;
+
+      // Lo guardado puede ser de otra cuenta si la sesión anterior caducó sin
+      // cerrarse; el efecto de arriba escribe enseguida lo de esta.
+      clearSessionSnapshot();
 
       queryClient.setQueryData(AUTH_USER_QUERY_KEY, userData);
       setHasToken(true);

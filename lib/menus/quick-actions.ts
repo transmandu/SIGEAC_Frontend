@@ -918,7 +918,7 @@ export function buildQuickActionGroups({
       ],
     },
     {
-      groupLabel: "Almacen",
+      groupLabel: "Almacén",
       moduleValue: "warehouse",
       menus: [
         {

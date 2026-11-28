@@ -33,10 +33,9 @@ import {
 } from "@/components/dialogs/shared/FormDialogContent";
 import CreateErrorReportDialog from "@/components/dialogs/sistema/CreateErrorReportDialog";
 import { SearchBarTitle } from "@/components/layout/SearchBarTitle";
-import { useAuth } from "@/contexts/AuthContext";
 import { usePageTitle } from "@/contexts/PageTitleContext";
 import { useSystemPaletteSections } from "@/hooks/helpers/use-system-palette-sections";
-import { useGetAvailableTables } from "@/hooks/sistema/useGetAvailableTables";
+import { useMenuInputs } from "@/hooks/helpers/use-session-snapshot";
 import { getMenuList, getQuickActionGroups } from "@/lib/menu-list";
 import {
   buildPaletteSections,
@@ -111,23 +110,20 @@ function PaletteBody({
   onSelect: (entry: PaletteEntry) => void;
   onReportProblem: () => void;
 }) {
-  const { user } = useAuth();
   const pathname = usePathname();
   const { selectedCompany } = useCompanyStore();
-  const { data: availableTables } = useGetAvailableTables(
+  const { roles, tables: availableTables } = useMenuInputs(
     selectedCompany?.slug,
   );
   const systemSections = useSystemPaletteSections(onReportProblem);
 
   const sections = useMemo(() => {
-    const roles = user?.roles?.map((role) => role.name) ?? [];
-
     return buildPaletteSections(
       getMenuList(pathname ?? "", selectedCompany, roles, availableTables),
       getQuickActionGroups(selectedCompany, roles, availableTables),
       systemSections,
     );
-  }, [user?.roles, pathname, selectedCompany, availableTables, systemSections]);
+  }, [roles, pathname, selectedCompany, availableTables, systemSections]);
 
   return (
     <Command

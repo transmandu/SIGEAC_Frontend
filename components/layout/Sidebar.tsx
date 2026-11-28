@@ -21,6 +21,7 @@ export function Sidebar() {
   const setIsOpen = useSidebarToggle((state) => state.setIsOpen);
   const hydrated = useStoreHydrated(useSidebarToggle);
   const { selectedCompany, selectedStation } = useCompanyStore();
+  const companyHydrated = useStoreHydrated(useCompanyStore);
 
   return (
     <aside
@@ -99,7 +100,7 @@ export function Sidebar() {
             administrar el sistema sin haber entrado a ninguna empresa. */}
         <Menu isOpen={isOpen} />
 
-        {!(selectedCompany && selectedStation) && (
+        {companyHydrated && !(selectedCompany && selectedStation) && (
           <p className="text-sm text-muted-foreground text-center mt-6 px-4">
             Seleccione una <strong>Empresa</strong> y una{" "}
             <strong>Estación</strong> para ver los módulos operativos.

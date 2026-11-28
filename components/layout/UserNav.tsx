@@ -31,6 +31,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyEmployee } from "@/hooks/sistema/usuario/useMyEmployee";
+import { useSessionSnapshot } from "@/hooks/helpers/use-session-snapshot";
 
 import { MarqueeText } from "@/components/misc/MarqueeText";
 
@@ -39,9 +40,13 @@ export function UserNav() {
 
   const { user, loading, logout } = useAuth();
 
-  const { data: employee, isLoading: employeeLoading } = useMyEmployee();
+  const { data: employee } = useMyEmployee();
+  const snapshot = useSessionSnapshot();
 
-  const initials = `${initialsOf(user)}`;
+  // Las iniciales salen de la sesión; mientras llega, de la última vez. La foto
+  // (otra petición, que sale después de /user) se superpone cuando está lista,
+  // sin hacer esperar al resto.
+  const initials = user ? initialsOf(user) : (snapshot?.initials ?? "");
 
   const fullName = fullNameOf(user);
 
@@ -76,7 +81,7 @@ export function UserNav() {
                   onContextMenu={(e) => e.preventDefault()}
                 >
                   <AvatarImage
-                    src={employee?.photo_url ?? " "}
+                    src={employee?.photo_url ?? undefined}
                     alt="Avatar"
                     className="object-cover"
                     sizes="32px"
@@ -89,7 +94,7 @@ export function UserNav() {
                       "text-foreground/80",
                     )}
                   >
-                    {loading || employeeLoading ? (
+                    {loading && !initials ? (
                       <Loader2 className="h-3.5 w-3.5 animate-spin" />
                     ) : (
                       initials
@@ -135,7 +140,7 @@ export function UserNav() {
             <div className="flex items-center gap-3">
               <Avatar className="h-10 w-10 border border-border/60">
                 <AvatarImage
-                  src={employee?.photo_url ?? " "}
+                  src={employee?.photo_url ?? undefined}
                   alt="Avatar"
                   className="object-cover"
                   sizes="40px"

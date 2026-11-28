@@ -1,4 +1,5 @@
-import type { Group, MenuContext } from "@/lib/menus/types";
+import { isPathWithin } from "@/lib/menus/helpers";
+import type { GroupDef, MenuContext } from "@/lib/menus/types";
 import { ShieldCheck, Users } from "lucide-react";
 
 /**
@@ -14,7 +15,7 @@ import { ShieldCheck, Users } from "lucide-react";
 export function buildSupervisorGroup({
   pathname,
   currentCompany,
-}: MenuContext): Group {
+}: MenuContext): GroupDef {
   const base = `/${currentCompany?.slug}/supervisor`;
 
   return {
@@ -24,7 +25,7 @@ export function buildSupervisorGroup({
         href: `${base}/articulos_generales`,
         label: "Artículos Generales",
         requiresTables: ["general_articles"],
-        active: pathname.includes(`${base}/articulos_generales`),
+        active: isPathWithin(pathname, `${base}/articulos_generales`),
         icon: ShieldCheck,
         roles: ["SUPERUSER"],
         requiresOmac: true,
@@ -32,27 +33,24 @@ export function buildSupervisorGroup({
           {
             href: `${base}/articulos_generales`,
             label: "Supervisar Artículos",
-            active: pathname === `${base}/articulos_generales`,
           },
           {
             href: `${base}/articulos_generales/fusiones`,
             label: "Historial de Fusiones",
             requiresTables: ["general_article_merges"],
-            active: pathname === `${base}/articulos_generales/fusiones`,
           },
         ],
       },
       {
         href: `${base}/usuarios`,
         label: "Usuarios",
-        active: pathname.includes(`${base}/usuarios`),
+        active: isPathWithin(pathname, `${base}/usuarios`),
         icon: Users,
         roles: ["SUPERUSER"],
         submenus: [
           {
             href: `${base}/usuarios`,
             label: "Actividad de Usuarios",
-            active: pathname === `${base}/usuarios`,
           },
         ],
       },

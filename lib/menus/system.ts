@@ -1,4 +1,5 @@
-import type { Group, MenuContext } from "@/lib/menus/types";
+import { isPathWithin } from "@/lib/menus/helpers";
+import type { GroupDef, MenuContext } from "@/lib/menus/types";
 import { Blocks, Building2, HeartHandshake, Landmark, User2 } from "lucide-react";
 
 /**
@@ -6,14 +7,14 @@ import { Blocks, Building2, HeartHandshake, Landmark, User2 } from "lucide-react
  * middleware `tenant`, así que sigue siendo navegable sin compañía seleccionada.
  * Lo que dependa del tenant va en `buildSettingsGroup`, no aquí.
  */
-export function buildSystemGroup({ pathname }: MenuContext): Group {
+export function buildSystemGroup({ pathname }: MenuContext): GroupDef {
     return {
         groupLabel: "Sistema",
         menus: [
             {
                 href: "/sistema/empresas",
                 label: "Empresas",
-                active: pathname.includes("/sistema/empresas"),
+                active: isPathWithin(pathname, "/sistema/empresas"),
                 icon: Building2,
                 roles: ["SUPERUSER"],
                 submenus: [],
@@ -21,7 +22,7 @@ export function buildSystemGroup({ pathname }: MenuContext): Group {
             {
                 href: "/sistema/modulos",
                 label: "Módulos",
-                active: pathname.includes("/sistema/modulos"),
+                active: isPathWithin(pathname, "/sistema/modulos"),
                 icon: Blocks,
                 roles: ["SUPERUSER"],
                 submenus: [],
@@ -29,26 +30,24 @@ export function buildSystemGroup({ pathname }: MenuContext): Group {
             {
                 href: "/sistema/usuarios_permisos",
                 label: "Usuarios y Permisos",
-                active: pathname.includes("/sistema/usuarios_permisos"),
+                active: isPathWithin(pathname, "/sistema/usuarios_permisos"),
                 icon: User2,
                 roles: ["SUPERUSER"],
                 submenus: [
                     {
                         href: "/sistema/usuarios_permisos/usuarios",
                         label: "Administrar Usuarios",
-                        active: pathname === "/sistema/usuarios_permisos/usuarios",
                     },
                     {
                         href: "/sistema/usuarios_permisos/roles",
                         label: "Administrar Roles",
-                        active: pathname === "/sistema/usuarios_permisos/roles",
                     },
                 ],
             },
             {
                 href: "/sistema/banca/bancos",
                 label: "Banca",
-                active: pathname.includes("/sistema/banca"),
+                active: isPathWithin(pathname, "/sistema/banca"),
                 icon: Landmark,
                 // Lectura para roles de compras; la gestión (crear/editar/eliminar)
                 // queda restringida a SUPERUSER en la UI y el backend.
@@ -62,7 +61,6 @@ export function buildSystemGroup({ pathname }: MenuContext): Group {
                     {
                         href: "/sistema/banca/bancos",
                         label: "Bancos",
-                        active: pathname.startsWith("/sistema/banca/bancos"),
                         roles: [
                             "SUPERUSER",
                             "JEFE_COMPRAS",
@@ -73,7 +71,6 @@ export function buildSystemGroup({ pathname }: MenuContext): Group {
                     {
                         href: "/sistema/banca/cuentas",
                         label: "Cuentas",
-                        active: pathname.startsWith("/sistema/banca/cuentas"),
                         roles: [
                             "SUPERUSER",
                             "JEFE_COMPRAS",
@@ -84,7 +81,6 @@ export function buildSystemGroup({ pathname }: MenuContext): Group {
                     {
                         href: "/sistema/banca/metodos_pago",
                         label: "Métodos de Pago",
-                        active: pathname === "/sistema/banca/metodos_pago",
                         roles: [
                             "SUPERUSER",
                             "JEFE_COMPRAS",
@@ -95,7 +91,6 @@ export function buildSystemGroup({ pathname }: MenuContext): Group {
                     {
                         href: "/sistema/banca/tarjetas",
                         label: "Tarjetas",
-                        active: pathname === "/sistema/banca/tarjetas",
                         roles: [
                             "SUPERUSER",
                             "JEFE_COMPRAS",
@@ -108,7 +103,7 @@ export function buildSystemGroup({ pathname }: MenuContext): Group {
             {
                 href: "/sistema/reportes",
                 label: "Soporte Técnico",
-                active: pathname.includes("/sistema/reportes"),
+                active: isPathWithin(pathname, "/sistema/reportes"),
                 icon: HeartHandshake,
                 roles: ["SUPERUSER"],
                 submenus: [],

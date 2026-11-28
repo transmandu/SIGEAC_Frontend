@@ -12,16 +12,16 @@ import {
   TooltipTrigger,
   TooltipProvider,
 } from "@/components/ui/tooltip";
-import { useAuth } from "@/contexts/AuthContext";
+import { useSessionRoles } from "@/hooks/helpers/use-session-snapshot";
 import CreateErrorReportDialog from "@/components/dialogs/sistema/CreateErrorReportDialog";
 import { ERROR_REPORT_VISIBLE_TO_NORMAL_USERS } from "@/lib/errorReportModules";
 
 export default function ErrorReportTrigger() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { roles } = useSessionRoles();
   const [open, setOpen] = useState(false);
 
-  const isSuperUser = user?.roles?.some((role) => role.name === "SUPERUSER");
+  const isSuperUser = roles.includes("SUPERUSER");
 
   if (!isSuperUser && !ERROR_REPORT_VISIBLE_TO_NORMAL_USERS) {
     return null;

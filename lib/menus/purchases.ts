@@ -1,4 +1,10 @@
-import type { Group, Menu, MenuContext, Submenu } from "@/lib/menus/types";
+import { isPathWithin } from "@/lib/menus/helpers";
+import type {
+  GroupDef,
+  MenuContext,
+  MenuDef,
+  SubmenuDef,
+} from "@/lib/menus/types";
 import {
   ClipboardList,
   HandCoins,
@@ -10,9 +16,6 @@ import {
   Boxes,
   ShieldAlert,
 } from "lucide-react";
-
-const isActivePath = (pathname: string, href: string): boolean =>
-  pathname === href || pathname.startsWith(`${href}/`);
 
 /**
  * SUPERUSER y JEFE_ADMINISTRACION son los únicos roles con acceso a ambos
@@ -26,13 +29,13 @@ export function buildPurchasesGroups({
   pathname,
   currentCompany,
   userRoles,
-}: MenuContext): Group[] {
-  const aeronauticoMenus: Menu[] = [
+}: MenuContext): GroupDef[] {
+  const aeronauticoMenus: MenuDef[] = [
     {
       href: `/${currentCompany?.slug}/compras/requisiciones`,
       label: "Solicitudes de Compra",
       requiresTables: ["requisition_orders", "articles_requisition_orders"],
-      active: isActivePath(
+      active: isPathWithin(
         pathname,
         `/${currentCompany?.slug}/compras/requisiciones`,
       ),
@@ -50,7 +53,7 @@ export function buildPurchasesGroups({
       href: `/${currentCompany?.slug}/compras/cotizaciones`,
       label: "Cotizaciones",
       requiresTables: ["quote_orders", "articles_quote_orders"],
-      active: isActivePath(
+      active: isPathWithin(
         pathname,
         `/${currentCompany?.slug}/compras/cotizaciones`,
       ),
@@ -66,9 +69,9 @@ export function buildPurchasesGroups({
     },
     {
       href: `/${currentCompany?.slug}/compras/ordenes_compra`,
-      label: "Ordenes de Compra",
+      label: "Órdenes de Compra",
       requiresTables: ["purchase_orders", "articles_purchase_orders"],
-      active: isActivePath(
+      active: isPathWithin(
         pathname,
         `/${currentCompany?.slug}/compras/ordenes_compra`,
       ),
@@ -86,7 +89,7 @@ export function buildPurchasesGroups({
       href: `/${currentCompany?.slug}/compras/en_transito`,
       label: "Art. en Tránsito",
       requiresTables: ["articles", "article_transit_updates"],
-      active: isActivePath(
+      active: isPathWithin(
         pathname,
         `/${currentCompany?.slug}/compras/en_transito`,
       ),
@@ -104,7 +107,7 @@ export function buildPurchasesGroups({
       href: `/${currentCompany?.slug}/compras/cuarentena`,
       label: "Cuarentena",
       requiresTables: ["quarantine_articles"],
-      active: isActivePath(
+      active: isPathWithin(
         pathname,
         `/${currentCompany?.slug}/compras/cuarentena`,
       ),
@@ -120,9 +123,9 @@ export function buildPurchasesGroups({
     },
     {
       href: `/${currentCompany?.slug}/compras/destino_indeterminado`,
-      label: "Destino indeterminado",
+      label: "Destino Indeterminado",
       requiresTables: ["articles"],
-      active: isActivePath(
+      active: isPathWithin(
         pathname,
         `/${currentCompany?.slug}/compras/destino_indeterminado`,
       ),
@@ -138,7 +141,7 @@ export function buildPurchasesGroups({
     },
   ];
 
-  const generalMenus: Menu[] = [
+  const generalMenus: MenuDef[] = [
     {
       href: `/${currentCompany?.slug}/compras/requisiciones_generales`,
       label: "Requisiciones Generales",
@@ -146,7 +149,7 @@ export function buildPurchasesGroups({
         "requisition_orders",
         "general_article_requisition_orders",
       ],
-      active: isActivePath(
+      active: isPathWithin(
         pathname,
         `/${currentCompany?.slug}/compras/requisiciones_generales`,
       ),
@@ -158,7 +161,7 @@ export function buildPurchasesGroups({
       href: `/${currentCompany?.slug}/compras/cotizaciones_generales`,
       label: "Cotizaciones",
       requiresTables: ["quote_orders", "general_article_quote_orders"],
-      active: isActivePath(
+      active: isPathWithin(
         pathname,
         `/${currentCompany?.slug}/compras/cotizaciones_generales`,
       ),
@@ -168,9 +171,9 @@ export function buildPurchasesGroups({
     },
     {
       href: `/${currentCompany?.slug}/compras/ordenes_compra_generales`,
-      label: "Ordenes de Compra",
+      label: "Órdenes de Compra",
       requiresTables: ["purchase_orders", "general_article_purchase_orders"],
-      active: isActivePath(
+      active: isPathWithin(
         pathname,
         `/${currentCompany?.slug}/compras/ordenes_compra_generales`,
       ),
@@ -182,7 +185,7 @@ export function buildPurchasesGroups({
       href: `/${currentCompany?.slug}/compras/recepcion_general`,
       label: "Recepción General",
       requiresTables: ["general_article_intakes"],
-      active: isActivePath(
+      active: isPathWithin(
         pathname,
         `/${currentCompany?.slug}/compras/recepcion_general`,
       ),
@@ -192,11 +195,11 @@ export function buildPurchasesGroups({
     },
   ];
 
-  const globalPurchaseMenu: Menu = {
+  const globalPurchaseMenu: MenuDef = {
     href: `/${currentCompany?.slug}/compras/gestion_costos`,
     label: "Gestión de Costos",
     requiresTables: ["articles", "general_articles"],
-    active: isActivePath(
+    active: isPathWithin(
       pathname,
       `/${currentCompany?.slug}/compras/gestion_costos`,
     ),
@@ -226,10 +229,9 @@ export function buildPurchasesGroups({
     ];
   }
 
-  const toSubmenu = (menu: Menu): Submenu => ({
+  const toSubmenu = (menu: MenuDef): SubmenuDef => ({
     href: menu.href,
     label: menu.label,
-    active: menu.active,
     roles: menu.roles,
     moduleValue: menu.moduleValue,
     requiresOmac: menu.requiresOmac,
@@ -239,19 +241,17 @@ export function buildPurchasesGroups({
   const aeronauticoSubmenus = aeronauticoMenus.map(toSubmenu);
   const generalSubmenus = generalMenus.map(toSubmenu);
 
-  const aeronauticoGroupMenu: Menu = {
+  const aeronauticoGroupMenu: MenuDef = {
     href: "",
     label: "Compras Aeronáuticas",
-    active: aeronauticoSubmenus.some((submenu) => submenu.active),
     icon: Plane,
     roles: ["SUPERUSER", "JEFE_ADMINISTRACION"],
     submenus: aeronauticoSubmenus,
   };
 
-  const generalGroupMenu: Menu = {
+  const generalGroupMenu: MenuDef = {
     href: "",
     label: "Compras Generales",
-    active: generalSubmenus.some((submenu) => submenu.active),
     icon: Boxes,
     roles: ["SUPERUSER", "JEFE_ADMINISTRACION"],
     submenus: generalSubmenus,

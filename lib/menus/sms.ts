@@ -1,4 +1,5 @@
-import type { Group, MenuContext } from "@/lib/menus/types";
+import { isPathWithin } from "@/lib/menus/helpers";
+import type { GroupDef, MenuContext } from "@/lib/menus/types";
 import {
   AreaChartIcon,
   CalendarClock,
@@ -14,7 +15,7 @@ import {
 export function buildSmsGroup({
   pathname,
   currentCompany,
-}: MenuContext): Group {
+}: MenuContext): GroupDef {
   return {
     groupLabel: "SMS",
     moduleValue: "sms",
@@ -23,7 +24,7 @@ export function buildSmsGroup({
         href: `/${currentCompany?.slug}/sms/reportes`,
         label: "Reportes",
         requiresTables: ["voluntary_reports"],
-        active: pathname.includes(`/${currentCompany?.slug}/sms/reportes`),
+        active: isPathWithin(pathname, `/${currentCompany?.slug}/sms/reportes`),
         icon: ClipboardPen,
         roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
         requiresOmac: false,
@@ -31,9 +32,10 @@ export function buildSmsGroup({
       },
       {
         href: `/${currentCompany?.slug}/sms`,
-        label: "Gestion de Reportes",
+        label: "Gestión de Reportes",
         requiresTables: ["danger_identifications"],
-        active: pathname.includes(
+        active: isPathWithin(
+          pathname,
           `/${currentCompany?.slug}/sms/gestion_reportes`,
         ),
         icon: ShieldAlert,
@@ -45,27 +47,24 @@ export function buildSmsGroup({
             label: "Peligros Identificados",
             requiresTables: ["danger_identifications"],
             roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
-            active:
-              pathname ===
-              `/${currentCompany?.slug}/sms/gestion_reportes/peligros_identificados`,
           },
           {
             href: `/${currentCompany?.slug}/sms/gestion_reportes/planes_de_mitigacion`,
-            label: "Planes de Mitigacion",
+            label: "Planes de Mitigación",
             requiresTables: ["mitigation_plans"],
             roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
-            active:
-              pathname ===
-              `/${currentCompany?.slug}/sms/gestion_reportes/planes_de_mitigacion`,
           },
         ],
       },
       {
         href: `/${currentCompany?.slug}/sms`,
-        label: "Estadisticas",
+        label: "Estadísticas",
         requiresTables: ["voluntary_reports"],
         icon: AreaChartIcon,
-        active: pathname.includes(`/${currentCompany?.slug}/sms/estadisticas`),
+        active: isPathWithin(
+          pathname,
+          `/${currentCompany?.slug}/sms/estadisticas`,
+        ),
         roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
         requiresOmac: false,
         submenus: [
@@ -73,41 +72,27 @@ export function buildSmsGroup({
             href: `/${currentCompany?.slug}/sms/estadisticas/general`,
             label: "General",
             roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
-            active:
-              pathname === `/${currentCompany?.slug}/sms/estadisticas/general`,
           },
           {
             href: `/${currentCompany?.slug}/sms/estadisticas/reportes_voluntarios`,
             label: "Reportes Voluntarios",
             roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
-            active:
-              pathname ===
-              `/${currentCompany?.slug}/sms/estadisticas/reportes_voluntarios`,
           },
           {
             href: `/${currentCompany?.slug}/sms/estadisticas/reportes_obligatorios`,
             label: "Reportes Obligatorios",
             roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
-            active:
-              pathname ===
-              `/${currentCompany?.slug}/sms/estadisticas/reportes_obligatorios`,
           },
           {
             href: `/${currentCompany?.slug}/sms/estadisticas/indicadores_riesgo`,
             label: "Indicadores de Riesgo",
             roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
-            active:
-              pathname ===
-              `/${currentCompany?.slug}/sms/estadisticas/indicadores_riesgo`,
           },
           {
             href: `/${currentCompany?.slug}/sms/estadisticas/actividades`,
             label: "Actividades",
             requiresTables: ["sms_activities"],
             roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
-            active:
-              pathname ===
-              `/${currentCompany?.slug}/sms/estadisticas/actividades`,
           },
         ],
       },
@@ -115,7 +100,8 @@ export function buildSmsGroup({
         href: "",
         label: "Aseguramiento de la Calidad",
         requiresTables: ["change_requests"],
-        active: pathname.includes(
+        active: isPathWithin(
+          pathname,
           `/${currentCompany?.slug}/sms/aseguramiento_calidad`,
         ),
         icon: ShieldCheck,
@@ -142,16 +128,16 @@ export function buildSmsGroup({
               "GERENTE_SMS",
               "PRESIDENCIA",
             ],
-            active: pathname.includes(
-              `/${currentCompany?.slug}/sms/aseguramiento_calidad/gestion_de_cambio`,
-            ),
           },
         ],
       },
       {
         href: "",
-        label: "Promoción de la seguridad operacional",
-        active: pathname.includes(`/${currentCompany?.slug}/sms/promocion`),
+        label: "Promoción de la Seguridad Operacional",
+        active: isPathWithin(
+          pathname,
+          `/${currentCompany?.slug}/sms/promocion`,
+        ),
         icon: CalendarClock,
         roles: [
           "SUPERUSER",
@@ -167,9 +153,6 @@ export function buildSmsGroup({
             label: "Calendario Actividades",
             requiresTables: ["sms_activities"],
             roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
-            active:
-              pathname ===
-              `/${currentCompany?.slug}/sms/promocion/actividades/calendario`,
             requiresOmac: false,
           },
           {
@@ -177,8 +160,6 @@ export function buildSmsGroup({
             label: "Actividades",
             requiresTables: ["sms_activities"],
             roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
-            active:
-              pathname === `/${currentCompany?.slug}/sms/promocion/actividades`,
           },
           {
             href: `/${currentCompany?.slug}/sms/promocion/capacitacion_personal`,
@@ -186,18 +167,12 @@ export function buildSmsGroup({
             requiresTables: ["sms_training_groups"],
             roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
             requiresOmac: false,
-            active:
-              pathname ===
-              `/${currentCompany?.slug}/sms/promocion/capacitacion_personal`,
           },
           {
             href: `/${currentCompany?.slug}/sms/promocion/minutas_reunion`,
             label: "Minutas de Reunión",
             requiresTables: ["meeting_minutes"],
             roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
-            active:
-              pathname ===
-              `/${currentCompany?.slug}/sms/promocion/minutas_reunion`,
           },
         ],
       },
@@ -205,7 +180,8 @@ export function buildSmsGroup({
         href: "",
         label: "Gestión de Encuestas",
         requiresTables: ["surveys"],
-        active: pathname.includes(
+        active: isPathWithin(
+          pathname,
           `/${currentCompany?.slug}/sms/gestion_encuestas`,
         ),
         icon: ClipboardCheck,
@@ -216,24 +192,18 @@ export function buildSmsGroup({
             href: `/${currentCompany?.slug}/sms/gestion_encuestas/crear`,
             label: "Crear",
             roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
-            active:
-              pathname ===
-              `/${currentCompany?.slug}/sms/gestion_encuestas/crear`,
           },
           {
             href: `/${currentCompany?.slug}/sms/gestion_encuestas/encuestas`,
             label: "Lista",
             roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
-            active:
-              pathname ===
-              `/${currentCompany?.slug}/sms/gestion_encuestas/encuestas`,
           },
         ],
       },
       {
         href: "",
         label: "Ajustes SMS",
-        active: pathname.includes(`/${currentCompany?.slug}/sms/ajustes`),
+        active: isPathWithin(pathname, `/${currentCompany?.slug}/sms/ajustes`),
         icon: Settings,
         roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
         requiresOmac: false,
@@ -243,32 +213,27 @@ export function buildSmsGroup({
             label: "Encuesta",
             requiresTables: ["surveys"],
             roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
-            active:
-              pathname === `/${currentCompany?.slug}/sms/ajustes/encuesta`,
           },
           {
             href: `/${currentCompany?.slug}/sms/ajustes/boletin`,
             label: "Boletines",
             requiresTables: ["safety_bulletins"],
             roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
-            active: pathname === `/${currentCompany?.slug}/sms/ajustes/boletin`,
           },
           {
             href: `/${currentCompany?.slug}/sms/ajustes/matriz_simulacro_mesa`,
-            label: "Matriz de simulacro de mesa",
+            label: "Matriz de Simulacro de Mesa",
             requiresTables: ["drill_matrix_criteria"],
             roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
-            active:
-              pathname ===
-              `/${currentCompany?.slug}/sms/ajustes/matriz_simulacro_mesa`,
           },
         ],
       },
       {
         href: `/${currentCompany?.slug}/sms/aeronautical`,
-        label: "Gestion de Riesgos",
+        label: "Gestión de Riesgos",
         requiresTables: ["risk_assessments"],
-        active: pathname.includes(
+        active: isPathWithin(
+          pathname,
           `/${currentCompany?.slug}/sms/aeronautical/gestion_de_riesgos`,
         ),
         icon: ShieldAlert,
@@ -294,13 +259,10 @@ export function buildSmsGroup({
               "COORDINADOR_SMS",
               "ANALISTA_SMS",
             ],
-            active:
-              pathname ===
-              `/${currentCompany?.slug}/sms/aeronautical/gestion_de_riesgos/reportes`,
           },
           {
             href: `/${currentCompany?.slug}/sms/aeronautical/gestion_de_riesgos/identificacion`,
-            label: "Identificacion de Peligros",
+            label: "Identificación de Peligros",
             roles: [
               "COORDINADOR_SMS",
               "GERENTE_SMS",
@@ -309,13 +271,10 @@ export function buildSmsGroup({
               "COORDINADOR_SMS",
               "ANALISTA_SMS",
             ],
-            active:
-              pathname ===
-              `/${currentCompany?.slug}/sms/aeronautical/gestion_de_riesgos/identificacion`,
           },
           {
             href: `/${currentCompany?.slug}/sms/aeronautical/gestion_de_riesgos/evaluacion_mitigacion`,
-            label: "Eval y Mitigacion",
+            label: "Evaluación y Mitigación",
             roles: [
               "COORDINADOR_SMS",
               "GERENTE_SMS",
@@ -324,9 +283,6 @@ export function buildSmsGroup({
               "COORDINADOR_SMS",
               "ANALISTA_SMS",
             ],
-            active:
-              pathname ===
-              `/${currentCompany?.slug}/sms/aeronautical/gestion_de_riesgos/evaluacion_mitigacion`,
           },
         ],
       },
@@ -334,7 +290,10 @@ export function buildSmsGroup({
         href: `/${currentCompany?.slug}/sms/uniformes`,
         label: "Uniformes",
         requiresTables: ["uniform_items"],
-        active: pathname.includes(`/${currentCompany?.slug}/sms/uniformes`),
+        active: isPathWithin(
+          pathname,
+          `/${currentCompany?.slug}/sms/uniformes`,
+        ),
         icon: Shirt,
         roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
         requiresOmac: false,

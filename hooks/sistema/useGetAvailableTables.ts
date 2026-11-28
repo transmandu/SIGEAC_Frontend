@@ -13,6 +13,9 @@ export const useGetAvailableTables = (company?: string) => {
       return data;
     },
     enabled: !!company,
+    // El menú espera esta respuesta para pintarse; con los tres reintentos por
+    // defecto un fallo lo dejaría en el marcador varios segundos.
+    retry: 1,
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 30,
     refetchOnWindowFocus: false,

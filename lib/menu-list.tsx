@@ -7,7 +7,7 @@ import { buildDashboardGroup } from "@/lib/menus/dashboard";
 import { buildDevelopmentGroup } from "@/lib/menus/development";
 import { buildEngineeringGroup } from "@/lib/menus/engineering";
 import { buildGeneralGroup } from "@/lib/menus/general";
-import { filterMenuGroups } from "@/lib/menus/helpers";
+import { filterMenuGroups, resolveActive } from "@/lib/menus/helpers";
 import { buildMaintenanceGroup } from "@/lib/menus/maintenance";
 import { buildOperationGroup } from "@/lib/menus/operation";
 import { buildPlanificationGroup } from "@/lib/menus/planification";
@@ -46,27 +46,33 @@ export function buildMenuGroups(
   // Sin compañía solo sobreviven Perfil y Sistema, que son de master; el resto
   // de los grupos depende del tenant y armaría hrefs sin slug al que apuntar.
   if (!currentCompany) {
-    return [buildProfileGroup(context), buildSystemGroup(context)];
+    return resolveActive(
+      [buildProfileGroup(context), buildSystemGroup(context)],
+      pathname,
+    );
   }
 
-  return [
-    buildDashboardGroup(context),
-    buildGeneralGroup(context),
-    buildDevelopmentGroup(context),
-    buildSmsGroup(context),
-    ...buildPurchasesGroups(context),
-    buildWarehouseGroup(context),
-    buildPlanificationGroup(context),
-    buildQualityControlGroup(context),
-    buildOperationGroup(context),
-    buildMaintenanceGroup(context),
-    buildEngineeringGroup(context),
-    buildAdministrationGroup(context),
-    buildSettingsGroup(context),
-    buildProfileGroup(context),
-    buildSystemGroup(context),
-    buildSupervisorGroup(context),
-  ];
+  return resolveActive(
+    [
+      buildDashboardGroup(context),
+      buildGeneralGroup(context),
+      buildDevelopmentGroup(context),
+      buildSmsGroup(context),
+      ...buildPurchasesGroups(context),
+      buildWarehouseGroup(context),
+      buildPlanificationGroup(context),
+      buildQualityControlGroup(context),
+      buildOperationGroup(context),
+      buildMaintenanceGroup(context),
+      buildEngineeringGroup(context),
+      buildAdministrationGroup(context),
+      buildSettingsGroup(context),
+      buildProfileGroup(context),
+      buildSystemGroup(context),
+      buildSupervisorGroup(context),
+    ],
+    pathname,
+  );
 }
 
 export function getQuickActionGroups(

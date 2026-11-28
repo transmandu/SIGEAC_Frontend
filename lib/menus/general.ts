@@ -1,5 +1,6 @@
 import { WAREHOUSE_ROLES } from "@/lib/inventory-access";
-import type { Group, MenuContext } from "@/lib/menus/types";
+import { isPathWithin } from "@/lib/menus/helpers";
+import type { GroupDef, MenuContext } from "@/lib/menus/types";
 import {
   CalendarRange,
   CircleDollarSign,
@@ -14,7 +15,7 @@ import {
 export function buildGeneralGroup({
   pathname,
   currentCompany,
-}: MenuContext): Group {
+}: MenuContext): GroupDef {
   const inventoryHref = `/${currentCompany?.slug}/general/inventario_articulos`;
 
   return {
@@ -24,7 +25,10 @@ export function buildGeneralGroup({
         href: `/${currentCompany?.slug}/general/calendario`,
         label: "Calendario de Eventos",
         requiresTables: ["calendar_events"],
-        active: pathname === `/${currentCompany?.slug}/general/calendario`,
+        active: isPathWithin(
+          pathname,
+          `/${currentCompany?.slug}/general/calendario`,
+        ),
         icon: CalendarRange,
         roles: [],
         submenus: [],
@@ -34,57 +38,51 @@ export function buildGeneralGroup({
         label: "Cursos",
         requiresTables: ["courses"],
         roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
-        active: pathname === `/${currentCompany?.slug}/general/cursos`,
+        active: isPathWithin(
+          pathname,
+          `/${currentCompany?.slug}/general/cursos`,
+        ),
         icon: Presentation,
         submenus: [
           {
             href: `/${currentCompany?.slug}/general/cursos/calendario`,
             label: "Calendario",
-            active:
-              pathname === `/${currentCompany?.slug}/general/cursos/calendario`,
           },
           {
             href: `/${currentCompany?.slug}/general/cursos`,
             label: "Cursos",
             requiresTables: ["courses"],
-            active: pathname === `/${currentCompany?.slug}/general/cursos`,
           },
           {
             href: `/${currentCompany?.slug}/general/cursos/matriz-capacitacion`,
             label: "Programación de Personal Aeronáutico",
             roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
-            active:
-              pathname ===
-              `/${currentCompany?.slug}/general/cursos/matriz-capacitacion`,
           },
           {
             href: `/${currentCompany?.slug}/general/cursos/estadisticas`,
-            label: "Estadisticas",
-            active:
-              pathname ===
-              `/${currentCompany?.slug}/general/cursos/estadisticas`,
+            label: "Estadísticas",
           },
           {
             href: `/${currentCompany?.slug}/sms/certificados`,
             label: "Certificados",
             requiresTables: ["certificates"],
             roles: [],
-            active: pathname === `/${currentCompany?.slug}/sms/certificados`,
           },
 
           {
             href: `/${currentCompany?.slug}/general/cursos/resumen`,
             label: "Resumen",
             roles: [],
-            active:
-              pathname === `/${currentCompany?.slug}/general/cursos/resumen`,
           },
         ],
       },
       {
         href: `/${currentCompany?.slug}/general/reporte`,
         label: "SMS",
-        active: pathname.includes(`/${currentCompany?.slug}/reporte`),
+        active: isPathWithin(
+          pathname,
+          `/${currentCompany?.slug}/general/reporte`,
+        ),
         icon: ShieldCheck,
         roles: [],
         submenus: [
@@ -93,32 +91,22 @@ export function buildGeneralGroup({
             label: "Reporte Voluntario",
             requiresTables: ["voluntary_reports"],
             roles: [],
-            active:
-              pathname ===
-              `/${currentCompany?.slug}/general/reporte/voluntario`,
           },
           {
             href: `/${currentCompany?.slug}/general/reporte/obligatorio`,
             label: "Reporte Obligatorio",
             requiresTables: ["obligatory_reports"],
             roles: [],
-            active:
-              pathname ===
-              `/${currentCompany?.slug}/general/reporte/obligatorio`,
           },
           {
             href: `/${currentCompany?.slug}/general/reporte/codigos_qr`,
-            label: "Codigos QR",
+            label: "Códigos QR",
             roles: [],
-            active:
-              pathname ===
-              `/${currentCompany?.slug}/general/reporte/codigos_qr`,
           },
           {
             href: `/acceso_publico/${currentCompany?.slug}/sms`,
-            label: "Pagina Principal SMS",
+            label: "Página Principal SMS",
             roles: [],
-            active: pathname === `/acceso_publico/${currentCompany?.slug}/sms`,
           },
         ],
       },
@@ -126,7 +114,7 @@ export function buildGeneralGroup({
         href: inventoryHref,
         label: "Inventario",
         requiresTables: ["articles"],
-        active: pathname.includes(inventoryHref),
+        active: isPathWithin(pathname, inventoryHref),
         icon: PackageSearch,
         roles: [],
         excludedRoles: [...WAREHOUSE_ROLES],
@@ -137,7 +125,8 @@ export function buildGeneralGroup({
         href: `/${currentCompany?.slug}/general/requisiciones`,
         label: "Solicitudes de Compra",
         requiresTables: ["requisition_orders"],
-        active: pathname.includes(
+        active: isPathWithin(
+          pathname,
           `/${currentCompany?.slug}/general/requisiciones`,
         ),
         icon: ClipboardList,
@@ -154,7 +143,10 @@ export function buildGeneralGroup({
         href: `/${currentCompany?.slug}/general/manuales`,
         label: "Manuales de Mtto.",
         requiresTables: ["maintenance_catalog_manuals"],
-        active: pathname.includes(`/${currentCompany?.slug}/general/manuales`),
+        active: isPathWithin(
+          pathname,
+          `/${currentCompany?.slug}/general/manuales`,
+        ),
         icon: BookOpen,
         moduleValue: [
           "planification",
@@ -177,7 +169,8 @@ export function buildGeneralGroup({
         href: `/${currentCompany?.slug}/general/biblioteca`,
         label: "Biblioteca Digital",
         requiresTables: ["library_documents"],
-        active: pathname.includes(
+        active: isPathWithin(
+          pathname,
           `/${currentCompany?.slug}/general/biblioteca`,
         ),
         icon: BookCheck,

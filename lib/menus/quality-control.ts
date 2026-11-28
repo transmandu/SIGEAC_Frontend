@@ -1,10 +1,11 @@
-import type { Group, MenuContext } from "@/lib/menus/types";
+import { isPathWithin } from "@/lib/menus/helpers";
+import type { GroupDef, MenuContext } from "@/lib/menus/types";
 import { FilePen, OctagonAlert, Truck } from "lucide-react";
 
 export function buildQualityControlGroup({
   pathname,
   currentCompany,
-}: MenuContext): Group {
+}: MenuContext): GroupDef {
   return {
     groupLabel: "Control de Calidad",
     moduleValue: "quality_control",
@@ -13,7 +14,8 @@ export function buildQualityControlGroup({
         href: `/${currentCompany?.slug}/control_calidad/transito_articulos`,
         label: "Tránsito de Artículos",
         requiresTables: ["articles"],
-        active: pathname.includes(
+        active: isPathWithin(
+          pathname,
           `/${currentCompany?.slug}/control_calidad/transito_articulos`,
         ),
         icon: Truck,
@@ -25,7 +27,8 @@ export function buildQualityControlGroup({
         href: `/${currentCompany?.slug}/control_calidad/incoming`,
         label: "Gestión de Incoming",
         requiresTables: ["incoming_inspections"],
-        active: pathname.includes(
+        active: isPathWithin(
+          pathname,
           `/${currentCompany?.slug}/control_calidad/incoming`,
         ),
         icon: FilePen,
@@ -37,7 +40,8 @@ export function buildQualityControlGroup({
         href: `/${currentCompany?.slug}/control_calidad/cuarentena`,
         label: "Gestión de Cuarentena",
         requiresTables: ["quarantine_articles"],
-        active: pathname.includes(
+        active: isPathWithin(
+          pathname,
           `/${currentCompany?.slug}/control_calidad/cuarentena`,
         ),
         icon: OctagonAlert,

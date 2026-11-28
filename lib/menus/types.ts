@@ -18,6 +18,11 @@ export type Submenu = {
   allowedCompanySlugs?: string[];
   /** Sinónimos y siglas con los que el buscador global encuentra la entrada. */
   keywords?: string[];
+  /**
+   * Ruta con la que se compara la URL para marcar la entrada como activa, si
+   * no es la de `href` (por ejemplo cuando el enlace lleva la fecha de hoy).
+   */
+  match?: string;
 };
 
 export type Menu = {
@@ -52,6 +57,20 @@ export type Group = {
   requiresTables?: string[];
   menus: Menu[];
 };
+
+/**
+ * Lo que declaran los constructores de cada grupo. `active` de los submenús
+ * no se escribe a mano: `resolveActive` lo deriva de la URL, y el de un menú
+ * solo se declara cuando su sección es más amplia que sus submenús.
+ */
+export type SubmenuDef = Omit<Submenu, "active">;
+
+export type MenuDef = Omit<Menu, "active" | "submenus"> & {
+  active?: boolean;
+  submenus: SubmenuDef[];
+};
+
+export type GroupDef = Omit<Group, "menus"> & { menus: MenuDef[] };
 
 export type MenuContext = {
   pathname: string;

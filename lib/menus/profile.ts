@@ -1,4 +1,5 @@
-import type { Group, Menu, MenuContext } from "@/lib/menus/types";
+import { isPathWithin } from "@/lib/menus/helpers";
+import type { GroupDef, MenuContext, MenuDef } from "@/lib/menus/types";
 import { BellRing, HeartHandshake, UserRoundCog } from "lucide-react";
 import { ERROR_REPORT_VISIBLE_TO_NORMAL_USERS } from "@/lib/errorReportModules";
 
@@ -7,12 +8,14 @@ import { ERROR_REPORT_VISIBLE_TO_NORMAL_USERS } from "@/lib/errorReportModules";
  * está siempre disponible; `Notificaciones` sí depende del tenant, así que solo
  * se ofrece con una compañía seleccionada.
  */
-export function buildProfileGroup({ pathname, currentCompany }: MenuContext): Group {
-    const menus: Menu[] = [
+export function buildProfileGroup({ pathname, currentCompany }: MenuContext): GroupDef {
+    const menus: MenuDef[] = [
         {
             href: "/cuenta",
             label: "Mi Cuenta",
-            active: pathname === "/cuenta",
+            active:
+                isPathWithin(pathname, "/cuenta") &&
+                !isPathWithin(pathname, "/cuenta/reportes"),
             icon: UserRoundCog,
             roles: [],
             submenus: [],
@@ -20,7 +23,7 @@ export function buildProfileGroup({ pathname, currentCompany }: MenuContext): Gr
         {
             href: "/cuenta/reportes",
             label: "Mis Reportes",
-            active: pathname.startsWith("/cuenta/reportes"),
+            active: isPathWithin(pathname, "/cuenta/reportes"),
             icon: HeartHandshake,
             roles: ERROR_REPORT_VISIBLE_TO_NORMAL_USERS ? undefined : ["SUPERUSER"],
             submenus: [],
@@ -31,7 +34,7 @@ export function buildProfileGroup({ pathname, currentCompany }: MenuContext): Gr
         menus.push({
             href: `/${currentCompany.slug}/notifications`,
             label: "Notificaciones",
-            active: pathname.includes(`/${currentCompany.slug}/notifications`),
+            active: isPathWithin(pathname, `/${currentCompany.slug}/notifications`),
             icon: BellRing,
             roles: [],
             submenus: [],

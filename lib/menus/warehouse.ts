@@ -1,5 +1,6 @@
 import { WAREHOUSE_ROLES } from "@/lib/inventory-access";
-import type { Group, MenuContext } from "@/lib/menus/types";
+import { isPathWithin } from "@/lib/menus/helpers";
+import type { GroupDef, MenuContext } from "@/lib/menus/types";
 import {
   ClipboardCopy,
   FileBox,
@@ -13,18 +14,19 @@ import {
 export function buildWarehouseGroup({
   pathname,
   currentCompany,
-}: MenuContext): Group {
+}: MenuContext): GroupDef {
   const ALMACEN_ROLES = [...WAREHOUSE_ROLES];
 
   return {
-    groupLabel: "Almacen",
+    groupLabel: "Almacén",
     moduleValue: "warehouse",
     menus: [
       {
         href: `/${currentCompany?.slug}/almacen/recepcion_administrativa`,
         label: "Recepción Administrativa",
         requiresTables: ["articles"],
-        active: pathname.includes(
+        active: isPathWithin(
+          pathname,
           `/${currentCompany?.slug}/almacen/recepcion_administrativa`,
         ),
         icon: FileBox,
@@ -38,7 +40,8 @@ export function buildWarehouseGroup({
         href: `/${currentCompany?.slug}/almacen/recepcion_articulos`,
         label: "Recepción de Artículos",
         requiresTables: ["articles"],
-        active: pathname.includes(
+        active: isPathWithin(
+          pathname,
           `/${currentCompany?.slug}/almacen/recepcion_articulos`,
         ),
         icon: Truck,
@@ -50,7 +53,8 @@ export function buildWarehouseGroup({
         href: `/${currentCompany?.slug}/almacen/inventario_articulos/gestion_inventario`,
         label: "Inventario",
         requiresTables: ["articles"],
-        active: pathname.includes(
+        active: isPathWithin(
+          pathname,
           `/${currentCompany?.slug}/almacen/inventario_articulos`,
         ),
         icon: PackageOpen,
@@ -59,16 +63,10 @@ export function buildWarehouseGroup({
           {
             href: `/${currentCompany?.slug}/almacen/inventario_articulos/gestion_inventario`,
             label: "Gestión",
-            active: pathname.includes(
-              `/${currentCompany?.slug}/almacen/inventario_articulos/gestion_inventario`,
-            ),
           },
           {
             href: `/${currentCompany?.slug}/almacen/inventario_articulos/por_ubicar`,
             label: "Por Ubicar",
-            active:
-              pathname ===
-              `/${currentCompany?.slug}/almacen/inventario_articulos/por_ubicar`,
           },
         ],
       },
@@ -80,7 +78,8 @@ export function buildWarehouseGroup({
         // el material reingresa a inventario.
         href: `/${currentCompany?.slug}/almacen/solicitudes/salida`,
         label: "Solicitud de Salida",
-        active: pathname.includes(
+        active: isPathWithin(
+          pathname,
           `/${currentCompany?.slug}/almacen/solicitudes/salida`,
         ),
         icon: ClipboardCopy,
@@ -90,17 +89,11 @@ export function buildWarehouseGroup({
             href: `/${currentCompany?.slug}/almacen/solicitudes/salida`,
             label: "Salidas",
             requiresTables: ["dispatch_orders"],
-            active:
-              pathname ===
-              `/${currentCompany?.slug}/almacen/solicitudes/salida`,
           },
           {
             href: `/${currentCompany?.slug}/almacen/solicitudes/salida_taller`,
             label: "Salidas a Taller",
             requiresTables: ["workshop_dispatch_orders"],
-            active: pathname.includes(
-              `/${currentCompany?.slug}/almacen/solicitudes/salida_taller`,
-            ),
           },
         ],
       },
@@ -110,7 +103,8 @@ export function buildWarehouseGroup({
         label: "Cajas de Herramientas",
         requiresTables: ["tool_boxes"],
         roles: ALMACEN_ROLES,
-        active: pathname.includes(
+        active: isPathWithin(
+          pathname,
           `/${currentCompany?.slug}/almacen/caja_herramientas`,
         ),
         icon: Wrench,
@@ -121,7 +115,8 @@ export function buildWarehouseGroup({
         label: "Combustible",
         requiresTables: ["fuel_movements"],
         roles: ALMACEN_ROLES,
-        active: pathname.includes(
+        active: isPathWithin(
+          pathname,
           `/${currentCompany?.slug}/almacen/combustible`,
         ),
         icon: Fuel,
@@ -132,7 +127,8 @@ export function buildWarehouseGroup({
         label: "Gestión de Cantidades",
         requiresTables: ["articles"],
         roles: ALMACEN_ROLES,
-        active: pathname.includes(
+        active: isPathWithin(
+          pathname,
           `/${currentCompany?.slug}/almacen/gestion_cantidades`,
         ),
         icon: SquarePen,

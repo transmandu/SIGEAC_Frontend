@@ -1,4 +1,5 @@
-import type { Group, MenuContext } from "@/lib/menus/types";
+import { isPathWithin } from "@/lib/menus/helpers";
+import type { GroupDef, MenuContext } from "@/lib/menus/types";
 import {
   BookCheck,
   ClipboardCheck,
@@ -10,18 +11,10 @@ import {
   Wrench,
 } from "lucide-react";
 
-/**
- * Pertenece a la sección: la ruta misma o cualquiera de sus sub-rutas (detalle,
- * crear, editar). Con límite de segmento: `/control_mantenimiento` no cubre
- * `/control_mantenimiento_x`.
- */
-const isWithin = (pathname: string, href: string): boolean =>
-  pathname === href || pathname.startsWith(`${href}/`);
-
 export function buildPlanificationGroup({
   pathname,
   currentCompany,
-}: MenuContext): Group {
+}: MenuContext): GroupDef {
   const base = `/${currentCompany?.slug}/planificacion`;
 
   const audit = `${base}/auditoria`;
@@ -41,7 +34,7 @@ export function buildPlanificationGroup({
         href: audit,
         label: "Auditoría",
         requiresTables: ["planification_audit_logs"],
-        active: isWithin(pathname, audit),
+        active: isPathWithin(pathname, audit),
         icon: ClipboardCheck,
         requiresOmac: true,
         // Los mismos roles que el middleware de esas rutas (ver
@@ -53,7 +46,7 @@ export function buildPlanificationGroup({
         href: aircrafts,
         label: "Aeronaves",
         requiresTables: ["aircrafts"],
-        active: isWithin(pathname, aircrafts),
+        active: isPathWithin(pathname, aircrafts),
         icon: Plane,
         roles: [
           "ANALISTA_PLANIFICACION",
@@ -66,16 +59,15 @@ export function buildPlanificationGroup({
           {
             href: aircrafts,
             label: "Gestión de Aeronaves",
-            active: isWithin(pathname, aircrafts),
           },
         ],
       },
       {
         href: workOrders,
-        label: "Ordenes de Trabajo",
+        label: "Órdenes de Trabajo",
         keywords: ["ot", "work order"],
         requiresTables: ["work_orders"],
-        active: isWithin(pathname, workOrders),
+        active: isPathWithin(pathname, workOrders),
         icon: SquarePen,
         roles: [
           "ANALISTA_PLANIFICACION",
@@ -87,8 +79,7 @@ export function buildPlanificationGroup({
         submenus: [
           {
             href: workOrders,
-            label: "Gestionar Ordenes",
-            active: isWithin(pathname, workOrders),
+            label: "Gestionar Órdenes",
           },
         ],
       },
@@ -98,7 +89,7 @@ export function buildPlanificationGroup({
         href: `${flights}/vuelos`,
         label: "Control de Horas Vuelos",
         requiresTables: ["flights"],
-        active: isWithin(pathname, flights),
+        active: isPathWithin(pathname, flights),
         icon: BookCheck,
         requiresOmac: true,
         roles: [
@@ -111,7 +102,6 @@ export function buildPlanificationGroup({
           {
             href: `${flights}/vuelos`,
             label: "Vuelos",
-            active: isWithin(pathname, flights),
           },
         ],
       },
@@ -119,7 +109,7 @@ export function buildPlanificationGroup({
         href: maintenance,
         label: "Control de Mantenimiento",
         requiresTables: ["maintenance_controls"],
-        active: isWithin(pathname, maintenance),
+        active: isPathWithin(pathname, maintenance),
         icon: Wrench,
         requiresOmac: true,
         roles: ["ANALISTA_PLANIFICACION", "JEFE_PLANIFICACION", "SUPERUSER"],
@@ -127,14 +117,10 @@ export function buildPlanificationGroup({
           {
             href: maintenance,
             label: "Gestionar",
-            active:
-              isWithin(pathname, maintenance) &&
-              !isWithin(pathname, `${maintenance}/historial`),
           },
           {
             href: `${maintenance}/historial`,
             label: "Histórico",
-            active: isWithin(pathname, `${maintenance}/historial`),
           },
         ],
       },
@@ -142,7 +128,7 @@ export function buildPlanificationGroup({
         href: components,
         label: "Control de Componentes",
         requiresTables: ["component_controls"],
-        active: isWithin(pathname, components),
+        active: isPathWithin(pathname, components),
         icon: Cog,
         requiresOmac: true,
         roles: ["ANALISTA_PLANIFICACION", "JEFE_PLANIFICACION", "SUPERUSER"],
@@ -150,7 +136,6 @@ export function buildPlanificationGroup({
           {
             href: components,
             label: "Gestionar",
-            active: isWithin(pathname, components),
           },
         ],
       },
@@ -158,7 +143,7 @@ export function buildPlanificationGroup({
         href: avionics,
         label: "Control de Aviónica",
         requiresTables: ["avionics_controls"],
-        active: isWithin(pathname, avionics),
+        active: isPathWithin(pathname, avionics),
         icon: Radio,
         requiresOmac: true,
         roles: ["ANALISTA_PLANIFICACION", "JEFE_PLANIFICACION", "SUPERUSER"],
@@ -166,7 +151,6 @@ export function buildPlanificationGroup({
           {
             href: avionics,
             label: "Gestionar",
-            active: isWithin(pathname, avionics),
           },
         ],
       },
@@ -174,7 +158,7 @@ export function buildPlanificationGroup({
         href: directives,
         label: "Control de Directivas",
         requiresTables: ["directive_controls"],
-        active: isWithin(pathname, directives),
+        active: isPathWithin(pathname, directives),
         icon: ShieldAlert,
         requiresOmac: true,
         roles: ["SUPERUSER"],
@@ -182,7 +166,6 @@ export function buildPlanificationGroup({
           {
             href: directives,
             label: "Gestionar",
-            active: isWithin(pathname, directives),
           },
         ],
       },

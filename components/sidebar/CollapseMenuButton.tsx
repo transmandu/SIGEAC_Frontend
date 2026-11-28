@@ -42,6 +42,11 @@ interface CollapseMenuButtonProps {
   isOpen: boolean | undefined;
   /** Identifica el grupo para recordar si estaba abierto entre montajes. */
   stateKey?: string;
+  /**
+   * Orden de plegar o desplegar todo desde el menú. Cada orden trae un id
+   * nuevo; un submenú que se monta después no reaplica la que ya pasó.
+   */
+  command?: { id: number; open: boolean } | null;
 }
 
 export function CollapseMenuButton({
@@ -51,6 +56,7 @@ export function CollapseMenuButton({
   submenus,
   isOpen,
   stateKey,
+  command,
 }: CollapseMenuButtonProps) {
   const isSubmenuActive = submenus.some((submenu) => submenu.active);
   // El grupo de la ruta actual siempre arranca abierto; los demás, como el
@@ -67,6 +73,13 @@ export function CollapseMenuButton({
   // que el usuario acaba de cerrar estando dentro de una de sus rutas.
   const [wasSubmenuActive, setWasSubmenuActive] =
     useState<boolean>(isSubmenuActive);
+
+  const [appliedCommandId, setAppliedCommandId] = useState(command?.id);
+
+  if (command && command.id !== appliedCommandId) {
+    setAppliedCommandId(command.id);
+    setIsCollapsed(command.open);
+  }
 
   if (wasSubmenuActive !== isSubmenuActive) {
     setWasSubmenuActive(isSubmenuActive);
@@ -113,25 +126,11 @@ export function CollapseMenuButton({
               >
                 <Icon size={18} />
               </span>
-              <p
-                className={cn(
-                  "min-w-0 flex-1 truncate text-left text-[13px] font-medium transition-all duration-200",
-                  isOpen
-                    ? "translate-x-0 opacity-100"
-                    : "-translate-x-96 opacity-0",
-                )}
-              >
+              <p className="min-w-0 flex-1 truncate text-left text-[13px] font-medium">
                 {label}
               </p>
             </div>
-            <div
-              className={cn(
-                "shrink-0 whitespace-nowrap text-muted-foreground transition-colors duration-200 group-hover:text-foreground",
-                isOpen
-                  ? "translate-x-0 opacity-100"
-                  : "-translate-x-96 opacity-0",
-              )}
-            >
+            <div className="shrink-0 whitespace-nowrap text-muted-foreground transition-colors duration-200 group-hover:text-foreground">
               <ChevronDown
                 size={18}
                 className="transition-transform duration-200"
@@ -141,9 +140,9 @@ export function CollapseMenuButton({
         </Button>
       </CollapsibleTrigger>
       <CollapsibleContent className="overflow-hidden pl-2 data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
-        {submenus.map(({ href, label, active }, index) => (
+        {submenus.map(({ href, label, active }) => (
           <Button
-            key={index}
+            key={href}
             variant="ghost"
             className={cn(
               // my-0.5 + w-full: el m-1 lateral con su w-[calc(100%-0.5rem)]
@@ -155,24 +154,11 @@ export function CollapseMenuButton({
             )}
             asChild
           >
-            <Link href={href}>
-              {/* <span
-                className={cn(
-                  "absolute left-0 top-1/2 h-5 w-px -translate-y-1/2 bg-border/70",
-                  index === submenus.length - 1 && "h-0"
-                )}
-              /> */}
+            <Link href={href} aria-current={active ? "page" : undefined}>
               <span className="mr-2 flex size-6 shrink-0 items-center justify-center text-muted-foreground/80">
                 <Dot size={16} />
               </span>
-              <p
-                className={cn(
-                  "min-w-0 flex-1 truncate text-left text-[13px] font-medium",
-                  isOpen
-                    ? "translate-x-0 opacity-100"
-                    : "-translate-x-96 opacity-0",
-                )}
-              >
+              <p className="min-w-0 flex-1 truncate text-left text-[13px] font-medium">
                 {label}
               </p>
             </Link>
@@ -240,16 +226,20 @@ export function CollapseMenuButton({
           {label}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {submenus.map(({ href, label, active }, index) => (
+        {submenus.map(({ href, label, active }) => (
           <DropdownMenuItem
-            key={index}
+            key={href}
             asChild
             className={cn(
               "rounded-lg px-0 focus:bg-transparent",
               active && "bg-transparent",
             )}
           >
-            <Link className="cursor-pointer" href={href}>
+            <Link
+              className="cursor-pointer"
+              href={href}
+              aria-current={active ? "page" : undefined}
+            >
               <div
                 className={cn(
                   "flex w-full items-center rounded-lg border border-transparent px-2 py-2 text-[13px] font-medium text-muted-foreground transition-all duration-200 hover:border-border/60 hover:bg-muted/35 hover:text-foreground",

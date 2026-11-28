@@ -5,6 +5,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { CollapseMenuButton } from "@/components/sidebar/CollapseMenuButton";
+import { MenuBulkControls } from "@/components/sidebar/MenuBulkControls";
+import { MenuSkeleton } from "@/components/sidebar/MenuSkeleton";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -12,12 +14,15 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { useGetAvailableTables } from "@/hooks/sistema/useGetAvailableTables";
+import { useMenuInputs } from "@/hooks/helpers/use-session-snapshot";
 import { getMenuList } from "@/lib/menu-list";
-import { getSidebarScroll, setSidebarScroll } from "@/lib/sidebar-state";
+import {
+  getSidebarScroll,
+  setGroupOpen,
+  setSidebarScroll,
+} from "@/lib/sidebar-state";
 
 interface MenuProps {
   isOpen: boolean | undefined;
@@ -39,7 +44,6 @@ function readCollapsedGroups(storageKey: string): Record<string, boolean> {
 }
 
 export function Menu({ isOpen, scrollKey = "sidebar" }: MenuProps) {
-  const { user } = useAuth();
   const pathname = usePathname();
   const { selectedCompany } = useCompanyStore();
   const storageKey = useMemo(
@@ -60,11 +64,12 @@ export function Menu({ isOpen, scrollKey = "sidebar" }: MenuProps) {
     setCollapsedGroups(readCollapsedGroups(storageKey));
   }
 
-  const { data: availableTables } = useGetAvailableTables(
-    selectedCompany?.slug,
-  );
-
-  const isSuperUser = user?.roles?.some((role) => role.name === "SUPERUSER");
+  const {
+    roles: userRoles,
+    tables,
+    ready,
+  } = useMenuInputs(selectedCompany?.slug);
+  const isSuperUser = userRoles.includes("SUPERUSER");
 
   const toggleGroup = (groupLabel: string) => {
     setCollapsedGroups((prev) => {
@@ -80,10 +85,38 @@ export function Menu({ isOpen, scrollKey = "sidebar" }: MenuProps) {
   };
 
   // Memoize the menu list to prevent unnecessary recalculations
-  const menuList = useMemo(() => {
-    const userRoles = user?.roles?.map((role) => role.name) || [];
-    return getMenuList(pathname, selectedCompany, userRoles, availableTables);
-  }, [pathname, selectedCompany, user?.roles, availableTables]);
+  const menuList = useMemo(
+    () => getMenuList(pathname, selectedCompany, userRoles, tables),
+    [pathname, selectedCompany, userRoles, tables],
+  );
+
+  // Los submenús guardan su propio estado, así que además de persistirlo para
+  // los que no están montados (grupo plegado) se les avisa a los que sí lo
+  // están. Cada orden lleva un id nuevo para no reaplicarse al remontarse.
+  const [bulkCommand, setBulkCommand] = useState<{
+    id: number;
+    open: boolean;
+  } | null>(null);
+
+  const setAllOpen = (open: boolean) => {
+    const next = { ...collapsedGroups };
+
+    for (const { groupLabel, menus } of menuList) {
+      if (!groupLabel) continue;
+
+      next[groupLabel] = !open;
+
+      for (const menu of menus) {
+        if (menu.submenus.length > 0) {
+          setGroupOpen(`${storageKey}:${groupLabel}:${menu.label}`, open);
+        }
+      }
+    }
+
+    localStorage.setItem(storageKey, JSON.stringify(next));
+    setCollapsedGroups(next);
+    setBulkCommand((prev) => ({ id: (prev?.id ?? 0) + 1, open }));
+  };
 
   // La posición del scroll se recuerda aparte del componente: si el menú se
   // remonta o la lista de opciones cambia de tamaño (el navegador recorta el
@@ -96,7 +129,7 @@ export function Menu({ isOpen, scrollKey = "sidebar" }: MenuProps) {
     const el = scrollRef.current;
     const saved = getSidebarScroll(scrollKey);
     if (el && saved > 0 && el.scrollTop !== saved) el.scrollTop = saved;
-  }, [menuList, scrollKey]);
+  }, [menuList, scrollKey, ready]);
 
   // Se rearma con cada `scroll` mientras el usuario sigue moviendo (arrastre de
   // la barra, inercia táctil), así la ventana no corta un gesto largo.
@@ -129,6 +162,8 @@ export function Menu({ isOpen, scrollKey = "sidebar" }: MenuProps) {
         "border-border/80 bg-muted/60 text-foreground shadow-xs shadow-black/5",
     );
 
+  if (!ready) return <MenuSkeleton isOpen={isOpen} />;
+
   return (
     // Scroll nativo en vez de ScrollArea de Radix: el thumb virtual de Radix
     // se recalcula en JS y el menú bajaba a tirones. El nativo hereda la
@@ -142,7 +177,13 @@ export function Menu({ isOpen, scrollKey = "sidebar" }: MenuProps) {
       onKeyDown={markUserScroll}
       className="flex-1 overflow-y-auto overscroll-contain scrollbar-modern"
     >
-      <nav className="mt-6 w-full" aria-label="Main navigation">
+      <nav className="mt-6 w-full" aria-label="Navegación principal">
+        {isSuperUser && isOpen !== false && (
+          <MenuBulkControls
+            onExpandAll={() => setAllOpen(true)}
+            onCollapseAll={() => setAllOpen(false)}
+          />
+        )}
         <ul className="flex flex-col items-start gap-2 px-1 pb-4">
           {menuList.map(({ groupLabel, menus }, index) => {
             const isCollapsed = collapsedGroups[groupLabel] ?? false;
@@ -245,7 +286,10 @@ export function Menu({ isOpen, scrollKey = "sidebar" }: MenuProps) {
                                 className={getItemClassName(active)}
                                 asChild
                               >
-                                <Link href={href}>
+                                <Link
+                                  href={href}
+                                  aria-current={active ? "page" : undefined}
+                                >
                                   <span
                                     className={cn(
                                       "absolute left-0 top-1/2 h-6 w-0.75 -translate-y-1/2 rounded-r-full bg-primary opacity-0 transition-opacity duration-200",
@@ -293,6 +337,7 @@ export function Menu({ isOpen, scrollKey = "sidebar" }: MenuProps) {
                           active={active}
                           submenus={submenus}
                           isOpen={isOpen}
+                          command={bulkCommand}
                         />
                       </div>
                     ),

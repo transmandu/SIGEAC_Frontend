@@ -1,10 +1,11 @@
-import type { Group, MenuContext } from "@/lib/menus/types";
+import { isPathWithin } from "@/lib/menus/helpers";
+import type { GroupDef, MenuContext } from "@/lib/menus/types";
 import { Package, Users } from "lucide-react";
 
 export function buildOperationGroup({
   pathname,
   currentCompany,
-}: MenuContext): Group {
+}: MenuContext): GroupDef {
   return {
     groupLabel: "Operaciones",
     moduleValue: "operation",
@@ -13,7 +14,8 @@ export function buildOperationGroup({
         href: `/${currentCompany?.slug}/operaciones/counter`,
         label: "Facilitación",
         requiresTables: ["pax_flights"],
-        active: pathname.includes(
+        active: isPathWithin(
+          pathname,
           `/${currentCompany?.slug}/operaciones/counter`,
         ),
         icon: Users,
@@ -32,7 +34,10 @@ export function buildOperationGroup({
         href: `/${currentCompany?.slug}/operaciones/cargo`,
         label: "Carga",
         requiresTables: ["cargo_shipments"],
-        active: pathname.includes(`/${currentCompany?.slug}/operaciones/cargo`),
+        active: isPathWithin(
+          pathname,
+          `/${currentCompany?.slug}/operaciones/cargo`,
+        ),
         icon: Package,
         // Los endpoints de lectura de carga y manifiestos (y el layout de
         // /cargo) solo admiten estos tres; con JEFE_ADMINISTRACION el menú
@@ -43,21 +48,12 @@ export function buildOperationGroup({
           {
             href: `/${currentCompany?.slug}/operaciones/cargo`,
             label: "Guías de Carga",
-            active:
-              pathname === `/${currentCompany?.slug}/operaciones/cargo` ||
-              (pathname.includes(
-                `/${currentCompany?.slug}/operaciones/cargo`,
-              ) &&
-                !pathname.includes("/manifiestos")),
             roles: ["ANALISTA_ADMINISTRACION", "SUPERUSER", "OPERADOR_CARGA"],
           },
           {
             href: `/${currentCompany?.slug}/operaciones/cargo/manifiestos`,
             label: "Manifiestos",
             requiresTables: ["cargo_manifests"],
-            active: pathname.includes(
-              `/${currentCompany?.slug}/operaciones/cargo/manifiestos`,
-            ),
             roles: ["ANALISTA_ADMINISTRACION", "SUPERUSER", "OPERADOR_CARGA"],
           },
         ],

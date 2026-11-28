@@ -1,5 +1,6 @@
 import { CATALOG_ROLES } from "@/lib/menus/catalog-roles";
-import type { Group, MenuContext } from "@/lib/menus/types";
+import { isPathWithin } from "@/lib/menus/helpers";
+import type { GroupDef, MenuContext } from "@/lib/menus/types";
 import { Building2, Globe, KeyRound } from "lucide-react";
 
 /**
@@ -10,7 +11,7 @@ import { Building2, Globe, KeyRound } from "lucide-react";
 export function buildSettingsGroup({
   pathname,
   currentCompany,
-}: MenuContext): Group {
+}: MenuContext): GroupDef {
   const slug = currentCompany?.slug;
 
   return {
@@ -22,9 +23,9 @@ export function buildSettingsGroup({
         // Todo ajuste cuelga de /ajustes, pero Organización y Autorizaciones son
         // grupos aparte: sin excluirlos, Catálogos se marcaba también en ellos.
         active:
-          pathname.startsWith(`/${slug}/ajustes`) &&
-          !pathname.startsWith(`/${slug}/ajustes/empresa`) &&
-          !pathname.startsWith(`/${slug}/ajustes/autorizaciones`),
+          isPathWithin(pathname, `/${slug}/ajustes`) &&
+          !isPathWithin(pathname, `/${slug}/ajustes/empresa`) &&
+          !isPathWithin(pathname, `/${slug}/ajustes/autorizaciones`),
         icon: Globe,
         roles: [
           "JEFE_ALMACEN",
@@ -47,14 +48,12 @@ export function buildSettingsGroup({
             href: `/${slug}/ajustes/unidades`,
             label: "Unidades",
             requiresTables: ["units"],
-            active: pathname === `/${slug}/ajustes/unidades`,
             roles: [...CATALOG_ROLES.units],
           },
           {
             href: `/${slug}/ajustes/fabricantes`,
             label: "Fabricantes",
             requiresTables: ["manufacturers"],
-            active: pathname === `/${slug}/ajustes/fabricantes`,
             roles: [
               "JEFE_ALMACEN",
               "ANALISTA_ALMACEN",
@@ -68,21 +67,18 @@ export function buildSettingsGroup({
             href: `/${slug}/ajustes/proveedores`,
             label: "Proveedores",
             requiresTables: ["vendors"],
-            active: pathname === `/${slug}/ajustes/proveedores`,
             roles: [...CATALOG_ROLES.vendors],
           },
           {
             href: `/${slug}/ajustes/comercios`,
             label: "Comercios",
             requiresTables: ["retailers"],
-            active: pathname === `/${slug}/ajustes/comercios`,
             roles: [...CATALOG_ROLES.retailers],
           },
           {
             href: `/${slug}/ajustes/clientes`,
             label: "Clientes",
             requiresTables: ["clients"],
-            active: pathname === `/${slug}/ajustes/clientes`,
             roles: [
               "JEFE_ADMINISTRACION",
               "ANALISTA_ADMINISTRACION",
@@ -93,7 +89,6 @@ export function buildSettingsGroup({
             href: `/${slug}/ajustes/aeronaves`,
             label: "Aeronaves",
             requiresTables: ["aircrafts"],
-            active: pathname === `/${slug}/ajustes/aeronaves`,
             requiresOmac: false,
             roles: [
               "JEFE_ADMINISTRACION",
@@ -105,7 +100,6 @@ export function buildSettingsGroup({
             href: `/${slug}/ajustes/terceros`,
             label: "Terceros",
             requiresTables: ["third_parties"],
-            active: pathname === `/${slug}/ajustes/terceros`,
             roles: [
               "JEFE_ALMACEN",
               "ANALISTA_ALMACEN",
@@ -118,14 +112,12 @@ export function buildSettingsGroup({
             href: `/${slug}/ajustes/condiciones`,
             label: "Condiciones",
             requiresTables: ["conditions"],
-            active: pathname === `/${slug}/ajustes/condiciones`,
             roles: [...CATALOG_ROLES.conditions],
           },
           {
             href: `/${slug}/ajustes/fuentes_informacion`,
-            label: "Fuentes de Informacion",
+            label: "Fuentes de Información",
             requiresTables: ["information_sources"],
-            active: pathname === `/${slug}/ajustes/fuentes_informacion`,
             roles: [
               "JEFE_SMS",
               "ANALISTA_SMS",
@@ -139,14 +131,12 @@ export function buildSettingsGroup({
             href: `/${slug}/ajustes/agencias_envio`,
             label: "Agencias de Envío",
             requiresTables: ["shipping_agencies"],
-            active: pathname === `/${slug}/ajustes/agencias_envio`,
             roles: [...CATALOG_ROLES.shippingAgencies],
           },
           {
             href: `/${slug}/ajustes/pilotos`,
             label: "Pilotos",
             requiresTables: ["pilots"],
-            active: pathname === `/${slug}/ajustes/pilotos`,
             requiresOmac: false,
             roles: [
               "JEFE_PLANIFICACION",
@@ -159,7 +149,7 @@ export function buildSettingsGroup({
       {
         href: `/${slug}/ajustes/empresa`,
         label: "Organización",
-        active: pathname.startsWith(`/${slug}/ajustes/empresa`),
+        active: isPathWithin(pathname, `/${slug}/ajustes/empresa`),
         icon: Building2,
         roles: ["ADMIN", "SUPERUSER"],
         submenus: [
@@ -167,58 +157,49 @@ export function buildSettingsGroup({
             href: `/${slug}/ajustes/empresa/ubicaciones`,
             label: "Administrar Ubicaciones",
             requiresTables: ["locations"],
-            active: pathname === `/${slug}/ajustes/empresa/ubicaciones`,
           },
           {
             href: `/${slug}/ajustes/empresa/empleados`,
             label: "Administrar Empleados",
             requiresTables: ["employees"],
-            active: pathname === `/${slug}/ajustes/empresa/empleados`,
           },
           {
             href: `/${slug}/ajustes/empresa/cargos`,
             label: "Administrar Cargos",
             requiresTables: ["job_titles"],
-            active: pathname === `/${slug}/ajustes/empresa/cargos`,
           },
           {
             href: `/${slug}/ajustes/empresa/departamentos`,
             label: "Administrar Departamentos",
             requiresTables: ["departments"],
-            active: pathname === `/${slug}/ajustes/empresa/departamentos`,
           },
           {
             href: `/${slug}/ajustes/empresa/almacenes`,
             label: "Administrar Almacenes",
             requiresTables: ["warehouses"],
-            active: pathname === `/${slug}/ajustes/empresa/almacenes`,
           },
           {
             href: `/${slug}/ajustes/empresa/parametros`,
             label: "Parámetros de la Empresa",
             requiresTables: ["company_settings"],
-            active: pathname === `/${slug}/ajustes/empresa/parametros`,
             roles: ["SUPERUSER"],
           },
           {
             href: `/${slug}/ajustes/empresa/alertas`,
             label: "Alertas Críticas",
             requiresTables: ["critical_alert_settings"],
-            active: pathname === `/${slug}/ajustes/empresa/alertas`,
             roles: ["SUPERUSER"],
           },
           {
             href: `/${slug}/ajustes/empresa/notificaciones`,
             label: "Notificaciones In-App",
             requiresTables: ["notification_audience_rules"],
-            active: pathname === `/${slug}/ajustes/empresa/notificaciones`,
             roles: ["SUPERUSER"],
           },
           {
             href: `/${slug}/ajustes/empresa/correos`,
             label: "Destinatarios de Correos",
             requiresTables: ["mail_recipient_rules"],
-            active: pathname === `/${slug}/ajustes/empresa/correos`,
             roles: ["SUPERUSER"],
           },
         ],
@@ -226,19 +207,17 @@ export function buildSettingsGroup({
       {
         href: `/${slug}/ajustes/autorizaciones`,
         label: "Autorizaciones",
-        active: pathname.startsWith(`/${slug}/ajustes/autorizaciones`),
+        active: isPathWithin(pathname, `/${slug}/ajustes/autorizaciones`),
         icon: KeyRound,
         roles: ["ADMIN", "SUPERUSER"],
         submenus: [
           {
             href: `/${slug}/ajustes/autorizaciones/convenios`,
             label: "Convenios entre Empresas",
-            active: pathname === `/${slug}/ajustes/autorizaciones/convenios`,
           },
           {
             href: `/${slug}/ajustes/autorizaciones/autorizados`,
             label: "Personal Externo",
-            active: pathname === `/${slug}/ajustes/autorizaciones/autorizados`,
           },
         ],
       },
