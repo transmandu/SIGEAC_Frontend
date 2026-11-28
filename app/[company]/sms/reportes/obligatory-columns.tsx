@@ -17,6 +17,16 @@ export const columns: AppColumnDef<ObligatoryReport>[] = [
       <DataTableColumnHeader filter column={column} title="Nro. de Reporte" />
     ),
     meta: { title: "Nro. de Reporte" },
+    filterFn: (row, columnId, filterValue: string) => {
+      const value = row.getValue(columnId);
+      if (!value) return false;
+      const formatted = `ROS-${value}`;
+      const term = String(filterValue).toLowerCase().trim();
+      return (
+        formatted.toLowerCase().includes(term) ||
+        String(value).toLowerCase().includes(term)
+      );
+    },
     cell: ({ row }) => {
       return (
         <div className="flex justify-center">
